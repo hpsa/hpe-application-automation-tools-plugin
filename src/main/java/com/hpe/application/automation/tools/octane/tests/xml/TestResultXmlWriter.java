@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -41,7 +58,6 @@ import java.util.Iterator;
 public class TestResultXmlWriter {
 
 	private FilePath targetPath;
-	//private Run build;
 	private BuildDescriptor buildDescriptor;
 
 	private XMLStreamWriter writer;
@@ -54,7 +70,6 @@ public class TestResultXmlWriter {
 
 	public TestResultXmlWriter(FilePath targetPath, Run build) {
 		this.targetPath = targetPath;
-		//this.build = build;
 		this.buildDescriptor = BuildHandlerUtils.getBuildType(build);
 	}
 
@@ -84,19 +99,18 @@ public class TestResultXmlWriter {
 	private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
 		if (outputStream == null) {
 			outputStream = targetPath.write();
-			writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
+			writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
 			writer.writeStartDocument();
 
 			writer.writeStartElement("test_result");
 			writer.writeStartElement("build");
 			writer.writeAttribute("server_id", ConfigurationService.getModel().getIdentity());
-			BuildDescriptor descriptor = this.buildDescriptor;
-			writer.writeAttribute("job_id", descriptor.getJobId());
-			writer.writeAttribute("job_name", descriptor.getJobName());
-			writer.writeAttribute("build_id", descriptor.getBuildId());
-			writer.writeAttribute("build_name", descriptor.getBuildName());
-			if (!StringUtils.isEmpty(descriptor.getSubType())) {
-				writer.writeAttribute("sub_type", descriptor.getSubType());
+			writer.writeAttribute("job_id", buildDescriptor.getJobId());
+			writer.writeAttribute("job_name", buildDescriptor.getJobName());
+			writer.writeAttribute("build_id", buildDescriptor.getBuildId());
+			writer.writeAttribute("build_name", buildDescriptor.getBuildName());
+			if (!StringUtils.isEmpty(buildDescriptor.getSubType())) {
+				writer.writeAttribute("sub_type", buildDescriptor.getSubType());
 			}
 			writer.writeEndElement(); // build
 			writeFields(resultFields);
@@ -121,19 +135,6 @@ public class TestResultXmlWriter {
 			writer.writeAttribute("type", type);
 			writer.writeAttribute("value", value);
 			writer.writeEndElement();
-		}
-	}
-
-	// TODO: check if there is public mechanism yet
-	private XMLStreamWriter possiblyCreateIndentingWriter(XMLStreamWriter writer) {
-		try {
-			Class<?> clazz = Class.forName("com.sun.xml.txw2.output.IndentingXMLStreamWriter");
-			XMLStreamWriter xmlStreamWriter = (XMLStreamWriter) clazz.getConstructor(XMLStreamWriter.class).newInstance(writer);
-			clazz.getMethod("setIndentStep", String.class).invoke(xmlStreamWriter, " ");
-			return xmlStreamWriter;
-		} catch (Exception e) {
-			// do without indentation
-			return writer;
 		}
 	}
 }

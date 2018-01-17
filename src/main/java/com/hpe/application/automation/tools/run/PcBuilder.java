@@ -1,13 +1,22 @@
 /*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
  * MIT License
  *
- * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  *
@@ -18,6 +27,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
  */
 
 
@@ -107,6 +118,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     
     @DataBoundConstructor
     public PcBuilder(
+            String serverAndPort,
             String pcServerName,
             String almUserName,
             String almPassword,
@@ -124,7 +136,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String addRunToTrendReport,
             String trendReportId,
             boolean HTTPSProtocol,
-            String proxyOutURL) {
+            String proxyOutURL,
+            String proxyOutUser,
+            String proxyOutPassword) {
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.timeslotDurationHours = timeslotDurationHours;
@@ -133,6 +147,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         pcModel =
                 new PcModel(
+                        serverAndPort.trim(),
                         pcServerName.trim(),
                         almUserName.trim(),
                         almPassword,
@@ -149,7 +164,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         addRunToTrendReport,
                         trendReportId,
                         HTTPSProtocol,
-                        proxyOutURL);
+                        proxyOutURL,
+                        proxyOutUser,
+                        proxyOutPassword);
     }
     
     @Override
@@ -162,6 +179,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         WorkspacePath =  new File(build.getWorkspace().toURI());
+        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
         perform(build, build.getWorkspace(), launcher, listener);
 
         return true;
@@ -209,6 +227,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
+            pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println("- - -\nTest description: " + pcModel.getDescription());
             if (!beforeRun(pcClient))
@@ -234,7 +253,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
-        
+        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
@@ -587,8 +606,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
         logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
-        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId,viewUrl, downloadUrl);
 
+        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, pcModel.getserverAndPort() +  "/" +  build.getUrl() + viewUrl, pcModel.getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
     
     private String getArtifactsUrlPattern(Run<?, ?> build) {
@@ -689,6 +708,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     }
 
+    public String getServerAndPort()
+    {
+        return getPcModel().getserverAndPort();
+    }
     public String getPcServerName()
     {
         return getPcModel().getPcServerName();
@@ -724,7 +747,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getTrendReportId();
     }
 
-    public String autoTestInstanceID()
+    public String getAutoTestInstanceID()
     {
         return getPcModel().getAutoTestInstanceID();
     }
@@ -769,6 +792,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     public String getProxyOutURL(){ return getPcModel().getProxyOutURL();}
+    public String getProxyOutUser(){ return getPcModel().getProxyOutUser();}
+    public String getProxyOutPassword(){ return getPcModel().getProxyOutPassword();}
 
     // This indicates to Jenkins that this is an implementation of an extension
     // point
@@ -868,12 +893,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 ret = FormValidation.error(messagePrefix + "set");
             } else {
                 try {
-                    if (limitIncluded && Integer.parseInt(value) <= limit)
-                        ret = FormValidation.error(messagePrefix + "higher than " + limit);
-                    else if (Integer.parseInt(value) < limit)
-                        ret = FormValidation.error(messagePrefix + "at least " + limit);
+                    //regular expression: parameter (with brackets or not)
+                    if (value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$"))
+                        return ret;
+                    //regular expression: number
+                    else if (value.matches("[0-9]*$|")) {
+                        if (limitIncluded && Integer.parseInt(value) <= limit)
+                            ret = FormValidation.error(messagePrefix + "higher than " + limit);
+                        else if (Integer.parseInt(value) < limit)
+                            ret = FormValidation.error(messagePrefix + "at least " + limit);
+                    }
+                    else
+                        ret = FormValidation.error(messagePrefix + "a whole number or a parameter, e.g.: 23, $TESTID or ${TEST_ID}.");
                 } catch (Exception e) {
-                    ret = FormValidation.error(messagePrefix + "a whole number");
+                    ret = FormValidation.error(messagePrefix + "a whole number or a parameter (e.g.: $TESTID or ${TestID})");
                 }
             }
             

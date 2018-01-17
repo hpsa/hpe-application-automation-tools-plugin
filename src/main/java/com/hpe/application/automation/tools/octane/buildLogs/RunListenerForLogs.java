@@ -1,28 +1,40 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
 package com.hpe.application.automation.tools.octane.buildLogs;
 
 import com.google.inject.Inject;
-import com.hp.mqm.client.MqmRestClient;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
-import com.hpe.application.automation.tools.octane.configuration.BdiConfiguration;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
@@ -32,74 +44,32 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 /**
  * Created by benmeior on 11/16/2016
- * Jenkins events listener to dispatch build logs to bdi server
+ * Jenkins events listener to dispatch build logs to BDI server via Octane server as its proxy
  */
 
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
 	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
-	private JenkinsMqmRestClientFactory clientFactory;
-
 	@Inject
 	private LogDispatcher logDispatcher;
-	@Inject
-	private BdiConfigurationFetcher bdiConfigurationFetcher;
 
-	//  [YG] TODO: move workspace resolving logic to the async processor off the main thread
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
-		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
-		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
-			logger.debug("BDI is not configured in Octane");
+
+		if(ConfigurationService.getModel().isSuspend()){
 			return;
 		}
 
-		if (!(r instanceof AbstractBuild)) {
-			return;
+		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration().isValid()) {
+			AbstractBuild build = (AbstractBuild) r;
+			logger.info(String.format("Enqueued job [%s#%d]", build.getProject().getFullName(), build.getNumber()));
+			logDispatcher.enqueueLog(build.getProject().getFullName(), build.getNumber());
+		} else {
+			logger.warn("Octane configuration is not valid");
 		}
-
-		AbstractBuild build = (AbstractBuild) r;
-
-		try {
-			MqmRestClient mqmRestClient = createMqmRestClient();
-			if (mqmRestClient == null) {
-				logger.warn("Octane configuration is not valid");
-				return;
-			}
-
-			List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), build.getParent().getName());
-			if (workspaces.isEmpty()) {
-				logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
-			} else {
-				for (String workspace : workspaces) {
-					logger.info(String.format("Enqueued job [%s#%d] of workspace %s", build.getParent().getName(), build.getNumber(), workspace));
-					logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
-				}
-			}
-		} catch (Exception e) {
-			logger.error(String.format("Could not enqueue log for job %s", build.getParent().getName()));
-		}
-	}
-
-	private MqmRestClient createMqmRestClient() {
-		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-		if (configuration.isValid()) {
-			return clientFactory.obtain(
-					configuration.location,
-					configuration.sharedSpace,
-					configuration.username,
-					configuration.password);
-		}
-		return null;
-	}
-
-	@Inject
-	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-		this.clientFactory = clientFactory;
 	}
 }

@@ -1,4 +1,37 @@
 /*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
+
+/*
 * Takes all the parameter from the job in order to create a loadtest object
 * */
 package com.hpe.application.automation.tools.model;
@@ -14,13 +47,14 @@ public class PcModel {
     public static final String    COLLATE_ANALYZE = "Collate and Analyze";
     public static final String    DO_NOTHING      = "Do Not Collate";
 
-    private final String           pcServerName;
-    private final String           almUserName;
-    private final SecretContainer  almPassword;
-    private final String           almDomain;
-    private final String           almProject;
-    private final String           testId;
-    private final String           testInstanceId;
+    private final String           serverAndPort;
+    private String                 pcServerName;
+    private String                 almUserName;
+    private SecretContainer        almPassword;
+    private String                 almDomain;
+    private String                 almProject;
+    private String                 testId;
+    private String                 testInstanceId;
     private final String           autoTestInstanceID;
     private final TimeslotDuration timeslotDuration;
     private final PostRunAction    postRunAction;
@@ -30,13 +64,16 @@ public class PcModel {
     private String trendReportId;
     private final boolean HTTPSProtocol;
     private final String proxyOutURL;
+    private final String proxyOutUser;
+    private final String proxyOutPassword;
 
 
     @DataBoundConstructor
-    public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
+    public PcModel(String serverAndPort, String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL, String proxyOutUser, String proxyOutPassword/*, String buildParameters*/) {
 
+        this.serverAndPort = serverAndPort;
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
         this.almPassword = setPassword(almPassword);
@@ -53,6 +90,9 @@ public class PcModel {
         this.HTTPSProtocol = HTTPSProtocol;
         this.trendReportId = trendReportId;
         this.proxyOutURL = proxyOutURL;
+        this.proxyOutUser = proxyOutUser;
+        this.proxyOutPassword = proxyOutPassword;
+
     }
 
     protected SecretContainer setPassword(String almPassword) {
@@ -60,6 +100,10 @@ public class PcModel {
         SecretContainer secretContainer = new SecretContainerImpl();
         secretContainer.initialize(almPassword);
         return secretContainer;
+    }
+
+    public String getserverAndPort(){
+        return this.serverAndPort;
     }
 
     public String getPcServerName() {
@@ -128,6 +172,14 @@ public class PcModel {
         return this.proxyOutURL;
     }
 
+    public String getProxyOutUser(){
+        return this.proxyOutUser;
+    }
+
+    public String getProxyOutPassword(){
+        return this.proxyOutPassword;
+    }
+
     public static List<PostRunAction> getPostRunActions() {
         return Arrays.asList(PostRunAction.values());
     }
@@ -168,5 +220,48 @@ public class PcModel {
         if (!HTTPSProtocol)
             return "http";
         return "https";
+    }
+
+    public void setBuildParameters(String buildParameters){
+        //this.buildParameters=buildParameters;
+        this.pcServerName=useParameterIfNeeded(buildParameters,this.pcServerName);
+        this.almUserName=useParameterIfNeeded(buildParameters,this.almUserName);
+        this.almDomain = useParameterIfNeeded(buildParameters,this.almDomain);
+        this.almProject = useParameterIfNeeded(buildParameters,this.almProject);
+        this.testId = useParameterIfNeeded(buildParameters,this.testId);
+        this.testInstanceId = useParameterIfNeeded(buildParameters,this.testInstanceId);
+        this.trendReportId = useParameterIfNeeded(buildParameters,this.trendReportId);
+        String guid="905fe758-94bd-4cbe-b377-affecd6bbdb3";
+        String parametrizedPassword = useParameterForPasswordIfNeeded(buildParameters,guid);
+        this.almPassword = parametrizedPassword.equals(guid)? this.almPassword:setPassword(parametrizedPassword);
+    }
+
+    private static String useParameterIfNeeded (String buildParameters,String attribute){
+        if (buildParameters!=null && attribute!=null) {
+            if(attribute.startsWith("$")) {
+                String attributeParameter = attribute.replace("$", "").replace("{", "").replace("}", "");
+                String[] buildParametersArray = buildParameters.replace("{", "").replace("}", "").split(",");
+                for (String buildParameter : buildParametersArray) {
+                    if (buildParameter.trim().startsWith(attributeParameter + "=")) {
+                        return buildParameter.trim().replace(attributeParameter + "=", "");
+                    }
+                }
+            }
+        }
+        return attribute;
+    }
+
+    private static String useParameterForPasswordIfNeeded (String buildParameters, String almPassword){
+        if (buildParameters!=null) {
+            String expectedAlmPasswordParameterName = "PCPASSWORD";
+            String almPasswordFromParameter="";
+            String[] buildParametersArray = buildParameters.replace("{", "").replace("}", "").split(",");
+            for (String buildParameter : buildParametersArray) {
+                if (buildParameter.trim().startsWith(expectedAlmPasswordParameterName + "=")) {
+                    return buildParameter.trim().replace(expectedAlmPasswordParameterName + "=", "");
+                }
+            }
+        }
+        return almPassword;
     }
 }

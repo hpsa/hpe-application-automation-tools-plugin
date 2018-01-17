@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -84,7 +101,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         long thresholdTimeInMillis = new Date().getTime() - PeriodicWork.DAY * getOutdateThreshold();
         int clearCounter = 0;
         for (FreeStyleProject job : jobs) {
-            if (isExecutorJob(job) && job.getLastBuild() != null && !job.isBuilding()) {
+            if (UftJobRecognizer.isExecutorJob(job) && job.getLastBuild() != null && !job.isBuilding()) {
                 if (thresholdTimeInMillis > job.getLastBuild().getTimeInMillis()) {
                     try {
                         logger.warn(String.format("Job %s is going to be deleted as outdated job, last build was executed at %s", job.getName(), job.getLastBuild().getTimestampString2()));
@@ -101,24 +118,6 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         logger.warn(String.format("Cleaner found %s outdated execution job", clearCounter));
     }
 
-    private static boolean isExecutorJob(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        boolean isExecutorJob = job.getName().contains(TestExecutionJobCreatorService.EXECUTION_JOB_MIDDLE_NAME) &&
-                parameters != null &&
-                parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_ID_PARAMETER_NAME) != null &&
-                parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_RUN_ID_PARAMETER_NAME) != null;
-
-        return isExecutorJob;
-    }
-
-    private static boolean isDiscoveryJobJob(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        boolean isDiscoveryJob = job.getName().contains(TestExecutionJobCreatorService.DISCOVERY_JOB_MIDDLE_NAME) &&
-                parameters != null &&
-                parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME) != null;
-        return isDiscoveryJob;
-    }
-
     private void clearDiscoveryJobs(List<FreeStyleProject> jobs) {
 
         //Generally, after deleting executor in Octane, relevant job in Jenkins is also deleted. But if jenkins was down during delete of executor, job remains
@@ -130,7 +129,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
         Map<Long, Map<String, FreeStyleProject>> workspace2executorLogical2DiscoveryJobMap = new HashMap<>();
         for (FreeStyleProject job : jobs) {
-            if (isDiscoveryJobJob(job)) {
+            if (UftJobRecognizer.isDiscoveryJobJob(job)) {
                 String executorLogicalName = getExecutorLogicalName(job);
                 Long workspaceId = getOctaneWorkspaceId(job);
                 if (executorLogicalName != null && workspaceId != null) {
@@ -189,14 +188,14 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static Long getExecutorId(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME);
+        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_ID_PARAMETER_NAME);
         String value = (String) pd.getDefaultParameterValue().getValue();
         return Long.valueOf(value);
     }
 
     private static String getExecutorLogicalName(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
+        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
         String value = (String) pd.getDefaultParameterValue().getValue();
         return value;
     }
@@ -225,7 +224,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         long executorToDelete = Long.parseLong(id);
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (isDiscoveryJobJob(proj)) {
+            if (UftJobRecognizer.isDiscoveryJobJob(proj)) {
                 Long executorId = getExecutorId(proj);
                 if (executorId != null && executorId == executorToDelete) {
                     boolean waitBeforeDelete = false;

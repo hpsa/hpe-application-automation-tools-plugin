@@ -1,23 +1,39 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
 package com.hpe.application.automation.tools.octane.events;
 
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import com.google.inject.Inject;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -25,17 +41,19 @@ import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.tests.TestListener;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -44,21 +62,27 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created with IntelliJ IDEA.
+ * Run Listener that handles basic CI events and dispatches notifications to the Octane server
  * User: gullery
  * Date: 24/08/14
  * Time: 17:21
  */
 
 @Extension
-@SuppressWarnings({"squid:S2259","squid:S1872","squid:S1698","squid:S1132"})
-public final class RunListenerImpl extends RunListener<Run> {
+@SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
+public final class RunListenerImpl extends RunListener<Run> {	
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
+	@Inject
+	private TestListener testListener;
+
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
-		if(!ConfigurationService.getServerConfiguration().isValid()){
+		if (!ConfigurationService.getServerConfiguration().isValid()) {
+			return;
+		}
+		if (ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 
@@ -67,7 +91,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
 					.setProject(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(String.valueOf(r.getNumber()))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
 					.setNumber(String.valueOf(r.getNumber()))
 					.setStartTime(r.getStartTimeInMillis())
 					.setPhaseType(PhaseType.POST)
@@ -78,17 +102,16 @@ public final class RunListenerImpl extends RunListener<Run> {
 			workFlowRunProcessor.registerEvents(executor);
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
-				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
 						.setProject(BuildHandlerUtils.getJobCiId(r))
 						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(String.valueOf(build.getNumber()))
-						.setNumber(String.valueOf(build.getNumber()))
-						.setStartTime(build.getStartTimeInMillis())
-						.setEstimatedDuration(build.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
-						.setParameters(ParameterProcessors.getInstances(build));
+						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+						.setNumber(String.valueOf(r.getNumber()))
+						.setStartTime(r.getStartTimeInMillis())
+						.setEstimatedDuration(r.getEstimatedDuration())
+						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+						.setParameters(ParameterProcessors.getInstances(r));
 				if (isInternal(r)) {
 					event.setPhaseType(PhaseType.INTERNAL);
 				} else {
@@ -96,17 +119,16 @@ public final class RunListenerImpl extends RunListener<Run> {
 				}
 				EventsService.getExtensionInstance().dispatchEvent(event);
 			} else if (r instanceof AbstractBuild) {
-				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
 						.setProject(BuildHandlerUtils.getJobCiId(r))
 						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(String.valueOf(build.getNumber()))
-						.setNumber(String.valueOf(build.getNumber()))
-						.setStartTime(build.getStartTimeInMillis())
-						.setEstimatedDuration(build.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
-						.setParameters(ParameterProcessors.getInstances(build));
+						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+						.setNumber(String.valueOf(r.getNumber()))
+						.setStartTime(r.getStartTimeInMillis())
+						.setEstimatedDuration(r.getEstimatedDuration())
+						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+						.setParameters(ParameterProcessors.getInstances(r));
 				if (isInternal(r)) {
 					event.setPhaseType(PhaseType.INTERNAL);
 				} else {
@@ -118,11 +140,15 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	@Override
-	public void onFinalized(Run r)
-	{
-		if(!ConfigurationService.getServerConfiguration().isValid()){
+	public void onFinalized(Run r) {
+		if (!ConfigurationService.getServerConfiguration().isValid()) {
 			return;
 		}
+		if (ConfigurationService.getModel().isSuspend()) {
+			return;
+		}
+
+		boolean hasTests = testListener.processBuild(r);
 
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
@@ -136,20 +162,21 @@ public final class RunListenerImpl extends RunListener<Run> {
 		} else {
 			result = CIBuildResult.UNAVAILABLE;
 		}
-		CIEvent	event = dtoFactory.newDTO(CIEvent.class)
-			.setEventType(CIEventType.FINISHED)
-			.setBuildCiId(String.valueOf(r.getNumber()))
-			.setNumber(String.valueOf(r.getNumber()))
-			.setProject(BuildHandlerUtils.getJobCiId(r))
-			.setStartTime(r.getStartTimeInMillis())
-			.setEstimatedDuration(r.getEstimatedDuration())
-			.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-			.setResult(result)
-			.setDuration(r.getDuration());
+		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.FINISHED)
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+				.setNumber(String.valueOf(r.getNumber()))
+				.setProject(BuildHandlerUtils.getJobCiId(r))
+				.setStartTime(r.getStartTimeInMillis())
+				.setEstimatedDuration(r.getEstimatedDuration())
+				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+				.setResult(result)
+				.setDuration(r.getDuration())
+				.setTestResultExpected(hasTests);
 
-		if(r instanceof AbstractBuild){
+		if (r instanceof AbstractBuild) {
 			event.setParameters(ParameterProcessors.getInstances(r))
-				.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
 		EventsService.getExtensionInstance().dispatchEvent(event);
 	}
@@ -193,7 +220,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 				}
 			}
 		}
-
 		return result;
 	}
 
@@ -216,7 +242,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		}
-
 		return r.getCauses();
 	}
 }
