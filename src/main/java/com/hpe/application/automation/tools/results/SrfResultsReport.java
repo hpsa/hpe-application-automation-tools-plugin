@@ -173,7 +173,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
             String testName = "";
 
             try{
-                testName = classResult.getClassName();
+                testName = classResult.getClassName().toLowerCase();
             } catch (Exception e){
                 this._logger.println(e);
                 return null;
