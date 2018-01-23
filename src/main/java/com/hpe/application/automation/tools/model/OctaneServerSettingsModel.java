@@ -36,6 +36,7 @@ package com.hpe.application.automation.tools.model;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import java.util.Date;
 
@@ -48,6 +49,7 @@ public class OctaneServerSettingsModel {
     private String username;
     private Secret password;
     private String impersonatedUser;
+    private boolean suspend;
 
     // inferred from uiLocation
     private String location;
@@ -66,6 +68,14 @@ public class OctaneServerSettingsModel {
         this.impersonatedUser = impersonatedUser;
     }
 
+    public boolean isSuspend(){
+        return this.suspend;
+    }
+
+    @DataBoundSetter
+    public void setSuspend(boolean suspend){
+        this.suspend = suspend;
+    }
 
     public String getUiLocation() {
         return uiLocation;

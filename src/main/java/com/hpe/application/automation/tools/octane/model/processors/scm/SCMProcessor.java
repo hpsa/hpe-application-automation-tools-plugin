@@ -40,10 +40,12 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import java.util.List;
 
 /**
+ * API definition for SCM content processor/transformer for an Octane context
  * Created by gullery on 31/03/2015.
  */
 
 public interface SCMProcessor {
 	SCMData getSCMData(AbstractBuild build);
+
 	List<SCMData> getSCMData(WorkflowRun run);
 }

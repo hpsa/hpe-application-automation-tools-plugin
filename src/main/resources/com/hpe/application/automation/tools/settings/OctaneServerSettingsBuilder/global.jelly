@@ -76,6 +76,12 @@
                         </f:entry>
                     </f:optionalBlock>
                 </table>
+
+                <div style="margin-left: 2px">
+                    <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}" field="suspend"/>
+                    <label>&#160; ${%global.config.suspend.title}</label>
+               </div>
+
             </f:repeatable>
         </f:entry>
     </f:section>

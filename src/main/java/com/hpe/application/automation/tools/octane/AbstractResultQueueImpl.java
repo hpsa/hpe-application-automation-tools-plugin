@@ -109,6 +109,11 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 		queue.add(new QueueItem(projectName, buildNumber));
 	}
 
+	@Override
+	public synchronized void add(String projectName, String type, int buildNumber) {
+		queue.add(new QueueItem(projectName, type, buildNumber));
+	}
+
 	public int size() {
 		return queue.size();
 	}
@@ -143,7 +148,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 		}
 
 		private static QueueItem objectFromJson(JSONObject json) {
-			return json.containsKey("workspace") ?
+			QueueItem queueItem = json.containsKey("workspace") ?
 					new QueueItem(
 							json.getString("project"),
 							json.getInt("build"),
@@ -153,6 +158,10 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 							json.getString("project"),
 							json.getInt("build"),
 							json.getInt("count"));
+			if (json.containsKey("type")) {
+				queueItem.setType(json.getString("type"));
+			}
+			return queueItem;
 		}
 
 		private static JSONObject jsonFromObject(QueueItem item) {
@@ -161,6 +170,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			json.put("build", item.buildNumber);
 			json.put("count", item.failCount);
 			json.put("workspace", item.workspace);
+			json.put("type", item.type);
 			return json;
 		}
 	}

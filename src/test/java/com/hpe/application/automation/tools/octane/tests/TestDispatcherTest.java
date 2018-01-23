@@ -162,17 +162,42 @@ public class TestDispatcherTest {
 		mockRestClient(restClient, false);
 		FreeStyleBuild build = executeBuild();
 		queue.waitForTicks(5);
+		//System.out.println(String.format("OUR PRINT OUT 3 seconds: %s", testDispatcher._getTestResultQueue().periodIndex));
+		verifyRestClient(restClient, build, false);
+		verifyAudit(build);
+		// starting quite period 3 seconds
+
+
+		mockRestClient(restClient, false);
+		executeBuild();
+		queue.waitForTicks(5);
+		//System.out.println(String.format("OUR PRINT OUT (tarting quite period 10 seconds): %s", testDispatcher._getTestResultQueue().periodIndex));
 
 		verifyRestClient(restClient, build, false);
 		verifyAudit(build);
-		Mockito.reset(restClient);
 
+
+		//quite period 10 sewconds
+		mockRestClient(restClient, false);
+		executeBuild();
+		queue.waitForTicks(5);
+		//System.out.println(String.format("OUR PRINT OUT (quite period  2 minutes): %s", testDispatcher._getTestResultQueue().periodIndex));
+
+		verifyRestClient(restClient, build, false);
+		verifyAudit(build);
+
+
+		Mockito.reset(restClient);
+		//quite period 2 minutes
 		executeBuild();
 		queue.waitForTicks(5);
 
-		// in quiet period
+		//System.out.println(String.format("Entring validation", testDispatcher._getTestResultQueue().periodIndex));
+		//enter long quite period
+
+
 		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(2, queue.size());
+		Assert.assertEquals(4, queue.size());
 	}
 
 	@Test

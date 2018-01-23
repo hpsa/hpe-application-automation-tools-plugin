@@ -78,6 +78,17 @@ public class TestQueue implements ResultQueue {
 		queue.add(new QueueItem(projectName, buildNumber));
 	}
 
+	/**
+	 * add task to queue, type is not relevant to to test queue
+	 * @param projectName
+	 * @param type
+	 * @param buildNumber
+	 */
+	@Override
+	public void add(String projectName, String type, int buildNumber) {
+		queue.add(new QueueItem(projectName, buildNumber));
+	}
+
 	@Override
 	public void add(String projectName, int buildNumber, String workspace) {
 		queue.add(new QueueItem(projectName, buildNumber, workspace));

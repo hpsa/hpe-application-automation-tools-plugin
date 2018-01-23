@@ -59,6 +59,11 @@ public class RunListenerForLogs extends RunListener<Run> {
 
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
+
+		if(ConfigurationService.getModel().isSuspend()){
+			return;
+		}
+
 		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration().isValid()) {
 			AbstractBuild build = (AbstractBuild) r;
 			logger.info(String.format("Enqueued job [%s#%d]", build.getProject().getFullName(), build.getNumber()));
