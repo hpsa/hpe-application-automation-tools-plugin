@@ -831,14 +831,14 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         }
 
         if((srfProxy != null) && (srfProxy.length() != 0)) {
-            String[] res = srfProxy.split(":", 2);
+            URL proxy = new URL(srfProxy);
+            String proxyHost = proxy.getHost();
+            String proxyPort = String.format("%d",proxy.getPort());
             Properties systemProperties = System.getProperties();
-            String proxy = res[0];
-            systemProperties.setProperty("https.proxyHost", proxy);
-            if(res.length == 2) {
-                String port = res[1];
-                systemProperties.setProperty("https.proxyPort", port);
-            }
+            systemProperties.setProperty("https.proxyHost", proxyHost);
+            systemProperties.setProperty("http.proxyHost", proxyHost);
+            systemProperties.setProperty("https.proxyPort", proxyPort);
+            systemProperties.setProperty("http.proxyPort", proxyPort);
         }
 
         tests = null;
