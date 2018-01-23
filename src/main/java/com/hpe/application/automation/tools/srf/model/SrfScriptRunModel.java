@@ -31,7 +31,7 @@
  *
  */
 
-package com.hpe.application.automation.tools.model;
+package com.hpe.application.automation.tools.srf.model;
 
 import net.sf.json.JSONObject;
 
@@ -113,7 +113,8 @@ public class SrfScriptRunModel {
         errored("Error"),
         failed("Failed"),
         discarded("Discarded"),
-        cancelled("Cancelled");
+        cancelled("Cancelled"),
+        completed("Completed");
 
         private final String text;
         private SrfStatus(final String text) {

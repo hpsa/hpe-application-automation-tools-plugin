@@ -31,7 +31,7 @@
  *
  */
 
-package com.hpe.application.automation.tools.model;
+package com.hpe.application.automation.tools.srf.model;
 
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;

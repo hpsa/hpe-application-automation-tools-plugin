@@ -34,93 +34,60 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 <body>
 	<script>
-		var anchor;
 
-		setInterval(srfInit, 350);
-		function getAddButton(collection) {
-			var len = collection.length;
-			if (len === 0)
-				return null;
-			if (len === 1) {
-				var name = collection.item(0).innerText;
-				if (name.charAt(0) === 'A')
-					return collection.item(0);
-				else
-					return null;
-			}
-			else {
-				var name = collection.item(0).innerText;
-				if (name.charAt(0) === 'A')
-					return collection.item(0);
-				else
-					return collection.item(1);
+		window.addEventListener("load", srfInit, false);
 
-			}
-		}
-		function getDelButton(collection) {
-			var len = collection.length;
-			if (len === 0)
-				return null;
-			if (len === 1) {
-				var name = collection.item(0).innerText;
-				if (name.charAt(0) === 'D')
-					return collection.item(0);
-				else
-					return null;
-			}
-			else {
-				var name = collection.item(0).innerText;
-				if (name.charAt(0) === 'D')
-					return collection.item(0);
-				else
-					return collection.item(1);
-
-			}
-		}
 		function srfInit() {
-			if(document.readyState.localeCompare("loading") == 0)
-			    return;
-			anchor = document.getElementById('SRF_123');
-			var p = anchor.parentNode;
-			if (p == null) {
-				anchor.innerText = "null";
-			}
-			else {
-				//noinspection JSUnresolvedVariable
-				anchor.innerText = '${instance}'.toString();
-			}
-			var buttons = p.getElementsByTagName("button");
-			anchor.innerText = buttons.item(0).toString();
-			window.btn = getAddButton(buttons);
-			window.delBtn = getDelButton(buttons);
-			if(delBtn != undefined)
-			    btn.disabled=true;
-			else
-			    btn.disabled=false;
-			anchor.innerText = btn.id;
-			window.srfAddButton = btn;
+
+         // Execute Descriptor methods
+         var srfDescriptor = <st:bind value="${instance}"/>
+         srfDescriptor.hasSrfServers(function(hasSrfServerResponse) {
+               console.log("Successful execution:" + hasSrfServerResponse);
+               if(hasSrfServerResponse.responseJSON){
+                   addSrfServerHandler();
+               } else {
+                   addButtonEventWrapper = document.getElementById("addButtonEventWrapper");
+                   addButtonEventWrapper.addEventListener("click", addSrfServerHandler);
+               }
+         })
 		}
 
-		function srfClick(e) {
-			anchor.innerText = "click entered";
-			srfAddButton.disabled = true;
-			var p = anchor.parentNode;
-			if (p.getElementsByTagName("button").length > 1) {
-				window.delBtn = p.getElementsByTagName("button").item(1);
-				delBtn.addEventListener("click", srfDelClick);
-			}
-			return;
+		function addSrfServerHandler(){
+		    // Remove initial Add button event listener - fixing the issue of when add button is clicked the whole form triggers this function
+            addButtonEventWrapper = document.getElementById("addButtonEventWrapper");
+            addButtonEventWrapper.removeEventListener("click", addSrfServerHandler);
+
+            var buttons = getButtons();
+            window.addButton = getButtonByInnerText(buttons, "add");
+            // Put back click event ONLY on add button
+            addButton.addEventListener("click", addSrfServerHandler);
+            addButton.disabled=true;
+
+            window.delBtn = getButtonByInnerText(buttons, "delete");
+            delBtn.addEventListener("click", deleteSrfServerHandler);
 		}
 
-		function srfDelClick(e) {
-			anchor.innerText = "del clicked";
-			btn.disabled = false;
-			return;
-		}
+		function deleteSrfServerHandler(){
+            addButton.disabled=false;
+        }
 
-		function getSrfButton() {
-			return window.srfAddButton;
-		}
+        function getButtons() {
+            var anchor = document.getElementById('SRF_123');
+            var p = anchor.parentNode;
+            return p.getElementsByTagName("button");
+        }
+
+        function getButtonByInnerText(collection, innerText) {
+        	var button;
+        	Array.from(collection).forEach(function(item) {
+               var name = item.innerText.toLowerCase()
+               if(name.indexOf(innerText) !== -1)
+               	    button = item;
+             });
+
+            return button;
+        }
+
 	</script>
 	<!--
       This Jelly script is used to produce the global configuration option.
@@ -136,50 +103,47 @@
     -->
 
 	<f:section title="SRF Common Settings" name="SrfCommon">
-		<j:set var="noAdd"   value="${descriptor.hasSrfServers()}"/>
-
 		<f:entry  title="SRF Server"  description="">
 
-			<j:set var="descr"   value="${instance}"/>
-
-
-
-
-
 			<p hidden="true"  id="SRF_123">empty</p>
-			<f:repeatable name="SRF_123"  var="inst" items="${descriptor.installations}" add="Add SRF Server"  >
 
+			<span id="addButtonEventWrapper">
+			<f:repeatable name="SRF_123" var="inst" items="${descriptor.installations}" add="Add SRF Server" >
 
 				<table width="100%">
-					<f:entry title="${%SRF Tunnel Client}" field="srfTunnelPath">
-						<f:textbox value="${inst.srfTunnelPath}" name="srf.srfTunnelPath" />
+					<f:entry title="${%SRF Tunnel Client Path}" field="srfTunnelPath" description="SRF's tunnel client executable path (i.e. /var/tunnelClient/ftaas)" >
+						<f:textbox value="${inst.srfTunnelPath}" />
 					</f:entry>
 
-					<f:entry title="${%SRF Server}" field="srfServerName">
-						<f:textbox value="${inst.srfServerName}" name="srf.srfServerName" />
+					<f:entry title="${%SRF Server}" field="srfServerName" description="SRF's server address (i.e. https://srf-server.com)" >
+						<f:textbox value="${inst.srfServerName}" />
 					</f:entry>
 
-					<f:entry title="${%SRF Proxy}" field="srfProxyName">
-						<f:textbox value="${inst.srfProxyName}" name="srf.srfProxyName" />
+					<f:entry title="${%SRF Proxy}" field="srfProxyName" description="Proxy address (i.e. http://proxy-host:proxy-port)" >
+						<f:textbox value="${inst.srfProxyName}" />
 					</f:entry>
-					<f:entry title="${%Client ID}" field="srfAppName">
-						<f:textbox value="${inst.srfAppName}" name="srf.srfAppName" />
+
+					<f:entry title="${%Client ID}" field="srfAppName" description="SRF's client name for authentication">
+						<f:textbox value="${inst.srfAppName}" />
 					</f:entry>
-					<f:entry title="${%Client Secret}" field="srfSecretName">
-						<f:password value="${inst.srfSecretName}" name="srf.srfSecretName" />
+
+					<f:entry title="${%Client Secret}" field="srfSecretName" description="SRF's client secret for authentication" >
+						<f:password value="${inst.srfSecretName}" />
 					</f:entry>
+
+					<f:entry title="">
+                       <f:validateButton title="${%Test Connection}" progress="${%Testing...}" method="testConnection" with="srfServerName,srfAppName,srfSecretName,srfProxyName" />
+                    </f:entry>
 					<f:entry title="">
 						<div align="right">
-							<f:repeatableDeleteButton value="Delete SRF Server" />
-						</div>
+                            <f:repeatableDeleteButton value="Delete SRF Server" />
+                        </div>
 					</f:entry>
 				</table>
+
 			</f:repeatable>
+			</span>
 		</f:entry>
-
-
-
-
 	</f:section>
 </body>
 </j:jelly>

@@ -31,49 +31,36 @@
  *
  */
 
-package com.hpe.application.automation.tools.model;
-
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
+package com.hpe.application.automation.tools.srf.model;
 
 /**
- * Created by shepshel on 20/07/2016.
+ * Created by shepshel on 29/09/2016.
  */
-public class SrfServerSettingsModel {
-    private final String srfTunnelPath;
-    private final String srfServerName;
-    private final String srfProxyName;
-    private  final String srfAppName;
-    private  final String srfSecretName;
+
+
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
+
+/**
+ * Created by shepshel on 27/07/2016.
+ */
+public class SrfTestResultModel extends AbstractDescribableImpl<SrfTestResultModel> {
 
     @DataBoundConstructor
-    public SrfServerSettingsModel(String srfTunnelPath, String srfServerName, String srfProxyName,String srfAppName, String srfSecretName ) {
+    public SrfTestResultModel(){
 
-        this.srfTunnelPath = srfTunnelPath;
-        this.srfServerName = srfServerName;
-        this.srfProxyName = srfProxyName;
-        this.srfAppName = srfAppName;
-        this.srfSecretName = srfSecretName;
     }
+    @Extension
+    public static class DescriptorImpl extends Descriptor<SrfTestResultModel> {
+        public String getDisplayName() {
+            return "SrfTestResult";
+        }
 
-    public String getSrfServerName() {
 
-        return srfServerName;
     }
-    public String getSrfTunnelPath(){
-        return srfTunnelPath;
-    }
-    public String getSrfAppName() {
-        return srfAppName;
-    }
-    public String getSrfSecretName() {
-    
-        return srfSecretName;
-    }
-
-    public String getSrfProxyName() {
-
-        return srfProxyName;
-    }
-
 }
+
