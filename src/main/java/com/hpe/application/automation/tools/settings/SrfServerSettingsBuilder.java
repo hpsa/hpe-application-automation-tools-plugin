@@ -113,11 +113,16 @@ public class SrfServerSettingsBuilder extends Builder{
                 // like setUseFrench)
                 // req.bindParameters(this, "locks.");
 
-                JSONObject srfCommon = formData.getJSONObject("SrfCommon");
-                setInstallations(req.bindJSONToList(SrfServerSettingsModel.class, srfCommon.get("SRF_123")).toArray(
-                        new SrfServerSettingsModel[0]));
+                try {
+                    JSONObject srfCommon = formData.getJSONObject("SrfCommon");
+                    setInstallations(req.bindJSONToList(SrfServerSettingsModel.class, srfCommon.get("SRF_123")).toArray(
+                            new SrfServerSettingsModel[0]));
 
-                save();
+                    save();
+                } catch (Exception e){
+                    // Ignore
+                }
+
                 return super.configure(req, formData);
             }
 

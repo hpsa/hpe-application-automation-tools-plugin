@@ -90,6 +90,20 @@ import java.util.*;
 
 public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
     static final long serialVersionUID = 3;
+    private transient PrintStream logger;
+    private boolean _https;
+    private AbstractBuild<?, ?> build;
+    private  String srfTestId;
+    private  String srfBuildNumber;
+    private  String srfTagNames;
+    private  String srfReleaseNumber;
+    private String srfTunnelName;
+    private boolean srfCloseTunnel;
+    private List<SrfTestParamsModel> srfTestParameters;
+    private java.util.Hashtable<String, TestRunData> _testRunData;
+    private JSONArray tests ;
+    public transient Object srfTestArg = null;
+    
     class TestRunData implements java.io.Serializable
     {
         public TestRunData(JSONObject obj)
@@ -158,19 +172,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         new OpenThread(eventSource).start();
         return eventSource;
     }
-    private transient PrintStream logger;
-    private boolean _https;
-    private AbstractBuild<?, ?> build;
-    private  String srfTestId;
-    private  String srfBuildNumber;
-    private  String srfTagNames;
-    private  String srfReleaseNumber;
-    private String srfTunnelName;
-    private boolean srfCloseTunnel;
-    private List<SrfTestParamsModel> srfTestParameters;
-    private java.util.Hashtable<String, TestRunData> _testRunData;
-    private JSONArray tests ;
-    public transient Object srfTestArg = null;
+    
     @DataBoundConstructor
     public RunFromSrfBuilder( String srfTestId,
                               String srfTagNames,
