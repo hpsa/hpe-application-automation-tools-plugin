@@ -36,7 +36,7 @@ package com.hpe.application.automation.tools.results;
 import com.hpe.application.automation.tools.common.RuntimeUtils;
 import com.hpe.application.automation.tools.model.EnumDescription;
 import com.hpe.application.automation.tools.model.ResultsPublisherModel;
-import com.hpe.application.automation.tools.model.SrfScriptRunModel;
+import com.hpe.application.automation.tools.srf.model.SrfScriptRunModel;
 import com.hpe.application.automation.tools.run.RunFromSrfBuilder;
 import hudson.AbortException;
 import hudson.Extension;
@@ -173,7 +173,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
             String testName = "";
 
             try{
-                testName = classResult.getClassName();
+                testName = classResult.getClassName().toLowerCase();
             } catch (Exception e){
                 this._logger.println(e);
                 return null;

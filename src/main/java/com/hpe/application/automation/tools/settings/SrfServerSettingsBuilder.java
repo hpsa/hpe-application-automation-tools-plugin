@@ -33,7 +33,8 @@
 
 package com.hpe.application.automation.tools.settings;
 
-import com.hpe.application.automation.tools.model.SrfServerSettingsModel;
+import com.hpe.application.automation.tools.srf.model.SrfException;
+import com.hpe.application.automation.tools.srf.model.SrfServerSettingsModel;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -44,6 +45,13 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
+
+import javax.servlet.ServletException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.*;
 
 /**
  * Created by shepshel on 20/07/2016.
@@ -72,31 +80,10 @@ public class SrfServerSettingsBuilder extends Builder{
         // point.
         public static final class SrfDescriptorImpl extends BuildStepDescriptor<Builder> {
             private static String srfServer;
-            private int lastId = 0;
-            private Object _addButton;
-            public Object getaddButton(){
-                return _addButton;
-            }
-            public void setaddButton(Object btn){
-                _addButton = btn;
-            }
-            public boolean getAddButtonState(SrfDescriptorImpl o){
-                boolean b= true;
-                if(o == null)
-                    return false;
-                if(o.installations == null)
-                    return false;
-                if(o.installations[0] == null)
-                    return false;
-
-                return b;
-
-            }
 
 
             @Override
-            public boolean isApplicable(
-                    @SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
+            public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
                 // Indicates that this builder can be used with all kinds of project
                 // types
                 return true;
@@ -126,14 +113,18 @@ public class SrfServerSettingsBuilder extends Builder{
                 // like setUseFrench)
                 // req.bindParameters(this, "locks.");
 
-                setInstallations(req.bindParametersToList(SrfServerSettingsModel.class, "srf.").toArray(
-                        new SrfServerSettingsModel[0]));
+                try {
+                    JSONObject srfCommon = formData.getJSONObject("SrfCommon");
+                    setInstallations(req.bindJSONToList(SrfServerSettingsModel.class, srfCommon.get("SRF_123")).toArray(
+                            new SrfServerSettingsModel[0]));
 
-                save();
+                    save();
+                } catch (Exception e){
+                    // Ignore
+                }
+
                 return super.configure(req, formData);
             }
-
-
 
             @CopyOnWrite
             private SrfServerSettingsModel[] installations = new SrfServerSettingsModel[0];
@@ -144,31 +135,94 @@ public class SrfServerSettingsBuilder extends Builder{
 
             public void setInstallations(SrfServerSettingsModel... installations)  {
                 this.installations = installations;
+            }
 
-                UpdateButtonState();
-            }
-            private void UpdateButtonState(){
-                try {
-                    if(hasSrfServers())
-                        _addButton.getClass().getField("disabled").setBoolean(_addButton, true);
-                    else
-                        _addButton.getClass().getField("disabled").setBoolean(_addButton, false);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
             public FormValidation doCheckSrfServerName(@QueryParameter String value) {
-                UpdateButtonState();
                 if (StringUtils.isBlank(value)) {
                     return FormValidation.error("Srf server name cannot be empty");
                 }
 
+                try {
+                    URL urlUnderValidation = new URL(value);
+                    return FormValidation.ok();
+                }
+                catch (MalformedURLException e) {
+                    return FormValidation.error(String.format("SRF server url is invalid: %s", e.getMessage()));
+                }
+            }
+
+            public FormValidation doCheckSrfProxyName(@QueryParameter String value) {
+                if (StringUtils.isBlank(value))
+                    return FormValidation.ok();
+
+                try {
+                    URL urlUnderValidation = new URL(value);
+                    return FormValidation.ok();
+                }
+                catch (MalformedURLException e) {
+                    return FormValidation.error(String.format("SRF proxy server url is invalid: %s", e.getMessage()));
+                }
+            }
+
+            public FormValidation doCheckSrfAppName(@QueryParameter String value) {
+                if (StringUtils.isBlank(value))
+                    return FormValidation.error("Srf client id cannot be empty");
+
                 return FormValidation.ok();
             }
 
+            public FormValidation doCheckSrfSecretName(@QueryParameter String value) {
+                if (StringUtils.isBlank(value))
+                    return FormValidation.error("Srf client secret cannot be empty");
 
+                return FormValidation.ok();
+            }
 
+            public FormValidation doTestConnection(@QueryParameter("srfServerName") final String srfServer,
+                                                   @QueryParameter("srfProxyName") final String srfProxyName,
+                                                   @QueryParameter("srfAppName") final String srfAppName,
+                                                   @QueryParameter("srfSecretName") final String srfSecretName) throws IOException, ServletException {
+
+                HttpURLConnection connection;
+                BufferedReader in = null;
+
+                try {
+                    URL url = new URL(srfServer.concat("/health/ready"));
+                    if (srfProxyName != null && !srfProxyName.isEmpty()) {
+                        URL proxyUrl = new URL(srfProxyName);
+                        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl.getHost(), proxyUrl.getPort()));
+                        connection = (HttpURLConnection) url.openConnection(proxy);
+                    } else {
+                        connection = (HttpURLConnection) url.openConnection();
+                    }
+
+                    connection.setRequestMethod("GET");
+                    int responseCode = connection.getResponseCode();
+
+                    in = new BufferedReader(
+                            new InputStreamReader(connection.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+
+                    if (responseCode >= 300)
+                        throw new SrfException("Received response code of: " + responseCode);
+
+                    return FormValidation.ok("Success");
+                } catch (UnknownHostException e) {
+                    return FormValidation.error("Connection error : Unknown host " + e.getMessage());
+                } catch (Exception e) {
+                    return FormValidation.error("Connection error : " + e.getMessage());
+                } finally {
+                    if (in != null)
+                        in.close();
+                }
+            }
+
+            @JavaScriptMethod
             public Boolean hasSrfServers() {
                 return installations.length > 0;
             }
