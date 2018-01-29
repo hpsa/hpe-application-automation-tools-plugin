@@ -43,7 +43,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -61,7 +60,8 @@ public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
 	public static final String TEST_RESULT_FILE = "mqmTests.xml";
-	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.RunFromSrfBuilder";
 	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
 
 
@@ -78,8 +78,12 @@ public class TestListener {
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getParent()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
-				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
-					hpRunnerType = HPRunnerType.StormRunner;
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerLoad;
+					break;
+				}
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerFunctional;
 					break;
 				}
 				if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
