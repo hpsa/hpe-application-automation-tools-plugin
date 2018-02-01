@@ -35,7 +35,24 @@ package com.hpe.application.automation.tools.srf.model;
 
 public class SrfException extends Exception {
 
+    private String code;
+
     public SrfException(String message) {
         super(message);
     }
+    public SrfException(String message, String code) {
+        super(message);
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    @Override
+    public String toString() {
+        return (code != null && !code.isEmpty()) ? String.format("%s [%s]: %s", getClass().getName(), code, getMessage()) : super.toString();
+    }
+
+
 }

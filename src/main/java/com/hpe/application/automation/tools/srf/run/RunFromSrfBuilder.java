@@ -236,7 +236,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         return (RunFromSrfBuilder.DescriptorImpl) super.getDescriptor();
     }
 
-    public static JSONObject GetSrfConnectionData(AbstractBuild<?, ?> build, PrintStream logger) {
+    public static JSONObject getSrfConnectionData(AbstractBuild<?, ?> build, PrintStream logger) {
         try {
             CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
             // Create all-trusting host name verifier
@@ -312,10 +312,8 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 if (runningCount > 0)
                     return;
                 break;
-            case TEST_RUN_START:
-                return;
             default:
-                break;
+                return;
         }
 
         JSONArray testRes;
@@ -361,22 +359,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 }
             }
 
-            if (eventSrc != null) {
-                eventSrc.close();
-                eventSrc = null;
-            }
-            if (_con != null){
-                _con.disconnect();
-                _con = null;
-                if(srfCloseTunnel){
-                    if(CreateTunnelBuilder.Tunnels != null){
-                        for (Process p:CreateTunnelBuilder.Tunnels){
-                            p.destroy();
-                        }
-                        CreateTunnelBuilder.Tunnels.clear();
-                    }
-                }
-            }
+            cleanUp();
         }
 
         switch (build.getResult().toString()) {
@@ -492,11 +475,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             for (int i = 0; i < tagNames.length; i++) {
                // Normalize tag
                 String tag = tagNames[i];
-                if (tag.startsWith(" "))
-                    tagNames[i] = tag.replaceFirst("\\s", "");
-
-                if (tag.endsWith(" "))
-                    tagNames[i] = tag.replaceFirst("\\s$", "");
+                tagNames[i] = tag.trim();
             }
             data.put("tags", tagNames);
         } else
@@ -581,32 +560,12 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         }
 
         if (responseCode != 200) {
-            try{
-                JSONArray tests = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
-                JSONArray.fromObject(response.toString());
-                int len = tests.size();
-                for (int i= 0; i < len; i++) {
-                    JSONObject jo = tests.getJSONObject(i);
-                    if(jo.containsKey("testId") && ( jo.size() == 1)) {
-                        jobs.add(jo);
-                    }
-                    else {
-                        logger.print("\n\r");
-                        logger.print( jo.toString());
-                        logger.print("\n\r");
-                    }
-                }
-            }
-            catch(Exception e) {
-                 throw e;
-            }
-            if(jobs.size() == 0) {
-                logger.print("\n\r");
-                logger.print(response);
-                logger.print("\n\r");
-                String msg = response.toString();
-                throw new IOException(msg);
-            }
+            JSONObject srfError = JSONObject.fromObject(response.toString());
+            if (srfError.getString("name").toLowerCase().equals("srferror"))
+                throw new SrfException(srfError.getString("message"), srfError.getString("code"));
+
+            throw new SrfException(String.format("Failed for SRF execution request, received response with status code: %d and body: %s"
+                    , responseCode, response.toString()));
         } else {
             jobs = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
             if (jobs == null || jobs.size() == 0)
@@ -731,7 +690,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         this.sseEventListener.addObserver(this);
         this.srfExecutionFuture = new CompletableFuture<>();
 
-        JSONObject conData = GetSrfConnectionData(build, logger);
+        JSONObject conData = getSrfConnectionData(build, logger);
         if(conData == null)
             return false;
 
@@ -783,10 +742,12 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             }
 
         } catch (UnknownHostException | ConnectException | SSLHandshakeException | IllegalArgumentException e) {
+            cleanUp();
             logger.println(String.format("ERROR: Failed logging in to SRF server: %s %s", this._ftaasServerAddress, e));
             return false;
         } catch (IOException | SrfException e) {
-            logger.println(String.format("ERROR: Failed executing test, %s", e.getMessage()));
+            cleanUp();
+            logger.println(String.format("ERROR: Failed executing test, %s", e));
             return false;
         }
 
@@ -795,6 +756,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             return buildResult;
         } catch (ExecutionException e) {
             e.printStackTrace();
+            cleanUp();
             return false;
         }
     }
@@ -816,15 +778,15 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 Element testSuite = doc.createElement("testsuite");
                 JSONObject test = (JSONObject) (report.get(i));
                 String status = test.getString("status");
-                boolean isFailed = status.compareTo("failed") == 0 || status.compareTo("errored") == 0;
                 if (status == null)
                     status = "errored";
-                if (isFailed){
-                    build.setResult(Result.FAILURE);
+
+                if (status.compareTo("success") == 0 || status.compareTo("completed") == 0) {
+                    build.setResult(SUCCESS);
                 } else if(status.compareTo("cancelled") == 0) {
                     build.setResult(Result.ABORTED);
                 } else {
-                    build.setResult(SUCCESS);
+                    build.setResult(Result.FAILURE);
                 }
 
                 String timestamp = test.getString("start");
@@ -863,7 +825,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                     Element testCase = doc.createElement("testcase");
 
                     String scriptStatus = scriptRun.getString("status");
-                    if(isFailed){
+                    if(scriptStatus.compareTo("failed") == 0 || scriptStatus.compareTo("errored") == 0){
                         Element failure = doc.createElement("failure");
                         testCase.appendChild(failure);
                     }
@@ -934,6 +896,26 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         }
         doc.appendChild(root);
         return getStringFromDocument(doc);
+    }
+
+    private void cleanUp() {
+        if (eventSrc != null) {
+            eventSrc.close();
+            eventSrc = null;
+        }
+
+        if (_con != null){
+            _con.disconnect();
+            _con = null;
+            if(srfCloseTunnel){
+                if(CreateTunnelBuilder.Tunnels != null){
+                    for (Process p:CreateTunnelBuilder.Tunnels){
+                        p.destroy();
+                    }
+                    CreateTunnelBuilder.Tunnels.clear();
+                }
+            }
+        }
     }
 
     private String getStringFromDocument(Document doc)

@@ -40,6 +40,7 @@ import net.sf.json.JSONObject;
 import java.util.HashMap;
 
 public class SrfStepsHtmlUtil {
+      private static final String STEP_HTML_PATTERN = "<p>%1d  %1s</p>";
 
       interface SrfUftConsts {
             HashMap<String, String> steps = new HashMap<String, String>()
@@ -62,7 +63,7 @@ public class SrfStepsHtmlUtil {
       private static String getDefaultStepsHtml(JSONArray steps){
             StringBuilder allSteps = new StringBuilder();
             for (int k = 0; k < steps.size(); k++) {
-                  allSteps.append(String.format("<p>%1d  %1s</p>",k+1, steps.getJSONObject(k).getString("description")));
+                  allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, steps.getJSONObject(k).getString("description")));
             }
             return allSteps.toString();
       }
@@ -74,21 +75,21 @@ public class SrfStepsHtmlUtil {
                   String stepDescription = step.getString("description");
 
                   if (stepDescription != null && !stepDescription.isEmpty()) {
-                        allSteps.append(String.format("<p>%1d  %1s</p>", k + 1, stepDescription));
+                        allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, stepDescription));
                         continue;
                   }
 
                   JSONObject stepRole = step.getJSONObject("role");
                   String stepRoleType = stepRole.getString("type");
                   if (!SrfUftConsts.steps.containsKey(stepRoleType)){
-                        allSteps.append(String.format("<p>%1d  %1s</p>", k + 1, stepRoleType));
+                        allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, stepRoleType));
                         continue;
                   }
 
                   stepDescription = SrfUftConsts.steps.get(stepRoleType);
                   String iterationIndex = stepRole.getString("index");
 
-                  allSteps.append(String.format("<p>%1d  %1s</p>",k+1, String.format(stepDescription, iterationIndex)));
+                  allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, String.format(stepDescription, iterationIndex)));
             }
 
             return allSteps.toString();

@@ -128,6 +128,7 @@ public class SseEventListener extends Observable implements EventListener {
                 o1.get("name"),
                 eventName,
                 o1.get("status"));
+        this.notifyObservers(SrfTestRunEvents.TEST_RUN_START);
         this.logger.print(str);
     }
 

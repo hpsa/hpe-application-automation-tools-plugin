@@ -74,7 +74,7 @@ public class SrfScriptRunModel {
     }
 
     public String getLinkName() {
-        String normalizedScriptRunName = this.name.replaceAll("[\\.|-]","_");
+        String normalizedScriptRunName = this.name.replaceAll("[\\.|\\-|\\s]","_");
         return String.format("%s_%s", normalizedScriptRunName, this.yac);
     }
 

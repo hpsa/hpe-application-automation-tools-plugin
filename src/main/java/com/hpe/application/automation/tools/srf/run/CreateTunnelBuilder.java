@@ -72,7 +72,7 @@ public class CreateTunnelBuilder extends Builder  {
     public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         logger = listener.getLogger();
-        JSONObject connectionData = RunFromSrfBuilder.GetSrfConnectionData(build, logger);
+        JSONObject connectionData = RunFromSrfBuilder.getSrfConnectionData(build, logger);
         JSONObject configData;
         String client = "-client="  + connectionData.getString("app") ;
 
