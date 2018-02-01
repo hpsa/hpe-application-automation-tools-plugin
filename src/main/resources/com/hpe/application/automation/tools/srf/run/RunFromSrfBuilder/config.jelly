@@ -45,16 +45,10 @@
     </tr>  
 	</j:if-->
 
-    <f:entry title="SRF Test ID" field="srfTestId">
-             <div>
-                 Example: 982
-             </div>
+    <f:entry title="SRF Test ID" field="srfTestId" description="Example: 982" >
              <f:textbox name="runFromSrf.srfTestId" value="${instance.runFromSrf.srfTestId}"/>
         </f:entry>
-    <f:entry title="SRF Test Tags" field="srfTagNames">
-        <div>
-            Example: tag1,tag2
-        </div>
+    <f:entry title="SRF Test Tags" field="srfTagNames" description="Example: tag1,tag2" >
         <f:textbox name="runFromSrf.srfTagNames" value="${instance.runFromSrf.srfTagNames}"/>
     </f:entry>
     <f:entry title="SRF Tunnel Name" field="srfTunnelName">

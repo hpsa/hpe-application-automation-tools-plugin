@@ -37,7 +37,7 @@ import com.hpe.application.automation.tools.common.RuntimeUtils;
 import com.hpe.application.automation.tools.model.EnumDescription;
 import com.hpe.application.automation.tools.model.ResultsPublisherModel;
 import com.hpe.application.automation.tools.srf.model.SrfScriptRunModel;
-import com.hpe.application.automation.tools.run.RunFromSrfBuilder;
+import com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath.FileCallable;
@@ -50,6 +50,9 @@ import hudson.tasks.test.TestObject;
 import hudson.tasks.test.TestResultProjectAction;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+/*import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;*/
 import org.apache.tools.ant.DirectoryScanner;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -77,7 +80,7 @@ import java.util.*;
  * @author Thomas Maurel
  */
 public class SrfResultsReport extends Recorder implements Serializable {
-
+    //private static Logger logger = LogManager.getLogger(SrfResultsReport.class.getName());
     private static final long serialVersionUID = 1L;
     public  static Hashtable<String, SrfTestResultAction> myHash = new Hashtable<String, SrfTestResultAction>();
 
@@ -106,7 +109,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
             try {
               MetaClassLoader.debugLoader = new MetaClassLoader(new SrfClassLoader(urls, null));
             }catch (Exception e){}
-            _result =super.getResult();
+            _result = super.getResult();
             return _result;
         };
         public Object getWrappedTarget(){
@@ -212,13 +215,14 @@ public class SrfResultsReport extends Recorder implements Serializable {
 
                 scriptRuns.add(srfScriptRunModel);
             }
-
+            //logger.info("$#$#$#$##$#$#$ HELLLLOOOO( ##$#$#$#$$#$#$#$");
             return scriptRuns.toArray(new SrfScriptRunModel[scriptRuns.size()]);
         }
 
         public SrfScriptRunModel getScriptRunModel(CaseResult caseResult) {
             SrfScriptRunModel scriptRuns[] = this.getScriptRuns(caseResult.getParent());
             for (SrfScriptRunModel scriptRun: scriptRuns) {
+                //logger.log(Level.INFO,"$#$#$#$##$#$#$ HELLLLOOOO( ##$#$#$#$$#$#$#$");
                 if (scriptRun.getLinkName().equals(caseResult.getSafeName()))
                      return scriptRun;
             }

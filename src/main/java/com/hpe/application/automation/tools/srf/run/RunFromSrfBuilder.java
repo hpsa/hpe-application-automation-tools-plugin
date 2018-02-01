@@ -31,18 +31,17 @@
  *
  */
 
-package com.hpe.application.automation.tools.run;
+package com.hpe.application.automation.tools.srf.run;
 import com.hpe.application.automation.tools.srf.model.SrfException;
 import com.hpe.application.automation.tools.srf.model.SrfServerSettingsModel;
 import com.hpe.application.automation.tools.srf.model.SrfTestParamsModel;
 import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
+import com.hpe.application.automation.tools.srf.utilities.SrfStepsHtmlUtil;
+import com.hpe.application.automation.tools.srf.utilities.SseEventListener;
 import groovy.transform.Synchronized;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Hudson;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -52,9 +51,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.auth.AuthenticationException;
 import org.apache.commons.lang.StringUtils;
-import org.glassfish.jersey.media.sse.EventListener;
 import org.glassfish.jersey.media.sse.EventSource;
-import org.glassfish.jersey.media.sse.InboundEvent;
 import org.glassfish.jersey.media.sse.SseFeature;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Dispatcher;
@@ -82,13 +79,17 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static hudson.model.Result.SUCCESS;
 
 /**
  * Created by shepshel on 20/07/2016.
  */
 
 
-public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
+public class RunFromSrfBuilder extends Builder implements java.io.Serializable, Observer {
     static final long serialVersionUID = 3;
     private transient PrintStream logger;
     private boolean _https;
@@ -101,9 +102,42 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
     private boolean srfCloseTunnel;
     private List<SrfTestParamsModel> srfTestParameters;
     private java.util.Hashtable<String, TestRunData> _testRunData;
-    private JSONArray tests ;
+    private JSONArray jobIds;
     public transient Object srfTestArg = null;
-    
+    private SseEventListener sseEventListener;
+    private int runningCount;
+    private transient EventSource eventSrc;
+    private ArrayList<String> _testRunEnds;
+    private String _ftaasServerAddress;
+    private String _app;
+    private String _tenant;
+    private String _secret;
+    private boolean _success;
+    private boolean _secretApplied;
+    private transient HttpURLConnection _con;
+    private static SrfTrustManager _trustMgr = new SrfTrustManager();
+    static SSLSocketFactory _factory;
+    private String _token;
+    private CompletableFuture<Boolean> srfExecutionFuture;
+
+    @DataBoundConstructor
+    public RunFromSrfBuilder( String srfTestId,
+                              String srfTagNames,
+                              String srfReleaseNumber,
+                              String srfBuildNumber,
+                              String srfTunnelName,
+                              boolean srfCloseTunnel,
+                              List<SrfTestParamsModel> srfTestParameters ) {
+
+        this.srfTestId = srfTestId;
+        this.srfTagNames = srfTagNames;
+        this.srfTestParameters = srfTestParameters;
+        this.srfBuildNumber = srfBuildNumber;
+        this.srfReleaseNumber = srfReleaseNumber;
+        this.srfCloseTunnel = srfCloseTunnel;
+        this.srfTunnelName = srfTunnelName;
+    }
+
     class TestRunData implements java.io.Serializable
     {
         public TestRunData(JSONObject obj)
@@ -172,24 +206,6 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         new OpenThread(eventSource).start();
         return eventSource;
     }
-    
-    @DataBoundConstructor
-    public RunFromSrfBuilder( String srfTestId,
-                              String srfTagNames,
-                              String srfReleaseNumber,
-                              String srfBuildNumber,
-                              String srfTunnelName,
-                              boolean srfCloseTunnel,
-                              List<SrfTestParamsModel> srfTestParameters ){
-
-        this.srfTestId = srfTestId;
-        this.srfTagNames = srfTagNames;
-        this.srfTestParameters = srfTestParameters;
-        this.srfBuildNumber = srfBuildNumber;
-        this.srfReleaseNumber = srfReleaseNumber;
-        this.srfCloseTunnel = srfCloseTunnel;
-        this.srfTunnelName = srfTunnelName;
-    }
 
     public String getSrfTestId() {
         return srfTestId;
@@ -212,8 +228,6 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
     public List<SrfTestParamsModel> getSrfTestParameters() {return  srfTestParameters;  }
 
     public String getRunResultsFileName() {
-
-
         return String.format( "report%1d.xml", build.number);
     }
     @Synchronized
@@ -221,21 +235,6 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
     public RunFromSrfBuilder.DescriptorImpl getDescriptor() {
         return (RunFromSrfBuilder.DescriptorImpl) super.getDescriptor();
     }
-    private boolean _runStatus;
-    private int runningCount;
-    private transient EventSource eventSrc;
-    private ArrayList<String> _testRunEnds;
-    private int _timeout;
-    private String _ftaasServerAddress;
-    private String _app;
-    private String _tenant;
-    private String _secret;
-    private boolean _success;
-    private boolean _secretApplied;
-    private transient HttpURLConnection _con;
-    private static SrfTrustManager _trustMgr = new SrfTrustManager();
-    static SSLSocketFactory _factory;
-    private String _token;
 
     public static JSONObject GetSrfConnectionData(AbstractBuild<?, ?> build, PrintStream logger) {
         try {
@@ -304,6 +303,96 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         return null;
     }
 
+    @Override
+    public void update(Observable o, Object eventType) {
+
+        switch ((SseEventListener.SrfTestRunEvents)eventType) {
+            case TEST_RUN_END:
+                this.runningCount--;
+                if (runningCount > 0)
+                    return;
+                break;
+            case TEST_RUN_START:
+                return;
+            default:
+                break;
+        }
+
+        JSONArray testRes;
+        FileOutputStream fs = null;
+
+        try {
+            testRes = getTestResults(jobIds);
+
+            int sz = testRes.size();
+            for(int i = 0; i <sz; i++){
+                JSONObject jo = testRes.getJSONObject(i);
+                jo.put("tenantid", _tenant);
+            }
+
+            String path = build.getRootDir().getPath().concat("/report.json");
+            File jsonReportFile = new File(path);
+            jsonReportFile.createNewFile();
+            fs = new FileOutputStream(jsonReportFile);
+            fs.write(testRes.toString().getBytes());
+
+            String   xmlReport = "";
+            xmlReport = convert2Xml(testRes);
+
+            String name = String.format("report%1d.xml", build.number); //build.getWorkspace().getParent().child("builds").child(name)
+            String htmlName = String.format("%1s/Reports/index.html",build.getWorkspace());//, build.number);
+            File xmlReportFile = new File(build.getWorkspace().child(name).toString());
+            xmlReportFile.createNewFile();
+
+            fs = new FileOutputStream(xmlReportFile);
+            fs.write(xmlReport.getBytes());
+
+            if(_con != null)
+                _con.disconnect();
+
+        } catch (Exception e ) {
+            logger.print(e.getMessage());
+        } finally {
+            if(fs != null) {
+                try {
+                    fs.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (eventSrc != null) {
+                eventSrc.close();
+                eventSrc = null;
+            }
+            if (_con != null){
+                _con.disconnect();
+                _con = null;
+                if(srfCloseTunnel){
+                    if(CreateTunnelBuilder.Tunnels != null){
+                        for (Process p:CreateTunnelBuilder.Tunnels){
+                            p.destroy();
+                        }
+                        CreateTunnelBuilder.Tunnels.clear();
+                    }
+                }
+            }
+        }
+
+        switch (build.getResult().toString()) {
+            case "SUCCESS":
+                this.srfExecutionFuture.complete(true);
+                return;
+            case "ABORTED":
+            case "FAILURE":
+                this.srfExecutionFuture.complete(false);
+                return;
+            default:
+                //TODO: log
+                this.srfExecutionFuture.complete(false);
+        }
+    }
+
     private JSONArray getTestResults(JSONArray tests) throws IOException {
         String url = "";
         JSONArray res = new JSONArray();
@@ -339,6 +428,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         }
         return res;
     }
+
     private String applyJobParams(String val){
         if ((val.length() > 2) && val.startsWith("${") && val.endsWith("}")) {
             String varName = val.substring(2, val.length() - 1);
@@ -365,6 +455,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         }
         return val;
     }
+
     private HttpURLConnection connect(String path, String method){
         try {
             String reqUrl = _ftaasServerAddress.concat(path);
@@ -389,17 +480,28 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         }
     }
 
-    private void fillExecutionReqBody() throws IOException{
+    private void fillExecutionReqBody() throws IOException, SrfException {
         _con.setDoOutput(true);
         JSONObject data = new JSONObject();
         JSONObject testParams = new JSONObject();
         JSONObject ciParameters = new JSONObject();
         if (srfTestId != null && srfTestId.length() > 0) {
             data.put("testYac", applyJobParams(srfTestId));
-        } else {
+        } else if (srfTagNames != null && !srfTagNames.isEmpty()) {
             String[] tagNames = applyJobParams(srfTagNames).split(",");
+            for (int i = 0; i < tagNames.length; i++) {
+               // Normalize tag
+                String tag = tagNames[i];
+                if (tag.startsWith(" "))
+                    tagNames[i] = tag.replaceFirst("\\s", "");
+
+                if (tag.endsWith(" "))
+                    tagNames[i] = tag.replaceFirst("\\s$", "");
+            }
             data.put("tags", tagNames);
-        }
+        } else
+            throw new SrfException("Both test id and test tags are empty");
+
         if (srfTunnelName != null && srfTunnelName.length() > 0) {
 
             data.put("tunnelName", srfTunnelName);
@@ -453,15 +555,13 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         }
     }
 
-    private JSONArray getTestsSet() throws MalformedURLException, AuthenticationException, IOException, SrfException {
+    private JSONArray executeTestsSet() throws MalformedURLException, AuthenticationException, IOException, SrfException {
 
         StringBuffer response = new StringBuffer();
         JSONArray jobs = new JSONArray();
         _con = connect("/rest/jobmanager/v1/execution/jobs", "POST");
 
         fillExecutionReqBody();
-
-        _timeout = 20000;
 
         int responseCode = _con.getResponseCode();
         BufferedReader br;
@@ -511,6 +611,8 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
             jobs = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
             if (jobs == null || jobs.size() == 0)
                 throw new SrfException(String.format("No tests found for %s", this.srfTestId != null && !this.srfTestId.equals("") ? "test id: " + this.srfTestId : "test tags: " + this.srfTagNames));
+
+            this.runningCount = jobs.size();
         }
         JSONArray jobIds = new JSONArray();
         int cnt = jobs.size();
@@ -578,15 +680,17 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
     }
 
     private void initSrfEventListener() throws IOException, ConnectException, UnknownHostException, SSLHandshakeException, IllegalArgumentException {
+
         if(this._token != null)
             return;
 
+        // !!! Important Notice !!!
+        // by using 'level=session' in the sse request we're ensuring that we'll get only event related
+        // to this run since we're creating a new session (token) for each run
         this._token = loginToSrf();
-
         String urlSSe = _ftaasServerAddress.concat("/rest/test-manager/events")
                 .concat("?level=session&types=test-run-started,test-run-ended,test-run-count,script-step-updated,script-step-created,script-run-started,script-run-ended");
         urlSSe = urlSSe.concat("&access-token=").concat(_token);
-//        urlSSe = urlSSe.concat("&TENANTID="+_tenant);
 
         ClientBuilder sslBuilder = ClientBuilder.newBuilder();
         SSLContext sslContext;
@@ -609,193 +713,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         int responseCode;
 
         eventSrc = openAsynch(target, addAuthentication(null));
-        eventSrc.register(this.sseEventHandler());
-        /*new EventListener() {
-            @Override
-            public void onEvent(InboundEvent inboundEvent) {
-                _timeout = 20000;
-                //             if(tests == null)
-                //                   return;
-                String eventName = inboundEvent.getName();
-                //            logger.print(String.format("***********%1s**********\r\n", eventName));
-                String data = inboundEvent.readData();
-                String str;
-                if(data != null && data.length()> 0)
-                    try {
-
-                        JSONObject obj = JSONObject.fromObject(data);
-                        if (eventName.compareTo("test-run-count") == 0) {
-                            return;
-                        }
-                        if (eventName.compareTo("test-run-started") == 0) {
-                            logger.print(delim);
-                            obj.discard("runningCount");
-                            JSONObject o1 = JSONObject.fromObject(obj.get("testRun"));
-                            str = String.format("\r\n%1s %2s Status:%3s\r\n",
-                                    o1.get("name"),
-                                    eventName,
-                                    o1.get("status"));
-                            logger.print(str);
-                            _testRunEnds.add(o1.get("id").toString());
-
-                        }
-                        if ((eventName.compareTo("test-run-ended") == 0) *//*|| (eventName.compareTo("test-run-started") == 0)*//*) {
-                            int testsCnt=tests.size();
-                            boolean skip = true;
-                            String id = obj.getJSONObject("testRun").getString("id");
-                            for(int i = 0; i < testsCnt; i++){
-                                if(id.compareTo(tests.getString(i)) == 0){
-                                    skip = false;
-                                    break;
-                                }
-                            }
-                            if(skip)
-                                return;
-                            logger.print(delim);
-                            obj.discard("runningCount");
-                            JSONObject o1 = JSONObject.fromObject(obj.get("testRun"));
-                            o1.discard("id");
-                            o1.discard("tags");
-                            o1.discard("user");
-                            o1.discard("additionalData");
-                            obj.discard("testRun");
-
-                            JSONObject o2 = JSONObject.fromObject(o1.get("test"));
-                            o1.discard("test");
-                            obj.put("testRun", o1);
-                            obj.put("environments", o2.get("environments"));
-                            obj.put("scripts", o2.get("scripts"));
-
-                            str = String.format("\r\n%1s %2s Status:%3s\r\n",
-                                    o1.get("name"),
-                                    eventName,
-                                    o1.get("status")
-                            );
-                            logger.print(str);
-                            runningCount--;
-                        }
-                        if (eventName.contains ("script-step-")) {
-                            String status = obj.getString("status");
-                            if(status.compareTo("running") == 0)
-                                return;
-                            logger.print(delim);
-                            str = String.format("\r\n%1s Status: %2s\r\n",
-                                    eventName,
-                                    obj.get("status")
-                            );
-                            logger.print(str);
-                            obj.discard("id");
-                            obj.discard("scriptRun");
-                            obj.discard("snapshot");
-
-                        }
-                        if(eventName.contains("script-run-")){
-                            logger.print(delim);
-                        }
-                        logger.print(delim);
-                        logger.print(obj.toString(2));
-                        logger.print("\r\n");
-                    }
-                    catch (Exception e){
-                        logger.print(e.getMessage());
-                    };
-            }
-        });*/
-    }
-
-    private EventListener sseEventHandler() {
-        final String delim = "\r\n#########################################################################\r\n";
-        return new EventListener() {
-            @Override
-            public void onEvent(InboundEvent inboundEvent) {
-                _timeout = 20000;
-                //             if(tests == null)
-                //                   return;
-                String eventName = inboundEvent.getName();
-                //            logger.print(String.format("***********%1s**********\r\n", eventName));
-                String data = inboundEvent.readData();
-                String str;
-                if(data != null && data.length()> 0)
-                    try {
-
-                        JSONObject obj = JSONObject.fromObject(data);
-                        if (eventName.compareTo("test-run-count") == 0) {
-                            return;
-                        }
-                        if (eventName.compareTo("test-run-started") == 0) {
-                            logger.print(delim);
-                            obj.discard("runningCount");
-                            JSONObject o1 = JSONObject.fromObject(obj.get("testRun"));
-                            str = String.format("\r\n%1s %2s Status:%3s\r\n",
-                                    o1.get("name"),
-                                    eventName,
-                                    o1.get("status"));
-                            logger.print(str);
-                            _testRunEnds.add(o1.get("id").toString());
-
-                        }
-                        if ((eventName.compareTo("test-run-ended") == 0) /*|| (eventName.compareTo("test-run-started") == 0)*/) {
-                            int testsCnt=tests.size();
-                            boolean skip = true;
-                            String id = obj.getJSONObject("testRun").getString("id");
-                            for(int i = 0; i < testsCnt; i++){
-                                if(id.compareTo(tests.getString(i)) == 0){
-                                    skip = false;
-                                    break;
-                                }
-                            }
-                            if(skip)
-                                return;
-                            logger.print(delim);
-                            obj.discard("runningCount");
-                            JSONObject o1 = JSONObject.fromObject(obj.get("testRun"));
-                            o1.discard("id");
-                            o1.discard("tags");
-                            o1.discard("user");
-                            o1.discard("additionalData");
-                            obj.discard("testRun");
-
-                            JSONObject o2 = JSONObject.fromObject(o1.get("test"));
-                            o1.discard("test");
-                            obj.put("testRun", o1);
-                            obj.put("environments", o2.get("environments"));
-                            obj.put("scripts", o2.get("scripts"));
-
-                            str = String.format("\r\n%1s %2s Status:%3s\r\n",
-                                    o1.get("name"),
-                                    eventName,
-                                    o1.get("status")
-                            );
-                            logger.print(str);
-                            runningCount--;
-                        }
-                        if (eventName.contains ("script-step-")) {
-                            String status = obj.getString("status");
-                            if(status.compareTo("running") == 0)
-                                return;
-                            logger.print(delim);
-                            str = String.format("\r\n%1s Status: %2s\r\n",
-                                    eventName,
-                                    obj.get("status")
-                            );
-                            logger.print(str);
-                            obj.discard("id");
-                            obj.discard("scriptRun");
-                            obj.discard("snapshot");
-
-                        }
-                        if(eventName.contains("script-run-")){
-                            logger.print(delim);
-                        }
-                        logger.print(delim);
-                        logger.print(obj.toString(2));
-                        logger.print("\r\n");
-                    }
-                    catch (Exception e){
-                        logger.print(e.getMessage());
-                    };
-            }
-        };
+        eventSrc.register(this.sseEventListener);
     }
 
     @Override
@@ -807,12 +725,16 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
         Dispatcher.TRACE = true;
         Dispatcher.TRACE_PER_REQUEST=true;
         ClassLoader cl = ClassLoader.getSystemClassLoader();
-        _token=null;
+        this._token=null; // Important in order to get only this run events
         this.build = build;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
+        this.sseEventListener = new SseEventListener(this.logger);
+        this.sseEventListener.addObserver(this);
+        this.srfExecutionFuture = new CompletableFuture<>();
+
         JSONObject conData = GetSrfConnectionData(build, logger);
         if(conData == null)
             return false;
+
         _app = conData.getString("app");
         _secret = conData.getString("secret");
         _ftaasServerAddress = conData.getString("server");
@@ -843,122 +765,41 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
             systemProperties.setProperty("http.proxyPort", proxyPort);
         }
 
-        tests = null;
+        jobIds = null;
         try {
             initSrfEventListener();
             _secretApplied = false;
 
-            while (true) {
-                try {
-                    tests = getTestsSet();
-                    if(tests.size()>0 && eventSrc==null)
-                        initSrfEventListener();
-                    break;
-                } catch (AuthenticationException e) {
+            try {
+                jobIds = executeTestsSet();
+                if (jobIds.size() > 0 && eventSrc == null)
                     initSrfEventListener();
-                    if(_token == null)
-                        _token = loginToSrf();
-                    _secretApplied = true;
-                } catch (ConnectException | SrfException e) {
-                    throw e;
-                }
 
+            } catch (AuthenticationException e) {
+                initSrfEventListener();
+                if(_token == null)
+                    _token = loginToSrf();
+                _secretApplied = true;
             }
-            runningCount = tests.size();
-            while (runningCount > 0) {
-                dowait(1000);
-                _timeout = _timeout - 1000;
-                //         if(_timeout <= 0)
-                //             runningCount --;
-            }
+
         } catch (UnknownHostException | ConnectException | SSLHandshakeException | IllegalArgumentException e) {
             logger.println(String.format("ERROR: Failed logging in to SRF server: %s %s", this._ftaasServerAddress, e));
             return false;
         } catch (IOException | SrfException e) {
             logger.println(String.format("ERROR: Failed executing test, %s", e.getMessage()));
             return false;
-        } finally {
-            if (eventSrc != null) {
-                eventSrc.close();
-                eventSrc = null;
-            }
-            if (_con != null){
-                _con.disconnect();
-                _con = null;
-                if(srfCloseTunnel){
-                    if(CreateTunnelBuilder.Tunnels != null){
-                        for (Process p:CreateTunnelBuilder.Tunnels){
-                            p.destroy();
-                        }
-                        CreateTunnelBuilder.Tunnels.clear();
-                    }
-                }
-            }
+        }
 
-        }
-        JSONArray testRes = getTestResults(tests);
-        int sz = testRes.size();
-        for(int i = 0; i <sz; i++){
-            JSONObject jo = testRes.getJSONObject(i);
-            jo.put("tenantid", _tenant);
-        }
-        FileOutputStream fs = null;
         try {
-            String name = String.format("%1d/report.json", build.number);
-            String path = build.getRootDir().getPath().concat("/report.json");
-            File f = new File(path);
-            f.createNewFile();
-            fs = new FileOutputStream(f);
-            fs.write(testRes.toString().getBytes());
-        }
-        catch (Exception e) {
-            logger.print(e.getMessage());
-        }
-        finally {
-            if(fs != null)
-                fs.close();
-        }
-        String   xmlReport = "";
-        try {
-            xmlReport = convert2Xml(testRes);
-        }
-        catch (ParserConfigurationException e){
-            //throw e;
-        }
-        fs = null;
-        try {
-            String name = String.format("report%1d.xml", build.number); //build.getWorkspace().getParent().child("builds").child(name)
-            String htmlName = String.format("%1s/Reports/index.html",build.getWorkspace());//, build.number);
-            File f = new File(build.getWorkspace().child(name).toString());
-            f.createNewFile();
-
-            fs = new FileOutputStream(f);
-            fs.write(xmlReport.getBytes());
-
-            if(_con != null)
-                _con.disconnect();
-        }
-        catch (Exception e){
-            logger.print(e.getMessage());
-            if(eventSrc != null)
-                eventSrc.close();
-            eventSrc = null;
-        }
-        finally {
-            if(fs != null)
-                fs.close();
-        }
-        return _success;
-    }
-    private synchronized void dowait(long time) throws InterruptedException {
-        try {
-            wait(time);
-        } catch (InterruptedException e) {
-            throw e;
+            boolean buildResult = this.srfExecutionFuture.get();
+            return buildResult;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
-    private String convert2Xml(JSONArray report) throws ParserConfigurationException{
+    private String convert2Xml(JSONArray report) throws ParserConfigurationException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.newDocument();
@@ -970,18 +811,21 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
             int errorsTestSute = 0;
             int failuresTestSute = 0;
             int timeTestSute = 0;
+
             for (int i = 0; i < testsCnt; i++) {
                 Element testSuite = doc.createElement("testsuite");
-                JSONObject test = (JSONObject)(report.get(i));
+                JSONObject test = (JSONObject) (report.get(i));
                 String status = test.getString("status");
-                if(status == null)
+                boolean isFailed = status.compareTo("failed") == 0 || status.compareTo("errored") == 0;
+                if (status == null)
                     status = "errored";
-                if(status.compareTo("failed") == 0)
-                    _success = false;
-                else if(status.compareTo("errored") == 0)
-                    _success = false;
-                else if(status.compareTo("cancelled") == 0)
-                    _success = false;
+                if (isFailed){
+                    build.setResult(Result.FAILURE);
+                } else if(status.compareTo("cancelled") == 0) {
+                    build.setResult(Result.ABORTED);
+                } else {
+                    build.setResult(SUCCESS);
+                }
 
                 String timestamp = test.getString("start");
                 String testDuration = test.getString("durationMs");
@@ -989,14 +833,24 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
                     testDuration = "0";
                 int duration_i = Integer .parseInt(testDuration, 10)/1000;
                 testSuite.setAttribute("time", String.format("%1d.0",duration_i ));
-                testSuite.setAttribute("yac", test.getString("yac"));
-                testSuite.setAttribute("id", test.getString("yac"));
+                String testRunYac = test.getString("yac");
+                testSuite.setAttribute("yac", testRunYac);
+                testSuite.setAttribute("id", testRunYac);
+
+                //Properties (currently for Octane integration)
+                Element srfTestRunUrlProperty = doc.createElement("property");
+                srfTestRunUrlProperty.setAttribute("name", "srf.testrun.url");
+                String srfTestRunResultUrl = String.format("%s/results/%s/details?TENANTID=%s",_ftaasServerAddress, testRunYac, _tenant);
+                srfTestRunUrlProperty.setAttribute("value", srfTestRunResultUrl);
+                Element properties = doc.createElement("properties");
+                properties.appendChild(srfTestRunUrlProperty);
+                testSuite.appendChild(properties);
+
+                JSONObject testJson = test.getJSONObject("test");
+                String name = testJson.getString("name");
+                JSONObject additionalData = testJson.getJSONObject("additionalData");
+
                 JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
-
-                test = test.getJSONObject("test");
-                String name = test.getString("name");
-                JSONObject additionalData = test.getJSONObject("additionalData");
-
                 int scriptCnt = scriptRuns.size();
                 testSuite.setAttribute("name", name);
                 testSuite.setAttribute("timestamp", timestamp);
@@ -1009,23 +863,17 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
                     Element testCase = doc.createElement("testcase");
 
                     String scriptStatus = scriptRun.getString("status");
-                    if("success".compareTo(scriptStatus) != 0){
+                    if(isFailed){
                         Element failure = doc.createElement("failure");
                         testCase.appendChild(failure);
                     }
                     Element script = doc.createElement("system-out");
-                    try {
-                        JSONArray steps = scriptRun.getJSONArray("scriptSteps");
-                        int nSteps = steps.size();
-                        StringBuilder allSteps = new StringBuilder();
-                        for (int k = 0; k < nSteps; k++) {
-                            allSteps.append(String.format("<p>%1d  %1s</p>",k+1, steps.getJSONObject(k).getString("description")));
-                        }
-                        script.setTextContent(allSteps.toString());
-                    }
-                    catch (Exception ignored){
-                        //TODO: handle
-                    }
+
+                    JSONArray steps = scriptRun.getJSONArray("scriptSteps");
+                    String sdk = assetInfo.getString("sdk");
+                    String stepsHtml = SrfStepsHtmlUtil.getSrfStepsHtml(sdk, steps);
+                    script.setTextContent(stepsHtml);
+
                     testCase.appendChild(script);
                     //     testCase.setAttribute("classname", scriptName);
                     testCase.setAttribute("name", String.format("%s_%s", scriptName, scriptRun.getString("yac")));
@@ -1160,22 +1008,9 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
             return "Execute tests by SRF";
         }
 
-        public boolean hasSrfServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    SrfServerSettingsBuilder.SrfDescriptorImpl.class).hasSrfServers();
-        }
-
         public SrfServerSettingsModel[] getSrfServers() {
             return Hudson.getInstance().getDescriptorByType(
                     SrfServerSettingsBuilder.SrfDescriptorImpl.class).getInstallations();
-        }
-
-        public FormValidation doCheckSrfUserName(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("User name must be set");
-            }
-
-            return FormValidation.ok();
         }
 
         public FormValidation doCheckSrfTimeout(@QueryParameter String value) {
@@ -1195,34 +1030,9 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
             return FormValidation.ok();
         }
 
-        public FormValidation doCheckSrfPassword(@QueryParameter String value) {
-            // if (StringUtils.isBlank(value)) {
-            // return FormValidation.error("Password must be set");
-            // }
-
-            return FormValidation.ok();
-        }
-
-        public FormValidation doCheckSrfDomain(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("Domain must be set");
-            }
-
-            return FormValidation.ok();
-        }
-
-        public FormValidation doCheckSrfProject(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("Project must be set");
-            }
-
-            return FormValidation.ok();
-        }
-
-        public FormValidation doCheckSrfTestSets(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("Testsets are missing");
-            }
+        public FormValidation doCheckSrfTagNames(@QueryParameter String value) {
+             if (StringUtils.isBlank(value))
+                return FormValidation.ok();
 
             return FormValidation.ok();
         }

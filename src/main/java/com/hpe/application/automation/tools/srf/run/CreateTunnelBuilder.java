@@ -31,10 +31,9 @@
  *
  */
 
-package com.hpe.application.automation.tools.run;
+package com.hpe.application.automation.tools.srf.run;
 import groovy.transform.Synchronized;
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -43,19 +42,9 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.xml.sax.SAXException;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.net.*;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
-import java.util.Timer;
 
 public class CreateTunnelBuilder extends Builder  {
     private PrintStream logger;
