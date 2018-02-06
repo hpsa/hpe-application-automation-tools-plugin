@@ -45,19 +45,19 @@ import java.io.IOException;
 @SuppressWarnings("squid:S2259")
 public class TestsResultQueue extends AbstractResultQueueImpl {
 
-    public TestsResultQueue() throws IOException {
-        Jenkins instance =Jenkins.getInstance();
-        if(instance==null){
-            Assert.isNull(instance);
-        }
-        File queueFile = new File(instance.getRootDir(), "octane-test-result-queue.dat");
-        init(queueFile);
-    }
+	public TestsResultQueue() throws IOException {
+		Jenkins instance = Jenkins.getInstance();
+		if (instance == null) {
+			throw new IllegalStateException("failed to obtain Jenkins instance");
+		}
+		File queueFile = new File(instance.getRootDir(), "octane-test-result-queue.dat");
+		init(queueFile);
+	}
 
-    /*
-     * To be used in tests only.
-     */
-    TestsResultQueue(File queueFile) throws IOException {
-        init(queueFile);
-    }
+	/*
+	 * To be used in tests only.
+	 */
+	TestsResultQueue(File queueFile) throws IOException {
+		init(queueFile);
+	}
 }

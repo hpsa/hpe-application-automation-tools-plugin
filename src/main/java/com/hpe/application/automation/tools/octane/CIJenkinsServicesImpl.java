@@ -106,7 +106,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
             serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
         }
         OctaneServerSettingsModel model = ConfigurationService.getModel();
-        result.setType(CIServerTypes.JENKINS)
+        result.setType(CIServerTypes.JENKINS.value())
                 .setVersion(Jenkins.VERSION)
                 .setUrl(serverUrl)
                 .setInstanceId(model.getIdentity())
@@ -119,7 +119,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
     }
 
     @Override
-    public void suspendCiEvents(boolean suspend) {
+    public void suspendCIEvents(boolean suspend) {
         OctaneServerSettingsModel model = ConfigurationService.getModel();
         model.setSuspend(suspend);
         ConfigurationService.configurePlugin(model);
@@ -136,11 +136,6 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
     @Override
     public File getAllowedOctaneStorage() {
         return new File(Jenkins.getInstance().getRootDir(), "userContent");
-    }
-
-    @Override
-    public File getPredictiveOctanePath() {
-        return new File(Jenkins.getInstance().getRootDir(), "predictive");
     }
 
     @Override

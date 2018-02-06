@@ -33,9 +33,6 @@
 
 package com.hpe.application.automation.tools.octane.actions;
 
-import com.google.inject.Inject;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hpe.application.automation.tools.octane.tests.TestApi;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -43,8 +40,6 @@ import hudson.model.Action;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -61,29 +56,26 @@ import java.util.Collection;
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
-	public BuildActions(){}
-
-	private JenkinsMqmRestClientFactory clientFactory;
-
 	static final public class OctaneBuildActions implements RunAction2 {
 		private AbstractBuild build;
-		private JenkinsMqmRestClientFactory clientFactory;
 
-		public OctaneBuildActions(AbstractBuild b, JenkinsMqmRestClientFactory clientFactory) {
+		OctaneBuildActions(AbstractBuild b) {
 			build = b;
-			this.clientFactory = clientFactory;
 		}
 
 		@Override
 		public void onAttached(Run<?, ?> run) {
 		}
+
 		@Override
 		public void onLoad(Run<?, ?> run) {
 		}
+
 		@Override
 		public String getIconFileName() {
 			return null;
 		}
+
 		@Override
 		public String getDisplayName() {
 			return null;
@@ -95,7 +87,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public TestApi getTests() {
-			return new TestApi(build, clientFactory);
+			return new TestApi(build);
 		}
 	}
 
@@ -108,19 +100,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 	@Nonnull
 	public Collection<? extends Action> createFor(@Nonnull AbstractBuild build) {
 		ArrayList<Action> actions = new ArrayList<>();
-		actions.add(new OctaneBuildActions(build, clientFactory));
+		actions.add(new OctaneBuildActions(build));
 		return actions;
-	}
-
-	@Inject
-	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
-	/*
-	 * To be used in tests only.
-	 */
-	public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
-		this.clientFactory = clientFactory;
 	}
 }

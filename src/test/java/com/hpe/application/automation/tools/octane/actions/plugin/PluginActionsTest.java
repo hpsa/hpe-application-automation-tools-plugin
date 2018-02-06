@@ -93,7 +93,7 @@ public class PluginActionsTest {
 		assertNotNull(status);
 
 		assertNotNull(status.getServer());
-		assertEquals(CIServerTypes.JENKINS, status.getServer().getType());
+		assertEquals(CIServerTypes.JENKINS.value(), status.getServer().getType());
 		assertEquals(Jenkins.VERSION, status.getServer().getVersion());
 		assertEquals(rule.getInstance().getRootUrl(), status.getServer().getUrl() + "/");
 		assertEquals(ConfigurationService.getModel().getIdentity(), status.getServer().getInstanceId());

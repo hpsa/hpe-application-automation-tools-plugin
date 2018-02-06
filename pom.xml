@@ -63,18 +63,16 @@
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<bdi.version>1.0.4a</bdi.version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-    		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<distributionManagement>
 		<repository>
-			<id>repo.jenkins-ci.org</id>
-		 	<url>https://repo.jenkins-ci.org/releases</url>
+		  <id>repo.jenkins-ci.org</id>
+		  <url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven.jenkins-ci.org</id>
-			<url>https://repo.jenkins-ci.org/snapshots</url>
+		  <url>https://repo.jenkins-ci.org/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -314,17 +312,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			 <plugin>
-			    <groupId>org.codehaus.mojo</groupId>
-			    <artifactId>animal-sniffer-maven-plugin</artifactId>
-			    <configuration>
-			      <signature>
-				<groupId>org.codehaus.mojo.signature</groupId>
-				<artifactId>java18</artifactId>
-				<version>1.0</version>
-			      </signature>
-			    </configuration>
-			  </plugin>
+
 
 		</plugins>
 
