@@ -68,10 +68,10 @@ public class PcClient {
         try {
             model = pcModel;
 
-            if(model.getProxyOutURL() != null && !model.getProxyOutURL().isEmpty()){
-                logger.println("Using proxy: " + model.getProxyOutURL());
+            if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()){
+                logger.println("Using proxy: " + model.getProxyOutURL(true));
             }
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL(),model.getProxyOutUser(),model.getProxyOutPassword());
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true),logger, model.getProxyOutURL(true),model.getProxyOutUser(true),model.getProxyOutPassword(true));
             this.logger = logger;
         }catch (PcException e){
             logger.println(e.getMessage());
@@ -87,9 +87,9 @@ public class PcClient {
 
     public boolean login() {
         try {
-            String user = model.getAlmUserName();
-            logger.println(String.format("Trying to login\n[PCServer='%s://%s', User='%s']",model.isHTTPSProtocol(), model.getPcServerName(), user));
-            loggedIn = restProxy.authenticate(user, model.getAlmPassword().toString());
+            String user = model.getAlmUserName(true);
+            logger.println(String.format("Trying to login\n[PCServer='%s://%s', User='%s']",model.isHTTPSProtocol(), model.getPcServerName(true), user));
+            loggedIn = restProxy.authenticate(user, model.getAlmPassword(true).toString());
         } catch (PcException e) {
             logger.println(e.getMessage());
           //  stackTraceToString(e);
@@ -120,11 +120,11 @@ public class PcClient {
 
 
 
-        int testID = Integer.parseInt(model.getTestId());
+        int testID = Integer.parseInt(model.getTestId(true));
         int testInstance = getCorrectTestInstanceID(testID);
         setCorrectTrendReportID();
 
-        logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId()), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
+        logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId(true)), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
 //        logger.println("Sending run request:\n" + model.runParamsToString());
         PcRunResponse response = restProxy.startRun(testID,
                 testInstance,
@@ -171,13 +171,13 @@ public class PcClient {
                 return Integer.parseInt(null);
             }
         }
-        return Integer.parseInt(model.getTestInstanceId());
+        return Integer.parseInt(model.getTestInstanceId(true));
     }
 
     private void setCorrectTrendReportID() throws IOException, PcException {
         // If the user selected "Use trend report associated with the test" we want the report ID to be the one from the test
         if (("ASSOCIATED").equals(model.getAddRunToTrendReport())){
-            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
+            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
             if (pcTest.getTrendReportId() > -1)
                 model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
             else{
@@ -191,7 +191,7 @@ public class PcClient {
     }
 
     public String getTestName()  throws IOException, PcException{
-        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
+        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
         return pcTest.getTestName();
     }
 
@@ -317,7 +317,7 @@ public class PcClient {
     public void addRunToTrendReport(int runId, String trendReportId)
     {
 
-        TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
+        TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(true), runId, null);
         logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
