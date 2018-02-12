@@ -63,16 +63,18 @@
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<bdi.version>1.0.4a</bdi.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+    		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<distributionManagement>
 		<repository>
-		  <id>repo.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/releases</url>
+			<id>repo.jenkins-ci.org</id>
+		 	<url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/snapshots</url>
+			<url>https://repo.jenkins-ci.org/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -89,8 +91,8 @@
 	</issueManagement>
 
 	<organization>
-		<name>HPE</name>
-		<url>http://www.hpe.com</url>
+		<name>Micro Focus</name>
+		<url>http://www.microfocus.com</url>
 	</organization>
 
 	<developers>
