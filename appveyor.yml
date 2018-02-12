@@ -64,7 +64,7 @@ artifacts:
 
 - path: '\target\hp-application-automation-tools-plugin.hpi'
 
-  name: hp-application-automation-tools-plugin_{branch}_{build}.hpi
+  name: hp-application-automation-tools-plugin.hpi
 
 deploy: off
 
