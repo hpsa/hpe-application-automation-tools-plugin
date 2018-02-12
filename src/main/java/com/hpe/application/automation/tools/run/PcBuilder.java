@@ -362,7 +362,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 name = name.replace(prefix, "").toLowerCase();
                 for (Method modelMethod : modelMethods) {
                     String modelMethodName = modelMethod.getName();
-                    if (modelMethodName.toLowerCase().equals("get" + name)) {
+                    if (modelMethodName.toLowerCase().equals("get" + name) && modelMethod.getParameterTypes().length==0) {
                         try {
                             Object obj = FormValidation.ok();
                             if (!(name.equals("testinstanceid")&& pcModel.getAutoTestInstanceID().equals("AUTO"))){
@@ -374,7 +374,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                             }
                             break;
                         } catch (Exception e) {
-                            logger.println(e);
+                            logger.println("method.getName() = " + method.getName() + "\nname = " + name + "\nmodelMethodName = " + modelMethodName + "\nexception = " + e + "\n");
                         }
                     }
                 }
