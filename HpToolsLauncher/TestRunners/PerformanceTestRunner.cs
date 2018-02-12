@@ -927,7 +927,8 @@ namespace HpToolsLauncher.TestRunners
             {
                 foreach (Process p in wlrunProcesses)
                 {
-                    p.Kill();
+                    if (!p.HasExited) { 
+                        p.Kill();
                     // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
                     DateTime nowTime = DateTime.Now;
                     while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
@@ -947,6 +948,7 @@ namespace HpToolsLauncher.TestRunners
                     }
                     Stopper wlrunStopper = new Stopper(2000);
                     wlrunStopper.Start();
+                }
                 }
                 ConsoleWriter.WriteLine("wlrun killed");
             }

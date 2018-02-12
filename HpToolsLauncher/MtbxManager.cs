@@ -24,6 +24,7 @@ namespace HpToolsLauncher
                 <Parameter Name="mee" Value="12" Type="Integer"/>
                 <Parameter Name="mee1" Value="12.0" Type="Double"/>
                 <Parameter Name="mee2" Value="abc" Type="String"/>
+                <DataTable path="c:\tables\my_data_table.xls"/>
             </Test>
             <Test Name="test2" path="${workspace}\test2">
                 <Parameter Name="mee" Value="12" Type="Integer"/>
@@ -174,6 +175,12 @@ namespace HpToolsLauncher
                             string line = string.Format(Resources.GeneralDuplicateParameterWarning, pname, path);
                             ConsoleWriter.WriteLine(line);
                         }
+                    }
+
+                    XElement dataTable = GetElement(test, "DataTable");
+                    if (dataTable != null)
+                    {
+                        col.DataTablePath = GetAttribute(dataTable, "path").Value;
                     }
 
                     retval.Add(col);
