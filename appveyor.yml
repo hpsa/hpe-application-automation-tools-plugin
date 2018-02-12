@@ -62,7 +62,7 @@ test: off
 
 artifacts:
 
-- path: '\\target\\hp-application-automation-tools-plugin.hpi'
+- path: '\target\hp-application-automation-tools-plugin.hpi'
 
   name: hp-application-automation-tools-plugin.hpi
 
