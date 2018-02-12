@@ -1,8 +1,11 @@
-
 version: '{branch}.{build}'
+
 pull_requests:
+
   do_not_increment_build_number: true
-  skip_branch_with_pr: true
+
+skip_branch_with_pr: true
+
 image: Visual Studio 2015
 
 init:
@@ -61,7 +64,7 @@ artifacts:
 
 - path: '\target\hp-application-automation-tools-plugin.hpi'
 
-  name: hp-application-automation-tools-plugin.hpi
+  name: hp-application-automation-tools-plugin_{branch}_{build}.hpi
 
 deploy: off
 
@@ -86,4 +89,3 @@ notifications:
   on_build_failure: true
 
   on_build_status_changed: true
-
