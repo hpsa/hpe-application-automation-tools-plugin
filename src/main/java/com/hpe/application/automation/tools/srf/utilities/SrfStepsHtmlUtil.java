@@ -38,15 +38,25 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class SrfStepsHtmlUtil {
-      private static final String STEP_HTML_PATTERN = "<p>%1d  %1s</p>";
+      private static final String STEP_STATUS_HTML_PATTERN = "<p>%1d  %1s\t<b>%1s</b></p>";
+      private static final String STEP_ROLE_HTML_PATTERN = "<p>%1d  %1s</p>";
+      private static final Logger systemLogger = Logger.getLogger(SrfStepsHtmlUtil.class.getName());
 
       interface SrfUftConsts {
-            HashMap<String, String> steps = new HashMap<String, String>()
-            {{
+            HashMap<String, String> steps = new HashMap<String, String>() {{
                   put("Iteration-begin", "Iteration %s Begin");
                   put("Iteration-end", "Iteration %s End");
+            }};
+      }
+
+      interface SrfLeanFtConsts {
+            HashMap<String, String> steps = new HashMap<String, String>() {{
+                  put("Suite-begin", "Suite");
+                  put("Spec-begin", "Spec");
+                  put("Spec-end", "spec-end");
             }};
       }
 
@@ -56,6 +66,7 @@ public class SrfStepsHtmlUtil {
 
             switch (sdk.toLowerCase()) {
                   case "uft": return SrfStepsHtmlUtil.getUftStepsHtml(steps);
+                  case "leanft": return SrfStepsHtmlUtil.getLeanFtStepsHtml(steps);
                   default: return SrfStepsHtmlUtil.getDefaultStepsHtml(steps);
             }
       }
@@ -63,7 +74,8 @@ public class SrfStepsHtmlUtil {
       private static String getDefaultStepsHtml(JSONArray steps){
             StringBuilder allSteps = new StringBuilder();
             for (int k = 0; k < steps.size(); k++) {
-                  allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, steps.getJSONObject(k).getString("description")));
+                  JSONObject step = steps.getJSONObject(k);
+                  allSteps.append(String.format(STEP_STATUS_HTML_PATTERN, k + 1, step.getString("description"), step.getString("status")));
             }
             return allSteps.toString();
       }
@@ -73,23 +85,56 @@ public class SrfStepsHtmlUtil {
             for (int k = 0; k < steps.size(); k++) {
                   JSONObject step = steps.getJSONObject(k);
                   String stepDescription = step.getString("description");
+                  String stepStatus = step.getString("status");
 
                   if (stepDescription != null && !stepDescription.isEmpty()) {
-                        allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, stepDescription));
+                        allSteps.append(String.format(STEP_STATUS_HTML_PATTERN, k + 1, stepDescription, stepStatus));
                         continue;
                   }
 
                   JSONObject stepRole = step.getJSONObject("role");
                   String stepRoleType = stepRole.getString("type");
                   if (!SrfUftConsts.steps.containsKey(stepRoleType)){
-                        allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, stepRoleType));
+                        allSteps.append(String.format(STEP_ROLE_HTML_PATTERN, k + 1, stepRoleType));
                         continue;
                   }
 
                   stepDescription = SrfUftConsts.steps.get(stepRoleType);
                   String iterationIndex = stepRole.getString("index");
 
-                  allSteps.append(String.format(STEP_HTML_PATTERN, k + 1, String.format(stepDescription, iterationIndex)));
+                  allSteps.append(String.format(STEP_ROLE_HTML_PATTERN, k + 1, String.format(stepDescription, iterationIndex)));
+            }
+
+            return allSteps.toString();
+      }
+
+      private static String getLeanFtStepsHtml(JSONArray steps) {
+            StringBuilder allSteps = new StringBuilder();
+            int stepIndex = 1;
+            for (int k = 0; k < steps.size(); k++) {
+                  JSONObject step = steps.getJSONObject(k);
+
+                  String stepDescription = step.getString("description");
+                  if (stepDescription == null || stepDescription.isEmpty()) {
+                        String scriptRunId = step.getString("scriptRunId");
+                        systemLogger.warning(String.format("Received step with no description, step index: %d, script run id: %s", k, scriptRunId));
+                  }
+
+                  String stepStatus = null;
+                  JSONObject stepRole = step.getJSONObject("role");
+                  String stepRoleType = stepRole.getString("type");
+                  if (SrfLeanFtConsts.steps.containsKey(stepRoleType)){
+                        if (stepRoleType.equals("Spec-end")) // We're not reporting this in SRF result page
+                              continue;
+
+                        stepRoleType = String.format("<b>%s</b>", SrfLeanFtConsts.steps.get(stepRoleType));
+                        allSteps.append(String.format(STEP_ROLE_HTML_PATTERN, stepIndex, String.format("%s %s", stepRoleType, stepDescription)));
+                  } else {
+                        stepStatus = step.getString("status");
+                        allSteps.append(String.format(STEP_STATUS_HTML_PATTERN, stepIndex, stepDescription, stepStatus));
+                  }
+
+                  stepIndex++;
             }
 
             return allSteps.toString();

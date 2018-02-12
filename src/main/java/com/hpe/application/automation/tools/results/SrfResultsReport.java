@@ -50,9 +50,6 @@ import hudson.tasks.test.TestObject;
 import hudson.tasks.test.TestResultProjectAction;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-/*import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;*/
 import org.apache.tools.ant.DirectoryScanner;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -72,6 +69,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
@@ -80,7 +78,7 @@ import java.util.*;
  * @author Thomas Maurel
  */
 public class SrfResultsReport extends Recorder implements Serializable {
-    //private static Logger logger = LogManager.getLogger(SrfResultsReport.class.getName());
+    private static final Logger logger = Logger.getLogger(SrfResultsReport.class.getName());
     private static final long serialVersionUID = 1L;
     public  static Hashtable<String, SrfTestResultAction> myHash = new Hashtable<String, SrfTestResultAction>();
 
@@ -97,17 +95,18 @@ public class SrfResultsReport extends Recorder implements Serializable {
         private PrintStream _logger;
         private TestObject _target;
         private TestResult _result;
-      public String getId(){
-          return _target.getId();
-      }
-    @Override
+        public String getId(){
+            return _target.getId();
+        }
+
+        @Override
         public  TestResult getResult(){
             Properties props = System.getProperties();
             props.setProperty("stapler.trace", "true");
             props.setProperty("stapler.resourcePath", "");
             URL[] urls = {this.getClass().getProtectionDomain().getCodeSource().getLocation()};
             try {
-              MetaClassLoader.debugLoader = new MetaClassLoader(new SrfClassLoader(urls, null));
+                MetaClassLoader.debugLoader = new MetaClassLoader(new SrfClassLoader(urls, null));
             }catch (Exception e){}
             _result = super.getResult();
             return _result;
@@ -141,32 +140,32 @@ public class SrfResultsReport extends Recorder implements Serializable {
             _buildInfo = JSONArray.fromObject(data);
         }
         public SrfTestResultAction(AbstractBuild owner, TestResult result, BuildListener listener) {
-           super(owner, result, listener);
+            super(owner, result, listener);
             String data = null;
             if(listener != null)
-             _logger = listener.getLogger();
+                _logger = listener.getLogger();
             _result=result;
             BufferedReader reader = null;
-              try {
-                    String path = _build.getRootDir().getPath().concat("/report.json");
-                    reader = new BufferedReader(new FileReader(path));
-                    String line = null;
-                    StringBuffer buf = new StringBuffer();
-                    while ( (line = reader.readLine() ) != null){
-                        buf.append(line);
-                    }
-                    data = buf.toString();
-              }
+            try {
+                String path = _build.getRootDir().getPath().concat("/report.json");
+                reader = new BufferedReader(new FileReader(path));
+                String line = null;
+                StringBuffer buf = new StringBuffer();
+                while ( (line = reader.readLine() ) != null){
+                    buf.append(line);
+                }
+                data = buf.toString();
+            }
             catch (Exception e) {
             }
             finally {
-                  try {
-                      if(reader != null)
+                try {
+                    if(reader != null)
                         reader.close();
-                  } catch (IOException e) {
+                } catch (IOException e) {
 
-                  }
-              }
+                }
+            }
             _buildInfo = JSONArray.fromObject(data);
         }
 
@@ -215,7 +214,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
 
                 scriptRuns.add(srfScriptRunModel);
             }
-            //logger.info("$#$#$#$##$#$#$ HELLLLOOOO( ##$#$#$#$$#$#$#$");
             return scriptRuns.toArray(new SrfScriptRunModel[scriptRuns.size()]);
         }
 
@@ -463,10 +461,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
      * if we have a directory with file name "file.zip" we will return
      * "file_1.zip";
      */
-
-
-
-
 
     @Override
     public Action getProjectAction(AbstractProject<?, ?> project) {

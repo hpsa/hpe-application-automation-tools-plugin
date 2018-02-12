@@ -32,9 +32,7 @@
  */
 
 package com.hpe.application.automation.tools.srf.run;
-import com.hpe.application.automation.tools.srf.model.SrfException;
-import com.hpe.application.automation.tools.srf.model.SrfServerSettingsModel;
-import com.hpe.application.automation.tools.srf.model.SrfTestParamsModel;
+import com.hpe.application.automation.tools.srf.model.*;
 import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
 import com.hpe.application.automation.tools.srf.utilities.SrfStepsHtmlUtil;
 import com.hpe.application.automation.tools.srf.utilities.SseEventListener;
@@ -81,6 +79,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 import static hudson.model.Result.SUCCESS;
 
@@ -89,7 +88,7 @@ import static hudson.model.Result.SUCCESS;
  */
 
 
-public class RunFromSrfBuilder extends Builder implements java.io.Serializable, Observer {
+public class RunFromSrfBuilder extends Builder implements Serializable, Observer {
     static final long serialVersionUID = 3;
     private transient PrintStream logger;
     private boolean _https;
@@ -105,20 +104,19 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
     private JSONArray jobIds;
     public transient Object srfTestArg = null;
     private SseEventListener sseEventListener;
-    private int runningCount;
+    private HashSet<String> runningCount;
     private transient EventSource eventSrc;
-    private ArrayList<String> _testRunEnds;
     private String _ftaasServerAddress;
     private String _app;
     private String _tenant;
     private String _secret;
-    private boolean _success;
     private boolean _secretApplied;
     private transient HttpURLConnection _con;
     private static SrfTrustManager _trustMgr = new SrfTrustManager();
-    static SSLSocketFactory _factory;
+    private static SSLSocketFactory _factory;
     private String _token;
     private CompletableFuture<Boolean> srfExecutionFuture;
+    private static final Logger systemLogger = Logger.getLogger(RunFromSrfBuilder.class.getName());
 
     @DataBoundConstructor
     public RunFromSrfBuilder( String srfTestId,
@@ -278,7 +276,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             String srfProxy = "";
             String srfTunnel = "";
             try {
-                srfProxy = document.getElementsByTagName("srfProxyName").item(0).getTextContent();
+                srfProxy = document.getElementsByTagName("srfProxyName").item(0).getTextContent().trim();
                 srfTunnel = document.getElementsByTagName("srfTunnelPath").item(0).getTextContent();
             }
             catch (Exception e){
@@ -305,11 +303,16 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
 
     @Override
     public void update(Observable o, Object eventType) {
-
-        switch ((SseEventListener.SrfTestRunEvents)eventType) {
+        SrfSseEventNotification srfSseEventNotification = (SrfSseEventNotification) eventType;
+        switch (srfSseEventNotification.srfTestRunEvent) {
             case TEST_RUN_END:
-                this.runningCount--;
-                if (runningCount > 0)
+                boolean removed = this.runningCount.remove(srfSseEventNotification.testRunId);
+                if (!removed){
+                    systemLogger.warning(String.format("Received TEST_RUN_END event for non existing run %s", srfSseEventNotification.srfTestRunEvent));
+                    return;
+                }
+
+                if (runningCount.size() > 0)
                     return;
                 break;
             default:
@@ -338,7 +341,6 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             xmlReport = convert2Xml(testRes);
 
             String name = String.format("report%1d.xml", build.number); //build.getWorkspace().getParent().child("builds").child(name)
-            String htmlName = String.format("%1s/Reports/index.html",build.getWorkspace());//, build.number);
             File xmlReportFile = new File(build.getWorkspace().child(name).toString());
             xmlReportFile.createNewFile();
 
@@ -371,7 +373,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 this.srfExecutionFuture.complete(false);
                 return;
             default:
-                //TODO: log
+                systemLogger.warning(String.format("Received undefined build result: %s", build.getResult().toString()));
                 this.srfExecutionFuture.complete(false);
         }
     }
@@ -471,20 +473,15 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         if (srfTestId != null && srfTestId.length() > 0) {
             data.put("testYac", applyJobParams(srfTestId));
         } else if (srfTagNames != null && !srfTagNames.isEmpty()) {
-            String[] tagNames = applyJobParams(srfTagNames).split(",");
-            for (int i = 0; i < tagNames.length; i++) {
-               // Normalize tag
-                String tag = tagNames[i];
-                tagNames[i] = tag.trim();
-            }
+            String[] tagNames = normalizeTags();
             data.put("tags", tagNames);
         } else
             throw new SrfException("Both test id and test tags are empty");
 
         if (srfTunnelName != null && srfTunnelName.length() > 0) {
-
             data.put("tunnelName", srfTunnelName);
         }
+
         if(data.size() == 0){
             throw new IOException("Wrong filter");
         }
@@ -504,7 +501,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         HashMap<String, String> paramObj = new HashMap<String, String>();
         int cnt = 0;
 
-        if ((srfTestParameters != null) && !srfTestParameters.isEmpty()) {
+        if (srfTestParameters != null && !srfTestParameters.isEmpty()) {
             cnt = srfTestParameters.size();
             if (cnt > 0)
                 logger.print("Parameters: \n\r");
@@ -534,10 +531,20 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         }
     }
 
+    private String[] normalizeTags() {
+        String[] tagNames = applyJobParams(srfTagNames).split(",");
+        for (int i = 0; i < tagNames.length; i++) {
+            // Normalize tag
+            String tag = tagNames[i];
+            tagNames[i] = tag.trim();
+        }
+        return tagNames;
+    }
+
     private JSONArray executeTestsSet() throws MalformedURLException, AuthenticationException, IOException, SrfException {
 
         StringBuffer response = new StringBuffer();
-        JSONArray jobs = new JSONArray();
+        JSONArray jobs;
         _con = connect("/rest/jobmanager/v1/execution/jobs", "POST");
 
         fillExecutionReqBody();
@@ -561,22 +568,35 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
 
         if (responseCode != 200) {
             JSONObject srfError = JSONObject.fromObject(response.toString());
-            if (srfError.getString("name").toLowerCase().equals("srferror"))
+            if (srfError.containsKey("name") && srfError.getString("name").equalsIgnoreCase("srferror"))
                 throw new SrfException(srfError.getString("message"), srfError.getString("code"));
 
             throw new SrfException(String.format("Failed for SRF execution request, received response with status code: %d and body: %s"
                     , responseCode, response.toString()));
+
         } else {
             jobs = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
             if (jobs == null || jobs.size() == 0)
                 throw new SrfException(String.format("No tests found for %s", this.srfTestId != null && !this.srfTestId.equals("") ? "test id: " + this.srfTestId : "test tags: " + this.srfTagNames));
-
-            this.runningCount = jobs.size();
         }
+
+        return getJobIds(jobs);
+    }
+
+    private JSONArray getJobIds(JSONArray jobs) {
         JSONArray jobIds = new JSONArray();
         int cnt = jobs.size();
         for (int k = 0; k < cnt; k++ ){
-            jobIds.add(jobs.getJSONObject(k).getString("jobId"));
+            JSONObject job = jobs.getJSONObject(k);
+            JSONObject jobExecutionError = job.getJSONObject("error");
+            if (jobExecutionError.size() != 0) {
+                JSONObject errorParameters = jobExecutionError.getJSONObject("parameters");
+                jobIds.add(errorParameters.getString("jobId"));
+                runningCount.add(errorParameters.getString("testRunId"));
+            } else {
+                jobIds.add(job.getString("jobId"));
+                runningCount.add(job.getString("testRunId"));
+            }
         }
         return jobIds;
     }
@@ -678,8 +698,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
     @Override
     public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, BuildListener _listener)
             throws InterruptedException, IOException {
-        _testRunEnds = new ArrayList<String>();
-        _success = true;
+
         this.logger = _listener.getLogger();
         Dispatcher.TRACE = true;
         Dispatcher.TRACE_PER_REQUEST=true;
@@ -689,6 +708,7 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         this.sseEventListener = new SseEventListener(this.logger);
         this.sseEventListener.addObserver(this);
         this.srfExecutionFuture = new CompletableFuture<>();
+        this.runningCount = new HashSet<>();
 
         JSONObject conData = getSrfConnectionData(build, logger);
         if(conData == null)
@@ -772,7 +792,9 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
             //          root.setAttribute("tests", String.format("%1d", testsCnt));
             int errorsTestSute = 0;
             int failuresTestSute = 0;
-            int timeTestSute = 0;
+            int testRunErrors = 0;
+            int testRunCancellations = 0;
+            int successfulTestRun = 0;
 
             for (int i = 0; i < testsCnt; i++) {
                 Element testSuite = doc.createElement("testsuite");
@@ -781,12 +803,17 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 if (status == null)
                     status = "errored";
 
-                if (status.compareTo("success") == 0 || status.compareTo("completed") == 0) {
-                    build.setResult(SUCCESS);
-                } else if(status.compareTo("cancelled") == 0) {
-                    build.setResult(Result.ABORTED);
-                } else {
-                    build.setResult(Result.FAILURE);
+                switch (status) {
+                    case "success":
+                    case "completed":
+                        successfulTestRun++;
+                        break;
+                    case "cancelled":
+                        testRunCancellations++;
+                        break;
+                    default:
+                        testRunErrors++;
+                        break;
                 }
 
                 String timestamp = test.getString("start");
@@ -810,7 +837,6 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
 
                 JSONObject testJson = test.getJSONObject("test");
                 String name = testJson.getString("name");
-                JSONObject additionalData = testJson.getJSONObject("additionalData");
 
                 JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
                 int scriptCnt = scriptRuns.size();
@@ -889,6 +915,17 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
                 }
                 root.appendChild(testSuite);
             }
+
+            if (successfulTestRun == testsCnt) {
+                build.setResult(Result.SUCCESS);
+            } else  if (testRunErrors > 0) {
+                build.setResult(Result.FAILURE);
+            } else if (testRunCancellations > 0) {
+                if (testRunCancellations == testsCnt)
+                    build.setResult(Result.ABORTED);
+                else
+                    build.setResult(Result.UNSTABLE);
+            }
         }
         catch (Exception e){
             logger.println(e.getMessage());
@@ -907,13 +944,11 @@ public class RunFromSrfBuilder extends Builder implements java.io.Serializable, 
         if (_con != null){
             _con.disconnect();
             _con = null;
-            if(srfCloseTunnel){
-                if(CreateTunnelBuilder.Tunnels != null){
+            if(srfCloseTunnel && CreateTunnelBuilder.Tunnels != null){
                     for (Process p:CreateTunnelBuilder.Tunnels){
                         p.destroy();
                     }
                     CreateTunnelBuilder.Tunnels.clear();
-                }
             }
         }
     }

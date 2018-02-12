@@ -74,7 +74,7 @@ public class SrfScriptRunModel {
     }
 
     public String getLinkName() {
-        String normalizedScriptRunName = this.name.replaceAll("[\\.|\\-|\\s]","_");
+        String normalizedScriptRunName = this.name.replaceAll("[\\.|\\-|\\s|\\+]","_");
         return String.format("%s_%s", normalizedScriptRunName, this.yac);
     }
 
@@ -118,7 +118,8 @@ public class SrfScriptRunModel {
         failed("Failed", "result-failed"),
         discarded("Discarded", "result-skipped"),
         cancelled("Cancelled", "result-skipped"),
-        completed("Completed", "result-passed");
+        completed("Completed", "result-passed"),
+        pending("Pending", "result-skipped");
 
         private final String text;
         private final String cssClass;

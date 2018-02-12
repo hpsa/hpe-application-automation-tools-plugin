@@ -32,6 +32,7 @@
  */
 package com.hpe.application.automation.tools.srf.utilities;
 
+import com.hpe.application.automation.tools.srf.model.SrfSseEventNotification;
 import net.sf.json.JSONObject;
 import org.glassfish.jersey.media.sse.EventListener;
 import org.glassfish.jersey.media.sse.InboundEvent;
@@ -95,7 +96,7 @@ public class SseEventListener extends Observable implements EventListener {
         }
         catch (Exception e){
             logger.print(e.getMessage());
-        };
+        }
     }
 
     @Override
@@ -115,11 +116,6 @@ public class SseEventListener extends Observable implements EventListener {
         }
     }
 
-    public enum SrfTestRunEvents {
-        TEST_RUN_START,
-        TEST_RUN_END
-    }
-
     private void testRunStartedHandler(JSONObject obj, String eventName) {
         this.logger.print(delim);
         obj.discard("runningCount");
@@ -128,7 +124,7 @@ public class SseEventListener extends Observable implements EventListener {
                 o1.get("name"),
                 eventName,
                 o1.get("status"));
-        this.notifyObservers(SrfTestRunEvents.TEST_RUN_START);
+        this.notifyObservers(new SrfSseEventNotification(SrfSseEventNotification.SrfTestRunEvents.TEST_RUN_START, o1.getString("id")));
         this.logger.print(str);
     }
 
@@ -137,6 +133,7 @@ public class SseEventListener extends Observable implements EventListener {
         this.logger.print(delim);
         obj.discard("runningCount");
         JSONObject o1 = JSONObject.fromObject(obj.get("testRun"));
+        String testRunId = o1.getString("id");
         o1.discard("id");
         o1.discard("tags");
         o1.discard("user");
@@ -155,7 +152,7 @@ public class SseEventListener extends Observable implements EventListener {
                 o1.get("status")
         );
         this.logger.print(str);
-        this.notifyObservers(SrfTestRunEvents.TEST_RUN_END);
+        this.notifyObservers(new SrfSseEventNotification(SrfSseEventNotification.SrfTestRunEvents.TEST_RUN_END, testRunId));
     }
 
     private void scriptStepCreatedHandler(JSONObject obj, String eventName) {
