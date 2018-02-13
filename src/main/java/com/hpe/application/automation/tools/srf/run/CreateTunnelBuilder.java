@@ -31,10 +31,9 @@
  *
  */
 
-package com.hpe.application.automation.tools.run;
+package com.hpe.application.automation.tools.srf.run;
 import groovy.transform.Synchronized;
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -43,25 +42,13 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.xml.sax.SAXException;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.net.*;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
-import java.util.Timer;
 
 public class CreateTunnelBuilder extends Builder  {
-    private PrintStream logger;
     private  String srfTunnelName;
-    private AbstractBuild<?, ?> build;
-    protected static final ArrayList<Process> Tunnels = new ArrayList<Process>();
+    static final ArrayList<Process> Tunnels = new ArrayList<Process>();
     @DataBoundConstructor
     public CreateTunnelBuilder( String srfTunnelName ){
 
@@ -82,11 +69,8 @@ public class CreateTunnelBuilder extends Builder  {
     @Override
     public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        logger = listener.getLogger();
-        JSONObject connectionData = RunFromSrfBuilder.GetSrfConnectionData(build, logger);
-        JSONObject configData;
-        String client = "-client="  + connectionData.getString("app") ;
-
+        PrintStream logger = listener.getLogger();
+        JSONObject connectionData = RunFromSrfBuilder.getSrfConnectionData(build, logger);
 
         String path =connectionData.getString("tunnel");
         String config = String.format("-config=%s", srfTunnelName);
@@ -155,9 +139,7 @@ public class CreateTunnelBuilder extends Builder  {
 
 
     }
-    private JSONObject GetSrfConnectionData(){
-        return new JSONObject();
-    }
+
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         private  String srfTunnelName;
@@ -180,7 +162,14 @@ public class CreateTunnelBuilder extends Builder  {
         }
     }
     static class TestRunData implements Serializable {
-        static final long serialVersionUID=11;
+        private static final long serialVersionUID=11;
+        private String id;                   // "932c6c3e-939e-4b17-a04f-1a2951481758",
+        private String name;                 // "Test-Test-Run",
+        private String Start;                // "2016-07-25T08:27:59.318Z",
+        private String duration;
+        private String status;               // "status" : "success",
+        private String TunnelName;              // "246fa1a7-7ed2-4203-a4e9-7ce5fbf4f800",
+
         public TestRunData(JSONObject obj)
         {
             try {
@@ -199,9 +188,7 @@ public class CreateTunnelBuilder extends Builder  {
             }
         }
 
-
-        public void merge(TestRunData newData)
-        {
+        public void merge(TestRunData newData) {
             if (newData.name != null )  this.name = newData.name;
             if (newData.Start != null )  this.Start = newData.Start;
             if (newData.duration != null )  this.duration = newData.duration;
@@ -209,22 +196,11 @@ public class CreateTunnelBuilder extends Builder  {
             if (newData.TunnelName != null )  this.TunnelName = newData.TunnelName;
             if (newData.duration != null )  this.duration = newData.duration;
         }
-
-        String id;                   // "932c6c3e-939e-4b17-a04f-1a2951481758",
-        String name;                 // "Test-Test-Run",
-        String Start;                // "2016-07-25T08:27:59.318Z",
-        String duration;
-        String status;               // "status" : "success",
-        String TunnelName;              // "246fa1a7-7ed2-4203-a4e9-7ce5fbf4f800",
-        int         execCount;
-        String [] tags;
-        String user;
-        JSONObject _context;
     }
 
 
     private class TunnelTracker implements Runnable{
-        static final long serialVersionUID=456;
+        private static final long serialVersionUID=456;
         PrintStream logger;
         Process p;
         public TunnelTracker(PrintStream log, Process p){
@@ -256,7 +232,6 @@ public class CreateTunnelBuilder extends Builder  {
                 }
                 //Wait to get exit value
                 try {
-
                     p.waitFor();
                     logger.println("\n\nExit Value is " + exitValue);
                 } catch (final InterruptedException e) {

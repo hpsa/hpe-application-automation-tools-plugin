@@ -33,26 +33,19 @@
 
 package com.hpe.application.automation.tools.srf.model;
 
-public class SrfException extends Exception {
+public class SrfSseEventNotification {
+    public SrfTestRunEvents srfTestRunEvent;
+    public String testRunId;
 
-    private String code;
-
-    public SrfException(String message) {
-        super(message);
-    }
-    public SrfException(String message, String code) {
-        super(message);
-        this.code = code;
+    public SrfSseEventNotification(SrfTestRunEvents srfTestRunEvent, String testRunId){
+        this.srfTestRunEvent = srfTestRunEvent;
+        this.testRunId = testRunId;
     }
 
-    public String getCode() {
-        return code;
+    public enum SrfTestRunEvents {
+        TEST_RUN_START,
+        TEST_RUN_END
     }
-
-    @Override
-    public String toString() {
-        return (code != null && !code.isEmpty()) ? String.format("%s [%s]: %s", getClass().getName(), code, getMessage()) : super.toString();
-    }
-
-
 }
+
+

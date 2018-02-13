@@ -65,12 +65,16 @@ public class SrfScriptRunModel {
         return durationMs / 1000;
     }
 
+    public SrfStatus getStatus() {
+        return status;
+    }
+
     public String getFullName() {
         return String.format("%s.%s", this.parent.getString("name"), this.name);
     }
 
     public String getLinkName() {
-        String normalizedScriptRunName = this.name.replace("-","_");
+        String normalizedScriptRunName = this.name.replaceAll("[\\.|\\-|\\s|\\+]","_");
         return String.format("%s_%s", normalizedScriptRunName, this.yac);
     }
 
@@ -109,20 +113,28 @@ public class SrfScriptRunModel {
     }
 
     public enum SrfStatus {
-        success("Success"),
-        errored("Error"),
-        failed("Failed"),
-        discarded("Discarded"),
-        cancelled("Cancelled"),
-        completed("Completed");
+        success("Success", "result-passed"),
+        errored("Error", "result-failed"),
+        failed("Failed", "result-failed"),
+        discarded("Discarded", "result-skipped"),
+        cancelled("Cancelled", "result-skipped"),
+        completed("Completed", "result-passed"),
+        pending("Pending", "result-skipped");
 
         private final String text;
-        private SrfStatus(final String text) {
+        private final String cssClass;
+
+        private SrfStatus(final String text, String cssClass) {
             this.text = text;
+            this.cssClass = cssClass;
         }
+
         @Override
         public String toString() {
             return text;
+        }
+        public String getCssClass() {
+            return this.cssClass;
         }
     }
 
