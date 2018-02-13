@@ -301,7 +301,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
             if(builders.get(i) instanceof RunFromSrfBuilder) {
                 mergedResultNames.add(String.format("report%1d.xml", build.number));
             }
-
         }
 
         // Has any QualityCenter builder been set up?
@@ -374,6 +373,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
                 // most likely a build failed before it gets to the test
                 // phase.
                 // don't report confusing error message.
+                logger.warning("Build aborted before completing SRF test reporting phase");
                 return true;
             }
 

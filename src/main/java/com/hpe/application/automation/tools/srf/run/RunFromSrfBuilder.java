@@ -81,15 +81,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-import static hudson.model.Result.SUCCESS;
-
 /**
  * Created by shepshel on 20/07/2016.
  */
 
 
 public class RunFromSrfBuilder extends Builder implements Serializable, Observer {
-    static final long serialVersionUID = 3;
+    private static final long serialVersionUID = 3;
     private transient PrintStream logger;
     private boolean _https;
     private AbstractBuild<?, ?> build;
@@ -100,9 +98,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
     private String srfTunnelName;
     private boolean srfCloseTunnel;
     private List<SrfTestParamsModel> srfTestParameters;
-    private java.util.Hashtable<String, TestRunData> _testRunData;
     private JSONArray jobIds;
-    public transient Object srfTestArg = null;
     private SseEventListener sseEventListener;
     private HashSet<String> runningCount;
     private transient EventSource eventSrc;
@@ -136,8 +132,16 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         this.srfTunnelName = srfTunnelName;
     }
 
-    class TestRunData implements java.io.Serializable
+    class TestRunData implements Serializable
     {
+
+        private String id;                   // "932c6c3e-939e-4b17-a04f-1a2951481758",
+        private String name;                 // "Test-Test-Run",
+        private String Start;                // "2016-07-25T08:27:59.318Z",
+        private String duration;
+        private String status;               // "status" : "success",
+        private String testId;              // "246fa1a7-7ed2-4203-a4e9-7ce5fbf4f800",
+
         public TestRunData(JSONObject obj)
         {
             try {
@@ -166,22 +170,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             if (newData.testId != null )  this.testId = newData.testId;
             if (newData.duration != null )  this.duration = newData.duration;
         }
-
-        String id;                   // "932c6c3e-939e-4b17-a04f-1a2951481758",
-        String name;                 // "Test-Test-Run",
-        String Start;                // "2016-07-25T08:27:59.318Z",
-        String duration;
-        String status;               // "status" : "success",
-        String testId;              // "246fa1a7-7ed2-4203-a4e9-7ce5fbf4f800",
-        int         execCount;
-        String [] tags;
-        String user;
-        JSONObject _context;
-//            "scriptStatus" : {},
-//            "environmentCount" : 0,
-        //                   "scriptCount" : 0
-        //       },
-        //           "scriptRuns" : []
     }
 
 
@@ -375,6 +363,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             default:
                 systemLogger.warning(String.format("Received undefined build result: %s", build.getResult().toString()));
                 this.srfExecutionFuture.complete(false);
+                break;
         }
     }
 
@@ -525,7 +514,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             writer.flush();
             out.flush();
             out.close();
-        } catch (java.net.ProtocolException e) {
+        } catch (ProtocolException e) {
             logger.print(e.getMessage());
             logger.print("\n\r");
         }
@@ -646,6 +635,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         out.flush();
         out.close();
         int responseCode = ((HttpURLConnection) loginCon).getResponseCode();
+        systemLogger.fine(String.format("SRF login received response code: %d", responseCode));
         BufferedReader br = new BufferedReader(new InputStreamReader((loginCon.getInputStream())));
         StringBuffer response = new StringBuffer();
         String line;
@@ -664,7 +654,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             return;
 
         // !!! Important Notice !!!
-        // by using 'level=session' in the sse request we're ensuring that we'll get only event related
+        // by using 'level=session' in the sse request we're ensuring that we'll get only events related
         // to this run since we're creating a new session (token) for each run
         this._token = loginToSrf();
         String urlSSe = _ftaasServerAddress.concat("/rest/test-manager/events")
@@ -689,7 +679,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             e.printStackTrace();
         }
         WebTarget target = client.target(urlSSe);
-        int responseCode;
 
         eventSrc = openAsynch(target, addAuthentication(null));
         eventSrc.register(this.sseEventListener);
@@ -702,7 +691,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         this.logger = _listener.getLogger();
         Dispatcher.TRACE = true;
         Dispatcher.TRACE_PER_REQUEST=true;
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
         this._token=null; // Important in order to get only this run events
         this.build = build;
         this.sseEventListener = new SseEventListener(this.logger);
@@ -776,8 +765,14 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             return buildResult;
         } catch (ExecutionException e) {
             e.printStackTrace();
-            cleanUp();
             return false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            build.setResult(Result.ABORTED);
+            // postSrfJobCancellation();
+            return false;
+        } finally {
+            cleanUp();
         }
     }
 
@@ -977,23 +972,27 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
 
         @Override
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
-
+          // Empty body
         }
         @Override
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
-
+            // Empty body
         }
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
+            // Empty body
         }
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+            // Empty body
         }
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // Empty body
         }
         @Override
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // Empty body
         }
 
         @Override
@@ -1006,11 +1005,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
     // This indicates to Jenkins that this is an implementation of an extension
     // point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        private String srfTestId;
-        private String srfTagNames;
-        private Object srfTestArgs;
-        private String srfTunnelName;
-        private boolean srfCloseTunnel;
         public DescriptorImpl() {
             load();
         }
@@ -1041,7 +1035,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             if (val1.length() > 0 && val1.charAt(0) == '-')
                 val1 = val1.substring(1);
 
-            if (!StringUtils.isNumeric(val1) && val1 != "") {
+            if (!StringUtils.isNumeric(val1) && !val1.isEmpty()) {
                 return FormValidation.error("Timeout name must be a number");
             }
             return FormValidation.ok();

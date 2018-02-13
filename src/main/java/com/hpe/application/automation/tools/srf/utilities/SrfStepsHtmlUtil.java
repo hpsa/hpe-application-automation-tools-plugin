@@ -124,7 +124,7 @@ public class SrfStepsHtmlUtil {
                   JSONObject stepRole = step.getJSONObject("role");
                   String stepRoleType = stepRole.getString("type");
                   if (SrfLeanFtConsts.steps.containsKey(stepRoleType)){
-                        if (stepRoleType.equals("Spec-end")) // We're not reporting this in SRF result page
+                        if ("Spec-end".equals(stepRoleType)) // We're not reporting this in SRF result page
                               continue;
 
                         stepRoleType = String.format("<b>%s</b>", SrfLeanFtConsts.steps.get(stepRoleType));
