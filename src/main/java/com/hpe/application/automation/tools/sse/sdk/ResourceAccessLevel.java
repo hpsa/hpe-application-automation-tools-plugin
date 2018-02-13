@@ -33,7 +33,7 @@
 
 package com.hpe.application.automation.tools.sse.sdk;
 
-import com.hpe.application.automation.tools.rest.RESTConstants;
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 
 public enum ResourceAccessLevel {
     PUBLIC(null), PROTECTED(RESTConstants.PtaL), PRIVATE(RESTConstants.PvaL);

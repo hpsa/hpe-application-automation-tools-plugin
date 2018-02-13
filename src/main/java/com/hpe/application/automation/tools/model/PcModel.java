@@ -41,6 +41,8 @@ import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+
 public class PcModel {
 
     public static final String    COLLATE         = "Collate Results";

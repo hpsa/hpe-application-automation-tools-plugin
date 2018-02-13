@@ -33,7 +33,7 @@
 
 package com.hpe.application.automation.tools.sse.sdk.authenticator;
 
-import com.hpe.application.automation.tools.rest.RESTConstants;
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 import com.hpe.application.automation.tools.sse.sdk.Base64Encoder;
 import com.hpe.application.automation.tools.sse.sdk.Client;
 import com.hpe.application.automation.tools.sse.sdk.Logger;

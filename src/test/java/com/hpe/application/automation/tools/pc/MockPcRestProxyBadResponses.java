@@ -46,16 +46,18 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 
-import com.hpe.application.automation.tools.common.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 
-import static com.hpe.application.automation.tools.pc.RunState.*;
+import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
+
+import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.*;
 
 public class MockPcRestProxyBadResponses extends PcRestProxy {
     
     private static Iterator<RunState> runState = initializeRunStateIterator();
     
     public MockPcRestProxyBadResponses(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) throws PcException {
-        super(webProtocol, pcServerName, almDomain, almProject,logger,null,null,null);
+        super(webProtocol, pcServerName, almDomain, almProject,null,null,null);
     }
 
     @Override

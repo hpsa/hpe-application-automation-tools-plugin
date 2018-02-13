@@ -33,7 +33,7 @@
 
 package com.hpe.application.automation.tools.pc;
 
-import com.hpe.application.automation.tools.model.PostRunAction;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 
 import java.io.PrintStream;
 

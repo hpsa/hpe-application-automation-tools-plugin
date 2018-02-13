@@ -618,6 +618,12 @@
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.microfocus.adm.performancecenter/plugins-common -->
+		<dependency>
+			<groupId>com.microfocus.adm.performancecenter</groupId>
+			<artifactId>plugins-common</artifactId>
+			<version>1.0.1</version>
+		</dependency>
 
 	</dependencies>
 
