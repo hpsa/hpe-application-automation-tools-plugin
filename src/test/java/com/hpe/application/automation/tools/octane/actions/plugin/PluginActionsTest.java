@@ -49,7 +49,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
 import jenkins.model.Jenkins;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
@@ -69,12 +69,12 @@ import static org.junit.Assert.assertNotNull;
  * To change this template use File | Settings | File Templates.
  */
 
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701","squid:S3578","squid:S2698"})
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2701", "squid:S3578", "squid:S2698"})
 public class PluginActionsTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@ClassRule
-	public static final JenkinsRule rule = new JenkinsRule();
+	@Rule
+	public final JenkinsRule rule = new JenkinsRule();
 	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	@Test

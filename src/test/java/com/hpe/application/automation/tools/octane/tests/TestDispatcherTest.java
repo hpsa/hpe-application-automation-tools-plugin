@@ -33,6 +33,8 @@
 
 package com.hpe.application.automation.tools.octane.tests;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.api.RestService;
 import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.octane.OctaneServerMock;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
@@ -52,7 +54,6 @@ import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.util.Secret;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.junit.*;
@@ -385,15 +386,12 @@ public class TestDispatcherTest {
 
 		@Override
 		public boolean ownsUrlToProcess(String url) {
-			return url.endsWith("/analytics/ci/servers/tests-result-preflight-base64") ||
-					url.endsWith("/jobs/" + Base64.encodeBase64String(project.getName().getBytes()) + "/tests-result-preflight");
+			return url.endsWith("/jobs/" + project.getName() + "/tests-result-preflight");
 		}
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-			if (baseRequest.getPathInfo().endsWith("/analytics/ci/servers/tests-result-preflight-base64")) {
-				response.setStatus(HttpServletResponse.SC_OK);
-			} else if (baseRequest.getPathInfo().endsWith("/jobs/" + Base64.encodeBase64String(project.getName().getBytes()) + "/tests-result-preflight")) {
+			if (baseRequest.getPathInfo().endsWith("/jobs/" + project.getName() + "/tests-result-preflight")) {
 				if (respondWithNegative) {
 					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 				} else {
@@ -416,15 +414,19 @@ public class TestDispatcherTest {
 
 		@Override
 		public boolean ownsUrlToProcess(String url) {
-			return ("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/test-results").equals(url);
+			return (RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART + "test-results").equals(url);
 		}
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
 			if (respondWithErrorFailsNumber == 0) {
 				testResults.add(getBodyAsString(baseRequest));
-				response.setStatus(HttpServletResponse.SC_OK);
-				response.getWriter().write(String.valueOf(1L));
+				TestDispatcher.TestsPushResponseDTO body = new TestDispatcher.TestsPushResponseDTO();
+				body.id = String.valueOf(1);
+				body.status = "queued";
+				response.setStatus(HttpServletResponse.SC_ACCEPTED);
+				response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+
 			} else {
 				response.setStatus(503);
 				respondWithErrorFailsNumber--;

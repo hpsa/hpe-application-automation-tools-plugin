@@ -33,7 +33,9 @@
 
 package com.hpe.application.automation.tools.octane.tests;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gargoylesoftware.htmlunit.Page;
+import com.hp.octane.integrations.api.RestService;
 import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.octane.OctaneServerMock;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
@@ -45,7 +47,6 @@ import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.util.Secret;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.codec.binary.Base64;
 import org.eclipse.jetty.server.Request;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -163,15 +164,12 @@ public class TestApiTest {
 
 		@Override
 		public boolean ownsUrlToProcess(String url) {
-			return url.endsWith("/analytics/ci/servers/tests-result-preflight-base64") ||
-					url.endsWith("/jobs/" + Base64.encodeBase64String(testsJobName.getBytes()) + "/tests-result-preflight");
+			return url.endsWith("/jobs/" + testsJobName + "/tests-result-preflight");
 		}
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-			if (baseRequest.getPathInfo().endsWith("/analytics/ci/servers/tests-result-preflight-base64")) {
-				response.setStatus(HttpServletResponse.SC_OK);
-			} else if (baseRequest.getPathInfo().endsWith("/jobs/" + Base64.encodeBase64String(testsJobName.getBytes()) + "/tests-result-preflight")) {
+			if (baseRequest.getPathInfo().endsWith("/jobs/" + testsJobName + "/tests-result-preflight")) {
 				response.setStatus(HttpServletResponse.SC_OK);
 				response.getWriter().write(String.valueOf(true));
 			}
@@ -183,14 +181,17 @@ public class TestApiTest {
 
 		@Override
 		public boolean ownsUrlToProcess(String url) {
-			return ("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/test-results").equals(url);
+			return (RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART + "test-results").equals(url);
 		}
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
 			testResults.add(getBodyAsString(baseRequest));
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.getWriter().write(String.valueOf(pushTestResultId));
+			TestDispatcher.TestsPushResponseDTO body = new TestDispatcher.TestsPushResponseDTO();
+			body.id = String.valueOf(pushTestResultId);
+			body.status = "queued";
+			response.setStatus(HttpServletResponse.SC_ACCEPTED);
+			response.getWriter().write(new ObjectMapper().writeValueAsString(body));
 		}
 	}
 
@@ -198,7 +199,7 @@ public class TestApiTest {
 
 		@Override
 		public boolean ownsUrlToProcess(String url) {
-			return ("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/test-results/" + pushTestResultId + "/log").equals(url);
+			return (RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART + "test-results/" + pushTestResultId + "/log").equals(url);
 		}
 
 		@Override

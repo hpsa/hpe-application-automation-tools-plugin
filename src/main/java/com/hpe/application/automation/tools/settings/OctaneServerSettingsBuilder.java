@@ -73,8 +73,8 @@ import java.util.UUID;
 /**
  * Octane configuration settings
  */
-public class OctaneServerSettingsBuilder extends Builder {
 
+public class OctaneServerSettingsBuilder extends Builder {
 	private static final Logger logger = LogManager.getLogger(OctaneServerSettingsBuilder.class);
 
 	@Override
@@ -90,9 +90,8 @@ public class OctaneServerSettingsBuilder extends Builder {
 	 * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt> for the
 	 * actual HTML fragment for the configuration screen.
 	 */
+
 	@Extension
-	// This indicates to Jenkins that this is an implementation of an extension
-	// point.
 	public static final class OctaneDescriptorImpl extends BuildStepDescriptor<Builder> {
 
 		@CopyOnWrite

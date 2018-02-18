@@ -33,6 +33,9 @@
 
 package com.hpe.application.automation.tools.octane.tests;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.TestsService;
@@ -63,6 +66,7 @@ import java.util.Date;
 @Extension(dynamicLoadable = YesNoMaybe.NO)
 public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	private static Logger logger = LogManager.getLogger(TestDispatcher.class);
+	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
 
@@ -133,12 +137,18 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 			}
 
 			try {
-				String testsPushRequestId;
+				String testsPushResponse;
+				String testsPushId = null;
 				OctaneResponse response = testsService.pushTestsResult(new FileInputStream(resultFile));
-				testsPushRequestId = response.getBody();
-				if (response.getStatus() == 200 && testsPushRequestId != null && !testsPushRequestId.isEmpty()) {
+				testsPushResponse = response.getBody();
+				if (response.getStatus() == 202 && testsPushResponse != null && !testsPushResponse.isEmpty()) {
 					logger.info("successfully pushed test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "'");
-					audit(configuration, run, testsPushRequestId, false);
+					try {
+						testsPushId = objectMapper.readValue(testsPushResponse, TestsPushResponseDTO.class).id;
+					} catch (IOException ioe) {
+						logger.error("failed to extract the tests push ID info from tests push response", ioe);
+					}
+					audit(configuration, run, testsPushId, false);
 					queue.remove();
 				} else if (response.getStatus() == 503) {
 					logger.error("server temporarily unavailable, will retry later");
@@ -207,5 +217,12 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	void _setRetryModel(RetryModel retryModel) {
 		this.retryModel = retryModel;
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+	public static final class TestsPushResponseDTO {
+		public String id;
+		public String status;
 	}
 }
