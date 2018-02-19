@@ -45,7 +45,6 @@
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
-	
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
 
 	<licenses>
@@ -63,6 +62,8 @@
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
+		<maven.compiler.source>1.8</maven.compiler.source>
+    		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<distributionManagement>
@@ -267,7 +268,7 @@
 							<skip>true</skip>
 							<executable>java</executable>
 							<arguments>
-								<argument>-jar</argument>
+								<argument> -jar</argument>
 								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
 								<argument>-s</argument>
 								<argument>http://localhost:8080</argument>
@@ -320,18 +321,19 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>animal-sniffer-maven-plugin</artifactId>
-				<version>1.16</version>
-				<configuration>
-					<signature>
-						<groupId>org.codehaus.mojo.signature</groupId>
-						<artifactId>java17</artifactId>
-						<version>1.0</version>
-					</signature>
-				</configuration>
-			</plugin>
+			 <plugin>
+			    <groupId>org.codehaus.mojo</groupId>
+			    <artifactId>animal-sniffer-maven-plugin</artifactId>
+					<version>1.16</version>
+			    <configuration>
+			      <signature>
+				<groupId>org.codehaus.mojo.signature</groupId>
+				<artifactId>java18</artifactId>
+				<version>1.0</version>
+			      </signature>
+			    </configuration>
+			  </plugin>
+
 		</plugins>
 
 	</build>
@@ -442,6 +444,7 @@
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>junit</artifactId>
 			<version>1.19</version>
+			<!--version>1.6</version-->
 		</dependency>
 
 
@@ -623,18 +626,39 @@
 			<version>2.0</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-common</artifactId>
 			<version>2.9</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.microfocus.adm.performancecenter/plugins-common -->
+		<dependency>
+			<groupId>com.microfocus.adm.performancecenter</groupId>
+			<artifactId>plugins-common</artifactId>
+			<version>1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.thoughtworks.xstream</groupId>
+					<artifactId>xstream</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+			</exclusions>
+		</dependency>
 
 	</dependencies>
-
 
 </project>
