@@ -33,7 +33,7 @@
 
 package com.hpe.application.automation.tools.sse.common;
 
-import com.hpe.application.automation.tools.rest.RESTConstants;
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 
 import java.util.HashMap;
 import java.util.Map;

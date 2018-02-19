@@ -53,7 +53,8 @@ import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 
-import com.hpe.application.automation.tools.common.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 import com.hpe.application.automation.tools.model.PcModel;
 import com.hpe.application.automation.tools.run.PcBuilder;
 
@@ -71,7 +72,7 @@ public class PcClient {
             if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()){
                 logger.println("Using proxy: " + model.getProxyOutURL(true));
             }
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true),logger, model.getProxyOutURL(true),model.getProxyOutUser(true),model.getProxyOutPassword(true));
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),model.getProxyOutUser(true),model.getProxyOutPassword(true));
             this.logger = logger;
         }catch (PcException e){
             logger.println(e.getMessage());
@@ -155,7 +156,7 @@ public class PcClient {
                 PcTestSets pcTestSets = restProxy.GetAllTestSets();
                 if (pcTestSets !=null && pcTestSets.getPcTestSetsList() !=null){
                     PcTestSet pcTestSet = pcTestSets.getPcTestSetsList().get(pcTestSets.getPcTestSetsList().size()-1);
-                    int testSetID = pcTestSet.TestSetID;
+                    int testSetID = pcTestSet.getTestSetID();
                     logger.println(String.format("Creating Test Instance with testID: %s and TestSetID: %s", testID,testSetID));
                     testInstanceID = restProxy.createTestInstance(testID,testSetID);
                     logger.println(String.format("Test Instance with ID : %s has been created successfully.", testInstanceID));

@@ -37,19 +37,11 @@
 * */
 package com.hpe.application.automation.tools.run;
 
-import com.hpe.application.automation.tools.common.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 import com.hpe.application.automation.tools.model.PcModel;
-import com.hpe.application.automation.tools.model.PostRunAction;
-import com.hpe.application.automation.tools.model.TimeslotDuration;
-import com.hpe.application.automation.tools.pc.*;
-import com.hpe.application.automation.tools.pc.RunState;
 import com.hpe.application.automation.tools.sse.result.model.junit.Error;
 import com.hpe.application.automation.tools.sse.result.model.junit.Failure;
-import com.hpe.application.automation.tools.sse.result.model.junit.*;
 import com.hpe.application.automation.tools.pc.PcClient;
-import com.hpe.application.automation.tools.pc.PcRunEventLog;
-import com.hpe.application.automation.tools.pc.PcRunEventLogRecord;
-import com.hpe.application.automation.tools.pc.PcRunResponse;
 import com.hpe.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testsuite;
@@ -84,8 +76,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static com.hpe.application.automation.tools.pc.RunState.FINISHED;
-import static com.hpe.application.automation.tools.pc.RunState.RUN_FAILURE;
+import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.FINISHED;
+import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.RUN_FAILURE;
 
 public class PcBuilder extends Builder implements SimpleBuildStep{
     
