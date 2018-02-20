@@ -44,7 +44,7 @@
 	<version>5.3.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
+	<description>The plugin integrates Jenkins with the following MicroFocus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
 
 	<licenses>
@@ -84,6 +84,7 @@
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
+	
 	<issueManagement>
 		<system>JIRA</system>
 		<url>
@@ -102,7 +103,7 @@
 			<name>Fima (Yafim) Kazak</name>
 			<email>kazak@hpe.com</email>
 			<roles>
-				<role>Global owner and Load Runner Dev</role>
+				<role>Global owner and LoadRunner Dev</role>
 			</roles>
 		</developer>
 		<developer>
@@ -570,7 +571,6 @@
 			<version>2.5</version>
 			<optional>true</optional>
 		</dependency>
-		<!-- pipeline as a code  ends here -->
 
 		<dependency>
 			<groupId>com.squareup</groupId>
@@ -578,7 +578,6 @@
 			<version>1.2.3</version>
 		</dependency>
 
-		<!--Extensibility-->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -626,19 +625,17 @@
 			<version>2.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-common</artifactId>
 			<version>2.9</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.microfocus.adm.performancecenter/plugins-common -->
+
 		<dependency>
 			<groupId>com.microfocus.adm.performancecenter</groupId>
 			<artifactId>plugins-common</artifactId>
