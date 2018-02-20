@@ -46,13 +46,14 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,12 +66,12 @@ import static org.junit.Assert.*;
  * Time: 11:39
  * To change this template use File | Settings | File Templates.
  */
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2701"})
 public class ProjectActionsFreeStyleTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@ClassRule
-	public static final JenkinsRule rule = new JenkinsRule();
+	@Rule
+	public final JenkinsRule rule = new JenkinsRule();
 
 	//  Structure test: free-style, no params, no children
 	//
@@ -196,7 +197,7 @@ public class ProjectActionsFreeStyleTest {
 				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
-		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Collections.singletonList(
 				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
 		)));
 		p.getPublishersList().add(new Fingerprinter(""));

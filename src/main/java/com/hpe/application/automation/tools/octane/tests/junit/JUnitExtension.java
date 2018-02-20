@@ -109,7 +109,7 @@ public class JUnitExtension extends MqmTestsExtension {
 			logger.debug("JUnit result report found");
 			ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
 			FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, Arrays.asList(resultFile), false, hpRunnerType, jenkinsRootUrl));
-			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, false), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
 			if ("hudson.maven.MavenModuleSetBuild".equals(run.getClass().getName())) {
@@ -130,7 +130,7 @@ public class JUnitExtension extends MqmTestsExtension {
 				if (!resultFiles.isEmpty()) {
 					ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
 					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, resultFiles, false, hpRunnerType, jenkinsRootUrl));
-					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, false), detectedFields);
 				}
 			}
 			logger.debug("No JUnit result report found");

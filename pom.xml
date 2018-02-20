@@ -62,7 +62,6 @@
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
-		<bdi.version>1.0.4a</bdi.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
     		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
@@ -70,7 +69,7 @@
 	<distributionManagement>
 		<repository>
 			<id>repo.jenkins-ci.org</id>
-		 	<url>https://repo.jenkins-ci.org/releases</url>
+			<url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven.jenkins-ci.org</id>
@@ -87,7 +86,9 @@
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
-		<url>https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin</url>
+		<url>
+			https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin
+		</url>
 	</issueManagement>
 
 	<organization>
@@ -167,6 +168,12 @@
 			<roles>
 				<role>ALM/Upload test result to ALM (External Test)</role>
 			</roles>
+		</developer>
+		<developer>
+			<id>gullerya</id>
+			<name>Yuri Guller</name>
+			<email>gullerya@gmail.com</email>
+			<organization>MicroFocus - ALM Octane</organization>
 		</developer>
 	</developers>
 
@@ -317,6 +324,7 @@
 			 <plugin>
 			    <groupId>org.codehaus.mojo</groupId>
 			    <artifactId>animal-sniffer-maven-plugin</artifactId>
+					<version>1.16</version>
 			    <configuration>
 			      <signature>
 				<groupId>org.codehaus.mojo.signature</groupId>
@@ -445,9 +453,9 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.15</version>
+			<version>1.5.2</version>
 		</dependency>
-		
+
 		<!-- Obsolete TO BE REMOVED -->
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>

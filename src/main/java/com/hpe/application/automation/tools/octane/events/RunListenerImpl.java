@@ -34,6 +34,7 @@
 package com.hpe.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -54,6 +55,7 @@ import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -70,7 +72,7 @@ import java.util.concurrent.TimeUnit;
 
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
-public final class RunListenerImpl extends RunListener<Run> {	
+public final class RunListenerImpl extends RunListener<Run> {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
@@ -97,7 +99,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setPhaseType(PhaseType.POST)
 					.setEstimatedDuration(r.getEstimatedDuration())
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
-			EventsService.getExtensionInstance().dispatchEvent(event);
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
 			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
 			workFlowRunProcessor.registerEvents(executor);
 		} else {
@@ -117,7 +119,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 				} else {
 					event.setPhaseType(PhaseType.POST);
 				}
-				EventsService.getExtensionInstance().dispatchEvent(event);
+				OctaneSDK.getInstance().getEventsService().publishEvent(event);
 			} else if (r instanceof AbstractBuild) {
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
@@ -134,7 +136,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 				} else {
 					event.setPhaseType(PhaseType.POST);
 				}
-				EventsService.getExtensionInstance().dispatchEvent(event);
+				OctaneSDK.getInstance().getEventsService().publishEvent(event);
 			}
 		}
 	}
@@ -178,7 +180,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			event.setParameters(ParameterProcessors.getInstances(r))
 					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
-		EventsService.getExtensionInstance().dispatchEvent(event);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	//  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well
@@ -238,7 +240,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return null;
 	}
 
-	private static List<Cause> extractCauses(Run r) {
+	private static List<Cause> extractCauses(Run<?, ?> r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		}

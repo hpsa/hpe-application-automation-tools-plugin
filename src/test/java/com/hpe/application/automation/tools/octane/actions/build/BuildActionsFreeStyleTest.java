@@ -50,6 +50,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -247,7 +248,7 @@ public class BuildActionsFreeStyleTest {
 
 		//  jobA
 		jobA.getBuildersList().add(Utils.getSleepScript(5));
-		jobA.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+		jobA.getBuildersList().add(new TriggerBuilder(Collections.singletonList(
 				new BlockableBuildTriggerConfig("jobAA, jobC", new BlockingBehaviour(
 						Result.FAILURE,
 						Result.FAILURE,
@@ -261,7 +262,7 @@ public class BuildActionsFreeStyleTest {
 
 		//  jobC
 		jobC.getBuildersList().add(Utils.getSleepScript(5));
-		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Collections.singletonList(
 				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
 		)));
 
@@ -283,7 +284,7 @@ public class BuildActionsFreeStyleTest {
 				), Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		project.getPublishersList().add(new hudson.tasks.BuildTrigger("jobA, jobB", Result.SUCCESS));
-		project.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+		project.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Collections.singletonList(
 				new BuildTriggerConfig("jobC", ResultCondition.ALWAYS, true, null)
 		)));
 	}

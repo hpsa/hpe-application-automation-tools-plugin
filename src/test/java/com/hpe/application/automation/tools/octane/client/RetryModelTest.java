@@ -43,12 +43,10 @@ public class RetryModelTest {
 
     private RetryModel retryModel;
     private TestTimeProvider testTimeProvider;
-    private TestEventPublisher testEventPublisher;
 
     @Before
     public void init() {
-        testEventPublisher = new TestEventPublisher();
-        retryModel = new RetryModel(testEventPublisher);
+        retryModel = new RetryModel();
         testTimeProvider = new TestTimeProvider();
         retryModel.setTimeProvider(testTimeProvider);
     }
@@ -78,23 +76,23 @@ public class RetryModelTest {
         Assert.assertFalse(retryModel.isQuietPeriod());
 
         retryModel.failure();
-        // 2 minutes
+        // 60 seconds
         Assert.assertTrue(retryModel.isQuietPeriod());
-        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(40));
+        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(20));
         Assert.assertTrue(retryModel.isQuietPeriod());
-        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(40));
+        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(20));
         Assert.assertTrue(retryModel.isQuietPeriod());
-        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(50));
+        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(20));
         Assert.assertFalse(retryModel.isQuietPeriod());
 
         retryModel.failure();
-        // 2 minutes
+        // 120 seconds
         Assert.assertTrue(retryModel.isQuietPeriod());
         testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(40));
         Assert.assertTrue(retryModel.isQuietPeriod());
         testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(40));
         Assert.assertTrue(retryModel.isQuietPeriod());
-        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(50));
+        testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(40));
         Assert.assertFalse(retryModel.isQuietPeriod());
     }
 
@@ -109,10 +107,8 @@ public class RetryModelTest {
         Assert.assertTrue(retryModel.isQuietPeriod());
         testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(1));
         Assert.assertTrue(retryModel.isQuietPeriod());
-        Assert.assertEquals(0, testEventPublisher.getResumeCount());
         retryModel.success();
         Assert.assertFalse(retryModel.isQuietPeriod());
-        Assert.assertEquals(1, testEventPublisher.getResumeCount());
     }
 
     private static class TestTimeProvider implements RetryModel.TimeProvider {
