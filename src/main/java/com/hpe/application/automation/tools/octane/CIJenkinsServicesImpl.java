@@ -199,45 +199,44 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					continue;
 				}
 
-				try {
-					if (tmpItem instanceof AbstractProject) {
-						AbstractProject abstractProject = (AbstractProject) tmpItem;
-						if (abstractProject.isDisabled()) {
-							continue;
-						}
-						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-								.setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getTranslateJobName())
-								.setName(name);
-						if (includeParameters) {
-							tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
-						}
-						list.add(tmpConfig);
-					} else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-						Job tmpJob = (Job) tmpItem;
-						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-								.setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-								.setName(name);
-						if (includeParameters) {
-							tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-						}
-						list.add(tmpConfig);
-					} else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
-						for (Job tmpJob : tmpItem.getAllJobs()) {
-							tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-									.setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-									.setName(tmpJob.getName());
-							if (includeParameters) {
-								tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-							}
-							list.add(tmpConfig);
-						}
-					} else {
-						logger.info("item '" + name + "' is not of supported type");
-					}
-				} catch (Throwable e) {
-					logger.error("Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
-					//throw e;
-				}
+                try {
+                    if (tmpItem instanceof AbstractProject) {
+                        AbstractProject abstractProject = (AbstractProject) tmpItem;
+                        if (abstractProject.isDisabled()) {
+                            continue;
+                        }
+                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                                .setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getTranslateJobName())
+                                .setName(name);
+                        if (includeParameters) {
+                            tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
+                        }
+                        list.add(tmpConfig);
+                    } else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+                        Job tmpJob = (Job) tmpItem;
+                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                                .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
+                                .setName(name);
+                        if (includeParameters) {
+                            tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
+                        }
+                        list.add(tmpConfig);
+                    } else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+                        for (Job tmpJob : tmpItem.getAllJobs()) {
+                            tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                                    .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
+                                    .setName(tmpJob.getName());
+                            if (includeParameters) {
+                                tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
+                            }
+                            list.add(tmpConfig);
+                        }
+                    } else {
+                        logger.info("item '" + name + "' is not of supported type");
+                    }
+                } catch (Throwable e) {
+                    logger.error("Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+                }
 
 			}
 			result.setJobs(list.toArray(new PipelineNode[list.size()]));
