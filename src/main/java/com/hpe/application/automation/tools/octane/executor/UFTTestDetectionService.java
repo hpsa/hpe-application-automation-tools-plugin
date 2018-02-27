@@ -223,14 +223,9 @@ public class UFTTestDetectionService {
             return result;
         }
 
-        boolean isGitChanges = changeSetItems[0] instanceof GitChangeSet;
-        if (!isGitChanges) {
-            return result;
-        }
-
         for (int i = 0; i < changeSetItems.length; i++) {
-            GitChangeSet changeSet = (GitChangeSet) changeSetItems[i];
-            for (GitChangeSet.Path path : changeSet.getPaths()) {
+            ChangeLogSet.Entry changeSet = (ChangeLogSet.Entry) changeSetItems[i];
+            for (ChangeLogSet.AffectedFile path : changeSet.getAffectedFiles()) {
                 String fileFullPath = workspace + File.separator + path.getPath();
                 if (isTestMainFilePath(path.getPath())) {
 

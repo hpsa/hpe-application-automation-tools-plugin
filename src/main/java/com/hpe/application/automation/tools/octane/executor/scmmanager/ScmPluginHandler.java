@@ -30,34 +30,23 @@
  * ___________________________________________________________________
  *
  */
+package com.hpe.application.automation.tools.octane.executor.scmmanager;
 
-package com.hpe.application.automation.tools.octane.executor;
-
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
+import com.hp.octane.integrations.dto.scm.SCMRepository;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
-import hudson.scm.SCM;
 
-/**
- * Compute SharedCheckOutDirectory
- */
+import java.io.IOException;
 
-public class CheckOutSubDirEnvService {
+public interface ScmPluginHandler {
 
+    void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException;
 
-    public static String getSharedCheckOutDirectory(Job j) {
-        SCM scm = ((FreeStyleProject) j).getScm();
-        if (scm != null && scm instanceof GitSCM) {
-            GitSCM gitScm = (GitSCM) scm;
-            RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
-            if (sharedCheckOutDirectory != null) {
-                return sharedCheckOutDirectory.getRelativeTargetDir();
-            }
-        }
+    String getSharedCheckOutDirectory(Job j);
 
-        return null;
-    }
-
+    void checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, StandardCredentials credentials, OctaneResponse result);
 }
-
