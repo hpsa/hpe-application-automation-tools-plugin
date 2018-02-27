@@ -35,12 +35,7 @@ package com.hpe.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Hudson;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 
@@ -80,7 +75,7 @@ public class AlmToolsUtils {
             } else if (returnCode == -2) {
                 build.setResult(Result.UNSTABLE);
             } else if (returnCode == -3) {
-                build.setResult(Result.ABORTED);
+                build.setResult(Result.ABORTED) ;
             }
         }
     }
