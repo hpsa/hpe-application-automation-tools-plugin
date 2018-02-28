@@ -33,7 +33,6 @@
 package com.hpe.application.automation.tools.octane.executor.scmmanager;
 
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
