@@ -53,8 +53,6 @@ import java.io.IOException;
 
 public class SvnPluginHandler implements ScmPluginHandler {
 
-    private static final Logger logger = LogManager.getLogger(GitPluginHandler.class);
-
     @Override
     public void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException {
 

@@ -66,7 +66,7 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
         if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && ConfigurationService.getServerConfiguration().isValid()) {
             SCM scm = ((FreeStyleProject) j).getScm();
             if (scm != null) {
-                ScmPluginHandler scmPluginHandler = ScmPluginFactory.GetScmHandlerByScmPluginName(scm.getClass().getName());
+                ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
                 if (scmPluginHandler != null) {
                     return scmPluginHandler.getSharedCheckOutDirectory(j);
                 }

@@ -63,12 +63,12 @@ public class ScmPluginFactory {
         throw new IllegalArgumentException("SCM repository " + scmType + " isn't supported.");
     }
 
-    public static ScmPluginHandler GetScmHandlerByScmPluginName(String pluginName) {
+    public static ScmPluginHandler getScmHandlerByScmPluginName(String pluginName) {
         SCMType scmType = null;
 
-        if (pluginName.equals("hudson.plugins.git.GitSCM")) {
+        if ("hudson.plugins.git.GitSCM".equals(pluginName)) {
             scmType = scmType.GIT;
-        } else if (pluginName.equals("hudson.scm.SubversionSCM")) {
+        } else if ("hudson.scm.SubversionSCM".equals(pluginName)) {
             scmType = scmType.SVN;
         } else {
             return null;
