@@ -34,12 +34,15 @@
 package com.hpe.application.automation.tools.octane.executor;
 
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.TaskListener;
+import hudson.scm.SCM;
 
 import java.io.IOException;
 
@@ -61,7 +64,13 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
 
     public static String getSharedCheckOutDirectory(Job j) {
         if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && ConfigurationService.getServerConfiguration().isValid()) {
-            return CheckOutSubDirEnvService.getSharedCheckOutDirectory(j);
+            SCM scm = ((FreeStyleProject) j).getScm();
+            if (scm != null) {
+                ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
+                if (scmPluginHandler != null) {
+                    return scmPluginHandler.getSharedCheckOutDirectory(j);
+                }
+            }
         }
 
         return null;

@@ -82,6 +82,9 @@ public class UFTTestDetectionResult {
     @XmlAttribute
     private boolean fullScan;
 
+    @XmlAttribute
+    private boolean hasQuotedPaths;
+
     public List<AutomatedTest> getNewTests() {
         return newTests;
     }
@@ -135,4 +138,11 @@ public class UFTTestDetectionResult {
         return updatedScmResourceFiles;
     }
 
+    public boolean isHasQuotedPaths() {
+        return hasQuotedPaths;
+    }
+
+    public void setHasQuotedPaths(boolean hasQuotedPaths) {
+        this.hasQuotedPaths = hasQuotedPaths;
+    }
 }
