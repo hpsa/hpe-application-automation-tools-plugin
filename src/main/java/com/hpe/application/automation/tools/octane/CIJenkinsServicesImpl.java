@@ -46,9 +46,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
@@ -64,8 +62,6 @@ import com.hpe.application.automation.tools.octane.model.ModelFactory;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -89,7 +85,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -352,77 +347,6 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 		stopImpersonation(securityContext);
 		return result;
-	}
-
-	@Override
-	@Deprecated
-	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
-		SecurityContext securityContext = startImpersonation();
-		BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
-		Job job = getJobByRefId(jobCiId);
-		AbstractProject project;
-		if (job instanceof AbstractProject) {
-			project = (AbstractProject) job;
-			SCMData scmData;
-			Set<User> users;
-			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-
-			int numberOfBuilds = 5;
-
-			//TODO : check if it works!!
-			if (originalBody != null && !originalBody.isEmpty()) {
-				JSONObject bodyJSON = JSONObject.fromObject(originalBody);
-				if (bodyJSON.has("numberOfBuilds")) {
-					numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
-				}
-			}
-			List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.ABORTED); // get last five build with result that better or equal failure
-			for (int i = 0; i < result.size(); i++) {
-				AbstractBuild build = (AbstractBuild) result.get(i);
-				scmData = null;
-				users = null;
-				if (build != null) {
-					if (scmProcessor != null) {
-						scmData = scmProcessor.getSCMData(build);
-						users = build.getCulprits();
-					}
-					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-				}
-			}
-			AbstractBuild lastSuccessfulBuild = null;
-			AbstractBuild lastProjectBuild = project.getLastBuild();
-			if (lastProjectBuild != null) {
-				lastSuccessfulBuild = (AbstractBuild) lastProjectBuild.getPreviousSuccessfulBuild();
-			}
-			if (lastSuccessfulBuild != null) {
-				scmData = null;
-				users = null;
-				if (scmProcessor != null) {
-					scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
-					users = lastSuccessfulBuild.getCulprits();
-				}
-				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-			}
-			AbstractBuild lastBuild = project.getLastBuild();
-			if (lastBuild != null) {
-				scmData = null;
-				users = null;
-				if (scmProcessor != null) {
-					scmData = scmProcessor.getSCMData(lastBuild);
-					users = lastBuild.getCulprits();
-				}
-
-				if (lastBuild.getResult() == null) {
-					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-				} else {
-					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-				}
-			}
-			stopImpersonation(securityContext);
-		} else {
-			logger.warn("non supported flow");
-		}
-		return buildHistory;
 	}
 
 	//  TODO: implement
