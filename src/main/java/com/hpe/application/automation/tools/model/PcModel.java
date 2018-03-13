@@ -268,7 +268,7 @@ public class PcModel {
     }
 
     public String getTrendReportId(boolean fromPcClient) {
-        return useParameterIfNeeded(buildParameters,trendReportId);
+        return fromPcClient?useParameterIfNeeded(buildParameters,this.trendReportId):getTrendReportId();
     }
 
     public void setTrendReportId(String trendReportId){
