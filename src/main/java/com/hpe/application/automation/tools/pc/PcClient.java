@@ -177,18 +177,32 @@ public class PcClient {
 
     private void setCorrectTrendReportID() throws IOException, PcException {
         // If the user selected "Use trend report associated with the test" we want the report ID to be the one from the test
+        String msg = "No trend report ID is associated with the test.\n" +
+                "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
+                "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
         if (("ASSOCIATED").equals(model.getAddRunToTrendReport())){
             PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
-            if (pcTest.getTrendReportId() > -1)
-                model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
-            else{
-                String msg = "No trend report ID is associated with the test.\n" +
-                        "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
-                        "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
-                throw new PcException(msg);
+            //if the trend report ID is parametrized
+            if(!model.getTrendReportId().startsWith("$")) {
+                if (pcTest.getTrendReportId() > -1)
+                    model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
+                else {
+                    throw new PcException(msg);
+                }
+            }
+            else {
+                try {
+                    if (Integer.parseInt(model.getTrendReportId(true)) > -1)
+                        model.setTrendReportId(String.valueOf(model.getTrendReportId(true)));
+                    else {
+                        throw new PcException(msg);
+                    }
+                }
+                catch (Exception ex) {
+                    throw new PcException(msg + System.getProperty("line.separator") + ex);
+                }
             }
         }
-
     }
 
     public String getTestName()  throws IOException, PcException{
