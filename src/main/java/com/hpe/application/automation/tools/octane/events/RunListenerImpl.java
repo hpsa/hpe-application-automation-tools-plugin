@@ -47,6 +47,8 @@ import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hpe.application.automation.tools.octane.tests.TestListener;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
@@ -54,6 +56,7 @@ import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
+import hudson.scm.SCM;
 import jenkins.model.Jenkins;
 
 import java.util.Collection;
@@ -150,6 +153,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return;
 		}
 
+		SCMProcessor.CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
+
 		boolean hasTests = testListener.processBuild(r);
 
 		CIBuildResult result;
@@ -174,6 +179,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 				.setResult(result)
 				.setDuration(r.getDuration())
+				.setCommonHashId(commonOriginRevision.revision)
+				.setBranchName(commonOriginRevision.branch)
 				.setTestResultExpected(hasTests);
 
 		if (r instanceof AbstractBuild) {
@@ -181,6 +188,18 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
+		SCMProcessor.CommonOriginRevision commonOriginRevision = new SCMProcessor.CommonOriginRevision();
+		if(r instanceof AbstractBuild) {
+			final SCM scm = ((AbstractBuild) r).getProject().getScm();
+			if (scm != null) {
+				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+				commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
+			}
+		}
+		return commonOriginRevision;
 	}
 
 	//  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well

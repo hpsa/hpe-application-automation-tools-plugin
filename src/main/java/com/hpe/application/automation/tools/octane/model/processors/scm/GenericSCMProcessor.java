@@ -40,6 +40,7 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.model.User;
 import hudson.model.UserProperty;
 import hudson.scm.ChangeLogSet;
@@ -80,6 +81,11 @@ public class GenericSCMProcessor implements SCMProcessor {
 	@Override
 	public List<SCMData> getSCMData(WorkflowRun run) {
 		// todo: implement default - yanivl
+		return null;
+	}
+
+	@Override
+	public CommonOriginRevision getCommonOriginRevision(Run run) {
 		return null;
 	}
 
