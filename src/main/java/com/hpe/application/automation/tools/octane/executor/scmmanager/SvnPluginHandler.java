@@ -41,14 +41,12 @@ import com.hpe.application.automation.tools.common.HttpStatus;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
-
 import hudson.scm.SCM;
 import hudson.scm.SubversionSCM;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.io.File;
 import java.io.IOException;
 
 public class SvnPluginHandler implements ScmPluginHandler {
@@ -61,7 +59,7 @@ public class SvnPluginHandler implements ScmPluginHandler {
             String url = StringUtils.stripEnd(scmRepository.getUrl(), "/").replaceAll("[<>:\"/\\|?*]", "_");
             relativeCheckOut = "a\\..\\..\\..\\_test_sources\\" + url;
         }else{
-            relativeCheckOut = "a\\..";//it doesn't has any affect on checkout folder. Without it, svn do checkout to folder of svn repository name
+            relativeCheckOut = "a" + File.separator + "..";//it doesn't has any affect on checkout folder. Without it, svn do checkout to folder of svn repository name
             //for example for URL https://myd-vm00812.hpeswlab.net/svn/uft_tests/ - tests will be cloned to "uft_tests" subfolder
             //adding a\.. will clone as is - Why we need it - subfolder is part of "package" reported to Octane
         }

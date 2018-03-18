@@ -394,11 +394,10 @@ public class TestExecutionJobCreatorService {
                 String label = "" + computer.getNode().getSelfLabel();
                 if (label.toLowerCase().contains("uft")) {
                     label = label.trim();
-                    if (!label.contains(" ")) {
-                        labels.add(label);
-                    } else {
-                        logger.error(String.format("Cannot add <%s> to Label Expression for job <%s> because it contains space in it", label, proj.getName()));
+                    if (label.contains(" ")) {
+                        label = "\"" + label + "\"";
                     }
+                    labels.add(label);
                 }
             }
 

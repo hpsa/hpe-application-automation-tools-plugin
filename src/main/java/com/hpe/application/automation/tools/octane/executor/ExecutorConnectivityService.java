@@ -58,7 +58,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +87,7 @@ public class ExecutorConnectivityService {
             BaseStandardCredentials credentials = null;
             if (StringUtils.isNotEmpty(testConnectivityInfo.getUsername()) && testConnectivityInfo.getPassword() != null) {
                 credentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
-            } else if (StringUtils.isEmpty(testConnectivityInfo.getCredentialsId())) {
+            } else if (StringUtils.isNotEmpty(testConnectivityInfo.getCredentialsId())) {
                 credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
             }
 
@@ -149,7 +151,9 @@ public class ExecutorConnectivityService {
             }
         }
         if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
-            BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String desc = "Created by the HPE Application Automation Tools plugin on " + formatter.format(new Date());
+            BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
             CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
             try {
                 store.addCredentials(Domain.global(), c);
