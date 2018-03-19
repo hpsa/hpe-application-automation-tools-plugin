@@ -179,8 +179,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 				.setResult(result)
 				.setDuration(r.getDuration())
-				.setCommonHashId(commonOriginRevision.revision)
-				.setBranchName(commonOriginRevision.branch)
+				.setCommonHashId(commonOriginRevision!=null?commonOriginRevision.revision:null)
+				.setBranchName(commonOriginRevision!=null?commonOriginRevision.branch:null)
 				.setTestResultExpected(hasTests);
 
 		if (r instanceof AbstractBuild) {
@@ -191,7 +191,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
-		SCMProcessor.CommonOriginRevision commonOriginRevision = new SCMProcessor.CommonOriginRevision();
+		SCMProcessor.CommonOriginRevision commonOriginRevision=null;
 		if(r instanceof AbstractBuild) {
 			final SCM scm = ((AbstractBuild) r).getProject().getScm();
 			if (scm != null) {
