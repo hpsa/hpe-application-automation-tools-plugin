@@ -47,6 +47,8 @@ import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hpe.application.automation.tools.octane.tests.TestListener;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
@@ -54,6 +56,7 @@ import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
+import hudson.scm.SCM;
 import jenkins.model.Jenkins;
 
 import java.util.Collection;
@@ -143,15 +146,45 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onFinalized(Run r) {
-		if (!ConfigurationService.getServerConfiguration().isValid()) {
-			return;
-		}
-		if (ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
+		if (onFinelizedValidations()) return;
+
+		SCMProcessor.CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
 
 		boolean hasTests = testListener.processBuild(r);
 
+		CIBuildResult result;
+		result = getCiBuildResult(r);
+		CIEvent event = getCiEvent(r, commonOriginRevision, hasTests, result);
+
+		if (r instanceof AbstractBuild) {
+			event.setParameters(ParameterProcessors.getInstances(r))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+		}
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private CIEvent getCiEvent(Run r, SCMProcessor.CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
+		return dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.FINISHED)
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+				.setNumber(String.valueOf(r.getNumber()))
+				.setProject(BuildHandlerUtils.getJobCiId(r))
+				.setStartTime(r.getStartTimeInMillis())
+				.setEstimatedDuration(r.getEstimatedDuration())
+				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+				.setResult(result)
+				.setDuration(r.getDuration())
+				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
+				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
+				.setTestResultExpected(hasTests);
+	}
+
+	private boolean onFinelizedValidations() {
+		return (!ConfigurationService.getServerConfiguration().isValid() ||
+				ConfigurationService.getModel().isSuspend());
+	}
+
+	private CIBuildResult getCiBuildResult(Run r) {
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
 			result = CIBuildResult.SUCCESS;
@@ -164,23 +197,21 @@ public final class RunListenerImpl extends RunListener<Run> {
 		} else {
 			result = CIBuildResult.UNAVAILABLE;
 		}
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.FINISHED)
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-				.setNumber(String.valueOf(r.getNumber()))
-				.setProject(BuildHandlerUtils.getJobCiId(r))
-				.setStartTime(r.getStartTimeInMillis())
-				.setEstimatedDuration(r.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-				.setResult(result)
-				.setDuration(r.getDuration())
-				.setTestResultExpected(hasTests);
+		return result;
+	}
 
-		if (r instanceof AbstractBuild) {
-			event.setParameters(ParameterProcessors.getInstances(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
+		SCMProcessor.CommonOriginRevision commonOriginRevision=null;
+		if(r instanceof AbstractBuild) {
+			final SCM scm = ((AbstractBuild) r).getProject().getScm();
+			if (scm != null) {
+				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+				if(scmProcessor!=null) {
+					commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
+				}
+			}
 		}
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		return commonOriginRevision;
 	}
 
 	//  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well

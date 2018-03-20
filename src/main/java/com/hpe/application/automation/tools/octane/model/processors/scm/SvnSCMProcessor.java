@@ -39,10 +39,7 @@ import com.hp.octane.integrations.dto.scm.SCMCommit;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.User;
-import hudson.model.UserProperty;
+import hudson.model.*;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SubversionChangeLogSet;
 import hudson.scm.SubversionSCM;
@@ -96,6 +93,11 @@ public class SvnSCMProcessor implements SCMProcessor {
 	@Override
 	public List<SCMData> getSCMData(WorkflowRun run) {
 		// todo: add implementatiohn  - yanivl
+		return null;
+	}
+
+	@Override
+	public CommonOriginRevision getCommonOriginRevision(Run run) {
 		return null;
 	}
 

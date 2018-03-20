@@ -34,25 +34,33 @@
 package com.hpe.application.automation.tools.octane.model.processors.scm;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.scm.SCMChange;
-import com.hp.octane.integrations.dto.scm.SCMCommit;
-import com.hp.octane.integrations.dto.scm.SCMData;
-import com.hp.octane.integrations.dto.scm.SCMRepository;
-import com.hp.octane.integrations.dto.scm.SCMType;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.User;
-import hudson.model.UserProperty;
+import com.hp.octane.integrations.dto.scm.*;
+import hudson.FilePath;
+import hudson.model.*;
 import hudson.plugins.git.Branch;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.BuildData;
+import hudson.remoting.VirtualChannel;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.SCM;
 import hudson.tasks.Mailer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,6 +130,77 @@ public class GitSCMProcessor implements SCMProcessor {
 			}
 		}
 		return result;
+	}
+	@Override
+	public CommonOriginRevision getCommonOriginRevision(Run r) {
+        //for phase 1 this is hard coded since its not possible to calculate it, and configuration from outside will complicate the feature
+        //so for this phase we keep it hardcoded.
+		String MASTER = "refs/remotes/origin/master";
+		CommonOriginRevision commonOriginRevision=new CommonOriginRevision();
+
+		try {
+			AbstractBuild abstractBuild = (AbstractBuild) r;
+			File repoDir = new File(getRemoteString(abstractBuild) +  File.separator +".git");
+			Git git = Git.open(repoDir);
+			Repository repo = git.getRepository();
+			final RevWalk walk = new RevWalk(repo);
+
+			ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
+			RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
+			ObjectId resolveForMaster = repo.resolve(MASTER);
+			RevCommit masterCommit = walk.parseCommit(resolveForMaster);
+
+			walk.reset();
+			walk.setRevFilter(RevFilter.MERGE_BASE);
+			walk.markStart(currentBranchCommit);
+			walk.markStart(masterCommit);
+			final RevCommit base = walk.next();
+			if (base == null)
+				return commonOriginRevision;
+			final RevCommit base2 = walk.next();
+			if (base2 != null) {
+				throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
+						MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
+			}
+			commonOriginRevision.revision=base.getId().getName();
+			commonOriginRevision.branch=getBranchName(r);
+
+		} catch (Exception e) {
+			logger.error("getLatestCommonCommit exception: " + e.getMessage(), e);
+			return commonOriginRevision;
+		}
+		return commonOriginRevision;
+	}
+
+	public String getBranchName(Run r) {
+		try {
+			SCM scm = ((AbstractBuild) r).getProject().getScm();
+			if (scm instanceof GitSCM) {
+				GitSCM git = (GitSCM) scm;
+				List<BranchSpec> branches = git.getBranches();
+				String rawBranchName = branches.get(0).toString();
+				String branchName = rawBranchName.substring(2); //trunk the '*/' from the '*/<branch name>' in order to get clean branch name
+				return branchName;
+			}
+
+		} catch (Exception e) {
+
+		}
+		return null;
+	}
+
+	private static String getRemoteString(AbstractBuild  r){
+		if(r.getWorkspace().isRemote())
+		{
+			VirtualChannel vc = r.getWorkspace().getChannel();
+			String fp = r.getWorkspace().getRemote();
+			String remote = new FilePath(vc, fp).getRemote();
+			return remote;
+		}
+		else {
+			String remote = r.getWorkspace().getRemote();
+			return remote;
+		}
 	}
 
 	private List<SCMCommit> getCommits(ChangeLogSet<? extends ChangeLogSet.Entry> changes) {
