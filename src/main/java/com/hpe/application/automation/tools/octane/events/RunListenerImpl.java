@@ -146,30 +146,25 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onFinalized(Run r) {
-		if (!ConfigurationService.getServerConfiguration().isValid()) {
-			return;
-		}
-		if (ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
+		if (onFinelizedValidations()) return;
 
 		SCMProcessor.CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
 
 		boolean hasTests = testListener.processBuild(r);
 
 		CIBuildResult result;
-		if (r.getResult() == Result.SUCCESS) {
-			result = CIBuildResult.SUCCESS;
-		} else if (r.getResult() == Result.ABORTED) {
-			result = CIBuildResult.ABORTED;
-		} else if (r.getResult() == Result.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (r.getResult() == Result.UNSTABLE) {
-			result = CIBuildResult.UNSTABLE;
-		} else {
-			result = CIBuildResult.UNAVAILABLE;
+		result = getCiBuildResult(r);
+		CIEvent event = getCiEvent(r, commonOriginRevision, hasTests, result);
+
+		if (r instanceof AbstractBuild) {
+			event.setParameters(ParameterProcessors.getInstances(r))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private CIEvent getCiEvent(Run r, SCMProcessor.CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
+		return dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
 				.setNumber(String.valueOf(r.getNumber()))
@@ -182,12 +177,32 @@ public final class RunListenerImpl extends RunListener<Run> {
 				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
 				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
 				.setTestResultExpected(hasTests);
+	}
 
-		if (r instanceof AbstractBuild) {
-			event.setParameters(ParameterProcessors.getInstances(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+	private boolean onFinelizedValidations() {
+		if (!ConfigurationService.getServerConfiguration().isValid()) {
+			return true;
 		}
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		if (ConfigurationService.getModel().isSuspend()) {
+			return true;
+		}
+		return false;
+	}
+
+	private CIBuildResult getCiBuildResult(Run r) {
+		CIBuildResult result;
+		if (r.getResult() == Result.SUCCESS) {
+			result = CIBuildResult.SUCCESS;
+		} else if (r.getResult() == Result.ABORTED) {
+			result = CIBuildResult.ABORTED;
+		} else if (r.getResult() == Result.FAILURE) {
+			result = CIBuildResult.FAILURE;
+		} else if (r.getResult() == Result.UNSTABLE) {
+			result = CIBuildResult.UNSTABLE;
+		} else {
+			result = CIBuildResult.UNAVAILABLE;
+		}
+		return result;
 	}
 
 	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
