@@ -180,13 +180,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	private boolean onFinelizedValidations() {
-		if (!ConfigurationService.getServerConfiguration().isValid()) {
-			return true;
-		}
-		if (ConfigurationService.getModel().isSuspend()) {
-			return true;
-		}
-		return false;
+		return (!ConfigurationService.getServerConfiguration().isValid() ||
+				ConfigurationService.getModel().isSuspend());
 	}
 
 	private CIBuildResult getCiBuildResult(Run r) {
