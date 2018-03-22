@@ -141,32 +141,10 @@ public class SrfResultsReport extends Recorder implements Serializable {
         }
         public SrfTestResultAction(AbstractBuild owner, TestResult result, BuildListener listener) {
             super(owner, result, listener);
-            String data = null;
+
             if(listener != null)
                 _logger = listener.getLogger();
             _result=result;
-            BufferedReader reader = null;
-            try {
-                String path = _build.getRootDir().getPath().concat("/report.json");
-                reader = new BufferedReader(new FileReader(path));
-                String line = null;
-                StringBuffer buf = new StringBuffer();
-                while ( (line = reader.readLine() ) != null){
-                    buf.append(line);
-                }
-                data = buf.toString();
-            }
-            catch (Exception e) {
-            }
-            finally {
-                try {
-                    if(reader != null)
-                        reader.close();
-                } catch (IOException e) {
-
-                }
-            }
-            _buildInfo = JSONArray.fromObject(data);
         }
 
         public SrfScriptRunModel[] getScriptRuns(ClassResult classResult) {
@@ -220,7 +198,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
         public SrfScriptRunModel getScriptRunModel(CaseResult caseResult) {
             SrfScriptRunModel scriptRuns[] = this.getScriptRuns(caseResult.getParent());
             for (SrfScriptRunModel scriptRun: scriptRuns) {
-                //logger.log(Level.INFO,"$#$#$#$##$#$#$ HELLLLOOOO( ##$#$#$#$$#$#$#$");
                 if (scriptRun.getLinkName().equals(caseResult.getSafeName()))
                      return scriptRun;
             }
@@ -305,7 +282,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
 
         // Has any QualityCenter builder been set up?
         if (mergedResultNames.isEmpty()) {
-            listener.getLogger().println("RunResultRecorder: no results xml File provided");
+            listener.getLogger().println("No results xml File provided");
             return true;
         }
 
