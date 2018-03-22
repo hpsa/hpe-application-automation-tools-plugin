@@ -45,25 +45,22 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hpe.application.automation.tools.common.HttpStatus;
-import hudson.EnvVars;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.model.Item;
-import hudson.model.TaskListener;
 import hudson.model.User;
-import hudson.plugins.git.GitException;
-import hudson.plugins.git.GitTool;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.gitclient.Git;
-import org.jenkinsci.plugins.gitclient.GitClient;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -85,21 +82,19 @@ public class ExecutorConnectivityService {
      */
     public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
         OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
-        if (testConnectivityInfo.getScmRepository() != null &&
-                StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl()) &&
-                SCMType.GIT.equals(testConnectivityInfo.getScmRepository().getType())) {
+        if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
 
-            BaseStandardCredentials c = null;
+            BaseStandardCredentials credentials = null;
             if (StringUtils.isNotEmpty(testConnectivityInfo.getUsername()) && testConnectivityInfo.getPassword() != null) {
-                c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
-            } else if (StringUtils.isEmpty(testConnectivityInfo.getCredentialsId())) {
-                c = getCredentialsById(testConnectivityInfo.getCredentialsId());
+                credentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
+            } else if (StringUtils.isNotEmpty(testConnectivityInfo.getCredentialsId())) {
+                credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
             }
 
 
             Jenkins jenkins = Jenkins.getActiveInstance();
 
-            List<String> permissionResult = checkCIPermissions(jenkins, c != null);
+            List<String> permissionResult = checkCIPermissions(jenkins, credentials != null);
 
             if (permissionResult != null && !permissionResult.isEmpty()) {
                 String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
@@ -110,23 +105,14 @@ public class ExecutorConnectivityService {
                 return result;
             }
 
-            try {
-                EnvVars environment = new EnvVars(System.getenv());
-                GitClient git = Git.with(TaskListener.NULL, environment).using(GitTool.getDefaultInstallation().getGitExe()).getClient();
-                git.addDefaultCredentials(c);
-                git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
-
-                result = result.setStatus(HttpStatus.OK.getCode());
-
-            } catch (IOException | InterruptedException e) {
-                logger.error("Failed to connect to git : " + e.getMessage());
-                result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
-                result.setBody(e.getMessage());
-            } catch (GitException e) {
-                logger.error("Failed to execute getHeadRev : " + e.getMessage());
-                result.setStatus(HttpStatus.NOT_FOUND.getCode());
-                result.setBody(e.getMessage());
+            if (!ScmPluginFactory.isPluginInstalled(testConnectivityInfo.getScmRepository().getType())) {
+                result.setStatus(HttpStatus.BAD_REQUEST.getCode());
+                result.setBody(String.format("%s plugin is not installed.", testConnectivityInfo.getScmRepository().getType().value().toUpperCase()));
+            } else {
+                ScmPluginHandler handler = ScmPluginFactory.getScmHandler(testConnectivityInfo.getScmRepository().getType());
+                handler.checkRepositoryConnectivity(testConnectivityInfo, credentials, result);
             }
+
         } else {
             result.setStatus(HttpStatus.BAD_REQUEST.getCode());
             result.setBody("Missing input for testing");
@@ -165,7 +151,9 @@ public class ExecutorConnectivityService {
             }
         }
         if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
-            BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String desc = "Created by the HPE Application Automation Tools plugin on " + formatter.format(new Date());
+            BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
             CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
             try {
                 store.addCredentials(Domain.global(), c);

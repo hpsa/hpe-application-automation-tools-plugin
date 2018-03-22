@@ -68,6 +68,8 @@ import org.apache.commons.lang.StringUtils;
 
 import com.hpe.application.automation.tools.sse.sdk.HttpRequestDecorator;
 
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
+
 /***
  *
  * @author Effi Bar-She'an

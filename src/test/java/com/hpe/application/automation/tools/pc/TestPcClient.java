@@ -41,6 +41,10 @@ import org.junit.Test;
 
 import com.hpe.application.automation.tools.run.PcBuilder;
 
+import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
+
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+
 @SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestPcClient {
          

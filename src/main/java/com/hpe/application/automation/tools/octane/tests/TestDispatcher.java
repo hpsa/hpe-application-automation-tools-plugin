@@ -33,22 +33,19 @@
 
 package com.hpe.application.automation.tools.octane.tests;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.TestsService;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
-import com.hp.mqm.client.exception.LoginException;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hpe.application.automation.tools.octane.ResultQueue;
-import com.hpe.application.automation.tools.octane.client.EventPublisher;
-import com.hpe.application.automation.tools.octane.client.JenkinsInsightEventPublisher;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.*;
@@ -69,6 +66,7 @@ import java.util.Date;
 @Extension(dynamicLoadable = YesNoMaybe.NO)
 public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	private static Logger logger = LogManager.getLogger(TestDispatcher.class);
+	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
 
@@ -77,139 +75,131 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	private ResultQueue queue;
 
-	private JenkinsMqmRestClientFactory clientFactory;
-
-	private EventPublisher eventPublisher;
-
 	public TestDispatcher() {
 		super("MQM Test Dispatcher");
 	}
 
 	@Override
-	protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
+	protected void doExecute(TaskListener listener) {
 		if (queue.peekFirst() == null) {
 			return;
 		}
 		if (retryModel.isQuietPeriod()) {
-			logger.info("There are pending test results, but we are in quiet period");
+			logger.info("there are pending test results, but we are in quiet period");
 			return;
 		}
-		MqmRestClient client = null;
-		ServerConfiguration configuration = null;
+		Jenkins jenkinsInstance = Jenkins.getInstance();
+		if (jenkinsInstance == null) {
+			logger.error("can't obtain Jenkins instance - major failure, test dispatching won't run");
+			return;
+		}
+
+		TestsService testsService = OctaneSDK.getInstance().getTestsService();
+		OctaneConfiguration configuration = OctaneSDK.getInstance().getPluginServices().getOctaneConfiguration();
 		ResultQueue.QueueItem item;
+
+		//  iterate and dispatch all the pending test results
 		while ((item = queue.peekFirst()) != null) {
-			if (client == null) {
-				configuration = ConfigurationService.getServerConfiguration();
-				if (StringUtils.isEmpty(configuration.location)) {
-					logger.warn("There are pending test results, but MQM server location is not specified, results can't be submitted");
-					return;
-				}
-				if (eventPublisher.isSuspended()) {
-					logger.warn("There are pending test results, but event dispatching is suspended");
-					return;
-				}
-				logger.info("There are pending test results, connecting to the MQM server");
-				client = clientFactory.obtain(
-						configuration.location,
-						configuration.sharedSpace,
-						configuration.username,
-						configuration.password);
-				try {
-					client.validateConfigurationWithoutLogin();
-				} catch (SharedSpaceNotExistException e) {
-					logger.warn("Invalid shared space. Pending test results can't be submitted", e);
-					retryModel.failure();
-					return;
-				} catch (LoginException e) {
-					logger.warn("Login failed, pending test results can't be submitted", e);
-					retryModel.failure();
-					return;
-				} catch (RequestException e) {
-					logger.warn("Problem with communication with MQM server. Pending test results can't be submitted", e);
-					retryModel.failure();
-					return;
-				}
-
-				retryModel.success();
-			}
-			Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
-			if (project == null) {
-				logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending test results can't be submitted");
-				queue.remove();
-				continue;
-			}
-			Run build = project.getBuildByNumber(item.getBuildNumber());
-			if (build == null) {
-				logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending test results can't be submitted");
+			Job job = (Job) jenkinsInstance.getItemByFullName(item.getProjectName());
+			if (job == null) {
+				logger.warn("job '" + item.getProjectName() + "' no longer exists, its test results won't be pushed to Octane");
 				queue.remove();
 				continue;
 			}
 
-			Boolean needTestResult = client.isTestResultRelevant(
-					ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
+			Run run = job.getBuildByNumber(item.getBuildNumber());
+			if (run == null) {
+				logger.warn("build '" + item.getProjectName() + " #" + item.getBuildNumber() + "' no longer exists, its test results won't be pushed to Octane");
+				queue.remove();
+				continue;
+			}
 
-			if (needTestResult) {
-				try {
-					Long id = null;
+			File resultFile;
+			try {
+				resultFile = new File(run.getRootDir(), TestListener.TEST_RESULT_FILE);
+			} catch (FileNotFoundException e) {
+				logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "' won't be pushed to Octane");
+				queue.remove();
+				continue;
+			}
+
+			try {
+				boolean needTestResult = testsService.isTestsResultRelevant(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(run));
+				if (!needTestResult) {
+					logger.info("test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "' are NOT needed, won't be pushed to Octane");
+					queue.remove();
+					continue;
+				}
+			} catch (IOException ioe) {
+				logger.error("pre-flight request failed - server temporarily unavailable, will retry later", ioe);
+				retryModel.failure();
+				break;
+			}
+
+			try {
+				String testsPushResponse;
+				String testsPushId = null;
+				OctaneResponse response = testsService.pushTestsResult(new FileInputStream(resultFile));
+				testsPushResponse = response.getBody();
+				if (response.getStatus() == 202 && testsPushResponse != null && !testsPushResponse.isEmpty()) {
+					logger.info("successfully pushed test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "'");
 					try {
-						File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
-						id = client.postTestResult(resultFile, false);
-					} catch (TemporarilyUnavailableException e) {
-						logger.warn("Server temporarily unavailable, will try later", e);
-						audit(configuration, build, null, true);
-						break;
-					} catch (RequestException e) {
-						logger.warn("Failed to submit test results [" + build.getParent().getName()/*build.getProject().getName()*/ + "#" + build.getNumber() + "]", e);
+						testsPushId = objectMapper.readValue(testsPushResponse, TestsPushResponseDTO.class).id;
+					} catch (IOException ioe) {
+						logger.error("failed to extract the tests push ID info from tests push response", ioe);
 					}
-
-					if (id != null) {
-						logger.info("Successfully pushed test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-						queue.remove();
-					} else {
-						logger.warn("Failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-						if (!queue.failed()) {
-							logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
-						}
-						client = null;
-					}
-					audit(configuration, build, id, false);
-				} catch (FileNotFoundException e) {
-					logger.warn("File no longer exists, failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
+					audit(configuration, run, testsPushId, false);
+					queue.remove();
+				} else if (response.getStatus() == 503) {
+					logger.error("server temporarily unavailable, will retry later");
+					audit(configuration, run, null, true);
+					retryModel.failure();
+					break;
+				} else {
+					logger.error("unexpected result while pushing test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "': " +
+							response.getStatus() + " - " + response.getBody());
+					audit(configuration, run, null, false);
 					queue.remove();
 				}
-			} else {
-				logger.info("Test result not needed for build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-				queue.remove();
+			} catch (IOException ioe) {
+				logger.error("push test results failed - server temporarily unavailable, will retry later", ioe);
+				audit(configuration, run, null, true);
+				retryModel.failure();
+				break;
 			}
 		}
 	}
 
-	private void audit(ServerConfiguration configuration, Run build, Long id, boolean temporarilyUnavailable) throws IOException, InterruptedException {
-		FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));
-		JSONArray audit;
-		if (auditFile.exists()) {
-			InputStream is = auditFile.read();
-			audit = JSONArray.fromObject(IOUtils.toString(is, "UTF-8"));
-			IOUtils.closeQuietly(is);
-		} else {
-			audit = new JSONArray();
+	private void audit(OctaneConfiguration octaneConfiguration, Run run, String id, boolean temporarilyUnavailable) {
+		try {
+			FilePath auditFile = new FilePath(new File(run.getRootDir(), TEST_AUDIT_FILE));
+			JSONArray audit;
+			if (auditFile.exists()) {
+				InputStream is = auditFile.read();
+				audit = JSONArray.fromObject(IOUtils.toString(is, "UTF-8"));
+				IOUtils.closeQuietly(is);
+			} else {
+				audit = new JSONArray();
+			}
+			JSONObject event = new JSONObject();
+			event.put("id", id);
+			event.put("pushed", id != null && !id.isEmpty());
+			event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
+			event.put("location", octaneConfiguration.getUrl());
+			event.put("sharedSpace", octaneConfiguration.getSharedSpace());
+			if (temporarilyUnavailable) {
+				event.put("temporarilyUnavailable", true);
+			}
+			audit.add(event);
+			auditFile.write(audit.toString(), "UTF-8");
+		} catch (IOException | InterruptedException e) {
+			logger.error("failed to create audit entry for  " + octaneConfiguration + "; " + run);
 		}
-		JSONObject event = new JSONObject();
-		event.put("id", id);
-		event.put("pushed", id != null);
-		event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
-		event.put("location", configuration.location);
-		event.put("sharedSpace", configuration.sharedSpace);
-		if (temporarilyUnavailable) {
-			event.put("temporarilyUnavailable", true);
-		}
-		audit.add(event);
-		auditFile.write(audit.toString(), "UTF-8");
 	}
 
 	@Override
 	public long getRecurrencePeriod() {
-		String value = System.getProperty("MQM.TestDispatcher.Period");
+		String value = System.getProperty("Octane.TestDispatcher.Period");
 		if (!StringUtils.isEmpty(value)) {
 			return Long.valueOf(value);
 		}
@@ -217,37 +207,22 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	}
 
 	@Inject
-	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
-	@Inject
 	public void setTestResultQueue(TestsResultQueue queue) {
 		this.queue = queue;
 	}
-
-	@Inject
-	public void setEventPublisher(JenkinsInsightEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
-	}
-
-
-	void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
 
 	void _setTestResultQueue(ResultQueue queue) {
 		this.queue = queue;
 	}
 
-
 	void _setRetryModel(RetryModel retryModel) {
 		this.retryModel = retryModel;
 	}
 
-
-	void _setEventPublisher(EventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+	public static final class TestsPushResponseDTO {
+		public String id;
+		public String status;
 	}
 }

@@ -39,18 +39,13 @@ import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
-import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hpe.application.automation.tools.model.ResultsPublisherModel;
 import com.hpe.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.hpe.application.automation.tools.results.RunResultRecorder;
 import com.hpe.application.automation.tools.run.RunFromFileBuilder;
 import hudson.model.*;
-import hudson.plugins.git.BranchSpec;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.SubmoduleConfig;
-import hudson.plugins.git.UserRemoteConfig;
-import hudson.plugins.git.extensions.GitSCMExtension;
-import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
 import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
 import jenkins.model.BuildDiscarder;
@@ -171,27 +166,13 @@ public class TestExecutionJobCreatorService {
         }
     }
 
-    private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean sharedCheckoutFolder) {
-        if (SCMType.GIT.equals(scmRepository.getType())) {
-            try {
+    private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) {
 
-                List<UserRemoteConfig> repoLists = Arrays.asList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
-                List<GitSCMExtension> extensions = null;
-
-                if (sharedCheckoutFolder) {
-                    String relativeCheckOut = "..\\..\\_test_sources\\" + scmRepository.getUrl().replaceAll("[<>:\"/\\|?*]", "_");
-                    RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
-                    extensions = Arrays.<GitSCMExtension>asList(targetDirectory);
-                }
-                GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec("")), false, Collections.<SubmoduleConfig>emptyList(), null, null, extensions);
-
-                //GitSCM scm = new GitSCM(scmRepository.getUrl());
-                proj.setScm(scm);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to set Git repository : " + e.getMessage());
-            }
-        } else {
-            throw new IllegalArgumentException("SCM repository " + scmRepository.getType() + " isn't supported yet");
+        ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandler(scmRepository.getType());
+        try {
+            scmPluginHandler.setScmRepositoryInJob(scmRepository, scmRepositoryCredentialsId, proj, executorJob);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to set SCM repository : " + e.getMessage());
         }
     }
 
@@ -218,7 +199,8 @@ public class TestExecutionJobCreatorService {
 
             for (TestExecutionInfo test : tests) {
                 Element testElement = doc.createElement("Test");
-                testElement.setAttribute("name", test.getTestName());
+                String packageAndTestName = (StringUtils.isNotEmpty(test.getPackageName()) ? test.getPackageName() + "\\" : "") + test.getTestName();
+                testElement.setAttribute("name", packageAndTestName);
                 String path = "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getPackageName()) + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getTestName();
                 testElement.setAttribute("path", path);
 
@@ -411,7 +393,11 @@ public class TestExecutionJobCreatorService {
 
                 String label = "" + computer.getNode().getSelfLabel();
                 if (label.toLowerCase().contains("uft")) {
-                    labels.add(label.trim());
+                    label = label.trim();
+                    if (label.contains(" ")) {
+                        label = "\"" + label + "\"";
+                    }
+                    labels.add(label);
                 }
             }
 

@@ -33,6 +33,7 @@
 
 package com.hpe.application.automation.tools.octane.events;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
@@ -96,7 +97,8 @@ public class SCMListenerImpl extends SCMListener {
 			if (changelog != null && !changelog.isEmptySet()) {        // if there are any commiters
 				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
 				if (scmProcessor != null) {
-					createSCMData(r, build, scmProcessor);
+					event = createSCMEvent(r, build, scmProcessor);
+					OctaneSDK.getInstance().getEventsService().publishEvent(event);
 				} else {
 					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
 				}
@@ -115,7 +117,7 @@ public class SCMListenerImpl extends SCMListener {
 								.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 								.setNumber(String.valueOf(r.getNumber()))
 								.setScmData(scmData);
-						EventsService.getExtensionInstance().dispatchEvent(event);
+						OctaneSDK.getInstance().getEventsService().publishEvent(event);
 					}
 				} else {
 					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
@@ -124,7 +126,7 @@ public class SCMListenerImpl extends SCMListener {
 		}
 	}
 
-	private void createSCMData(Run<?, ?> run, AbstractBuild build, SCMProcessor scmProcessor) {
+	private CIEvent createSCMEvent(Run<?, ?> run, AbstractBuild build, SCMProcessor scmProcessor) {
 		CIEvent event;
 		SCMData scmData = scmProcessor.getSCMData(build);
 		event = dtoFactory.newDTO(CIEvent.class)
@@ -134,10 +136,10 @@ public class SCMListenerImpl extends SCMListener {
 				.setCauses(CIEventCausesFactory.processCauses(extractCauses(run)))
 				.setNumber(String.valueOf(run.getNumber()))
 				.setScmData(scmData);
-		EventsService.getExtensionInstance().dispatchEvent(event);
+		return event;
 	}
 
-	private List<Cause> extractCauses(Run r) {
+	private List<Cause> extractCauses(Run<?, ?> r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		} else {

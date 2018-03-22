@@ -8,4 +8,4 @@ Please Make sure these boxes are checked before submitting your pull request - T
 - [ ] The PR can is built on your machine without any (new) warnings.
 - [ ] The PR passed sanity tests by you / QA / DevTest / Good Samaritain.
 - [ ] Add unit tests with new features.
-- [ ] If you added any dependency to the POM - Please update @YafimK
+- [ ] If you added any dependency to the POM - Please update YafimK

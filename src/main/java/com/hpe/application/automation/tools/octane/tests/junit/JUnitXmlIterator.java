@@ -145,7 +145,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						break;
 					}
 				}
-				if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+				if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
 					logger.error("HPE Runner: " + hpRunnerType);
 					externalURL = getStormRunnerURL(path);
 				}
@@ -211,8 +211,14 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";
 					}
                 } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
-                    externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-                } else if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
+				}
+                 else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
+					//todo: add external url to srf report
+					//todo: wait for changes in srf plugin
+                } else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+                	//console contains link to report
+					//link start with "View Report:"
 					String VIEW_REPORT_PREFIX = "View Report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {

@@ -72,7 +72,8 @@ import java.util.*;
 public class JUnitExtension extends MqmTestsExtension {
 	private static Logger logger = LogManager.getLogger(JUnitExtension.class);
 
-	private static final String STORM_RUNNER = "StormRunner";
+	private static final String STORMRUNNER_LOAD = "StormRunner Load";
+	private static final String STORMRUNNER_FUNCTIONAL = "StormRunner Functional";
 	private static final String LOAD_RUNNER = "LoadRunner";
 	private static final String PERFORMANCE_CENTER_RUNNER = "Performance Center";
 	private static final String PERFORMANCE_TEST_TYPE = "Performance";
@@ -108,7 +109,7 @@ public class JUnitExtension extends MqmTestsExtension {
 			logger.debug("JUnit result report found");
 			ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
 			FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, Arrays.asList(resultFile), false, hpRunnerType, jenkinsRootUrl));
-			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, false), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
 			if ("hudson.maven.MavenModuleSetBuild".equals(run.getClass().getName())) {
@@ -129,7 +130,7 @@ public class JUnitExtension extends MqmTestsExtension {
 				if (!resultFiles.isEmpty()) {
 					ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
 					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, resultFiles, false, hpRunnerType, jenkinsRootUrl));
-					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, false), detectedFields);
 				}
 			}
 			logger.debug("No JUnit result report found");
@@ -139,9 +140,11 @@ public class JUnitExtension extends MqmTestsExtension {
 
 	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType, boolean isLoadRunnerProject) throws InterruptedException {
 		ResultFields detectedFields;
-		if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
-			detectedFields = new ResultFields(null, STORM_RUNNER, null);
-		} else if (isLoadRunnerProject) {
+		if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+			detectedFields = new ResultFields(null, STORMRUNNER_LOAD, null);
+		}else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
+			detectedFields = new ResultFields(null, STORMRUNNER_FUNCTIONAL, null);
+		}else if (isLoadRunnerProject) {
 			detectedFields = new ResultFields(null, LOAD_RUNNER, null);
 		} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 			detectedFields = new ResultFields(null, PERFORMANCE_CENTER_RUNNER, null, PERFORMANCE_TEST_TYPE);
@@ -215,13 +218,13 @@ public class JUnitExtension extends MqmTestsExtension {
 				}
 				additionalContext = testFolderNames;
 			}
-			if (HPRunnerType.StormRunner.equals(hpRunnerType)) {
+			if (HPRunnerType.StormRunnerLoad.equals(hpRunnerType)) {
 				try {
 					File file = new File(build.getRootDir(), "log");
 					Path path = Paths.get(file.getPath());
 					additionalContext = Files.readAllLines(path, StandardCharsets.UTF_8);
 				} catch (Exception e) {
-					logger.error("Failed to add log file for StormRunner :" + e.getMessage());
+					logger.error("Failed to add log file for StormRunnerLoad :" + e.getMessage());
 				}
 			}
 		}
