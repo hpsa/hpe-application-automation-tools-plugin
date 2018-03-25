@@ -238,20 +238,24 @@ public class UFTTestDetectionService {
                 }
                 String fileFullPath = workspace + File.separator + path.getPath();
                 if (isTestMainFilePath(path.getPath())) {
+                    FilePath filePath = new FilePath(new File(fileFullPath));
+                    boolean fileExist = filePath.exists();
 
                     if (EditType.ADD.equals(path.getEditType())) {
-                        if (isFileExist(fileFullPath)) {
+                        if (fileExist) {
                             FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
                             scanFileSystemRecursively(workspace, testFolder, result.getNewTests(), result.getNewScmResourceFiles());
+                        } else {
+                            logger.error("doChangeSetDetection : file not exist " + fileFullPath);
                         }
                     } else if (EditType.DELETE.equals(path.getEditType())) {
-                        if (!isFileExist(fileFullPath)) {
+                        if (!fileExist) {
                             FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
                             AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
                             result.getDeletedTests().add(test);
                         }
                     } else if (EditType.EDIT.equals(path.getEditType())) {
-                        if (isFileExist(fileFullPath)) {
+                        if (fileExist) {
                             FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
                             scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests(), result.getUpdatedScmResourceFiles());
                         }
@@ -309,11 +313,6 @@ public class UFTTestDetectionService {
         return relativePath;
     }
 
-    private static boolean isFileExist(String path) {
-        File file = new File(path);
-        return file.exists();
-    }
-
     private static boolean initialDetectionFileExist(FilePath workspace) {
         try {
             File rootFile = new File(workspace.toURI());
@@ -334,16 +333,6 @@ public class UFTTestDetectionService {
             logger.error("Failed to createInitialDetectionFile : " + e.getMessage());
         }
     }
-
-    /*private static void removeInitialDetectionFlag(FilePath workspace) {
-        try {
-            File rootFile = new File(workspace.toURI());
-            File file = new File(rootFile, INITIAL_DETECTION_FILE);
-            file.delete();
-        } catch (IOException | InterruptedException e) {
-            logger.error("Failed to removeInitialDetectionFlag");
-        }
-    }*/
 
     private static UFTTestDetectionResult doInitialDetection(FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();

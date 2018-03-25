@@ -94,7 +94,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
      * @return Job's CI ID
      */
     public String getTranslateJobName() {
-        if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+        if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
             String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
             return BuildHandlerUtils.translateFolderJobName(jobPlainName);
         } else {

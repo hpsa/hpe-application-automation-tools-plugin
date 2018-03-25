@@ -108,7 +108,7 @@ public class BuildHandlerUtils {
 		if (run.getParent() instanceof MatrixConfiguration) {
 			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getParentBuild().getParent()).getTranslateJobName();
 		}
-		if (run.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+		if (run.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslateJobName();
 		}
 		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslateJobName();
