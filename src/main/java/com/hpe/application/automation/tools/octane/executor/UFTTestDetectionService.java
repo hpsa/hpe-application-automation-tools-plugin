@@ -40,11 +40,11 @@ import com.hpe.application.automation.tools.octane.actions.dto.ScmResourceFile;
 import hudson.ExtensionList;
 import hudson.FilePath;
 import hudson.model.*;
-import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -105,6 +105,10 @@ public class UFTTestDetectionService {
             }
             if (!result.getDeletedScmResourceFiles().isEmpty()) {
                 printToConsole(buildListener, String.format("Found %s deleted data tables", result.getDeletedScmResourceFiles().size()));
+            }
+
+            if (!result.getDeletedFolders().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s deleted folders", result.getDeletedFolders().size()));
             }
 
             if (result.isHasQuotedPaths()) {
@@ -233,54 +237,78 @@ public class UFTTestDetectionService {
         for (int i = 0; i < changeSetItems.length; i++) {
             ChangeLogSet.Entry changeSet = (ChangeLogSet.Entry) changeSetItems[i];
             for (ChangeLogSet.AffectedFile path : changeSet.getAffectedFiles()) {
-                if(path.getPath().startsWith("\"")){
+                if (path.getPath().startsWith("\"")) {
                     result.setHasQuotedPaths(true);
                 }
+                boolean isDir = isDir(path);
                 String fileFullPath = workspace + File.separator + path.getPath();
-                if (isTestMainFilePath(path.getPath())) {
-                    FilePath filePath = new FilePath(new File(fileFullPath));
-                    boolean fileExist = filePath.exists();
+                if (!isDir) {
+                    if (isTestMainFilePath(path.getPath())) {
+                        FilePath filePath = new FilePath(new File(fileFullPath));
+                        boolean fileExist = filePath.exists();
 
-                    if (EditType.ADD.equals(path.getEditType())) {
-                        if (fileExist) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            scanFileSystemRecursively(workspace, testFolder, result.getNewTests(), result.getNewScmResourceFiles());
-                        } else {
-                            logger.error("doChangeSetDetection : file not exist " + fileFullPath);
-                        }
-                    } else if (EditType.DELETE.equals(path.getEditType())) {
-                        if (!fileExist) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
-                            result.getDeletedTests().add(test);
-                        }
-                    } else if (EditType.EDIT.equals(path.getEditType())) {
-                        if (fileExist) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests(), result.getUpdatedScmResourceFiles());
-                        }
-                    }
-                } else if (isUftDataTableFile(path.getPath())) {
-                    FilePath filePath = new FilePath(new File(fileFullPath));
-                    if (EditType.ADD.equals(path.getEditType())) {
-                        UftTestType testType = isUftTestFolder(filePath.getParent().list());
-                        if (testType.isNone()) {
-                            if (filePath.exists()) {
-                                ScmResourceFile resourceFile = createDataTable(workspace, filePath);
-                                result.getNewScmResourceFiles().add(resourceFile);
+                        if (EditType.ADD.equals(path.getEditType())) {
+                            if (fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                scanFileSystemRecursively(workspace, testFolder, result.getNewTests(), result.getNewScmResourceFiles());
+                            } else {
+                                logger.error("doChangeSetDetection : file not exist " + fileFullPath);
+                            }
+                        } else if (EditType.DELETE.equals(path.getEditType())) {
+                            if (!fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
+                                result.getDeletedTests().add(test);
+                            }
+                        } else if (EditType.EDIT.equals(path.getEditType())) {
+                            if (fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests(), result.getUpdatedScmResourceFiles());
                             }
                         }
-                    } else if (EditType.DELETE.equals(path.getEditType())) {
-                        if (!filePath.exists()) {
-                            ScmResourceFile resourceFile = createDataTable(workspace, filePath);
-                            result.getDeletedScmResourceFiles().add(resourceFile);
+                    } else if (isUftDataTableFile(path.getPath())) {
+                        FilePath filePath = new FilePath(new File(fileFullPath));
+                        if (EditType.ADD.equals(path.getEditType())) {
+                            UftTestType testType = isUftTestFolder(filePath.getParent().list());
+                            if (testType.isNone()) {
+                                if (filePath.exists()) {
+                                    ScmResourceFile resourceFile = createDataTable(workspace, filePath);
+                                    result.getNewScmResourceFiles().add(resourceFile);
+                                }
+                            }
+                        } else if (EditType.DELETE.equals(path.getEditType())) {
+                            if (!filePath.exists()) {
+                                ScmResourceFile resourceFile = createDataTable(workspace, filePath);
+                                result.getDeletedScmResourceFiles().add(resourceFile);
+                            }
                         }
+                    }
+                } else //isDir
+                {
+                    if (EditType.DELETE.equals(path.getEditType())) {
+
+                        FilePath filePath = new FilePath(new File(path.getPath()));
+                        String deletedFolder = filePath.getRemote().replace(linuxPathSplitter, windowsPathSplitter);
+                        result.getDeletedFolders().add(deletedFolder);
                     }
                 }
             }
         }
 
         return result;
+    }
+
+    private static boolean isDir(ChangeLogSet.AffectedFile path) {
+
+        if (path.getClass().getName().equals("hudson.scm.SubversionChangeLogSet$Path")) {
+            try {
+                String value = (String) FieldUtils.readDeclaredField(path, "kind", true);
+                return "dir".equals(value);
+            } catch (Exception e) {
+                //treat it as false
+            }
+        }
+        return false;
     }
 
     private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable) {

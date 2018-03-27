@@ -72,6 +72,9 @@ public class UFTTestDetectionResult {
     @XmlElement(name = "dataTable")
     private List<ScmResourceFile> updatedScmResourceFiles = new ArrayList<>();
 
+    @XmlElementWrapper(name = "deletedFolders")
+    @XmlElement(name = "folder")
+    private List<String> deletedFolders = new ArrayList<>();
 
     @XmlAttribute
     private String scmRepositoryId;
@@ -144,5 +147,13 @@ public class UFTTestDetectionResult {
 
     public void setHasQuotedPaths(boolean hasQuotedPaths) {
         this.hasQuotedPaths = hasQuotedPaths;
+    }
+
+    public List<String> getDeletedFolders() {
+        return deletedFolders;
+    }
+
+    public void setDeletedFolders(List<String> deletedFolders) {
+        this.deletedFolders = deletedFolders;
     }
 }
