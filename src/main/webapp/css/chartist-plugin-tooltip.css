@@ -1,0 +1,112 @@
+/*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
+
+.chartist-tooltip {
+    position: relative;
+    display: inline-block;
+    opacity: 0;
+    min-width: 5em;
+    min-height: 2em;
+    /*padding: .5em;*/
+    background: #efefef;;
+    pointer-events: none;
+    z-index: 10;
+    -webkit-transition: opacity .2s linear;
+    -moz-transition: opacity .2s linear;
+    -o-transition: opacity .2s linear;
+    transition: opacity .2s linear;
+    font-family: Lucida Sans Unicode;
+    color: #333333;
+    font-size: 19px; /* Approximation due to font substitution */
+    font-weight: 300;
+    text-align: center;
+    -moz-box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.17);
+    -webkit-box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.17);
+    box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.17);
+    padding-right: 0.5px;
+    padding-left: 0.5px;
+    /*padding-up: 2px;*/
+
+}
+
+.chartist-tooltip::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin-left: -15px;
+    border: 15px solid transparent;
+    border-top-color: #efefef;
+}
+
+.chartist-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin-left: -15px;
+    border: 10px solid transparent;
+    transform-origin: 0 0;
+    transform: rotate(-45deg);
+    border-color: transparent transparent transparent transparent;
+    box-shadow: -3px 3px 3px 0 rgba(0, 0, 0, 0.17);
+}
+
+.chartist-tooltip.tooltip-show {
+    opacity: 1;
+}
+
+.ct-area, .ct-line {
+    pointer-events: none;
+}
+
+.chartist-tooltip-meta {
+    font-family: Lucida Sans Unicode;
+    color: #666666;
+    font-size: 11.4px; /* Approximation due to font substitution */
+    font-weight: 400;
+    /*line-height: 17px; !* Approximation due to font substitution *!*/
+    text-align: center;
+}
+
+.chartist-tooltip-value {
+   /*padding-bottom: 20px;*/
+    font-family: Lucida Sans Unicode;
+    font-size: 19px;/* Approximation due to font substitution */
+    font-weight: 500;
+    text-align: center;
+}

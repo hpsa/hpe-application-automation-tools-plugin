@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ © Copyright 2013 EntIT Software LLC
+  ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+  ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~  marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ Copyright (c) 2018 Micro Focus Company, L.P.
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  ~ ___________________________________________________________________
+  ~
+  -->
+
+<result plugin="junit@1.5">
+    <suites>
+        <suite>
+            <file>%%%WORKSPACE%%%%%%SEPARATOR%%%Results30042015112238410.xml</file>
+            <name>(Results30042015112238410.xml)</name>
+            <duration>0.0670602</duration>
+            <cases>
+                <case>
+                    <duration>0.0670602</duration>
+                    <className>All-Tests.&lt;None&gt;</className>
+                    <testName>subfolder%%%SEPARATOR%%%CalculatorPlusNextGen</testName>
+                    <skipped>false</skipped>
+                    <errorStackTrace>java.lang.AssertionError at org.junit.Assert.fail(Assert.java:86) at org.junit.Assert.assertTrue(Assert.java:41) at org.junit.Assert.assertTrue(Assert.java:52) at com.hp.devops.demoapp.CalcsTest.always_true_A(CalcsTest.java:60) at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) at java.lang.reflect.Method.invoke(Method.java:497) at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47) at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44) at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271) at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70) at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50) at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238) at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63) at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236) at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53) at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229) at org.junit.runners.ParentRunner.run(ParentRunner.java:309) at org.apache.maven.surefire.junit4.JUnit4TestSet.execute(JUnit4TestSet.java:53) at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:123) at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:104) at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) at java.lang.reflect.Method.invoke(Method.java:497) at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:164) at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:110) at org.apache.maven.surefire.booter.SurefireStarter.invokeProvider(SurefireStarter.java:175) at org.apache.maven.surefire.booter.SurefireStarter.runSuitesInProcessWhenForked(SurefireStarter.java:107) at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:68)</errorStackTrace>
+                    <errorDetails>Retrieving the COM class factory for component with CLSID {2B9B8E92-EBAA-44AF-A23C-9FBD08EAFA54} failed due to the following error: 8000401a The server process could not be started because the configured identity is incorrect. Check the username and password. (Exception from HRESULT: 0x8000401A).</errorDetails>
+                    <stdout>30/04/2015 11:22:39 Running: C:\Jenkins\workspace\UFT_Calculator_File_GIT\subfolder\CalculatorPlusNextGen
+                        Test result: Error
+                        30/04/2015 11:22:39 Test complete: C:\Jenkins\workspace\UFT_Calculator_File_GIT\subfolder\CalculatorPlusNextGen
+                        -------------------------------------------------------------------------------------------------------
+                    </stdout>
+                    <failedSince>166</failedSince>
+                </case>
+            </cases>
+        </suite>
+    </suites>
+    <duration>0.0670602</duration>
+    <keepLongStdio>true</keepLongStdio>
+</result>

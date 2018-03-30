@@ -23,6 +23,7 @@ namespace HpToolsLauncher
         private int _errors, _fail;
         private bool _useUFTLicense;
         private TimeSpan _timeout = TimeSpan.MaxValue;
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
 
@@ -38,7 +39,33 @@ namespace HpToolsLauncher
 
         public const string UftJUnitRportName = "uftRunnerRoot";
 
+        private McConnectionInfo _mcConnection;
+        private string _mobileInfoForAllGuiTests;
+
         #endregion
+
+        /// <summary>
+        /// overloaded constructor for adding support for run mode selection
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <param name="timeout"></param>
+        /// <param name="uftRunMode"></param>
+        /// <param name="backgroundWorker"></param>
+        /// <param name="useUFTLicense"></param>
+        public FileSystemTestsRunner(List<string> sources,
+                                    TimeSpan timeout,
+                                    string uftRunMode,
+                                    int ControllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrorStrings,
+                                    Dictionary<string, string> jenkinsEnvVariables,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    bool useUFTLicense = false)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, useUFTLicense)
+        {
+            _uftRunMode = uftRunMode;
+        }
 
         /// <summary>
         /// creates instance of the runner given a source.
@@ -48,13 +75,14 @@ namespace HpToolsLauncher
         /// <param name="backgroundWorker"></param>
         /// <param name="useUFTLicense"></param>
         public FileSystemTestsRunner(List<string> sources,
-            TimeSpan timeout,
-            int ControllerPollingInterval,
-            TimeSpan perScenarioTimeOutMinutes,
-            List<string> ignoreErrorStrings,
-            Dictionary<string, string> jenkinsEnvVariables,
-            bool useUFTLicense = false
-            )
+                                    TimeSpan timeout,
+                                    int ControllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrorStrings,
+                                    Dictionary<string, string> jenkinsEnvVariables,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
@@ -75,6 +103,11 @@ namespace HpToolsLauncher
 
             _useUFTLicense = useUFTLicense;
             _tests = new List<TestInfo>();
+
+            _mcConnection = mcConnection;
+            _mobileInfoForAllGuiTests = mobileInfo;
+
+            ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
 
             //go over all sources, and create a list of all tests
             foreach (string source in sources)
@@ -144,9 +177,6 @@ namespace HpToolsLauncher
             _tests.ForEach(t => ConsoleWriter.WriteLine("" + t.TestName));
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
         }
-
-
-
 
         /// <summary>
         /// runs all tests given to this runner and returns a suite of run resutls
@@ -272,7 +302,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
@@ -288,9 +318,7 @@ namespace HpToolsLauncher
 
                 Stopwatch s = Stopwatch.StartNew();
 
-                TestRunResults results = null;
-
-                results = runner.RunTest(testinf, ref errorReason, RunCancelled);
+                var results = runner.RunTest(testinf, ref errorReason, RunCancelled);
 
                 results.Runtime = s.Elapsed;
                 if (type == TestType.LoadRunner)
@@ -319,29 +347,15 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public bool RunCancelled()
         {
-
             //if timeout has passed
-            if (_stopwatch.Elapsed > _timeout)
+            if (_stopwatch.Elapsed > _timeout && !_blnRunCancelled)
             {
+                ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
 
-                if (!_blnRunCancelled)
-                {
-                    ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
-
-                    Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-                    _blnRunCancelled = true;
-                }
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
+                _blnRunCancelled = true;
             }
 
-            //if (System.IO.File.Exists(_abortFilename))
-            //{
-            //    if (!_blnRunCancelled)
-            //    {
-            //        ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
-            //        Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-            //        _blnRunCancelled = true;
-            //    }
-            //}
             return _blnRunCancelled;
         }
 

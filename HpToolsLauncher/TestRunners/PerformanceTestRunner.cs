@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using HP.LoadRunner.Interop.Wlrun;
 using HpToolsLauncher.Properties;
@@ -103,7 +104,7 @@ namespace HpToolsLauncher.TestRunners
             string scenarioPath = scenarioInf.TestPath;
             //prepare the instance that will contain test results for JUnit
             TestRunResults runDesc = new TestRunResults();
-
+            
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + scenarioPath);
 
@@ -216,6 +217,7 @@ namespace HpToolsLauncher.TestRunners
                     //count how many ignorable errors and how many fatal errors occured.
                     int ignore = getErrorsCount(ERRORState.Ignore);
                     int fatal = getErrorsCount(ERRORState.Error);
+                    runDesc.FatalErrors = fatal;
                     ConsoleWriter.WriteLine(String.Format(Resources.LrErrorSummeryNum, ignore, fatal));
                     ConsoleWriter.WriteLine("");
                     if (_errors != null && _errors.Count > 0)
@@ -245,11 +247,6 @@ namespace HpToolsLauncher.TestRunners
                         runDesc.TestState = TestState.Passed;
                     }
 
-
-
-
-
-
                 }
                 catch (Exception e)
                 {
@@ -266,7 +263,7 @@ namespace HpToolsLauncher.TestRunners
             runDesc.Runtime = scenarioStopWatch.Elapsed;
             if (!string.IsNullOrEmpty(errorReason))
                 runDesc.ErrorDesc = errorReason;
-            closeController();
+            KillController();
             return runDesc;
         }
 
@@ -365,7 +362,6 @@ namespace HpToolsLauncher.TestRunners
                 }
                 //per scenario timeout stopwatch
                 _stopWatch = Stopwatch.StartNew();
-
                 //wait for scenario to end:
                 if (!waitForScenario(ref errorReason))
                 {
@@ -407,7 +403,7 @@ namespace HpToolsLauncher.TestRunners
                 };
                 Thread t = new Thread(tstart);
                 t.Start();
-                if (!t.Join(_pollingInterval * 1000))
+                if (!t.Join(_pollingInterval * 1000 * 2))
                 {
                     errorReason = "cannot open scenario - timeout!";
                     return false;
@@ -514,8 +510,11 @@ namespace HpToolsLauncher.TestRunners
 
             while (!_engine.Scenario.IsResultsCollated() && _stopWatch.Elapsed < _perScenarioTimeOutMinutes)
             {
-                Thread.Sleep(_pollingInterval * 1000);
+
+                Stopper collateStopper = new Stopper(_pollingInterval * 1000);
+                collateStopper.Start();
             }
+
         }
 
         private void closeController()
@@ -525,75 +524,137 @@ namespace HpToolsLauncher.TestRunners
             {
                 try
                 {
-                    int rc = _engine.CloseController();
-                    if (rc != 0)
-                    {
-                        ConsoleWriter.WriteErrLine("\t\tFailed to close Controller with CloseController API function, rc: " + rc);
-                    }
-
-                    //give the controller 15 secs to shutdown. otherwise, print an error.
-                    Thread.Sleep(15000);
-
                     var process = Process.GetProcessesByName("Wlrun");
                     if (process.Length > 0)
                     {
-                        ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
-                        return;
+                        int rc = _engine.CloseController();
+                        if (rc != 0)
+                        {
+                            ConsoleWriter.WriteErrLine(
+                                "\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                        }
                     }
-                }catch(Exception e)
-                    {
-                        ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
-                        ConsoleWriter.WriteErrLine(e.Message);
-                        ConsoleWriter.WriteErrLine(e.StackTrace);
 
-                        ConsoleWriter.WriteErrLine("killing Controller process");
-                        cleanENV();
+                    //give the controller 15 secs to shutdown. otherwise, print an error.
+                    Stopper controllerStopper = new Stopper(15000);
+                    controllerStopper.Start();
+
+                    if (_engine != null)
+                    {
+
+                        process = Process.GetProcessesByName("Wlrun");
+                        if (process.Length > 0)
+                        {
+                            ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
+                            Stopper wlrunStopper = new Stopper(10000);
+                            wlrunStopper.Start();
+                            return;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
+                    ConsoleWriter.WriteErrLine(e.Message);
+                    ConsoleWriter.WriteErrLine(e.StackTrace);
+                    ConsoleWriter.WriteErrLine("killing Controller process");
+                    cleanENV();
+                }
             }
             _engine = null;
         }
 
-        private bool waitForScenario(ref string errorReason)
+        private void closeController_Kill()
         {
+            //try to gracefully shut down the controller
+            if (_engine != null)
+            {
+                try
+                {
+                    var process = Process.GetProcessesByName("Wlrun");
+                    if (process.Length > 0)
+                    {
+                        int rc = _engine.CloseController();
+                        if (rc != 0)
+                        {
+                            ConsoleWriter.WriteErrLine(
+                                "\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                        }
+                    }
 
-            //wait for the scenario to end gracefully:
+                    if (_engine != null)
+                    {
+
+                        process = Process.GetProcessesByName("Wlrun");
+                        if (process.Length > 0)
+                        {
+                            ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
+                            Stopper wlrunStopper = new Stopper(10000);
+                            wlrunStopper.Start();
+                            KillController();
+                            return;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
+                    ConsoleWriter.WriteErrLine(e.Message);
+                    ConsoleWriter.WriteErrLine(e.StackTrace);
+                    ConsoleWriter.WriteErrLine("killing Controller process");
+                    cleanENV();
+                }
+            }
+            _engine = null;
+        }
+
+        void DoTask(Object state)
+        {
+            AutoResetEvent are = (AutoResetEvent) state;
+
             while (!_scenarioEnded)
             {
-                //ConsoleWriter.WriteLine("waitForScenario");
+                if (!_scenarioEndedEvent)
+                {
+                    //if all Vusers are in ending state, scenario is finished.
+                    _scenarioEnded = isFinished();
+                    Thread.Sleep(5000);
+                }
+            }
+            are.Set();
+        }
+
+        AutoResetEvent autoEvent = new AutoResetEvent(false);
+        
+
+        private bool waitForScenario(ref string errorReason)
+        {
+            ConsoleWriter.WriteLine("Scenario run has started");
+
+            ThreadPool.QueueUserWorkItem(DoTask, autoEvent);
+
+            //wait for the scenario to end gracefully:
+            int time = _pollingInterval * 1000;
+            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
+            {
                 if (_runCancelled())
                 {
                     errorReason = Resources.GeneralTimedOut;
                     return false;
                 }
-
-                Thread.Sleep(_pollingInterval * 1000);
-
-
-                if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
+                if (autoEvent.WaitOne(time))
                 {
-                    _stopWatch.Stop();
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
-                    errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
                     break;
                 }
-
-                //checkForErrors();
-
-
-                //if (getErrorsCount(ERRORState.Error) > 0)
-                //{
-                //    //need to stop the scenario, there is an un ignorable error:
-                //    break;
-                //}
-
-                // if the end scenario event was not registered, 
-                if (!_scenarioEndedEvent)
-                {
-
-                    //if all Vusers are in ending state, scenario is finished.
-                    _scenarioEnded = isFinished();
-                }
             }
+
+            if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
+            {
+                _stopWatch.Stop();
+                ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
+                errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
+            }
+
 
             if (_scenarioEndedEvent)
             {
@@ -623,7 +684,8 @@ namespace HpToolsLauncher.TestRunners
                 while (_engine.Scenario.IsActive() && tries > 0)
                 {
                     //ConsoleWriter.WriteLine("\t\tScenario is still running. Waiting for the scenario to stop...");
-                    Thread.Sleep(_pollingInterval * 1000);
+                    Stopper wlrunStopper = new Stopper(_pollingInterval * 1000);
+                    wlrunStopper.Start();
                     tries--;
                 }
 
@@ -842,42 +904,53 @@ namespace HpToolsLauncher.TestRunners
                 foreach (Process p in mdrvProcesses)
                 {
                     p.Kill();
-                    Thread.Sleep(500);
+                    Stopper stopper = new Stopper(500);
+                    stopper.Start();
+
 
                 }
 
                 // check if any wlrun.exe process existed, kill them.
 
-                var wlrunProcesses = Process.GetProcessesByName("Wlrun");
-                if (wlrunProcesses.Length > 0)
-                {
-                    foreach (Process p in wlrunProcesses)
-                    {
-                        p.Kill();
-                        // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
-                        DateTime nowTime = DateTime.Now;
-                        while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
-                        {
-                            var werFaultProcesses = Process.GetProcessesByName("WerFault");
-                            if (werFaultProcesses.Length > 0)
-                            {
-                                //Console.WriteLine("Kill process of WerFault");
-                                foreach (Process pf in werFaultProcesses)
-                                {
-                                    pf.Kill();
-                                }
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                        }
-                        Thread.Sleep(1000);
-                    }
-                    ConsoleWriter.WriteLine("wlrun killed");
-                }
+                KillController();
             }
             catch (Exception e)
             {
 
+            }
+        }
+
+        private static void KillController()
+        {
+            var wlrunProcesses = Process.GetProcessesByName("Wlrun");
+            if (wlrunProcesses.Length > 0)
+            {
+                foreach (Process p in wlrunProcesses)
+                {
+                    if (!p.HasExited) { 
+                        p.Kill();
+                    // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
+                    DateTime nowTime = DateTime.Now;
+                    while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
+                    {
+                        var werFaultProcesses = Process.GetProcessesByName("WerFault");
+                        if (werFaultProcesses.Length > 0)
+                        {
+                            //Console.WriteLine("Kill process of WerFault");
+                            foreach (Process pf in werFaultProcesses)
+                            {
+                                pf.Kill();
+                            }
+                            break;
+                        }
+                        Stopper werFaultProcessesStopper = new Stopper(2000);
+                        werFaultProcessesStopper.Start();
+                    }
+                    Stopper wlrunStopper = new Stopper(2000);
+                    wlrunStopper.Start();
+                }
+                }
+                ConsoleWriter.WriteLine("wlrun killed");
             }
         }
 

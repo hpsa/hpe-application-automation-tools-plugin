@@ -18,28 +18,47 @@ namespace HpToolsLauncher
 {
     public class GuiTestRunner : IFileSysTestRunner
     {
+        // Setting keys for mobile
+        private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
+        private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
+        private const string MOBILE_USER   = "ALM_MobileUserName";
+        private const string MOBILE_PASSWORD = "ALM_MobilePassword";
+        private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
+        private const string MOBILE_USE_PROXY= "MobileProxySetting_UseProxy";
+        private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
+        private const string MOBILE_PROXY_SETTING_PORT = "MobileProxySetting_Port";
+        private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
+        private const string MOBILE_PROXY_SETTING_USERNAME = "MobileProxySetting_UserName";
+        private const string MOBILE_PROXY_SETTING_PASSWORD = "MobileProxySetting_Password";
+        private const string MOBILE_INFO = "mobileinfo";
+
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private Application _qtpApplication;
         private ParameterDefinitions _qtpParamDefs;
         private Parameters _qtpParameters;
         private bool _useUFTLicense;
         private RunCancelledDelegate _runCancelled;
-
+        private McConnectionInfo _mcConnection;
+        private string _mobileInfo;
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runNotifier"></param>
         /// <param name="useUftLicense"></param>
         /// <param name="timeLeftUntilTimeout"></param>
-        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout)
+        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
         {
             _timeLeftUntilTimeout = timeLeftUntilTimeout;
+            _uftRunMode = uftRunMode;
             _stopwatch = Stopwatch.StartNew();
             _runNotifier = runNotifier;
             _useUFTLicense = useUftLicense;
+            _mcConnection = mcConnectionInfo;
+            _mobileInfo = mobileInfo;
         }
 
         #region QTP
@@ -108,6 +127,63 @@ namespace HpToolsLauncher
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
+                    // set Mc connection and other mobile info into rack if neccesary
+                    #region Mc connection and other mobile info
+
+                    // Mc Address, username and password
+                    if (!string.IsNullOrEmpty(_mcConnection.MobileHostAddress))
+                    {
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_HOST_ADDRESS, _mcConnection.MobileHostAddress);
+                        if (!string.IsNullOrEmpty(_mcConnection.MobileHostPort))
+                        {
+                            _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_HOST_PORT, _mcConnection.MobileHostPort);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(_mcConnection.MobileUserName))
+                    {
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.MobileUserName);
+                    }
+
+                    if (!string.IsNullOrEmpty(_mcConnection.MobilePassword))
+                    {
+                        string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.MobilePassword);
+                        if (encriptedMcPassword == null)
+                        {
+                            ConsoleWriter.WriteLine("ProtectBSTRToBase64 fail for mcPassword");
+                            throw new Exception("ProtectBSTRToBase64 fail for mcPassword");
+                        }
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
+                    }
+
+                    // ssl and proxy info
+                    _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USE_SSL, _mcConnection.MobileUseSSL);
+
+                    if (_mcConnection.MobileUseProxy == 1)
+                    {
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USE_PROXY, _mcConnection.MobileUseProxy);
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_ADDRESS, _mcConnection.MobileProxySetting_Address);
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PORT, _mcConnection.MobileProxySetting_Port);
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_AUTHENTICATION, _mcConnection.MobileProxySetting_Authentication);
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_USERNAME, _mcConnection.MobileProxySetting_UserName);
+                        string encriptedMcProxyPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.MobileProxySetting_Password);
+                        if (encriptedMcProxyPassword == null)
+                        {
+                            ConsoleWriter.WriteLine("ProtectBSTRToBase64 fail for mc proxy Password");
+                            throw new Exception("ProtectBSTRToBase64 fail for mc proxy Password");
+                        }
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, encriptedMcProxyPassword);
+                    }
+                    
+                    // Mc info (device, app, launch and terminate data)
+                    if (!string.IsNullOrEmpty(_mobileInfo))
+                    {
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
+                    }
+
+                    #endregion
+
+
                     if (!_qtpApplication.Launched)
                     {
                         if (_runCancelled())
@@ -146,7 +222,7 @@ namespace HpToolsLauncher
                                                  ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
                                                  : tagUnifiedLicenseType.qtNonUnified);
 
-            if (!HandleInputParameters(testPath, ref errorReason, testinf.GetParameterDictionaryForQTP()))
+            if (!HandleInputParameters(testPath, ref errorReason, testinf.GetParameterDictionaryForQTP(), testinf.DataTablePath))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -312,7 +388,7 @@ namespace HpToolsLauncher
                 Type runResultsOptionstype = Type.GetTypeFromProgID("QuickTest.RunResultsOptions");
                 var options = (RunResultsOptions)Activator.CreateInstance(runResultsOptionstype);
                 options.ResultsLocation = testResults.ReportLocation;
-                _qtpApplication.Options.Run.RunMode = "Fast";
+                _qtpApplication.Options.Run.RunMode = _uftRunMode;
 
                 //Check for cancel before executing
                 if (_runCancelled())
@@ -501,7 +577,7 @@ namespace HpToolsLauncher
             return legal;
         }
 
-        private bool HandleInputParameters(string fileName, ref string errorReason, Dictionary<string, object> inputParams)
+        private bool HandleInputParameters(string fileName, ref string errorReason, Dictionary<string, object> inputParams, string dataTablePath)
         {
             try
             {
@@ -542,6 +618,13 @@ namespace HpToolsLauncher
                             }
                         }
                     }
+                }
+
+                // specify data table path
+                if (dataTablePath != null)
+                {
+                    _qtpApplication.Test.Settings.Resources.DataTablePath = dataTablePath;
+                    ConsoleWriter.WriteLine("Using external data table: " + dataTablePath);
                 }
             }
             catch (Exception e)

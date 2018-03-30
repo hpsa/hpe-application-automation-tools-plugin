@@ -1,0 +1,276 @@
+/*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
+
+body * {
+	box-sizing: border-box;
+}
+body {
+	font-family: Helvetica, Verdana, sans-serif;
+	font-size: 13px;
+}
+
+.mqm {
+	max-width: 750px;
+}
+.mqm a {
+	text-decoration: none;
+}
+.mqm a:hover {
+	text-decoration: underline;
+}
+.mqm h4 {
+  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 0.2em;
+  margin-top: 0.4em;
+  padding-bottom: 3px;
+}
+.mqm .error {
+	margin: 5px 0;
+}
+.error-link {
+	padding-left: 20px;
+	padding-top: 10px;
+}
+.mqm button::-moz-focus-inner,
+.mqm input::-moz-focus-inner,
+.mqm select::-moz-focus-inner {
+	border: 0;
+}
+.mqm button {
+	padding: 1px 20px;
+	border-radius: 1px;
+	border: 1px solid #ccc;
+	background-color: #e0e0e0;
+	color: #505050;
+	font-weight: bold;
+	line-height: 22px;
+	outline: 0;
+}
+.mqm button:hover {
+	background-color: #d0d0d0;
+	border-color: #c0c0c0;
+}
+.mqm button.primary {
+	background-color: #4b758b;
+	border-color: #5788a1;
+	color: #eee;
+}
+.mqm button.primary:hover {
+	background-color: #3f6275;
+	border-color: #5788a1;
+}
+.mqm input[type=text] {
+	padding: 5px 6px;
+	line-height: 14px;
+	font-size: 13px;
+}
+.mqm .ui-block {
+	margin: 0;
+	margin-bottom: 10px;
+	padding: 0;
+}
+.mqm .ui-block label {
+	width: 150px;
+}
+.mqm .ui-block label,
+.mqm .ui-block select {
+	display: inline-block;
+}
+
+.mqm select {
+	-moz-appearance: none;
+	appearance: none;
+	-moz-user-select: none;
+	-webkit-appearance: none;
+
+	user-select: none;
+	background-color: #fff;
+	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset;
+	background-image: url('menu-button-arrow.png');
+	background-position: center right;
+	background-repeat: no-repeat;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	width: 100%;
+	margin: 0;
+	padding: 0px 16px 0 5px;
+	outline: 0;
+	text-indent: 0.01px;
+	text-overflow: '';
+	height: 26px;
+}
+.mqm select::-ms-expand {
+	display: none;
+}
+.mqm select:focus {
+	outline: 0;
+}
+.mqm option {
+	font-size: 13px;
+	padding: 4px;
+}
+.mqm optgroup {
+	padding: 0 4px;
+}
+.mqm select[multiple] {
+	background-image: none;
+	background-color: transparent;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	width: 100%;
+	height: auto;
+	padding: 0;
+	overflow-y: hidden;
+}
+.mqm .tag {
+	display: inline-block;
+	padding: 2px 10px 2px 3px;
+	border: 1px solid #ccc;
+	border-left: 5px solid #bbb;
+	margin: 0  0 4px 0;
+	max-width: 620px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+}
+.mqm .tag a {
+	visibility: hidden;
+	font-size: 9px;
+	margin: 0 2px 0 5px;
+	position: absolute;
+	right: 0;
+	line-height: 18px;
+	vertical-align: middle;
+}
+.mqm .tag:hover a {
+	visibility: visible;
+	text-decoration: none;
+}
+
+.mutton label {
+	text-decoration: none;
+	font-size: 12px;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	line-height: 26px;
+	height: 26px;
+	vertical-align: middle;
+	display: inline-block;
+	padding: 0 10px;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.mutton input {
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	display: none;
+}
+.mutton label:hover {
+	border-color: #ccc;
+}
+.mutton label i {
+	display: inline-block;
+	width: 7px;
+	height: 1ex;
+	vertical-align: .15ex;
+	margin-right: 4px;
+	background-image: url('menu-button-arrow.png');
+	background-repeat: no-repeat;
+	background-position: 0 50%;
+}
+.mutton .menu {
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background-color: #fff;
+	width: 100%;
+}
+.mutton input:checked + label {
+	border-color: #ccc;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.mutton input:checked + label + .menu {
+	display: block;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	position: absolute;
+	top: 25px; /* line-height - 1px */
+}
+.mutton .menu a {
+	border: none;
+	line-height: 22px;
+	display: block;
+	padding: 0 5px;
+	text-decoration: none;
+	color: #5a5a5a;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	width: 100%;
+	overflow: hidden;
+}
+.mutton .menu a:hover {
+	background-color: rgba(76, 158, 217, .6);
+	color: #fff;
+}
+
+.setting-name {
+	vertical-align: middle;
+	max-width: 150px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.setting-main,
+.setting-add {
+	width: 50%;
+	vertical-align: middle;
+}
+.setting-main:last-child {
+	width: 100%;
+}
+
+.rpos {
+	position: absolute;
+	right: 20px;
+}
