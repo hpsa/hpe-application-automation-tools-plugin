@@ -91,7 +91,7 @@ public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
     }
 
     private void deployServiceFromProject(IProject project, PrintStream logger) throws Exception {
-        IDeployProcessor processor = new DeployProcessor(null, new ServiceAmendingServiceImpl());
+        IDeployProcessor processor = new DeployProcessor(null);
         ICommandExecutor commandExecutor = createCommandExecutor();
 
         for (IService service : getServiceList(project)) {
