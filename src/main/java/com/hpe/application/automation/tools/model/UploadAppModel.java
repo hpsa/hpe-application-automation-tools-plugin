@@ -50,14 +50,16 @@ public class UploadAppModel {
     private String mcServerName;
     private String mcUserName;
     private Secret mcPassword;
+    private String mcTenantId;
     private ProxySettings proxySettings;
     private List<UploadAppPathModel> applicationPaths;
 
     @DataBoundConstructor
-    public UploadAppModel(String mcServerName, String mcUserName, String mcPassword, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
+    public UploadAppModel(String mcServerName, String mcUserName, String mcPassword, String mcTenantId, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
         this.mcServerName = mcServerName;
         this.mcUserName = mcUserName;
         this.mcPassword = Secret.fromString(mcPassword);
+        this.mcTenantId = mcTenantId;
         this.proxySettings = proxySettings;
         this.applicationPaths = applicationPaths;
     }
@@ -72,6 +74,10 @@ public class UploadAppModel {
 
     public String getMcPassword() {
         return mcPassword.getPlainText();
+    }
+
+    public String getMcTenantId() {
+        return mcTenantId;
     }
 
     public ProxySettings getProxySettings() {
