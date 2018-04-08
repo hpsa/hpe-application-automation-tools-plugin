@@ -109,6 +109,31 @@ public class UFTTestDetectionService {
 
             if (!result.getDeletedFolders().isEmpty()) {
                 printToConsole(buildListener, String.format("Found %s deleted folders", result.getDeletedFolders().size()));
+
+                //This situation is relevant for SVN only.
+                //Deleting folder - SCM event doesn't supply information about deleted items in deleted folder - only top-level directory.
+                //In this case need to do for each deleted folder - need to check with Octane what tests and data tables were under this folder.
+                //so for each deleted folder - need to do at least 2 requests. In this situation - decided to activate full sync as it already tested scenario.
+                //Full sync wil be triggered with delay of 60 secs to give the dispatcher possibility to sync other found changes
+
+                //triggering full sync
+                printToConsole(buildListener, "To sync deleted items - full sync required. Triggerring job with full sync parameter.");
+
+                FreeStyleProject proj = (FreeStyleProject) build.getParent();
+                List<ParameterValue> newParameters = new ArrayList<>();
+                for (ParameterValue param : build.getAction(ParametersAction.class).getParameters()) {
+                    ParameterValue paramForSet;
+                    if (param.getName().equals(UftConstants.FULL_SCAN_PARAMETER_NAME)) {
+                        paramForSet = new BooleanParameterValue(UftConstants.FULL_SCAN_PARAMETER_NAME, true);
+                    } else {
+                        paramForSet = param;
+                    }
+                    newParameters.add(paramForSet);
+                }
+
+                ParametersAction parameters = new ParametersAction(newParameters);
+                CauseAction causeAction = new CauseAction(new FullSyncRequiredCause(build.getId()));
+                proj.scheduleBuild2(60, parameters, causeAction);
             }
 
             if (result.isHasQuotedPaths()) {
