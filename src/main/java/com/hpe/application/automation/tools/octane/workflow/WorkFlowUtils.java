@@ -31,45 +31,27 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.model.processors.builders;
+package com.hpe.application.automation.tools.octane.workflow;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.hpe.application.automation.tools.octane.workflow.WorkflowGraphListener;
-import hudson.model.Run;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.workflow.flow.FlowExecution;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import com.cloudbees.workflow.rest.external.StatusExt;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+public class WorkFlowUtils {
 
-/**
- * Created by gadiel on 21/07/2016.
- */
+    public static CIBuildResult convertStatus(StatusExt status) {
 
-public class WorkFlowRunProcessor {
-	private static final Logger logger = LogManager.getLogger(WorkFlowRunProcessor.class);
-	WorkflowRun workFlowRun;
+        switch (status) {
+            case FAILED:
+                return CIBuildResult.FAILURE;
+            case SUCCESS:
+                return CIBuildResult.SUCCESS;
+            case UNSTABLE:
+                return CIBuildResult.UNSTABLE;
+            case ABORTED:
+                return CIBuildResult.ABORTED;
+            default:
+                return CIBuildResult.UNAVAILABLE;
+        }
 
-	public WorkFlowRunProcessor(Run r) {
-		this.workFlowRun = (WorkflowRun) r;
-	}
-
-	public void registerEvents(ExecutorService executor) {
-		ListenableFuture<FlowExecution> promise = workFlowRun.getExecutionPromise();
-		promise.addListener(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					FlowExecution ex = workFlowRun.getExecutionPromise().get();
-					ex.addListener(new WorkflowGraphListener());
-				} catch (InterruptedException ie) {
-					logger.error("failed to obtain execution promise of " + workFlowRun, ie);
-				} catch (ExecutionException ee) {
-					logger.error("failed to obtain execution promise of " + workFlowRun, ee);
-				}
-			}
-		}, executor);
-	}
+    }
 }
