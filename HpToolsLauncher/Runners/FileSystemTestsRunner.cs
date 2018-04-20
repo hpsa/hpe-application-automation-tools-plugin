@@ -64,7 +64,7 @@ namespace HpToolsLauncher
                                     string mobileInfo,
                                     bool displayController,
                                     bool useUFTLicense = false)
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, useUFTLicense, displayController)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, displayController, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -84,7 +84,7 @@ namespace HpToolsLauncher
                                     Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
-                                     bool displayController,
+                                    bool displayController,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
