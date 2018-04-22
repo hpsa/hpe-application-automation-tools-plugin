@@ -263,7 +263,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             response = pcClient.waitForRunCompletion(runId);
 
 
-            if (response != null && RunState.get(response.getRunState()) == FINISHED) {
+            if (response != null && RunState.get(response.getRunState()) == FINISHED && pcModel.getPostRunAction() != PostRunAction.DO_NOTHING) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
                 // Adding the trend report section if ID has been set
