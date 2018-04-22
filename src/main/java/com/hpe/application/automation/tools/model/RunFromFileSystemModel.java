@@ -69,6 +69,7 @@ public class RunFromFileSystemModel {
     private String mcServerName;
     private String fsUserName;
     private Secret fsPassword;
+    private String mcTenantId;
 
     private String fsDeviceId;
     private String fsOs;
@@ -109,7 +110,7 @@ public class RunFromFileSystemModel {
      */
     @SuppressWarnings("squid:S00107")
     public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,String perScenarioTimeOut,
-                                  String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword,
+                                  String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
                                   String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
@@ -126,7 +127,7 @@ public class RunFromFileSystemModel {
         this.mcServerName = mcServerName;
         this.fsUserName = fsUserName;
         this.fsPassword = Secret.fromString(fsPassword);
-
+        this.mcTenantId = mcTenantId;
 
         this.fsDeviceId = fsDeviceId;
         this.fsOs = fsOs;
@@ -394,6 +395,15 @@ public class RunFromFileSystemModel {
         }
         return fsPassword.getPlainText();
     }
+
+    public String getMcTenantId() {
+        return mcTenantId;
+    }
+
+    public void setMcTenantId(String mcTenantId) {
+        this.mcTenantId = mcTenantId;
+    }
+
     /**
      * Gets fs device id.
      *
@@ -676,6 +686,9 @@ public class RunFromFileSystemModel {
         if (StringUtils.isNotBlank(fsUserName)){
             props.put("MobileUserName", fsUserName);
         }
+        if (StringUtils.isNotBlank(mcTenantId)){
+            props.put("MobileTenantId", mcTenantId);
+        }
 
         if(isUseProxy()){
             props.put("MobileUseProxy", "1");
@@ -726,6 +739,6 @@ public class RunFromFileSystemModel {
             return null;
         }
         return JobConfigurationProxy
-                .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
+                .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
 }

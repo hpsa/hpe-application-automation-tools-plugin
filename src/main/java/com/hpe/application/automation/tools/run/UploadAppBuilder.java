@@ -69,8 +69,8 @@ public class UploadAppBuilder extends Builder {
     private final UploadAppModel uploadAppModel;
 
     @DataBoundConstructor
-    public UploadAppBuilder(String mcServerName, String mcUserName, String mcPassword, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
-        uploadAppModel = new UploadAppModel(mcServerName, mcUserName, mcPassword, proxySettings, applicationPaths);
+    public UploadAppBuilder(String mcServerName, String mcUserName, String mcPassword, String mcTenantId, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
+        uploadAppModel = new UploadAppModel(mcServerName, mcUserName, mcPassword, mcTenantId, proxySettings, applicationPaths);
     }
 
     @Override
@@ -111,9 +111,9 @@ public class UploadAppBuilder extends Builder {
                 try{
                     out.println(String.format("starting to upload app %d %s", i, path));
                     if(uploadAppModel.getProxySettings() == null){
-                        app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), null, null, null, path);
+                        app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), uploadAppModel.getMcTenantId(), null, null, null, path);
                     }else{
-                        app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), uploadAppModel.getProxySettings().getFsProxyAddress(),uploadAppModel.getProxySettings().getFsProxyUserName(), uploadAppModel.getProxySettings().getFsProxyPassword(),path);
+                        app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), uploadAppModel.getMcTenantId(), uploadAppModel.getProxySettings().getFsProxyAddress(),uploadAppModel.getProxySettings().getFsProxyUserName(), uploadAppModel.getProxySettings().getFsProxyPassword(),path);
                     }
                     if(app == null){
                         if(uploadAppModel.isUseProxy()){
