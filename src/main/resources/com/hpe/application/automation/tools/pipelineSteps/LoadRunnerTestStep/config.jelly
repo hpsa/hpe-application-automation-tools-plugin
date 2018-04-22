@@ -63,6 +63,9 @@
             <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
                 <f:textarea name="runPipeline.ignoreErrorStrings" value="${instance.ignoreErrorStrings}" default=""/>
             </f:entry>
+            <f:entry title="Display Controller" field="displayController">
+                <f:checkbox name="runPipeline.displayController" value="${instance.displayController}"/>
+            </f:entry>
         </f:advanced>
     </f:section>
 </j:jelly>

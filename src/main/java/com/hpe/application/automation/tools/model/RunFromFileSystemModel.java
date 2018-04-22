@@ -66,6 +66,7 @@ public class RunFromFileSystemModel {
     private String controllerPollingInterval;
     private String perScenarioTimeOut;
     private String ignoreErrorStrings;
+    private String displayController;
     private String mcServerName;
     private String fsUserName;
     private Secret fsPassword;
@@ -92,6 +93,7 @@ public class RunFromFileSystemModel {
      * @param controllerPollingInterval the controller polling interval in minutes
      * @param perScenarioTimeOut        the per scenario time out in minutes
      * @param ignoreErrorStrings        the ignore error strings
+     * @param displayController         the display controller
      * @param mcServerName              the mc server name
      * @param fsUserName                the fs user name
      * @param fsPassword                the fs password
@@ -110,7 +112,7 @@ public class RunFromFileSystemModel {
      */
     @SuppressWarnings("squid:S00107")
     public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,String perScenarioTimeOut,
-                                  String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
+                                  String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
                                   String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
@@ -123,6 +125,7 @@ public class RunFromFileSystemModel {
         this.perScenarioTimeOut = perScenarioTimeOut;
         this.controllerPollingInterval = controllerPollingInterval;
         this.ignoreErrorStrings = ignoreErrorStrings;
+        this.displayController = displayController;
 
         this.mcServerName = mcServerName;
         this.fsUserName = fsUserName;
@@ -161,6 +164,7 @@ public class RunFromFileSystemModel {
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
         this.ignoreErrorStrings = "";
+        this.displayController = "false";
     }
 
 
@@ -550,6 +554,24 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Gets display controller.
+     *
+     * @return the displayController
+     */
+    public String getDisplayController() {
+        return displayController;
+    }
+
+    /**
+     * Sets display controller.
+     *
+     * @param displayController the displayController to set
+     */
+    public void setDisplayController(String displayController) {
+        this.displayController = displayController;
+    }
+
+    /**
      * Gets ignore error strings.
      *
      * @return the ignoreErrorStrings
@@ -664,12 +686,18 @@ public class RunFromFileSystemModel {
             props.put("fsUftRunMode", "" + fsUftRunMode);
         }
 
-
         if (StringUtils.isEmpty(controllerPollingInterval)){
             props.put("controllerPollingInterval", "30");
         }
         else{
             props.put("controllerPollingInterval", "" + controllerPollingInterval);
+        }
+
+       if (StringUtils.isEmpty(displayController) || displayController.equals("false")){
+            props.put("displayController", "0");
+        }
+        else{
+            props.put("displayController", "1");
         }
 
         if (StringUtils.isEmpty(perScenarioTimeOut)){

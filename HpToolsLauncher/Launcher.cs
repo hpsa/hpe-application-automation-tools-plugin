@@ -314,6 +314,15 @@ namespace HpToolsLauncher
                                      sets);
                     break;
                 case TestStorageType.FileSystem:
+                    //Get displayController var
+                    bool displayController = false;
+                    if (_ciParams.ContainsKey("displayController")) {
+                        if (_ciParams["displayController"] == "1")
+                        {
+                            displayController = true;
+                        }
+                    }
+
 
                     //get the tests
                     IEnumerable<string> tests = GetParamsWithPrefix("Test");
@@ -524,11 +533,11 @@ namespace HpToolsLauncher
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
                     }
 
                     break;

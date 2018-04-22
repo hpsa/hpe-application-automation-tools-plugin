@@ -46,6 +46,7 @@ namespace HpToolsLauncher.TestRunners
         private int _pollingInterval;
         private TimeSpan _perScenarioTimeOutMinutes;
         private RunCancelledDelegate _runCancelled;
+        private bool _displayController;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -82,17 +83,15 @@ namespace HpToolsLauncher.TestRunners
 
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
-
-
-
-
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings)
+        
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController)
         {
             this._runner = runner;
             this._timeout = timeout;
             this._pollingInterval = pollingInterval;
             this._perScenarioTimeOutMinutes = perScenarioTimeOut;
             this._ignoreErrorStrings = ignoreErrorStrings;
+            this._displayController = displayController;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -152,6 +151,7 @@ namespace HpToolsLauncher.TestRunners
             //init result params
             runDesc.ErrorDesc = errorReason;
             runDesc.TestPath = scenarioPath;
+            ConsoleWriter.WriteLine(runDesc.TestPath);
             runDesc.TestState = TestState.Unknown;
 
             if (!Helper.isLoadRunnerInstalled())
@@ -295,7 +295,7 @@ namespace HpToolsLauncher.TestRunners
         private bool runScenario(string scenario, ref string errorReason, RunCancelledDelegate runCancelled)
         {
             cleanENV();
-
+            
             ConsoleWriter.WriteLine(string.Format(Resources.LrInitScenario, scenario));
 
             //start controller
@@ -319,10 +319,15 @@ namespace HpToolsLauncher.TestRunners
                 _scenarioEndedEvent = false;
             }
 
-            _engine.ShowMainWindow(0);
-#if DEBUG
-            _engine.ShowMainWindow(1);
-#endif
+            
+            if (_displayController == true)
+            {
+                _engine.ShowMainWindow(1);
+            } else
+            {
+                _engine.ShowMainWindow(0);
+            }
+
             //pointer to the scenario object:
             LrScenario currentScenario = _engine.Scenario;
 

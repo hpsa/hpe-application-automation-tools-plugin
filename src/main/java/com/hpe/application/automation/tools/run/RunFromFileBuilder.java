@@ -123,6 +123,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 * @param controllerPollingInterval the controller polling interval
 	 * @param perScenarioTimeOut        the per scenario time out
 	 * @param ignoreErrorStrings        the ignore error strings
+	 * @param displayController         the display controller
 	 * @param mcServerName              the mc server name
 	 * @param fsUserName                the fs user name
 	 * @param fsPassword                the fs password
@@ -142,13 +143,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	@SuppressWarnings("squid:S00107")
 	@Deprecated
 	public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
-                              String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName,
+                              String perScenarioTimeOut, String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName,
 							  String fsPassword, String mcTenantId, String fsDeviceId, String fsTargetLab,
                               String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
                               ProxySettings proxySettings, boolean useSSL) {
 
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
-				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
+				perScenarioTimeOut, ignoreErrorStrings, displayController, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
 
@@ -189,6 +190,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
 		runFromFileModel.setIgnoreErrorStrings(ignoreErrorStrings);
+	}
+
+	/**
+	 * Sets display controller.
+	 *
+	 * @param displayController the display controller
+	 */
+	@DataBoundSetter
+	public void setDisplayController(String displayController) {
+		runFromFileModel.setDisplayController(displayController);
 	}
 
 	/**

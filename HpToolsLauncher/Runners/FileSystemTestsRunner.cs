@@ -22,6 +22,7 @@ namespace HpToolsLauncher
         private static string _uftViewerPath;
         private int _errors, _fail;
         private bool _useUFTLicense;
+        private bool _displayController;
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
@@ -61,8 +62,9 @@ namespace HpToolsLauncher
                                     Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
+                                    bool displayController,
                                     bool useUFTLicense = false)
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, useUFTLicense)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, displayController, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -82,6 +84,7 @@ namespace HpToolsLauncher
                                     Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
+                                    bool displayController,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -99,9 +102,9 @@ namespace HpToolsLauncher
             _pollingInterval = ControllerPollingInterval;
             _perScenarioTimeOutMinutes = perScenarioTimeOutMinutes;
             _ignoreErrorStrings = ignoreErrorStrings;
-
-
+            
             _useUFTLicense = useUFTLicense;
+            _displayController = displayController;
             _tests = new List<TestInfo>();
 
             _mcConnection = mcConnection;
@@ -306,11 +309,10 @@ namespace HpToolsLauncher
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController);
                     break;
             }
-
-
+            
             if (runner != null)
             {
                 if (!_colRunnersForCleanup.ContainsKey(type))
