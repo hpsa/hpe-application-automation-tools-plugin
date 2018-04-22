@@ -90,7 +90,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
     }
 
     public class SrfTestResultAction extends TestResultAction {
-        private AbstractBuild<?, ?> _build;
         private JSONArray _buildInfo;
         private PrintStream _logger;
         private TestObject _target;
@@ -355,7 +354,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
             }
 
             listener.getLogger().println(e.getMessage());
-            build.setResult(Result.FAILURE);
+
+            build.setResult(Result.ABORTED);
             return true;
         } catch (IOException e) {
             e.printStackTrace(listener.error("Failed to archive testing tool reports"));

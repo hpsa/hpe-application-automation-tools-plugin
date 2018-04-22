@@ -260,36 +260,33 @@ public class SrfResultFileWriter {
             testCase.setAttribute("time", String.format("%1d.0",duration_i ));
 
             String status = scriptRun.getString("status");
-            if((status != null) && (status.compareTo("success") != 0)){
+            if(status != null && status.compareTo("success") != 0 && scriptRun.containsKey("errors")){
 
-                  if(scriptRun.containsKey("errors")) {
-                        JSONArray errorsAr = new JSONArray();
-                        Object errors = "";
+                  JSONArray errorsAr = new JSONArray();
+                  Object errors = "";
+                  try {
+                        errorsAr = scriptRun.getJSONArray("errors");
+                  }
+                  catch (Exception e){
                         try {
-                              errorsAr = scriptRun.getJSONArray("errors");
+                              errors = scriptRun.getJSONObject("errors");
+                              errorsAr.add(errors);
                         }
-                        catch (Exception e){
-                              try {
-                                    errors = scriptRun.getJSONObject("errors");
-                                    errorsAr.add(errors);
-                              }
-                              catch (Exception e1) {
-                                    JSONObject jErr = new JSONObject();
-                                    jErr.put("error", errors.toString());
-                                    errorsAr.add(jErr);
-                              }
-                        }
-
-                        int errCnt = errorsAr.size();
-                        for (int k = 0; k < errCnt; k++) {
-                              Element error = doc.createElement("error");
-                              if(errorsAr.get(k) == JSONNull.getInstance())
-                                    continue;
-                              error.setAttribute("message", ((JSONObject)(errorsAr.get(k))).getString("message"));
-                              testCase.appendChild(error);
+                        catch (Exception e1) {
+                              JSONObject jErr = new JSONObject();
+                              jErr.put("error", errors.toString());
+                              errorsAr.add(jErr);
                         }
                   }
 
+                  int errCnt = errorsAr.size();
+                  for (int k = 0; k < errCnt; k++) {
+                        Element error = doc.createElement("error");
+                        if(errorsAr.get(k) == JSONNull.getInstance())
+                              continue;
+                        error.setAttribute("message", ((JSONObject)(errorsAr.get(k))).getString("message"));
+                        testCase.appendChild(error);
+                  }
             }
 
             return testCase;
