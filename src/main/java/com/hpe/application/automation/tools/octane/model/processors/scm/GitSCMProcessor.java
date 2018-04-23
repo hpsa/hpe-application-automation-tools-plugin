@@ -41,11 +41,15 @@ import hudson.plugins.git.Branch;
 import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.extensions.GitSCMExtension;
+import hudson.plugins.git.extensions.GitSCMExtensionDescriptor;
+import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
 import hudson.plugins.git.util.BuildData;
 import hudson.remoting.VirtualChannel;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.tasks.Mailer;
+import hudson.util.DescribableList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -190,17 +194,26 @@ public class GitSCMProcessor implements SCMProcessor {
 	}
 
 	private static String getRemoteString(AbstractBuild  r){
+		final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
+		String relativeTargetDir = "";
+		if(extensions!=null){
+			final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
+			if(relativeTargetDirectory!=null && relativeTargetDirectory.getRelativeTargetDir()!=null ){
+				relativeTargetDir = File.separator+relativeTargetDirectory.getRelativeTargetDir();
+			}
+		}
 		if(r.getWorkspace().isRemote())
 		{
 			VirtualChannel vc = r.getWorkspace().getChannel();
 			String fp = r.getWorkspace().getRemote();
 			String remote = new FilePath(vc, fp).getRemote();
-			return remote;
+			return remote+relativeTargetDir;
 		}
 		else {
 			String remote = r.getWorkspace().getRemote();
-			return remote;
+			return remote+relativeTargetDir;
 		}
+
 	}
 
 	private List<SCMCommit> getCommits(ChangeLogSet<? extends ChangeLogSet.Entry> changes) {

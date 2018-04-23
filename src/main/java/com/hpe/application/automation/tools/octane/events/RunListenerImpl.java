@@ -38,13 +38,13 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
-import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
@@ -102,9 +102,18 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setPhaseType(PhaseType.POST)
 					.setEstimatedDuration(r.getEstimatedDuration())
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
+
+			if (r.getParent().getParent() != null && r.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+				event
+						.setParentCiId(r.getParent().getParent().getFullName())
+						.setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
+						.setProjectDisplayName(r.getParent().getFullName());
+			}
+
 			OctaneSDK.getInstance().getEventsService().publishEvent(event);
-			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
-			workFlowRunProcessor.registerEvents(executor);
+			//events on the internal stages of the workflowRun are handled in this place:
+			// com.hpe.application.automation.tools.octane.workflow.WorkflowGraphListener
+
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
 				event = dtoFactory.newDTO(CIEvent.class)
@@ -238,7 +247,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					}
 				}
 			} else {
-				if (parent.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+				if (parent.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 					result = true;
 				} else {
 					List<PipelinePhase> phases = JobProcessorFactory.getFlowProcessor((Job) parent).getInternals();

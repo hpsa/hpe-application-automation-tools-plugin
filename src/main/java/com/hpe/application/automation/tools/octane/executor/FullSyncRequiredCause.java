@@ -33,57 +33,28 @@
 
 package com.hpe.application.automation.tools.octane.executor;
 
-import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
-import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
-import com.hpe.application.automation.tools.run.RunFromFileBuilder;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.model.EnvironmentContributor;
-import hudson.model.FreeStyleProject;
-import hudson.model.Job;
-import hudson.model.TaskListener;
-import hudson.scm.NullSCM;
-import hudson.scm.SCM;
-import hudson.tasks.Builder;
-
-import java.util.List;
+import hudson.model.Cause;
 
 /**
- * Add job environment value for CHECKOUT_SUBDIR
+ * FullSyncRequiredCause
+ * Informational class for full sync case.
+ * Used for SVN SCM delete action : in this case we don't receive inforamtion about deleted files,
+ * therefore full sync required to update ALM Octane entities correctly 
  */
-@Extension
-public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
+public class FullSyncRequiredCause extends Cause {
 
-    public static final String CHECKOUT_SUBDIR_ENV_NAME = "CHECKOUT_SUBDIR";
+    private String buildId;
+
+    public FullSyncRequiredCause(String buildId) {
+        this.buildId = buildId;
+    }
+
+    public static FullSyncRequiredCause create(String buildId) {
+        return new FullSyncRequiredCause(buildId);
+    }
 
     @Override
-    public void buildEnvironmentFor(Job j, EnvVars envs, TaskListener listener) {
-        String dir = getSharedCheckOutDirectory(j);
-        if (dir != null) {
-            envs.put(CHECKOUT_SUBDIR_ENV_NAME, dir);
-        }
+    public String getShortDescription() {
+        return String.format("Triggered by build #%s with full sync parameter.", buildId);
     }
-
-    public static String getSharedCheckOutDirectory(Job j) {
-        if (j instanceof FreeStyleProject) {
-            FreeStyleProject proj = (FreeStyleProject) j;
-            SCM scm = proj.getScm();
-            List<Builder> builders = proj.getBuilders();
-            if (scm != null && !(scm instanceof NullSCM) && builders != null) {
-                for (Builder builder : builders) {
-                    if (builder instanceof RunFromFileBuilder) {
-                        ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
-                        if (scmPluginHandler != null) {
-                            return scmPluginHandler.getSharedCheckOutDirectory(j);
-                        }
-                    }
-                }
-
-            }
-        }
-
-        return null;
-    }
-
 }
-
