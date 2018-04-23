@@ -45,9 +45,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class CreateTunnelBuilder extends Builder  {
     private  String srfTunnelName;
+    private static final Logger systemLogger = Logger.getLogger(CreateTunnelBuilder.class.getName());
     static final ArrayList<Process> Tunnels = new ArrayList<Process>();
     @DataBoundConstructor
     public CreateTunnelBuilder( String srfTunnelName ){
@@ -93,8 +95,9 @@ public class CreateTunnelBuilder extends Builder  {
         while(true){
 
             while ((line = br.readLine()) != null) {
+                systemLogger.info(line);
                 logger.println(line);
-                if(line.indexOf("established at") >=0){
+                if(line.contains("established at")){
                     th.start();
                     logger.println("Launched "+path);
                     return true;
@@ -119,22 +122,21 @@ public class CreateTunnelBuilder extends Builder  {
                         logger.println("Failed to launch tunnel client : Authentication with client/secret failed");
                         break;
                     case 3:
-                        logger.println("Failed to launch tunnel client : Max connection attempts acceded ");
+                        logger.println("Failed to launch tunnel client : Max connection attempts acceded");
                         break;
                     case 4:
-                        logger.println("Failed to launch tunnel client : Allocation of tunnel filed E.g. Tunnel name is not unique.");
+                        logger.println("Failed to launch tunnel client : Allocation of tunnel failed E.g. Tunnel name is not unique.\nPlease check if tunnel is already running");
                         break;
                     default:
-                        logger.println(String.format("Failed to launch tunnel client : Unknown reason(Exit code =%d", p.exitValue()));
+                        logger.println(String.format("Failed to launch tunnel client : Unknown reason(Exit code =%d)", p.exitValue()));
                         break;
 
                 }
-
+                systemLogger.info("Closing tunnel process");
                 p.destroy();
                 return false;
 
             }
-
         }
 
 
@@ -233,7 +235,8 @@ public class CreateTunnelBuilder extends Builder  {
                 //Wait to get exit value
                 try {
                     p.waitFor();
-                    logger.println("\n\nExit Value is " + exitValue);
+                    logger.println("\n\nTunnel exit value is " + exitValue);
+                    return;
                 } catch (final InterruptedException e) {
                     p.destroy();
                     return;

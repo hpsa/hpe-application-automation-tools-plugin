@@ -34,7 +34,7 @@
 package com.hpe.application.automation.tools.srf.run;
 import com.hpe.application.automation.tools.srf.model.*;
 import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
-import com.hpe.application.automation.tools.srf.utilities.SrfStepsHtmlUtil;
+import com.hpe.application.automation.tools.srf.results.SrfResultFileWriter;
 import com.hpe.application.automation.tools.srf.utilities.SseEventListener;
 import groovy.transform.Synchronized;
 import hudson.Extension;
@@ -44,7 +44,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.auth.AuthenticationException;
@@ -55,7 +54,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Dispatcher;
 import org.kohsuke.stapler.QueryParameter;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.net.ssl.*;
@@ -66,10 +64,6 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.*;
 import java.security.KeyManagementException;
@@ -296,7 +290,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             case TEST_RUN_END:
                 boolean removed = this.runningCount.remove(srfSseEventNotification.testRunId);
                 if (!removed){
-                    systemLogger.warning(String.format("Received TEST_RUN_END event for non existing run %s", srfSseEventNotification.srfTestRunEvent));
+                    systemLogger.warning(String.format("Received TEST_RUN_END event for non existing run %s", srfSseEventNotification.testRunId));
                     return;
                 }
 
@@ -308,7 +302,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         }
 
         JSONArray testRes;
-        FileOutputStream fs = null;
 
         try {
             testRes = getTestResults(jobIds);
@@ -319,51 +312,29 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
                 jo.put("tenantid", _tenant);
             }
 
-            String path = build.getRootDir().getPath().concat("/report.json");
-            File jsonReportFile = new File(path);
-            jsonReportFile.createNewFile();
-            fs = new FileOutputStream(jsonReportFile);
-            fs.write(testRes.toString().getBytes());
+            SrfResultFileWriter.writeJsonReport(build.getRootDir().getPath(), testRes.toString());
+            SrfResultFileWriter.writeXmlReport(build, testRes, _tenant);
+            SrfResultFileWriter.writeOctaneResultsUrlFile(testRes, build.getRootDir().getPath(), _tenant, _ftaasServerAddress);
 
-            String   xmlReport = "";
-            xmlReport = convert2Xml(testRes);
-
-            String name = String.format("report%1d.xml", build.number); //build.getWorkspace().getParent().child("builds").child(name)
-            File xmlReportFile = new File(build.getWorkspace().child(name).toString());
-            xmlReportFile.createNewFile();
-
-            fs = new FileOutputStream(xmlReportFile);
-            fs.write(xmlReport.getBytes());
-
-            if(_con != null)
-                _con.disconnect();
-
-        } catch (Exception e ) {
-            logger.print(e.getMessage());
-        } finally {
-            if(fs != null) {
-                try {
-                    fs.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            switch (build.getResult().toString()) {
+                case "SUCCESS":
+                    this.srfExecutionFuture.complete(true);
+                    return;
+                case "ABORTED":
+                case "FAILURE":
+                    this.srfExecutionFuture.complete(false);
+                    return;
+                default:
+                    systemLogger.warning(String.format("Received undefined build result: %s", build.getResult().toString()));
+                    this.srfExecutionFuture.complete(false);
+                    break;
             }
 
+        } catch (Exception e) {
+            logger.print(e.getMessage());
+            this.srfExecutionFuture.complete(false);
+        } finally {
             cleanUp();
-        }
-
-        switch (build.getResult().toString()) {
-            case "SUCCESS":
-                this.srfExecutionFuture.complete(true);
-                return;
-            case "ABORTED":
-            case "FAILURE":
-                this.srfExecutionFuture.complete(false);
-                return;
-            default:
-                systemLogger.warning(String.format("Received undefined build result: %s", build.getResult().toString()));
-                this.srfExecutionFuture.complete(false);
-                break;
         }
     }
 
@@ -776,160 +747,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         }
     }
 
-    private String convert2Xml(JSONArray report) throws ParserConfigurationException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.newDocument();
-        Element root = doc.createElement("testsuites");
-        try {
-            root.setAttribute("tenant", _tenant);
-            int testsCnt = report.size();
-            //          root.setAttribute("tests", String.format("%1d", testsCnt));
-            int errorsTestSute = 0;
-            int failuresTestSute = 0;
-            int testRunErrors = 0;
-            int testRunCancellations = 0;
-            int successfulTestRun = 0;
-
-            for (int i = 0; i < testsCnt; i++) {
-                Element testSuite = doc.createElement("testsuite");
-                JSONObject test = (JSONObject) (report.get(i));
-                String status = test.getString("status");
-                if (status == null)
-                    status = "errored";
-
-                switch (status) {
-                    case "success":
-                    case "completed":
-                        successfulTestRun++;
-                        break;
-                    case "cancelled":
-                        testRunCancellations++;
-                        break;
-                    default:
-                        testRunErrors++;
-                        break;
-                }
-
-                String timestamp = test.getString("start");
-                String testDuration = test.getString("durationMs");
-                if(testDuration == null || testDuration.length() == 0)
-                    testDuration = "0";
-                int duration_i = Integer .parseInt(testDuration, 10)/1000;
-                testSuite.setAttribute("time", String.format("%1d.0",duration_i ));
-                String testRunYac = test.getString("yac");
-                testSuite.setAttribute("yac", testRunYac);
-                testSuite.setAttribute("id", testRunYac);
-
-                //Properties (currently for Octane integration)
-                Element srfTestRunUrlProperty = doc.createElement("property");
-                srfTestRunUrlProperty.setAttribute("name", "srf.testrun.url");
-                String srfTestRunResultUrl = String.format("%s/results/%s/details?TENANTID=%s",_ftaasServerAddress, testRunYac, _tenant);
-                srfTestRunUrlProperty.setAttribute("value", srfTestRunResultUrl);
-                Element properties = doc.createElement("properties");
-                properties.appendChild(srfTestRunUrlProperty);
-                testSuite.appendChild(properties);
-
-                JSONObject testJson = test.getJSONObject("test");
-                String name = testJson.getString("name");
-
-                JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
-                int scriptCnt = scriptRuns.size();
-                testSuite.setAttribute("name", name);
-                testSuite.setAttribute("timestamp", timestamp);
-                testSuite.setAttribute("tests", String.format("%1d", scriptCnt));
-                root.appendChild(testSuite);
-                for (int j = 0; j < scriptCnt; j++) {
-                    JSONObject scriptRun = scriptRuns.getJSONObject(j);
-                    JSONObject assetInfo = scriptRun.getJSONObject("assetInfo");
-                    String scriptName = assetInfo.getString("name");
-                    Element testCase = doc.createElement("testcase");
-
-                    String scriptStatus = scriptRun.getString("status");
-                    if(scriptStatus.compareTo("failed") == 0 || scriptStatus.compareTo("errored") == 0){
-                        Element failure = doc.createElement("failure");
-                        testCase.appendChild(failure);
-                    }
-                    Element script = doc.createElement("system-out");
-
-                    JSONArray steps = scriptRun.getJSONArray("scriptSteps");
-                    String sdk = assetInfo.getString("sdk");
-                    String stepsHtml = SrfStepsHtmlUtil.getSrfStepsHtml(sdk, steps);
-                    script.setTextContent(stepsHtml);
-
-                    testCase.appendChild(script);
-                    //     testCase.setAttribute("classname", scriptName);
-                    testCase.setAttribute("name", String.format("%s_%s", scriptName, scriptRun.getString("yac")));
-                    String duration =scriptRun.getString("durationMs");
-                    if(duration == null)
-                        duration = testDuration;
-                    duration_i = Integer.parseInt(duration, 10)/1000;
-                    testCase.setAttribute("time", String.format("%1d.0",duration_i ));
-
-                    status = scriptRun.getString("status");
-                    if((status != null) && (status.compareTo("success") != 0)){
-                        if("failed".compareTo(status) == 0) {
-                            failuresTestSute++;
-                        }
-                        else
-                            errorsTestSute ++;
-                        if(scriptRun.containsKey("errors")) {
-                            JSONArray errorsAr = new JSONArray();
-                            Object errors = "";
-                            try {
-                                errorsAr = scriptRun.getJSONArray("errors");
-                            }
-                            catch (Exception e){
-                                try {
-                                    errors = scriptRun.getJSONObject("errors");
-                                    errorsAr.add(errors);
-                                }
-                                catch (Exception e1) {
-                                    JSONObject jErr = new JSONObject();
-                                    jErr.put("error", errors.toString());
-                                    errorsAr.add(jErr);
-                                }
-                            }
-
-                            int errCnt = errorsAr.size();
-                            for (int k = 0; k < errCnt; k++) {
-                                Element error = doc.createElement("error");
-                                if(errorsAr.get(k) == JSONNull.getInstance())
-                                    continue;
-                                error.setAttribute("message", ((JSONObject)(errorsAr.get(k))).getString("message"));
-                                testCase.appendChild(error);
-                            }
-                        }
-
-                    }
-                    testSuite.appendChild(testCase);
-                    testSuite.setAttribute("errors", String.format("%1d", errorsTestSute));
-                    testSuite.setAttribute("failures", String.format("%1d", failuresTestSute));
-                    errorsTestSute = 0;
-                    failuresTestSute = 0;
-                }
-                root.appendChild(testSuite);
-            }
-
-            if (successfulTestRun == testsCnt) {
-                build.setResult(Result.SUCCESS);
-            } else  if (testRunErrors > 0) {
-                build.setResult(Result.FAILURE);
-            } else if (testRunCancellations > 0) {
-                if (testRunCancellations == testsCnt)
-                    build.setResult(Result.ABORTED);
-                else
-                    build.setResult(Result.UNSTABLE);
-            }
-        }
-        catch (Exception e){
-            logger.println(e.getMessage());
-            e.printStackTrace();
-        }
-        doc.appendChild(root);
-        return getStringFromDocument(doc);
-    }
-
     private void cleanUp() {
         if (eventSrc != null) {
             eventSrc.close();
@@ -939,33 +756,14 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         if (_con != null){
             _con.disconnect();
             _con = null;
-            if(srfCloseTunnel && CreateTunnelBuilder.Tunnels != null){
-                    for (Process p:CreateTunnelBuilder.Tunnels){
-                        p.destroy();
-                    }
-                    CreateTunnelBuilder.Tunnels.clear();
+        }
+
+        if(srfCloseTunnel && CreateTunnelBuilder.Tunnels != null){
+            for (Process p:CreateTunnelBuilder.Tunnels){
+                p.destroy();
             }
+            CreateTunnelBuilder.Tunnels.clear();
         }
-    }
-
-    private String getStringFromDocument(Document doc)
-    {
-        try
-        {
-            DOMSource domSource = new DOMSource(doc);
-            StringWriter writer = new StringWriter();
-            StreamResult result = new StreamResult(writer);
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.transform(domSource, result);
-            return writer.toString();
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-            return null;
-        }
-
     }
 
     static   class SrfTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
