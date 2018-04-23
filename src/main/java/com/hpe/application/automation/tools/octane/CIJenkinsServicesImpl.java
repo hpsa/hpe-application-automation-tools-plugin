@@ -37,6 +37,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -194,43 +195,31 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					continue;
 				}
 
+				String jobClassName = tmpItem.getClass().getName();
                 try {
-                    if (tmpItem instanceof AbstractProject) {
-                        AbstractProject abstractProject = (AbstractProject) tmpItem;
-                        if (abstractProject.isDisabled()) {
-                            continue;
-                        }
-                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                .setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getTranslateJobName())
-                                .setName(name);
-                        if (includeParameters) {
-                            tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
-                        }
-                        list.add(tmpConfig);
-                    } else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-                        Job tmpJob = (Job) tmpItem;
-                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-                                .setName(name);
-                        if (includeParameters) {
-                            tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-                        }
-                        list.add(tmpConfig);
-                    } else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
-                        for (Job tmpJob : tmpItem.getAllJobs()) {
-                            tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                    .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-                                    .setName(tmpJob.getName());
-                            if (includeParameters) {
-                                tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-                            }
-                            list.add(tmpConfig);
-                        }
-                    } else {
-                        logger.info("item '" + name + "' is not of supported type");
-                    }
+					if (tmpItem instanceof AbstractProject) {
+						AbstractProject abstractProject = (AbstractProject) tmpItem;
+						if (abstractProject.isDisabled()) {
+							continue;
+						}
+						tmpConfig = createPipelineNode(name, abstractProject, includeParameters);
+						list.add(tmpConfig);
+					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+						tmpConfig = createPipelineNode(name, (Job) tmpItem, includeParameters);
+						list.add(tmpConfig);
+					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+						for (Job tmpJob : tmpItem.getAllJobs()) {
+							tmpConfig = createPipelineNode(tmpJob.getName(), tmpJob, includeParameters);
+							list.add(tmpConfig);
+						}
+					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+						tmpConfig = createPipelineNodeFromJobName(name);
+						list.add(tmpConfig);
+					} else {
+						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", name, jobClassName));
+					}
                 } catch (Throwable e) {
-                    logger.error("Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+                    logger.error("getJobsList : Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
                 }
 
 			}
@@ -243,26 +232,51 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return result;
 	}
 
+	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                .setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
+                .setName(name);
+		if (includeParameters) {
+            tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
+        }
+		return tmpConfig;
+	}
+
+	private PipelineNode createPipelineNodeFromJobName(String name) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(name)
+				.setName(name);
+		return tmpConfig;
+	}
+
 
 	@Override
 	public PipelineNode getPipeline(String rootJobCiId) {
-		PipelineNode result;
 		SecurityContext securityContext = startImpersonation();
-		boolean hasRead = getJenkins().hasPermission(Item.READ);
-		if (!hasRead) {
-			stopImpersonation(securityContext);
-			throw new PermissionException(403);
-		}
-		Job project = getJobByRefId(rootJobCiId);
-		if (project != null) {
-			result = ModelFactory.createStructureItem(project);
-			stopImpersonation(securityContext);
+		try {
+			PipelineNode result;
+			boolean hasRead = getJenkins().hasPermission(Item.READ);
+			if (!hasRead) {
+				throw new PermissionException(403);
+			}
+
+			TopLevelItem tli = getTopLevelItem(rootJobCiId);
+			if (tli != null && tli.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+				result = createPipelineNodeFromJobName(rootJobCiId);
+				result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
+			} else {
+				Job project = getJobByRefId(rootJobCiId);
+				if (project != null) {
+					result = ModelFactory.createStructureItem(project);
+				} else {
+					//todo: check error message(s)
+					logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
+					throw new ConfigurationException(404);
+				}
+			}
 			return result;
-		} else {
-			//todo: check error message(s)
-			logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
+		} finally {
 			stopImpersonation(securityContext);
-			throw new ConfigurationException(404);
 		}
 	}
 
@@ -300,7 +314,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			if (job instanceof AbstractProject || job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+			if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 				doRunImpl(job, originalBody);
 			}
 			stopImpersonation(securityContext);
@@ -378,7 +392,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 			}
 
 			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
-		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+		} else if (job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 			AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
 			workFlowJobProcessor.scheduleBuild(originalBody);
 		}

@@ -69,11 +69,16 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
             FreeStyleProject proj = (FreeStyleProject) j;
             SCM scm = proj.getScm();
             List<Builder> builders = proj.getBuilders();
-            if (scm != null && !(scm instanceof NullSCM) && builders.size() > 0 && builders.get(0) instanceof RunFromFileBuilder) {
-                ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
-                if (scmPluginHandler != null) {
-                    return scmPluginHandler.getSharedCheckOutDirectory(j);
+            if (scm != null && !(scm instanceof NullSCM) && builders != null) {
+                for (Builder builder : builders) {
+                    if (builder instanceof RunFromFileBuilder) {
+                        ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
+                        if (scmPluginHandler != null) {
+                            return scmPluginHandler.getSharedCheckOutDirectory(j);
+                        }
+                    }
                 }
+
             }
         }
 

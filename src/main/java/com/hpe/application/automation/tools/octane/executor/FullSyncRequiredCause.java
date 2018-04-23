@@ -31,29 +31,30 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.model.processors.scm;
+package com.hpe.application.automation.tools.octane.executor;
 
-import com.hp.octane.integrations.dto.scm.SCMData;
-import hudson.model.AbstractBuild;
-import hudson.model.Run;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import java.util.List;
+import hudson.model.Cause;
 
 /**
- * API definition for SCM content processor/transformer for an Octane context
- * Created by gullery on 31/03/2015.
+ * FullSyncRequiredCause
+ * Informational class for full sync case.
+ * Used for SVN SCM delete action : in this case we don't receive inforamtion about deleted files,
+ * therefore full sync required to update ALM Octane entities correctly 
  */
+public class FullSyncRequiredCause extends Cause {
 
-public interface SCMProcessor {
-	SCMData getSCMData(AbstractBuild build);
+    private String buildId;
 
-	List<SCMData> getSCMData(WorkflowRun run);
+    public FullSyncRequiredCause(String buildId) {
+        this.buildId = buildId;
+    }
 
-	CommonOriginRevision getCommonOriginRevision(Run run);
+    public static FullSyncRequiredCause create(String buildId) {
+        return new FullSyncRequiredCause(buildId);
+    }
 
-	class CommonOriginRevision {
-		public String branch;
-		public String revision;
-	}
+    @Override
+    public String getShortDescription() {
+        return String.format("Triggered by build #%s with full sync parameter.", buildId);
+    }
 }

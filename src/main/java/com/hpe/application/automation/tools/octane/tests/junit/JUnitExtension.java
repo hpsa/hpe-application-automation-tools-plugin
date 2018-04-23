@@ -226,6 +226,22 @@ public class JUnitExtension extends MqmTestsExtension {
 				} catch (Exception e) {
 					logger.error("Failed to add log file for StormRunnerLoad :" + e.getMessage());
 				}
+			} else if (HPRunnerType.StormRunnerFunctional.equals(hpRunnerType)) {
+				try {
+					File file = new File(build.getRootDir(), "srf-test-result-urls");
+					Path path = Paths.get(file.getPath());
+					List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+					Map<String, String> map = new HashMap<>();
+					for (String line : lines) {
+						String[] parts = line.split(";");
+						if (parts.length == 2) {
+							map.put(parts[0], parts[1]);
+						}
+					}
+					additionalContext = map;
+				} catch (Exception e) {
+					logger.error("Failed to read/parse srf-test-result-urls file for StormRunnerFunctional :" + e.getMessage());
+				}
 			}
 		}
 

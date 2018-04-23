@@ -37,6 +37,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Cause;
 import hudson.model.Job;
 import hudson.tasks.Builder;
@@ -93,5 +94,14 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 					.setSecret(serverConfiguration.password.getPlainText());
 		}
 		return result;
+	}
+
+	@Override
+	public String getTranslateJobName() {
+		if (this.job.getParent() != null && this.job.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
+		} else {
+			return super.getTranslateJobName();
+		}
 	}
 }
