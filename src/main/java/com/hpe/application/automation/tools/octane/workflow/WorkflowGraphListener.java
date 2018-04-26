@@ -34,6 +34,8 @@
 package com.hpe.application.automation.tools.octane.workflow;
 
 
+
+
 import com.cloudbees.workflow.rest.external.StageNodeExt;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -128,6 +130,12 @@ public class WorkflowGraphListener implements GraphListener {
         }
 
         try {
+            /*Workaround:
+            Solution for calculating the duration of the stage: There is currently no end event of the stage, and cannot know the duration
+            of the total duration of the stage. Therefore, this is calculated using the start time of the previous stage and the current stage.*/
+            StageNodeExt stageNode = StageNodeExt.create(flowNode);
+            Long duration = stageNode.getStartTimeMillis() - previousStageNode.getStartTimeMillis();
+
             WorkflowRun parentRun = (WorkflowRun) flowNode.getExecution().getOwner().getExecutable();
 
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
@@ -138,7 +146,7 @@ public class WorkflowGraphListener implements GraphListener {
                     .setNumber(String.valueOf(parentRun.getNumber()))
                     .setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
                     .setCauses(getCauses(parentRun))
-                    .setDuration(previousStageNode.getDurationMillis())
+                    .setDuration(duration)
                     .setEstimatedDuration(previousStageNode.getDurationMillis())
                     .setResult(WorkFlowUtils.convertStatus(previousStageNode.getStatus()));
 
