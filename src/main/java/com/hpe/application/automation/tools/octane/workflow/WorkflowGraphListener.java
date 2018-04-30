@@ -33,9 +33,6 @@
 
 package com.hpe.application.automation.tools.octane.workflow;
 
-
-
-
 import com.cloudbees.workflow.rest.external.StageNodeExt;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -45,10 +42,13 @@ import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.PhaseType;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.*;
+import org.jenkinsci.plugins.workflow.actions.ErrorAction;
+import org.jenkinsci.plugins.workflow.actions.TimingAction;
 import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
@@ -77,12 +77,18 @@ public class WorkflowGraphListener implements GraphListener {
 
     public static FlowNodeContainer container;
 
-    private StageNodeExt previousStage = null;
+    private FlowNode previousStage = null;
 
     @Override
     public void onNewHead(FlowNode flowNode) {
         if (flowNode instanceof StepEndNode) {
-            sendFinishEventOnPreviousStage(previousStage, flowNode);
+            //check - if this is stage end node - just save it to the next time
+            if(isStageEndNode(flowNode)){
+                sendFinishEventOnPreviousStage(((StepEndNode)flowNode).getStartNode(), flowNode);
+            }
+            else {
+                sendFinishEventOnPreviousStage(previousStage, flowNode);
+            }
 
             WorkspaceAction workspaceAction = ((StepEndNode) flowNode).getStartNode().getAction(WorkspaceAction.class);
             if (workspaceAction != null) {
@@ -121,10 +127,13 @@ public class WorkflowGraphListener implements GraphListener {
 //			}else if( isItBuildStep(flowNode))
 //				popNewJobEvent(flowNode);       // popping a new event (we want to draw it on NGA)
 //		}
-
     }
 
-    private void sendFinishEventOnPreviousStage(StageNodeExt previousStageNode, FlowNode flowNode) {
+    private boolean isStageEndNode(FlowNode flowNode) {
+        return StageNodeExt.isStageNode(((StepEndNode)flowNode).getStartNode());
+    }
+
+    private void sendFinishEventOnPreviousStage(FlowNode previousStageNode, FlowNode flowNode) {
         if (previousStageNode == null) {
             return;
         }
@@ -133,22 +142,23 @@ public class WorkflowGraphListener implements GraphListener {
             /*Workaround:
             Solution for calculating the duration of the stage: There is currently no end event of the stage, and cannot know the duration
             of the total duration of the stage. Therefore, this is calculated using the start time of the previous stage and the current stage.*/
-            StageNodeExt stageNode = StageNodeExt.create(flowNode);
-            Long duration = stageNode.getStartTimeMillis() - previousStageNode.getStartTimeMillis();
 
+            Long startTimeCurrent = TimingAction.getStartTime(flowNode);
+            Long startTimePrevious = TimingAction.getStartTime(previousStageNode);
+            Long duration = startTimeCurrent -startTimePrevious;
             WorkflowRun parentRun = (WorkflowRun) flowNode.getExecution().getOwner().getExecutable();
 
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.FINISHED)
                     .setPhaseType(PhaseType.POST)
-                    .setProject(previousStageNode.getName())
-                    .setStartTime(previousStageNode.getStartTimeMillis())
+                    .setProject(previousStageNode.getDisplayName())
+                    .setStartTime(startTimePrevious)
                     .setNumber(String.valueOf(parentRun.getNumber()))
                     .setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
                     .setCauses(getCauses(parentRun))
                     .setDuration(duration)
-                    .setEstimatedDuration(previousStageNode.getDurationMillis())
-                    .setResult(WorkFlowUtils.convertStatus(previousStageNode.getStatus()));
+                    .setEstimatedDuration(duration)
+                    .setResult(getStatus(flowNode));
 
             OctaneSDK.getInstance().getEventsService().publishEvent(event);
             this.previousStage = null;
@@ -158,6 +168,15 @@ public class WorkflowGraphListener implements GraphListener {
         }
     }
 
+    private CIBuildResult getStatus(FlowNode node){
+        if(node.getActions() !=null) {
+            for (Action action : node.getActions()) {
+                if (action.getClass().equals(ErrorAction.class))
+                    return CIBuildResult.FAILURE;
+            }
+        }
+        return  CIBuildResult.SUCCESS;
+    }
     private List<CIEventCause> getCauses(WorkflowRun parentRun) {
         CIEventCause causes = dtoFactory.newDTO(CIEventCause.class)
                 .setType(CIEventCauseType.UPSTREAM)
@@ -174,20 +193,21 @@ public class WorkflowGraphListener implements GraphListener {
     private void sendStartEventOnCurrentStage(FlowNode flowNode) {
         CIEvent event;
         try {
-            StageNodeExt stageNode = StageNodeExt.create(flowNode);
+            //   StageNodeExt stageNode = null;
+            //   StageNodeExt.create(flowNode);
             WorkflowRun parentRun = (WorkflowRun) flowNode.getExecution().getOwner().getExecutable();
 
             event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.STARTED)
                     .setPhaseType(PhaseType.POST)
-                    .setProject(stageNode.getName())
-                    .setStartTime(stageNode.getStartTimeMillis())
+                    .setProject(flowNode.getDisplayName())//stageNode.getName())
+                    .setStartTime(TimingAction.getStartTime(flowNode))//stageNode.getStartTimeMillis())
                     .setNumber(String.valueOf(parentRun.getNumber()))
                     .setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
                     .setCauses(getCauses(parentRun));
 
             OctaneSDK.getInstance().getEventsService().publishEvent(event);
-            previousStage = stageNode;
+            previousStage = flowNode;
         } catch (IOException e) {
             e.printStackTrace();
             previousStage = null;
