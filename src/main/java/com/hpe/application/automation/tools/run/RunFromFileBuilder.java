@@ -733,7 +733,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 			String val1 = value.trim();
 			if (val1.length() > 0 && val1.charAt(0) == '-') {
-				value = value.substring(1);
+				val1 = val1.substring(1);
 			}
 
 			if (!val1.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !val1.matches("[0-9]*$")) {
