@@ -732,12 +732,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			}
 
 			String val1 = value.trim();
-			if (val1.length() > 0 && val1.charAt(0) == '-')
-				val1 = val1.substring(1);
-
-			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
-				return FormValidation.error("Timeout name must be a number");
+			if (val1.length() > 0 && val1.charAt(0) == '-') {
+				value = value.substring(1);
 			}
+
+			if (!val1.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !val1.matches("[0-9]*$")) {
+				return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
+			}
+
 			return FormValidation.ok();
 		}
 
@@ -793,12 +795,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			if (!StringUtils.isNumeric(value)) {
-				return FormValidation.error("Per Scenario Timeout must be a number");
+			if (!value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !value.matches("[0-9]*$")) {
+				return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, $ScenarioDuration or ${ScenarioDuration}.");
 			}
 
-			return FormValidation.ok();
+            return FormValidation.ok();
 		}
-
 	}
 }

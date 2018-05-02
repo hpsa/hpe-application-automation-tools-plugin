@@ -676,7 +676,7 @@ public class RunFromFileSystemModel {
             props.put("fsTimeout", "-1");
         }
         else{
-            props.put("fsTimeout", "" + fsTimeout);
+            props.put("fsTimeout", "" + envVars.expand(fsTimeout));
         }
 
         if (StringUtils.isEmpty(fsUftRunMode)){
@@ -704,7 +704,7 @@ public class RunFromFileSystemModel {
             props.put("PerScenarioTimeOut", "10");
         }
         else{
-            props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
+            props.put("PerScenarioTimeOut", ""+ envVars.expand(perScenarioTimeOut));
         }
 
         if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
