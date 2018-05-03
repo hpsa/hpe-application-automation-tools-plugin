@@ -56,15 +56,15 @@ public class UploadAppBuilder extends Builder {
             paths = uploadAppModel.getApplicationPaths();
         }
         if(mcServerSettingsModel == null){
-            out.println("Failed to upload app to MC server. Cause: MC url didn't be configured." );
+            out.println("[ERROR] Failed to upload app to MC server. Cause: MC url hasn't been configured." );
             return false;
         }else{
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
-            out.println(String.format("There are %d apps to be uploaded.", paths.size()));
+            out.println(String.format("[INFO] There are %d app(s) to be uploaded.", paths.size()));
             for(int i=1; i<=paths.size(); i++){
                 String path = paths.get(i-1).getMcAppPath();
                 try{
-                    out.println(String.format("starting to upload app %d %s", i, path));
+                    out.println(String.format("[INFO] starting to upload app %d %s", i, path));
                     if(uploadAppModel.getProxySettings() == null){
                         app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), null, null, null, path);
                     }else{
@@ -72,21 +72,21 @@ public class UploadAppBuilder extends Builder {
                     }
                     if(app == null){
                         if(uploadAppModel.isUseProxy()){
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
+                            out.println(String.format("[ERROR] Failed to upload app using a proxy. Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress()));
                         }else if(uploadAppModel.isUseAuthentication()){
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
+                            out.println(String.format("[ERROR] Failed to upload app with the provided authentication information. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
                         }else{
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s,",
+                            out.println(String.format("[ERROR] Failed to upload app. Cause MC connection info is incorrect. url:%s, username:%s,",
                                     mcServerUrl, uploadAppModel.getMcUserName()));
                         }
                         build.setResult(Result.FAILURE);
                         return false;
                     }
-                    out.println("uploaded app info: " + app.toJSONString());
+                    out.println("[INFO] uploaded app info: " + app.toJSONString());
                 } catch(FileNotFoundException fnf){
-                    out.println(String.format("Failed to upload app to MC server. Cause: File: %s is not found.", path));
+                    out.println(String.format("[ERROR] Failed to upload app to MC server. Cause: File: %s is not found.", path));
                     build.setResult(Result.FAILURE);
                     return false;
                 } catch (IOException ioe) {
@@ -97,13 +97,13 @@ public class UploadAppBuilder extends Builder {
                     build.setResult(Result.ABORTED);
                 } catch (Exception e){
                     if(uploadAppModel.isUseProxy()){
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
+                        out.println(String.format("[ERROR] Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
                                 mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress()));
                     }else if(uploadAppModel.isUseAuthentication()){
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
+                        out.println(String.format("[ERROR] Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
                                 mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
                     }else{
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s,",
+                        out.println(String.format("[ERROR] Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s,",
                                 mcServerUrl, uploadAppModel.getMcUserName()));
                     }
                     build.setResult(Result.FAILURE);
