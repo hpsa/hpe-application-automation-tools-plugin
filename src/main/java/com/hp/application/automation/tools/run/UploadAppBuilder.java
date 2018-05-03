@@ -78,7 +78,7 @@ public class UploadAppBuilder extends Builder {
                             out.println(String.format("[ERROR] Failed to upload app with the provided authentication information. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
                         }else{
-                            out.println(String.format("[ERROR] Failed to upload app. Cause MC connection info is incorrect. url:%s, username:%s,",
+                            out.println(String.format("[ERROR] Failed to upload app. Cause MC connection info is incorrect. url:%s, username:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName()));
                         }
                         build.setResult(Result.FAILURE);
