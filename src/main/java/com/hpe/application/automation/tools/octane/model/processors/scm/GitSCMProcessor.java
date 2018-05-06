@@ -210,14 +210,14 @@ public class GitSCMProcessor implements SCMProcessor {
     }
 
 	private static String getRemoteString(AbstractBuild  r){
-        final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
-        String relativeTargetDir = "";
+		final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
+		String relativeTargetDir = "";
 		if(extensions!=null){
-            final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
+			final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
 			if(relativeTargetDirectory!=null && relativeTargetDirectory.getRelativeTargetDir()!=null ){
 				relativeTargetDir = File.separator+relativeTargetDirectory.getRelativeTargetDir();
-            }
-        }
+			}
+		}
 		if(r.getWorkspace().isRemote())
 		{
             VirtualChannel vc = r.getWorkspace().getChannel();
@@ -226,11 +226,11 @@ public class GitSCMProcessor implements SCMProcessor {
 			return remote+relativeTargetDir;
 		}
 		else {
-            String remote = r.getWorkspace().getRemote();
+			String remote = r.getWorkspace().getRemote();
 			return remote+relativeTargetDir;
         }
 
-    }
+	}
 
     private List<SCMCommit> getCommits(ChangeLogSet<? extends ChangeLogSet.Entry> changes) {
         List<SCMCommit> commits = new ArrayList<>();
