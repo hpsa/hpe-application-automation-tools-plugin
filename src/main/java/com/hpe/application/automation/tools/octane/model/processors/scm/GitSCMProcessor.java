@@ -181,6 +181,9 @@ public class GitSCMProcessor implements SCMProcessor {
 
                     @Override
                     public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+                        if(roleChecker!=null) {
+                            logger.info("Note : roleChecker is not empty, but no action was taken");
+                        }
                     }
                 });
             }
