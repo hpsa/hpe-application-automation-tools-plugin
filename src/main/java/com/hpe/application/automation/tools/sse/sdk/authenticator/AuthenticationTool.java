@@ -88,6 +88,10 @@ public final class AuthenticationTool {
                         "Failed login to ALM Server URL: %s. Exception: %s",
                         url.endsWith("/") ? url : String.format("%s/", url),
                         e.getMessage()));
+                for (StackTraceElement stacktrace : e.getStackTrace()) {
+                    logger.log(stacktrace.toString());
+                }
+
             }
         }
         return result;
