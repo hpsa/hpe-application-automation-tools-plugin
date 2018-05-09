@@ -69,7 +69,7 @@ public class JobProcessorFactory {
 		return getFlowProcessor(job, processedJobs);
 	}
 
-	private static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
+	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
 		AbstractProjectProcessor flowProcessor;
 		processedJobs.add(job);
 
@@ -86,6 +86,7 @@ public class JobProcessorFactory {
 		} else {
 			flowProcessor = new UnsupportedProjectProcessor(job);
 		}
+		processedJobs.remove(job);
 		return flowProcessor;
 	}
 }
