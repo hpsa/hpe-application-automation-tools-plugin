@@ -1323,7 +1323,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         @Override
         public String getDisplayName() {
 
-            return "Publish tests result";
+            return "Publish ALM tests result";
         }
 
         @Override
