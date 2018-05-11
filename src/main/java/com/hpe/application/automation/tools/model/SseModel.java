@@ -59,6 +59,7 @@ public class SseModel {
     private final String _almUserName;
     private final SecretContainer _almPassword;
     private final String _almDomain;
+    private final String _clientType;
     private final String _almProject;
     private final String _timeslotDuration;
     private final String _description;
@@ -98,6 +99,7 @@ public class SseModel {
             String almUserName,
             String almPassword,
             String almDomain,
+            String clientType,
             String almProject,
             String runType,
             String almEntityId,
@@ -110,6 +112,7 @@ public class SseModel {
         
         _almServerName = almServerName;
         _almDomain = almDomain;
+        _clientType = clientType;
         _almProject = almProject;
         _timeslotDuration = timeslotDuration;
         _almEntityId = almEntityId;
@@ -160,6 +163,10 @@ public class SseModel {
     public String getAlmDomain() {
         
         return _almDomain;
+    }
+
+    public String getClientType() {
+        return _clientType;
     }
     
     public String getAlmProject() {

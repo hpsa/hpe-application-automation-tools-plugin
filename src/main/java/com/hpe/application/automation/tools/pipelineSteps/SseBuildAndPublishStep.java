@@ -94,6 +94,7 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
                       String almProject,
                       String credentialsId,
                       String almDomain,
+                      String clientType,
                       String runType,
                       String almEntityId,
                       String timeslotDuration,
@@ -103,6 +104,7 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
                 almProject,
                 credentialsId,
                 almDomain,
+                clientType,
                 runType,
                 almEntityId,
                 timeslotDuration);
@@ -125,6 +127,8 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
     public String getAlmDomain() {
         return sseBuilder.getAlmDomain();
     }
+
+    public String getClientType() { return sseBuilder.getClientType(); }
 
     public String getRunType() {
         return sseBuilder.getRunType();
