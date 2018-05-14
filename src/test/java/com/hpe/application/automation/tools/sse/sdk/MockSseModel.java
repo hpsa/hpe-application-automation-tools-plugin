@@ -61,6 +61,7 @@ public class MockSseModel extends SseModel {
                 almUserName,
                 almPassword,
                 almDomain,
+                null,
                 almProject,
                 runType,
                 almEntityId,
