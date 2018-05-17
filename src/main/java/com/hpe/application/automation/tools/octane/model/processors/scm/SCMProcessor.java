@@ -38,7 +38,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -52,9 +51,4 @@ public interface SCMProcessor {
 	List<SCMData> getSCMData(WorkflowRun run);
 
 	CommonOriginRevision getCommonOriginRevision(Run run);
-
-	class CommonOriginRevision implements Serializable {
-		public String branch;
-		public String revision;
-	}
 }

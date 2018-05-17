@@ -50,6 +50,7 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.tasks.Mailer;
 import hudson.util.DescribableList;
+import jenkins.MasterToSlaveFileCallable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -62,7 +63,6 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.jenkinsci.remoting.RoleChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -143,49 +143,15 @@ public class GitSCMProcessor implements SCMProcessor {
         //for phase 1 this is hard coded since its not possible to calculate it, and configuration from outside will complicate the feature
         //so for this phase we keep it hardcoded.
         CommonOriginRevision commonOriginRevision = new CommonOriginRevision();
+        commonOriginRevision.branch = getBranchName(run);
 
         try {
             final AbstractBuild abstractBuild = (AbstractBuild) run;
             FilePath workspace = ((AbstractBuild) run).getWorkspace();
             if (workspace != null) {
-                commonOriginRevision = workspace.act(new FilePath.FileCallable<CommonOriginRevision>() {
-                    @Override
-                    public CommonOriginRevision invoke(File file, VirtualChannel channel) throws IOException, InterruptedException {
-                        CommonOriginRevision result = new CommonOriginRevision();
-                        File repoDir = new File(getRemoteString(abstractBuild) + File.separator + ".git");
-                        Git git = Git.open(repoDir);
-                        Repository repo = git.getRepository();
-                        final RevWalk walk = new RevWalk(repo);
+                File repoDir = new File(getRemoteString(abstractBuild) + File.separator + ".git");
+                commonOriginRevision.revision = workspace.act(new FileContentCallable(repoDir));
 
-                        ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
-                        RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
-                        ObjectId resolveForMaster = repo.resolve(MASTER);
-                        RevCommit masterCommit = walk.parseCommit(resolveForMaster);
-
-                        walk.reset();
-                        walk.setRevFilter(RevFilter.MERGE_BASE);
-                        walk.markStart(currentBranchCommit);
-                        walk.markStart(masterCommit);
-                        final RevCommit base = walk.next();
-                        if (base == null)
-                            return result;
-                        final RevCommit base2 = walk.next();
-                        if (base2 != null) {
-                            throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
-                                    MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
-                        }
-                        result.revision = base.getId().getName();
-                        result.branch = getBranchName(run);
-                        return result;
-                    }
-
-                    @Override
-                    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-                        if(roleChecker!=null) {
-                            logger.info("Note : roleChecker is not empty, but no action was taken");
-                        }
-                    }
-                });
             }
             logger.info("most recent common revision resolved to " + commonOriginRevision.revision + " (branch: " + commonOriginRevision.branch + ")");
         } catch (Exception e) {
@@ -193,6 +159,42 @@ public class GitSCMProcessor implements SCMProcessor {
             return commonOriginRevision;
         }
         return commonOriginRevision;
+    }
+
+    private static final class FileContentCallable extends MasterToSlaveFileCallable<String> {
+        private final File repoDir;
+
+        private FileContentCallable(File file) {
+            this.repoDir = file;
+        }
+
+        @Override
+        public String invoke(File rootDir, VirtualChannel channel) throws IOException {
+
+            Git git = Git.open(repoDir);
+            Repository repo = git.getRepository();
+            final RevWalk walk = new RevWalk(repo);
+
+            ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
+            RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
+            ObjectId resolveForMaster = repo.resolve(MASTER);
+            RevCommit masterCommit = walk.parseCommit(resolveForMaster);
+
+            walk.reset();
+            walk.setRevFilter(RevFilter.MERGE_BASE);
+            walk.markStart(currentBranchCommit);
+            walk.markStart(masterCommit);
+            final RevCommit base = walk.next();
+            if (base == null)
+                return "";
+            final RevCommit base2 = walk.next();
+            if (base2 != null) {
+                throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
+                        MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
+            }
+            return base.getId().getName();
+
+        }
     }
 
     public String getBranchName(Run r) {
@@ -212,28 +214,26 @@ public class GitSCMProcessor implements SCMProcessor {
         return null;
     }
 
-	private static String getRemoteString(AbstractBuild  r){
-		final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
-		String relativeTargetDir = "";
-		if(extensions!=null){
-			final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
-			if(relativeTargetDirectory!=null && relativeTargetDirectory.getRelativeTargetDir()!=null ){
-				relativeTargetDir = File.separator+relativeTargetDirectory.getRelativeTargetDir();
-			}
-		}
-		if(r.getWorkspace().isRemote())
-		{
+    private static String getRemoteString(AbstractBuild r) {
+        final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
+        String relativeTargetDir = "";
+        if (extensions != null) {
+            final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
+            if (relativeTargetDirectory != null && relativeTargetDirectory.getRelativeTargetDir() != null) {
+                relativeTargetDir = File.separator + relativeTargetDirectory.getRelativeTargetDir();
+            }
+        }
+        if (r.getWorkspace().isRemote()) {
             VirtualChannel vc = r.getWorkspace().getChannel();
             String fp = r.getWorkspace().getRemote();
             String remote = new FilePath(vc, fp).getRemote();
-			return remote+relativeTargetDir;
-		}
-		else {
-			String remote = r.getWorkspace().getRemote();
-			return remote+relativeTargetDir;
+            return remote + relativeTargetDir;
+        } else {
+            String remote = r.getWorkspace().getRemote();
+            return remote + relativeTargetDir;
         }
 
-	}
+    }
 
     private List<SCMCommit> getCommits(ChangeLogSet<? extends ChangeLogSet.Entry> changes) {
         List<SCMCommit> commits = new ArrayList<>();
@@ -300,7 +300,7 @@ public class GitSCMProcessor implements SCMProcessor {
             url = (String) buildData.get(0).getRemoteUrls().toArray()[0];
         }
         if (buildData.get(0).getLastBuiltRevision() != null && !buildData.get(0).getLastBuiltRevision().getBranches().isEmpty()) {
-			branch = ((Branch)buildData.get(0).getLastBuiltRevision().getBranches().toArray()[0]).getName();
+            branch = ((Branch) buildData.get(0).getLastBuiltRevision().getBranches().toArray()[0]).getName();
         }
         result = dtoFactory.newDTO(SCMRepository.class)
                 .setType(SCMType.GIT)
