@@ -209,7 +209,7 @@ public class GitSCMProcessor implements SCMProcessor {
             }
 
         } catch (Exception e) {
-
+            logger.error("failed to extract branch name from the run", e);
         }
         return null;
     }
