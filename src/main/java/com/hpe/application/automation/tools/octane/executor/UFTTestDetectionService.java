@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -23,11 +40,11 @@ import com.hpe.application.automation.tools.octane.actions.dto.ScmResourceFile;
 import hudson.ExtensionList;
 import hudson.FilePath;
 import hudson.model.*;
-import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -90,6 +107,42 @@ public class UFTTestDetectionService {
                 printToConsole(buildListener, String.format("Found %s deleted data tables", result.getDeletedScmResourceFiles().size()));
             }
 
+            if (!result.getDeletedFolders().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s deleted folders", result.getDeletedFolders().size()));
+
+                //This situation is relevant for SVN only.
+                //Deleting folder - SCM event doesn't supply information about deleted items in deleted folder - only top-level directory.
+                //In this case need to do for each deleted folder - need to check with Octane what tests and data tables were under this folder.
+                //so for each deleted folder - need to do at least 2 requests. In this situation - decided to activate full sync as it already tested scenario.
+                //Full sync wil be triggered with delay of 60 secs to give the dispatcher possibility to sync other found changes
+
+                //triggering full sync
+                printToConsole(buildListener, "To sync deleted items - full sync required. Triggerring job with full sync parameter.");
+
+                FreeStyleProject proj = (FreeStyleProject) build.getParent();
+                List<ParameterValue> newParameters = new ArrayList<>();
+                for (ParameterValue param : build.getAction(ParametersAction.class).getParameters()) {
+                    ParameterValue paramForSet;
+                    if (param.getName().equals(UftConstants.FULL_SCAN_PARAMETER_NAME)) {
+                        paramForSet = new BooleanParameterValue(UftConstants.FULL_SCAN_PARAMETER_NAME, true);
+                    } else {
+                        paramForSet = param;
+                    }
+                    newParameters.add(paramForSet);
+                }
+
+                ParametersAction parameters = new ParametersAction(newParameters);
+                CauseAction causeAction = new CauseAction(new FullSyncRequiredCause(build.getId()));
+                proj.scheduleBuild2(60, parameters, causeAction);
+            }
+
+            if (result.isHasQuotedPaths()) {
+                printToConsole(buildListener, "This run may not have discovered all updated tests. \n" +
+                        "It seems that the changes in this build included filenames with Unicode characters, which Git did not list correctly.\n" +
+                        "To make sure Git can properly list such file names, configure Git as follows : git config --global core.quotepath false\n" +
+                        "To discover the updated tests that were missed in this run and send them to ALM Octane, run this job manually with the \"Full sync\" parameter selected.\n");
+            }
+
             result.setScmRepositoryId(scmRepositoryId);
             result.setWorkspaceId(workspaceId);
             result.setFullScan(fullScan);
@@ -144,7 +197,7 @@ public class UFTTestDetectionService {
     private static boolean isFullScan(AbstractBuild<?, ?> build) {
         ParametersAction parameters = build.getAction(ParametersAction.class);
         if (parameters != null) {
-            ParameterValue parameterValue = parameters.getParameter(TestExecutionJobCreatorService.FULL_SCAN_PARAMETER_NAME);
+            ParameterValue parameterValue = parameters.getParameter(UftConstants.FULL_SCAN_PARAMETER_NAME);
             if (parameterValue != null) {
                 return (Boolean) parameterValue.getValue();
             }
@@ -206,55 +259,81 @@ public class UFTTestDetectionService {
             return result;
         }
 
-        boolean isGitChanges = changeSetItems[0] instanceof GitChangeSet;
-        if (!isGitChanges) {
-            return result;
-        }
-
         for (int i = 0; i < changeSetItems.length; i++) {
-            GitChangeSet changeSet = (GitChangeSet) changeSetItems[i];
-            for (GitChangeSet.Path path : changeSet.getPaths()) {
+            ChangeLogSet.Entry changeSet = (ChangeLogSet.Entry) changeSetItems[i];
+            for (ChangeLogSet.AffectedFile path : changeSet.getAffectedFiles()) {
+                if (path.getPath().startsWith("\"")) {
+                    result.setHasQuotedPaths(true);
+                }
+                boolean isDir = isDir(path);
                 String fileFullPath = workspace + File.separator + path.getPath();
-                if (isTestMainFilePath(path.getPath())) {
+                if (!isDir) {
+                    if (isTestMainFilePath(path.getPath())) {
+                        FilePath filePath = new FilePath(new File(fileFullPath));
+                        boolean fileExist = filePath.exists();
 
-                    if (EditType.ADD.equals(path.getEditType())) {
-                        if (isFileExist(fileFullPath)) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            scanFileSystemRecursively(workspace, testFolder, result.getNewTests(), result.getNewScmResourceFiles());
-                        }
-                    } else if (EditType.DELETE.equals(path.getEditType())) {
-                        if (!isFileExist(fileFullPath)) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
-                            result.getDeletedTests().add(test);
-                        }
-                    } else if (EditType.EDIT.equals(path.getEditType())) {
-                        if (isFileExist(fileFullPath)) {
-                            FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests(), result.getUpdatedScmResourceFiles());
-                        }
-                    }
-                } else if (isUftDataTableFile(path.getPath())) {
-                    FilePath filePath = new FilePath(new File(fileFullPath));
-                    if (EditType.ADD.equals(path.getEditType())) {
-                        UftTestType testType = isUftTestFolder(filePath.getParent().list());
-                        if (testType.isNone()) {
-                            if (filePath.exists()) {
-                                ScmResourceFile resourceFile = createDataTable(workspace, filePath);
-                                result.getNewScmResourceFiles().add(resourceFile);
+                        if (EditType.ADD.equals(path.getEditType())) {
+                            if (fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                scanFileSystemRecursively(workspace, testFolder, result.getNewTests(), result.getNewScmResourceFiles());
+                            } else {
+                                logger.error("doChangeSetDetection : file not exist " + fileFullPath);
+                            }
+                        } else if (EditType.DELETE.equals(path.getEditType())) {
+                            if (!fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
+                                result.getDeletedTests().add(test);
+                            }
+                        } else if (EditType.EDIT.equals(path.getEditType())) {
+                            if (fileExist) {
+                                FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
+                                scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests(), result.getUpdatedScmResourceFiles());
                             }
                         }
-                    } else if (EditType.DELETE.equals(path.getEditType())) {
-                        if (!filePath.exists()) {
-                            ScmResourceFile resourceFile = createDataTable(workspace, filePath);
-                            result.getDeletedScmResourceFiles().add(resourceFile);
+                    } else if (isUftDataTableFile(path.getPath())) {
+                        FilePath filePath = new FilePath(new File(fileFullPath));
+                        if (EditType.ADD.equals(path.getEditType())) {
+                            UftTestType testType = isUftTestFolder(filePath.getParent().list());
+                            if (testType.isNone()) {
+                                if (filePath.exists()) {
+                                    ScmResourceFile resourceFile = createDataTable(workspace, filePath);
+                                    result.getNewScmResourceFiles().add(resourceFile);
+                                }
+                            }
+                        } else if (EditType.DELETE.equals(path.getEditType())) {
+                            if (!filePath.exists()) {
+                                ScmResourceFile resourceFile = createDataTable(workspace, filePath);
+                                result.getDeletedScmResourceFiles().add(resourceFile);
+                            }
                         }
+                    }
+                } else //isDir
+                {
+                    if (EditType.DELETE.equals(path.getEditType())) {
+
+                        FilePath filePath = new FilePath(new File(path.getPath()));
+                        String deletedFolder = filePath.getRemote().replace(linuxPathSplitter, windowsPathSplitter);
+                        result.getDeletedFolders().add(deletedFolder);
                     }
                 }
             }
         }
 
         return result;
+    }
+
+    private static boolean isDir(ChangeLogSet.AffectedFile path) {
+
+        if (path.getClass().getName().equals("hudson.scm.SubversionChangeLogSet$Path")) {
+            try {
+                String value = (String) FieldUtils.readDeclaredField(path, "kind", true);
+                return "dir".equals(value);
+            } catch (Exception e) {
+                //treat it as false
+            }
+        }
+        return false;
     }
 
     private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable) {
@@ -287,11 +366,6 @@ public class UFTTestDetectionService {
         return relativePath;
     }
 
-    private static boolean isFileExist(String path) {
-        File file = new File(path);
-        return file.exists();
-    }
-
     private static boolean initialDetectionFileExist(FilePath workspace) {
         try {
             File rootFile = new File(workspace.toURI());
@@ -312,16 +386,6 @@ public class UFTTestDetectionService {
             logger.error("Failed to createInitialDetectionFile : " + e.getMessage());
         }
     }
-
-    /*private static void removeInitialDetectionFlag(FilePath workspace) {
-        try {
-            File rootFile = new File(workspace.toURI());
-            File file = new File(rootFile, INITIAL_DETECTION_FILE);
-            file.delete();
-        } catch (IOException | InterruptedException e) {
-            logger.error("Failed to removeInitialDetectionFlag");
-        }
-    }*/
 
     private static UFTTestDetectionResult doInitialDetection(FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
@@ -359,7 +423,8 @@ public class UFTTestDetectionService {
     }
 
     private static boolean isUftDataTableFile(String path) {
-        return path.endsWith(XLSXExtention) || path.endsWith(XLSExtention);
+        String loweredPath = path.toLowerCase();
+        return loweredPath.endsWith(XLSXExtention) || loweredPath.endsWith(XLSExtention);
     }
 
     private static UftTestType isUftTestFolder(List<FilePath> paths) {

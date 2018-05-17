@@ -1,13 +1,22 @@
 /*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
  * MIT License
  *
- * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  *
@@ -18,6 +27,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
  */
 
 
@@ -42,7 +53,8 @@ import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 
-import com.hpe.application.automation.tools.common.PcException;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 import com.hpe.application.automation.tools.model.PcModel;
 import com.hpe.application.automation.tools.run.PcBuilder;
 
@@ -56,7 +68,11 @@ public class PcClient {
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
             model = pcModel;
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL());
+
+            if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()){
+                logger.println("Using proxy: " + model.getProxyOutURL(true));
+            }
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),model.getProxyOutUser(true),model.getProxyOutPassword(true));
             this.logger = logger;
         }catch (PcException e){
             logger.println(e.getMessage());
@@ -72,9 +88,9 @@ public class PcClient {
 
     public boolean login() {
         try {
-            String user = model.getAlmUserName();
-            logger.println(String.format("Trying to login\n[PCServer='%s://%s', User='%s']",model.isHTTPSProtocol(), model.getPcServerName(), user));
-            loggedIn = restProxy.authenticate(user, model.getAlmPassword().toString());
+            String user = model.getAlmUserName(true);
+            logger.println(String.format("Trying to login\n[PCServer='%s://%s', User='%s']",model.isHTTPSProtocol(), model.getPcServerName(true), user));
+            loggedIn = restProxy.authenticate(user, model.getAlmPassword(true).toString());
         } catch (PcException e) {
             logger.println(e.getMessage());
           //  stackTraceToString(e);
@@ -105,11 +121,11 @@ public class PcClient {
 
 
 
-        int testID = Integer.parseInt(model.getTestId());
+        int testID = Integer.parseInt(model.getTestId(true));
         int testInstance = getCorrectTestInstanceID(testID);
         setCorrectTrendReportID();
 
-        logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId()), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
+        logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId(true)), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
 //        logger.println("Sending run request:\n" + model.runParamsToString());
         PcRunResponse response = restProxy.startRun(testID,
                 testInstance,
@@ -140,7 +156,7 @@ public class PcClient {
                 PcTestSets pcTestSets = restProxy.GetAllTestSets();
                 if (pcTestSets !=null && pcTestSets.getPcTestSetsList() !=null){
                     PcTestSet pcTestSet = pcTestSets.getPcTestSetsList().get(pcTestSets.getPcTestSetsList().size()-1);
-                    int testSetID = pcTestSet.TestSetID;
+                    int testSetID = pcTestSet.getTestSetID();
                     logger.println(String.format("Creating Test Instance with testID: %s and TestSetID: %s", testID,testSetID));
                     testInstanceID = restProxy.createTestInstance(testID,testSetID);
                     logger.println(String.format("Test Instance with ID : %s has been created successfully.", testInstanceID));
@@ -156,27 +172,41 @@ public class PcClient {
                 return Integer.parseInt(null);
             }
         }
-        return Integer.parseInt(model.getTestInstanceId());
+        return Integer.parseInt(model.getTestInstanceId(true));
     }
 
     private void setCorrectTrendReportID() throws IOException, PcException {
         // If the user selected "Use trend report associated with the test" we want the report ID to be the one from the test
-        if (("ASSOCIATED").equals(model.getAddRunToTrendReport())){
-            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
-            if (pcTest.getTrendReportId() > -1)
-                model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
-            else{
-                String msg = "No trend report ID is associated with the test.\n" +
-                        "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
-                        "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
-                throw new PcException(msg);
+        String msg = "No trend report ID is associated with the test.\n" +
+                "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
+                "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
+        if (("ASSOCIATED").equals(model.getAddRunToTrendReport()) && model.getPostRunAction() != PostRunAction.DO_NOTHING) {
+            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
+            //if the trend report ID is parametrized
+            if(!model.getTrendReportId().startsWith("$")) {
+                if (pcTest.getTrendReportId() > -1)
+                    model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
+                else {
+                    throw new PcException(msg);
+                }
+            }
+            else {
+                try {
+                    if (Integer.parseInt(model.getTrendReportId(true)) > -1)
+                        model.setTrendReportId(String.valueOf(model.getTrendReportId(true)));
+                    else {
+                        throw new PcException(msg);
+                    }
+                }
+                catch (Exception ex) {
+                    throw new PcException(msg + System.getProperty("line.separator") + ex);
+                }
             }
         }
-
     }
 
     public String getTestName()  throws IOException, PcException{
-        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
+        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
         return pcTest.getTestName();
     }
 
@@ -302,7 +332,7 @@ public class PcClient {
     public void addRunToTrendReport(int runId, String trendReportId)
     {
 
-        TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
+        TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(true), runId, null);
         logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
@@ -339,13 +369,13 @@ public class PcClient {
                     Thread.sleep(5000);
                     counter++;
                     if(counter >= 120){
-                        logger.println("Error: Publishing didn't ended after 10 minutes, aborting...");
-                        break;
+                        String msg = "Error: Publishing didn't ended after 10 minutes, aborting...";
+                        throw new PcException(msg);
                     }
                 }
              }
 
-        }while (!publishEnded );
+        }while (!publishEnded && counter < 120);
     }
 
     public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {

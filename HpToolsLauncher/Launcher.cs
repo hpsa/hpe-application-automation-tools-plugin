@@ -27,6 +27,8 @@ namespace HpToolsLauncher
         public string MobileHostAddress { get; set; }
         public string MobileHostPort { get; set; }
 
+        public string MobileTenantId { get; set; }
+
         public int MobileUseSSL { get; set; }
 
         public int MobileUseProxy { get; set; }
@@ -43,7 +45,7 @@ namespace HpToolsLauncher
             MobileUserName = "";
             MobilePassword = "";
             MobileHostAddress = "";
-
+            MobileTenantId = "";
             MobileUseSSL = 0;
 
             MobileUseProxy = 0;
@@ -59,8 +61,8 @@ namespace HpToolsLauncher
         public override string ToString()
         {
             string McConnectionStr = 
-                string.Format("Mc HostAddress: {0}, McPort: {1}, Username: {2}, UseSSL: {3}, UseProxy: {4}, ProxyType: {5}, ProxyAddress: {6}, ProxyPort: {7}, ProxyAuth: {8}, ProxyUser: {9}",
-                MobileHostAddress, MobileHostPort, MobileUserName, MobileUseSSL, MobileUseProxy, MobileProxyType, MobileProxySetting_Address, MobileProxySetting_Port, MobileProxySetting_Authentication,
+                string.Format("Mc HostAddress: {0}, McPort: {1}, Username: {2}, TenantId: {3}, UseSSL: {4}, UseProxy: {5}, ProxyType: {6}, ProxyAddress: {7}, ProxyPort: {8}, ProxyAuth: {9}, ProxyUser: {10}",
+                MobileHostAddress, MobileHostPort, MobileUserName, MobileTenantId, MobileUseSSL, MobileUseProxy, MobileProxyType, MobileProxySetting_Address, MobileProxySetting_Port, MobileProxySetting_Authentication,
                 MobileProxySetting_UserName);
             return McConnectionStr;
         }
@@ -312,6 +314,15 @@ namespace HpToolsLauncher
                                      sets);
                     break;
                 case TestStorageType.FileSystem:
+                    //Get displayController var
+                    bool displayController = false;
+                    if (_ciParams.ContainsKey("displayController")) {
+                        if (_ciParams["displayController"] == "1")
+                        {
+                            displayController = true;
+                        }
+                    }
+
 
                     //get the tests
                     IEnumerable<string> tests = GetParamsWithPrefix("Test");
@@ -419,6 +430,17 @@ namespace HpToolsLauncher
                                 }
                             }
 
+                            //mc tenantId
+                            if (_ciParams.ContainsKey("MobileTenantId"))
+                            {
+                                string mcTenantId = _ciParams["MobileTenantId"];
+                                if (!string.IsNullOrEmpty(mcTenantId))
+                                {
+                                    mcConnectionInfo.MobileTenantId = mcTenantId;
+                                }
+                            }
+
+
                             //ssl
                             if (_ciParams.ContainsKey("MobileUseSSL"))
                             {
@@ -511,11 +533,11 @@ namespace HpToolsLauncher
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
                     }
 
                     break;

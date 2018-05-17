@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -20,7 +37,6 @@ import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProce
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
@@ -46,9 +62,14 @@ public class ModelFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job job) {
-		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job);
+		return createStructureItem(job, new HashSet<Job>());
+	}
+
+
+	public static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
+		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(projectProcessor.getJobCiId());
+		pipelineNode.setJobCiId(projectProcessor.getTranslateJobName());
 		pipelineNode.setName(job.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
@@ -57,7 +78,7 @@ public class ModelFactory {
 		return pipelineNode;
 	}
 
-	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
+	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items, Set<Job> processedJobs) {
 		PipelinePhase pipelinePhase = dtoFactory.newDTO(PipelinePhase.class);
 		pipelinePhase.setName(name);
 		pipelinePhase.setBlocking(blocking);
@@ -65,7 +86,7 @@ public class ModelFactory {
 		PipelineNode[] tmp = new PipelineNode[items.size()];
 		for (int i = 0; i < tmp.length; i++) {
 			if (items.get(i) != null) {
-				tmp[i] = ModelFactory.createStructureItem(items.get(i));
+				tmp[i] = ModelFactory.createStructureItem(items.get(i), processedJobs);
 
 			} else {
 				logger.warn("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
@@ -107,10 +128,10 @@ public class ModelFactory {
 			AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(build.getParent());
 			List<PipelinePhase> tmpPipelinePhasesInternals = flowProcessor.getInternals();
 			List<PipelinePhase> tmpPipelinePhasesPostBuilds = flowProcessor.getPostBuilds();
-			ArrayList<String> invokeesNames = new ArrayList<String>();
+			List<String> invokeesNames = new ArrayList<>();
 			appendInvokeesNames(invokeesNames, tmpPipelinePhasesInternals);
 			appendInvokeesNames(invokeesNames, tmpPipelinePhasesPostBuilds);
-			HashMap<String, ArrayList<Run>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
+			Map<String, List<Run>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
 			snapshotNode.setPhasesInternal((inflatePhases(tmpPipelinePhasesInternals, invokedBuilds)));
 			snapshotNode.setPhasesPostBuild(inflatePhases(tmpPipelinePhasesPostBuilds, invokedBuilds));
 		}
@@ -133,11 +154,10 @@ public class ModelFactory {
 		return snapshotNode;
 	}
 
-
-	public static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
+	private static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 		AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(project);
-		snapshotNode.setJobCiId(flowProcessor.getJobCiId());
+		snapshotNode.setJobCiId(flowProcessor.getTranslateJobName());
 		snapshotNode.setName(project.getName());
 
 		if (!metaOnly) {
@@ -147,7 +167,7 @@ public class ModelFactory {
 		return snapshotNode;
 	}
 
-	private static void appendInvokeesNames(ArrayList<String> list, List<PipelinePhase> phases) {
+	private static void appendInvokeesNames(List<String> list, List<PipelinePhase> phases) {
 		for (PipelinePhase phase : phases) {
 			for (PipelineNode item : phase.getJobs()) {
 				if (item != null) {
@@ -159,8 +179,8 @@ public class ModelFactory {
 		}
 	}
 
-	private static HashMap<String, ArrayList<Run>> getInvokedBuilds(Run self, ArrayList<String> invokeesNames) {
-		HashMap<String, ArrayList<Run>> result = new HashMap<String, ArrayList<Run>>();
+	private static Map<String, List<Run>> getInvokedBuilds(Run self, List<String> invokeesNames) {
+		Map<String, List<Run>> result = new HashMap<>();
 		Job run;
 		for (String invokeeName : invokeesNames) {
 			run = (Job) Jenkins.getInstance().getItem(invokeeName);
@@ -170,8 +190,8 @@ public class ModelFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static ArrayList<Run> getInvokees(Run invoker, Job job) {
-		ArrayList<Run> result = new ArrayList<Run>();
+	private static List<Run> getInvokees(Run invoker, Job job) {
+		List<Run> result = new ArrayList<>();
 		Cause.UpstreamCause tmpCause;
 		for (Object o : job.getBuilds()) {
 			Run tmpRun = (Run) o;
@@ -189,22 +209,22 @@ public class ModelFactory {
 		return result;
 	}
 
-	private static List<SnapshotPhase> inflatePhases(List<PipelinePhase> structures, HashMap<String, ArrayList<Run>> invokedBuilds) {
-		List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>();
+	private static List<SnapshotPhase> inflatePhases(List<PipelinePhase> structures, Map<String, List<Run>> invokedBuilds) {
+		List<SnapshotPhase> phases = new ArrayList<>();
 		for (int i = 0; i < structures.size(); i++) {
 			phases.add(i, createSnapshotPhase(structures.get(i), invokedBuilds));
 		}
 		return phases;
 	}
 
-	public static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, HashMap<String, ArrayList<Run>> invokedBuilds) {
+	private static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, Map<String, List<Run>> invokedBuilds) {
 		SnapshotPhase snapshotPhase = dtoFactory.newDTO(SnapshotPhase.class);
 		snapshotPhase.setName(pipelinePhase.getName());
 		snapshotPhase.setBlocking(pipelinePhase.isBlocking());
 
-		ArrayList<Run> tmpBuilds;
+		List<Run> tmpBuilds;
 		List<PipelineNode> structures = pipelinePhase.getJobs();
-		List<SnapshotNode> tmp = new ArrayList<SnapshotNode>();
+		List<SnapshotNode> tmp = new ArrayList<>();
 
 		for (int i = 0; i < structures.size(); i++) {
 			if (structures.get(i) != null) {
@@ -223,27 +243,6 @@ public class ModelFactory {
 
 		return snapshotPhase;
 	}
-
-
-	public static BuildHistory.SCMUser createScmUser(User user) {
-		BuildHistory.SCMUser scmUser = new BuildHistory.SCMUser();
-		scmUser.setDisplayName(user.getDisplayName());
-		scmUser.setFullName(user.getFullName());
-		scmUser.setId(user.getId());
-
-		return scmUser;
-	}
-
-	public static Set<BuildHistory.SCMUser> createScmUsersList(Set<User> users) {
-		Set<BuildHistory.SCMUser> userList = new HashSet<BuildHistory.SCMUser>();
-		if (users != null) {
-			for (User user : users) {
-				userList.add(ModelFactory.createScmUser(user));
-			}
-		}
-		return userList;
-	}
-
 
 	public static CIParameter createParameterConfig(ParameterDefinition pd) {
 		return createParameterConfig(pd, CIParameterType.UNKNOWN, null, null);
@@ -291,9 +290,8 @@ public class ModelFactory {
 		return ciParameter;
 	}
 
-
 	public static CIParameter createParameterInstance(CIParameter pc, Object rawValue) {
-	    String value = rawValue == null ? null : rawValue.toString();
+		String value = rawValue == null ? null : rawValue.toString();
 		return dtoFactory.newDTO(CIParameter.class)
 				.setName(pc.getName())
 				.setType(pc.getType())
@@ -319,14 +317,21 @@ public class ModelFactory {
 			}
 		});
 
-		String subBuildName = "";
+		StringBuilder subBuildName = new StringBuilder();
 		if (sortedList.size() > 0) {
 			int i = 0;
 			for (; i < sortedList.size() - 1; i++) {
-				subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString() + ",";
+				subBuildName
+						.append(sortedList.get(i).getName())
+						.append("=")
+						.append(sortedList.get(i).getValue().toString())
+						.append(",");
 			}
-			subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString();
+			subBuildName
+					.append(sortedList.get(i).getName())
+					.append("=")
+					.append(sortedList.get(i).getValue().toString());
 		}
-		return subBuildName;
+		return subBuildName.toString();
 	}
 }

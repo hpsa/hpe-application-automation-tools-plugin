@@ -1,5 +1,14 @@
 /*
- * Copyright (c) 2012 Hewlett-Packard Development Company, L.P.
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,11 +27,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
  */
 
 package com.hpe.application.automation.tools.sse.sdk.authenticator;
 
-import com.hpe.application.automation.tools.rest.RESTConstants;
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 import com.hpe.application.automation.tools.sse.sdk.Base64Encoder;
 import com.hpe.application.automation.tools.sse.sdk.Client;
 import com.hpe.application.automation.tools.sse.sdk.Logger;

@@ -1,37 +1,51 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
 package com.hpe.application.automation.tools.octane.executor;
 
 import antlr.ANTLRException;
-import com.hpe.application.automation.tools.model.ResultsPublisherModel;
-import com.hpe.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
-import com.hpe.application.automation.tools.results.RunResultRecorder;
-import com.hpe.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
-import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hpe.application.automation.tools.model.ResultsPublisherModel;
+import com.hpe.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
+import com.hpe.application.automation.tools.results.RunResultRecorder;
+import com.hpe.application.automation.tools.run.RunFromFileBuilder;
 import hudson.model.*;
-import hudson.plugins.git.BranchSpec;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.SubmoduleConfig;
-import hudson.plugins.git.UserRemoteConfig;
 import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
 import jenkins.model.BuildDiscarder;
@@ -59,14 +73,7 @@ import java.util.*;
 public class TestExecutionJobCreatorService {
 
     private static final Logger logger = LogManager.getLogger(TestExecutionJobCreatorService.class);
-    public static final String EXECUTOR_ID_PARAMETER_NAME = "Connection ID";
-    public static final String EXECUTOR_LOGICAL_NAME_PARAMETER_NAME = "Connection logical name";
-    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";//"Suite ID";
-    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";//"Suite run ID";
-    public static final String FULL_SCAN_PARAMETER_NAME = "Full sync";
 
-    public static final String EXECUTION_JOB_MIDDLE_NAME = "test run job - Suite ID";
-    public static final String DISCOVERY_JOB_MIDDLE_NAME = "test discovery job - Connection ID";
 
     /**
      * Create (if needed) and run test execution
@@ -99,8 +106,8 @@ public class TestExecutionJobCreatorService {
 
         //start job
         if (proj != null) {
-            ParameterValue suiteRunIdParam = new StringParameterValue(SUITE_RUN_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteRunId());
-            ParameterValue suiteIdParam = new StringParameterValue(SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId());
+            ParameterValue suiteRunIdParam = new StringParameterValue(UftConstants.SUITE_RUN_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteRunId());
+            ParameterValue suiteIdParam = new StringParameterValue(UftConstants.SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId());
             ParametersAction parameters = new ParametersAction(suiteRunIdParam, suiteIdParam);
 
             Cause cause = StringUtils.isNotEmpty(suiteExecutionInfo.getSuiteRunId()) ? TriggeredBySuiteRunCause.create(suiteExecutionInfo.getSuiteRunId()) : new Cause.UserIdCause();
@@ -114,21 +121,21 @@ public class TestExecutionJobCreatorService {
         try {
             String projectName = String.format("%s %s %s",
                     suiteExecutionInfo.getTestingToolType().toString(),
-                    EXECUTION_JOB_MIDDLE_NAME,
+                    UftConstants.EXECUTION_JOB_MIDDLE_NAME,
                     suiteExecutionInfo.getSuiteId());
 
             //validate creation of job
             FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
             if (proj == null) {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
-                proj.setDescription(String.format("This job was created by the HPE Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
+                proj.setDescription(String.format("This job was created by the Microfocus Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
                         suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
             }
 
-            setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj);
+            setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj, true);
             setBuildDiscarder(proj, 40);
-            addConstantParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "ALM Octane test suite ID");
-            addStringParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results. Provided by ALM Octane when running a planned suite run.\nOtherwise, leave this parameter empty. ALM Octane creates a new  test suite run for the new results.");
+            addConstantParameter(proj, UftConstants.SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "ALM Octane test suite ID");
+            addStringParameter(proj, UftConstants.SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results. Provided by ALM Octane when running a planned suite run.\nOtherwise, leave this parameter empty. ALM Octane creates a new  test suite run for the new results.");
             addAssignedNode(proj);
 
             //add build action
@@ -159,31 +166,24 @@ public class TestExecutionJobCreatorService {
         }
     }
 
-    private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj) {
-        if (SCMType.GIT.equals(scmRepository.getType())) {
-            try {
+    private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) {
 
-                List<UserRemoteConfig> repoLists = Arrays.asList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
-                GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec("")), Boolean.valueOf(false), Collections.<SubmoduleConfig>emptyList(), null, null, null);
-
-                //GitSCM scm = new GitSCM(scmRepository.getUrl());
-                proj.setScm(scm);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to set Git repository : " + e.getMessage());
-            }
-        } else {
-            throw new IllegalArgumentException("SCM repository " + scmRepository.getType() + " isn't supported yet");
+        ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandler(scmRepository.getType());
+        try {
+            scmPluginHandler.setScmRepositoryInJob(scmRepository, scmRepositoryCredentialsId, proj, executorJob);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to set SCM repository : " + e.getMessage());
         }
     }
 
     private static String prepareMtbxData(List<TestExecutionInfo> tests) throws IOException {
         /*<Mtbx>
-            <Test name="test1" path="c:\tests\APITest1">
+            <Test name="test1" path="${WORKSPACE}\${CHECKOUT_SUBDIR}\APITest1">
 			<Parameter name="A" value="abc" type="string"/>
 			<DataTable path="${WORKSPACE}\aa\bbb.xslx"/>
 			 ….
 			</Test>
-			<Test name="test2" path="${WORKSPACE}\test2">
+			<Test name="test2" path="${WORKSPACE}\${CHECKOUT_SUBDIR}\test2">
 				<Parameter name="p1" value="123" type="int"/>
 				<Parameter name="p4" value="123.4" type="float"/>
 			….
@@ -199,13 +199,14 @@ public class TestExecutionJobCreatorService {
 
             for (TestExecutionInfo test : tests) {
                 Element testElement = doc.createElement("Test");
-                testElement.setAttribute("name", test.getTestName());
-                String path = "${WORKSPACE}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getPackageName()) + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getTestName();
+                String packageAndTestName = (StringUtils.isNotEmpty(test.getPackageName()) ? test.getPackageName() + "\\" : "") + test.getTestName();
+                testElement.setAttribute("name", packageAndTestName);
+                String path = "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getPackageName()) + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getTestName();
                 testElement.setAttribute("path", path);
 
                 if (StringUtils.isNotEmpty(test.getDataTable())) {
                     Element dataTableElement = doc.createElement("DataTable");
-                    dataTableElement.setAttribute("path", "${WORKSPACE}" + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getDataTable());
+                    dataTableElement.setAttribute("path", "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getDataTable());
                     testElement.appendChild(dataTableElement);
                 }
 
@@ -221,8 +222,7 @@ public class TestExecutionJobCreatorService {
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
 
-            String str = writer.toString();
-            return str;
+            return writer.toString();
         } catch (Exception e) {
             throw new IOException("Failed to build MTBX content : " + e.getMessage());
         }
@@ -253,8 +253,8 @@ public class TestExecutionJobCreatorService {
 
         //start job
         if (proj != null) {
-            ParameterValue executorIdParam = new StringParameterValue(EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId());
-            ParameterValue fullScanParam = new BooleanParameterValue(FULL_SCAN_PARAMETER_NAME, discoveryInfo.isForceFullDiscovery());
+            ParameterValue executorIdParam = new StringParameterValue(UftConstants.EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId());
+            ParameterValue fullScanParam = new BooleanParameterValue(UftConstants.FULL_SCAN_PARAMETER_NAME, discoveryInfo.isForceFullDiscovery());
             ParametersAction parameters = new ParametersAction(executorIdParam, fullScanParam);
 
             Cause cause = new Cause.UserIdCause();
@@ -272,15 +272,15 @@ public class TestExecutionJobCreatorService {
             if (proj == null) {
 
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
-                proj.setDescription(String.format("This job was created by the HPE Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
+                proj.setDescription(String.format("This job was created by the Microfocus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
             }
 
-            setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj);
+            setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, false);
             setBuildDiscarder(proj, 20);
-            addConstantParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane testing tool connection ID");
-            addConstantParameter(proj, EXECUTOR_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane testing tool connection logical name");
-            addBooleanParameter(proj, FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
+            addConstantParameter(proj, UftConstants.EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane testing tool connection ID");
+            addConstantParameter(proj, UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane testing tool connection logical name");
+            addBooleanParameter(proj, UftConstants.FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
 
             //set polling once in two minutes
             SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
@@ -311,13 +311,13 @@ public class TestExecutionJobCreatorService {
     }
 
     private static String buildDiscoveryJobName(TestingToolType testingToolType, String executorId, String executorLogicalName) {
-        String name = String.format("%s %s %s (%s)", testingToolType.toString(), DISCOVERY_JOB_MIDDLE_NAME, executorId, executorLogicalName);
+        String name = String.format("%s %s %s (%s)", testingToolType.toString(), UftConstants.DISCOVERY_JOB_MIDDLE_NAME, executorId, executorLogicalName);
         return name;
     }
 
     private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) throws IOException {
-        int IRRELEVANT = -1;
-        BuildDiscarder bd = new LogRotator(IRRELEVANT, numBuildsToKeep, IRRELEVANT, IRRELEVANT);
+        int irrelevant = -1;
+        BuildDiscarder bd = new LogRotator(irrelevant, numBuildsToKeep, irrelevant, irrelevant);
         proj.setBuildDiscarder(bd);
     }
 
@@ -328,7 +328,7 @@ public class TestExecutionJobCreatorService {
      * @param scmTrigger
      */
     private static void delayPollingStart(final FreeStyleProject proj, final SCMTrigger scmTrigger) {
-        long delayStartPolling = 1000 * 60 * 5;//5 minute
+        long delayStartPolling = 1000L * 60 * 5;//5 minute
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -393,7 +393,11 @@ public class TestExecutionJobCreatorService {
 
                 String label = "" + computer.getNode().getSelfLabel();
                 if (label.toLowerCase().contains("uft")) {
-                    labels.add(label.trim());
+                    label = label.trim();
+                    if (label.contains(" ")) {
+                        label = "\"" + label + "\"";
+                    }
+                    labels.add(label);
                 }
             }
 

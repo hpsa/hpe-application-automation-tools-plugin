@@ -1,7 +1,35 @@
-// (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
 
 package com.hpe.application.automation.tools.run;
 
@@ -11,6 +39,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import com.hp.sv.jsvconfigurator.build.ProjectBuilder;
+import com.hp.sv.jsvconfigurator.core.IProject;
 import com.hpe.application.automation.tools.model.SvExportModel;
 import com.hpe.application.automation.tools.model.SvServiceSelectionModel;
 import com.hp.sv.jsvconfigurator.core.IService;
@@ -43,8 +73,8 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
     @DataBoundConstructor
     public SvExportBuilder(String serverName, boolean force, String targetDirectory, boolean cleanTargetDirectory,
-                           SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst) {
-        super(new SvExportModel(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst));
+                           SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst, boolean archive) {
+        super(new SvExportModel(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst, archive));
     }
 
     @Override
@@ -67,6 +97,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
         IChmodeProcessor chmodeProcessor = new ChmodeProcessor(null);
 
         ICommandExecutor exec = createCommandExecutor();
+        IProject project = null;
 
         verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
 
@@ -76,6 +107,10 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
             cleanTargetDirectory(logger, targetDirectory);
         }
 
+        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+            project = new ProjectBuilder().buildProject(new File(model.getServiceSelection().getProjectPath()), model.getServiceSelection().getProjectPassword());
+        }
+
         for (ServiceInfo serviceInfo : getServiceList(false, logger, workspace)) {
             if (model.isSwitchToStandByFirst()) {
                 switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
@@ -83,7 +118,12 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
             logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
             verifyNotLearningBeforeExport(logger, exec, serviceInfo);
-            exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), false);
+            if (!model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+                exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), project, false, model.isArchive());
+            }
+        }
+        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+            exportProcessor.process(exec, targetDirectory, null, project, false, model.isArchive());
         }
     }
 
@@ -114,8 +154,12 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
         File target = new File(targetDirectory);
         if (target.exists()) {
             File[] subfolders = target.listFiles((FilenameFilter) DirectoryFileFilter.INSTANCE);
-            if (subfolders.length > 0) {
+            File[] files = target.listFiles((FilenameFilter) new SuffixFileFilter(".vproja"));
+            if (subfolders.length > 0 || files.length > 0) {
                 logger.println("  Cleaning target directory...");
+            }
+            for(File file : files) {
+                FileUtils.forceDelete(file);
             }
             for (File subfolder : subfolders) {
                 if (subfolder.listFiles((FilenameFilter) new SuffixFileFilter(".vproj")).length > 0) {

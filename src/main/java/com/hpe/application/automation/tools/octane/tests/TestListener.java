@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -24,10 +41,8 @@ import com.hpe.application.automation.tools.octane.tests.detection.UFTExtension;
 import com.hpe.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -44,26 +59,31 @@ import java.util.List;
 public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
-	static final String TEST_RESULT_FILE = "mqmTests.xml";
-	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String TEST_RESULT_FILE = "mqmTests.xml";
+	public static final String JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder";
 	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
 
 
 	private ResultQueue queue;
 
-	public void processBuild(Run build, TaskListener listener) {
+	public boolean processBuild(Run build) {
 
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
-		boolean success = false;
+		boolean success = true;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getParent()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
-				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
-					hpRunnerType = HPRunnerType.StormRunner;
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerLoad;
+					break;
+				}
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerFunctional;
 					break;
 				}
 				if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
@@ -92,22 +112,24 @@ public class TestListener {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					listener.error(e.getMessage());
+					success = false;
+					logger.error(e.getMessage());
 					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
 						build.setResult(Result.UNSTABLE);
 					}
-					return;
+					break;
 				} catch (InterruptedException ie) {
+					success = false;
 					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
-					return;
+					break;
 				} catch (Exception e) {
+					success = false;
 					// extensibility involved: catch both checked and RuntimeExceptions
 					logger.error("Error processing test results in " + ext.getClass().getName(), e);
-					return;
+					break;
 				}
 			}
-			success = true;
 		} finally {
 			try {
 				resultWriter.close();
@@ -119,17 +141,14 @@ public class TestListener {
 				}
 			} catch (XMLStreamException xmlse) {
 				logger.error("Error processing test results", xmlse);
+				success = false;
 			}
 		}
-	}
-
-	private boolean isUFTRunner(AbstractBuild build) {
-		UFTExtension uftExtension = new UFTExtension();
-		return uftExtension.detect(build) != null;
+		return success && hasTests;//test results expected
 	}
 
 	@Inject
-	public void setTestResultQueue(TestAbstractResultQueue queue) {
+	public void setTestResultQueue(TestsResultQueue queue) {
 		this.queue = queue;
 	}
 

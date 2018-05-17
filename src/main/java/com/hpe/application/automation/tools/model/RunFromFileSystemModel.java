@@ -1,7 +1,35 @@
-// (c) Copyright 2012 Hewlett-Packard Development Company, L.P.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
 
 package com.hpe.application.automation.tools.model;
 
@@ -38,9 +66,11 @@ public class RunFromFileSystemModel {
     private String controllerPollingInterval;
     private String perScenarioTimeOut;
     private String ignoreErrorStrings;
+    private String displayController;
     private String mcServerName;
     private String fsUserName;
     private Secret fsPassword;
+    private String mcTenantId;
 
     private String fsDeviceId;
     private String fsOs;
@@ -63,6 +93,7 @@ public class RunFromFileSystemModel {
      * @param controllerPollingInterval the controller polling interval in minutes
      * @param perScenarioTimeOut        the per scenario time out in minutes
      * @param ignoreErrorStrings        the ignore error strings
+     * @param displayController         the display controller
      * @param mcServerName              the mc server name
      * @param fsUserName                the fs user name
      * @param fsPassword                the fs password
@@ -81,7 +112,7 @@ public class RunFromFileSystemModel {
      */
     @SuppressWarnings("squid:S00107")
     public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,String perScenarioTimeOut,
-                                  String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword,
+                                  String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
                                   String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
@@ -94,11 +125,12 @@ public class RunFromFileSystemModel {
         this.perScenarioTimeOut = perScenarioTimeOut;
         this.controllerPollingInterval = controllerPollingInterval;
         this.ignoreErrorStrings = ignoreErrorStrings;
+        this.displayController = displayController;
 
         this.mcServerName = mcServerName;
         this.fsUserName = fsUserName;
         this.fsPassword = Secret.fromString(fsPassword);
-
+        this.mcTenantId = mcTenantId;
 
         this.fsDeviceId = fsDeviceId;
         this.fsOs = fsOs;
@@ -132,6 +164,7 @@ public class RunFromFileSystemModel {
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
         this.ignoreErrorStrings = "";
+        this.displayController = "false";
     }
 
 
@@ -366,6 +399,15 @@ public class RunFromFileSystemModel {
         }
         return fsPassword.getPlainText();
     }
+
+    public String getMcTenantId() {
+        return mcTenantId;
+    }
+
+    public void setMcTenantId(String mcTenantId) {
+        this.mcTenantId = mcTenantId;
+    }
+
     /**
      * Gets fs device id.
      *
@@ -512,6 +554,24 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Gets display controller.
+     *
+     * @return the displayController
+     */
+    public String getDisplayController() {
+        return displayController;
+    }
+
+    /**
+     * Sets display controller.
+     *
+     * @param displayController the displayController to set
+     */
+    public void setDisplayController(String displayController) {
+        this.displayController = displayController;
+    }
+
+    /**
      * Gets ignore error strings.
      *
      * @return the ignoreErrorStrings
@@ -626,12 +686,18 @@ public class RunFromFileSystemModel {
             props.put("fsUftRunMode", "" + fsUftRunMode);
         }
 
-
         if (StringUtils.isEmpty(controllerPollingInterval)){
             props.put("controllerPollingInterval", "30");
         }
         else{
             props.put("controllerPollingInterval", "" + controllerPollingInterval);
+        }
+
+       if (StringUtils.isEmpty(displayController) || displayController.equals("false")){
+            props.put("displayController", "0");
+        }
+        else{
+            props.put("displayController", "1");
         }
 
         if (StringUtils.isEmpty(perScenarioTimeOut)){
@@ -647,6 +713,9 @@ public class RunFromFileSystemModel {
 
         if (StringUtils.isNotBlank(fsUserName)){
             props.put("MobileUserName", fsUserName);
+        }
+        if (StringUtils.isNotBlank(mcTenantId)){
+            props.put("MobileTenantId", mcTenantId);
         }
 
         if(isUseProxy()){
@@ -698,6 +767,6 @@ public class RunFromFileSystemModel {
             return null;
         }
         return JobConfigurationProxy
-                .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
+                .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
 }
