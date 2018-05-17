@@ -55,7 +55,7 @@ public class UFTTestDetectionBuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-        return "HPE ALM Octane UFT Tests Discovery Report";
+        return "ALM Octane UFT Tests Discovery Report";
     }
 
     @Override
