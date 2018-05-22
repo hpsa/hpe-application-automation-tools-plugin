@@ -158,7 +158,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 	public void onFinalized(Run r) {
 		if (onFinelizedValidations()) return;
 
-		CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
+		CommonOriginRevision commonOriginRevision=null;// = getCommonOriginRevision(r);
 
 		boolean hasTests = testListener.processBuild(r);
 

@@ -31,45 +31,6 @@
   ~
   -->
 
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <j:if test="${empty(descriptor.servers)}">
-        <tr>
-            <td/>
-            <td colspan="2">
-                <div class="help" style="display:block;">
-                    ${%NoSvServerDefined}
-                </div>
-            </td>
-            <td/>
-        </tr>
-    </j:if>
-
-    <f:entry title="Service Virtualization server" field="serverName">
-        <f:select value="${instance.model.serverName}"/>
-    </f:entry>
-
-    <f:entry title="Service selection" field="serviceSelection">
-        <f:property  value="${instance.model.serviceSelection}"/>
-    </f:entry>
-
-    <f:entry title="Target directory" field="targetDirectory">
-        <f:textbox value="${instance.model.targetDirectory}"/>
-    </f:entry>
-
-    <f:entry title="Clean target directory first" field="cleanTargetDirectory">
-        <f:checkbox checked="${instance.model.cleanTargetDirectory}"/>
-    </f:entry>
-
-    <f:entry title="Switch service to Stand-By mode first" field="switchToStandByFirst">
-        <f:checkbox checked="${instance.model.switchToStandByFirst}"/>
-    </f:entry>
-
-    <f:entry title="Force" field="force">
-        <f:checkbox checked="${instance.model.force}"/>
-    </f:entry>
-
-    <f:entry title="Archive" field="archive">
-            <f:checkbox checked="${instance.model.archive}"/>
-    </f:entry>
-</j:jelly>
+<div>
+Display the controller while the scenario is running.
+</div>

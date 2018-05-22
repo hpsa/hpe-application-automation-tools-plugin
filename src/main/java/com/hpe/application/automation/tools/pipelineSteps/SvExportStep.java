@@ -46,15 +46,17 @@ public class SvExportStep extends AbstractSvStep {
     private final boolean cleanTargetDirectory;
     private final SvServiceSelectionModel serviceSelection;
     private final boolean switchToStandByFirst;
+    private final boolean archive;
 
     @DataBoundConstructor
     public SvExportStep(String serverName, boolean force, String targetDirectory, boolean cleanTargetDirectory,
-                        SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst) {
+                        SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst, boolean archive) {
         super(serverName, force);
         this.targetDirectory = targetDirectory;
         this.cleanTargetDirectory = cleanTargetDirectory;
         this.serviceSelection = serviceSelection;
         this.switchToStandByFirst = switchToStandByFirst;
+        this.archive = archive;
     }
 
     public String getTargetDirectory() {
@@ -73,9 +75,13 @@ public class SvExportStep extends AbstractSvStep {
         return switchToStandByFirst;
     }
 
+    public boolean isArchive() {
+        return archive;
+    }
+
     @Override
     protected SimpleBuildStep getBuilder() {
-        return new SvExportBuilder(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst);
+        return new SvExportBuilder(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst, archive);
     }
 
     @Extension
