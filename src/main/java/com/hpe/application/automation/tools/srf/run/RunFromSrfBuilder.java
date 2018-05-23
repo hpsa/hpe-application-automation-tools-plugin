@@ -35,6 +35,7 @@ package com.hpe.application.automation.tools.srf.run;
 import com.hpe.application.automation.tools.srf.model.*;
 import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
 import com.hpe.application.automation.tools.srf.results.SrfResultFileWriter;
+import com.hpe.application.automation.tools.srf.utilities.SrfClient;
 import com.hpe.application.automation.tools.srf.utilities.SseEventListener;
 import groovy.transform.Synchronized;
 import hudson.Extension;
@@ -48,6 +49,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.auth.AuthenticationException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.wagon.authorization.AuthorizationException;
 import org.glassfish.jersey.media.sse.EventSource;
 import org.glassfish.jersey.media.sse.SseFeature;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -106,6 +108,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
     private static SSLSocketFactory _factory;
     private String _token;
     private CompletableFuture<Boolean> srfExecutionFuture;
+    private SrfClient srfClient;
     private static final Logger systemLogger = Logger.getLogger(RunFromSrfBuilder.class.getName());
 
     @DataBoundConstructor
@@ -304,7 +307,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         JSONArray testRes;
 
         try {
-            testRes = getTestResults(jobIds);
+            testRes = srfClient.getTestRuns(jobIds);
 
             int sz = testRes.size();
             for(int i = 0; i <sz; i++){
@@ -401,35 +404,12 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         return val;
     }
 
-    private HttpURLConnection connect(String path, String method){
-        try {
-            String reqUrl = _ftaasServerAddress.concat(path);
-            if(_token == null) {
-                _token = loginToSrf();
-            }
-            reqUrl = reqUrl.concat("?access-token=");
-            reqUrl = reqUrl.concat(_token).concat("&TENANTID="+_tenant);
 
-            URL srvUrl = new URL(reqUrl);
-            HttpURLConnection con = (HttpURLConnection) srvUrl.openConnection();
-            if(_https)
-                ((HttpsURLConnection)con).setSSLSocketFactory(_factory);
-            con.setRequestMethod(method);
-            con.setRequestProperty("Content-Type", "application/json");
-            if(_https)
-                ((HttpsURLConnection)con).setSSLSocketFactory(_factory);
-            return con;
-        }
-        catch (IOException e){
-            return null;
-        }
-    }
+    private JSONObject createExecutionReqBody() throws IOException, SrfException {
 
-    private void fillExecutionReqBody() throws IOException, SrfException {
-        _con.setDoOutput(true);
         JSONObject data = new JSONObject();
         JSONObject testParams = new JSONObject();
-        JSONObject ciParameters = new JSONObject();
+
         if (srfTestId != null && srfTestId.length() > 0) {
             data.put("testYac", applyJobParams(srfTestId));
         } else if (srfTagNames != null && !srfTagNames.isEmpty()) {
@@ -447,8 +427,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         }
 
         testParams.put("filter", data);
-        Properties ciProps = new Properties();
-        Properties props = new Properties();
         String buildNumber = applyJobParams(srfBuildNumber);
         String releaseNumber = applyJobParams(srfReleaseNumber);
         if (buildNumber != null && buildNumber.length() > 0) {
@@ -475,20 +453,8 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
 
         if (cnt > 0)
             data.put("params", paramObj);
-        //add request header
 
-        //     con.setRequestProperty("session-context", context);
-        try {
-            OutputStream out = _con.getOutputStream();
-            OutputStreamWriter writer = new OutputStreamWriter(out);
-            writer.write(data.toString());
-            writer.flush();
-            out.flush();
-            out.close();
-        } catch (ProtocolException e) {
-            logger.print(e.getMessage());
-            logger.print("\n\r");
-        }
+        return data;
     }
 
     private String[] normalizeTags() {
@@ -501,45 +467,11 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         return tagNames;
     }
 
-    private JSONArray executeTestsSet() throws MalformedURLException, AuthenticationException, IOException, SrfException {
-
-        StringBuffer response = new StringBuffer();
-        JSONArray jobs;
-        _con = connect("/rest/jobmanager/v1/execution/jobs", "POST");
-
-        fillExecutionReqBody();
-
-        int responseCode = _con.getResponseCode();
-        BufferedReader br;
-        if(responseCode == 401 && _secretApplied){
-            throw new AuthenticationException("Login required\n\r");
-        }
-        if (responseCode == 200) {
-            br = new BufferedReader(new InputStreamReader((_con.getInputStream())));
-        }
-        else {
-            br = new BufferedReader(new InputStreamReader((_con.getErrorStream())));
-        }
-
-        String inputLine;
-        while ((inputLine = br.readLine()) != null) {
-            response.append(inputLine);
-        }
-
-        if (responseCode != 200) {
-            JSONObject srfError = JSONObject.fromObject(response.toString());
-            if (srfError.containsKey("name") && srfError.getString("name").equalsIgnoreCase("srferror"))
-                throw new SrfException(srfError.getString("message"), srfError.getString("code"));
-
-            throw new SrfException(String.format("Failed for SRF execution request, received response with status code: %d and body: %s"
-                    , responseCode, response.toString()));
-
-        } else {
-            jobs = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
-            if (jobs == null || jobs.size() == 0)
-                throw new SrfException(String.format("No tests found for %s", this.srfTestId != null && !this.srfTestId.equals("") ? "test id: " + this.srfTestId : "test tags: " + this.srfTagNames));
-        }
-
+    private JSONArray executeTestsSet() throws IOException, SrfException, AuthorizationException {
+        JSONObject requestBody = createExecutionReqBody();
+        JSONArray jobs = srfClient.executeTestsSet(requestBody);
+        if (jobs == null || jobs.size() == 0)
+            throw new SrfException(String.format("No tests found for %s", this.srfTestId != null && !this.srfTestId.equals("") ? "test id: " + this.srfTestId : "test tags: " + this.srfTagNames));
         return getJobIds(jobs);
     }
 
@@ -570,64 +502,10 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         return data;
     }
 
-    private String loginToSrf() throws MalformedURLException, IOException, ConnectException{
-        String authorizationsAddress = _ftaasServerAddress.concat("/rest/security/authorizations/access-tokens");
-        //    .concat("/?TENANTID="+_tenant);
-        Writer writer = null;
-        // login //
-        JSONObject login = new JSONObject();
-        login.put("loginName",_app);
-        login.put("password",_secret);
-        OutputStream out;
-        URL loginUrl = new URL(authorizationsAddress);
-        URLConnection loginCon;
-
-        if(_ftaasServerAddress.startsWith("http://")) {
-            loginCon = (HttpURLConnection)loginUrl.openConnection();
-            loginCon.setDoOutput(true);
-            loginCon.setDoInput(true);
-            ((HttpURLConnection) loginCon).setRequestMethod("POST");
-            loginCon.setRequestProperty("Content-Type",     "application/json");
-            out = loginCon.getOutputStream();
-        }
-        else {
-            loginCon = loginUrl.openConnection();
-            loginCon.setDoOutput(true);
-            loginCon.setDoInput(true);
-            ((HttpsURLConnection) loginCon).setRequestMethod("POST");
-            loginCon.setRequestProperty("Content-Type", "application/json");
-            ((HttpsURLConnection) loginCon).setSSLSocketFactory(_factory);
-            out = loginCon.getOutputStream();
-        }
-
-        writer = new OutputStreamWriter(out);
-        writer.write(login.toString());
-        writer.flush();
-        out.flush();
-        out.close();
-        int responseCode = ((HttpURLConnection) loginCon).getResponseCode();
-        systemLogger.fine(String.format("SRF login received response code: %d", responseCode));
-        BufferedReader br = new BufferedReader(new InputStreamReader((loginCon.getInputStream())));
-        StringBuffer response = new StringBuffer();
-        String line;
-        while ((line = br.readLine()) != null) {
-            response.append(line);
-        }
-        String tmp = response.toString();
-        int n = tmp.length();
-
-        return tmp.substring(1, n-1);
-    }
-
-    private void initSrfEventListener() throws IOException, ConnectException, UnknownHostException, SSLHandshakeException, IllegalArgumentException {
-
-        if(this._token != null)
-            return;
-
+    private void initSrfEventListener() throws IOException, IllegalArgumentException, SrfException, AuthorizationException {
         // !!! Important Notice !!!
         // by using 'level=session' in the sse request we're ensuring that we'll get only events related
         // to this run since we're creating a new session (token) for each run
-        this._token = loginToSrf();
         String urlSSe = _ftaasServerAddress.concat("/rest/test-manager/events")
                 .concat("?level=session&types=test-run-started,test-run-ended,test-run-count,script-step-updated,script-step-created,script-run-started,script-run-ended");
         urlSSe = urlSSe.concat("&access-token=").concat(_token);
@@ -652,6 +530,10 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         WebTarget target = client.target(urlSSe);
 
         eventSrc = openAsynch(target, addAuthentication(null));
+        if (eventSrc == null){
+            throw new SrfException("Failed to initiate open event source for SRF SSE");
+        }
+
         eventSrc.register(this.sseEventListener);
     }
 
@@ -681,20 +563,9 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         _tenant = conData.getString("tenant");
         String srfProxy =  conData.getString("proxy");
 
-        try{
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            _trustMgr = new SrfTrustManager();
-            sslContext.init(null,new SrfTrustManager[]{_trustMgr }, null);
-            SSLContext.setDefault(sslContext);
-            _factory = sslContext.getSocketFactory();
-        }
-        catch (NoSuchAlgorithmException | KeyManagementException e){
-            logger.print(e.getMessage());
-            logger.print("\n\r");
-        }
-
+        URL proxy = null;
         if((srfProxy != null) && (srfProxy.length() != 0)) {
-            URL proxy = new URL(srfProxy);
+            proxy = new URL(srfProxy);
             String proxyHost = proxy.getHost();
             String proxyPort = String.format("%d",proxy.getPort());
             Properties systemProperties = System.getProperties();
@@ -704,26 +575,30 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             systemProperties.setProperty("http.proxyPort", proxyPort);
         }
 
+        try{
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            _trustMgr = new SrfTrustManager();
+            sslContext.init(null,new SrfTrustManager[]{_trustMgr }, null);
+            SSLContext.setDefault(sslContext);
+            _factory = sslContext.getSocketFactory();
+            this.srfClient = new SrfClient(_ftaasServerAddress, _tenant, _factory, proxy);
+        }
+        catch (NoSuchAlgorithmException | KeyManagementException e){
+            logger.print(e.getMessage());
+            logger.print("\n\r");
+        }
+
         jobIds = null;
         try {
+            srfClient.login(_app, _secret);
+            this._token = srfClient.getAccessToken();
+
             initSrfEventListener();
-            _secretApplied = false;
+            jobIds = executeTestsSet();
 
-            try {
-                jobIds = executeTestsSet();
-                if (jobIds.size() > 0 && eventSrc == null)
-                    initSrfEventListener();
-
-            } catch (AuthenticationException e) {
-                initSrfEventListener();
-                if(_token == null)
-                    _token = loginToSrf();
-                _secretApplied = true;
-            }
-
-        } catch (UnknownHostException | ConnectException | SSLHandshakeException | IllegalArgumentException e) {
+        } catch (UnknownHostException | ConnectException | SSLHandshakeException | IllegalArgumentException | AuthorizationException | AuthenticationException e) {
             cleanUp();
-            logger.println(String.format("ERROR: Failed logging in to SRF server: %s %s", this._ftaasServerAddress, e));
+            logger.println(String.format("ERROR: Failed logging into SRF server: %s %s", this._ftaasServerAddress, e));
             return false;
         } catch (IOException | SrfException e) {
             cleanUp();
@@ -740,7 +615,13 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         } catch (InterruptedException e) {
             e.printStackTrace();
             build.setResult(Result.ABORTED);
-            // postSrfJobCancellation();
+            // TODO: Optimization instead of testrunid set maintain testrunid map with job info, in order to avoid already finished job cancellation
+            if (!jobIds.isEmpty()) {
+                jobIds.forEach(jobId -> {
+                    srfClient.cancelJob(jobId.toString());
+                });
+            }
+
             return false;
         } finally {
             cleanUp();

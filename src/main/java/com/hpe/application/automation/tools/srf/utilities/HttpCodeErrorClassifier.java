@@ -31,33 +31,34 @@
  *
  */
 
-package com.hpe.application.automation.tools.srf.model;
+package com.hpe.application.automation.tools.srf.utilities;
 
+import com.hpe.application.automation.tools.srf.model.SrfException;
+import com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.auth.AuthenticationException;
+import org.apache.maven.wagon.authorization.AuthorizationException;
 
-public class SrfException extends Exception {
+import java.io.IOException;
+import java.util.logging.Logger;
 
-    private String code;
+public class HttpCodeErrorClassifier {
+    private static final Logger systemLogger = Logger.getLogger(RunFromSrfBuilder.class.getName());
 
-    public SrfException(String message) {
-        super(message);
-    }
-    public SrfException(String message, String code) {
-        super(message);
-        this.code = code;
-    }
+    public static void throwError(int statusCode, String responseMessage) throws IOException, AuthorizationException, SrfException {
+        systemLogger.fine(String.format("Received http status code %d with response message %s", statusCode, responseMessage));
 
-    public String getCode() {
-        return code;
-    }
+        switch (statusCode) {
+            case 401: throw new AuthenticationException("Login required, possibly wrong credentials supplied");
+            case 403: throw new AuthorizationException("Operation is forbidden");
+            default:
+                JSONObject srfError = JSONObject.fromObject(responseMessage);
+                if (SrfException.isSrfException(srfError))
+                    throw new SrfException(srfError.getString("message"), srfError.getString("code"));
 
-    @Override
-    public String toString() {
-        return (code != null && !code.isEmpty()) ? String.format("%s [%s]: %s", getClass().getName(), code, getMessage()) : super.toString();
-    }
+                throw new SrfException(String.format("Request failed with http code %d and http response %s", statusCode, responseMessage));
+        }
 
-    public static boolean isSrfException(JSONObject srfError) {
-        return srfError.containsKey("name") && srfError.getString("name").equalsIgnoreCase("srferror");
     }
 
 }
