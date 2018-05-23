@@ -617,9 +617,10 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             build.setResult(Result.ABORTED);
             // TODO: Optimization instead of testrunid set maintain testrunid map with job info, in order to avoid already finished job cancellation
             if (!jobIds.isEmpty()) {
-                jobIds.forEach(jobId -> {
+                for (int i = 0; i < jobIds.size(); i++) {
+                    String jobId = jobIds.get(i).toString();
                     srfClient.cancelJob(jobId.toString());
-                });
+                }
             }
 
             return false;
