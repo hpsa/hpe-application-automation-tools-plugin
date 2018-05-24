@@ -30,27 +30,20 @@
  * ___________________________________________________________________
  *
  */
-package com.hpe.application.automation.tools.octane.executor.scmmanager;
 
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.scm.SCMRepository;
-import hudson.model.FreeStyleProject;
-import hudson.model.Job;
-import hudson.scm.ChangeLogSet;
+package com.hpe.application.automation.tools.octane.actions.dto;
 
-import java.io.IOException;
+/**
+ * Interface for entities that support changeSet source and destination properties
+ */
+public interface SupportsMoveDetection {
 
-public interface ScmPluginHandler {
+    String getChangeSetSrc();
 
-    void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException;
+    void setChangeSetSrc(String changeSetSrc);
 
-    String getSharedCheckOutDirectory(Job j);
+    String getChangeSetDst();
 
-    void checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, StandardCredentials credentials, OctaneResponse result);
+    void setChangeSetDst(String changeSetDst);
 
-    String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile);
-
-    String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile);
 }
