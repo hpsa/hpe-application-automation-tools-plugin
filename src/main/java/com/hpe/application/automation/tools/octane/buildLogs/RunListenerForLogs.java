@@ -34,6 +34,7 @@
 package com.hpe.application.automation.tools.octane.buildLogs;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -54,20 +55,20 @@ import javax.annotation.Nonnull;
 public class RunListenerForLogs extends RunListener<Run> {
 	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
-	@Inject
-	private LogDispatcher logDispatcher;
+//	@Inject
+//	private LogDispatcher logDispatcher;
 
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
 
-		if(ConfigurationService.getModel().isSuspend()){
+		if (ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 
 		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration().isValid()) {
 			AbstractBuild build = (AbstractBuild) r;
 			logger.info(String.format("Enqueued job [%s#%d]", build.getProject().getFullName(), build.getNumber()));
-			logDispatcher.enqueueLog(build.getProject().getFullName(), build.getNumber());
+			OctaneSDK.getInstance().getLogsService().enqueuePushBuildLog(build.getProject().getFullName(), String.valueOf(build.getNumber()));
 		} else {
 			logger.warn("Octane configuration is not valid");
 		}

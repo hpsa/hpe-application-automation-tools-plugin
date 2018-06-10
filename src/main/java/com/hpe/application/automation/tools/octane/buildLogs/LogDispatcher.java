@@ -73,271 +73,271 @@ import static java.lang.Long.parseLong;
  * Log dispatcher is responsible for dispatching logs messages to BDI server via Octane as its proxy
  */
 
-@Extension
-public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
-	private static final Logger logger = LogManager.getLogger(LogDispatcher.class);
-	private static final ExecutorService logDispatcherExecutors = Executors.newFixedThreadPool(20, new NamedThreadFactory(LogDispatcher.class.getSimpleName()));
-
-	private static final String OCTANE_LOG_FILE_NAME = "octane_log";
-	private static final int MAX_RETRIES = 6;
-	private static final long TIMEOUT = 20;
-
-	private static final double BASE = 2;
-	private static final double EXPONENT = 0;
-
-	private RetryModel retryModel;
-	private JenkinsMqmRestClientFactory clientFactory;
-	private final ResultQueue logsQueue;
-
-	public LogDispatcher() throws IOException {
-		super("Octane log dispatcher");
-		logsQueue = new LogsResultQueue(MAX_RETRIES);
-	}
-
-	private long[] getQuietPeriodsInMinutes(double retries) {
-		double exponent = EXPONENT;
-		List<Long> quietPeriods = new ArrayList<>();
-		while (exponent <= retries) {
-			quietPeriods.add(TimeUnit2.MINUTES.toMillis((long) Math.pow(BASE, exponent)));
-			exponent++;
-		}
-		return Longs.toArray(quietPeriods);
-	}
-
-	@Override
-	protected void doExecute(TaskListener listener) {
-		if (logsQueue.peekFirst() == null) {
-			return;
-		}
-
-		MqmRestClient mqmRestClient = initMqmRestClient();
-		if (mqmRestClient == null) {
-			logger.warn("there are pending build logs, but MQM server location is not specified, build logs can't be submitted");
-			logsQueue.remove();
-			return;
-		}
-
-		ResultQueue.QueueItem item;
-
-		while ((item = logsQueue.peekFirst()) != null) {
-			if (retryModel.isQuietPeriod()) {
-				logger.info("there are pending logs, but we are in quiet period");
-				return;
-			}
-
-			Run build = getBuildFromQueueItem(item);
-			if (build == null) {
-				logger.warn("build and/or project [" + item.getProjectName() + " #" + item.getBuildNumber() + "] no longer exists, pending build logs won't be submitted");
-				logsQueue.remove();
-				continue;
-			}
-
-			String jobCiId = BuildHandlerUtils.getJobCiId(build);
-			try {
-				if (item.getWorkspace() == null) {
-					//
-					//  initial queue item flow - no workspaces, works with workspaces retrieval and loop ever each of them
-					//
-					logger.info("retrieving all workspaces that logs of [" + jobCiId + "] are relevant to...");
-					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
-					if (workspaces.isEmpty()) {
-						logger.info("[" + jobCiId + "] is not part of any Octane pipeline in any workspace, log won't be sent");
-					} else {
-						logger.info("logs of [" + jobCiId + "] found to be relevant to " + workspaces.size() + " workspace/s");
-						CountDownLatch latch = new CountDownLatch(workspaces.size());
-						for (String workspaceId : workspaces) {
-							logDispatcherExecutors.execute(new SendLogsExecutor(
-									mqmRestClient,
-									build,
-									item,
-									workspaceId,
-									logsQueue,
-									latch
-							));
-						}
-
-						boolean completedResult = latch.await(TIMEOUT, TimeUnit.MINUTES);
-						if (!completedResult) {
-							logger.error("timed out sending logs to " + workspaces.size() + " workspace/s");
-						}
-					}
-					logsQueue.remove();
-				} else {
-					//
-					//  secondary queue item flow - workspace is known, we are in retry flow
-					//
-					logger.info("");
-					transferBuildLogs(build, mqmRestClient, item);
-				}
-			} catch (Exception e) {
-				logger.error("fatally failed to fetch relevant workspaces OR to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace() + ", will not retry this one", e);
-			}
-		}
-	}
-
-	private void transferBuildLogs(Run build, MqmRestClient mqmRestClient, ResultQueue.QueueItem item) {
-		try {
-			OctaneLog octaneLog = getOctaneLogFile(build);
-			boolean status = mqmRestClient.postLogs(
-					parseLong(item.getWorkspace()),
-					ConfigurationService.getModel().getIdentity(),
-					BuildHandlerUtils.getJobCiId(build),
-					BuildHandlerUtils.getBuildCiId(build),
-					octaneLog.getLogStream(),
-					octaneLog.getFileLength());
-			if (status) {
-				logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
-				logsQueue.remove();
-			} else {
-				logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
-				reAttempt(item.getProjectName(), item.getBuildNumber());
-			}
-		} catch (RequestErrorException ree) {
-			logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace(), ree);
-			reAttempt(item.getProjectName(), item.getBuildNumber());
-		} catch (Exception e) {
-			logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace() + ", will not retry this one", e);
-			retryModel.success();
-			logsQueue.remove();
-		}
-	}
-
-	private void reAttempt(String projectName, int buildNumber) {
-		if (!logsQueue.failed()) {
-			logger.warn("maximum number of attempts reached, operation will not be re-attempted for build " + projectName + " #" + buildNumber);
-			retryModel.success();
-		} else {
-			logger.info("there are pending logs, but we are in quiet period");
-			retryModel.failure();
-		}
-	}
-
-	private MqmRestClient initMqmRestClient() {
-		MqmRestClient result = null;
-		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-		if (configuration.isValid()) {
-			result = clientFactory.obtain(
-					configuration.location,
-					configuration.sharedSpace,
-					configuration.username,
-					configuration.password);
-		}
-		return result;
-	}
-
-	private OctaneLog getOctaneLogFile(Run build) throws IOException {
-		String octaneLogFilePath = build.getLogFile().getParent() + File.separator + OCTANE_LOG_FILE_NAME;
-		File logFile = new File(octaneLogFilePath);
-		if (!logFile.exists()) {
-			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-			     InputStream logStream = build.getLogInputStream();
-			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
-				IOUtils.copy(logStream, out);
-				out.flush();
-			}
-		}
-		return new OctaneLog(logFile);
-	}
-
-	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
-		Run result = null;
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins == null) {
-			throw new IllegalStateException("failed to obtain Jenkins' instance");
-		}
-		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
-		if (project != null) {
-			result = project.getBuildByNumber(item.getBuildNumber());
-		}
-		return result;
-	}
-
-	@Override
-	public long getRecurrencePeriod() {
-		String value = System.getProperty("Octane.LogDispatcher.Period");
-		if (!StringUtils.isEmpty(value)) {
-			return Long.valueOf(value);
-		}
-		return TimeUnit2.SECONDS.toMillis(10);
-	}
-
-	public void enqueueLog(String projectName, int buildNumber) {
-		logsQueue.add(projectName, buildNumber, null);
-	}
-
-	@Inject
-	public void setEventPublisher() {
-		this.retryModel = new RetryModel(getQuietPeriodsInMinutes(MAX_RETRIES));
-	}
-
-	@Inject
-	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
-	private static final class NamedThreadFactory implements ThreadFactory {
-
-		private AtomicInteger threadNumber = new AtomicInteger(1);
-		private final String namePrefix;
-
-		private NamedThreadFactory(String namePrefix) {
-			this.namePrefix = namePrefix;
-		}
-
-		public Thread newThread(Runnable runnable) {
-			Thread result = new Thread(runnable, this.namePrefix + " thread-" + threadNumber.getAndIncrement());
-			result.setDaemon(true);
-			return result;
-		}
-	}
-
-	private final class SendLogsExecutor implements Runnable {
-		private final MqmRestClient mqmRestClient;
-		private final Run build;
-		private final ResultQueue.QueueItem item;
-		private final String workspaceId;
-		private final ResultQueue logsQueue;
-		private final CountDownLatch latch;
-
-		private SendLogsExecutor(
-				MqmRestClient mqmRestClient,
-				Run build,
-				ResultQueue.QueueItem item,
-				String workspaceId,
-				ResultQueue logsQueue,
-				CountDownLatch latch) {
-			this.mqmRestClient = mqmRestClient;
-			this.build = build;
-			this.item = item;
-			this.workspaceId = workspaceId;
-			this.logsQueue = logsQueue;
-			this.latch = latch;
-		}
-
-		@Override
-		public void run() {
-			try {
-				OctaneLog octaneLog = getOctaneLogFile(build);
-				boolean status = mqmRestClient.postLogs(
-						parseLong(workspaceId),
-						ConfigurationService.getModel().getIdentity(),
-						BuildHandlerUtils.getJobCiId(build),
-						BuildHandlerUtils.getBuildCiId(build),
-						octaneLog.getLogStream(),
-						octaneLog.getFileLength());
-				if (status) {
-					logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
-				} else {
-					logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
-					logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
-				}
-			} catch (RequestErrorException ree) {
-				logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId, ree);
-				logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
-			} catch (Exception e) {
-				logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId + ", will not retry this one", e);
-			}
-			latch.countDown();
-		}
-	}
-}
+//@Extension
+//public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
+//	private static final Logger logger = LogManager.getLogger(LogDispatcher.class);
+//	private static final ExecutorService logDispatcherExecutors = Executors.newFixedThreadPool(20, new NamedThreadFactory(LogDispatcher.class.getSimpleName()));
+//
+//	private static final String OCTANE_LOG_FILE_NAME = "octane_log";
+//	private static final int MAX_RETRIES = 6;
+//	private static final long TIMEOUT = 20;
+//
+//	private static final double BASE = 2;
+//	private static final double EXPONENT = 0;
+//
+//	private RetryModel retryModel;
+//	private JenkinsMqmRestClientFactory clientFactory;
+//	private final ResultQueue logsQueue;
+//
+//	public LogDispatcher() throws IOException {
+//		super("Octane log dispatcher");
+//		logsQueue = new LogsResultQueue(MAX_RETRIES);
+//	}
+//
+//	private long[] getQuietPeriodsInMinutes(double retries) {
+//		double exponent = EXPONENT;
+//		List<Long> quietPeriods = new ArrayList<>();
+//		while (exponent <= retries) {
+//			quietPeriods.add(TimeUnit2.MINUTES.toMillis((long) Math.pow(BASE, exponent)));
+//			exponent++;
+//		}
+//		return Longs.toArray(quietPeriods);
+//	}
+//
+//	@Override
+//	protected void doExecute(TaskListener listener) {
+//		if (logsQueue.peekFirst() == null) {
+//			return;
+//		}
+//
+//		MqmRestClient mqmRestClient = initMqmRestClient();
+//		if (mqmRestClient == null) {
+//			logger.warn("there are pending build logs, but MQM server location is not specified, build logs can't be submitted");
+//			logsQueue.remove();
+//			return;
+//		}
+//
+//		ResultQueue.QueueItem item;
+//
+//		while ((item = logsQueue.peekFirst()) != null) {
+//			if (retryModel.isQuietPeriod()) {
+//				logger.info("there are pending logs, but we are in quiet period");
+//				return;
+//			}
+//
+//			Run build = getBuildFromQueueItem(item);
+//			if (build == null) {
+//				logger.warn("build and/or project [" + item.getProjectName() + " #" + item.getBuildNumber() + "] no longer exists, pending build logs won't be submitted");
+//				logsQueue.remove();
+//				continue;
+//			}
+//
+//			String jobCiId = BuildHandlerUtils.getJobCiId(build);
+//			try {
+//				if (item.getWorkspace() == null) {
+//					//
+//					//  initial queue item flow - no workspaces, works with workspaces retrieval and loop ever each of them
+//					//
+//					logger.info("retrieving all workspaces that logs of [" + jobCiId + "] are relevant to...");
+//					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
+//					if (workspaces.isEmpty()) {
+//						logger.info("[" + jobCiId + "] is not part of any Octane pipeline in any workspace, log won't be sent");
+//					} else {
+//						logger.info("logs of [" + jobCiId + "] found to be relevant to " + workspaces.size() + " workspace/s");
+//						CountDownLatch latch = new CountDownLatch(workspaces.size());
+//						for (String workspaceId : workspaces) {
+//							logDispatcherExecutors.execute(new SendLogsExecutor(
+//									mqmRestClient,
+//									build,
+//									item,
+//									workspaceId,
+//									logsQueue,
+//									latch
+//							));
+//						}
+//
+//						boolean completedResult = latch.await(TIMEOUT, TimeUnit.MINUTES);
+//						if (!completedResult) {
+//							logger.error("timed out sending logs to " + workspaces.size() + " workspace/s");
+//						}
+//					}
+//					logsQueue.remove();
+//				} else {
+//					//
+//					//  secondary queue item flow - workspace is known, we are in retry flow
+//					//
+//					logger.info("");
+//					transferBuildLogs(build, mqmRestClient, item);
+//				}
+//			} catch (Exception e) {
+//				logger.error("fatally failed to fetch relevant workspaces OR to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace() + ", will not retry this one", e);
+//			}
+//		}
+//	}
+//
+//	private void transferBuildLogs(Run build, MqmRestClient mqmRestClient, ResultQueue.QueueItem item) {
+//		try {
+//			OctaneLog octaneLog = getOctaneLogFile(build);
+//			boolean status = mqmRestClient.postLogs(
+//					parseLong(item.getWorkspace()),
+//					ConfigurationService.getModel().getIdentity(),
+//					BuildHandlerUtils.getJobCiId(build),
+//					BuildHandlerUtils.getBuildCiId(build),
+//					octaneLog.getLogStream(),
+//					octaneLog.getFileLength());
+//			if (status) {
+//				logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
+//				logsQueue.remove();
+//			} else {
+//				logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
+//				reAttempt(item.getProjectName(), item.getBuildNumber());
+//			}
+//		} catch (RequestErrorException ree) {
+//			logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace(), ree);
+//			reAttempt(item.getProjectName(), item.getBuildNumber());
+//		} catch (Exception e) {
+//			logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace() + ", will not retry this one", e);
+//			retryModel.success();
+//			logsQueue.remove();
+//		}
+//	}
+//
+//	private void reAttempt(String projectName, int buildNumber) {
+//		if (!logsQueue.failed()) {
+//			logger.warn("maximum number of attempts reached, operation will not be re-attempted for build " + projectName + " #" + buildNumber);
+//			retryModel.success();
+//		} else {
+//			logger.info("there are pending logs, but we are in quiet period");
+//			retryModel.failure();
+//		}
+//	}
+//
+//	private MqmRestClient initMqmRestClient() {
+//		MqmRestClient result = null;
+//		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+//		if (configuration.isValid()) {
+//			result = clientFactory.obtain(
+//					configuration.location,
+//					configuration.sharedSpace,
+//					configuration.username,
+//					configuration.password);
+//		}
+//		return result;
+//	}
+//
+//	private OctaneLog getOctaneLogFile(Run build) throws IOException {
+//		String octaneLogFilePath = build.getLogFile().getParent() + File.separator + OCTANE_LOG_FILE_NAME;
+//		File logFile = new File(octaneLogFilePath);
+//		if (!logFile.exists()) {
+//			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
+//			     InputStream logStream = build.getLogInputStream();
+//			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+//				IOUtils.copy(logStream, out);
+//				out.flush();
+//			}
+//		}
+//		return new OctaneLog(logFile);
+//	}
+//
+//	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
+//		Run result = null;
+//		Jenkins jenkins = Jenkins.getInstance();
+//		if (jenkins == null) {
+//			throw new IllegalStateException("failed to obtain Jenkins' instance");
+//		}
+//		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
+//		if (project != null) {
+//			result = project.getBuildByNumber(item.getBuildNumber());
+//		}
+//		return result;
+//	}
+//
+//	@Override
+//	public long getRecurrencePeriod() {
+//		String value = System.getProperty("Octane.LogDispatcher.Period");
+//		if (!StringUtils.isEmpty(value)) {
+//			return Long.valueOf(value);
+//		}
+//		return TimeUnit2.SECONDS.toMillis(10);
+//	}
+//
+//	public void enqueueLog(String projectName, int buildNumber) {
+//		logsQueue.add(projectName, buildNumber, null);
+//	}
+//
+//	@Inject
+//	public void setEventPublisher() {
+//		this.retryModel = new RetryModel(getQuietPeriodsInMinutes(MAX_RETRIES));
+//	}
+//
+//	@Inject
+//	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
+//		this.clientFactory = clientFactory;
+//	}
+//
+//	private static final class NamedThreadFactory implements ThreadFactory {
+//
+//		private AtomicInteger threadNumber = new AtomicInteger(1);
+//		private final String namePrefix;
+//
+//		private NamedThreadFactory(String namePrefix) {
+//			this.namePrefix = namePrefix;
+//		}
+//
+//		public Thread newThread(Runnable runnable) {
+//			Thread result = new Thread(runnable, this.namePrefix + " thread-" + threadNumber.getAndIncrement());
+//			result.setDaemon(true);
+//			return result;
+//		}
+//	}
+//
+//	private final class SendLogsExecutor implements Runnable {
+//		private final MqmRestClient mqmRestClient;
+//		private final Run build;
+//		private final ResultQueue.QueueItem item;
+//		private final String workspaceId;
+//		private final ResultQueue logsQueue;
+//		private final CountDownLatch latch;
+//
+//		private SendLogsExecutor(
+//				MqmRestClient mqmRestClient,
+//				Run build,
+//				ResultQueue.QueueItem item,
+//				String workspaceId,
+//				ResultQueue logsQueue,
+//				CountDownLatch latch) {
+//			this.mqmRestClient = mqmRestClient;
+//			this.build = build;
+//			this.item = item;
+//			this.workspaceId = workspaceId;
+//			this.logsQueue = logsQueue;
+//			this.latch = latch;
+//		}
+//
+//		@Override
+//		public void run() {
+//			try {
+//				OctaneLog octaneLog = getOctaneLogFile(build);
+//				boolean status = mqmRestClient.postLogs(
+//						parseLong(workspaceId),
+//						ConfigurationService.getModel().getIdentity(),
+//						BuildHandlerUtils.getJobCiId(build),
+//						BuildHandlerUtils.getBuildCiId(build),
+//						octaneLog.getLogStream(),
+//						octaneLog.getFileLength());
+//				if (status) {
+//					logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
+//				} else {
+//					logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
+//					logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
+//				}
+//			} catch (RequestErrorException ree) {
+//				logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId, ree);
+//				logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
+//			} catch (Exception e) {
+//				logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId + ", will not retry this one", e);
+//			}
+//			latch.countDown();
+//		}
+//	}
+//}
