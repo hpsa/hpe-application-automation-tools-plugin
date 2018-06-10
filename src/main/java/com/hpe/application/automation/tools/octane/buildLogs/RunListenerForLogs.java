@@ -33,7 +33,6 @@
 
 package com.hpe.application.automation.tools.octane.buildLogs;
 
-import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
@@ -54,9 +53,6 @@ import javax.annotation.Nonnull;
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
 	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
-
-//	@Inject
-//	private LogDispatcher logDispatcher;
 
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
