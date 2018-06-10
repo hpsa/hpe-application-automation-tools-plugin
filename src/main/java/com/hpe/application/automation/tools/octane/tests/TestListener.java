@@ -55,27 +55,26 @@ import java.util.List;
  * Jenkins events life cycle listener for processing test results on build completed
  */
 @Extension
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872"})
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872"})
 public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
-	public static final String TEST_RESULT_FILE = "mqmTests.xml";
-	public static final String JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
-	public static final String JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder";
-	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
-
+	private static final String JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	private static final String JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder";
+	private static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
+	static final String TEST_RESULT_FILE = "mqmTests.xml";
 
 	private ResultQueue queue;
 
-	public boolean processBuild(Run build) {
+	public boolean processBuild(Run run) {
 
-		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
-		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
+		FilePath resultPath = new FilePath(new FilePath(run.getRootDir()), TEST_RESULT_FILE);
+		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, run);
 		boolean success = true;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
-		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getParent()).tryGetBuilders();
+		List<Builder> builders = JobProcessorFactory.getFlowProcessor(run.getParent()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
 				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS)) {
@@ -98,12 +97,12 @@ public class TestListener {
 		}
 
 		try {
-			for (MqmTestsExtension ext : MqmTestsExtension.all()) {
+			for (OctaneTestsExtension ext : OctaneTestsExtension.all()) {
 				try {
-					if (ext.supports(build)) {
+					if (ext.supports(run)) {
 
-						List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(build);
-						for(Run buildX : buildsList){
+						List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(run);
+						for (Run buildX : buildsList) {
 							TestResultContainer testResultContainer = ext.getTestResults(buildX, hpRunnerType, jenkinsRootUrl);
 							if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
 								resultWriter.writeResults(testResultContainer);
@@ -114,19 +113,19 @@ public class TestListener {
 				} catch (IllegalArgumentException e) {
 					success = false;
 					logger.error(e.getMessage());
-					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
-						build.setResult(Result.UNSTABLE);
+					if (run.getResult() != null && !run.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
+						run.setResult(Result.UNSTABLE);
 					}
 					break;
 				} catch (InterruptedException ie) {
 					success = false;
-					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
+					logger.error("interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
 					break;
 				} catch (Exception e) {
 					success = false;
 					// extensibility involved: catch both checked and RuntimeExceptions
-					logger.error("Error processing test results in " + ext.getClass().getName(), e);
+					logger.error("error processing test results in " + ext.getClass().getName(), e);
 					break;
 				}
 			}
@@ -134,13 +133,13 @@ public class TestListener {
 			try {
 				resultWriter.close();
 				if (success && hasTests) {
-					String projectFullName = BuildHandlerUtils.getProjectFullName(build);
+					String projectFullName = BuildHandlerUtils.getProjectFullName(run);
 					if (projectFullName != null) {
-						queue.add(projectFullName, build.getNumber());
+						queue.add(projectFullName, run.getNumber());
 					}
 				}
 			} catch (XMLStreamException xmlse) {
-				logger.error("Error processing test results", xmlse);
+				logger.error("error processing test results", xmlse);
 				success = false;
 			}
 		}
