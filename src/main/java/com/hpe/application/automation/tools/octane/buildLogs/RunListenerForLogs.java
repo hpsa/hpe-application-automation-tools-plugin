@@ -61,7 +61,7 @@ public class RunListenerForLogs extends RunListener<Run> {
 			return;
 		}
 
-		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration().isValid()) {
+		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration() != null && ConfigurationService.getServerConfiguration().isValid()) {
 			AbstractBuild build = (AbstractBuild) r;
 			logger.info(String.format("Enqueued job [%s#%d]", build.getProject().getFullName(), build.getNumber()));
 			OctaneSDK.getInstance().getLogsService().enqueuePushBuildLog(build.getProject().getFullName(), String.valueOf(build.getNumber()));
