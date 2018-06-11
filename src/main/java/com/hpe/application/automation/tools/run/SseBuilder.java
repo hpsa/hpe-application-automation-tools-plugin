@@ -48,7 +48,6 @@ import com.hpe.application.automation.tools.model.AlmServerSettingsModel;
 import com.hpe.application.automation.tools.model.CdaDetails;
 import com.hpe.application.automation.tools.model.EnumDescription;
 import com.hpe.application.automation.tools.model.SseModel;
-import com.hpe.application.automation.tools.model.SseProxySettings;
 import com.hpe.application.automation.tools.settings.AlmServerSettingsBuilder;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testsuite;
@@ -109,7 +108,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     private String postRunAction;
     private String environmentConfigurationId;
     private CdaDetails cdaDetails;
-    private SseProxySettings proxySettings;
     
     //Databound setters and getters.
     public String getAlmServerName() { return almServerName; }
@@ -123,11 +121,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     public String getPostRunAction() { return postRunAction; }
     public String getEnvironmentConfigurationId() { return environmentConfigurationId; }
     public CdaDetails getCdaDetails() { return cdaDetails; }
-    public SseProxySettings getProxySettings() { return proxySettings; }
-    
-    public boolean isUseProxy() {
-        return proxySettings != null;
-    }
+
     public boolean isCdaDetailsChecked() {
         return cdaDetails != null;
     }
@@ -145,9 +139,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     
     @DataBoundSetter
     public void setCdaDetails(CdaDetails cdaDetails) { this.cdaDetails = cdaDetails; }
-    
-    @DataBoundSetter
-    public void setProxySettings(SseProxySettings proxySettings) { this.proxySettings = proxySettings; }
     
     /**
      * Should only contains mandatory properties.
@@ -177,7 +168,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
     	
         UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
-        setProxyCredentials(build);
     	
     	_sseModel = new SseModel(
                 almServerName,
@@ -191,8 +181,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 description,
                 postRunAction,
                 environmentConfigurationId,
-                cdaDetails,
-                proxySettings);
+                cdaDetails);
     	
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
         
@@ -202,24 +191,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         FilePath resultsFilePath = workspace.child(getFileName());
         Result resultStatus = createRunResults(resultsFilePath, testsuites, logger);
         provideStepResultStatus(resultStatus, build, logger);
-    }
-    
-    /**
-     * Get credentials by the credentials id. Then set the user name and password into the SsePoxySetting.
-     */
-    private void setProxyCredentials(Run<?, ?> run) {
-    	if (proxySettings != null && proxySettings.getFsProxyCredentialsId() != null) {
-    		UsernamePasswordCredentials up = CredentialsProvider.findCredentialById(
-    				proxySettings.getFsProxyCredentialsId(),
-            		StandardUsernamePasswordCredentials.class,
-            		run,
-        			URIRequirementBuilder.create().build());
-			
-    		if (up != null) {
-    			proxySettings.setFsProxyUserName(up.getUsername());
-        		proxySettings.setFsProxyPassword(up.getPassword());
-    		}
-    	}
     }
     
     /**
@@ -516,14 +487,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                             URIRequirementBuilder.create().build())
                     .includeCurrentValue(credentialsId);
 		}
-        
-        /**
-         * To fill in the credentials drop down list which's field is 'FsProxyCredentialsId'.
-         */
-        public ListBoxModel doFillFsProxyCredentialsIdItems(@AncestorInPath Item project,
-                @QueryParameter String credentialsId) {
-        	return doFillCredentialsIdItems(project, credentialsId);
-        }
         
         public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
                 @QueryParameter String url,
