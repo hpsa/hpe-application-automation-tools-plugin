@@ -41,7 +41,6 @@ import com.hpe.application.automation.tools.octane.tests.detection.UFTExtension;
 import com.hpe.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
@@ -98,37 +97,20 @@ public class TestListener {
 
 		try {
 			for (OctaneTestsExtension ext : OctaneTestsExtension.all()) {
-				try {
-					if (ext.supports(run)) {
-
-						List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(run);
-						for (Run buildX : buildsList) {
-							TestResultContainer testResultContainer = ext.getTestResults(buildX, hpRunnerType, jenkinsRootUrl);
-							if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-								resultWriter.writeResults(testResultContainer);
-								hasTests = true;
-							}
+				if (ext.supports(run)) {
+					List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(run);
+					for (Run buildX : buildsList) {
+						TestResultContainer testResultContainer = ext.getTestResults(buildX, hpRunnerType, jenkinsRootUrl);
+						if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+							resultWriter.writeResults(testResultContainer);
+							hasTests = true;
 						}
 					}
-				} catch (IllegalArgumentException e) {
-					success = false;
-					logger.error(e.getMessage());
-					if (run.getResult() != null && !run.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
-						run.setResult(Result.UNSTABLE);
-					}
-					break;
-				} catch (InterruptedException ie) {
-					success = false;
-					logger.error("interrupted processing test results in " + ext.getClass().getName(), ie);
-					Thread.currentThread().interrupt();
-					break;
-				} catch (Exception e) {
-					success = false;
-					// extensibility involved: catch both checked and RuntimeExceptions
-					logger.error("error processing test results in " + ext.getClass().getName(), e);
-					break;
 				}
 			}
+		} catch (Throwable t) {
+			success = false;
+			logger.error("failed to process test results", t);
 		} finally {
 			try {
 				resultWriter.close();
@@ -139,8 +121,8 @@ public class TestListener {
 					}
 				}
 			} catch (XMLStreamException xmlse) {
-				logger.error("error processing test results", xmlse);
 				success = false;
+				logger.error("failed to finalize test results processing", xmlse);
 			}
 		}
 		return success && hasTests;//test results expected

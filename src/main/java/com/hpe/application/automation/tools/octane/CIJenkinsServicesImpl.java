@@ -411,7 +411,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		if (jenkins == null) {
 			throw new IllegalStateException("failed to obtain Jenkins' instance");
 		}
-		Job project = (Job) jenkins.getItemByFullName(jobId);
+		Job project = getJobByRefId(jobId);
 		if (project != null) {
 			result = project.getBuildByNumber(Integer.parseInt(buildId));
 		}
