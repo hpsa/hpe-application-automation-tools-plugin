@@ -64,6 +64,7 @@ import com.hpe.application.automation.tools.octane.model.processors.parameters.P
 import com.hpe.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.ProxyConfiguration;
+import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
@@ -74,12 +75,16 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -140,7 +145,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+		if (serverConfiguration != null && serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
 				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
 					.setUrl(serverConfiguration.location)
@@ -196,7 +201,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				}
 
 				String jobClassName = tmpItem.getClass().getName();
-                try {
+				try {
 					if (tmpItem instanceof AbstractProject) {
 						AbstractProject abstractProject = (AbstractProject) tmpItem;
 						if (abstractProject.isDisabled()) {
@@ -218,12 +223,12 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					} else {
 						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", name, jobClassName));
 					}
-                } catch (Throwable e) {
-                    logger.error("getJobsList : Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
-                }
+				} catch (Throwable e) {
+					logger.error("getJobsList : Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+				}
 
 			}
-			result.setJobs(list.toArray(new PipelineNode[list.size()]));
+			result.setJobs(list.toArray(new PipelineNode[0]));
 			stopImpersonation(securityContext);
 		} catch (AccessDeniedException e) {
 			stopImpersonation(securityContext);
@@ -234,19 +239,18 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
 		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                .setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
-                .setName(name);
+				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
+				.setName(name);
 		if (includeParameters) {
-            tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
-        }
+			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
+		}
 		return tmpConfig;
 	}
 
 	private PipelineNode createPipelineNodeFromJobName(String name) {
-		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+		return dtoFactory.newDTO(PipelineNode.class)
 				.setJobCiId(name)
 				.setName(name);
-		return tmpConfig;
 	}
 
 
@@ -369,6 +373,51 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return null;
 	}
 
+	@Override
+	public InputStream getBuildLog(String jobCiId, String buildCiId) {
+		Run build = getBuildFromQueueItem(jobCiId, buildCiId);
+		if (build != null) {
+			return getOctaneLogFile(build);
+		} else {
+			return null;
+		}
+	}
+
+	private InputStream getOctaneLogFile(Run build) {
+		InputStream result = null;
+		String octaneLogFilePath = build.getLogFile().getParent() + File.separator + "octane_log";
+		File logFile = new File(octaneLogFilePath);
+		if (!logFile.exists()) {
+			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
+			     InputStream logStream = build.getLogInputStream();
+			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+				IOUtils.copy(logStream, out);
+				out.flush();
+			} catch (IOException ioe) {
+				logger.error("failed to transfer native log to Octane's one for " + build);
+			}
+		}
+		try {
+			result = new FileInputStream(octaneLogFilePath);
+		} catch (IOException ioe) {
+			logger.error("failed to obtain log for " + build);
+		}
+		return result;
+	}
+
+	private Run getBuildFromQueueItem(String jobId, String buildId) {
+		Run result = null;
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins == null) {
+			throw new IllegalStateException("failed to obtain Jenkins' instance");
+		}
+		Job project = getJobByRefId(jobId);
+		if (project != null) {
+			result = project.getBuildByNumber(Integer.parseInt(buildId));
+		}
+		return result;
+	}
+
 	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
 	private void doRunImpl(Job job, String originalBody) {
 		if (job instanceof AbstractProject) {
@@ -469,7 +518,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 			try {
 				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
 				TopLevelItem item = getTopLevelItem(jobRefId);
-				if (item != null && item instanceof Job) {
+				if (item instanceof Job) {
 					result = (Job) item;
 				} else if (jobRefId.contains("/") && item == null) {
 					String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));

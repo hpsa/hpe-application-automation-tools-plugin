@@ -31,30 +31,31 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.buildLogs;
+package com.hpe.application.automation.tools.octane.tests;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import hudson.ExtensionList;
+import hudson.ExtensionPoint;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
 
-class OctaneLog {
+import java.io.IOException;
 
-	final private Long fileLength;
+/**
+ * General provider of Octane's tests processing extensions
+ */
 
-	final private InputStream logStream;
+public abstract class OctaneTestsExtension implements ExtensionPoint {
 
-	OctaneLog(File logFile) throws FileNotFoundException {
-		this.fileLength = logFile.length();
-		this.logStream = new FileInputStream(logFile);
+	public abstract boolean supports(Run<?, ?> build) throws IOException, InterruptedException;
+
+
+	public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
+
+	public static ExtensionList<OctaneTestsExtension> all() {
+		if (Jenkins.getInstance() != null) {
+			return Jenkins.getInstance().getExtensionList(OctaneTestsExtension.class);
+		} else {
+			throw new IllegalStateException("failed to obtain Jenkins' instance");
+		}
 	}
-
-	public Long getFileLength() {
-		return this.fileLength;
-	}
-
-	public InputStream getLogStream() {
-		return this.logStream;
-	}
-
 }
