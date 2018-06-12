@@ -67,6 +67,7 @@ import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
 import hudson.security.ACL;
+import jenkins.branch.OrganizationFolder;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -220,6 +221,11 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 						tmpConfig = createPipelineNodeFromJobName(name);
 						list.add(tmpConfig);
+					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)){
+						for(Item item : ((OrganizationFolder) tmpItem).getItems()){
+							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(),name);
+							list.add(tmpConfig);
+						}
 					} else {
 						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", name, jobClassName));
 					}
@@ -253,6 +259,13 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				.setName(name);
 	}
 
+	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name,String folderName) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(folderName + "/" + name)
+				.setName(folderName + "/" + name);
+		return tmpConfig;
+	}
+
 
 	@Override
 	public PipelineNode getPipeline(String rootJobCiId) {
@@ -273,9 +286,15 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				if (project != null) {
 					result = ModelFactory.createStructureItem(project);
 				} else {
+					Item item = getItemByRefId(rootJobCiId);
 					//todo: check error message(s)
-					logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
-					throw new ConfigurationException(404);
+					if(item!=null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)){
+						result = createPipelineNodeFromJobName(rootJobCiId);
+						result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
+					}else {
+						logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
+						throw new ConfigurationException(404);
+					}
 				}
 			}
 			return result;
@@ -535,6 +554,31 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				}
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
+			}
+		}
+		return result;
+	}
+
+	private Item getItemByRefId(String itemRefId) {
+		Item result = null;
+		if (itemRefId != null) {
+			try {
+				String itemRefIdUncoded = URLDecoder.decode(itemRefId, "UTF-8");
+				if (itemRefIdUncoded.contains("/")) {
+					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
+					Item item = getTopLevelItem(newItemRefId);
+					if (item != null && item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
+						Collection<? extends Item> allItems = ((OrganizationFolder)item).getItems();
+						for (Item multibranchItem : allItems) {
+							if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
+								result = multibranchItem;
+								break;
+							}
+						}
+					}
+				}
+			} catch (UnsupportedEncodingException uee) {
+				logger.error("failed to decode job ref ID '" + itemRefId + "'", uee);
 			}
 		}
 		return result;
