@@ -72,7 +72,7 @@ public class EnumsTest {
 		assertEquals(CIEventType.STARTED.value(), "started");
 		assertEquals(CIEventType.FINISHED.value(), "finished");
 		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED);
-		assertEquals(CIEventType.DELETED,"deleted" );
+		assertEquals(CIEventType.DELETED.value(),"deleted" );
 	}
 
 	@Test
