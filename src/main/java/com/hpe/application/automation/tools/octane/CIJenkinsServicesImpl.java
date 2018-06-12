@@ -563,14 +563,14 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		Item result = null;
 		if (itemRefId != null) {
 			try {
-				itemRefId = URLDecoder.decode(itemRefId, "UTF-8");
-				if (itemRefId.contains("/")) {
-					String newItemRefId = itemRefId.substring(0, itemRefId.indexOf("/"));
+				String itemRefIdUncoded = URLDecoder.decode(itemRefId, "UTF-8");
+				if (itemRefIdUncoded.contains("/")) {
+					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
 					Item item = getTopLevelItem(newItemRefId);
 					if (item != null && item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
 						Collection<? extends Item> allItems = ((OrganizationFolder)item).getItems();
 						for (Item multibranchItem : allItems) {
-							if (itemRefId.endsWith(multibranchItem.getName())) {
+							if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
 								result = multibranchItem;
 								break;
 							}
