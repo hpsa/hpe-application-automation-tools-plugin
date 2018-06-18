@@ -37,8 +37,6 @@ import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.settings.OctaneServerSettingsBuilder;
 import hudson.Plugin;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /***
  * Octane plugin configuration service -
@@ -47,8 +45,6 @@ import org.apache.logging.log4j.Logger;
  * 3. helps to get RestClient based on some configuration
  */
 public class ConfigurationService {
-
-    private static Logger logger = LogManager.getLogger(ConfigurationService.class);
 
     /**
      * Get current {@see OctaneServerSettingsModel} model
