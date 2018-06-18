@@ -35,7 +35,7 @@ package com.hpe.application.automation.tools.common;
 
 /**
  * Created by shitritn on 10/05/2017.
- * enum class that define all http protocol statuses with thire cuase for intenral use in plugin
+ * enum class that define all http protocol statuses with their cause for internal use in sdk
  */
 public enum HttpStatus {
     OK(200, "OK"),
