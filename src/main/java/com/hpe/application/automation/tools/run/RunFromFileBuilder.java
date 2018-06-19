@@ -731,12 +731,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			String val1 = value.trim();
-			if (val1.length() > 0 && val1.charAt(0) == '-') {
-				val1 = val1.substring(1);
+			String sanitizedValue = value.trim();
+			if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
+				sanitizedValue = sanitizedValue.substring(1);
 			}
 
-			if (!val1.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !val1.matches("[0-9]*$")) {
+			if (!sanitizedValue.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !sanitizedValue.matches("[0-9]*$")) {
 				return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
 			}
 
