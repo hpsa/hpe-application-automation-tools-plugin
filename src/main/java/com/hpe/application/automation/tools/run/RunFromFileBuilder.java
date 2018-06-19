@@ -736,7 +736,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				sanitizedValue = sanitizedValue.substring(1);
 			}
 
-			if (!sanitizedValue.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !sanitizedValue.matches("[0-9]*$")) {
+			if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
 				return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
 			}
 
@@ -795,11 +795,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			if (!value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$") && !value.matches("[0-9]*$")) {
+			if (!isParameterizedValue(value) && !StringUtils.isNumeric(value)) {
 				return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, $ScenarioDuration or ${ScenarioDuration}.");
 			}
 
-            return FormValidation.ok();
+            		return FormValidation.ok();
+		}
+		/**
+		 * Check if the value is parameterized.
+		 *
+		 * @param value the value
+		 * @return boolean
+		 */
+		public boolean isParameterizedValue(String value) {
+			//Parameter (with or without brackets)
+			return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
 		}
 	}
 }
