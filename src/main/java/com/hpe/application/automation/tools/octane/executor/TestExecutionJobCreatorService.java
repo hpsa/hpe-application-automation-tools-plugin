@@ -274,7 +274,7 @@ public class TestExecutionJobCreatorService {
             if (proj == null) {
 
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
-                proj.setDescription(String.format("This job was created by the Microfocus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
+                proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
             }
 
