@@ -66,6 +66,7 @@ public class RestAuthenticator implements Authenticator {
         boolean ret = true;
         String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
+            logger.log("Got authenticate point:" + authenticationPoint);
             Response response = login(client, authenticationPoint, username, password);
             if (response.isOk()) {
                 logLoggedInSuccessfully(username, client.getServerUrl(), logger);
