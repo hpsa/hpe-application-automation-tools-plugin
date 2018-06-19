@@ -33,6 +33,7 @@
 
 package com.hpe.application.automation.tools.octane.events;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
@@ -63,83 +64,86 @@ import java.io.File;
 import java.util.List;
 
 /**
+ * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
  * Created by gullery on 10/07/2016.
  */
 
 @Extension
 @SuppressWarnings("squid:S1872")
 public class SCMListenerImpl extends SCMListener {
-    private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 
-    @Override
-    public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile, SCMRevisionState pollingBaseline) throws Exception {
-        super.onCheckout(build, scm, workspace, listener, changelogFile, pollingBaseline);
-    }
+	@Override
+	public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile, SCMRevisionState pollingBaseline) throws Exception {
+		super.onCheckout(build, scm, workspace, listener, changelogFile, pollingBaseline);
+	}
 
-    @Override
-    public void onChangeLogParsed(Run<?, ?> r, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-        super.onChangeLogParsed(r, scm, listener, changelog);
+	@Override
+	public void onChangeLogParsed(Run<?, ?> r, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
+		super.onChangeLogParsed(r, scm, listener, changelog);
 
-        if(!ConfigurationService.getServerConfiguration().isValid()){
-            return;
-        }
+		if (ConfigurationService.getServerConfiguration() != null && !ConfigurationService.getServerConfiguration().isValid()) {
+			return;
+		}
+		if (ConfigurationService.getModel() != null && ConfigurationService.getModel().isSuspend()) {
+			return;
+		}
 
-        CIEvent event;
-        if (r.getParent() instanceof MatrixConfiguration || r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
-            if (changelog != null && !changelog.isEmptySet()) {        // if there are any commiters
-                SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-                if (scmProcessor != null) {
-                    createSCMData(r, build, scmProcessor);
-                } else {
-                    logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
-                }
-            }
-        }
+		CIEvent event;
+		if (r.getParent() instanceof MatrixConfiguration || r instanceof AbstractBuild) {
+			AbstractBuild build = (AbstractBuild) r;
+			if (changelog != null && !changelog.isEmptySet()) {        // if there are any commiters
+				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+				if (scmProcessor != null) {
+					event = createSCMEvent(r, build, scmProcessor);
+					OctaneSDK.getInstance().getEventsService().publishEvent(event);
+				} else {
+					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
+				}
+			}
+		} else if (r.getParent() instanceof WorkflowJob) {
+			WorkflowRun wRun = (WorkflowRun) r;
+			if (changelog != null && !changelog.isEmptySet() || !wRun.getChangeSets().isEmpty()) {
+				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+				if (scmProcessor != null) {
+					List<SCMData> scmDataList = scmProcessor.getSCMData(wRun);
+					for (SCMData scmData : scmDataList) {
+						event = dtoFactory.newDTO(CIEvent.class)
+								.setEventType(CIEventType.SCM)
+								.setProject(BuildHandlerUtils.getJobCiId(r))
+								.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+								.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+								.setNumber(String.valueOf(r.getNumber()))
+								.setScmData(scmData);
+						OctaneSDK.getInstance().getEventsService().publishEvent(event);
+					}
+				} else {
+					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
+				}
+			}
+		}
+	}
 
-        else if (r.getParent() instanceof WorkflowJob) {
-            WorkflowRun wRun = (WorkflowRun)r;
-            if (changelog != null && !changelog.isEmptySet() || !wRun.getChangeSets().isEmpty()) {
-                SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-                if (scmProcessor != null) {
-                    List<SCMData> scmDataList = scmProcessor.getSCMData(wRun);
-                    for (SCMData scmData : scmDataList) {
-                        event = dtoFactory.newDTO(CIEvent.class)
-                          .setEventType(CIEventType.SCM)
-                          .setProject(BuildHandlerUtils.getJobCiId(r))
-                          .setBuildCiId(String.valueOf(r.getNumber()))
-                          .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-                          .setNumber(String.valueOf(r.getNumber()))
-                          .setScmData(scmData);
-                        EventsService.getExtensionInstance().dispatchEvent(event);
-                    }
-                } else {
-                    logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
-                }
-            }
-        }
-    }
+	private CIEvent createSCMEvent(Run<?, ?> run, AbstractBuild build, SCMProcessor scmProcessor) {
+		CIEvent event;
+		SCMData scmData = scmProcessor.getSCMData(build);
+		event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.SCM)
+				.setProject(BuildHandlerUtils.getJobCiId(run))
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
+				.setCauses(CIEventCausesFactory.processCauses(extractCauses(run)))
+				.setNumber(String.valueOf(run.getNumber()))
+				.setScmData(scmData);
+		return event;
+	}
 
-    private void createSCMData(Run<?, ?> r, AbstractBuild build, SCMProcessor scmProcessor) {
-        CIEvent event;
-        SCMData scmData = scmProcessor.getSCMData(build);
-        event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.SCM)
-                    .setProject(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(String.valueOf(r.getNumber()))
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-					.setNumber(String.valueOf(r.getNumber()))
-					.setScmData(scmData);
-        EventsService.getExtensionInstance().dispatchEvent(event);
-    }
-
-    private List<Cause> extractCauses(Run r) {
-        if (r.getParent() instanceof MatrixConfiguration) {
-            return ((MatrixRun) r).getParentBuild().getCauses();
-        } else {
-            return r.getCauses();
-        }
-    }
+	private List<Cause> extractCauses(Run<?, ?> r) {
+		if (r.getParent() instanceof MatrixConfiguration) {
+			return ((MatrixRun) r).getParentBuild().getCauses();
+		} else {
+			return r.getCauses();
+		}
+	}
 }

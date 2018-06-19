@@ -33,17 +33,13 @@
 
 package com.hpe.application.automation.tools.octane.model.processors.scm;
 
-
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.scm.SCMChange;
 import com.hp.octane.integrations.dto.scm.SCMCommit;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.User;
-import hudson.model.UserProperty;
+import hudson.model.*;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SubversionChangeLogSet;
 import hudson.scm.SubversionSCM;
@@ -61,11 +57,12 @@ import java.util.regex.Pattern;
 /**
  * Created by benmeior on 5/15/2016.
  */
-@SuppressWarnings({"squid:S2221","squid:S00105"})
+
+@SuppressWarnings({"squid:S2221", "squid:S00105"})
 public class SvnSCMProcessor implements SCMProcessor {
 	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	public static final int PARENT_COMMIT_INDEX = 1;
+	private static final int PARENT_COMMIT_INDEX = 1;
 
 	@Override
 	public SCMData getSCMData(AbstractBuild build) {
@@ -87,7 +84,7 @@ public class SvnSCMProcessor implements SCMProcessor {
 
 			result = dtoFactory.newDTO(SCMData.class)
 					.setRepository(scmRepository)
-                    .setBuiltRevId(builtRevId)
+					.setBuiltRevId(builtRevId)
 					.setCommits(tmpCommits);
 		}
 		return result;
@@ -99,44 +96,49 @@ public class SvnSCMProcessor implements SCMProcessor {
 		return null;
 	}
 
+	@Override
+	public CommonOriginRevision getCommonOriginRevision(Run run) {
+		return null;
+	}
+
 	private ArrayList<SCMCommit> buildScmCommits(ChangeLogSet<ChangeLogSet.Entry> changes) {
 		ArrayList<SCMCommit> tmpCommits;
 		List<SCMChange> tmpChanges;
 		SCMChange tmpChange;
 		tmpCommits = new ArrayList<>();
 		for (ChangeLogSet.Entry c : changes) {
-            if (c instanceof SubversionChangeLogSet.LogEntry) {
-                SubversionChangeLogSet.LogEntry commit = (SubversionChangeLogSet.LogEntry) c;
-                User user = commit.getAuthor();
-                String userEmail = null;
+			if (c instanceof SubversionChangeLogSet.LogEntry) {
+				SubversionChangeLogSet.LogEntry commit = (SubversionChangeLogSet.LogEntry) c;
+				User user = commit.getAuthor();
+				String userEmail = null;
 
-                tmpChanges = new ArrayList<>();
-                for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
-                    tmpChange = dtoFactory.newDTO(SCMChange.class)
-                            .setType(item.getEditType().getName())
-                            .setFile(item.getPath());
-                    tmpChanges.add(tmpChange);
-                }
+				tmpChanges = new ArrayList<>();
+				for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
+					tmpChange = dtoFactory.newDTO(SCMChange.class)
+							.setType(item.getEditType().getName())
+							.setFile(item.getPath());
+					tmpChanges.add(tmpChange);
+				}
 
-                for (UserProperty property : user.getAllProperties()) {
-                    if (property instanceof Mailer.UserProperty) {
-                        userEmail = ((Mailer.UserProperty) property).getAddress();
-                    }
-                }
+				for (UserProperty property : user.getAllProperties()) {
+					if (property instanceof Mailer.UserProperty) {
+						userEmail = ((Mailer.UserProperty) property).getAddress();
+					}
+				}
 
-                String parentRevId = getParentRevId(commit);
+				String parentRevId = getParentRevId(commit);
 
-                SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
-                        .setTime(commit.getTimestamp())
-                        .setUser(commit.getAuthor().getId())
-                        .setUserEmail(userEmail)
-                        .setRevId(commit.getCommitId())
-                        .setParentRevId(parentRevId)
-                        .setComment(commit.getMsg().trim())
-                        .setChanges(tmpChanges);
-                tmpCommits.add(tmpCommit);
-            }
-        }
+				SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+						.setTime(commit.getTimestamp())
+						.setUser(commit.getAuthor().getId())
+						.setUserEmail(userEmail)
+						.setRevId(commit.getCommitId())
+						.setParentRevId(parentRevId)
+						.setComment(commit.getMsg().trim())
+						.setChanges(tmpChanges);
+				tmpCommits.add(tmpCommit);
+			}
+		}
 		return tmpCommits;
 	}
 
@@ -144,11 +146,10 @@ public class SvnSCMProcessor implements SCMProcessor {
 		String builtRevId = null;
 
 		try {
-
-            String revisionStateStr = String.valueOf(svnData.calcRevisionsFromBuild(build, null, null));
-            builtRevId = getRevisionIdFromBuild(revisionStateStr, scmRepositoryUrl);
-        } catch (IOException|InterruptedException e) {
-            logger.error("failed to get revision state", e);
+			String revisionStateStr = String.valueOf(svnData.calcRevisionsFromBuild(build, null, null));
+			builtRevId = getRevisionIdFromBuild(revisionStateStr, scmRepositoryUrl);
+		} catch (IOException | InterruptedException e) {
+			logger.error("failed to get revision state", e);
 		}
 		return builtRevId;
 	}
@@ -157,9 +158,13 @@ public class SvnSCMProcessor implements SCMProcessor {
 		String parentRevId = null;
 
 		try {
-            parentRevId = commit.getParent().getLogs().get(PARENT_COMMIT_INDEX).getCommitId();
-        } catch (Exception e){
-        	logger.error("Could not retrieve parentRevId",e);
+			if (commit.getParent() != null && commit.getParent().getLogs() != null && commit.getParent().getLogs().size() > PARENT_COMMIT_INDEX) {
+				parentRevId = commit.getParent().getLogs().get(PARENT_COMMIT_INDEX).getCommitId();
+			} else {
+				logger.info("parent rev ID is not available in the commit's logs");
+			}
+		} catch (Exception e) {
+			logger.error("failed to retrieve parentRevId", e);
 		}
 
 		return parentRevId;

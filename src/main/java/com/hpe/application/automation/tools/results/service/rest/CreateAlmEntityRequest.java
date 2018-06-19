@@ -34,7 +34,7 @@
 package com.hpe.application.automation.tools.results.service.rest;
 
 import com.hpe.application.automation.tools.common.Pair;
-import com.hpe.application.automation.tools.rest.RESTConstants;
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 import com.hpe.application.automation.tools.results.service.almentities.AlmEntity;
 import com.hpe.application.automation.tools.sse.sdk.Client;
 import com.hpe.application.automation.tools.sse.sdk.request.PostRequest;

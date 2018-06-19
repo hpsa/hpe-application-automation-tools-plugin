@@ -33,12 +33,11 @@
 
 package com.hpe.application.automation.tools.octane.configuration;
 
-import com.google.inject.Inject;
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.*;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hpe.application.automation.tools.octane.Messages;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
@@ -48,6 +47,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -55,12 +55,10 @@ import java.util.List;
 
 @Extension
 public class ConfigurationParser {
-
 	private final static Logger logger = LogManager.getLogger(ConfigurationParser.class);
+	private final static DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
-
-	private JenkinsMqmRestClientFactory clientFactory;
 
 	public static MqmProject parseUiLocation(String uiLocation) throws FormValidation {
 		try {
@@ -93,42 +91,32 @@ public class ConfigurationParser {
 	}
 
 	public FormValidation checkConfiguration(String location, String sharedSpace, String username, Secret password) {
-		MqmRestClient client = clientFactory.obtainTemp(location, sharedSpace, username, password);
+		OctaneConfiguration configuration = dtoFactory.newDTO(OctaneConfiguration.class)
+				.setUrl(location)
+				.setSharedSpace(sharedSpace)
+				.setApiKey(username)
+				.setSecret(password.getPlainText());
+		OctaneResponse checkResponse;
 		try {
-			client.validateConfiguration();
-		} catch (AuthenticationException ae) {
-			logger.warn("Authentication failure", ae);
-			return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
-		} catch (AuthorizationException ae) {
-			logger.warn("Authorization failure", ae);
-			return FormValidation.errorWithMarkup(markup("red", Messages.AuthorizationFailure()));
-		} catch (SharedSpaceNotExistException ssnee) {
-			logger.warn("Shared space validation failure", ssnee);
-			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
-		} catch (LoginErrorException lee) {
-			logger.warn("General logic failure", lee);
-			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
-		} catch (RequestErrorException ree) {
-			logger.warn("Connection check failed due to communication problem", ree);
+			checkResponse = OctaneSDK.getInstance().getConfigurationService().validateConfiguration(configuration);
+		} catch (IOException ioe) {
+			logger.warn("Connection check failed due to communication problem", ioe);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
 		}
-		return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));
+		if (checkResponse.getStatus() == 200) {
+			return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));
+		} else if (checkResponse.getStatus() == 401) {
+			return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
+		} else if (checkResponse.getStatus() == 403) {
+			return FormValidation.errorWithMarkup(markup("red", Messages.AuthorizationFailure()));
+		} else if (checkResponse.getStatus() == 404) {
+			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
+		} else {
+			return FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedFailure() + ": " + checkResponse.getStatus()));
+		}
 	}
 
 	public static String markup(String color, String message) {
 		return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
 	}
-
-	@Inject
-	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
-	/*
-	 * To be used in tests only.
-	 */
-	public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
-		this.clientFactory = clientFactory;
-	}
-
 }

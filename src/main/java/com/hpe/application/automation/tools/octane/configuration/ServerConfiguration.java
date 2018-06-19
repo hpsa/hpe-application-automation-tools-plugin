@@ -49,13 +49,15 @@ final public class ServerConfiguration {
 	public String username;
 	public Secret password;
 	public String impersonatedUser;
+	public boolean suspend;
 
-	public ServerConfiguration(String location, String sharedSpace, String username, Secret password, String impersonatedUser) {
+	public ServerConfiguration(String location, String sharedSpace, String username, Secret password, String impersonatedUser, boolean suspend) {
 		this.location = location;
 		this.sharedSpace = sharedSpace;
 		this.username = username;
 		this.password = password;
 		this.impersonatedUser = impersonatedUser;
+		this.suspend = suspend;
 	}
 
 	@Override
@@ -99,6 +101,14 @@ final public class ServerConfiguration {
 			}
 		}
 		return result;
+	}
+
+	public boolean isSuspend(){
+		return this.suspend;
+	}
+
+	public void setSuspend(boolean suspend){
+		this.suspend = suspend;
 	}
 
 	@Override

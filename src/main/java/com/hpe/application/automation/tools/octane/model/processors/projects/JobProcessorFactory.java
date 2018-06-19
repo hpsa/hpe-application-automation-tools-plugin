@@ -46,6 +46,21 @@ import java.util.Set;
 
 public class JobProcessorFactory {
 
+	public static String WORKFLOW_JOB_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowJob";
+
+	public static String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
+
+	public static String WORKFLOW_MULTI_BRANCH_JOB_NAME = "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject";
+
+	private static String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
+
+	private static String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+
+	private static String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
+
+	private static String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
+
+
 	private JobProcessorFactory() {
 	}
 
@@ -54,23 +69,24 @@ public class JobProcessorFactory {
 		return getFlowProcessor(job, processedJobs);
 	}
 
-	private static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
+	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
 		AbstractProjectProcessor flowProcessor;
 		processedJobs.add(job);
 
-		if (job.getClass().getName().equals("hudson.model.FreeStyleProject")) {
+		if (job.getClass().getName().equals(FREE_STYLE_JOB_NAME)) {
 			flowProcessor = new FreeStyleProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals("hudson.matrix.MatrixProject")) {
+		} else if (job.getClass().getName().equals(MATRIX_JOB_NAME)) {
 			flowProcessor = new MatrixProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
+		} else if (job.getClass().getName().equals(MAVEN_JOB_NAME)) {
 			flowProcessor = new MavenProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
+		} else if (job.getClass().getName().equals(MULTIJOB_JOB_NAME)) {
 			flowProcessor = new MultiJobProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+		} else if (job.getClass().getName().equals(WORKFLOW_JOB_NAME)) {
 			flowProcessor = new WorkFlowJobProcessor(job);
 		} else {
 			flowProcessor = new UnsupportedProjectProcessor(job);
 		}
+		processedJobs.remove(job);
 		return flowProcessor;
 	}
 }

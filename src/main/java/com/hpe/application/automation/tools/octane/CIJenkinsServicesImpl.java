@@ -37,6 +37,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -46,9 +47,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
@@ -64,8 +63,6 @@ import com.hpe.application.automation.tools.octane.model.ModelFactory;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -87,525 +84,485 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
  */
+
 public class CIJenkinsServicesImpl extends CIPluginServicesBase {
-    private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    @Override
-    public CIServerInfo getServerInfo() {
-        CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
-        String serverUrl = Jenkins.getInstance().getRootUrl();
-        if (serverUrl != null && serverUrl.endsWith("/")) {
-            serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-        }
-        OctaneServerSettingsModel model = ConfigurationService.getModel();
-        result.setType(CIServerTypes.JENKINS)
-                .setVersion(Jenkins.VERSION)
-                .setUrl(serverUrl)
-                .setInstanceId(model.getIdentity())
-                .setInstanceIdFrom(model.getIdentityFrom())
-                .setSendingTime(System.currentTimeMillis())
-                .setImpersonatedUser(model.getImpersonatedUser());
-        return result;
-    }
+	@Override
+	public CIServerInfo getServerInfo() {
+		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
+		String serverUrl = getJenkins().getRootUrl();
+		if (serverUrl != null && serverUrl.endsWith("/")) {
+			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+		}
+		OctaneServerSettingsModel model = ConfigurationService.getModel();
+		result.setType(CIServerTypes.JENKINS.value())
+				.setVersion(Jenkins.VERSION)
+				.setUrl(serverUrl)
+				.setInstanceId(model.getIdentity())
+				.setInstanceIdFrom(model.getIdentityFrom())
+				.setSendingTime(System.currentTimeMillis())
+				.setImpersonatedUser(model.getImpersonatedUser())
+				.setSuspended(model.isSuspend());
 
-    @Override
-    public CIPluginInfo getPluginInfo() {
-        CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
-        result.setVersion(ConfigurationService.getPluginVersion());
-        return result;
-    }
+		return result;
+	}
 
-    @Override
-    public File getAllowedOctaneStorage() {
-        return new File(Jenkins.getInstance().getRootDir(), "userContent");
-    }
+	@Override
+	public void suspendCIEvents(boolean suspend) {
+		OctaneServerSettingsModel model = ConfigurationService.getModel();
+		model.setSuspend(suspend);
+		ConfigurationService.configurePlugin(model);
+		logger.info("suspend ci event: " + suspend);
+	}
 
-    @Override
-    public File getPredictiveOctanePath() {
-        return new File(Jenkins.getInstance().getRootDir(), "predictive");
-    }
+	@Override
+	public CIPluginInfo getPluginInfo() {
+		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
+		result.setVersion(ConfigurationService.getPluginVersion());
+		return result;
+	}
 
-    @Override
-    public OctaneConfiguration getOctaneConfiguration() {
-        OctaneConfiguration result = null;
-        ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
-                serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
-            result = dtoFactory.newDTO(OctaneConfiguration.class)
-                    .setUrl(serverConfiguration.location)
-                    .setSharedSpace(serverConfiguration.sharedSpace)
-                    .setApiKey(serverConfiguration.username)
-                    .setSecret(serverConfiguration.password.getPlainText());
-        }
-        return result;
-    }
+	@Override
+	public File getAllowedOctaneStorage() {
+		return new File(getJenkins().getRootDir(), "userContent");
+	}
 
-    @Override
-    public CIProxyConfiguration getProxyConfiguration(String targetHost) {
-        CIProxyConfiguration result = null;
-        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
-        if (proxy != null) {
-            boolean noProxyHost = false;
-            for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
-                if (pattern.matcher(targetHost).find()) {
-                    noProxyHost = true;
-                    break;
-                }
-            }
-            if (!noProxyHost) {
-                result = dtoFactory.newDTO(CIProxyConfiguration.class)
-                        .setHost(proxy.name)
-                        .setPort(proxy.port)
-                        .setUsername(proxy.getUserName())
-                        .setPassword(proxy.getPassword());
-            }
-        }
-        return result;
-    }
+	@Override
+	public OctaneConfiguration getOctaneConfiguration() {
+		OctaneConfiguration result = null;
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
+			result = dtoFactory.newDTO(OctaneConfiguration.class)
+					.setUrl(serverConfiguration.location)
+					.setSharedSpace(serverConfiguration.sharedSpace)
+					.setApiKey(serverConfiguration.username)
+					.setSecret(serverConfiguration.password.getPlainText());
+		}
+		return result;
+	}
 
-    @Override
-    public CIJobsList getJobsList(boolean includeParameters) {
-        SecurityContext securityContext = startImpersonation();
-        CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
-        PipelineNode tmpConfig;
-        TopLevelItem tmpItem;
-        List<PipelineNode> list = new ArrayList<>();
-        try {
-            boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
-            if (!hasReadPermission) {
-                stopImpersonation(securityContext);
-                throw new PermissionException(403);
-            }
-            List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
-            for (String name : itemNames) {
-                tmpItem = Jenkins.getInstance().getItem(name);
+	@Override
+	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+		CIProxyConfiguration result = null;
+		ProxyConfiguration proxy = getJenkins().proxy;
+		if (proxy != null) {
+			boolean noProxyHost = false;
+			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
+				if (pattern.matcher(targetHost).find()) {
+					noProxyHost = true;
+					break;
+				}
+			}
+			if (!noProxyHost) {
+				result = dtoFactory.newDTO(CIProxyConfiguration.class)
+						.setHost(proxy.name)
+						.setPort(proxy.port)
+						.setUsername(proxy.getUserName())
+						.setPassword(proxy.getPassword());
+			}
+		}
+		return result;
+	}
 
+	@Override
+	public CIJobsList getJobsList(boolean includeParameters) {
+		SecurityContext securityContext = startImpersonation();
+		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
+		PipelineNode tmpConfig;
+		TopLevelItem tmpItem;
+		List<PipelineNode> list = new ArrayList<>();
+		try {
+			boolean hasReadPermission = getJenkins().hasPermission(Item.READ);
+			if (!hasReadPermission) {
+				stopImpersonation(securityContext);
+				throw new PermissionException(403);
+			}
+			List<String> itemNames = (List<String>) getJenkins().getTopLevelItemNames();
+			for (String name : itemNames) {
+				tmpItem = getJenkins().getItem(name);
+
+				if (tmpItem == null) {
+					continue;
+				}
+
+				String jobClassName = tmpItem.getClass().getName();
                 try {
-                    if (tmpItem instanceof AbstractProject) {
-                        AbstractProject abstractProject = (AbstractProject) tmpItem;
-                        if (abstractProject.isDisabled()) {
-                            continue;
-                        }
-                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                .setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getTranslateJobName())
-                                .setName(name);
-                        if (includeParameters) {
-                            tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
-                        }
-                        list.add(tmpConfig);
-                    } else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-                        Job tmpJob = (Job) tmpItem;
-                        tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-                                .setName(name);
-                        if (includeParameters) {
-                            tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-                        }
-                        list.add(tmpConfig);
-                    } else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
-                        for (Job tmpJob : tmpItem.getAllJobs()) {
-                            tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                    .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getTranslateJobName())
-                                    .setName(tmpJob.getName());
-                            if (includeParameters) {
-                                tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-                            }
-                            list.add(tmpConfig);
-                        }
-                    } else {
-                        logger.info("item '" + name + "' is not of supported type");
-                    }
+					if (tmpItem instanceof AbstractProject) {
+						AbstractProject abstractProject = (AbstractProject) tmpItem;
+						if (abstractProject.isDisabled()) {
+							continue;
+						}
+						tmpConfig = createPipelineNode(name, abstractProject, includeParameters);
+						list.add(tmpConfig);
+					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+						tmpConfig = createPipelineNode(name, (Job) tmpItem, includeParameters);
+						list.add(tmpConfig);
+					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+						for (Job tmpJob : tmpItem.getAllJobs()) {
+							tmpConfig = createPipelineNode(tmpJob.getName(), tmpJob, includeParameters);
+							list.add(tmpConfig);
+						}
+					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+						tmpConfig = createPipelineNodeFromJobName(name);
+						list.add(tmpConfig);
+					} else {
+						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", name, jobClassName));
+					}
                 } catch (Throwable e) {
-                    logger.error("Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
-                    //throw e;
+                    logger.error("getJobsList : Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
                 }
 
-            }
-            result.setJobs(list.toArray(new PipelineNode[list.size()]));
-            stopImpersonation(securityContext);
-        } catch (AccessDeniedException e) {
-            stopImpersonation(securityContext);
-            throw new PermissionException(403);
+			}
+			result.setJobs(list.toArray(new PipelineNode[list.size()]));
+			stopImpersonation(securityContext);
+		} catch (AccessDeniedException e) {
+			stopImpersonation(securityContext);
+			throw new PermissionException(403);
+		}
+		return result;
+	}
+
+	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                .setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
+                .setName(name);
+		if (includeParameters) {
+            tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
         }
-        return result;
-    }
+		return tmpConfig;
+	}
+
+	private PipelineNode createPipelineNodeFromJobName(String name) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(name)
+				.setName(name);
+		return tmpConfig;
+	}
 
 
-    @Override
-    public PipelineNode getPipeline(String rootJobCiId) {
-        PipelineNode result;
-        SecurityContext securityContext = startImpersonation();
-        boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
-        if (!hasRead) {
-            stopImpersonation(securityContext);
-            throw new PermissionException(403);
-        }
-        Job project = getJobByRefId(rootJobCiId);
-        if (project != null) {
-            result = ModelFactory.createStructureItem(project);
-            stopImpersonation(securityContext);
-            return result;
-        } else {
-            //todo: check error message(s)
-            logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
-            stopImpersonation(securityContext);
-            throw new ConfigurationException(404);
-        }
-    }
+	@Override
+	public PipelineNode getPipeline(String rootJobCiId) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			PipelineNode result;
+			boolean hasRead = getJenkins().hasPermission(Item.READ);
+			if (!hasRead) {
+				throw new PermissionException(403);
+			}
 
-    private SecurityContext startImpersonation() {
-        String user = ConfigurationService.getModel().getImpersonatedUser();
-        SecurityContext originalContext = null;
-        if (user != null && !user.equalsIgnoreCase("")) {
-            User jenkinsUser = User.get(user, false);
-            if (jenkinsUser != null) {
-                originalContext = ACL.impersonate(jenkinsUser.impersonate());
-            } else {
-                throw new PermissionException(401);
-            }
-        } else {
-            logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
-        }
-        return originalContext;
-    }
+			TopLevelItem tli = getTopLevelItem(rootJobCiId);
+			if (tli != null && tli.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+				result = createPipelineNodeFromJobName(rootJobCiId);
+				result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
+			} else {
+				Job project = getJobByRefId(rootJobCiId);
+				if (project != null) {
+					result = ModelFactory.createStructureItem(project);
+				} else {
+					//todo: check error message(s)
+					logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
+					throw new ConfigurationException(404);
+				}
+			}
+			return result;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
 
-    private void stopImpersonation(SecurityContext originalContext) {
-        if (originalContext != null) {
-            ACL.impersonate(originalContext.getAuthentication());
-        } else {
-            logger.warn("Could not roll back impersonation, originalContext is null ");
-        }
-    }
+	private SecurityContext startImpersonation() {
+		String user = ConfigurationService.getModel().getImpersonatedUser();
+		SecurityContext originalContext = null;
+		if (user != null && !user.equalsIgnoreCase("")) {
+			User jenkinsUser = User.get(user, false, Collections.emptyMap());
+			if (jenkinsUser != null) {
+				originalContext = ACL.impersonate(jenkinsUser.impersonate());
+			} else {
+				throw new PermissionException(401);
+			}
+		} else {
+			logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
+		}
+		return originalContext;
+	}
 
-    @Override
-    public void runPipeline(String jobCiId, String originalBody) {
-        SecurityContext securityContext = startImpersonation();
-        Job job = getJobByRefId(jobCiId);
-        if (job != null) {
-            boolean hasBuildPermission = job.hasPermission(Item.BUILD);
-            if (!hasBuildPermission) {
-                stopImpersonation(securityContext);
-                throw new PermissionException(403);
-            }
-            if (job instanceof AbstractProject || job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-                doRunImpl(job, originalBody);
-            }
-            stopImpersonation(securityContext);
-        } else {
-            stopImpersonation(securityContext);
-            throw new ConfigurationException(404);
-        }
-    }
+	private void stopImpersonation(SecurityContext originalContext) {
+		if (originalContext != null) {
+			ACL.impersonate(originalContext.getAuthentication());
+		} else {
+			logger.warn("Could not roll back impersonation, originalContext is null ");
+		}
+	}
 
-    @Override
-    public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-        SecurityContext securityContext = startImpersonation();
-        SnapshotNode result = null;
-        Job job = getJobByRefId(jobCiId);
-        if (job != null) {
-            Run run = job.getLastBuild();
-            if (run != null) {
-                result = ModelFactory.createSnapshotItem(run, subTree);
-            }
-        }
-        stopImpersonation(securityContext);
-        return result;
-    }
+	@Override
+	public void runPipeline(String jobCiId, String originalBody) {
+		SecurityContext securityContext = startImpersonation();
+		Job job = getJobByRefId(jobCiId);
+		if (job != null) {
+			boolean hasBuildPermission = job.hasPermission(Item.BUILD);
+			if (!hasBuildPermission) {
+				stopImpersonation(securityContext);
+				throw new PermissionException(403);
+			}
+			if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+				doRunImpl(job, originalBody);
+			}
+			stopImpersonation(securityContext);
+		} else {
+			stopImpersonation(securityContext);
+			throw new ConfigurationException(404);
+		}
+	}
 
-    @Override
-    public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
-        SecurityContext securityContext = startImpersonation();
+	@Override
+	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
+		SecurityContext securityContext = startImpersonation();
+		SnapshotNode result = null;
+		Job job = getJobByRefId(jobCiId);
+		if (job != null) {
+			Run run = job.getLastBuild();
+			if (run != null) {
+				result = ModelFactory.createSnapshotItem(run, subTree);
+			}
+		}
+		stopImpersonation(securityContext);
+		return result;
+	}
 
-        SnapshotNode result = null;
-        Job job = getJobByRefId(jobCiId);
+	@Override
+	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
+		SecurityContext securityContext = startImpersonation();
 
-        Integer buildNumber = null;
-        try {
-            buildNumber = Integer.parseInt(buildCiId);
-        } catch (NumberFormatException nfe) {
-            logger.error("failed to parse build CI ID to build number, " + nfe.getMessage(), nfe);
-        }
-        if (job != null && buildNumber != null) {
-            Run build = job.getBuildByNumber(buildNumber);
-            if (build != null) {
-                result = ModelFactory.createSnapshotItem(build, subTree);
-            }
-        }
+		SnapshotNode result = null;
+		Job job = getJobByRefId(jobCiId);
 
-        stopImpersonation(securityContext);
-        return result;
-    }
+		Integer buildNumber = null;
+		try {
+			buildNumber = Integer.parseInt(buildCiId);
+		} catch (NumberFormatException nfe) {
+			logger.error("failed to parse build CI ID to build number, " + nfe.getMessage(), nfe);
+		}
+		if (job != null && buildNumber != null) {
+			Run build = job.getBuildByNumber(buildNumber);
+			if (build != null) {
+				result = ModelFactory.createSnapshotItem(build, subTree);
+			}
+		}
 
-    @Override
-    public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
-        SecurityContext securityContext = startImpersonation();
-        BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
-        Job job = getJobByRefId(jobCiId);
-        AbstractProject project;
-        if (job instanceof AbstractProject) {
-            project = (AbstractProject) job;
-            SCMData scmData;
-            Set<User> users;
-            SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
+		stopImpersonation(securityContext);
+		return result;
+	}
 
-            int numberOfBuilds = 5;
+	//  TODO: implement
+	@Override
+	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+		return null;
+	}
 
-            //TODO : check if it works!!
-            if (originalBody != null && !originalBody.isEmpty()) {
-                JSONObject bodyJSON = JSONObject.fromObject(originalBody);
-                if (bodyJSON.has("numberOfBuilds")) {
-                    numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
-                }
-            }
-            List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.ABORTED); // get last five build with result that better or equal failure
-            for (int i = 0; i < result.size(); i++) {
-                AbstractBuild build = (AbstractBuild) result.get(i);
-                scmData = null;
-                users = null;
-                if (build != null) {
-                    if (scmProcessor != null) {
-                        scmData = scmProcessor.getSCMData(build);
-                        users = build.getCulprits();
-                    }
-                    buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-                }
-            }
-            AbstractBuild lastSuccessfulBuild = null;
-            AbstractBuild lastProjectBuild = project.getLastBuild();
-            if (lastProjectBuild != null) {
-                lastSuccessfulBuild = (AbstractBuild) lastProjectBuild.getPreviousSuccessfulBuild();
-            }
-            if (lastSuccessfulBuild != null) {
-                scmData = null;
-                users = null;
-                if (scmProcessor != null) {
-                    scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
-                    users = lastSuccessfulBuild.getCulprits();
-                }
-                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-            }
-            AbstractBuild lastBuild = project.getLastBuild();
-            if (lastBuild != null) {
-                scmData = null;
-                users = null;
-                if (scmProcessor != null) {
-                    scmData = scmProcessor.getSCMData(lastBuild);
-                    users = lastBuild.getCulprits();
-                }
+	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
+	private void doRunImpl(Job job, String originalBody) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			int delay = project.getQuietPeriod();
+			ParametersAction parametersAction = new ParametersAction();
 
-                if (lastBuild.getResult() == null) {
-                    buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-                } else {
-                    buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-                }
-            }
-            stopImpersonation(securityContext);
-        } else {
-            logger.warn("non supported flow");
-        }
-        return buildHistory;
-    }
+			if (originalBody != null && !originalBody.isEmpty()) {
+				JSONObject bodyJSON = JSONObject.fromObject(originalBody);
 
-    //  TODO: implement
-    @Override
-    public TestsResult getTestsResult(String jobId, String buildNumber) {
-        return null;
-    }
+				//  delay
+				if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
+					delay = bodyJSON.getInt("delay");
+				}
 
-    //  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
-    private void doRunImpl(Job job, String originalBody) {
-        if (job instanceof AbstractProject) {
-            AbstractProject project = (AbstractProject) job;
-            int delay = project.getQuietPeriod();
-            ParametersAction parametersAction = new ParametersAction();
+				//  parameters
+				if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
+					JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
+					parametersAction = new ParametersAction(createParameters(project, paramsJSON));
+				}
+			}
 
-            if (originalBody != null && !originalBody.isEmpty()) {
-                JSONObject bodyJSON = JSONObject.fromObject(originalBody);
+			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
+		} else if (job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+			AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
+			workFlowJobProcessor.scheduleBuild(originalBody);
+		}
+	}
 
-                //  delay
-                if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
-                    delay = bodyJSON.getInt("delay");
-                }
+	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
+		List<ParameterValue> result = new ArrayList<>();
+		boolean parameterHandled;
+		ParameterValue tmpValue;
+		ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
+		if (paramsDefProperty != null) {
+			for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
+				parameterHandled = false;
+				for (int i = 0; i < paramsJSON.size(); i++) {
+					JSONObject paramJSON = paramsJSON.getJSONObject(i);
+					if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
+						tmpValue = null;
+						switch (CIParameterType.fromValue(paramJSON.getString("type"))) {
+							case FILE:
+								try {
+									FileItemFactory fif = new DiskFileItemFactory();
+									FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
+									fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(paramJSON.getString("value")));
+									tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
+								} catch (IOException ioe) {
+									logger.warn("failed to process file parameter", ioe);
+								}
+								break;
+							case NUMBER:
+								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.get("value").toString());
+								break;
+							case STRING:
+								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
+								break;
+							case BOOLEAN:
+								tmpValue = new BooleanParameterValue(paramJSON.getString("name"), paramJSON.getBoolean("value"));
+								break;
+							case PASSWORD:
+								tmpValue = new PasswordParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
+								break;
+							default:
+								break;
+						}
+						if (tmpValue != null) {
+							result.add(tmpValue);
+							parameterHandled = true;
+						}
+						break;
+					}
+				}
+				if (!parameterHandled) {
+					if (paramDef instanceof FileParameterDefinition) {
+						FileItemFactory fif = new DiskFileItemFactory();
+						FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
+						try {
+							fi.getOutputStream().write(new byte[0]);
+						} catch (IOException ioe) {
+							logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
+						}
+						tmpValue = new FileParameterValue(paramDef.getName(), fi);
+						result.add(tmpValue);
+					} else {
+						result.add(paramDef.getDefaultParameterValue());
+					}
+				}
+			}
+		}
+		return result;
+	}
 
-                //  parameters
-                if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
-                    JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
-                    parametersAction = new ParametersAction(createParameters(project, paramsJSON));
-                }
-            }
+	private Job getJobByRefId(String jobRefId) {
+		Job result = null;
+		if (jobRefId != null) {
+			try {
+				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
+				TopLevelItem item = getTopLevelItem(jobRefId);
+				if (item != null && item instanceof Job) {
+					result = (Job) item;
+				} else if (jobRefId.contains("/") && item == null) {
+					String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
+					item = getTopLevelItem(newJobRefId);
+					if (item != null) {
+						Collection<? extends Job> allJobs = item.getAllJobs();
+						for (Job job : allJobs) {
+							if (jobRefId.endsWith(job.getName())) {
+								result = job;
+								break;
+							}
+						}
+					}
+				}
+			} catch (UnsupportedEncodingException uee) {
+				logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
+			}
+		}
+		return result;
+	}
 
-            project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
-        } else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-            AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
-            workFlowJobProcessor.scheduleBuild(originalBody);
-        }
-    }
+	private TopLevelItem getTopLevelItem(String jobRefId) {
+		TopLevelItem item;
+		try {
+			item = getJenkins().getItem(jobRefId);
+		} catch (AccessDeniedException e) {
+			String user = ConfigurationService.getModel().getImpersonatedUser();
+			if (user != null && !user.isEmpty()) {
+				throw new PermissionException(403);
+			} else {
+				throw new PermissionException(405);
+			}
+		}
+		return item;
+	}
 
-    private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
-        List<ParameterValue> result = new ArrayList<>();
-        boolean parameterHandled;
-        ParameterValue tmpValue;
-        ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
-        if (paramsDefProperty != null) {
-            for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
-                parameterHandled = false;
-                for (int i = 0; i < paramsJSON.size(); i++) {
-                    JSONObject paramJSON = paramsJSON.getJSONObject(i);
-                    if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
-                        tmpValue = null;
-                        switch (CIParameterType.fromValue(paramJSON.getString("type"))) {
-                            case FILE:
-                                try {
-                                    FileItemFactory fif = new DiskFileItemFactory();
-                                    FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
-                                    fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(paramJSON.getString("value")));
-                                    tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
-                                } catch (IOException ioe) {
-                                    logger.warn("failed to process file parameter", ioe);
-                                }
-                                break;
-                            case NUMBER:
-                                tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.get("value").toString());
-                                break;
-                            case STRING:
-                                tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-                                break;
-                            case BOOLEAN:
-                                tmpValue = new BooleanParameterValue(paramJSON.getString("name"), paramJSON.getBoolean("value"));
-                                break;
-                            case PASSWORD:
-                                tmpValue = new PasswordParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-                                break;
-                            default:
-                                break;
-                        }
-                        if (tmpValue != null) {
-                            result.add(tmpValue);
-                            parameterHandled = true;
-                        }
-                        break;
-                    }
-                }
-                if (!parameterHandled) {
-                    if (paramDef instanceof FileParameterDefinition) {
-                        FileItemFactory fif = new DiskFileItemFactory();
-                        FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
-                        try {
-                            fi.getOutputStream().write(new byte[0]);
-                        } catch (IOException ioe) {
-                            logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
-                        }
-                        tmpValue = new FileParameterValue(paramDef.getName(), fi);
-                        result.add(tmpValue);
-                    } else {
-                        result.add(paramDef.getDefaultParameterValue());
-                    }
-                }
-            }
-        }
-        return result;
-    }
+	@Override
+	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
 
-    private Job getJobByRefId(String jobRefId) {
-        Job result = null;
-        if (jobRefId != null) {
-            try {
-                jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
-                TopLevelItem item = getTopLevelItem(jobRefId);
-                if (item != null && item instanceof Job) {
-                    result = (Job) item;
-                } else if (jobRefId.contains("/") && item == null) {
-                    String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
-                    item = getTopLevelItem(newJobRefId);
-                    if (item != null) {
-                        Collection<? extends Job> allJobs = item.getAllJobs();
-                        for (Job job : allJobs) {
-                            if (jobRefId.endsWith(job.getName())) {
-                                result = job;
-                                break;
-                            }
-                        }
-                    }
-                }
-            } catch (UnsupportedEncodingException uee) {
-                logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
-            }
-        }
-        return result;
-    }
+	@Override
+	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
 
-    private TopLevelItem getTopLevelItem(String jobRefId) {
-        TopLevelItem item;
-        try {
-            item = Jenkins.getInstance().getItem(jobRefId);
-        } catch (AccessDeniedException e) {
-            String user = ConfigurationService.getModel().getImpersonatedUser();
-            if (user != null && !user.isEmpty()) {
-                throw new PermissionException(403);
-            } else {
-                throw new PermissionException(405);
-            }
-        }
-        return item;
-    }
+	@Override
+	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
 
-    @Override
-    public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-        SecurityContext securityContext = startImpersonation();
-        try {
-            TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
-        } finally {
-            stopImpersonation(securityContext);
-        }
-    }
+	@Override
+	public void deleteExecutor(String id) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			UftJobCleaner.deleteExecutor(id);
+		} finally {
+			stopImpersonation(securityContext);
+		}
 
-    @Override
-    public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-        SecurityContext securityContext = startImpersonation();
-        try {
-            TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
-        } finally {
-            stopImpersonation(securityContext);
-        }
-    }
+	}
 
-    @Override
-    public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-        SecurityContext securityContext = startImpersonation();
-        try {
-            return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
-        } finally {
-            stopImpersonation(securityContext);
-        }
-    }
+	@Override
+	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
 
-    @Override
-    public void deleteExecutor(String id) {
-        SecurityContext securityContext = startImpersonation();
-        try {
-            UftJobCleaner.deleteExecutor(id);
-        } finally {
-            stopImpersonation(securityContext);
-        }
-
-    }
-
-    @Override
-    public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-        SecurityContext securityContext = startImpersonation();
-        try {
-            return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
-        } finally {
-            stopImpersonation(securityContext);
-        }
-    }
+	private Jenkins getJenkins() {
+		Jenkins result = Jenkins.getInstance();
+		if (result == null) {
+			throw new IllegalStateException("Jenkins instance is not available");
+		}
+		return result;
+	}
 
 }

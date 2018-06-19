@@ -33,17 +33,20 @@
 
 package com.hpe.application.automation.tools.octane.tests;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.hpe.application.automation.tools.octane.client.TestEventPublisher;
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.*;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.api.RestService;
+import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hpe.application.automation.tools.octane.OctaneServerMock;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.FilePath;
-import hudson.matrix.*;
+import hudson.matrix.Axis;
+import hudson.matrix.AxisList;
+import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixProject;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
@@ -52,323 +55,386 @@ import hudson.util.Secret;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
+import org.eclipse.jetty.server.Request;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2698"})
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2698"})
 public class TestDispatcherTest {
+	private static final Logger logger = Logger.getLogger(TestDispatcherTest.class.getName());
 
-	private TestQueue queue;
-	private TestDispatcher testDispatcher;
-	private JenkinsMqmRestClientFactory clientFactory;
-	private MqmRestClient restClient;
-	private TestEventPublisher testEventPublisher;
+	private static int octaneServerMockPort;
+	private static String sharedSpaceId = TestDispatcherTest.class.getSimpleName();
+	private static TestApiPreflightHandler testApiPreflightHandler = new TestApiPreflightHandler();
+	private static TestApiPushTestsResultHandler testApiPushTestsResultHandler = new TestApiPushTestsResultHandler();
+	private static AbstractProject project;
+	private static TestDispatcher testDispatcher;
+	private static TestQueue queue;
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 
-	private FreeStyleProject project;
+	static {
+		System.setProperty("Octane.TestDispatcher.Period", "1000");
+	}
 
 	@BeforeClass
-	public static void initClass() {
-		System.setProperty("MQM.TestDispatcher.Period", "1000");
+	public static void initClass() throws Exception {
+
+		//  prepare project
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		project = rule.createFreeStyleProject("TestDispatcher");
+		((FreeStyleProject) project).getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=\"%s\\m2-temp\"",
+				System.getenv("MAVEN_HOME"), System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		((FreeStyleProject) project).getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+
+		//  prepare Octane Server Mock
+		OctaneServerMock octaneServerMock = OctaneServerMock.getInstance();
+		octaneServerMockPort = octaneServerMock.getPort();
+		octaneServerMock.addTestSpecificHandler(testApiPreflightHandler);
+		octaneServerMock.addTestSpecificHandler(testApiPushTestsResultHandler);
+
+		//  configure plugin for the server
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(
+				"http://127.0.0.1:" + octaneServerMockPort + "/ui?p=" + sharedSpaceId,
+				"username",
+				Secret.fromString("password"),
+				"");
+		ConfigurationService.configurePlugin(model);
+
+		testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
+	}
+
+	@AfterClass
+	public static void cleanup() {
+		OctaneServerMock octaneServerMock = OctaneServerMock.getInstance();
+		octaneServerMock.removeTestSpecificHandler(testApiPreflightHandler);
+		octaneServerMock.removeTestSpecificHandler(testApiPushTestsResultHandler);
 	}
 
 	@Before
-	public void init() throws Exception {
-		restClient = Mockito.mock(MqmRestClient.class);
-		clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.<Secret>any())).thenReturn(restClient);
-		testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
-		testDispatcher._setMqmRestClientFactory(clientFactory);
+	public void prepareForTest() {
+		RetryModel retryModel = new RetryModel();
+		testDispatcher._setRetryModel(retryModel);
+
 		queue = new TestQueue();
 		testDispatcher._setTestResultQueue(queue);
-		queue.waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
-
-		testEventPublisher = new TestEventPublisher();
-		RetryModel retryModel = new RetryModel(testEventPublisher);
-		testDispatcher._setRetryModel(retryModel);
-		testDispatcher._setEventPublisher(testEventPublisher);
-
-		project = rule.createFreeStyleProject("TestDispatcher");
-		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
-		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
-
-		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=%s\\m2-temp",
-				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-
-		// server needs to be configured in order for the processing to happen
-		HtmlPage configPage = rule.createWebClient().goTo("configure");
-		HtmlForm form = configPage.getFormByName("config");
-		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
-		form.getInputByName("_.username").setValueAttribute("username");
-		form.getInputByName("_.password").setValueAttribute("password");
-		rule.submit(form);
 	}
 
 	@Test
 	public void testDispatcher() throws Exception {
-		mockRestClient(restClient, true);
-		FreeStyleBuild build = executeBuild();
-		queue.waitForTicks(5);
-		verifyRestClient(restClient, build, true);
-		verifyAudit(build, true);
+		testApiPreflightHandler.respondWithNegative = false;
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.testResults.clear();
 
-		mockRestClient(restClient, true);
+		FreeStyleBuild build = executeBuild();
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(1, 10000);
+		assertEquals(1, testApiPreflightHandler.lastSessionHits);
+		assertEquals(testApiPushTestsResultHandler.testResults.get(0), IOUtils.toString(new FileInputStream(new File(build.getRootDir(), "mqmTests.xml"))));
+		verifyAudit(false, build, true);
+		testApiPushTestsResultHandler.testResults.clear();
+		testApiPreflightHandler.lastSessionHits = 0;
+
 		FreeStyleBuild build2 = executeBuild();
-		queue.waitForTicks(5);
-		verifyRestClient(restClient, build2, true);
-		verifyAudit(build2, true);
-		Assert.assertEquals(0, queue.size());
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(1, 10000);
+		assertEquals(1, testApiPreflightHandler.lastSessionHits);
+		assertEquals(testApiPushTestsResultHandler.testResults.get(0), IOUtils.toString(new FileInputStream(new File(build2.getRootDir(), "mqmTests.xml"))));
+		verifyAudit(false, build2, true);
+		assertEquals(0, queue.size());
+		testApiPushTestsResultHandler.testResults.clear();
+		testApiPreflightHandler.lastSessionHits = 0;
 	}
 
 	@Test
 	public void testDispatcherBatch() throws Exception {
-		mockRestClient(restClient, true);
-		FreeStyleBuild build = project.scheduleBuild2(0).get();
-		FreeStyleBuild build2 = project.scheduleBuild2(0).get();
-		FreeStyleBuild build3 = project.scheduleBuild2(0).get();
-		queue.add(Arrays.asList(build, build2, build3));
-		queue.waitForTicks(10);
+		FreeStyleBuild build1 = ((FreeStyleProject) project).scheduleBuild2(0).get();
+		FreeStyleBuild build2 = ((FreeStyleProject) project).scheduleBuild2(0).get();
+		FreeStyleBuild build3 = ((FreeStyleProject) project).scheduleBuild2(0).get();
+		queue.add(Arrays.asList(build1, build2, build3));
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(3, 20000);
 
-		Mockito.verify(restClient).validateConfigurationWithoutLogin();
-		Mockito.verify(restClient, Mockito.atMost(3)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(0, queue.size());
+		assertEquals(3, testApiPreflightHandler.lastSessionHits);
+		assertEquals(testApiPushTestsResultHandler.testResults.get(0), IOUtils.toString(new FileInputStream(new File(build1.getRootDir(), "mqmTests.xml"))));
+		assertEquals(testApiPushTestsResultHandler.testResults.get(1), IOUtils.toString(new FileInputStream(new File(build2.getRootDir(), "mqmTests.xml"))));
+		assertEquals(testApiPushTestsResultHandler.testResults.get(2), IOUtils.toString(new FileInputStream(new File(build3.getRootDir(), "mqmTests.xml"))));
+		assertEquals(0, queue.size());
 
-		verifyAudit(build, true);
-		verifyAudit(build2, true);
-		verifyAudit(build3, true);
+		verifyAudit(false, build1, true);
+		verifyAudit(false, build2, true);
+		verifyAudit(false, build3, true);
+
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.testResults.clear();
 	}
 
 	@Test
-	public void testDispatcherSharedSpaceFailure() throws Exception {
-		mockRestClient(restClient, false);
-		FreeStyleBuild build = executeBuild();
-		queue.waitForTicks(5);
+	public void testDispatcherTemporaryFailureRetryTest() throws Exception {
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 6;
 
-		verifyRestClient(restClient, build, false);
-		verifyAudit(build);
-		Mockito.reset(restClient);
+		FreeStyleBuild build = executeBuild();
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(1, 5000);
+		assertEquals(1, testApiPreflightHandler.lastSessionHits);
+		assertEquals(1, testApiPushTestsResultHandler.lastSessionHits);
+		verifyAudit(true, build, false);
+
+		//  starting quite period of 3 seconds
 
 		executeBuild();
-		queue.waitForTicks(5);
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(1, 10000);
 
-		// in quiet period
-		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(2, queue.size());
+		//  entering quite period of 10 seconds
+
+		executeBuild();
+
+		executeBuild();
+
+		//  entering quite period of 60 seconds
+
+		assertEquals(3, testApiPreflightHandler.lastSessionHits);
+		assertEquals(3, testApiPushTestsResultHandler.lastSessionHits);
+		assertEquals(4, queue.size());
+
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.testResults.clear();
 	}
 
 	@Test
 	public void testDispatcherBodyFailure() throws Exception {
 		// body post fails for the first time, succeeds afterwards
-
-		Mockito.doNothing().when(restClient).validateConfigurationWithoutLogin();
-		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestErrorException("fails")).doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
-		InOrder order = Mockito.inOrder(restClient);
+		//
+		testApiPreflightHandler.respondWithNegative = false;
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 1;
+		testApiPushTestsResultHandler.testResults.clear();
 
 		FreeStyleBuild build = executeBuild();
-		queue.waitForTicks(5);
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(2, 10000);
+		assertEquals(2, testApiPreflightHandler.lastSessionHits);
+		assertEquals(2, testApiPushTestsResultHandler.lastSessionHits);
+		assertEquals(testApiPushTestsResultHandler.testResults.get(0), IOUtils.toString(new FileInputStream(new File(build.getRootDir(), "mqmTests.xml"))));
+		verifyAudit(true, build, false, true);
 
-		order.verify(restClient).validateConfigurationWithoutLogin();
-		order.verify(restClient).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-
-		Mockito.verify(restClient, Mockito.times(2)).validateConfigurationWithoutLogin();
-		Mockito.verify(restClient, Mockito.times(2)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verifyNoMoreInteractions(restClient);
-		verifyAudit(build, false, true);
-
-		Assert.assertEquals(0, queue.size());
-		Assert.assertEquals(0, queue.getDiscards());
+		assertEquals(0, queue.size());
+		assertEquals(0, queue.getDiscards());
 
 		// body post fails for two consecutive times
-
-		Mockito.reset(restClient);
-		Mockito.doNothing().when(restClient).validateConfigurationWithoutLogin();
-		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestErrorException("fails")).doThrow(new RequestErrorException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
-
-		order = Mockito.inOrder(restClient);
-
+		//
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 2;
+		testApiPushTestsResultHandler.testResults.clear();
 		build = executeBuild();
-		queue.waitForTicks(5);
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(2, 15000);
+		assertEquals(2, testApiPreflightHandler.lastSessionHits);
+		assertEquals(2, testApiPushTestsResultHandler.lastSessionHits);
+		assertEquals(0, testApiPushTestsResultHandler.testResults.size());
+		verifyAudit(true, build, false, false);
 
-		order.verify(restClient).validateConfigurationWithoutLogin();
-		order.verify(restClient).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		order.verify(restClient).validateConfigurationWithoutLogin();
-		order.verify(restClient).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-
-		Mockito.verify(restClient, Mockito.times(2)).validateConfigurationWithoutLogin();
-		Mockito.verify(restClient, Mockito.times(2)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verifyNoMoreInteractions(restClient);
-		verifyAudit(build, false, false);
-
-		Assert.assertEquals(0, queue.size());
-		Assert.assertEquals(1, queue.getDiscards());
-	}
-
-	@Test
-	public void testDispatcherSuspended() throws Exception {
-		testEventPublisher.setSuspended(true);
-
-		executeBuild();
-
-		queue.waitForTicks(2);
-
-		// events suspended
-		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(1, queue.size());
+		assertEquals(1, queue.size());
 	}
 
 	@Test
 	public void testDispatchMatrixBuild() throws Exception {
-		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "TestDispatcherMatrix");
-		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
+		AbstractProject tmp = project;
 
+		//  prepare Matrix project
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
-		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		project = rule.createProject(MatrixProject.class, "TestDispatcherMatrix");
+		((MatrixProject) project).setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
+		((MatrixProject) project).getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=\"%s\\m2-temp\"",
+				System.getenv("MAVEN_HOME"), System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		((MatrixProject) project).getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
-		matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=%s\\m2-temp",
-				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		testApiPreflightHandler.respondWithNegative = false;
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.testResults.clear();
 
-		mockRestClient(restClient, true);
-		MatrixBuild matrixBuild = matrixProject.scheduleBuild2(0).get();
+		MatrixBuild matrixBuild = ((MatrixProject) project).scheduleBuild2(0).get();
 		for (MatrixRun run : matrixBuild.getExactRuns()) {
 			queue.add("TestDispatcherMatrix/" + run.getParent().getName(), run.getNumber());
 		}
-		queue.waitForTicks(5);
-		Mockito.verify(restClient).validateConfigurationWithoutLogin();
-		for (MatrixRun run : matrixBuild.getExactRuns()) {
-			Mockito.verify(restClient, Mockito.atLeast(2)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), run.getProject().getParent().getName());
-			Mockito.verify(restClient).postTestResult(new File(run.getRootDir(), "mqmTests.xml"), false);
-			verifyAudit(run, true);
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(2, 10000);
+		for (int i = 0; i < matrixBuild.getExactRuns().size(); i++) {
+			MatrixRun run = matrixBuild.getExactRuns().get(i);
+			assertEquals(2, testApiPreflightHandler.lastSessionHits);
+			assertEquals(testApiPushTestsResultHandler.testResults.get(i), IOUtils.toString(new FileInputStream(new File(run.getRootDir(), "mqmTests.xml"))));
+			verifyAudit(false, run, true);
 		}
-		Mockito.verifyNoMoreInteractions(restClient);
 
-		Assert.assertEquals(0, queue.size());
+		assertEquals(0, queue.size());
+
+		project = tmp;
 	}
 
-	//The test is flaky, need refactoring
-	//@Test
-//	public void testDispatcherTemporarilyUnavailable() throws Exception {
-//		Mockito.reset(restClient);
-//		Mockito.doReturn(1L)
-//				.doThrow(new TemporarilyUnavailableException("Server busy"))
-//				.doThrow(new TemporarilyUnavailableException("Server busy"))
-//				.doThrow(new TemporarilyUnavailableException("Server busy"))
-//				.doThrow(new TemporarilyUnavailableException("Server busy"))
-//				.doThrow(new TemporarilyUnavailableException("Server busy"))
-//				.doReturn(1L)
-//				.when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
-//		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-//		FreeStyleBuild build = executeBuild();
-//		FreeStyleBuild build2 = executeBuild();
-//		queue.waitForTicks(12);
-//		Mockito.verify(restClient, Mockito.atMost(7)).validateConfigurationWithoutLogin();
-//		Mockito.verify(restClient, Mockito.atMost(7)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-//		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-//		Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
-//		Mockito.verifyNoMoreInteractions(restClient);
-//		verifyAudit(build, true);
-//
-//		Thread.sleep(1000);//sleep allows to all audits to be written
-//		verifyAudit(true, build2, false, false, false, false, false, true);
-//		Assert.assertEquals(0, queue.size());
-//	}
+	@Test
+	public void testDispatcherTemporarilyUnavailable() throws Exception {
+		testApiPreflightHandler.respondWithNegative = false;
+		testApiPreflightHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 0;
+		testApiPushTestsResultHandler.lastSessionHits = 0;
+		testApiPushTestsResultHandler.testResults.clear();
+
+		RetryModel retryModel = new RetryModel(2, 2, 2, 2, 2, 2, 2, 2, 2);
+		testDispatcher._setRetryModel(retryModel);
+
+		//  one successful push
+		FreeStyleBuild build1 = executeBuild();
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(1, 10000);
+
+		//  session of failures
+		testApiPushTestsResultHandler.respondWithErrorFailsNumber = 5;
+		FreeStyleBuild build2 = executeBuild();
+		testApiPushTestsResultHandler.resetAndWaitForNextDispatches(6, 50000);
+
+		assertEquals(7, testApiPreflightHandler.lastSessionHits);
+		assertEquals(7, testApiPushTestsResultHandler.lastSessionHits);
+
+		assertEquals(testApiPushTestsResultHandler.testResults.get(0), IOUtils.toString(new FileInputStream(new File(build1.getRootDir(), "mqmTests.xml"))));
+		verifyAudit(false, build1, true);
+		assertEquals(testApiPushTestsResultHandler.testResults.get(1), IOUtils.toString(new FileInputStream(new File(build2.getRootDir(), "mqmTests.xml"))));
+		verifyAudit(true, build2, false, false, false, false, false, true);
+
+		assertEquals(0, queue.size());
+	}
 
 	private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {
-		FreeStyleBuild build = project.scheduleBuild2(0).get();
+		FreeStyleBuild build = ((FreeStyleProject) project).scheduleBuild2(0).get();
 		queue.add(build.getProject().getName(), build.getNumber());
 		return build;
-	}
-
-	private void verifyAudit(AbstractBuild build, boolean... statuses) throws IOException, InterruptedException {
-		verifyAudit(false, build, statuses);
 	}
 
 	private void verifyAudit(boolean unavailableIfFailed, AbstractBuild build, boolean... statuses) throws IOException, InterruptedException {
 		FilePath auditFile = new FilePath(new File(build.getRootDir(), TestDispatcher.TEST_AUDIT_FILE));
 		JSONArray audits;
 		if (statuses.length > 0) {
-			Assert.assertTrue(auditFile.exists());
+			assertTrue(auditFile.exists());
 			InputStream is = auditFile.read();
 			audits = JSONArray.fromObject(IOUtils.toString(is, "UTF-8"));
 			IOUtils.closeQuietly(is);
 		} else {
-			Assert.assertFalse(auditFile.exists());
+			assertFalse(auditFile.exists());
 			audits = new JSONArray();
 		}
-		Assert.assertEquals(statuses.length, audits.size());
+		assertEquals(statuses.length, audits.size());
 		for (int i = 0; i < statuses.length; i++) {
 			JSONObject audit = audits.getJSONObject(i);
-			Assert.assertEquals("http://localhost:8008", audit.getString("location"));
-			Assert.assertEquals("1001", audit.getString("sharedSpace"));
-			Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
+			assertEquals("http://127.0.0.1:" + octaneServerMockPort, audit.getString("location"));
+			assertEquals(sharedSpaceId, audit.getString("sharedSpace"));
+			assertEquals(statuses[i], audit.getBoolean("pushed"));
 			if (statuses[i]) {
-				Assert.assertEquals(1L, audit.getLong("id"));
+				assertEquals(1L, audit.getLong("id"));
 			}
 			if (!statuses[i] && unavailableIfFailed) {
-				Assert.assertTrue(audit.getBoolean("temporarilyUnavailable"));
+				assertTrue(audit.getBoolean("temporarilyUnavailable"));
 			} else {
-				Assert.assertFalse(audit.containsKey("temporarilyUnavailable"));
+				assertFalse(audit.containsKey("temporarilyUnavailable"));
 			}
-			Assert.assertNotNull(audit.getString("date"));
+			assertNotNull(audit.getString("date"));
 		}
 	}
 
-	private void mockRestClient(MqmRestClient restClient, boolean sharedSpace) throws IOException {
-		Mockito.reset(restClient);
-		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		if (!sharedSpace) {
-			Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).validateConfigurationWithoutLogin();
-		} else {
-			Mockito.doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+	private static abstract class TDTHandlersBase extends OctaneServerMock.TestSpecificHandler {
+		protected volatile int dispatchesCounterForWait;
+
+		protected void resetAndWaitForNextDispatches(int numberOfDispatches, int maxMillisToWait) {
+			dispatchesCounterForWait = 0;
+			long startTime = System.currentTimeMillis();
+			while (dispatchesCounterForWait < numberOfDispatches && maxMillisToWait > System.currentTimeMillis() - startTime) {
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException ie) {
+					logger.log(Level.WARNING, "interrupted during a wait for dispatches");
+				}
+			}
+			assertEquals("verifying that reached the desired number of dispatches", numberOfDispatches, dispatchesCounterForWait);
+			logger.log(Level.INFO, numberOfDispatches + " dispatch round/s reached in ~" + (System.currentTimeMillis() - startTime) + "ms");
 		}
 	}
 
-	private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
-		Mockito.verify(restClient).validateConfigurationWithoutLogin();
-
-		if (body) {
-			Mockito.verify(restClient).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-			Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		}
-
-		Mockito.verifyNoMoreInteractions(restClient);
-	}
-
-	private static class MqmTestsFileMatcher extends BaseMatcher<File> {
-		@Override
-		public boolean matches(Object o) {
-			return o instanceof File && ((File) o).getName().endsWith("mqmTests.xml");
-		}
+	private static final class TestApiPreflightHandler extends TDTHandlersBase {
+		private int lastSessionHits = 0;
+		private boolean respondWithNegative = false;
 
 		@Override
-		public void describeTo(Description description) {
+		public boolean ownsUrlToProcess(String url) {
+			return url.endsWith("/jobs/" + project.getName() + "/tests-result-preflight");
+		}
+
+		@Override
+		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+			if (baseRequest.getPathInfo().endsWith("/jobs/" + project.getName() + "/tests-result-preflight")) {
+				if (respondWithNegative) {
+					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
+					response.getWriter().write(String.valueOf(true));
+				}
+				lastSessionHits++;
+			}
+			synchronized (this) {
+				dispatchesCounterForWait++;
+			}
+		}
+
+	}
+
+	private static final class TestApiPushTestsResultHandler extends TDTHandlersBase {
+		private List<String> testResults = new LinkedList<>();
+		private int lastSessionHits = 0;
+		private int respondWithErrorFailsNumber = 0;
+
+		@Override
+		public boolean ownsUrlToProcess(String url) {
+			return (RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART + "test-results").equals(url);
+		}
+
+		@Override
+		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+			if (respondWithErrorFailsNumber == 0) {
+				testResults.add(getBodyAsString(baseRequest));
+				TestDispatcher.TestsPushResponseDTO body = new TestDispatcher.TestsPushResponseDTO();
+				body.id = String.valueOf(1);
+				body.status = "queued";
+				response.setStatus(HttpServletResponse.SC_ACCEPTED);
+				response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+
+			} else {
+				response.setStatus(503);
+				respondWithErrorFailsNumber--;
+			}
+			lastSessionHits++;
+			synchronized (this) {
+				dispatchesCounterForWait++;
+			}
 		}
 	}
 }

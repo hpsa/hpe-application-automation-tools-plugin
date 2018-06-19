@@ -106,6 +106,9 @@
                 <br/>
                 <br/>
             </j:if>
+                Deleted folders : ${it.results.deletedFolders.size()}
+                <br/>
+                <br/>
          </p>
        <p>
        <table class = "myTable" frame="vsides above bottom" >
@@ -175,6 +178,38 @@
                  </tbody>
               </table>
               </p>
+
+        <br/><br/>
+
+
+       <p>
+              <table class = "myTable" frame="vsides above bottom" >
+               <caption>Deleted Folders</caption>
+               <thead>
+                <tr>
+                    <th>Path</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                  <j:forEach var="s" items="${it.results.deletedFolders}">
+                      <tr>
+                          <td >${s}</td>
+
+                      </tr>
+                  </j:forEach>
+
+                 </tbody>
+              </table>
+         </p>
+
+        <br/><br/>
+        <j:if test="${it.hasQuotedPaths}">
+                        <b>NOTE</b>: This run may not have discovered all updated tests.
+                        <br/>It seems that the changes in this build included filenames with Unicode characters, which Git did not list correctly.
+                        <br/>To make sure Git can properly list such file names, configure Git as follows : git config --global core.quotepath false
+                        <br/>To discover the updated tests that were missed in this run and send them to ALM Octane, run this job manually with the "Full sync" parameter selected.
+                    </j:if>
     </l:main-panel>
 
   </l:layout>

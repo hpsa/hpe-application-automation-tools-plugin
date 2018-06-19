@@ -104,6 +104,10 @@ public class UFTTestDetectionBuildAction implements Action {
         return results.getUpdatedTests().size() > 0;
     }
 
+    public boolean getHasQuotedPaths() {
+        return results.isHasQuotedPaths();
+    }
+
     /**
      * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
      *

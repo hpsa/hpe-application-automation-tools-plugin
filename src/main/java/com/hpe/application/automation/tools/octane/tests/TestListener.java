@@ -43,7 +43,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -61,25 +60,30 @@ public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
 	public static final String TEST_RESULT_FILE = "mqmTests.xml";
-	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder";
 	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
 
 
 	private ResultQueue queue;
 
-	public void processBuild(Run build, TaskListener listener) {
+	public boolean processBuild(Run build) {
 
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
-		boolean success = false;
+		boolean success = true;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getParent()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
-				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
-					hpRunnerType = HPRunnerType.StormRunner;
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_LOAD_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerLoad;
+					break;
+				}
+				if (builder.getClass().getName().equals(JENKINS_STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.StormRunnerFunctional;
 					break;
 				}
 				if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
@@ -108,22 +112,24 @@ public class TestListener {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					listener.error(e.getMessage());
+					success = false;
+					logger.error(e.getMessage());
 					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
 						build.setResult(Result.UNSTABLE);
 					}
-					return;
+					break;
 				} catch (InterruptedException ie) {
+					success = false;
 					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
-					return;
+					break;
 				} catch (Exception e) {
+					success = false;
 					// extensibility involved: catch both checked and RuntimeExceptions
 					logger.error("Error processing test results in " + ext.getClass().getName(), e);
-					return;
+					break;
 				}
 			}
-			success = true;
 		} finally {
 			try {
 				resultWriter.close();
@@ -135,8 +141,10 @@ public class TestListener {
 				}
 			} catch (XMLStreamException xmlse) {
 				logger.error("Error processing test results", xmlse);
+				success = false;
 			}
 		}
+		return success && hasTests;//test results expected
 	}
 
 	@Inject

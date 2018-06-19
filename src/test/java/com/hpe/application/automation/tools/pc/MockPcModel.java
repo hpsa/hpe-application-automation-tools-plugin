@@ -34,7 +34,7 @@
 package com.hpe.application.automation.tools.pc;
 
 import com.hpe.application.automation.tools.model.PcModel;
-import com.hpe.application.automation.tools.model.PostRunAction;
+import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 import com.hpe.application.automation.tools.model.SecretContainer;
 import com.hpe.application.automation.tools.model.SecretContainerTest;
 

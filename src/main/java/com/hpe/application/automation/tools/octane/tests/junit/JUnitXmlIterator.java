@@ -54,7 +54,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -72,6 +74,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private boolean stripPackageAndClass;
 	private String moduleName;
 	private String packageName;
+	private String id;
 	private String className;
 	private String testName;
 	private long duration;
@@ -144,10 +147,12 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						break;
 					}
 				}
-				if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+				if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
 					logger.error("HPE Runner: " + hpRunnerType);
 					externalURL = getStormRunnerURL(path);
 				}
+			} else if ("id".equals(localName)) {
+				id = readNextValue();
 			} else if ("case".equals(localName)) { // NON-NLS
 				packageName = "";
 				className = "";
@@ -209,11 +214,27 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						//if UFT didn't created test results page - add reference to Jenkins test results page
 						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";
 					}
-
-                } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
-                    externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-                }
-            } else if ("duration".equals(localName)) { // NON-NLS
+				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
+					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
+				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
+					if (StringUtils.isNotEmpty(id) && additionalContext != null && additionalContext instanceof Map) {
+						Map<String, String> testId2Url = (Map) additionalContext;
+						if (testId2Url.containsKey(id))
+							externalURL = testId2Url.get(id);
+					}
+				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+                	//console contains link to report
+					//link start with "View Report:"
+					String VIEW_REPORT_PREFIX = "View Report: ";
+					if (additionalContext != null && additionalContext instanceof Collection) {
+						for (Object str : (Collection) additionalContext) {
+							if (str != null && str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
+								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
+							}
+						}
+					}
+				}
+			} else if ("duration".equals(localName)) { // NON-NLS
 				duration = parseTime(readNextValue());
 			} else if ("skipped".equals(localName)) { // NON-NLS
 				if ("true".equals(readNextValue())) { // NON-NLS

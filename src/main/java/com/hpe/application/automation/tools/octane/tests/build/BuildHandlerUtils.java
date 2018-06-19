@@ -46,78 +46,72 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Generic utilities handling Job/Run metadata extraction/transformation/processing
+ */
+
 public class BuildHandlerUtils {
 
-	public static BuildDescriptor getBuildType(Run<?, ?> build) {
+	public static BuildDescriptor getBuildType(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
-			if (ext.supports(build)) {
-				return ext.getBuildType(build);
+			if (ext.supports(run)) {
+				return ext.getBuildType(run);
 			}
 		}
 		return new BuildDescriptor(
-				BuildHandlerUtils.getJobCiId(build),
-				build.getParent().getName(),
-				String.valueOf(build.getNumber()),
-				String.valueOf(build.getNumber()),
+				BuildHandlerUtils.getJobCiId(run),
+				run.getParent().getName(),
+				BuildHandlerUtils.getBuildCiId(run),
+				String.valueOf(run.getNumber()),
 				"");
 	}
 
-	public static String getProjectFullName(Run<?, ?> build) {
+	public static String getProjectFullName(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
-			if (ext.supports(build)) {
-				return ext.getProjectFullName(build);
+			if (ext.supports(run)) {
+				return ext.getProjectFullName(run);
 			}
 		}
-		return build.getParent().getFullName();
+		return run.getParent().getFullName();
 	}
 
-	public static FilePath getWorkspace(Run<?,?> build){
-		//this.buildId =/*build.getProject()*/((AbstractProject)build.getParent()).getBuilds().getLastBuild().getId();
-			if(build.getExecutor()!=null && build.getExecutor().getCurrentWorkspace()!=null){
-				return build.getExecutor().getCurrentWorkspace();
-			}
-			if (build instanceof AbstractBuild){
-				return ((AbstractBuild) build).getWorkspace();
-			}
-			if(build instanceof WorkflowBuildAdapter){
-				return ((WorkflowBuildAdapter)build).getWorkspace();
-//				FilePath filePath = new FilePath(new File(((WorkflowRun) build).getParent().getRootDir().
-//						getAbsolutePath()+File.separator +"workspace"));
-//				return filePath;
-			}
-
-			return null;
+	public static FilePath getWorkspace(Run<?, ?> run) {
+		if (run.getExecutor() != null && run.getExecutor().getCurrentWorkspace() != null) {
+			return run.getExecutor().getCurrentWorkspace();
+		}
+		if (run instanceof AbstractBuild) {
+			return ((AbstractBuild) run).getWorkspace();
+		}
+		if (run instanceof WorkflowBuildAdapter) {
+			return ((WorkflowBuildAdapter) run).getWorkspace();
+		}
+		return null;
 	}
 
-	public static String getBuildId(Run<?,?> build){
-//		if(build instanceof AbstractBuild){
-//			return ((AbstractProject)build.getParent()).getBuilds().getLastBuild().getId();
-//		}else{
-//			return build.getParent().getLastBuild().getId();
-//		}
-		return build.getParent().getLastBuild().getId();
-	}
-
-	public static List<Run> getBuildPerWorkspaces(Run build) {
-
-		if(build instanceof WorkflowRun){
-			return  WorkflowGraphListener.FlowNodeContainer.getFlowNode(build);
-
-		}else {
+	public static List<Run> getBuildPerWorkspaces(Run run) {
+		if (run instanceof WorkflowRun) {
+			return WorkflowGraphListener.FlowNodeContainer.getFlowNode(run);
+		} else {
 			List<Run> runsList = new ArrayList<>();
-			runsList.add(build);
+			runsList.add(run);
 			return runsList;
 		}
 	}
 
-	public static String getJobCiId(Run r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return JobProcessorFactory.getFlowProcessor(((MatrixRun) r).getParentBuild().getParent()).getTranslateJobName();
+	public static String getBuildCiId(Run run) {
+		return String.valueOf(run.getNumber());
+		//  YG  temportarty disabling the support for fluid build number until Octane supports it
+		//return run.getNumber() + "_" + run.getStartTimeInMillis();
+	}
+
+	public static String getJobCiId(Run run) {
+		if (run.getParent() instanceof MatrixConfiguration) {
+			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getParentBuild().getParent()).getTranslateJobName();
 		}
-		if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-			return JobProcessorFactory.getFlowProcessor(r.getParent()).getTranslateJobName();
+		if (run.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslateJobName();
 		}
-		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) r).getProject()).getTranslateJobName();
+		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslateJobName();
 	}
 
 	/**

@@ -38,7 +38,6 @@ import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hpe.application.automation.tools.octane.ResultQueue;
-import com.hpe.application.automation.tools.octane.client.JenkinsInsightEventPublisher;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
@@ -113,7 +112,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 		MqmRestClient mqmRestClient = initMqmRestClient();
 		if (mqmRestClient == null) {
-			logger.warn("There are pending build logs, but MQM server location is not specified, build logs can't be submitted");
+			logger.warn("there are pending build logs, but MQM server location is not specified, build logs can't be submitted");
 			logsQueue.remove();
 			return;
 		}
@@ -121,30 +120,31 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		ResultQueue.QueueItem item;
 
 		while ((item = logsQueue.peekFirst()) != null) {
-
 			if (retryModel.isQuietPeriod()) {
-				logger.debug("There are pending logs, but we are in quiet period");
+				logger.info("there are pending logs, but we are in quiet period");
 				return;
 			}
 
 			Run build = getBuildFromQueueItem(item);
 			if (build == null) {
-				logger.warn("Build and/or Project [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending build logs can't be submitted");
+				logger.warn("build and/or project [" + item.getProjectName() + " #" + item.getBuildNumber() + "] no longer exists, pending build logs won't be submitted");
 				logsQueue.remove();
 				continue;
 			}
 
+			String jobCiId = BuildHandlerUtils.getJobCiId(build);
 			try {
 				if (item.getWorkspace() == null) {
 					//
 					//  initial queue item flow - no workspaces, works with workspaces retrieval and loop ever each of them
 					//
+					logger.info("retrieving all workspaces that logs of [" + jobCiId + "] are relevant to...");
 					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
 					if (workspaces.isEmpty()) {
-						logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", BuildHandlerUtils.getJobCiId(build)));
+						logger.info("[" + jobCiId + "] is not part of any Octane pipeline in any workspace, log won't be sent");
 					} else {
+						logger.info("logs of [" + jobCiId + "] found to be relevant to " + workspaces.size() + " workspace/s");
 						CountDownLatch latch = new CountDownLatch(workspaces.size());
-
 						for (String workspaceId : workspaces) {
 							logDispatcherExecutors.execute(new SendLogsExecutor(
 									mqmRestClient,
@@ -157,8 +157,8 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 						}
 
 						boolean completedResult = latch.await(TIMEOUT, TimeUnit.MINUTES);
-						if (completedResult) {
-							logger.error("timed out sending logs to - " + workspaces.size() + " workspaces.");
+						if (!completedResult) {
+							logger.error("timed out sending logs to " + workspaces.size() + " workspace/s");
 						}
 					}
 					logsQueue.remove();
@@ -166,6 +166,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 					//
 					//  secondary queue item flow - workspace is known, we are in retry flow
 					//
+					logger.info("");
 					transferBuildLogs(build, mqmRestClient, item);
 				}
 			} catch (Exception e) {
@@ -180,22 +181,22 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 			boolean status = mqmRestClient.postLogs(
 					parseLong(item.getWorkspace()),
 					ConfigurationService.getModel().getIdentity(),
-					build.getParent().getName(),
-					String.valueOf(build.getNumber()),
+					BuildHandlerUtils.getJobCiId(build),
+					BuildHandlerUtils.getBuildCiId(build),
 					octaneLog.getLogStream(),
 					octaneLog.getFileLength());
 			if (status) {
-				logger.info("Successfully sent logs of " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace());
+				logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
 				logsQueue.remove();
 			} else {
-				logger.error("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace());
+				logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace());
 				reAttempt(item.getProjectName(), item.getBuildNumber());
 			}
 		} catch (RequestErrorException ree) {
-			logger.error("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace(), ree);
+			logger.error("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace(), ree);
 			reAttempt(item.getProjectName(), item.getBuildNumber());
 		} catch (Exception e) {
-			logger.error("fatally failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace() + ", will not retry this one", e);
+			logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + item.getWorkspace() + ", will not retry this one", e);
 			retryModel.success();
 			logsQueue.remove();
 		}
@@ -203,10 +204,10 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	private void reAttempt(String projectName, int buildNumber) {
 		if (!logsQueue.failed()) {
-			logger.warn("maximum number of attempts reached, operation will not be re-attempted for build "+ projectName + " #" + buildNumber);
+			logger.warn("maximum number of attempts reached, operation will not be re-attempted for build " + projectName + " #" + buildNumber);
 			retryModel.success();
 		} else {
-			logger.info("There are pending logs, but we are in quiet period");
+			logger.info("there are pending logs, but we are in quiet period");
 			retryModel.failure();
 		}
 	}
@@ -240,7 +241,11 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
 		Run result = null;
-		Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins == null) {
+			throw new IllegalStateException("failed to obtain Jenkins' instance");
+		}
+		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
 		if (project != null) {
 			result = project.getBuildByNumber(item.getBuildNumber());
 		}
@@ -249,7 +254,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	@Override
 	public long getRecurrencePeriod() {
-		String value = System.getProperty("Octane.LogDispatcher.Period"); // let's us config the recurrence period. default is 10 seconds.
+		String value = System.getProperty("Octane.LogDispatcher.Period");
 		if (!StringUtils.isEmpty(value)) {
 			return Long.valueOf(value);
 		}
@@ -261,8 +266,8 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	}
 
 	@Inject
-	public void setEventPublisher(JenkinsInsightEventPublisher eventPublisher) {
-		this.retryModel = new RetryModel(eventPublisher, getQuietPeriodsInMinutes(MAX_RETRIES));
+	public void setEventPublisher() {
+		this.retryModel = new RetryModel(getQuietPeriodsInMinutes(MAX_RETRIES));
 	}
 
 	@Inject
@@ -317,20 +322,20 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 						parseLong(workspaceId),
 						ConfigurationService.getModel().getIdentity(),
 						BuildHandlerUtils.getJobCiId(build),
-						String.valueOf(build.getNumber()),
+						BuildHandlerUtils.getBuildCiId(build),
 						octaneLog.getLogStream(),
 						octaneLog.getFileLength());
 				if (status) {
-					logger.info("Successfully sent logs of " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId);
+					logger.info("successfully sent log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
 				} else {
-					logger.debug("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId);
+					logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId);
 					logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
 				}
 			} catch (RequestErrorException ree) {
-				logger.debug("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId, ree);
+				logger.debug("failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId, ree);
 				logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
 			} catch (Exception e) {
-				logger.error("fatally failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId + ", will not retry this one", e);
+				logger.error("fatally failed to send log of [" + item.getProjectName() + " #" + item.getBuildNumber() + "] to workspace " + workspaceId + ", will not retry this one", e);
 			}
 			latch.countDown();
 		}

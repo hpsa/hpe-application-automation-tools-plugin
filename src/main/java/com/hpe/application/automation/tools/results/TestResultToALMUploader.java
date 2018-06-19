@@ -292,8 +292,8 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         		String fullpath = root.getAbsolutePath() + File.separator + fileName;
     			AlmRestInfo loginInfo = new AlmRestInfo(
     					serverUrl,
-    					uploadTestResultToAlmModel.getAlmDomain(),
-    					uploadTestResultToAlmModel.getAlmProject(),
+    					Util.replaceMacro(uploadTestResultToAlmModel.getAlmDomain(), varResolver),
+    					Util.replaceMacro(uploadTestResultToAlmModel.getAlmProject(), varResolver),
     					uploadTestResultToAlmModel.getAlmUserName(),
     					uploadTestResultToAlmModel.getAlmPassword(),
                         Util.replaceMacro(uploadTestResultToAlmModel.getAlmTestSetFolder(), varResolver)

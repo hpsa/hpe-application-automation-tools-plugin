@@ -166,6 +166,25 @@ public class LoadRunnerTestStep extends AbstractStepImpl {
     }
 
     /**
+     * Gets display controller.
+     *
+     * @return the display controller
+     */
+    public String getDisplayController() {
+        return runFromFileBuilder.getRunFromFileModel().getDisplayController();
+    }
+
+    /**
+     * Sets display controller.
+     *
+     * @param displayController the display controller
+     */
+    @DataBoundSetter
+    public void setDisplayController(String displayController) {
+        runFromFileBuilder.setDisplayController(displayController);
+    }
+
+    /**
      * Gets run from file builder.
      *
      * @return the run from file builder

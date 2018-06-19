@@ -132,7 +132,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
+		mavenProject.setGoals(String.format("test --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
 
@@ -147,7 +147,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+		mavenProject.setGoals(String.format("test --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",
 				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
@@ -173,7 +173,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test -P custom-report-location --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+		mavenProject.setGoals(String.format("test -P custom-report-location --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",
 				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
@@ -193,7 +193,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test -P custom-report-location --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+		mavenProject.setGoals(String.format("test -P custom-report-location --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",
 				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
@@ -212,7 +212,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test -P custom-report-location --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+		mavenProject.setGoals(String.format("test -P custom-report-location --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",
 				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.getPublishersList().add(new JUnitResultArchiver("**/custom-report-location/**.xml"));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
@@ -229,7 +229,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("verify");
-		mavenProject.setGoals(String.format("verify --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+		mavenProject.setGoals(String.format("verify --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",
 				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldFailsafe"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
@@ -281,7 +281,7 @@ public class TestNGExtensionTest {
 		mavenProject.setMaven(mavenName);
 
 		//mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
+		mavenProject.setGoals(String.format("test --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
 
@@ -312,7 +312,7 @@ public class TestNGExtensionTest {
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		//mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
-		mavenProject.setGoals(String.format("test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
+		mavenProject.setGoals(String.format("test --settings \"%s\\conf\\settings.xml\" -Dmaven.repo.local=\"%s\\m2-temp\" -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
 

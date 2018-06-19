@@ -41,85 +41,68 @@ import hudson.util.TimeUnit2;
 
 @Extension
 public class RetryModel implements ConfigurationListener {
+	private static final long[] QUIET_PERIOD_DURATION = {3, 10, 60, 120};
 
-    private static final long[] QUIET_PERIOD_DURATION = { 1, 10, 60 };
+	private long[] QUIET_PERIOD = {
+			TimeUnit2.SECONDS.toMillis(QUIET_PERIOD_DURATION[0]),
+			TimeUnit2.SECONDS.toMillis(QUIET_PERIOD_DURATION[1]),
+			TimeUnit2.SECONDS.toMillis(QUIET_PERIOD_DURATION[2]),
+			TimeUnit2.SECONDS.toMillis(QUIET_PERIOD_DURATION[3])
+	};
 
-    private long[] QUIET_PERIOD = {
-            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[0]),
-            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[1]),
-            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[2])
-    };
+	private long boundary;
+	private int periodIndex;
 
-    private long boundary;
-    private int periodIndex;
+	private TimeProvider timeProvider = new SystemTimeProvider();
 
-    private TimeProvider timeProvider = new SystemTimeProvider();
-    private EventPublisher eventPublisher;
+	@Inject
+	public RetryModel() {
+		doSuccess();
+	}
 
-    @Inject
-    public RetryModel() {
-        doSuccess();
-    }
+	public RetryModel(long... quietPeriods) {
+		doSuccess();
+		QUIET_PERIOD = quietPeriods;
+	}
 
-    public RetryModel(EventPublisher eventPublisher, long... quietPeriods) {
-        doSuccess();
-        this.eventPublisher = eventPublisher;
-        QUIET_PERIOD = quietPeriods;
-    }
+	public synchronized boolean isQuietPeriod() {
+		return timeProvider.getTime() < boundary;
+	}
 
-    public RetryModel(EventPublisher eventPublisher) {
-        this();
-        this.eventPublisher = eventPublisher;
-    }
+	public synchronized void failure() {
+		if (periodIndex < QUIET_PERIOD.length - 1) {
+			periodIndex++;
+		}
+		boundary = timeProvider.getTime() + QUIET_PERIOD[periodIndex];
+	}
 
-    public synchronized boolean isQuietPeriod() {
-        return timeProvider.getTime() < boundary;
-    }
+	public void success() {
+		doSuccess();
+	}
 
-    public synchronized void failure() {
-        if (periodIndex < QUIET_PERIOD.length - 1) {
-            periodIndex++;
-        }
-        boundary = timeProvider.getTime() + QUIET_PERIOD[periodIndex];
-    }
+	private synchronized void doSuccess() {
+		periodIndex = -1;
+		boundary = 0;
+	}
 
-    public void success() {
-        doSuccess();
-        eventPublisher.resume();
-    }
+	@Override
+	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
+		doSuccess();
+	}
 
-    private synchronized void doSuccess() {
-        periodIndex = -1;
-        boundary = 0;
-    }
+	void setTimeProvider(TimeProvider timeProvider) {
+		this.timeProvider = timeProvider;
+	}
 
-    @Override
-    public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
-        doSuccess();
-    }
+	private static class SystemTimeProvider implements TimeProvider {
 
-    @Inject
-    public void setEventPublisher(JenkinsInsightEventPublisher eventPublisher) {
-        this.eventPublisher = eventPublisher;
-    }
+		@Override
+		public long getTime() {
+			return System.currentTimeMillis();
+		}
+	}
 
-
-    void setTimeProvider(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
-    }
-
-    private static class SystemTimeProvider implements TimeProvider {
-
-        @Override
-        public long getTime() {
-            return System.currentTimeMillis();
-        }
-    }
-
-    interface TimeProvider {
-
-        long getTime();
-
-    }
-
+	interface TimeProvider {
+		long getTime();
+	}
 }

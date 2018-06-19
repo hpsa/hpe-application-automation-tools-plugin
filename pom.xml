@@ -41,10 +41,10 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.3</version>
+	<version>5.4</version>
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
+	<description>The plugin integrates Jenkins with the following MicroFocus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
 
 	<licenses>
@@ -62,17 +62,18 @@
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
-		<bdi.version>1.0.4a</bdi.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<distributionManagement>
 		<repository>
-		  <id>repo.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/releases</url>
+			<id>repo.jenkins-ci.org</id>
+			<url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/snapshots</url>
+			<url>https://repo.jenkins-ci.org/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -81,16 +82,19 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
-		<tag>hp-application-automation-tools-plugin-5.3</tag>
+		<tag>hpe-application-automation-tools-plugin-5.4</tag>
 	</scm>
+
 	<issueManagement>
 		<system>JIRA</system>
-		<url>https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin</url>
+		<url>
+			https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin
+		</url>
 	</issueManagement>
 
 	<organization>
-		<name>HPE</name>
-		<url>http://www.hpe.com</url>
+		<name>Micro Focus</name>
+		<url>http://www.microfocus.com</url>
 	</organization>
 
 	<developers>
@@ -99,7 +103,7 @@
 			<name>Fima (Yafim) Kazak</name>
 			<email>kazak@hpe.com</email>
 			<roles>
-				<role>Global owner and Load Runner Dev</role>
+				<role>Global owner and LoadRunner Dev</role>
 			</roles>
 		</developer>
 		<developer>
@@ -166,6 +170,12 @@
 				<role>ALM/Upload test result to ALM (External Test)</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>gullerya</id>
+			<name>Yuri Guller</name>
+			<email>gullerya@gmail.com</email>
+			<organization>MicroFocus - ALM Octane</organization>
+		</developer>
 	</developers>
 
 	<build>
@@ -210,11 +220,24 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<additionalparam>-Xdoclint:none</additionalparam>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>none</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
 				<executions>
 					<execution>
 						<phase>none</phase>
@@ -299,7 +322,18 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>animal-sniffer-maven-plugin</artifactId>
+				<version>1.16</version>
+				<configuration>
+					<signature>
+						<groupId>org.codehaus.mojo.signature</groupId>
+						<artifactId>java18</artifactId>
+						<version>1.0</version>
+					</signature>
+				</configuration>
+			</plugin>
 
 		</plugins>
 
@@ -399,11 +433,15 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>4.10.1.48219</version>
+			<version>4.20.0.49985</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
 					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -420,14 +458,14 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.13</version>
+			<version>1.5.6</version>
 		</dependency>
-		
+
 		<!-- Obsolete TO BE REMOVED -->
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.20</version>
+			<version>1.4.23</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
@@ -537,7 +575,6 @@
 			<version>2.5</version>
 			<optional>true</optional>
 		</dependency>
-		<!-- pipeline as a code  ends here -->
 
 		<dependency>
 			<groupId>com.squareup</groupId>
@@ -545,7 +582,6 @@
 			<version>1.2.3</version>
 		</dependency>
 
-		<!--Extensibility-->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -593,20 +629,37 @@
 			<version>2.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-common</artifactId>
 			<version>2.9</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
 		</dependency>
 
-	</dependencies>
+		<dependency>
+			<groupId>com.microfocus.adm.performancecenter</groupId>
+			<artifactId>plugins-common</artifactId>
+			<version>1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.thoughtworks.xstream</groupId>
+					<artifactId>xstream</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
+	</dependencies>
 
 </project>

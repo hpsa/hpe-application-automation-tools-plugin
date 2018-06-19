@@ -33,15 +33,20 @@
 
 package com.hpe.application.automation.tools.octane.executor;
 
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
+import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
+import com.hpe.application.automation.tools.run.RunFromFileBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.TaskListener;
+import hudson.scm.NullSCM;
+import hudson.scm.SCM;
+import hudson.tasks.Builder;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
  * Add job environment value for CHECKOUT_SUBDIR
@@ -52,7 +57,7 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
     public static final String CHECKOUT_SUBDIR_ENV_NAME = "CHECKOUT_SUBDIR";
 
     @Override
-    public void buildEnvironmentFor(Job j, EnvVars envs, TaskListener listener) throws IOException, InterruptedException {
+    public void buildEnvironmentFor(Job j, EnvVars envs, TaskListener listener) {
         String dir = getSharedCheckOutDirectory(j);
         if (dir != null) {
             envs.put(CHECKOUT_SUBDIR_ENV_NAME, dir);
@@ -60,8 +65,21 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
     }
 
     public static String getSharedCheckOutDirectory(Job j) {
-        if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && ConfigurationService.getServerConfiguration().isValid()) {
-            return CheckOutSubDirEnvService.getSharedCheckOutDirectory(j);
+        if (j instanceof FreeStyleProject) {
+            FreeStyleProject proj = (FreeStyleProject) j;
+            SCM scm = proj.getScm();
+            List<Builder> builders = proj.getBuilders();
+            if (scm != null && !(scm instanceof NullSCM) && builders != null) {
+                for (Builder builder : builders) {
+                    if (builder instanceof RunFromFileBuilder) {
+                        ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
+                        if (scmPluginHandler != null) {
+                            return scmPluginHandler.getSharedCheckOutDirectory(j);
+                        }
+                    }
+                }
+
+            }
         }
 
         return null;

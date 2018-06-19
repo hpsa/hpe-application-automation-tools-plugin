@@ -38,15 +38,23 @@
   <l:layout title="${it.run} test - ${it.displayName}">
     <st:include page="sidepanel.jelly" />
     <l:main-panel>
-      <j:set var="st" value="${it.status}" />
+      <j:set var="scriptRun" value="${it.getParentAction().getScriptRunModel(it)}" />
+      <j:set var="st" value="${scriptRun.status}" />
       <h1 class="${st.cssClass}">
-        <st:out value="${st.message}" />
+        <st:out value="${st}" />
       </h1>
-      ${it.getClass.Name}
+
       <p>
-       <span style="font-weight:bold">
-          <st:out value="${it.fullDisplayName}"/>
-        </span>
+         <j:choose>
+           <j:when test="${scriptRun == null}">
+              <span style="font-weight:bold; color:red">Error: Unable to find test name</span>
+           </j:when>
+           <j:otherwise>
+             <span style="font-weight:bold">
+                       <st:out value="${scriptRun.fullName}"/>
+             </span>
+           </j:otherwise>
+         </j:choose>
         <j:if test="${it.suiteResult != null &amp;&amp; it.className != it.suiteResult.name}">
           (from <st:out value="${it.suiteResult.name}"/>)
         </j:if>
@@ -86,7 +94,6 @@
       </j:if>
 
       <j:if test="${!empty(it.errorDetails)}">
-        <h3>${it}</h3>
         <pre><j:out value="${it.annotate(it.errorDetails)}"/></pre>
       </j:if>
 

@@ -37,6 +37,8 @@ import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationListener;
+import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.util.Secret;
@@ -52,7 +54,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Extension
-public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
+public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory, ConfigurationListener {
 	private static final Logger logger = LogManager.getLogger(JenkinsMqmRestClientFactoryImpl.class);
 	private static final String CLIENT_TYPE = "HPE_CI_CLIENT";
 	private MqmRestClient mqmRestClient;
@@ -67,6 +69,10 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 	}
 
 	@Override
+	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
+		mqmRestClient = null;
+	}
+
 	public MqmRestClient obtainTemp(String location, String sharedSpace, String username, Secret password) {
 		MqmRestClient mqmRestClientTemp = create(location, sharedSpace, username, password);
 		logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
