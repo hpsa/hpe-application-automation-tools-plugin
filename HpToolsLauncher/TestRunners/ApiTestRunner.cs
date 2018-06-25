@@ -72,7 +72,36 @@ namespace HpToolsLauncher
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testinf.TestPath);
 
-            runDesc.ReportLocation = testinf.TestPath;
+            // check if the report path has been defined
+            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            {
+                runDesc.ReportLocation = testinf.ReportPath;
+
+                if (!Directory.Exists(runDesc.ReportLocation))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(runDesc.ReportLocation);
+                    }
+                    catch (Exception)
+                    {
+                        errorReason = string.Format(Resources.InvalidReportPath, runDesc.ReportLocation);
+                        runDesc.TestState = TestState.Error;
+                        runDesc.ErrorDesc = errorReason;
+                        runDesc.TestPath = testinf.TestPath;
+                        ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
+                        ConsoleWriter.ErrorSummaryLines.Add(runDesc.ErrorDesc);
+                        Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
+                        return runDesc;
+                    }
+                }
+            }
+            else
+            {
+                // no report path was defined
+                runDesc.ReportLocation = testinf.TestPath;
+            }
+
             runDesc.ErrorDesc = errorReason;
             runDesc.TestPath = testinf.TestPath;
             runDesc.TestState = TestState.Unknown;

@@ -79,6 +79,31 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
             runDesc.ReportLocation = testPath;
 
+            // use the report path instead of the test path
+            // (if defined)
+            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            {
+                runDesc.ReportLocation = testinf.ReportPath;
+
+                if (!Directory.Exists(runDesc.ReportLocation))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(runDesc.ReportLocation);
+                    }
+                    catch (Exception)
+                    {
+                        errorReason = string.Format(Resources.InvalidReportPath, runDesc.ReportLocation);
+                        runDesc.TestState = TestState.Error;
+                        runDesc.ErrorDesc = errorReason;
+                        runDesc.TestPath = testinf.TestPath;
+                        ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
+                        ConsoleWriter.ErrorSummaryLines.Add(runDesc.ErrorDesc);
+                        Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
+                        return runDesc;
+                    }
+                }
+            }
 
             runDesc.TestPath = testPath;
             runDesc.TestState = TestState.Unknown;
@@ -116,7 +141,16 @@ namespace HpToolsLauncher
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11, 0)))
                     {
-                        runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        // use the defined report path if provided
+                        if (!String.IsNullOrEmpty(testinf.ReportPath))
+                        {
+                            runDesc.ReportLocation = Path.Combine(testinf.ReportPath, "Report");
+                        }
+                        else
+                        {
+                            runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        }
+
                         if (Directory.Exists(runDesc.ReportLocation))
                         {
                             Directory.Delete(runDesc.ReportLocation, true);
