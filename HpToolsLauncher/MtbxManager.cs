@@ -155,7 +155,9 @@ namespace HpToolsLauncher
                     string reportPath = null;
 
                     if (xReportPath != null)
+                    {
                         reportPath = xReportPath.Value;
+                    }
 
                     TestInfo col = new TestInfo(path, name, testGroupName,reportPath);
                     HashSet<string> paramNames = new HashSet<string>();
