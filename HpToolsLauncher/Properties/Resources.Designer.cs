@@ -475,7 +475,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid report path provided: &apos;{0]&apos;.
+        ///   Looks up a localized string similar to Invalid report path provided: &apos;{0}&apos;.
         /// </summary>
         internal static string InvalidReportPath {
             get {
