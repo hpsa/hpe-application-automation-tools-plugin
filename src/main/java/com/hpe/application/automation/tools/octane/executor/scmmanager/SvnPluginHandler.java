@@ -37,7 +37,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
-import com.hpe.application.automation.tools.common.HttpStatus;
+import com.hp.octane.integrations.util.SdkHttpStatus;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -90,12 +90,12 @@ public class SvnPluginHandler implements ScmPluginHandler {
         SubversionSCM svn = new SubversionSCM(testConnectivityInfo.getScmRepository().getUrl(), credentialsId);
         try {
             svn.getDescriptor().checkRepositoryPath((Item) null, svn.getLocations()[0].getSVNURL(), credentials);
-            result.setStatus(HttpStatus.OK.getCode());
+            result.setStatus(SdkHttpStatus.OK.getCode());
         } catch (SVNException e) {
-            result.setStatus(HttpStatus.NOT_FOUND.getCode());
+            result.setStatus(SdkHttpStatus.NOT_FOUND.getCode());
             result.setBody(e.getMessage());
         } catch (Exception e) {
-            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
+            result.setStatus(SdkHttpStatus.INTERNAL_SERVER_ERROR.getCode());
             result.setBody(e.getMessage());
         }
     }

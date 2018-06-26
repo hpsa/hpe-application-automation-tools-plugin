@@ -37,7 +37,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
-import com.hpe.application.automation.tools.common.HttpStatus;
+import com.hp.octane.integrations.util.SdkHttpStatus;
 import hudson.EnvVars;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
@@ -110,15 +110,15 @@ public class GitPluginHandler implements ScmPluginHandler {
             git.addDefaultCredentials(credentials);
             git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
 
-            result.setStatus(HttpStatus.OK.getCode());
+            result.setStatus(SdkHttpStatus.OK.getCode());
 
         } catch (IOException | InterruptedException e) {
             logger.error("Failed to connect to git : " + e.getMessage());
-            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
+            result.setStatus(SdkHttpStatus.INTERNAL_SERVER_ERROR.getCode());
             result.setBody(e.getMessage());
         } catch (GitException e) {
             logger.error("Failed to execute getHeadRev : " + e.getMessage());
-            result.setStatus(HttpStatus.NOT_FOUND.getCode());
+            result.setStatus(SdkHttpStatus.NOT_FOUND.getCode());
             result.setBody(e.getMessage());
         }
 
