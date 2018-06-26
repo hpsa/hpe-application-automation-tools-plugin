@@ -590,25 +590,19 @@ namespace HpToolsLauncher
             // set the report location for the run results
             runResults.ReportLocation = testInfo.ReportPath;
 
-            // if the directory already exists then CreateDirectory
-            // will not create it
+            // no need to create it
+            if (Directory.Exists(runResults.ReportLocation))
+            {
+                return true;
+            }
+
             try
             {
                 Directory.CreateDirectory(runResults.ReportLocation);
             }
             catch (Exception)
             {
-                // do nothing here, as we will check if the directory exists
-                // if it doesn't it means that an exception has ocurred
-                // or the path was invalid
-            }
-
-            // directory should be created by now
-            if (!Directory.Exists(runResults.ReportLocation))
-            {
-                // set the result for this test and return
                 SetTestReportPathError(runResults, ref errorReason, testInfo);
-
                 return false;
             }
 
