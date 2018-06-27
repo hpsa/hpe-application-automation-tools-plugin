@@ -47,6 +47,7 @@ import com.hpe.application.automation.tools.octane.configuration.ConfigurationSe
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.model.processors.scm.CommonOriginRevision;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hpe.application.automation.tools.octane.tests.TestListener;
@@ -157,7 +158,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 	public void onFinalized(Run r) {
 		if (onFinelizedValidations()) return;
 
-		SCMProcessor.CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
+		CommonOriginRevision commonOriginRevision= getCommonOriginRevision(r);
 
 		boolean hasTests = testListener.processBuild(r);
 
@@ -172,9 +173,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
-
-
-	private CIEvent getCiEvent(Run r, SCMProcessor.CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
+	private CIEvent getCiEvent(Run r, CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
 		return dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
@@ -211,8 +210,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return result;
 	}
 
-	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
-		SCMProcessor.CommonOriginRevision commonOriginRevision=null;
+	private CommonOriginRevision getCommonOriginRevision(Run r) {
+    		CommonOriginRevision commonOriginRevision=null;
 		if(r instanceof AbstractBuild) {
 			final SCM scm = ((AbstractBuild) r).getProject().getScm();
 			if (scm != null) {
