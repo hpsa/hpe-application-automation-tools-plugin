@@ -45,7 +45,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hpe.application.automation.tools.common.HttpStatus;
+import com.hp.octane.integrations.util.SdkHttpStatus;
 import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.model.Item;
@@ -100,13 +100,13 @@ public class ExecutorConnectivityService {
                 String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
                 String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
                 logger.error(error);
-                result.setStatus(HttpStatus.FORBIDDEN.getCode());
+                result.setStatus(SdkHttpStatus.FORBIDDEN.getCode());
                 result.setBody(error);
                 return result;
             }
 
             if (!ScmPluginFactory.isPluginInstalled(testConnectivityInfo.getScmRepository().getType())) {
-                result.setStatus(HttpStatus.BAD_REQUEST.getCode());
+                result.setStatus(SdkHttpStatus.BAD_REQUEST.getCode());
                 result.setBody(String.format("%s plugin is not installed.", testConnectivityInfo.getScmRepository().getType().value().toUpperCase()));
             } else {
                 ScmPluginHandler handler = ScmPluginFactory.getScmHandler(testConnectivityInfo.getScmRepository().getType());
@@ -114,7 +114,7 @@ public class ExecutorConnectivityService {
             }
 
         } else {
-            result.setStatus(HttpStatus.BAD_REQUEST.getCode());
+            result.setStatus(SdkHttpStatus.BAD_REQUEST.getCode());
             result.setBody("Missing input for testing");
         }
         return result;
@@ -130,7 +130,7 @@ public class ExecutorConnectivityService {
     public static OctaneResponse upsertRepositoryCredentials(final CredentialsInfo credentialsInfo) {
 
         OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
-        result.setStatus(HttpStatus.CREATED.getCode());
+        result.setStatus(SdkHttpStatus.CREATED.getCode());
 
         if (StringUtils.isNotEmpty(credentialsInfo.getCredentialsId())) {
             BaseStandardCredentials cred = getCredentialsById(credentialsInfo.getCredentialsId());
@@ -140,11 +140,11 @@ public class ExecutorConnectivityService {
                 CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
                 try {
                     store.updateCredentials(Domain.global(), cred, newCred);
-                    result.setStatus(HttpStatus.CREATED.getCode());
+                    result.setStatus(SdkHttpStatus.CREATED.getCode());
                     result.setBody(newCred.getId());
                 } catch (IOException e) {
                     logger.error("Failed to update credentials " + e.getMessage());
-                    result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
+                    result.setStatus(SdkHttpStatus.INTERNAL_SERVER_ERROR.getCode());
                     result.setBody("Failed to update credentials " + e.getMessage());
                 }
                 return result;
@@ -157,11 +157,11 @@ public class ExecutorConnectivityService {
             CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
             try {
                 store.addCredentials(Domain.global(), c);
-                result.setStatus(HttpStatus.CREATED.getCode());
+                result.setStatus(SdkHttpStatus.CREATED.getCode());
                 result.setBody(c.getId());
             } catch (IOException e) {
                 logger.error("Failed to add credentials " + e.getMessage());
-                result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
+                result.setStatus(SdkHttpStatus.INTERNAL_SERVER_ERROR.getCode());
                 result.setBody("Failed to add credentials " + e.getMessage());
             }
         }

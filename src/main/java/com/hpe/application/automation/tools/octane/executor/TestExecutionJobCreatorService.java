@@ -39,6 +39,7 @@ import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.util.SdkConstants;
 import com.hpe.application.automation.tools.model.ResultsPublisherModel;
 import com.hpe.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.hpe.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
@@ -203,12 +204,13 @@ public class TestExecutionJobCreatorService {
                 Element testElement = doc.createElement("Test");
                 String packageAndTestName = (StringUtils.isNotEmpty(test.getPackageName()) ? test.getPackageName() + "\\" : "") + test.getTestName();
                 testElement.setAttribute("name", packageAndTestName);
-                String path = "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getPackageName()) + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getTestName();
+                String path = "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getPackageName()) +
+                        SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getTestName();
                 testElement.setAttribute("path", path);
 
                 if (StringUtils.isNotEmpty(test.getDataTable())) {
                     Element dataTableElement = doc.createElement("DataTable");
-                    dataTableElement.setAttribute("path", "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + OctaneConstants.General.WINDOWS_PATH_SPLITTER + test.getDataTable());
+                    dataTableElement.setAttribute("path", "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getDataTable());
                     testElement.appendChild(dataTableElement);
                 }
 

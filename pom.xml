@@ -583,12 +583,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>3.7</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
 			<artifactId>dynamicparameter</artifactId>
 			<version>0.2.0</version>
@@ -599,12 +593,6 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20090211</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.4</version>
 		</dependency>
 
 		<!--Test-->
