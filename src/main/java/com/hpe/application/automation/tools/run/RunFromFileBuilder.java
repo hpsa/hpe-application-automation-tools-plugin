@@ -35,6 +35,7 @@ package com.hpe.application.automation.tools.run;
 
 import com.hpe.application.automation.tools.AlmToolsUtils;
 import com.hpe.application.automation.tools.EncryptionUtils;
+import com.hpe.application.automation.tools.common.CompatibilityRebrander;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
 import com.hpe.application.automation.tools.model.MCServerSettingsModel;
 import com.hpe.application.automation.tools.model.ProxySettings;
@@ -45,6 +46,8 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -626,6 +629,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		public boolean isApplicable(
 				@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
 			return true;
+		}
+
+		/**
+		 * The function needs to be used in every the inner class of the describable which extends any kind of descriptor
+		 * For example: BuildStepDescriptor
+		 */
+		@Initializer(before = InitMilestone.PLUGINS_STARTED)
+		public static void addAliases() {
+			CompatibilityRebrander.addAliases(RunFromFileBuilder.class);
 		}
 
 		/**
