@@ -458,7 +458,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.18</version>
+			<version>1.5.19</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
@@ -587,12 +587,6 @@
 			<artifactId>dynamicparameter</artifactId>
 			<version>0.2.0</version>
 			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20090211</version>
 		</dependency>
 
 		<!--Test-->

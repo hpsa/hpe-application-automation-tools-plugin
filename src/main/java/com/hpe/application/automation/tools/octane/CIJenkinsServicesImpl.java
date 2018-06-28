@@ -164,7 +164,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		if (proxy != null) {
 			boolean noProxyHost = false;
 			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
-				if (pattern.matcher(targetHost).find()) {
+				if (pattern.matcher(targetHost).matches()) {
 					noProxyHost = true;
 					break;
 				}
