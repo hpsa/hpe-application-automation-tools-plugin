@@ -76,7 +76,6 @@ namespace HpToolsLauncher
 
         public static void WriteLine(string message)
         {
-            message = message.Replace("\\n", "\n");
             message = FilterXmlProblematicChars(message);
             //File.AppendAllText("c:\\stam11.stam", message);
             Console.Out.WriteLine(message);

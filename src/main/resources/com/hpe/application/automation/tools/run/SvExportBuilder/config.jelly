@@ -68,4 +68,8 @@
     <f:entry title="Force" field="force">
         <f:checkbox checked="${instance.model.force}"/>
     </f:entry>
+
+    <f:entry title="Archive" field="archive">
+            <f:checkbox checked="${instance.model.archive}"/>
+    </f:entry>
 </j:jelly>

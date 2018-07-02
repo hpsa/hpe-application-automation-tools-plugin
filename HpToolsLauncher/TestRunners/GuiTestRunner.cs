@@ -23,6 +23,7 @@ namespace HpToolsLauncher
         private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
         private const string MOBILE_USER   = "ALM_MobileUserName";
         private const string MOBILE_PASSWORD = "ALM_MobilePassword";
+        private const string MOBILE_TENANT = "EXTERNAL_MobileTenantId";
         private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
         private const string MOBILE_USE_PROXY= "MobileProxySetting_UseProxy";
         private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
@@ -76,10 +77,21 @@ namespace HpToolsLauncher
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
-            runDesc.ReportLocation = testPath;
-
 
             runDesc.TestPath = testPath;
+            
+            // default report location is the test path
+            runDesc.ReportLocation = testPath;
+
+            // check if the report path has been defined
+            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            {
+                if (!Helper.TrySetTestReportPath(runDesc, testinf, ref errorReason))
+                {
+                    return runDesc;
+                }
+            }
+
             runDesc.TestState = TestState.Unknown;
 
             _runCancelled = runCanclled;
@@ -115,7 +127,16 @@ namespace HpToolsLauncher
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11, 0)))
                     {
-                        runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        // use the defined report path if provided
+                        if (!String.IsNullOrEmpty(testinf.ReportPath))
+                        {
+                            runDesc.ReportLocation = Path.Combine(testinf.ReportPath, "Report");
+                        }
+                        else
+                        {
+                            runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        }
+
                         if (Directory.Exists(runDesc.ReportLocation))
                         {
                             Directory.Delete(runDesc.ReportLocation, true);
@@ -143,6 +164,11 @@ namespace HpToolsLauncher
                     if (!string.IsNullOrEmpty(_mcConnection.MobileUserName))
                     {
                         _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.MobileUserName);
+                    }
+
+                    if (!string.IsNullOrEmpty(_mcConnection.MobileTenantId))
+                    {
+                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_TENANT, _mcConnection.MobileTenantId);
                     }
 
                     if (!string.IsNullOrEmpty(_mcConnection.MobilePassword))
@@ -686,8 +712,8 @@ namespace HpToolsLauncher
         /// </summary>
         private void ChangeDCOMSettingToInteractiveUser()
         {
-            string errorMsg = "Unable to change DCOM settings. To chage it manually: " +
-                              "run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User";
+            string errorMsg = "Unable to change DCOM settings. To change it manually: " +
+                              "run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User. ";
 
             string interactiveUser = "Interactive User";
             string runAs = "RunAs";

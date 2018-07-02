@@ -84,10 +84,10 @@ public class SCMListenerImpl extends SCMListener {
 	public void onChangeLogParsed(Run<?, ?> r, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
 		super.onChangeLogParsed(r, scm, listener, changelog);
 
-		if (!ConfigurationService.getServerConfiguration().isValid()) {
+		if (ConfigurationService.getServerConfiguration() != null && !ConfigurationService.getServerConfiguration().isValid()) {
 			return;
 		}
-		if (ConfigurationService.getModel().isSuspend()) {
+		if (ConfigurationService.getModel() != null && ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 

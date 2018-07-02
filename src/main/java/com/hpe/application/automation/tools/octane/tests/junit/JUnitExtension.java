@@ -37,7 +37,7 @@ import com.google.inject.Inject;
 import com.hpe.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.hpe.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
 import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
-import com.hpe.application.automation.tools.octane.tests.MqmTestsExtension;
+import com.hpe.application.automation.tools.octane.tests.OctaneTestsExtension;
 import com.hpe.application.automation.tools.octane.tests.TestResultContainer;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hpe.application.automation.tools.octane.tests.detection.ResultFields;
@@ -69,7 +69,7 @@ import java.util.*;
  * Converter of Jenkins test report to ALM Octane test report format(junitResult.xml->mqmTests.xml)
  */
 @Extension
-public class JUnitExtension extends MqmTestsExtension {
+public class JUnitExtension extends OctaneTestsExtension {
 	private static Logger logger = LogManager.getLogger(JUnitExtension.class);
 
 	private static final String STORMRUNNER_LOAD = "StormRunner Load";
@@ -225,6 +225,22 @@ public class JUnitExtension extends MqmTestsExtension {
 					additionalContext = Files.readAllLines(path, StandardCharsets.UTF_8);
 				} catch (Exception e) {
 					logger.error("Failed to add log file for StormRunnerLoad :" + e.getMessage());
+				}
+			} else if (HPRunnerType.StormRunnerFunctional.equals(hpRunnerType)) {
+				try {
+					File file = new File(build.getRootDir(), "srf-test-result-urls");
+					Path path = Paths.get(file.getPath());
+					List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+					Map<String, String> map = new HashMap<>();
+					for (String line : lines) {
+						String[] parts = line.split(";");
+						if (parts.length == 2) {
+							map.put(parts[0], parts[1]);
+						}
+					}
+					additionalContext = map;
+				} catch (Exception e) {
+					logger.error("Failed to read/parse srf-test-result-urls file for StormRunnerFunctional :" + e.getMessage());
 				}
 			}
 		}

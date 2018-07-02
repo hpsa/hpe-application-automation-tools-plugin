@@ -39,6 +39,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import com.hp.sv.jsvconfigurator.build.ProjectBuilder;
+import com.hp.sv.jsvconfigurator.core.IProject;
 import com.hpe.application.automation.tools.model.SvExportModel;
 import com.hpe.application.automation.tools.model.SvServiceSelectionModel;
 import com.hp.sv.jsvconfigurator.core.IService;
@@ -71,8 +73,8 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
     @DataBoundConstructor
     public SvExportBuilder(String serverName, boolean force, String targetDirectory, boolean cleanTargetDirectory,
-                           SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst) {
-        super(new SvExportModel(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst));
+                           SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst, boolean archive) {
+        super(new SvExportModel(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst, archive));
     }
 
     @Override
@@ -95,6 +97,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
         IChmodeProcessor chmodeProcessor = new ChmodeProcessor(null);
 
         ICommandExecutor exec = createCommandExecutor();
+        IProject project = null;
 
         verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
 
@@ -104,6 +107,10 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
             cleanTargetDirectory(logger, targetDirectory);
         }
 
+        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+            project = new ProjectBuilder().buildProject(new File(model.getServiceSelection().getProjectPath()), model.getServiceSelection().getProjectPassword());
+        }
+
         for (ServiceInfo serviceInfo : getServiceList(false, logger, workspace)) {
             if (model.isSwitchToStandByFirst()) {
                 switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
@@ -111,7 +118,12 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
             logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
             verifyNotLearningBeforeExport(logger, exec, serviceInfo);
-            exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), false);
+            if (!model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+                exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), project, false, model.isArchive());
+            }
+        }
+        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+            exportProcessor.process(exec, targetDirectory, null, project, false, model.isArchive());
         }
     }
 
@@ -142,8 +154,12 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
         File target = new File(targetDirectory);
         if (target.exists()) {
             File[] subfolders = target.listFiles((FilenameFilter) DirectoryFileFilter.INSTANCE);
-            if (subfolders.length > 0) {
+            File[] files = target.listFiles((FilenameFilter) new SuffixFileFilter(".vproja"));
+            if (subfolders.length > 0 || files.length > 0) {
                 logger.println("  Cleaning target directory...");
+            }
+            for(File file : files) {
+                FileUtils.forceDelete(file);
             }
             for (File subfolder : subfolders) {
                 if (subfolder.listFiles((FilenameFilter) new SuffixFileFilter(".vproj")).length > 0) {

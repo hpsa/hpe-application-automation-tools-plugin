@@ -31,23 +31,30 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.tests;
+package com.hpe.application.automation.tools.octane.executor;
 
-import hudson.ExtensionList;
-import hudson.ExtensionPoint;
-import hudson.model.Hudson;
-import hudson.model.Run;
+import hudson.model.Cause;
 
-import java.io.IOException;
+/**
+ * FullSyncRequiredCause
+ * Informational class for full sync case.
+ * Used for SVN SCM delete action : in this case we don't receive inforamtion about deleted files,
+ * therefore full sync required to update ALM Octane entities correctly 
+ */
+public class FullSyncRequiredCause extends Cause {
 
-public abstract class MqmTestsExtension implements ExtensionPoint {
+    private String buildId;
 
-    public abstract boolean supports(Run<?, ?> build) throws IOException, InterruptedException;
+    public FullSyncRequiredCause(String buildId) {
+        this.buildId = buildId;
+    }
 
+    public static FullSyncRequiredCause create(String buildId) {
+        return new FullSyncRequiredCause(buildId);
+    }
 
-    public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
-
-    public static ExtensionList<MqmTestsExtension> all() {
-        return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);
+    @Override
+    public String getShortDescription() {
+        return String.format("Triggered by build #%s with full sync parameter.", buildId);
     }
 }

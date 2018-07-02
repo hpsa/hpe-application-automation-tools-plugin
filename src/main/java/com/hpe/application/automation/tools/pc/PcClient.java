@@ -180,7 +180,7 @@ public class PcClient {
         String msg = "No trend report ID is associated with the test.\n" +
                 "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
                 "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
-        if (("ASSOCIATED").equals(model.getAddRunToTrendReport())){
+        if (("ASSOCIATED").equals(model.getAddRunToTrendReport()) && model.getPostRunAction() != PostRunAction.DO_NOTHING) {
             PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
             //if the trend report ID is parametrized
             if(!model.getTrendReportId().startsWith("$")) {

@@ -31,30 +31,31 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.buildLogs;
+package com.hpe.application.automation.tools.octane.tests;
 
-import com.hpe.application.automation.tools.octane.AbstractResultQueueImpl;
+import hudson.ExtensionList;
+import hudson.ExtensionPoint;
+import hudson.model.Run;
 import jenkins.model.Jenkins;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by benmeior on 11/21/2016
- *
- * Queue, based on persisted, file-object backed by base queue, serving the logs dispatching logic to BDI via Octane
+ * General provider of Octane's tests processing extensions
  */
 
-class LogsResultQueue extends AbstractResultQueueImpl {
+public abstract class OctaneTestsExtension implements ExtensionPoint {
 
-	LogsResultQueue(int maxRetries) throws IOException {
-		super(maxRetries);
-		Jenkins jenkinsContainer = Jenkins.getInstance();
-		if (jenkinsContainer != null) {
-			File queueFile = new File(jenkinsContainer.getRootDir(), "octane-log-result-queue.dat");
-			init(queueFile);
+	public abstract boolean supports(Run<?, ?> build) throws IOException, InterruptedException;
+
+
+	public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
+
+	public static ExtensionList<OctaneTestsExtension> all() {
+		if (Jenkins.getInstance() != null) {
+			return Jenkins.getInstance().getExtensionList(OctaneTestsExtension.class);
 		} else {
-			throw new IllegalStateException("Jenkins container not initialized properly");
+			throw new IllegalStateException("failed to obtain Jenkins' instance");
 		}
 	}
 }

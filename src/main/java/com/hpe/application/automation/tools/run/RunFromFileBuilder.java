@@ -35,6 +35,7 @@ package com.hpe.application.automation.tools.run;
 
 import com.hpe.application.automation.tools.AlmToolsUtils;
 import com.hpe.application.automation.tools.EncryptionUtils;
+import com.hpe.application.automation.tools.common.CompatibilityRebrander;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
 import com.hpe.application.automation.tools.model.MCServerSettingsModel;
 import com.hpe.application.automation.tools.model.ProxySettings;
@@ -45,6 +46,8 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -123,6 +126,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 * @param controllerPollingInterval the controller polling interval
 	 * @param perScenarioTimeOut        the per scenario time out
 	 * @param ignoreErrorStrings        the ignore error strings
+	 * @param displayController         the display controller
 	 * @param mcServerName              the mc server name
 	 * @param fsUserName                the fs user name
 	 * @param fsPassword                the fs password
@@ -142,12 +146,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	@SuppressWarnings("squid:S00107")
 	@Deprecated
 	public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
-                              String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab,
+                              String perScenarioTimeOut, String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName,
+							  String fsPassword, String mcTenantId, String fsDeviceId, String fsTargetLab,
                               String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
                               ProxySettings proxySettings, boolean useSSL) {
 
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
-				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
+				perScenarioTimeOut, ignoreErrorStrings, displayController, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
 
@@ -188,6 +193,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
 		runFromFileModel.setIgnoreErrorStrings(ignoreErrorStrings);
+	}
+
+	/**
+	 * Sets display controller.
+	 *
+	 * @param displayController the display controller
+	 */
+	@DataBoundSetter
+	public void setDisplayController(String displayController) {
+		runFromFileModel.setDisplayController(displayController);
 	}
 
 	/**
@@ -250,6 +265,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	public void setFsPassword(String fsPassword) {
 		runFromFileModel.setFsPassword(fsPassword);
 	}
+
+
+	@DataBoundSetter
+	public void setMcTenantId(String mcTenantId) {
+		runFromFileModel.setMcTenantId(mcTenantId);
+	}
+
+
 
 	/**
 	 * Sets fs device id.
@@ -609,6 +632,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		/**
+		 * The function needs to be used in every the inner class of the describable which extends any kind of descriptor
+		 * For example: BuildStepDescriptor
+		 */
+		@Initializer(before = InitMilestone.PLUGINS_STARTED)
+		public static void addAliases() {
+			CompatibilityRebrander.addAliases(RunFromFileBuilder.class);
+		}
+
+		/**
 		 * Gets job id.
 		 * If there is already a job created by jenkins plugin, and exists then return this job id,
 		 * otherwise, create a new temp job and return the new job id.
@@ -623,16 +655,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @return the job id
 		 */
 		@JavaScriptMethod
-		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
 			if(null != previousJobId && !previousJobId.isEmpty()){
-                JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, previousJobId);
+                JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId);
                 if(jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))){
                     return previousJobId;
                 }else {
-                    return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+                    return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword);
                 }
 			}
-			return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+			return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword);
 		}
 
 		/**
@@ -648,8 +680,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @return the json object
 		 */
 		@JavaScriptMethod
-		public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
-			return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, jobId);
+		public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
+			return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, jobId);
 		}
 
 		/**
@@ -711,13 +743,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			String val1 = value.trim();
-			if (val1.length() > 0 && val1.charAt(0) == '-')
-				val1 = val1.substring(1);
-
-			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
-				return FormValidation.error("Timeout name must be a number");
+			String sanitizedValue = value.trim();
+			if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
+				sanitizedValue = sanitizedValue.substring(1);
 			}
+
+			if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
+				return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
+			}
+
 			return FormValidation.ok();
 		}
 
@@ -773,12 +807,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			if (!StringUtils.isNumeric(value)) {
-				return FormValidation.error("Per Scenario Timeout must be a number");
+			if (!isParameterizedValue(value) && !StringUtils.isNumeric(value)) {
+				return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, $ScenarioDuration or ${ScenarioDuration}.");
 			}
 
-			return FormValidation.ok();
+            		return FormValidation.ok();
 		}
-
+		/**
+		 * Check if the value is parameterized.
+		 *
+		 * @param value the value
+		 * @return boolean
+		 */
+		public boolean isParameterizedValue(String value) {
+			//Parameter (with or without brackets)
+			return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
+		}
 	}
 }

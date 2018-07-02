@@ -171,7 +171,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         WorkspacePath =  new File(build.getWorkspace().toURI());
-        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
+        try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
         perform(build, build.getWorkspace(), launcher, listener);
 
         return true;
@@ -219,7 +219,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
-            pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
+            try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println("- - -\nTest description: " + pcModel.getDescription());
             if (!beforeRun(pcClient))
@@ -245,7 +245,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
-        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
+        try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
@@ -263,7 +263,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             response = pcClient.waitForRunCompletion(runId);
 
 
-            if (response != null && RunState.get(response.getRunState()) == FINISHED) {
+            if (response != null && RunState.get(response.getRunState()) == FINISHED && pcModel.getPostRunAction() != PostRunAction.DO_NOTHING) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
                 // Adding the trend report section if ID has been set
