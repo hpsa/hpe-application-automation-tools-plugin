@@ -81,11 +81,10 @@ public class ScmPluginFactory {
 
         if ("hudson.plugins.git.GitChangeSet$Path".equals(changePathClass)) {
             scmType = scmType.GIT;
-        } /*else if ("hudson.scm.SubversionSCM".equals(pluginName)) {
-            scmType = scmType.SVN;
-        } */else {
+        } else {
             return null;
         }
+
         return getScmHandler(scmType);
     }
 
