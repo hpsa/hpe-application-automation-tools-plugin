@@ -43,11 +43,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.maven.wagon.authorization.AuthorizationException;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
 import java.text.MessageFormat;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class SrfClient {
@@ -61,14 +61,32 @@ public class SrfClient {
     private String tenantId;
     private static final Logger systemLogger = Logger.getLogger(SrfClient.class.getName());
 
-    public SrfClient(String srfServerAddress, String tenantId, SSLSocketFactory sslSocketFactory, URL proxyUrl) {
+    public SrfClient(String srfServerAddress, SSLSocketFactory sslSocketFactory, URL proxyUrl) {
         this.srfServerAddress = srfServerAddress;
-        this.tenantId = tenantId;
         httpclient = HttpClients.createDefault();
         this.sslSocketFactory = sslSocketFactory;
         this.proxyHost = proxyUrl != null ? new HttpHost(proxyUrl.getHost(), proxyUrl.getPort()) : null;
+
+        Properties systemProperties = System.getProperties();
+        systemProperties.setProperty("https.proxyHost", proxyHost.getHostName());
+        systemProperties.setProperty("http.proxyHost", proxyHost.getHostName());
+        systemProperties.setProperty("https.proxyPort", String.valueOf(proxyHost.getPort()));
+        systemProperties.setProperty("http.proxyPort", String.valueOf(proxyHost.getPort()));
     }
 
+    public SrfClient(String srfServerAddress, String tenantId, SSLSocketFactory sslSocketFactory, URL proxyUrl) {
+        this(srfServerAddress, sslSocketFactory, proxyUrl);
+        this.tenantId = tenantId;
+    }
+
+    /**
+     * SRF login with client's ID and secret, generated from SRF admin page
+     * @param clientId
+     * @param clientSecret
+     * @throws AuthorizationException
+     * @throws IOException
+     * @throws SrfException
+     */
     public void login(String clientId, String clientSecret) throws AuthorizationException, IOException, SrfException {
         systemLogger.info(String.format("Logging with client's id: %s  into %s", clientId, srfServerAddress));
         String authorizationsAddress = srfServerAddress.concat("/rest/security/public/v2/authorizations/access-tokens");
@@ -81,6 +99,7 @@ public class SrfClient {
         JSONObject accessKeys = JSONObject.fromObject(response);
         accessToken = accessKeys.getString("accessToken");
         workspaceId = accessKeys.getString("workspaceId");
+        // tenantId = accessKeys.getString("tenantId"); wait till 1.61 is out
 
         if (accessToken == null || accessToken.isEmpty() || workspaceId == null || workspaceId.isEmpty()) {
             throw new SrfException(String.format("Received invalid access keys: access token %s ,workspace id %s", accessToken, workspaceId));
@@ -89,6 +108,14 @@ public class SrfClient {
 
     }
 
+    /**
+     * Execute SRF tests via test id or tags
+     * @param requestBody
+     * @return Jobs array
+     * @throws AuthorizationException
+     * @throws IOException
+     * @throws SrfException
+     */
     public JSONArray executeTestsSet(JSONObject requestBody) throws AuthorizationException, IOException, SrfException {
         systemLogger.fine(String.format("executing %s", srfServerAddress));
         String executionAddress = getAuthenticatedSrfApiAddress("/rest/jobmanager/v1/workspaces/%s/execution/jobs");
@@ -97,7 +124,7 @@ public class SrfClient {
         return JSONObject.fromObject(response).getJSONArray("jobs");
     }
 
-    public void cancelJob(String jobId) {
+    public void cancelJob(String jobId) throws SrfException {
         systemLogger.fine(String.format("Cancelling job id: %s", jobId));
         String jobCancelAddress = getAuthenticatedSrfApiAddress("/rest/jobmanager/v1/workspaces/%s/execution/jobs/{0}", new String[]{jobId});
 
@@ -110,6 +137,14 @@ public class SrfClient {
 
     }
 
+    /**
+     * Retrieve SRF test runs
+     * @param jobIds
+     * @return TestRuns array
+     * @throws AuthorizationException
+     * @throws IOException
+     * @throws SrfException
+     */
     public JSONArray getTestRuns(JSONArray jobIds) throws AuthorizationException, IOException, SrfException {
         JSONArray testRuns = new JSONArray();
         for (int i = 0; i < jobIds.size(); i++) {
@@ -120,6 +155,14 @@ public class SrfClient {
         return testRuns;
     }
 
+    /**
+     * Retrieve SRF test run
+     * @param jobId
+     * @return Test run
+     * @throws IOException
+     * @throws AuthorizationException
+     * @throws SrfException
+     */
     public JSONArray getTestRun(String jobId) throws IOException, AuthorizationException, SrfException {
         String testRunAddress = getAuthenticatedSrfApiAddress("/rest/test-manager/workspaces/%s/test-runs")
                 .concat(String.format("&id=%s&include=resource,script-runs,script-steps", jobId));
@@ -159,7 +202,7 @@ public class SrfClient {
         return response.toString();
     }
 
-    private String sendPostRequest(URL url, JSONObject body) throws IOException, SrfException, AuthorizationException {
+    private String sendPostRequest(URL url, JSONObject body) throws IOException, SrfException, AuthorizationException  {
         OutputStreamWriter writer = null;
         OutputStream out = null;
         BufferedReader bufferedReader = null;
@@ -201,21 +244,24 @@ public class SrfClient {
         } catch (Exception e) {
             throw e;
         } finally {
-            out.close();
-            writer.close();
-            bufferedReader.close();
+            if (out != null) out.close();
+            if (writer != null) writer.close();
+            if (bufferedReader != null) bufferedReader.close();
         }
 
         return response.toString();
     }
 
-    private String getAuthenticatedSrfApiAddress(String path) {
+    private String getAuthenticatedSrfApiAddress(String path) throws SrfException {
+        if (tenantId == null || tenantId.isEmpty()) {
+           throw new SrfException("Tenant id is null or empty");
+        }
         return srfServerAddress
                 .concat(String.format(path, workspaceId))
                 .concat(String.format("?access-token=%s&TENANTID=%s", accessToken, tenantId));
     }
 
-    private String getAuthenticatedSrfApiAddress(String path, String[] pathParams) {
+    private String getAuthenticatedSrfApiAddress(String path, String[] pathParams) throws SrfException {
         String parametizesUrl = MessageFormat.format(path, pathParams);
         return getAuthenticatedSrfApiAddress(parametizesUrl);
     }

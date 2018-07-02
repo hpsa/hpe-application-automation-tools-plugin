@@ -36,6 +36,7 @@ import com.hpe.application.automation.tools.srf.model.*;
 import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
 import com.hpe.application.automation.tools.srf.results.SrfResultFileWriter;
 import com.hpe.application.automation.tools.srf.utilities.SrfClient;
+import com.hpe.application.automation.tools.srf.utilities.SrfTrustManager;
 import com.hpe.application.automation.tools.srf.utilities.SseEventListener;
 import groovy.transform.Synchronized;
 import hudson.Extension;
@@ -619,7 +620,11 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             if (!jobIds.isEmpty()) {
                 for (int i = 0; i < jobIds.size(); i++) {
                     String jobId = jobIds.get(i).toString();
-                    srfClient.cancelJob(jobId.toString());
+                    try {
+                        srfClient.cancelJob(jobId);
+                    } catch (SrfException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
 
@@ -648,38 +653,6 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         }
     }
 
-    static   class SrfTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
-          // Empty body
-        }
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
-            // Empty body
-        }
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
-            // Empty body
-        }
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
-            // Empty body
-        }
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-            // Empty body
-        }
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-            // Empty body
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-    }
 
     @Extension
     // This indicates to Jenkins that this is an implementation of an extension
@@ -696,7 +669,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
 
         @Override
         public String getDisplayName() {
-            return "Execute tests by SRF";
+            return "Execute SRF tests";
         }
 
         public SrfServerSettingsModel[] getSrfServers() {

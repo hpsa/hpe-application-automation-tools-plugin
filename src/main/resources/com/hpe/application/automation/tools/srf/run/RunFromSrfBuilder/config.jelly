@@ -45,26 +45,26 @@
     </tr>  
 	</j:if-->
 
-    <f:entry title="SRF Test ID" field="srfTestId" description="Example: 982" >
+    <f:entry title="SRF test ID" field="srfTestId" description="The SRF test ID for a single test you want to run." >
              <f:textbox name="runFromSrf.srfTestId" value="${instance.runFromSrf.srfTestId}"/>
         </f:entry>
-    <f:entry title="SRF Test Tags" field="srfTagNames" description="Example: tag1,tag2" >
+    <f:entry title="SRF test tags" field="srfTagNames" description="One or more SRF test tags, separated by commas. Jenkins runs all tests found with all tags listed." >
         <f:textbox name="runFromSrf.srfTagNames" value="${instance.runFromSrf.srfTagNames}"/>
     </f:entry>
-    <f:entry title="SRF Tunnel Name" field="srfTunnelName">
+    <f:entry title="SRF tunnel name" field="srfTunnelName" description="The name of the SRF tunnel you're using to connect." >
            <f:textbox name="runFromSrf.srfTunnelName" value="${instance.runFromSrf.srfTunnelName}"/>
     </f:entry>
-    <f:entry title="Close Tunnel When Job Completed" field="srfCloseTunnel">
+    <f:entry title="Close tunnel when job completes" field="srfCloseTunnel">
         <f:checkbox name="runFromSrf.srfCloseTunnel" value="${instance.runFromSrf.srfCloseTunnel}"/>
     </f:entry>
 
-    <f:entry title="Build number" field="srfBuildNumber">
+    <f:entry title="Build number" field="srfBuildNumber" description="A build number to associate with your test and display in your test result." >
         <f:textbox name="runFromSrf.srfBuildNumber" value="${instance.runFromSrf.srfBuildNumber}"/>
     </f:entry>
-    <f:entry title="Release number" field="srfReleaseNumber">
+    <f:entry title="Release number" field="srfReleaseNumber" description="A release number to associate with your test and display in your test result." >
         <f:textbox name="runFromSrf.srfReleaseNumber" value="${instance.runFromSrf.srfReleaseNumber}"/>
     </f:entry>
-    <f:entry title="SRF Test Parameters" field="srfTestParameters">
+    <f:entry title="SRF test parameters" field="srfTestParameters">
         <f:repeatableProperty field="srfTestParameters" minimum="0" add="Add Parameter"/>
     </f:entry>
 

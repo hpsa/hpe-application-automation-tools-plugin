@@ -33,8 +33,9 @@
 
 package com.hpe.application.automation.tools.settings;
 
-import com.hpe.application.automation.tools.srf.model.SrfException;
 import com.hpe.application.automation.tools.srf.model.SrfServerSettingsModel;
+import com.hpe.application.automation.tools.srf.utilities.SrfClient;
+import com.hpe.application.automation.tools.srf.utilities.SrfTrustManager;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -42,16 +43,20 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.auth.AuthenticationException;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocketFactory;
 import javax.servlet.ServletException;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by shepshel on 20/07/2016.
@@ -182,44 +187,27 @@ public class SrfServerSettingsBuilder extends Builder{
                                                    @QueryParameter("srfProxyName") final String srfProxyName,
                                                    @QueryParameter("srfAppName") final String srfAppName,
                                                    @QueryParameter("srfSecretName") final String srfSecretName) throws IOException, ServletException {
-
-                HttpURLConnection connection;
-                BufferedReader in = null;
-
                 try {
-                    URL url = new URL(srfServer.concat("/health/ready"));
-                    if (srfProxyName != null && !srfProxyName.isEmpty()) {
-                        URL proxyUrl = new URL(srfProxyName);
-                        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl.getHost(), proxyUrl.getPort()));
-                        connection = (HttpURLConnection) url.openConnection(proxy);
-                    } else {
-                        connection = (HttpURLConnection) url.openConnection();
-                    }
-
-                    connection.setRequestMethod("GET");
-                    int responseCode = connection.getResponseCode();
-
-                    in = new BufferedReader(
-                            new InputStreamReader(connection.getInputStream()));
-                    String inputLine;
-                    StringBuffer response = new StringBuffer();
-
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-
-                    if (responseCode >= 300)
-                        throw new SrfException("Received response code of: " + responseCode);
-
-                    return FormValidation.ok("Success");
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    SrfTrustManager _trustMgr = new SrfTrustManager();
+                    sslContext.init(null, new SrfTrustManager[]{_trustMgr}, null);
+                    SSLContext.setDefault(sslContext);
+                    SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                    SrfClient srfClient = new SrfClient(srfServer, sslSocketFactory , new URL(srfProxyName));
+                    srfClient.login(srfAppName, srfSecretName);
+                } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                    return FormValidation.error("Connection error : connection initialization error " + e.getMessage());
                 } catch (UnknownHostException e) {
                     return FormValidation.error("Connection error : Unknown host " + e.getMessage());
+                } catch (AuthenticationException e) {
+                    return FormValidation.error("Authentication error: " + e.getMessage());
+                } catch (SSLHandshakeException e) {
+                    return FormValidation.error("Connection error : " + e.getMessage() + " (Could be a proxy issue)");
                 } catch (Exception e) {
                     return FormValidation.error("Connection error : " + e.getMessage());
-                } finally {
-                    if (in != null)
-                        in.close();
                 }
+
+                return FormValidation.ok("Success");
             }
 
             @JavaScriptMethod

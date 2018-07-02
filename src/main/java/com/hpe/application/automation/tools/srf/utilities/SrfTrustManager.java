@@ -30,35 +30,45 @@
  * ___________________________________________________________________
  *
  */
-
 package com.hpe.application.automation.tools.srf.utilities;
 
-import com.hpe.application.automation.tools.srf.model.SrfException;
-import com.hpe.application.automation.tools.srf.run.RunFromSrfBuilder;
-import net.sf.json.JSONObject;
-import org.apache.commons.httpclient.auth.AuthenticationException;
-import org.apache.maven.wagon.authorization.AuthorizationException;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.net.Socket;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-import java.io.IOException;
-import java.util.logging.Logger;
+public class SrfTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
 
-public class HttpCodeErrorClassifier {
-    private static final Logger systemLogger = Logger.getLogger(RunFromSrfBuilder.class.getName());
+    @Override
+    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
+        // Empty body
+    }
+    @Override
+    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+        // Empty body
+    }
+    @Override
+    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine engine) throws CertificateException {
+        // Empty body
+    }
+    @Override
+    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+        // Empty body
+    }
+    @Override
+    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        // Empty body
+    }
+    @Override
+    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        // Empty body
+    }
 
-    public static void throwError(int statusCode, String responseMessage) throws IOException, AuthorizationException, SrfException {
-        systemLogger.fine(String.format("Received http status code %d with response message %s", statusCode, responseMessage));
-
-        switch (statusCode) {
-            case 401: throw new AuthenticationException("Failed to login, possibly wrong credentials supplied");
-            case 403: throw new AuthorizationException("Operation is forbidden");
-            default:
-                JSONObject srfError = JSONObject.fromObject(responseMessage);
-                if (SrfException.isSrfException(srfError))
-                    throw new SrfException(srfError.getString("message"), srfError.getString("code"));
-
-                throw new SrfException(String.format("Request failed with http code %d and http response %s", statusCode, responseMessage));
-        }
-
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[0];
     }
 
 }

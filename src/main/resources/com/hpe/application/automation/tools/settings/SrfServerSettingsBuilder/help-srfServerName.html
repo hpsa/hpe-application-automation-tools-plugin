@@ -30,11 +30,9 @@
   ~ ___________________________________________________________________
   ~
   -->
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-
-    <f:entry title="SRF tunneling config file path" field="srfTunnelName" description="Path to the SRF tunneling config.json file">
-       <f:textbox name="createTunnel.srfTunnelName" value="${instance.createTunnel.srfTunnelName}"/>
-    </f:entry>
-</j:jelly>
+<div>
+	Use one of the following URLs:<br/>
+	AMS: https://ftaas.saas.hpe.com<br/>
+	EMEA: https://ftaas-eu1.saas.hpe.com
+</div>

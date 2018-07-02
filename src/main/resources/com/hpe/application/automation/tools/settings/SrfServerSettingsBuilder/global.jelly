@@ -111,23 +111,23 @@
 			<f:repeatable name="SRF_123" var="inst" items="${descriptor.installations}" add="Add SRF Server" >
 
 				<table width="100%">
-					<f:entry title="${%SRF Tunnel Client Path}" field="srfTunnelPath" description="SRF's tunnel client executable path (i.e. /var/tunnelClient/ftaas)" >
+					<f:entry title="${%SRF tunnel client path}" field="srfTunnelPath" description="Path to an SRF tunnel client executable." >
 						<f:textbox value="${inst.srfTunnelPath}" />
 					</f:entry>
 
-					<f:entry title="${%SRF Server}" field="srfServerName" description="SRF's server address (i.e. https://srf-server.com)" >
+					<f:entry title="${%SRF server URL}" field="srfServerName" description="URL of your SRF tenant server." >
 						<f:textbox value="${inst.srfServerName}" />
 					</f:entry>
 
-					<f:entry title="${%SRF Proxy}" field="srfProxyName" description="Proxy address (i.e. http://proxy-host:proxy-port)" >
+					<f:entry title="${%Proxy Address}" field="srfProxyName" description="The proxy address and port, using the following syntax: protocol://proxy-host:proxy-port" >
 						<f:textbox value="${inst.srfProxyName}" />
 					</f:entry>
 
-					<f:entry title="${%Client ID}" field="srfAppName" description="SRF's client name for authentication">
+					<f:entry title="${%SRF client ID}" field="srfAppName" description="Your client ID obtained from SRF." >
 						<f:textbox value="${inst.srfAppName}" />
 					</f:entry>
 
-					<f:entry title="${%Client Secret}" field="srfSecretName" description="SRF's client secret for authentication" >
+					<f:entry title="${%SRF client secret}" field="srfSecretName" description="Your client secret obtained from SRF." >
 						<f:password value="${inst.srfSecretName}" />
 					</f:entry>
 

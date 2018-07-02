@@ -168,11 +168,11 @@ public class SrfStepsHtmlUtil {
             }
       }
 
-      private static String getStepDescription(JSONObject step, int k) {
+      private static String getStepDescription(JSONObject step, int stepIndex) {
             String stepDescription = step.getString("description");
             if (stepDescription == null || stepDescription.isEmpty()) {
                   String scriptRunId = step.getString("scriptRunId");
-                  systemLogger.warning(String.format("Received step with no description, step index: %d, script run id: %s", k, scriptRunId));
+                  systemLogger.warning(String.format("Received step with no description, step index: %d, script run id: %s", stepIndex, scriptRunId));
                   return "Missing step description";
             }
             return stepDescription;

@@ -146,6 +146,10 @@ public class SrfResultsReport extends Recorder implements Serializable {
             _result=result;
         }
 
+        public String getSuiteId(TestResult testResult, int suiteIndex) {
+            return ((SuiteResult) ((ArrayList) testResult.getSuites()).get(suiteIndex)).getId();
+        }
+
         public SrfScriptRunModel[] getScriptRuns(ClassResult classResult) {
             JSONArray scriptRunsJson = null;
             ArrayList<SrfScriptRunModel> scriptRuns = new ArrayList<>();
@@ -167,8 +171,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
                     return null;
 
                 String name = jTest.getString("name").toLowerCase();
-
-                if(name.compareTo(testName) == 0) {
+                String normalizedName = SrfScriptRunModel.normalizeName(name);
+                if(normalizedName.compareTo(testName) == 0) {
                     scriptRunsJson = jTest.getJSONArray("scriptRuns");
                     break;
                 }
@@ -365,34 +369,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
 
         build.getActions().add(action);
 
-      /*  try {
-            archiveTestsReport(build, listener, fileSystemResultNames, result);
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SAXException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        File artifactsDir = build.getArtifactsDir();
-        if (artifactsDir.exists()) {
-            File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
-            if (reportDirectory.exists()) {
-                File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
-                    build.getActions().add(new PerformanceReportAction(build));
-            }
-
-            File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
-            if (summaryDirectory.exists()) {
-                File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
-                    build.getActions().add(new TransactionSummaryAction(build));
-            }
-        }*/
-
-
         // get the artifacts directory where we will upload the zipped report
         // folder
 
@@ -469,8 +445,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
 
         @Override
         public String getDisplayName() {
-
-            return "Publish HPE SRF Test Results";
+            return "Publish SRF test results";
         }
 
         @Override

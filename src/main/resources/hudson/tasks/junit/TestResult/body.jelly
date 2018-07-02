@@ -59,7 +59,7 @@
         <j:set var="jvar_actionType" value="${it.getParentAction()}"/>
         <j:set var="jvar_isSrf" value="${jvar_actionType.toString().indexOf('SrfResultsReport')>0}"/>
         <j:set var="jvar_isTestRes" value="${it.toString().indexOf('TestResult')>0}"/>
-        <h1>${%All Tests}</h1>
+        <h1>${%All SRF Tests}</h1>
         <table class="pane sortable bigtable" id="testresult">
             <tr>
                 <j:if test="${jvar_isSrf}">
@@ -87,13 +87,13 @@
 
                 <j:set var="prevAll" value="${it.previousResult}" />
                 <j:set var="packageResult" value="${it.getParentAction().getPackageResult(it)}" />
-                <j:forEach var="p" items="${packageResult.children}">
+                <j:forEach var="p" items="${packageResult.children}" indexVar="jvar_i">
                     <j:set var="prev" value="${prevAll.findCorrespondingResult(p.id)}" />
                     <tr>
                         <td class="pane">
                             <a href="(root)/${p.safeName}/" class="model-link inside">
                                 <span style="${prev==null?'font-weight:bold':''}">
-                                    <st:out value="${p.displayName}" />
+                                    <st:out value="${jvar_actionType.getSuiteId(it, jvar_i)}" />
                                 </span>
                             </a>
 
