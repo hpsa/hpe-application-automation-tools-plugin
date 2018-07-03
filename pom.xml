@@ -41,7 +41,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.3.5-beta-SNAPSHOT</version>
+	<version>5.4.2-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following MicroFocus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
@@ -458,7 +458,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.18</version>
+			<version>1.5.19</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
@@ -581,12 +581,7 @@
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>3.7</version>
-		</dependency>
+	
 
 		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
@@ -595,18 +590,8 @@
 			<optional>true</optional>
 		</dependency>
 
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20090211</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.4</version>
-		</dependency>
-
+	
+	
 		<!--Test-->
 
 		<dependency>

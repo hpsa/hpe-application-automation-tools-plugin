@@ -120,6 +120,13 @@ namespace HpToolsLauncher
             _testName = testName;
         }
 
+        public TestInfo(string testPath, string testName, string testGroup, string reportPath)
+        {
+            _testPath = testPath;
+            TestGroup = testGroup;
+            _testName = testName;
+            ReportPath = reportPath;
+        }
 
         List<TestParameterInfo> _paramList = new List<TestParameterInfo>();
         string _testName;
@@ -144,6 +151,10 @@ namespace HpToolsLauncher
             get { return _testPath; }
             set { _testPath = value; }
         }
+
+        // the path where the report will be saved
+        public string ReportPath{ get;set; }
+
         public List<TestParameterInfo> ParameterList
         {
             get { return _paramList; }
