@@ -81,8 +81,8 @@ public class SCMListenerImpl extends SCMListener {
 	}
 
 	@Override
-	public void onChangeLogParsed(Run<?, ?> r, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-		super.onChangeLogParsed(r, scm, listener, changelog);
+	public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
+		super.onChangeLogParsed(run, scm, listener, changelog);
 
 		if (ConfigurationService.getServerConfiguration() != null && !ConfigurationService.getServerConfiguration().isValid()) {
 			return;
@@ -91,52 +91,41 @@ public class SCMListenerImpl extends SCMListener {
 			return;
 		}
 
-		CIEvent event;
-		if (r.getParent() instanceof MatrixConfiguration || r instanceof AbstractBuild) {
-			AbstractBuild build = (AbstractBuild) r;
-			if (changelog != null && !changelog.isEmptySet()) {        // if there are any commiters
-				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-				if (scmProcessor != null) {
-					event = createSCMEvent(r, build, scmProcessor);
-					OctaneSDK.getInstance().getEventsService().publishEvent(event);
-				} else {
-					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
-				}
+		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+		if (scmProcessor == null) {
+			logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
+			return;
+		}
+
+		SCMData scmData = null;
+		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
+			AbstractBuild build = (AbstractBuild) run;
+			if (changelog != null && !changelog.isEmptySet()) {
+				scmData = scmProcessor.getSCMData(build, scm);
 			}
-		} else if (r.getParent() instanceof WorkflowJob) {
-			WorkflowRun wRun = (WorkflowRun) r;
+		} else if (run.getParent() instanceof WorkflowJob) {
+			WorkflowRun wRun = (WorkflowRun) run;
 			if (changelog != null && !changelog.isEmptySet() || !wRun.getChangeSets().isEmpty()) {
-				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-				if (scmProcessor != null) {
-					List<SCMData> scmDataList = scmProcessor.getSCMData(wRun);
-					for (SCMData scmData : scmDataList) {
-						event = dtoFactory.newDTO(CIEvent.class)
-								.setEventType(CIEventType.SCM)
-								.setProject(BuildHandlerUtils.getJobCiId(r))
-								.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-								.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-								.setNumber(String.valueOf(r.getNumber()))
-								.setScmData(scmData);
-						OctaneSDK.getInstance().getEventsService().publishEvent(event);
-					}
-				} else {
-					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
-				}
+				scmData = scmProcessor.getSCMData(wRun, scm);
 			}
+		}
+
+		if (scmData != null) {
+			CIEvent event = createSCMEvent(run, scmData);
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		} else {
+			logger.warn("SCM changes found, but FAILED to extract SCM data; SCM type: " + scm.getClass() + ",  processor used: " + scmProcessor.getClass().getSimpleName());
 		}
 	}
 
-	private CIEvent createSCMEvent(Run<?, ?> run, AbstractBuild build, SCMProcessor scmProcessor) {
-		CIEvent event;
-		SCMData scmData = scmProcessor.getSCMData(build);
-		event = dtoFactory.newDTO(CIEvent.class)
+	private CIEvent createSCMEvent(Run<?, ?> run, SCMData scmData) {
+		return dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.SCM)
 				.setProject(BuildHandlerUtils.getJobCiId(run))
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
 				.setCauses(CIEventCausesFactory.processCauses(extractCauses(run)))
 				.setNumber(String.valueOf(run.getNumber()))
 				.setScmData(scmData);
-		return event;
 	}
 
 	private List<Cause> extractCauses(Run<?, ?> r) {
