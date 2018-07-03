@@ -1,10 +1,18 @@
 package com.hpe.application.automation.tools.common;
 
 
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.model.Items;
 import hudson.model.Run;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +31,7 @@ public class CompatibilityRebrander {
     private final static String COM_HPE = "com.hpe";
     private final static String COM_HP = "com.hp";
     private final static String COM_MICROFOCUS = "com.microfocus";
+    private final static String PACKAGE_NAME = "com.microfocus.application.automation.tools";
     private final static Logger LOG = Logger.getLogger(CompatibilityRebrander.class.getName());
 
     /**
@@ -36,14 +45,15 @@ public class CompatibilityRebrander {
      * @see hudson.model.Run#XSTREAM2
      * @since 5.5
      */
-    public static void addAliases(@Nonnull Class newClass) {
+
+
+    private static void addAliases(@Nonnull Class newClass) {
         String newClassName = newClass.toString().replaceFirst("class ", "");
         String oldHpeClassName = newClassName.replaceFirst(COM_MICROFOCUS, COM_HPE);
         String oldHpClassName = newClassName.replaceFirst(COM_MICROFOCUS, COM_HP);
 
-        LOG.info("Starting the rebranding aliasing");
-        addAliasesForSingleClass(newClass, oldHpClassName, COM_HP);
-        addAliasesForSingleClass(newClass, oldHpeClassName, COM_HPE);
+        invokeXstreamCompatibilityAlias(newClass, oldHpClassName);
+        invokeXstreamCompatibilityAlias(newClass, oldHpeClassName);
     }
 
     /**
@@ -58,7 +68,6 @@ public class CompatibilityRebrander {
      * invokeXstreamCompatibilityAlias invokes the XSTREAM2 functions required for the rebranding
      */
     private static void invokeXstreamCompatibilityAlias(@Nonnull Class newClass, String oldClassName) {
-        LOG.info(String.format("Adding alias from %s to %s", oldClassName, newClass));
         Items.XSTREAM2.addCompatibilityAlias(oldClassName, newClass);
         Run.XSTREAM2.addCompatibilityAlias(oldClassName, newClass);
     }
@@ -70,5 +79,84 @@ public class CompatibilityRebrander {
     private static void handleReceivedWrongParameters(@Nonnull Class newClass, String oldClassName, String beforeBrand) {
         if (!oldClassName.contains(beforeBrand))
             LOG.warning(String.format("The %s class name doesn't contain: %s class name", newClass.toString(), beforeBrand));
+    }
+
+    /**
+     * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
+     *
+     * @param packageName The base package
+     * @return The classes
+     * @throws ClassNotFoundException
+     * @throws IOException
+     */
+
+    private static Class[] getClasses(String packageName) throws ClassNotFoundException, IOException {
+        Thread thread = Thread.currentThread();
+        ClassLoader tempClassLoader = thread.getContextClassLoader();
+        assert tempClassLoader != null;
+        thread.setContextClassLoader(CompatibilityRebrander.class.getClassLoader());
+        ClassLoader classLoader = thread.getContextClassLoader();
+        String path = packageName.replace('.', '/');
+        Enumeration resources = classLoader.getResources(path);
+        List dirs = new ArrayList();
+
+        while (resources.hasMoreElements()) {
+            URL resource = (URL) resources.nextElement();
+            dirs.add(new File(resource.getFile()));
+        }
+        ArrayList classes = new ArrayList();
+
+        for (Object directory : dirs) {
+            classes.addAll(findClasses((File)directory, packageName));
+        }
+        return (Class[]) classes.toArray(new Class[classes.size()]);
+    }
+
+    /**
+     * Recursive method used to find all classes in a given directory and subdirs.
+     *
+     * @param directory   The base directory
+     * @param packageName The package name for classes found inside the base directory
+     * @return The classes
+     * @throws ClassNotFoundException
+     */
+
+    private static List findClasses(File directory, String packageName) throws ClassNotFoundException {
+        List classes = new ArrayList();
+
+        if (!directory.exists()) {
+            return classes;
+        }
+        File[] files = directory.listFiles();
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                assert !file.getName().contains(".");
+                classes.addAll(findClasses(file, packageName + "." + file.getName()));
+
+            } else if (file.getName().endsWith(".class")) {
+                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+            }
+        }
+
+        return classes;
+    }
+
+    /**
+     * This function hooks to the Jenkins milestone when the plugins are prepared to load
+     * And adds aliases for all package found classes
+     */
+    @Initializer(before = InitMilestone.PLUGINS_PREPARED)
+    public static void addAliasesToAllClasses() {
+        LOG.info("Adding alias for in old package names to add backward compatibility");
+        try {
+            Class[] classes = getClasses(PACKAGE_NAME);
+            for (Class c: classes) {
+                addAliases(c);
+            }
+        }
+        catch(ClassNotFoundException | IOException e) {
+            LOG.warning(e.getMessage());
+        }
     }
 }
