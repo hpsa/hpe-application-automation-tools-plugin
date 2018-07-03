@@ -98,12 +98,18 @@
 	</organization>
 
 	<developers>
+        <developer>
+			<id>grount</id>
+			<name>Daniel Gront</name>
+			<roles>
+				<role>Global Owner</role>
+			</roles>
+		</developer>
 		<developer>
 			<id>YafimK</id>
 			<name>Fima (Yafim) Kazak</name>
-			<email>kazak@hpe.com</email>
 			<roles>
-				<role>Global owner and LoadRunner Dev</role>
+				<role>Global owner and LoadRunner Dev (retired)</role>
 			</roles>
 		</developer>
 		<developer>
