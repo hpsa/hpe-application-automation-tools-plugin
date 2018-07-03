@@ -59,7 +59,6 @@ import java.util.List;
  * Created by benmeior on 5/15/2016.
  */
 
-@SuppressWarnings({"squid:S2221", "squid:S00105"})
 class SvnSCMProcessor implements SCMProcessor {
 	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -118,7 +117,7 @@ class SvnSCMProcessor implements SCMProcessor {
 					for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
 						tmpChange = dtoFactory.newDTO(SCMChange.class)
 								.setType(item.getEditType().getName())
-								.setFile(item.getPath());
+								.setFile(item.getValue());
 						tmpChanges.add(tmpChange);
 					}
 
