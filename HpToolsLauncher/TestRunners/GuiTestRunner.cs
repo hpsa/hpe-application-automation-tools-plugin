@@ -77,10 +77,21 @@ namespace HpToolsLauncher
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
-            runDesc.ReportLocation = testPath;
-
 
             runDesc.TestPath = testPath;
+            
+            // default report location is the test path
+            runDesc.ReportLocation = testPath;
+
+            // check if the report path has been defined
+            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            {
+                if (!Helper.TrySetTestReportPath(runDesc, testinf, ref errorReason))
+                {
+                    return runDesc;
+                }
+            }
+
             runDesc.TestState = TestState.Unknown;
 
             _runCancelled = runCanclled;
@@ -116,7 +127,16 @@ namespace HpToolsLauncher
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11, 0)))
                     {
-                        runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        // use the defined report path if provided
+                        if (!String.IsNullOrEmpty(testinf.ReportPath))
+                        {
+                            runDesc.ReportLocation = Path.Combine(testinf.ReportPath, "Report");
+                        }
+                        else
+                        {
+                            runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                        }
+
                         if (Directory.Exists(runDesc.ReportLocation))
                         {
                             Directory.Delete(runDesc.ReportLocation, true);

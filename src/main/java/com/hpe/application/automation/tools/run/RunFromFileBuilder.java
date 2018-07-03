@@ -35,6 +35,7 @@ package com.hpe.application.automation.tools.run;
 
 import com.hpe.application.automation.tools.AlmToolsUtils;
 import com.hpe.application.automation.tools.EncryptionUtils;
+import com.hpe.application.automation.tools.common.CompatibilityRebrander;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
 import com.hpe.application.automation.tools.model.MCServerSettingsModel;
 import com.hpe.application.automation.tools.model.ProxySettings;
@@ -45,6 +46,8 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -629,6 +632,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		/**
+		 * The function needs to be used in every the inner class of the describable which extends any kind of descriptor
+		 * For example: BuildStepDescriptor
+		 */
+		@Initializer(before = InitMilestone.PLUGINS_STARTED)
+		public static void addAliases() {
+			CompatibilityRebrander.addAliases(RunFromFileBuilder.class);
+		}
+
+		/**
 		 * Gets job id.
 		 * If there is already a job created by jenkins plugin, and exists then return this job id,
 		 * otherwise, create a new temp job and return the new job id.
@@ -731,13 +743,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			String val1 = value.trim();
-			if (val1.length() > 0 && val1.charAt(0) == '-')
-				val1 = val1.substring(1);
-
-			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
-				return FormValidation.error("Timeout name must be a number");
+			String sanitizedValue = value.trim();
+			if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
+				sanitizedValue = sanitizedValue.substring(1);
 			}
+
+			if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
+				return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
+			}
+
 			return FormValidation.ok();
 		}
 
@@ -793,12 +807,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.ok();
 			}
 
-			if (!StringUtils.isNumeric(value)) {
-				return FormValidation.error("Per Scenario Timeout must be a number");
+			if (!isParameterizedValue(value) && !StringUtils.isNumeric(value)) {
+				return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, $ScenarioDuration or ${ScenarioDuration}.");
 			}
 
-			return FormValidation.ok();
+            		return FormValidation.ok();
 		}
-
+		/**
+		 * Check if the value is parameterized.
+		 *
+		 * @param value the value
+		 * @return boolean
+		 */
+		public boolean isParameterizedValue(String value) {
+			//Parameter (with or without brackets)
+			return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
+		}
 	}
 }
