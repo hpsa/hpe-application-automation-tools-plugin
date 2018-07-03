@@ -87,6 +87,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -158,13 +159,13 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		CIProxyConfiguration result = null;
 		ProxyConfiguration proxy = getJenkins().proxy;
 		if (proxy != null) {
 			boolean noProxyHost = false;
 			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
-				if (pattern.matcher(targetHost).matches()) {
+				if (pattern.matcher(targetUrl.getHost()).matches()) {
 					noProxyHost = true;
 					break;
 				}
@@ -221,9 +222,9 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 						tmpConfig = createPipelineNodeFromJobName(name);
 						list.add(tmpConfig);
-					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)){
-						for(Item item : ((OrganizationFolder) tmpItem).getItems()){
-							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(),name);
+					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
+						for (Item item : ((OrganizationFolder) tmpItem).getItems()) {
+							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
 							list.add(tmpConfig);
 						}
 					} else {
@@ -259,11 +260,10 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				.setName(name);
 	}
 
-	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name,String folderName) {
-		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
+		return dtoFactory.newDTO(PipelineNode.class)
 				.setJobCiId(folderName + "/" + name)
 				.setName(folderName + "/" + name);
-		return tmpConfig;
 	}
 
 
@@ -288,10 +288,10 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				} else {
 					Item item = getItemByRefId(rootJobCiId);
 					//todo: check error message(s)
-					if(item!=null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)){
+					if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 						result = createPipelineNodeFromJobName(rootJobCiId);
 						result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
-					}else {
+					} else {
 						logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
 						throw new ConfigurationException(404);
 					}
@@ -402,24 +402,24 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		}
 	}
 
-	private InputStream getOctaneLogFile(Run build) {
+	private InputStream getOctaneLogFile(Run run) {
 		InputStream result = null;
-		String octaneLogFilePath = build.getLogFile().getParent() + File.separator + "octane_log";
+		String octaneLogFilePath = run.getLogFile().getParent() + File.separator + "octane_log";
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
 			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-			     InputStream logStream = build.getLogInputStream();
+			     InputStream logStream = run.getLogInputStream();
 			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
 				IOUtils.copy(logStream, out);
 				out.flush();
 			} catch (IOException ioe) {
-				logger.error("failed to transfer native log to Octane's one for " + build);
+				logger.error("failed to transfer native log to Octane's one for " + run);
 			}
 		}
 		try {
 			result = new FileInputStream(octaneLogFilePath);
 		} catch (IOException ioe) {
-			logger.error("failed to obtain log for " + build);
+			logger.error("failed to obtain log for " + run);
 		}
 		return result;
 	}
@@ -568,7 +568,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
 					Item item = getTopLevelItem(newItemRefId);
 					if (item != null && item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-						Collection<? extends Item> allItems = ((OrganizationFolder)item).getItems();
+						Collection<? extends Item> allItems = ((OrganizationFolder) item).getItems();
 						for (Item multibranchItem : allItems) {
 							if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
 								result = multibranchItem;

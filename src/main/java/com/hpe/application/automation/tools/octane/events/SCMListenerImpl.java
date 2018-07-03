@@ -100,12 +100,12 @@ public class SCMListenerImpl extends SCMListener {
 		SCMData scmData = null;
 		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) run;
-			if (changelog != null && !changelog.isEmptySet()) {
+			if (build.getChangeSet() != null && !build.getChangeSet().isEmptySet()) {
 				scmData = scmProcessor.getSCMData(build, scm);
 			}
 		} else if (run.getParent() instanceof WorkflowJob) {
 			WorkflowRun wRun = (WorkflowRun) run;
-			if (changelog != null && !changelog.isEmptySet() || !wRun.getChangeSets().isEmpty()) {
+			if (wRun.getChangeSets() != null && !wRun.getChangeSets().isEmpty()) {
 				scmData = scmProcessor.getSCMData(wRun, scm);
 			}
 		}
@@ -113,8 +113,6 @@ public class SCMListenerImpl extends SCMListener {
 		if (scmData != null) {
 			CIEvent event = createSCMEvent(run, scmData);
 			OctaneSDK.getInstance().getEventsService().publishEvent(event);
-		} else {
-			logger.warn("SCM changes found, but FAILED to extract SCM data; SCM type: " + scm.getClass() + ",  processor used: " + scmProcessor.getClass().getSimpleName());
 		}
 	}
 

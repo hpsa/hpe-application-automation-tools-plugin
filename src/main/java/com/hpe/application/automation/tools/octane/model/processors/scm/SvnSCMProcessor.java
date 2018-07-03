@@ -42,6 +42,7 @@ import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.*;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
+import hudson.scm.SVNRevisionState;
 import hudson.scm.SubversionChangeLogSet;
 import hudson.scm.SubversionSCM;
 import hudson.tasks.Mailer;
@@ -53,8 +54,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by benmeior on 5/15/2016.
@@ -146,12 +145,13 @@ class SvnSCMProcessor implements SCMProcessor {
 		return tmpCommits;
 	}
 
-	private String getBuiltRevId(Run run, SubversionSCM svnData, String scmRepositoryUrl) {
+	private String getBuiltRevId(Run run, SubversionSCM svnData, String svnRepositoryUrl) {
 		String builtRevId = null;
-
 		try {
-			String revisionStateStr = String.valueOf(svnData.calcRevisionsFromBuild(run, null, null, null));
-			builtRevId = getRevisionIdFromBuild(revisionStateStr, scmRepositoryUrl);
+			SVNRevisionState revisionState = (SVNRevisionState) svnData.calcRevisionsFromBuild(run, null, null, null);
+			if (revisionState != null) {
+				builtRevId = String.valueOf(revisionState.getRevision(svnRepositoryUrl));
+			}
 		} catch (IOException | InterruptedException e) {
 			logger.error("failed to get revision state", e);
 		}
@@ -174,25 +174,13 @@ class SvnSCMProcessor implements SCMProcessor {
 		return parentRevId;
 	}
 
-	private static String getRevisionIdFromBuild(String revisionStateStr, String repositoryUrl) {
-		Matcher m = Pattern.compile("(\\d+)").matcher(
-				revisionStateStr.substring(revisionStateStr.indexOf(repositoryUrl) + repositoryUrl.length() + 1)
-		);
-		if (!m.find()) {
-			return null;
-		}
-		return m.group(1);
-	}
-
 	private static SCMRepository getSCMRepository(SubversionSCM svnData) {
-		SCMRepository result;
 		String url = null;
-		if (svnData.getLocations().length == 1) {
+		if (svnData.getLocations().length > 0 && svnData.getLocations()[0] != null) {
 			url = svnData.getLocations()[0].getURL();
 		}
-		result = dtoFactory.newDTO(SCMRepository.class)
+		return dtoFactory.newDTO(SCMRepository.class)
 				.setType(SCMType.SVN)
 				.setUrl(url);
-		return result;
 	}
 }
