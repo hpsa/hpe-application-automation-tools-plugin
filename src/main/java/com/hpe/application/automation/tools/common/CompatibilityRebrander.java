@@ -1,6 +1,5 @@
 package com.hpe.application.automation.tools.common;
 
-
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.model.Items;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Logger;
+
 
 /**
  * CompatibilityRebrander is an interface for all related to the company rebranding phase.
@@ -90,25 +90,46 @@ public class CompatibilityRebrander {
      * @throws IOException
      */
     private static Class[] getClasses(String packageName) throws ClassNotFoundException, IOException {
+        ClassLoader classLoader = getContextClassLoader();
+        String path = packageName.replace('.', '/');
+        Enumeration resources = classLoader.getResources(path);
+        List directories = getDirectories(resources);
+        ArrayList classes = getClassesArrayList(directories, packageName);
+
+        return (Class[]) classes.toArray(new Class[classes.size()]);
+    }
+
+    private static ArrayList getClassesArrayList(List directories, String packageName) throws ClassNotFoundException, IOException {
+        ArrayList classes = new ArrayList();
+
+        for (Object directory : directories) {
+            classes.addAll(findClasses((File)directory, packageName));
+        }
+
+        return classes;
+    }
+
+    private static List getDirectories(Enumeration resources) {
+        List directories = new ArrayList();
+
+        while (resources.hasMoreElements()) {
+            URL resource = (URL) resources.nextElement();
+            directories.add(new File(resource.getFile()));
+        }
+
+        return directories;
+    }
+
+    /**
+     * The context that is supplied was Jenkins and the project itself, it required the following workaround.
+     * @return ClassLoader that is related to the project context
+     */
+    private static ClassLoader getContextClassLoader() {
         Thread thread = Thread.currentThread();
         ClassLoader tempClassLoader = thread.getContextClassLoader();
         assert tempClassLoader != null;
         thread.setContextClassLoader(CompatibilityRebrander.class.getClassLoader());
-        ClassLoader classLoader = thread.getContextClassLoader();
-        String path = packageName.replace('.', '/');
-        Enumeration resources = classLoader.getResources(path);
-        List dirs = new ArrayList();
-
-        while (resources.hasMoreElements()) {
-            URL resource = (URL) resources.nextElement();
-            dirs.add(new File(resource.getFile()));
-        }
-        ArrayList classes = new ArrayList();
-
-        for (Object directory : dirs) {
-            classes.addAll(findClasses((File)directory, packageName));
-        }
-        return (Class[]) classes.toArray(new Class[classes.size()]);
+        return thread.getContextClassLoader();
     }
 
     /**
@@ -140,3 +161,4 @@ public class CompatibilityRebrander {
         return classes;
     }
 }
+
