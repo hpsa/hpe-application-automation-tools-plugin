@@ -24,15 +24,34 @@ import java.util.logging.Logger;
  * Important note to mention is this class will only work after:
  * <ul>
  * <li> Package path is renamed from the old brand to the new one
- * <li> Only the various Descriptors (e.g. BuildStepDescriptor) use this function
  * </ul>
  */
 public class CompatibilityRebrander {
-    private final static String COM_HPE = "com.hpe";
-    private final static String COM_HP = "com.hp";
-    private final static String COM_MICROFOCUS = "com.microfocus";
-    private final static String PACKAGE_NAME = "com.microfocus.application.automation.tools";
-    private final static Logger LOG = Logger.getLogger(CompatibilityRebrander.class.getName());
+    private static final String COM_HPE = "com.hpe";
+    private static final String COM_HP = "com.hp";
+    private static final String COM_MICROFOCUS = "com.microfocus";
+    private static final String PACKAGE_NAME = "com.microfocus.application.automation.tools";
+    private static final Logger LOG = Logger.getLogger(CompatibilityRebrander.class.getName());
+
+    private CompatibilityRebrander() {}
+
+    /**
+     * This function hooks to the Jenkins milestone when the plugins are prepared to load
+     * And adds aliases for all package found classes
+     */
+    @Initializer(before = InitMilestone.PLUGINS_PREPARED)
+    public static void addAliasesToAllClasses() {
+        LOG.info("Adding alias for in old package names to add backward compatibility");
+        try {
+            Class[] classes = getClasses(PACKAGE_NAME);
+            for (Class c: classes) {
+                addAliases(c);
+            }
+        }
+        catch(ClassNotFoundException | IOException e) {
+            LOG.warning(e.getMessage());
+        }
+    }
 
     /**
      * addAliases is the actual function who does the rebranding part for all the old package names
@@ -45,8 +64,6 @@ public class CompatibilityRebrander {
      * @see hudson.model.Run#XSTREAM2
      * @since 5.5
      */
-
-
     private static void addAliases(@Nonnull Class newClass) {
         String newClassName = newClass.toString().replaceFirst("class ", "");
         String oldHpeClassName = newClassName.replaceFirst(COM_MICROFOCUS, COM_HPE);
@@ -54,14 +71,6 @@ public class CompatibilityRebrander {
 
         invokeXstreamCompatibilityAlias(newClass, oldHpClassName);
         invokeXstreamCompatibilityAlias(newClass, oldHpeClassName);
-    }
-
-    /**
-     * addAliasesForSingleClass responsible for handling the rebranding for a single class
-     */
-    private static void addAliasesForSingleClass(@Nonnull Class newClass, String oldClassName, String beforeBrand) {
-        handleReceivedWrongParameters(newClass, oldClassName, beforeBrand);
-        invokeXstreamCompatibilityAlias(newClass, oldClassName);
     }
 
     /**
@@ -73,15 +82,6 @@ public class CompatibilityRebrander {
     }
 
     /**
-     * handleReceivedWrongParameters logs a warning when the passed newClass doesn't contain any of the package names
-     * we trying to add alias to
-     */
-    private static void handleReceivedWrongParameters(@Nonnull Class newClass, String oldClassName, String beforeBrand) {
-        if (!oldClassName.contains(beforeBrand))
-            LOG.warning(String.format("The %s class name doesn't contain: %s class name", newClass.toString(), beforeBrand));
-    }
-
-    /**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
      *
      * @param packageName The base package
@@ -89,7 +89,6 @@ public class CompatibilityRebrander {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-
     private static Class[] getClasses(String packageName) throws ClassNotFoundException, IOException {
         Thread thread = Thread.currentThread();
         ClassLoader tempClassLoader = thread.getContextClassLoader();
@@ -120,7 +119,6 @@ public class CompatibilityRebrander {
      * @return The classes
      * @throws ClassNotFoundException
      */
-
     private static List findClasses(File directory, String packageName) throws ClassNotFoundException {
         List classes = new ArrayList();
 
@@ -140,23 +138,5 @@ public class CompatibilityRebrander {
         }
 
         return classes;
-    }
-
-    /**
-     * This function hooks to the Jenkins milestone when the plugins are prepared to load
-     * And adds aliases for all package found classes
-     */
-    @Initializer(before = InitMilestone.PLUGINS_PREPARED)
-    public static void addAliasesToAllClasses() {
-        LOG.info("Adding alias for in old package names to add backward compatibility");
-        try {
-            Class[] classes = getClasses(PACKAGE_NAME);
-            for (Class c: classes) {
-                addAliases(c);
-            }
-        }
-        catch(ClassNotFoundException | IOException e) {
-            LOG.warning(e.getMessage());
-        }
     }
 }
