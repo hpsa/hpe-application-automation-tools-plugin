@@ -69,7 +69,6 @@ import java.util.List;
  */
 
 @Extension
-@SuppressWarnings("squid:S1872")
 public class SCMListenerImpl extends SCMListener {
 	private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -97,23 +96,27 @@ public class SCMListenerImpl extends SCMListener {
 			return;
 		}
 
-		SCMData scmData = null;
-		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
-			AbstractBuild build = (AbstractBuild) run;
-			if (build.getChangeSet() != null && !build.getChangeSet().isEmptySet()) {
-				scmData = scmProcessor.getSCMData(build, scm);
-			}
-		} else if (run.getParent() instanceof WorkflowJob) {
-			WorkflowRun wRun = (WorkflowRun) run;
-			if (wRun.getChangeSets() != null && !wRun.getChangeSets().isEmpty()) {
-				scmData = scmProcessor.getSCMData(wRun, scm);
-			}
-		}
-
+		SCMData scmData = extractSCMData(run, scm, scmProcessor);
 		if (scmData != null) {
 			CIEvent event = createSCMEvent(run, scmData);
 			OctaneSDK.getInstance().getEventsService().publishEvent(event);
 		}
+	}
+
+	private SCMData extractSCMData(Run run, SCM scm, SCMProcessor scmProcessor) {
+		SCMData result = null;
+		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
+			AbstractBuild build = (AbstractBuild) run;
+			if (build.getChangeSet() != null && !build.getChangeSet().isEmptySet()) {
+				result = scmProcessor.getSCMData(build, scm);
+			}
+		} else if (run.getParent() instanceof WorkflowJob) {
+			WorkflowRun wRun = (WorkflowRun) run;
+			if (wRun.getChangeSets() != null && !wRun.getChangeSets().isEmpty()) {
+				result = scmProcessor.getSCMData(wRun, scm);
+			}
+		}
+		return result;
 	}
 
 	private CIEvent createSCMEvent(Run<?, ?> run, SCMData scmData) {
