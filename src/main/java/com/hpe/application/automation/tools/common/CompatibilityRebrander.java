@@ -48,13 +48,13 @@ public class CompatibilityRebrander {
                 addAliases(c);
             }
         }
-        catch(ClassNotFoundException | IOException e) {
+        catch(ClassNotFoundException | NullPointerException | IOException e) {
             LOG.warning(e.getMessage());
         }
     }
 
     /**
-     * addAliases is the actual function who does the rebranding part for all the old package names
+     * addAliases is the actual function who does the re-branding part for all the old package names
      * <p>
      * Items.XSTREAM2.addCompatibilityAlias is for serializing project configurations.
      * Run.XSTREAM2.addCompatibilityAlias is for serializing builds and its associated Actions.
@@ -74,7 +74,7 @@ public class CompatibilityRebrander {
     }
 
     /**
-     * invokeXstreamCompatibilityAlias invokes the XSTREAM2 functions required for the rebranding
+     * invokeXstreamCompatibilityAlias invokes the XSTREAM2 functions required for the re-branding
      */
     private static void invokeXstreamCompatibilityAlias(@Nonnull Class newClass, String oldClassName) {
         Items.XSTREAM2.addCompatibilityAlias(oldClassName, newClass);
@@ -94,12 +94,12 @@ public class CompatibilityRebrander {
         String path = packageName.replace('.', '/');
         Enumeration resources = classLoader.getResources(path);
         List directories = getDirectories(resources);
-        ArrayList classes = getClassesArrayList(directories, packageName);
+        ArrayList classes = getClassesForDirectories(directories, packageName);
 
         return (Class[]) classes.toArray(new Class[classes.size()]);
     }
 
-    private static ArrayList getClassesArrayList(List directories, String packageName) throws ClassNotFoundException, IOException {
+    private static ArrayList getClassesForDirectories(List directories, String packageName) throws ClassNotFoundException {
         ArrayList classes = new ArrayList();
 
         for (Object directory : directories) {
@@ -124,17 +124,20 @@ public class CompatibilityRebrander {
      * The context that is supplied was Jenkins and the project itself, it required the following workaround.
      * @return ClassLoader that is related to the project context
      */
-    private static ClassLoader getContextClassLoader() {
+    private static ClassLoader getContextClassLoader(){
         Thread thread = Thread.currentThread();
         ClassLoader tempClassLoader = thread.getContextClassLoader();
-        assert tempClassLoader != null;
+
+        if (tempClassLoader == null) {
+            throw new NullPointerException("Context ClassLoader not found: re-branding will not work");
+        }
+
         thread.setContextClassLoader(CompatibilityRebrander.class.getClassLoader());
         return thread.getContextClassLoader();
     }
 
     /**
-     * Recursive method used to find all classes in a given directory and subdirs.
-     *
+     * Recursive method used to find all classes in a given directory and subdirectories.
      * @param directory   The base directory
      * @param packageName The package name for classes found inside the base directory
      * @return The classes
@@ -149,10 +152,8 @@ public class CompatibilityRebrander {
         File[] files = directory.listFiles();
 
         for (File file : files) {
-            if (file.isDirectory()) {
-                assert !file.getName().contains(".");
+            if (file.isDirectory() && !file.getName().contains(".")) {
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
-
             } else if (file.getName().endsWith(".class")) {
                 classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
             }
