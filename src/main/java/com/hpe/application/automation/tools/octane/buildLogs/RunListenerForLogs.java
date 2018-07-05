@@ -37,7 +37,6 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.model.listeners.RunListener;
 import org.apache.logging.log4j.LogManager;
@@ -53,15 +52,14 @@ public class RunListenerForLogs extends RunListener<Run> {
 	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
 	@Override
-	public void onFinalized(Run r) {
+	public void onFinalized(Run run) {
 		if (ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 
-		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration() != null && ConfigurationService.getServerConfiguration().isValid()) {
-			AbstractBuild build = (AbstractBuild) r;
-			String jobCiId = BuildHandlerUtils.getJobCiId(build);
-			String buildCiId = BuildHandlerUtils.getBuildCiId(build);
+		if (ConfigurationService.getServerConfiguration() != null && ConfigurationService.getServerConfiguration().isValid()) {
+			String jobCiId = BuildHandlerUtils.getJobCiId(run);
+			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
 			OctaneSDK.getInstance().getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
 		} else {
