@@ -78,7 +78,7 @@ import com.hpe.application.automation.tools.run.AlmRunTypes.RunType;
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
     private final RunFromAlmModel runFromAlmModel;
-    private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
+    private final static String MICRO_FOCUS_TOOLS_LAUNCHER_SCRIPT_NAME = "MicroFocusToolsLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     //private String KillFileName = "";
@@ -232,14 +232,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
         URL cmdExeUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
+                Hudson.getInstance().pluginManager.uberClassLoader.getResource(MICRO_FOCUS_TOOLS_LAUNCHER_SCRIPT_NAME);
         if (cmdExeUrl == null) {
-            listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
+            listener.fatalError(MICRO_FOCUS_TOOLS_LAUNCHER_SCRIPT_NAME + " not found in resources");
             return;
         }
         
         FilePath propsFileName = projectWS.child(ParamFileName);
-        FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
+        FilePath CmdLineExe = projectWS.child(MICRO_FOCUS_TOOLS_LAUNCHER_SCRIPT_NAME);
         
         try {
             // create a file for the properties file, and save the properties
@@ -254,7 +254,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
         
         try {
-            // Run the HpToolsLauncher.exe
+            // Run the MicroFocusToolsLauncher.exe
             AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);

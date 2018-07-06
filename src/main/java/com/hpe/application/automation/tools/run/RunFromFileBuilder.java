@@ -89,7 +89,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	private String ResultFilename = "ApiResults.xml";
 	private String ParamFileName = "ApiRun.txt";
 	private final RunFromFileSystemModel runFromFileModel;
-	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
+	private static final  String MICRO_FOCUS_TOOLS_LAUNCHER_EXE = "MicroFocusToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
 
 	/**
@@ -496,9 +496,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             // Get the URL to the Script used to run the test, which is bundled
 			// in the plugin
 			@SuppressWarnings("squid:S2259")
-			URL cmdExeUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+			URL cmdExeUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(MICRO_FOCUS_TOOLS_LAUNCHER_EXE);
 			if (cmdExeUrl == null) {
-				listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+				listener.fatalError(MICRO_FOCUS_TOOLS_LAUNCHER_EXE + " not found in resources");
 				return;
 			}
 
@@ -510,7 +510,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			}
 
 			FilePath propsFileName = workspace.child(ParamFileName);
-			CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+			CmdLineExe = workspace.child(MICRO_FOCUS_TOOLS_LAUNCHER_EXE);
 			FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
 			try {
@@ -529,7 +529,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		try {
-			// Run the HpToolsLauncher.exe
+			// Run the MicroFocusToolsLauncher.exe
 			AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
 			// Has the report been successfully generated?
 		} catch (IOException ioe) {
