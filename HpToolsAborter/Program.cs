@@ -34,7 +34,7 @@ namespace HpToolsAborter
             {
                 if (args == null || args.Length ==0)
                 {
-                    Console.Out.WriteLine("Usage: HpToolsAborter paramfile");
+                    Console.Out.WriteLine("Usage: MicroFocusToolsAborter paramfile");
                     return;
                 }
 
@@ -91,7 +91,7 @@ namespace HpToolsAborter
             }
             catch (Exception ex)
             {
-                Console.Out.WriteLine(string.Format("Error in HpToolsAborter: {0} ",ex.Message));
+                Console.Out.WriteLine(string.Format("Error in MicroFocusToolsAborter: {0} ",ex.Message));
             }
         }
 

@@ -119,7 +119,7 @@ public class AlmToolsUtils {
         try {
         	hpToolsAborterFile.delete();
 		} catch (Exception e) {
-			 listener.error("failed copying HpToolsAborter" + e);
+			 listener.error("failed copying MicroFocusToolsAborter" + e);
 		}
         
         
