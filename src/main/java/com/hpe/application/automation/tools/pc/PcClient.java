@@ -142,7 +142,7 @@ public class PcClient {
             if (pcTestInstances != null && pcTestInstances.getTestInstancesList() != null){
                 PcTestInstance pcTestInstance = pcTestInstances.getTestInstancesList().get(pcTestInstances.getTestInstancesList().size()-1);
                 testInstanceID = pcTestInstance.getInstanceId();
-                logger.println(String.format("%s - Found testInstanceId: %d", _simpleDateFormat.format(new Date()), testInstanceID));
+                logger.println(String.format("%s - Found testInstanceId: %s", _simpleDateFormat.format(new Date()), testInstanceID));
             }else{
                 logger.println(String.format("%s - Could not find available TestInstanceID, Creating Test Instance.", _simpleDateFormat.format(new Date())));
                 logger.println(String.format("%s - Searching for available TestSet", _simpleDateFormat.format(new Date())));
@@ -238,7 +238,7 @@ public class PcClient {
             try {
 
                 if (threeStrikes < 3) {
-                    logger.println(String.format("%s - Cannot get response from PC about the state of RunID: %s %d time(s) consecutively",_simpleDateFormat.format(new Date()), runId, (3 - threeStrikes)));
+                    logger.println(String.format("%s - Cannot get response from PC about the state of RunID: %s %s time(s) consecutively",_simpleDateFormat.format(new Date()), runId, (3 - threeStrikes)));
                     if(threeStrikes==0) {
                         logger.println(String.format("%s - stopping monitoring on RunID: %s", _simpleDateFormat.format(new Date()), runId));
                         break;
@@ -344,10 +344,10 @@ public class PcClient {
     {
 
         TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(true), runId, null);
-        logger.println(String.format("%s - Adding run: %d to trend report: %s", _simpleDateFormat.format(new Date()), runId, trendReportId));
+        logger.println(String.format("%s - Adding run: %s to trend report: %s", _simpleDateFormat.format(new Date()), runId, trendReportId));
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
-            logger.println(String.format("%s - Publishing run: %d on trend report: %s", _simpleDateFormat.format(new Date()), runId, trendReportId));
+            logger.println(String.format("%s - Publishing run: %s on trend report: %s", _simpleDateFormat.format(new Date()), runId, trendReportId));
         }
         catch (PcException e) {
             logger.println(String.format("%s - Failed to add run to trend report: %s", _simpleDateFormat.format(new Date()), e.getMessage()));
@@ -374,7 +374,7 @@ public class PcClient {
 
                 if (result.getState().equals(PcBuilder.TRENDED) || result.getState().equals(PcBuilder.ERROR)){
                     publishEnded = true;
-                    logger.println(String.format("%s - Run: %d publishing status: %s", _simpleDateFormat.format(new Date()), runId, result.getState()));
+                    logger.println(String.format("%s - Run: %s publishing status: %s", _simpleDateFormat.format(new Date()), runId, result.getState()));
                     break;
                 }else{
                     Thread.sleep(5000);
@@ -393,7 +393,7 @@ public class PcClient {
 
 
         try {
-            logger.println(String.format("%s - Downloading trend report: %d in PDF format", _simpleDateFormat.format(new Date()), trendReportId));
+            logger.println(String.format("%s - Downloading trend report: %s in PDF format", _simpleDateFormat.format(new Date()), trendReportId));
             InputStream in = restProxy.getTrendingPDF(trendReportId);
             File dir = new File(directory);
             if(!dir.exists()){
@@ -402,7 +402,7 @@ public class PcClient {
             String filePath = directory + IOUtils.DIR_SEPARATOR + "trendReport" + trendReportId + ".pdf";
             Path destination = Paths.get(filePath);
             Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
-            logger.println(String.format("%s - Trend report: %d was successfully downloaded", _simpleDateFormat.format(new Date()), trendReportId));
+            logger.println(String.format("%s - Trend report: %s was successfully downloaded", _simpleDateFormat.format(new Date()), trendReportId));
         }
         catch (Exception e) {
 
