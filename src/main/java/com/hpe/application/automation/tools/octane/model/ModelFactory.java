@@ -144,7 +144,7 @@ public class ModelFactory {
 		snapshotNode.setDuration(build.getDuration());
 		snapshotNode.setEstimatedDuration(build.getEstimatedDuration());
 		if (build instanceof AbstractBuild) {
-			snapshotNode.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData((AbstractBuild) build));
+			snapshotNode.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData((AbstractBuild) build, ((AbstractBuild) build).getProject().getScm()));
 		}
 		snapshotNode.setStartTime(build.getStartTimeInMillis());
 		snapshotNode.setParameters(ParameterProcessors.getInstances(build));
