@@ -82,16 +82,16 @@ import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.Run
 public class PcBuilder extends Builder implements SimpleBuildStep{
     
     private static final String artifactsDirectoryName = "archive";
-    private static final String artifactsResourceName = "artifact";
-    private static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun";
-    private static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
+    public static final String artifactsResourceName = "artifact";
+    public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun";
+    public static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
     private static final String RUNID_BUILD_VARIABLE = "HP_RUN_ID";
 
     public static final String    TRENDED         = "Trended";
     public static final String    PENDING         = "Pending";
-    //public static final String    PUBLISHING      = "Publishing";
+    public static final String    PUBLISHING      = "Publishing";
     public static final String    ERROR           = "Error";
     
     private PcModel pcModel;
@@ -108,28 +108,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private PrintStream logger;
     private File WorkspacePath;
     private SimpleDateFormat _simpleDateFormat = new SimpleDateFormat ("E MM.dd.yyyy 'at' hh:mm:ss a zzz");
-
-    private String _ServerAndPort;
-    private String _PCServerName;
-    private String _ALMUserName;
-    private String _ALMPassword;
-    private String _ALMDomain;
-    private String _ALMProject;
-    private String _TestId;
-    private String _TestInstanceId;
-    private String _AutoTestInstanceID;
-    private String _TimeslotDurationHours;
-    private String _TimeslotDurationMinutes;
-    private PostRunAction _PostRunAction;
-    private boolean _VudsMode;
-    private boolean _StatusBySLA;
-    private String _Description;
-    private String _AddRunToTrendReport;
-    private String _TrendReportId;
-    private boolean _HTTPSProtocol;
-    private String _ProxyOutURL;
-    private String _ProxyOutUser;
-    private String _ProxyOutPassword;
 
 
 
@@ -162,28 +140,28 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
 
-        _ServerAndPort = serverAndPort;
-        _PCServerName = pcServerName;
-        _ALMUserName = almUserName;
-        _ALMPassword = almPassword;
-        _ALMDomain = almDomain;
-        _ALMProject  = almProject;
-        _TestId  = testId;
-        _TestInstanceId  = testInstanceId;
-        _AutoTestInstanceID  = autoTestInstanceID;
-        _TimeslotDurationHours  = timeslotDurationHours;
-        _TimeslotDurationMinutes  = timeslotDurationMinutes;
-        _PostRunAction  = postRunAction;
-        _VudsMode  = vudsMode;
-        _StatusBySLA  = statusBySLA;
-        _Description  = description;
-        _AddRunToTrendReport  = addRunToTrendReport;
-        _TrendReportId  = trendReportId;
-        _HTTPSProtocol  = HTTPSProtocol;
-        _ProxyOutURL  = proxyOutURL;
-        _ProxyOutUser  = proxyOutUser;
-        _ProxyOutPassword  = proxyOutPassword;
-
+        pcModel =
+        new PcModel(
+                serverAndPort.trim(),
+                pcServerName.trim(),
+                almUserName.trim(),
+                almPassword,
+                almDomain.trim(),
+                almProject.trim(),
+                testId.trim(),
+                autoTestInstanceID,
+                testInstanceId.trim(),
+                timeslotDurationHours.trim(),
+                timeslotDurationMinutes.trim(),
+                postRunAction,
+                vudsMode,
+                description,
+                addRunToTrendReport,
+                trendReportId,
+                HTTPSProtocol,
+                proxyOutURL,
+                proxyOutUser,
+                proxyOutPassword);
     }
 
     @Override
@@ -207,11 +185,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return true;
     }
 
-    private File getWorkspacePath(){
+    public File getWorkspacePath(){
         return WorkspacePath;
     }
     
-    private PcModel getPcModel() {
+    public PcModel getPcModel() {
         
         return pcModel;
     }
@@ -226,25 +204,25 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return artifactsDirectoryName;
     }
     
-//    public static String getArtifactsResourceName() {
-//
-//        return artifactsResourceName;
-//    }
+    public static String getArtifactsResourceName() {
+
+        return artifactsResourceName;
+    }
     
     public static String getRunReportStructure() {
         
         return runReportStructure;
     }
     
-//    public static String getPcReportArchiveName() {
-//
-//        return pcReportArchiveName;
-//    }
+    public static String getPcReportArchiveName() {
+
+        return pcReportArchiveName;
+    }
     
-//    public static String getPcreportFileName() {
-//
-//        return pcReportFileName;
-//    }
+    public static String getPcreportFileName() {
+
+        return pcReportFileName;
+    }
 
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
@@ -368,28 +346,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Override
     @Deprecated
     public boolean perform(Build<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        pcModel =
-                new PcModel(
-                        _ServerAndPort.trim(),
-                        _PCServerName.trim(),
-                        _ALMUserName.trim(),
-                        _ALMPassword,
-                        _ALMDomain.trim(),
-                        _ALMProject.trim(),
-                        _TestId.trim(),
-                        _AutoTestInstanceID,
-                        _TestInstanceId.trim(),
-                        _TimeslotDurationHours.trim(),
-                        _TimeslotDurationMinutes.trim(),
-                        _PostRunAction,
-                        _VudsMode,
-                        _Description,
-                        _AddRunToTrendReport,
-                        _TrendReportId,
-                        _HTTPSProtocol,
-                        _ProxyOutURL,
-                        _ProxyOutUser,
-                        _ProxyOutPassword);
         return super.perform(build, launcher, listener);
     }
 
