@@ -76,27 +76,27 @@ import java.util.List;
  */
 
 class GitSCMProcessor implements SCMProcessor {
-	private static final Logger logger = LogManager.getLogger(GitSCMProcessor.class);
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String MASTER = "refs/remotes/origin/master";
+    private static final Logger logger = LogManager.getLogger(GitSCMProcessor.class);
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private static final String MASTER = "refs/remotes/origin/master";
 
-	@Override
-	public SCMData getSCMData(AbstractBuild build, SCM scm) {
-		List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes = new ArrayList<>();
-		changes.add(build.getChangeSet());
-		return extractSCMData(build, scm, changes);
-	}
+    @Override
+    public SCMData getSCMData(AbstractBuild build, SCM scm) {
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes = new ArrayList<>();
+        changes.add(build.getChangeSet());
+        return extractSCMData(build, scm, changes);
+    }
 
-	@Override
-	public SCMData getSCMData(WorkflowRun run, SCM scm) {
-		return extractSCMData(run, scm, run.getChangeSets());
-	}
+    @Override
+    public SCMData getSCMData(WorkflowRun run, SCM scm) {
+        return extractSCMData(run, scm, run.getChangeSets());
+    }
 
-	@Override
-	public CommonOriginRevision getCommonOriginRevision(final Run run) {
-		//for phase 1 this is hard coded since its not possible to calculate it, and configuration from outside will complicate the feature
-		//so for this phase we keep it hardcoded.
-		CommonOriginRevision commonOriginRevision = new CommonOriginRevision();
+    @Override
+    public CommonOriginRevision getCommonOriginRevision(final Run run) {
+        //for phase 1 this is hard coded since its not possible to calculate it, and configuration from outside will complicate the feature
+        //so for this phase we keep it hardcoded.
+        CommonOriginRevision commonOriginRevision = new CommonOriginRevision();
         commonOriginRevision.branch = getBranchName(run);
 
         try {
@@ -127,29 +127,43 @@ class GitSCMProcessor implements SCMProcessor {
 
             Git git = Git.open(repoDir);
             Repository repo = git.getRepository();
+            if(repo==null){
+                return "";
+            }
             final RevWalk walk = new RevWalk(repo);
+            if(walk==null){
+                return "";
+            }
+            ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
+            if(resolveForCurrentBranch==null){
+                return "";
+            }
+            RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
+            if(currentBranchCommit==null){
+                return "";
+            }
+            ObjectId resolveForMaster = repo.resolve(MASTER);
+            if(resolveForMaster==null){
+                return "";
+            }
+            RevCommit masterCommit = walk.parseCommit(resolveForMaster);
 
-                        ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
-                        RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
-                        ObjectId resolveForMaster = repo.resolve(MASTER);
-                        RevCommit masterCommit = walk.parseCommit(resolveForMaster);
-
-                        walk.reset();
-                        walk.setRevFilter(RevFilter.MERGE_BASE);
-                        walk.markStart(currentBranchCommit);
-                        walk.markStart(masterCommit);
-                        final RevCommit base = walk.next();
-                        if (base == null)
-                            return "";
-                        final RevCommit base2 = walk.next();
-                        if (base2 != null) {
-                            throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
-                                    MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
-                        }
-                        return base.getId().getName();
+            walk.reset();
+            walk.setRevFilter(RevFilter.MERGE_BASE);
+            walk.markStart(currentBranchCommit);
+            walk.markStart(masterCommit);
+            final RevCommit base = walk.next();
+            if (base == null)
+                return "";
+            final RevCommit base2 = walk.next();
+            if (base2 != null) {
+                throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
+                        MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
+            }
+            return base.getId().getName();
 
 
-                    }
+        }
     }
 
     private SCMData extractSCMData(Run run, SCM scm, List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes) {
@@ -193,85 +207,86 @@ class GitSCMProcessor implements SCMProcessor {
         return null;
     }
 
-	private static String getRemoteString(AbstractBuild  r){
-		final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
-		String relativeTargetDir = "";
-		if(extensions!=null){
-			final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
-			if(relativeTargetDirectory!=null && relativeTargetDirectory.getRelativeTargetDir()!=null ){
-				relativeTargetDir = File.separator+relativeTargetDirectory.getRelativeTargetDir();
-			}
-		}
-		if(r.getWorkspace().isRemote()){
+    private static String getRemoteString(AbstractBuild r) {
+        final DescribableList<GitSCMExtension, GitSCMExtensionDescriptor> extensions = ((GitSCM) (r.getProject()).getScm()).getExtensions();
+        String relativeTargetDir = "";
+        if (extensions != null) {
+            final RelativeTargetDirectory relativeTargetDirectory = extensions.get(RelativeTargetDirectory.class);
+            if (relativeTargetDirectory != null && relativeTargetDirectory.getRelativeTargetDir() != null) {
+                relativeTargetDir = File.separator + relativeTargetDirectory.getRelativeTargetDir();
+            }
+        }
+        if (r.getWorkspace().isRemote()) {
 
             VirtualChannel vc = r.getWorkspace().getChannel();
             String fp = r.getWorkspace().getRemote();
             String remote = new FilePath(vc, fp).getRemote();
-			return remote+relativeTargetDir;
-		}
-		else {
-			String remote = r.getWorkspace().getRemote();
-			return remote+relativeTargetDir;
-        }}
+            return remote + relativeTargetDir;
+        } else {
+            String remote = r.getWorkspace().getRemote();
+            return remote + relativeTargetDir;
+        }
+    }
 
-	private SCMRepository getRepository(Run run, GitSCM gitData) {
-		SCMRepository result = null;
-		String url = null;
-		String branch = null;
-		if (gitData != null && gitData.getBuildData(run) != null) {
-			BuildData buildData = gitData.getBuildData(run);
-			if (buildData != null) {
-				if (buildData.getRemoteUrls() != null && !buildData.getRemoteUrls().isEmpty()) {
-					url = (String) buildData.getRemoteUrls().toArray()[0];
-				}
-				if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
-					branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
-				}
-				result = dtoFactory.newDTO(SCMRepository.class)
-						.setType(SCMType.GIT)
-						.setUrl(url)
-						.setBranch(branch);
-			} else {
-				logger.warn("failed to obtain BuildData; no SCM repository info will be available");
-			}
-		}
-		return result;}
-
-	private List<SCMCommit> extractCommits(List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes) {
-		List<SCMCommit> commits = new LinkedList<>();
-		for (ChangeLogSet<? extends ChangeLogSet.Entry> set : changes) {
-			for (ChangeLogSet.Entry change : set) {
-				if (change instanceof GitChangeSet) {
-					GitChangeSet commit = (GitChangeSet) change;
-					User user = commit.getAuthor();
-					String userEmail = null;
-
-					List<SCMChange> tmpChanges = new ArrayList<>();
-					for (GitChangeSet.Path item : commit.getAffectedFiles()) {
-						SCMChange tmpChange = dtoFactory.newDTO(SCMChange.class)
-								.setType(item.getEditType().getName())
-								.setFile(item.getPath());
-						tmpChanges.add(tmpChange);
-					}
-
-					for (UserProperty property : user.getAllProperties()) {
-						if (property instanceof Mailer.UserProperty) {
-							userEmail = ((Mailer.UserProperty) property).getAddress();
-						}
-					}
-
-					SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
-							.setTime(commit.getTimestamp())
-							.setUser(user.getId())
-							.setUserEmail(userEmail)
-							.setRevId(commit.getCommitId())
-							.setParentRevId(commit.getParentCommit())
-							.setComment(commit.getComment().trim())
-							.setChanges(tmpChanges);
-
-                commits.add(tmpCommit);
+    private SCMRepository getRepository(Run run, GitSCM gitData) {
+        SCMRepository result = null;
+        String url = null;
+        String branch = null;
+        if (gitData != null && gitData.getBuildData(run) != null) {
+            BuildData buildData = gitData.getBuildData(run);
+            if (buildData != null) {
+                if (buildData.getRemoteUrls() != null && !buildData.getRemoteUrls().isEmpty()) {
+                    url = (String) buildData.getRemoteUrls().toArray()[0];
+                }
+                if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
+                    branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
+                }
+                result = dtoFactory.newDTO(SCMRepository.class)
+                        .setType(SCMType.GIT)
+                        .setUrl(url)
+                        .setBranch(branch);
+            } else {
+                logger.warn("failed to obtain BuildData; no SCM repository info will be available");
             }
         }
+        return result;
+    }
+
+    private List<SCMCommit> extractCommits(List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes) {
+        List<SCMCommit> commits = new LinkedList<>();
+        for (ChangeLogSet<? extends ChangeLogSet.Entry> set : changes) {
+            for (ChangeLogSet.Entry change : set) {
+                if (change instanceof GitChangeSet) {
+                    GitChangeSet commit = (GitChangeSet) change;
+                    User user = commit.getAuthor();
+                    String userEmail = null;
+
+                    List<SCMChange> tmpChanges = new ArrayList<>();
+                    for (GitChangeSet.Path item : commit.getAffectedFiles()) {
+                        SCMChange tmpChange = dtoFactory.newDTO(SCMChange.class)
+                                .setType(item.getEditType().getName())
+                                .setFile(item.getPath());
+                        tmpChanges.add(tmpChange);
+                    }
+
+                    for (UserProperty property : user.getAllProperties()) {
+                        if (property instanceof Mailer.UserProperty) {
+                            userEmail = ((Mailer.UserProperty) property).getAddress();
+                        }
+                    }
+
+                    SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+                            .setTime(commit.getTimestamp())
+                            .setUser(user.getId())
+                            .setUserEmail(userEmail)
+                            .setRevId(commit.getCommitId())
+                            .setParentRevId(commit.getParentCommit())
+                            .setComment(commit.getComment().trim())
+                            .setChanges(tmpChanges);
+
+                    commits.add(tmpCommit);
+                }
+            }
         }
         return commits;
     }
