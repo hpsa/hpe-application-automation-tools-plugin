@@ -190,19 +190,15 @@ class GitSCMProcessor implements SCMProcessor {
                 .setCommits(tmpCommits);
     }
 
-    public String getBranchName(Run r) {
+	private String getBranchName(Run r) {
         try {
             SCM scm = ((AbstractBuild) r).getProject().getScm();
-            if (scm instanceof GitSCM) {
                 GitSCM git = (GitSCM) scm;
                 List<BranchSpec> branches = git.getBranches();
                 String rawBranchName = branches.get(0).toString();
-                String branchName = rawBranchName.substring(2); //trunk the '*/' from the '*/<branch name>' in order to get clean branch name
-                return branchName;
-            }
-
+			return rawBranchName.substring(2); //trunk the '*/' from the '*/<branch name>' in order to get clean branch name
         } catch (Exception e) {
-            logger.error("failed to extract branch name from the run", e);
+			logger.error("failed to extract branch name", e);
         }
         return null;
     }
@@ -217,7 +213,6 @@ class GitSCMProcessor implements SCMProcessor {
             }
         }
         if (r.getWorkspace().isRemote()) {
-
             VirtualChannel vc = r.getWorkspace().getChannel();
             String fp = r.getWorkspace().getRemote();
             String remote = new FilePath(vc, fp).getRemote();
