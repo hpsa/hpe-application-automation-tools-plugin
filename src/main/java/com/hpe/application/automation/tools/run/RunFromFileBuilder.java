@@ -697,7 +697,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		@Override
 		public String getDisplayName() {
-			return "Execute HPE tests from file system";
+			return "Execute Micro Focus tests from file system";
 		}
 
 		/**
