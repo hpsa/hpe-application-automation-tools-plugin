@@ -46,6 +46,7 @@ import com.hpe.application.automation.tools.sse.result.model.junit.JUnitTestCase
 import com.hpe.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testsuites;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -224,9 +225,27 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return pcReportFileName;
     }
 
+    private String getVersion() {
+        try {
+            String completeVersion = ConfigurationService.getPluginVersion();
+            if(completeVersion != null) {
+                String[] partsOfCompleteVersion = completeVersion.split(" [(]");
+                if (partsOfCompleteVersion != null)
+                    return partsOfCompleteVersion[0];
+            }
+        }
+        catch(Exception e)
+        {
+        }
+        return "unknown";
+    }
+
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
+            String pomVersionget = getVersion();
+            if(!(pomVersionget == null || pomVersionget =="unknown"))
+                logger.println(String.format("%s - plugin version is '%s'",_simpleDateFormat.format(new Date()), getVersion()));
             try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println(String.format("%s - \n- - -\nTest description: %s", _simpleDateFormat.format(new Date()), pcModel.getDescription()));
