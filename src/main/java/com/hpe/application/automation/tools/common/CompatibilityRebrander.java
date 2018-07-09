@@ -48,7 +48,7 @@ public class CompatibilityRebrander {
                 addAliases(c);
             }
         }
-        catch(ClassNotFoundException | NullPointerException | IOException e) {
+        catch(ClassNotFoundException | IllegalArgumentException | IOException e) {
             LOG.warning(e.getMessage());
         }
     }
@@ -122,6 +122,7 @@ public class CompatibilityRebrander {
 
     /**
      * The context that is supplied was Jenkins and the project itself, it required the following workaround.
+     * @throws IllegalArgumentException
      * @return ClassLoader that is related to the project context
      */
     private static ClassLoader getContextClassLoader(){
@@ -129,7 +130,7 @@ public class CompatibilityRebrander {
         ClassLoader tempClassLoader = thread.getContextClassLoader();
 
         if (tempClassLoader == null) {
-            throw new NullPointerException("Context ClassLoader not found: re-branding will not work");
+            throw new IllegalArgumentException("Context ClassLoader not found: re-branding will not work");
         }
 
         thread.setContextClassLoader(CompatibilityRebrander.class.getClassLoader());
