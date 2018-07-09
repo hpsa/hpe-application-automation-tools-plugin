@@ -173,6 +173,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
+
+
 	private CIEvent getCiEvent(Run r, CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
 		return dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
@@ -211,12 +213,12 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	private CommonOriginRevision getCommonOriginRevision(Run r) {
-    		CommonOriginRevision commonOriginRevision=null;
-		if(r instanceof AbstractBuild) {
+    		CommonOriginRevision commonOriginRevision = null;
+		if (r instanceof AbstractBuild) {
 			final SCM scm = ((AbstractBuild) r).getProject().getScm();
 			if (scm != null) {
 				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-				if(scmProcessor!=null) {
+				if (scmProcessor != null) {
 					commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
 				}
 			}
