@@ -632,15 +632,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		/**
-		 * The function needs to be used in every the inner class of the describable which extends any kind of descriptor
-		 * For example: BuildStepDescriptor
-		 */
-		@Initializer(before = InitMilestone.PLUGINS_STARTED)
-		public static void addAliases() {
-			CompatibilityRebrander.addAliases(RunFromFileBuilder.class);
-		}
-
-		/**
 		 * Gets job id.
 		 * If there is already a job created by jenkins plugin, and exists then return this job id,
 		 * otherwise, create a new temp job and return the new job id.
@@ -706,7 +697,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		@Override
 		public String getDisplayName() {
-			return "Execute HPE tests from file system";
+			return "Execute Micro Focus tests from file system";
 		}
 
 		/**
