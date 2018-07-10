@@ -226,26 +226,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     private String getVersion() {
-        try {
-            String completeVersion = ConfigurationService.getPluginVersion();
-            if(completeVersion != null) {
-                String[] partsOfCompleteVersion = completeVersion.split(" [(]");
-                if (partsOfCompleteVersion != null)
-                    return partsOfCompleteVersion[0];
-            }
-        }
-        catch(Exception e)
-        {
-        }
+		String completeVersion = ConfigurationService.getPluginVersion();
+		if(completeVersion != null) {
+			String[] partsOfCompleteVersion = completeVersion.split(" [(]");
+			return partsOfCompleteVersion[0];
+		}
         return "unknown";
     }
 
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
-            String pomVersionget = getVersion();
-            if(!(pomVersionget == null || pomVersionget =="unknown"))
-                logger.println(String.format("%s - plugin version is '%s'",_simpleDateFormat.format(new Date()), getVersion()));
+            String version = getVersion();
+            if(!(version == null || version.equals("unknown")))
+                logger.println(String.format("%s - plugin version is '%s'",_simpleDateFormat.format(new Date()), version));
             try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println(String.format("%s - \n- - -\nTest description: %s", _simpleDateFormat.format(new Date()), pcModel.getDescription()));
