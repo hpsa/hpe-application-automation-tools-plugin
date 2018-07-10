@@ -60,6 +60,8 @@ public class JobProcessorFactory {
 
 	private static String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
 
+	public static String GITHUB_ORGANIZATION_FOLDER = "jenkins.branch.OrganizationFolder";
+
 
 	private JobProcessorFactory() {
 	}
@@ -69,7 +71,7 @@ public class JobProcessorFactory {
 		return getFlowProcessor(job, processedJobs);
 	}
 
-	private static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
+	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
 		AbstractProjectProcessor flowProcessor;
 		processedJobs.add(job);
 
@@ -86,6 +88,7 @@ public class JobProcessorFactory {
 		} else {
 			flowProcessor = new UnsupportedProjectProcessor(job);
 		}
+		processedJobs.remove(job);
 		return flowProcessor;
 	}
 }

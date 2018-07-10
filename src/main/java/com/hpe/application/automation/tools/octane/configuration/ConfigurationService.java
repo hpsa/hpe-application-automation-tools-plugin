@@ -34,16 +34,9 @@
 package com.hpe.application.automation.tools.octane.configuration;
 
 import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
-import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hpe.application.automation.tools.settings.OctaneServerSettingsBuilder;
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.LoginException;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import hudson.Plugin;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /***
  * Octane plugin configuration service -
@@ -53,14 +46,10 @@ import org.apache.logging.log4j.Logger;
  */
 public class ConfigurationService {
 
-    private static JenkinsMqmRestClientFactoryImpl clientFactory;
-
-    private static Logger logger = LogManager.getLogger(ConfigurationService.class);
-
     /**
      * Get current {@see OctaneServerSettingsModel} model
      *
-     * @return
+     * @return current configuration
      */
     public static OctaneServerSettingsModel getModel() {
         return getOctaneDescriptor().getModel();
@@ -69,10 +58,10 @@ public class ConfigurationService {
     /**
      * Get current Octane server configuration (that is based on model)
      *
-     * @return
+     * @return current configuration
      */
     public static ServerConfiguration getServerConfiguration() {
-        if(getOctaneDescriptor() != null) {
+        if (getOctaneDescriptor() != null) {
             return getOctaneDescriptor().getServerConfiguration();
         }
         return null;
@@ -81,66 +70,39 @@ public class ConfigurationService {
     /**
      * Change model (used by tests)
      *
-     * @param newModel
+     * @param newModel new configuration
      */
     public static void configurePlugin(OctaneServerSettingsModel newModel) {
-        if(getOctaneDescriptor() != null) {
+        if (getOctaneDescriptor() != null) {
             getOctaneDescriptor().setModel(newModel);
         }
     }
 
     private static OctaneServerSettingsBuilder.OctaneDescriptorImpl getOctaneDescriptor() {
-        return Jenkins.getInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
+        OctaneServerSettingsBuilder.OctaneDescriptorImpl octaneDescriptor = getJenkinsInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
+        if (octaneDescriptor == null) {
+            throw new IllegalArgumentException("failed to obtain Octane plugin descriptor");
+        }
+
+        return octaneDescriptor;
     }
 
     /**
      * Get plugin version
      *
-     * @return
+     * @return plugin version
      */
     public static String getPluginVersion() {
-        Plugin plugin = Jenkins.getInstance().getPlugin("hp-application-automation-tools-plugin");
+        Plugin plugin = getJenkinsInstance().getPlugin("hp-application-automation-tools-plugin");
         return plugin.getWrapper().getVersion();
     }
 
-    /**
-     * Create restClient based on some server configuration
-     *
-     * @param serverConfiguration
-     * @return
-     */
-    public static MqmRestClient createClient(ServerConfiguration serverConfiguration) {
 
-        if (!serverConfiguration.isValid()) {
-            logger.warn("MQM server configuration is not valid");
-            return null;
+    private static Jenkins getJenkinsInstance() {
+        Jenkins result = Jenkins.getInstance();
+        if (result == null) {
+            throw new IllegalStateException("failed to obtain Jenkins instance");
         }
-
-        MqmRestClient client = getMqmRestClientFactory().obtain(
-                serverConfiguration.location,
-                serverConfiguration.sharedSpace,
-                serverConfiguration.username,
-                serverConfiguration.password);
-
-        try {
-            client.validateConfigurationWithoutLogin();
-            return client;
-        } catch (SharedSpaceNotExistException e) {
-            logger.warn("Invalid shared space");
-        } catch (LoginException e) {
-            logger.warn("Login failed : " + e.getMessage());
-        } catch (RequestException e) {
-            logger.warn("Problem with communication with MQM server : " + e.getMessage());
-        }
-
-        return null;
+        return result;
     }
-
-    private static JenkinsMqmRestClientFactoryImpl getMqmRestClientFactory() {
-        if (clientFactory == null) {
-            clientFactory = Jenkins.getInstance().getExtensionList(JenkinsMqmRestClientFactoryImpl.class).get(0);
-        }
-        return clientFactory;
-    }
-
 }

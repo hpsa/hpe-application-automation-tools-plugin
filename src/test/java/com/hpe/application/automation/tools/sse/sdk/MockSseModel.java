@@ -69,8 +69,7 @@ public class MockSseModel extends SseModel {
                 description,
                 postRunAction,
                 environmentConfigurationId,
-                cdaDetails,
-                null);
+                cdaDetails);
     }
     
     @Override

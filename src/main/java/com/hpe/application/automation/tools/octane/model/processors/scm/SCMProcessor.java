@@ -36,9 +36,10 @@ package com.hpe.application.automation.tools.octane.model.processors.scm;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
+import hudson.scm.SCM;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * API definition for SCM content processor/transformer for an Octane context
@@ -46,13 +47,13 @@ import java.util.List;
  */
 
 public interface SCMProcessor {
-	SCMData getSCMData(AbstractBuild build);
+	SCMData getSCMData(AbstractBuild build, SCM scm);
 
-	List<SCMData> getSCMData(WorkflowRun run);
+	SCMData getSCMData(WorkflowRun run, SCM scm);
 
 	CommonOriginRevision getCommonOriginRevision(Run run);
 
-	class CommonOriginRevision {
+	class CommonOriginRevision implements Serializable {
 		public String branch;
 		public String revision;
 	}
