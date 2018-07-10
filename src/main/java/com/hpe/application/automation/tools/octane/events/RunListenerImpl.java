@@ -47,6 +47,7 @@ import com.hpe.application.automation.tools.octane.configuration.ConfigurationSe
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.model.processors.scm.CommonOriginRevision;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hpe.application.automation.tools.octane.tests.TestListener;
@@ -76,215 +77,215 @@ import java.util.concurrent.TimeUnit;
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
 public final class RunListenerImpl extends RunListener<Run> {
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
-	@Inject
-	private TestListener testListener;
+    @Inject
+    private TestListener testListener;
 
-	@Override
-	public void onStarted(final Run r, TaskListener listener) {
-		if (!ConfigurationService.getServerConfiguration().isValid()) {
-			return;
-		}
-		if (ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
+    @Override
+    public void onStarted(final Run r, TaskListener listener) {
+        if (!ConfigurationService.getServerConfiguration().isValid()) {
+            return;
+        }
+        if (ConfigurationService.getModel().isSuspend()) {
+            return;
+        }
 
-		CIEvent event;
-		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
-			event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.STARTED)
-					.setProject(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-					.setNumber(String.valueOf(r.getNumber()))
-					.setStartTime(r.getStartTimeInMillis())
-					.setPhaseType(PhaseType.POST)
-					.setEstimatedDuration(r.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
+        CIEvent event;
+        if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+            event = dtoFactory.newDTO(CIEvent.class)
+                    .setEventType(CIEventType.STARTED)
+                    .setProject(BuildHandlerUtils.getJobCiId(r))
+                    .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+                    .setNumber(String.valueOf(r.getNumber()))
+                    .setStartTime(r.getStartTimeInMillis())
+                    .setPhaseType(PhaseType.POST)
+                    .setEstimatedDuration(r.getEstimatedDuration())
+                    .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
 
-			if (r.getParent().getParent() != null && r.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-				event
-						.setParentCiId(r.getParent().getParent().getFullName())
-						.setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
-						.setProjectDisplayName(r.getParent().getFullName());
-			}
+            if (r.getParent().getParent() != null && r.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+                event
+                        .setParentCiId(r.getParent().getParent().getFullName())
+                        .setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
+                        .setProjectDisplayName(r.getParent().getFullName());
+            }
 
-			OctaneSDK.getInstance().getEventsService().publishEvent(event);
-			//events on the internal stages of the workflowRun are handled in this place:
-			// com.hpe.application.automation.tools.octane.workflow.WorkflowGraphListener
+            OctaneSDK.getInstance().getEventsService().publishEvent(event);
+            //events on the internal stages of the workflowRun are handled in this place:
+            // com.hpe.application.automation.tools.octane.workflow.WorkflowGraphListener
 
-		} else {
-			if (r.getParent() instanceof MatrixConfiguration) {
-				event = dtoFactory.newDTO(CIEvent.class)
-						.setEventType(CIEventType.STARTED)
-						.setProject(BuildHandlerUtils.getJobCiId(r))
-						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-						.setNumber(String.valueOf(r.getNumber()))
-						.setStartTime(r.getStartTimeInMillis())
-						.setEstimatedDuration(r.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-						.setParameters(ParameterProcessors.getInstances(r));
-				if (isInternal(r)) {
-					event.setPhaseType(PhaseType.INTERNAL);
-				} else {
-					event.setPhaseType(PhaseType.POST);
-				}
-				OctaneSDK.getInstance().getEventsService().publishEvent(event);
-			} else if (r instanceof AbstractBuild) {
-				event = dtoFactory.newDTO(CIEvent.class)
-						.setEventType(CIEventType.STARTED)
-						.setProject(BuildHandlerUtils.getJobCiId(r))
-						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-						.setNumber(String.valueOf(r.getNumber()))
-						.setStartTime(r.getStartTimeInMillis())
-						.setEstimatedDuration(r.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-						.setParameters(ParameterProcessors.getInstances(r));
-				if (isInternal(r)) {
-					event.setPhaseType(PhaseType.INTERNAL);
-				} else {
-					event.setPhaseType(PhaseType.POST);
-				}
-				OctaneSDK.getInstance().getEventsService().publishEvent(event);
-			}
-		}
-	}
+        } else {
+            if (r.getParent() instanceof MatrixConfiguration) {
+                event = dtoFactory.newDTO(CIEvent.class)
+                        .setEventType(CIEventType.STARTED)
+                        .setProject(BuildHandlerUtils.getJobCiId(r))
+                        .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
+                        .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+                        .setNumber(String.valueOf(r.getNumber()))
+                        .setStartTime(r.getStartTimeInMillis())
+                        .setEstimatedDuration(r.getEstimatedDuration())
+                        .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+                        .setParameters(ParameterProcessors.getInstances(r));
+                if (isInternal(r)) {
+                    event.setPhaseType(PhaseType.INTERNAL);
+                } else {
+                    event.setPhaseType(PhaseType.POST);
+                }
+                OctaneSDK.getInstance().getEventsService().publishEvent(event);
+            } else if (r instanceof AbstractBuild) {
+                event = dtoFactory.newDTO(CIEvent.class)
+                        .setEventType(CIEventType.STARTED)
+                        .setProject(BuildHandlerUtils.getJobCiId(r))
+                        .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
+                        .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+                        .setNumber(String.valueOf(r.getNumber()))
+                        .setStartTime(r.getStartTimeInMillis())
+                        .setEstimatedDuration(r.getEstimatedDuration())
+                        .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+                        .setParameters(ParameterProcessors.getInstances(r));
+                if (isInternal(r)) {
+                    event.setPhaseType(PhaseType.INTERNAL);
+                } else {
+                    event.setPhaseType(PhaseType.POST);
+                }
+                OctaneSDK.getInstance().getEventsService().publishEvent(event);
+            }
+        }
+    }
 
-	@Override
-	public void onFinalized(Run r) {
-		if (onFinelizedValidations()) return;
+    @Override
+    public void onFinalized(Run r) {
+        if (onFinelizedValidations()) return;
 
-		SCMProcessor.CommonOriginRevision commonOriginRevision=null;// = getCommonOriginRevision(r);
+        CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
 
-		boolean hasTests = testListener.processBuild(r);
+        boolean hasTests = testListener.processBuild(r);
 
-		CIBuildResult result;
-		result = getCiBuildResult(r);
-		CIEvent event = getCiEvent(r, commonOriginRevision, hasTests, result);
+        CIBuildResult result;
+        result = getCiBuildResult(r);
+        CIEvent event = getCiEvent(r, commonOriginRevision, hasTests, result);
 
-		if (r instanceof AbstractBuild) {
-			event.setParameters(ParameterProcessors.getInstances(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
-		}
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
-	}
+        if (r instanceof AbstractBuild) {
+            event.setParameters(ParameterProcessors.getInstances(r))
+                    .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+        }
+        OctaneSDK.getInstance().getEventsService().publishEvent(event);
+    }
 
 
-	private CIEvent getCiEvent(Run r, SCMProcessor.CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
-		return dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.FINISHED)
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-				.setNumber(String.valueOf(r.getNumber()))
-				.setProject(BuildHandlerUtils.getJobCiId(r))
-				.setStartTime(r.getStartTimeInMillis())
-				.setEstimatedDuration(r.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-				.setResult(result)
-				.setDuration(r.getDuration())
-				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
-				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
-				.setTestResultExpected(hasTests);
-	}
+    private CIEvent getCiEvent(Run r, CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
+        return dtoFactory.newDTO(CIEvent.class)
+                .setEventType(CIEventType.FINISHED)
+                .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+                .setNumber(String.valueOf(r.getNumber()))
+                .setProject(BuildHandlerUtils.getJobCiId(r))
+                .setStartTime(r.getStartTimeInMillis())
+                .setEstimatedDuration(r.getEstimatedDuration())
+                .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+                .setResult(result)
+                .setDuration(r.getDuration())
+                .setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
+                .setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
+                .setTestResultExpected(hasTests);
+    }
 
-	private boolean onFinelizedValidations() {
-		return (!ConfigurationService.getServerConfiguration().isValid() ||
-				ConfigurationService.getModel().isSuspend());
-	}
+    private boolean onFinelizedValidations() {
+        return (!ConfigurationService.getServerConfiguration().isValid() ||
+                ConfigurationService.getModel().isSuspend());
+    }
 
-	private CIBuildResult getCiBuildResult(Run r) {
-		CIBuildResult result;
-		if (r.getResult() == Result.SUCCESS) {
-			result = CIBuildResult.SUCCESS;
-		} else if (r.getResult() == Result.ABORTED) {
-			result = CIBuildResult.ABORTED;
-		} else if (r.getResult() == Result.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (r.getResult() == Result.UNSTABLE) {
-			result = CIBuildResult.UNSTABLE;
-		} else {
-			result = CIBuildResult.UNAVAILABLE;
-		}
-		return result;
-	}
+    private CIBuildResult getCiBuildResult(Run r) {
+        CIBuildResult result;
+        if (r.getResult() == Result.SUCCESS) {
+            result = CIBuildResult.SUCCESS;
+        } else if (r.getResult() == Result.ABORTED) {
+            result = CIBuildResult.ABORTED;
+        } else if (r.getResult() == Result.FAILURE) {
+            result = CIBuildResult.FAILURE;
+        } else if (r.getResult() == Result.UNSTABLE) {
+            result = CIBuildResult.UNSTABLE;
+        } else {
+            result = CIBuildResult.UNAVAILABLE;
+        }
+        return result;
+    }
 
-	private SCMProcessor.CommonOriginRevision getCommonOriginRevision(Run r) {
-		SCMProcessor.CommonOriginRevision commonOriginRevision = null;
-		if (r instanceof AbstractBuild) {
-			final SCM scm = ((AbstractBuild) r).getProject().getScm();
-			if (scm != null) {
-				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-				if (scmProcessor != null) {
-					commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
-				}
-			}
-		}
-		return commonOriginRevision;
-	}
+    private CommonOriginRevision getCommonOriginRevision(Run r) {
+        CommonOriginRevision commonOriginRevision = null;
+        if (r instanceof AbstractBuild) {
+            final SCM scm = ((AbstractBuild) r).getProject().getScm();
+            if (scm != null) {
+                SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+                if (scmProcessor != null) {
+                    commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
+                }
+            }
+        }
+        return commonOriginRevision;
+    }
 
-	//  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well
-	private boolean isInternal(Run r) {
-		boolean result = false;
+    //  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well
+    private boolean isInternal(Run r) {
+        boolean result = false;
 
-		//  get upstream cause, if any
-		Cause.UpstreamCause upstreamCause = null;
-		for (Cause cause : (List<Cause>) r.getCauses()) {
-			if (cause instanceof Cause.UpstreamCause) {
-				upstreamCause = (Cause.UpstreamCause) cause;
-				break;          //  TODO: here we are breaking the merged build support
-			}
-		}
+        //  get upstream cause, if any
+        Cause.UpstreamCause upstreamCause = null;
+        for (Cause cause : (List<Cause>) r.getCauses()) {
+            if (cause instanceof Cause.UpstreamCause) {
+                upstreamCause = (Cause.UpstreamCause) cause;
+                break;          //  TODO: here we are breaking the merged build support
+            }
+        }
 
-		if (upstreamCause != null) {
-			String causeJobName = upstreamCause.getUpstreamProject();
-			TopLevelItem parent = Jenkins.getInstance().getItem(causeJobName);
-			if (parent == null) {
-				if (causeJobName.contains("/") && !causeJobName.contains(",")) {
-					parent = getJobFromFolder(causeJobName);
-					if (parent == null) {
-						result = false;
-					}
-				}
-			} else {
-				if (parent.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-					result = true;
-				} else {
-					List<PipelinePhase> phases = JobProcessorFactory.getFlowProcessor((Job) parent).getInternals();
-					for (PipelinePhase p : phases) {
-						for (PipelineNode n : p.getJobs()) {
-							if (n != null && n.getName().equals(r.getParent().getName())) {
-								return true;
-							}
-						}
-					}
-					return false;
-				}
-			}
-		}
-		return result;
-	}
+        if (upstreamCause != null) {
+            String causeJobName = upstreamCause.getUpstreamProject();
+            TopLevelItem parent = Jenkins.getInstance().getItem(causeJobName);
+            if (parent == null) {
+                if (causeJobName.contains("/") && !causeJobName.contains(",")) {
+                    parent = getJobFromFolder(causeJobName);
+                    if (parent == null) {
+                        result = false;
+                    }
+                }
+            } else {
+                if (parent.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+                    result = true;
+                } else {
+                    List<PipelinePhase> phases = JobProcessorFactory.getFlowProcessor((Job) parent).getInternals();
+                    for (PipelinePhase p : phases) {
+                        for (PipelineNode n : p.getJobs()) {
+                            if (n != null && n.getName().equals(r.getParent().getName())) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return result;
+    }
 
-	private static TopLevelItem getJobFromFolder(String causeJobName) {
-		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
-		TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
-		if (item != null) {
-			Collection<? extends Job> allJobs = item.getAllJobs();
-			for (Job job : allJobs) {
-				if (causeJobName.endsWith(job.getName())) {
-					return (TopLevelItem) job;
-				}
-			}
-			return null;
-		}
-		return null;
-	}
+    private static TopLevelItem getJobFromFolder(String causeJobName) {
+        String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
+        TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
+        if (item != null) {
+            Collection<? extends Job> allJobs = item.getAllJobs();
+            for (Job job : allJobs) {
+                if (causeJobName.endsWith(job.getName())) {
+                    return (TopLevelItem) job;
+                }
+            }
+            return null;
+        }
+        return null;
+    }
 
-	private static List<Cause> extractCauses(Run<?, ?> r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return ((MatrixRun) r).getParentBuild().getCauses();
-		}
-		return r.getCauses();
-	}
+    private static List<Cause> extractCauses(Run<?, ?> r) {
+        if (r.getParent() instanceof MatrixConfiguration) {
+            return ((MatrixRun) r).getParentBuild().getCauses();
+        }
+        return r.getCauses();
+    }
 }
