@@ -64,7 +64,7 @@ public class TestPcClient {
     
     @Test
     public void testLogin(){
-        System.out.println("Testing Login to HPE PC server");
+        System.out.println("Testing Login to PC server");
         Assert.assertTrue("Failed to login with pcClient", pcClient.login());  
     }
 
@@ -113,7 +113,7 @@ public class TestPcClient {
     
     @Test
     public void testLogout() {        
-        System.out.println("Testing Logout from HPE PC server");
+        System.out.println("Testing Logout from PC server");
         Assert.assertTrue("Failed to logout with pcClient", pcClient.logout());
     }
 
