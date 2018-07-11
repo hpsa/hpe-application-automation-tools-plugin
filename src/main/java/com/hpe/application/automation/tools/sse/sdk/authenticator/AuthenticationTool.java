@@ -34,7 +34,6 @@
 package com.hpe.application.automation.tools.sse.sdk.authenticator;
 
 import com.hpe.application.automation.tools.common.SSEException;
-import com.hpe.application.automation.tools.sse.sdk.Args;
 import com.hpe.application.automation.tools.sse.sdk.Client;
 import com.hpe.application.automation.tools.sse.sdk.Logger;
 import com.hpe.application.automation.tools.sse.sdk.ResourceAccessLevel;
