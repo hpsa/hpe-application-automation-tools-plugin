@@ -36,8 +36,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>2.14</version>
-		<!-- which version of Jenkins is this plugin built against? -->
+		<version>3.17</version>
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
@@ -59,11 +58,12 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>1.642.4</jenkins.version>
+		<jenkins.version>2.60.3</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+        <java.level>8</java.level>
 	</properties>
 
 	<distributionManagement>
@@ -253,7 +253,6 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-			<!--  -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -651,6 +650,16 @@
 			</exclusions>
 		</dependency>
 
+		<!-- The dependencies were added to comply with the new jenkins base version-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>script-security</artifactId>
+			<version>1.18</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>scm-api</artifactId>
+			<version>1.2</version>
+		</dependency>
 	</dependencies>
-
 </project>
