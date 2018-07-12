@@ -23,6 +23,7 @@ using System.Management;
 using System.Diagnostics;
 using System.IO;
 using HpToolsLauncher;
+using System.Runtime.InteropServices;
 
 namespace HpToolsAborter
 {
@@ -73,6 +74,7 @@ namespace HpToolsAborter
                 {
                     KillQtpAutomationProcess();
                     KillLoadRunnerAutomationProcess();
+                    KillParallelRunnerAutomatonProcesses();
                 }
 
                 if (runType=="Alm")
@@ -115,6 +117,49 @@ namespace HpToolsAborter
 
             }
 
+        }
+
+        private static void KillParllelRunnerAutomationProcess(Process parallelRunner)
+        {
+            if(parallelRunner != null)
+            {
+                List<ProcessData> children = new List<ProcessData>();
+                GetProcessChildren(parallelRunner.Id, children);
+
+                foreach(var child in children)
+                {
+                    var proc = Process.GetProcessById(child.ID);
+
+                    if(proc != null)
+                    {
+                        KillProcess(proc);
+                    }
+                }
+
+                KillProcess(parallelRunner);
+            }
+        }
+
+        private static void KillParallelRunnerAutomatonProcesses()
+        {
+            Process[] paralelRunnerProcesses = Process.GetProcessesByName("ParallelRunner");
+
+            // kill every parallel runner process
+            foreach(var proc in paralelRunnerProcesses)
+            {
+                // we are sending SIGINT as ParallelRunner will handle this message
+                // gracefully and will set the test status to aborted
+                bool closed = SendSigIntToProcess(proc);
+
+                // let's give SIGINT a chance to execute
+                proc.WaitForExit(500);
+
+                // if ctr-c has failed, just kill the process...
+                if (!closed || !proc.HasExited)
+                {
+                    KillParllelRunnerAutomationProcess(proc);
+                }
+            }
         }
 
 
@@ -247,6 +292,65 @@ namespace HpToolsAborter
             }
         }
 
+        private static bool SendSigIntToProcess(Process process)
+        {
+            const int waitMs = 500;
+
+            // we can only be attached to one console at a time
+            if (!FreeConsole())
+                return false;
+
+            // try to attach the console to the process
+            // that we want to send the signal to
+            if (!AttachConsole((uint)process.Id))
+                return false;
+
+            // disable the ctrl handler for our process
+            // so we do not close ourselvles
+            if (!SetConsoleCtrlHandler(null, true))
+            {
+                FreeConsole();
+                AllocConsole();
+
+                return false;
+            }
+
+            // Now generate the event and free the console 
+            // that we have attached ourselvles to
+            if (GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0))
+            {
+                process.WaitForExit(waitMs);
+            }
+
+            // free the console for the process that we have attached to
+            FreeConsole();
+
+            // alloc a new console for current process
+            // as we might need to display something
+            AllocConsole();
+
+            SetConsoleCtrlHandler(null, false);
+
+            return true;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool AttachConsole(uint dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
+
+        public delegate bool HandlerRoutine(CtrlTypes CtrlType);
+
+        [DllImport("kernel32")]
+        public static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
+
+        [DllImport("kernel32")]
+        static extern bool AllocConsole();
     }
 
     public class ProcessData
@@ -259,6 +363,15 @@ namespace HpToolsAborter
 
         public int ID { get; private set; }
         public string Name { get; private set; }
+    }
+
+    enum CtrlTypes : uint
+    {
+        CTRL_C_EVENT = 0,
+        CTRL_BREAK_EVENT,
+        CTRL_CLOSE_EVENT,
+        CTRL_LOGOFF_EVENT = 5,
+        CTRL_SHUTDOWN_EVENT
     }
 
 }

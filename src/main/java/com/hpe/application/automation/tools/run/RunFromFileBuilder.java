@@ -37,9 +37,7 @@ import com.hpe.application.automation.tools.AlmToolsUtils;
 import com.hpe.application.automation.tools.EncryptionUtils;
 import com.hpe.application.automation.tools.common.CompatibilityRebrander;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
-import com.hpe.application.automation.tools.model.MCServerSettingsModel;
-import com.hpe.application.automation.tools.model.ProxySettings;
-import com.hpe.application.automation.tools.model.RunFromFileSystemModel;
+import com.hpe.application.automation.tools.model.*;
 import com.hpe.application.automation.tools.settings.MCServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -75,10 +73,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Describs a regular jenkins build step from UFT or LR
@@ -88,7 +83,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 	private String ResultFilename = "ApiResults.xml";
 	private String ParamFileName = "ApiRun.txt";
-	private final RunFromFileSystemModel runFromFileModel;
+	private RunFromFileSystemModel runFromFileModel;
+	private FileSystemTestSetModel fileSystemTestSetModel;
+	private boolean isParallelRunnerEnabled;
+
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
 
@@ -98,10 +96,36 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 * @param fsTests the fs tests
 	 */
 	@DataBoundConstructor
-	public RunFromFileBuilder(String fsTests) {
+	public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
+							  FileSystemTestSetModel fileSystemTestSetModel) {
+		this.runFromFileModel = new RunFromFileSystemModel(fsTests);
+		this.fileSystemTestSetModel = fileSystemTestSetModel;
+		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+	}
 
+
+    public FileSystemTestSetModel getFileSystemTestSetModel() {
+		return fileSystemTestSetModel;
+	}
+
+    /**
+     * Gets the parallel runner flag.
+     *
+     * @return the current parallel runner flag state(enabled/disabled)
+     */
+	public boolean getIsParallelRunnerEnabled() {
+	    return isParallelRunnerEnabled;
+    }
+
+	/**
+	 * Instantiates a new Run from file builder.
+	 *
+	 * @param fsTests the fs tests
+	 */
+	public RunFromFileBuilder(String fsTests) {
 		runFromFileModel = new RunFromFileSystemModel(fsTests);
 	}
+
 
 	public void setFsTests(String fsTests){
 		runFromFileModel.setFsTests(fsTests);
@@ -113,7 +137,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 * @param runFromFileModel the run from file model
 	 */
 	public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
-
 		this.runFromFileModel = runFromFileModel;
 	}
 
@@ -149,8 +172,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String perScenarioTimeOut, String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName,
 							  String fsPassword, String mcTenantId, String fsDeviceId, String fsTargetLab,
                               String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
-                              ProxySettings proxySettings, boolean useSSL) {
-
+                              ProxySettings proxySettings, boolean useSSL,boolean isParallelRunnerEnabled, List<ParallelRunnerEnvironmentModel> environments) {
+		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
 				perScenarioTimeOut, ignoreErrorStrings, displayController, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
@@ -384,10 +407,19 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel.setProxySettings(proxySettings);
 	}
 
+	/**
+	 * Sets the parallel runner flag
+	 *
+	 * @param isParallelRunnerEnabled the parallel runner flag
+	 */
+	@DataBoundSetter
+	private void setIsParallelRunnerEnabled(boolean isParallelRunnerEnabled) {
+		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+	}
+
 	@Override
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
-
-			throws InterruptedException, IOException {
+			throws IOException {
 
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -447,7 +479,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			mergedProperties.putAll(runFromFileModel.getProperties(env));
 		}
 
-
 		int idx = 0;
 		for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
 			String key = iterator.next();
@@ -466,16 +497,34 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
 
-		//handling mtbx file content :
-		// If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
-		// We save mtbx content in workspace and replace content of Test1 by reference to saved file
-		String firstTestKey = "Test1";
-		String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
-		if (RunFromFileSystemModel.isMtbxContent(firstTestContent)) {
+		// parallel runner is enabled
+		if(isParallelRunnerEnabled) {
+			// add the parallel runner properties
+			fileSystemTestSetModel.addTestSetProperties(mergedProperties,env);
+
+			// we need to replace each mtbx test with mtbx file path
+			for(int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size();index++) {
+				String key = "Test" + index;
+				String content = mergedProperties.getProperty(key + index,"");
+				try{
+					replaceTestWithMtbxFile(workspace,mergedProperties,content,key,time,index);
+				}catch (Exception e){
+					build.setResult(Result.FAILURE);
+					listener.error("Failed to save MTBX file : " + e.getMessage());
+				}
+			}
+		}
+		else {
+			// handling mtbx file content :
+			// If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
+			// We save mtbx content in workspace and replace content of Test1 by reference to saved file
+			// this only applies to the normal file system flow
+			String firstTestKey = "Test1";
+			String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+
 			try {
-				String mtbxFilePath = createMtbxFileInWs(workspace, firstTestContent, time);
-				mergedProperties.setProperty(firstTestKey, mtbxFilePath);
-			} catch (IOException | InterruptedException e) {
+				replaceTestWithMtbxFile(workspace,mergedProperties,firstTestContent,firstTestKey,time);
+			}catch (Exception e){
 				build.setResult(Result.FAILURE);
 				listener.error("Failed to save MTBX file : " + e.getMessage());
 			}
@@ -555,6 +604,50 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 	}
 
+	/**
+	 * Replace the fsTests given as mtbx with the actual mtbx file.
+	 * @param workspace the current workspace
+	 * @param props the properties
+	 * @param content the mtbx content
+	 * @param key the test key
+	 * @param time current time string
+	 * @param index the index for the prefix
+	 * @throws Exception
+	 */
+	private static void replaceTestWithMtbxFile(FilePath workspace,Properties props,String content,String key,String time, int index) throws Exception {
+		if (RunFromFileSystemModel.isMtbxContent(content)) {
+			try {
+				String prefx = index > 0 ? index + "_" : "";
+				String mtbxFilePath = prefx + createMtbxFileInWs(workspace, content, time);
+				props.setProperty(key, mtbxFilePath);
+			} catch (IOException | InterruptedException e) {
+				throw new Exception(e);
+			}
+		}
+	}
+
+	/**
+	 * Replace the fsTests given as mtbx with the actual mtbx file.
+	 * @param workspace the current workspace
+	 * @param props the properties
+	 * @param content the mtbx content
+	 * @param key the test key
+	 * @param time current time string
+	 * @throws Exception
+	 */
+	private static void replaceTestWithMtbxFile(FilePath workspace,Properties props,String content,String key,String time) throws Exception{
+		replaceTestWithMtbxFile(workspace,props,content,key,time,0);
+	}
+
+	/**
+	 * Creates an .mtbx file with the provided mtbx content.
+	 * @param workspace jenkins workspace
+	 * @param mtbxContent the motbx content
+	 * @param timeString current time represented as a String
+	 * @return the remote file path
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private static String createMtbxFileInWs(FilePath workspace, String mtbxContent, String timeString) throws IOException, InterruptedException {
 		String fileName = "test_suite_" + timeString + ".mtbx";
 
