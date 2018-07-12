@@ -106,6 +106,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Scanner;
 
 import static com.hpe.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.hpe.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -125,11 +126,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
     private static final String IE_REPORT_FOLDER = "IE";
     private static final String HTML_REPORT_FOLDER = "HTML";
+    private static final String LRA_FOLDER = "LRA";
     private static final String INDEX_HTML_NAME = "index.html";
     private static final String REPORT_INDEX_NAME = "report.index";
     private static final String REPORTMETADATE_XML = "report_metadata.xml";
     private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-    private static final String TRANSACTION_REPORT_NAME = "Report3";
+    private static final String RICH_REPORT_FOLDER = "RichReport";
+    private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
     private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
     private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
     public static final String SLA_ULL_NAME = "FullName";
@@ -271,6 +274,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 build.replaceAction(new TransactionSummaryAction(build));
             }
         }
+
+        File richDirectory = new File(build.getRootDir(), RICH_REPORT_FOLDER);
+        if (richDirectory.exists()) {
+            File htmlIndexFile = new File(richDirectory, INDEX_HTML_NAME);
+            if (htmlIndexFile.exists()) {
+                build.replaceAction(new RichReportAction(build));
+            }
+        }
     }
 
     /**
@@ -386,6 +397,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             zipFileNames.add(zipFileName);
                         }
 
+                        createRichReports(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         try {
@@ -820,10 +832,99 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER),
                             new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
-                    outputReportFiles(reportNames, reportDirectory, testResult, false);
+                    outputReportFiles(reportNames, reportDirectory, testResult, "Performance Report", "HTML.html");
                 }
             }
         }
+    }
+
+    private void createRichReports(FilePath reportFolder,
+                                   String testFolderPath,
+                                   File artifactsDir,
+                                   List<String> reportNames,
+                                   TestResult testResult) throws IOException, InterruptedException {
+        File testFolderPathFile = new File(testFolderPath);
+        FilePath htmlReportPath = new FilePath(reportFolder, LRA_FOLDER);
+        if (htmlReportPath.exists()) {
+            File reportDirectory = new File(artifactsDir.getParent(), RICH_REPORT_FOLDER);
+            if (!reportDirectory.exists()) {
+                reportDirectory.mkdir();
+            }
+            String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
+            File testDirectory = new File(reportDirectory, newFolderName);
+            if (!testDirectory.exists()) {
+                testDirectory.mkdir();
+            }
+
+            FilePath dstReportPath = new FilePath(testDirectory);
+            FileFilter reportFileFilter = new WildcardFileFilter("*.pdf");
+            List<FilePath> reporFiles = htmlReportPath.list(reportFileFilter);
+
+
+            List<String> richReportNames = new ArrayList<String>();
+            for (FilePath fileToCopy : reporFiles) {
+                FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
+                fileToCopy.copyTo(dstFilePath);
+                richReportNames.add(dstFilePath.getName());
+            }
+
+            outputReportFiles(reportNames, reportDirectory, testResult, "Rich Reports", "index.html");
+            createRichReportsIndex(testDirectory, richReportNames, "Rich Reports");
+        }
+    }
+
+    private void createRichReportsIndex(File reportDirectory, List<String> richReportNames, String title)
+                                        throws IOException {
+
+        String htmlFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
+                                  "<HTML><HEAD>" +
+                                  "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
+                                  "<TITLE>" + title + "<TITLE>" +
+                                  "</HEAD>" +
+                                  "<BODY>";
+
+        if (richReportNames.size() == 0) {
+            htmlFileContents += "Template contains no rich reports.";
+        } else {
+            for (String richReportName : richReportNames) {
+                htmlFileContents += "<iframe src=\"./" + richReportName + "\" width=\"100%%\" height=\"800px\" frameBorder=\"0\"></iframe>";
+            }
+        }
+
+        htmlFileContents += "<BODY>";
+
+        File htmlIndexFile = new File(reportDirectory, "HTML.html");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
+        writer.write(htmlFileContents);
+        writer.flush();
+        writer.close();
+        /*writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+        writer.write("<HTML><HEAD>");
+        writer.write("<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
+        writer.write(String.format("<TITLE>%s</TITLE>", title));
+        writer.write("</HEAD>");
+        writer.write("<BODY>");
+       
+        if (richReportNames.size() == 0) {
+            writer.write("Template contains no rich reports.");
+        }
+        for (String richReportName : richReportNames) {
+            writer.write(
+                String.format(
+                    "<iframe src=\"./%s\" width=\"100%%\" height=\"800px\" frameBorder=\"0\"></iframe>", richReportName
+                )
+            );
+        }
+
+        writer.write("</BODY>");*/
+
+    }
+
+    private void writeToFile(File file, String contents) {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        writer.write(contents);
+        writer.flush();
+        writer.close();
     }
 
     /**
@@ -836,13 +937,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      * @throws IOException
      */
     private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult,
-                                   boolean tranSummary) throws IOException {
-
+                                   String title, String htmlFileName) throws IOException {
         if (reportNames.isEmpty()) {
             return;
         }
-        String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
-        String htmlFileName = (tranSummary) ? (TRANSACTION_REPORT_NAME + ".html") : "HTML.html";
+        //String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
+        //String htmlFileName = (tranSummary) ? (TRANSACTION_REPORT_NAME + ".html") : "HTML.html";
         File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
         BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
         writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>%n");
@@ -875,6 +975,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 rolling = true;
             }
         }
+
         writer.write("</table>%n");
         writer.write("</BODY>%n");
         writer.flush();
@@ -969,12 +1070,37 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
 
             FilePath dstReportPath = new FilePath(testDirectory);
-            FileFilter reportFileFilter = new WildcardFileFilter(TRANSACTION_REPORT_NAME + ".*");
-            List<FilePath> reporFiles = htmlReportPath.list(reportFileFilter);
-            for (FilePath fileToCopy : reporFiles) {
-                FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
-                fileToCopy.copyTo(dstFilePath);
+            FileFilter reportFileFilter = new WildcardFileFilter("Report*.html");
+            List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
+            boolean doesTransactionSummaryFileExist = false;
+            for (FilePath fileToCopy : reportFiles) {
+                Scanner s = new Scanner(fileToCopy.read()).useDelimiter("\\A");
+
+                while (s.hasNextLine()) {
+                    String myStr = s.nextLine();
+                    if (myStr.toLowerCase().contains("transaction summary")) {
+                        FilePath dstFilePath = new FilePath(dstReportPath, TRANSACTION_REPORT_NAME + ".html");
+                        fileToCopy.copyTo(dstFilePath);
+                        doesTransactionSummaryFileExist = true;
+                    }
+                }
             }
+
+            if (!doesTransactionSummaryFileExist) {
+                File htmlIndexFile = new File(testDirectory, TRANSACTION_REPORT_NAME + ".html");
+                BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
+                writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+                writer.write("<HTML><HEAD>");
+                writer.write("<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
+                writer.write(String.format("<TITLE>%s</TITLE>", "Testing"));
+                writer.write("</HEAD>");
+                writer.write("<BODY>");
+                writer.write("Template contains no transaction summary report.");
+                writer.write("</BODY>");
+                writer.flush();
+                writer.close();
+            }
+
             FilePath cssFilePath = new FilePath(htmlReportPath, "Properties.css");
             if (cssFilePath.exists()) {
                 FilePath dstFilePath = new FilePath(dstReportPath, cssFilePath.getName());
@@ -986,10 +1112,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 pngFilePath.copyTo(dstFilePath);
             }
 
-            outputReportFiles(reportNames, reportDirectory, testResult, true);
+            FilePath jsDstReportPath = new FilePath(testDirectory);
+            FileFilter jsReportFileFilter = new WildcardFileFilter("*.js");
+            List<FilePath> jsReporFiles = htmlReportPath.list(jsReportFileFilter);
+            for (FilePath fileToCopy : jsReporFiles) {
+                FilePath dstFilePath = new FilePath(jsDstReportPath, fileToCopy.getName());
+                fileToCopy.copyTo(dstFilePath);
+            }
 
+            outputReportFiles(reportNames, reportDirectory, testResult, "Transaction Summary", TRANSACTION_REPORT_NAME + ".html");
         }
-
     }
 
     /*

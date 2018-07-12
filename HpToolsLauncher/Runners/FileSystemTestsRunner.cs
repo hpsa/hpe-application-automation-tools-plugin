@@ -23,6 +23,7 @@ namespace HpToolsLauncher
         private int _errors, _fail;
         private bool _useUFTLicense;
         private bool _displayController;
+        private string _analysisTemplate;
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
@@ -63,8 +64,9 @@ namespace HpToolsLauncher
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
                                     bool displayController,
+                                    string analysisTemplate,
                                     bool useUFTLicense = false)
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, displayController, useUFTLicense)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, displayController, analysisTemplate, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -85,6 +87,7 @@ namespace HpToolsLauncher
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
                                     bool displayController,
+                                    string analysisTemplate,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -105,6 +108,7 @@ namespace HpToolsLauncher
             
             _useUFTLicense = useUFTLicense;
             _displayController = displayController;
+            _analysisTemplate = analysisTemplate;
             _tests = new List<TestInfo>();
 
             _mcConnection = mcConnection;
@@ -309,7 +313,7 @@ namespace HpToolsLauncher
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate);
                     break;
             }
             

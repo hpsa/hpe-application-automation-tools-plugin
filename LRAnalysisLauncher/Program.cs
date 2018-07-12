@@ -59,7 +59,7 @@ namespace LRAnalysisLauncher
             int iPassed = (int)Launcher.ExitCodeEnum.Passed;//variable to keep track of whether all of the SLAs passed
             try
             {
-                if (args.Length != 3)
+                if (args.Length != 3 && args.Length != 4)
                 {
                     ShowHelp();
                     return (int)Launcher.ExitCodeEnum.Aborted;
@@ -68,13 +68,14 @@ namespace LRAnalysisLauncher
                 string lrrlocation = args[0];
                 string lralocation = args[1];
                 string htmlLocation = args[2];
+                string analysisTemplateLocation = (args.Length == 4 ? args[3] : "");
 
                 log("creating analysis COM object");
                 LrAnalysis analysis = new LrAnalysis();
 
                 Session session = analysis.Session;
                 log("creating analysis session");
-                if (session.Create(lralocation, lrrlocation))
+                if (session.CreateWithTemplateFile(lralocation, lrrlocation, analysisTemplateLocation))
                 {
                     log("analysis session created");
                     log("creating HTML reports");
@@ -478,7 +479,7 @@ namespace LRAnalysisLauncher
             log();
             Console.Write("Usage: LRAnalysisLauncher.exe");
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("[.lrr file location] [.lra output location] [html report output folder]");
+            Console.Write("[.lrr file location] [.lra output location] [html report output folder] [.tem file location(optional)]");
             Console.ResetColor();
             Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
         }

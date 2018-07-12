@@ -30,14 +30,7 @@
   ~ ___________________________________________________________________
   ~
   -->
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
-  <l:layout norefresh="true">
-    <st:include it="${it.build}" page="sidepanel.jelly" />
-    <l:main-panel>
-      <h2>Transaction Summary</h2>
-      <h3>${it.name}</h3>
-      <iframe SRC="./${it.name}/TransactionReport.html" width="100%" height="800px" frameBorder="0"></iframe>
-    </l:main-panel>
-  </l:layout>
-</j:jelly>
+
+<div>
+    Apply a template for the build (path to a .tem file). Leave blank in order to use the default template.
+</div>

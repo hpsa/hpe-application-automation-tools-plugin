@@ -47,6 +47,7 @@ namespace HpToolsLauncher.TestRunners
         private TimeSpan _perScenarioTimeOutMinutes;
         private RunCancelledDelegate _runCancelled;
         private bool _displayController;
+        private string _analysisTemplate;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -84,7 +85,7 @@ namespace HpToolsLauncher.TestRunners
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
         
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController)
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate)
         {
             this._runner = runner;
             this._timeout = timeout;
@@ -92,6 +93,7 @@ namespace HpToolsLauncher.TestRunners
             this._perScenarioTimeOutMinutes = perScenarioTimeOut;
             this._ignoreErrorStrings = ignoreErrorStrings;
             this._displayController = displayController;
+            this._analysisTemplate = analysisTemplate;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -432,7 +434,7 @@ namespace HpToolsLauncher.TestRunners
 
             ProcessStartInfo analysisRunner = new ProcessStartInfo();
             analysisRunner.FileName = ANALYSIS_LAUNCHER;
-            analysisRunner.Arguments = "\""+lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation+"\"";
+            analysisRunner.Arguments = "\""+lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation + "\" \"" + _analysisTemplate + "\"";
             analysisRunner.UseShellExecute = false;
             analysisRunner.RedirectStandardOutput = true;
 

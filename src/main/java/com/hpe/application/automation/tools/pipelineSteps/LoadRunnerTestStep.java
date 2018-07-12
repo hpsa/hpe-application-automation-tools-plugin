@@ -166,6 +166,26 @@ public class LoadRunnerTestStep extends AbstractStepImpl {
     }
 
     /**
+     * Gets analysis template.
+     *
+     * @return the analysis template
+     */
+    public String getAnalysisTemplate() {
+        return runFromFileBuilder.getRunFromFileModel().getAnalysisTemplate();
+    }
+
+    /**
+     * Sets analysis template.
+     *
+     * @param analysisTemplate the analysis template
+     */
+    @DataBoundSetter
+    public void setAnalysisTemplate(String analysisTemplate) {
+        runFromFileBuilder.setAnalysisTemplate(analysisTemplate);
+    }
+
+
+    /**
      * Gets display controller.
      *
      * @return the display controller

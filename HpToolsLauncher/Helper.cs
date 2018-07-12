@@ -198,6 +198,18 @@ namespace HpToolsLauncher
             return validTests;
         }
 
+        public static bool FileExists(string filePath)
+        {
+            bool isFileValid = true;
+            if (!File.Exists(filePath)) {
+                ConsoleWriter.WriteLine(string.Format(">>>> File not found: '{0}'", filePath));
+                isFileValid = false;
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+            }
+
+            return isFileValid;
+        }
+
         public static bool IsTestingToolsInstalled(TestStorageType type)
         {
             //we want to check if we have Service Test, QTP installed on a machine

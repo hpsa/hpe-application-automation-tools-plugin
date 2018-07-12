@@ -323,6 +323,7 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : "");
 
                     //get the tests
                     IEnumerable<string> tests = GetParamsWithPrefix("Test");
@@ -393,7 +394,11 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
                         return null;
                     }
-
+                    
+                    if (!analysisTemplate.Equals("") && !Helper.FileExists(analysisTemplate)) {
+                        return null;
+                    }
+                    
                     //--MC connection info
                     McConnectionInfo mcConnectionInfo = new McConnectionInfo();
                     if (_ciParams.ContainsKey("MobileHostAddress"))
@@ -533,11 +538,11 @@ namespace HpToolsLauncher
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController, analysisTemplate);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController, analysisTemplate);
                     }
 
                     break;
