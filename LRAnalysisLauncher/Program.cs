@@ -75,6 +75,7 @@ namespace LRAnalysisLauncher
 
                 Session session = analysis.Session;
                 log("creating analysis session");
+                //Apply a template and create LRA folder
                 if (session.CreateWithTemplateFile(lralocation, lrrlocation, analysisTemplateLocation))
                 {
                     log("analysis session created");

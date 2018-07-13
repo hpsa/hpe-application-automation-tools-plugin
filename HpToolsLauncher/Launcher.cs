@@ -395,6 +395,7 @@ namespace HpToolsLauncher
                         return null;
                     }
                     
+                    //If a file path was provided and it doesn't exist stop the analysis launcher
                     if (!analysisTemplate.Equals("") && !Helper.FileExists(analysisTemplate)) {
                         return null;
                     }
