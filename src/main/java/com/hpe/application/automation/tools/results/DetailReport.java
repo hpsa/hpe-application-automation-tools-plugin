@@ -110,4 +110,9 @@ public class DetailReport implements ModelObject {
         fail = value;
     }
 
+    public void updateReport(String duration, String pass, String fail) {
+        setDuration(duration);
+        setPass(pass);
+        setFail(fail);
+    }
 }

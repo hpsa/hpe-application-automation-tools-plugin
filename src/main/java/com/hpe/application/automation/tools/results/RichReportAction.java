@@ -82,6 +82,10 @@ public class RichReportAction implements Action, SimpleBuildStep.LastBuildAction
         projectActionList = new ArrayList<TestResultProjectAction>();
     }
 
+    /**
+     * Reads data from report.index and displays a table with:
+     * scenario name, duration, transactions passed and failed
+     */
     private void createRichIndexFile(Run<?, ?> build, File indexFile, DirectoryBrowserSupport dbs) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(indexFile));
         String line;
@@ -98,18 +102,16 @@ public class RichReportAction implements Action, SimpleBuildStep.LastBuildAction
                 report.setColor("#F1F1F1");
                 rolling = true;
             }
-            if (values.length >= 2)
-                report.setDuration(values[1]);
-            else
-                report.setDuration("##");
-            if (values.length >= 3)
-                report.setPass(values[2]);
-            else
-                report.setPass("##");
-            if (values.length >= 4)
-                report.setFail(values[3]);
-            else
-                report.setFail("##");
+            //Set detailed report information
+            switch (values.length) {
+                case 4:
+                    report.updateReport(values[1], values[2], values[3]);
+                case 3:
+                    report.updateReport(values[1], values[2], "##");
+                case 2:
+                    report.updateReport(values[1], "##", "##");
+
+            } 
             richReportMap.put(values[0], report);
         }
         br.close();
@@ -148,10 +150,6 @@ public class RichReportAction implements Action, SimpleBuildStep.LastBuildAction
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-//        List<Action> projectActions = new ArrayList<>();
-//        projectActions.add(new PerformanceProjectAction(build.getParent()));
-//        projectActions.add(new TestResultProjectAction(build.getParent()));
-//        return projectActions;
         return Collections.emptySet();
 
     }

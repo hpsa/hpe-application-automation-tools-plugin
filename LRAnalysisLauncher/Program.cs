@@ -59,6 +59,7 @@ namespace LRAnalysisLauncher
             int iPassed = (int)Launcher.ExitCodeEnum.Passed;//variable to keep track of whether all of the SLAs passed
             try
             {
+                //The app uses 3 default arguments, a 4th optional one can be used to specify the path to an analysis template
                 if (args.Length != 3 && args.Length != 4)
                 {
                     ShowHelp();

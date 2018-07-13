@@ -407,7 +407,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             zipFileNames.add(zipFileName);
                         }
 
-                        createRichReports(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
+                        createRichReports(reportFolder, testFolderPath, artifactsDir, reportNames, testResult, listener);
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         try {
@@ -888,32 +888,37 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                    String testFolderPath,
                                    File artifactsDir,
                                    List<String> reportNames,
-                                   TestResult testResult) throws IOException, InterruptedException {
-        File testFolderPathFile = new File(testFolderPath);
-        FilePath htmlReportPath = new FilePath(reportFolder, LRA_FOLDER);
-        if (htmlReportPath.exists()) {
-            File reportDirectory = new File(artifactsDir.getParent(), RICH_REPORT_FOLDER);
-            if (!reportDirectory.exists()) {
-                reportDirectory.mkdir();
-            }
-            String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
-            File testDirectory = new File(reportDirectory, newFolderName);
-            if (!testDirectory.exists()) {
-                testDirectory.mkdir();
-            }
+                                   TestResult testResult,
+                                   TaskListener listener) {
+        try {
+            File testFolderPathFile = new File(testFolderPath);
+            FilePath htmlReportPath = new FilePath(reportFolder, LRA_FOLDER);
+            if (htmlReportPath.exists()) {
+                File reportDirectory = new File(artifactsDir.getParent(), RICH_REPORT_FOLDER);
+                if (!reportDirectory.exists()) {
+                    reportDirectory.mkdir();
+                }
+                String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
+                File testDirectory = new File(reportDirectory, newFolderName);
+                if (!testDirectory.exists()) {
+                    testDirectory.mkdir();
+                }
 
-            FilePath dstReportPath = new FilePath(testDirectory);
-            FileFilter reportFileFilter = new WildcardFileFilter("*.pdf");
-            List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
-            List<String> richReportNames = new ArrayList<String>();
-            for (FilePath fileToCopy : reportFiles) {
-                FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
-                fileToCopy.copyTo(dstFilePath);
-                richReportNames.add(dstFilePath.getName());
-            }
+                FilePath dstReportPath = new FilePath(testDirectory);
+                FileFilter reportFileFilter = new WildcardFileFilter("*.pdf");
+                List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
+                List<String> richReportNames = new ArrayList<String>();
+                for (FilePath fileToCopy : reportFiles) {
+                    FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
+                    fileToCopy.copyTo(dstFilePath);
+                    richReportNames.add(dstFilePath.getName());
+                }
 
-            outputReportFiles(reportNames, reportDirectory, testResult, "Rich Reports", INDEX_HTML_NAME);
-            createRichReportHtml(testDirectory, richReportNames);
+                outputReportFiles(reportNames, reportDirectory, testResult, "Rich Reports", INDEX_HTML_NAME);
+                createRichReportHtml(testDirectory, richReportNames);
+            }
+        } catch (IOException|InterruptedException ex) {
+            listener.getLogger().println("Exception caught while creating rich reports: " + ex);
         }
     }
 
