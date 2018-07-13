@@ -34,6 +34,7 @@
 package com.hpe.application.automation.tools.srf.results;
 
 import com.hpe.application.automation.tools.srf.model.SrfException;
+import com.hpe.application.automation.tools.srf.model.SrfScriptRunModel;
 import com.hpe.application.automation.tools.srf.utilities.SrfStepsHtmlUtil;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
@@ -201,13 +202,12 @@ public class SrfResultFileWriter {
             testSuite.setAttribute("time", String.format("%1d.0",duration_i ));
             String testRunYac = test.getString("yac");
             testSuite.setAttribute("yac", testRunYac);
-            testSuite.setAttribute("id", testRunYac);
-
             String name = test.getString("name");
+            testSuite.setAttribute("id", String.format("%s_%s", name, testRunYac));
+            testSuite.setAttribute("name", SrfScriptRunModel.normalizeName(name));
 
             JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
             int scriptCnt = scriptRuns.size();
-            testSuite.setAttribute("name", name);
             testSuite.setAttribute("timestamp", timestamp);
             testSuite.setAttribute("tests", String.format("%1d", scriptCnt));
             //root.appendChild(testSuite);
