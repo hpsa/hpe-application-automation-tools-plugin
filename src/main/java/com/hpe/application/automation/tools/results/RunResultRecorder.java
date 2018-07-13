@@ -101,11 +101,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.hpe.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.hpe.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -135,6 +131,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public static final String SLA_ULL_NAME = "FullName";
     public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
             "Archiving test reports failed due to xml parsing error: ";
+    private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
+
     private final ResultsPublisherModel _resultsPublisherModel;
     private List<FilePath> runReportList;
 
@@ -274,6 +272,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     /**
+     * checks if the given report path is a parallel runner report
+     *
+     * @param reportPath the path containing the report files
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private boolean isParallelRunnerReportPath(FilePath reportPath) throws IOException, InterruptedException {
+        FilePath parallelRunnerResultsFile = new FilePath(reportPath,PARALLEL_RESULT_FILE);
+        return parallelRunnerResultsFile.exists();
+    }
+
+    /**
      * copies, archives and creates the Test reports of LR and UFT runs.
      *
      * @param build
@@ -404,6 +414,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             } else { // UFT Test
                 boolean reportIsHtml = false;
                 NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+                Map<String,Integer> fileNameCount = new HashMap<>();
+
                 for (int i = 0; i < testCasesNodes.getLength(); i++) {
 
                     Node nNode = testCasesNodes.item(i);
@@ -418,6 +430,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                         String reportFolderPath =
                                 eElement.getAttribute(REPORT_NAME_FIELD); // e.g. "C:\UFTTest\GuiTest1\Report"
+
                         String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
                         String testStatus = eElement.getAttribute("status"); // e.g. "pass"
 
@@ -426,6 +439,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         String testDateTime = sysinfo.substring(0, 19);
 
                         FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
+                        boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
 
                         reportFolders.add(reportFolder);
 
@@ -434,7 +448,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         boolean archiveTestResult = false;
 
                         //check for the new html report
-                        FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+                        FilePath htmlReport = new FilePath(reportFolder,
+                                isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
+
                         FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
                         if (htmlReport.exists()) {
                             reportIsHtml = true;
@@ -445,12 +461,29 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             reportMetaData.setIsHtmlReport(true);
                             reportMetaData.setDateTime(testDateTime);
                             reportMetaData.setStatus(testStatus);
-
+                            reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle the type for this report
                             File testFileFullName = new File(testFolderPath);
                             String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
+
+                            // we must consider the case when we run the same test
+                            // in the same build
+                            if(isParallelRunnerReport) {
+                                Integer nameCount = 1;
+
+                                if(fileNameCount.containsKey(testName)) {
+                                    nameCount = fileNameCount.get(testName) + 1;
+                                }
+
+                                // update the count for this file
+                                fileNameCount.put(testName,nameCount);
+
+                                testName+="[" + nameCount + "]";
+                            }
+
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
+
                             //don't know reportMetaData's URL path yet, we will generate it later.
                             ReportInfoToCollect.add(reportMetaData);
 
@@ -566,6 +599,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             String dateTime = htmlReportInfo.getDateTime();
             String status = htmlReportInfo.getStatus();
             String isHtmlReport = htmlReportInfo.getIsHtmlReport() ? "true" : "false";
+            String isParallelRunnerReport = htmlReportInfo.getIsParallelRunnerReport() ? "true" : "false";
             Element elmReport = doc.createElement(REPORT_NAME_FIELD);
             elmReport.setAttribute("disPlayName", disPlayName);
             elmReport.setAttribute("urlName", urlName);
@@ -573,6 +607,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             elmReport.setAttribute("dateTime", dateTime);
             elmReport.setAttribute("status", status);
             elmReport.setAttribute("isHtmlreport", isHtmlReport);
+            elmReport.setAttribute("isParallelRunnerReport",isParallelRunnerReport);
             root.appendChild(elmReport);
 
         }
@@ -615,6 +650,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 if (!htmlReportInfo.getIsHtmlReport()) {
                     continue;
                 }
+
                 String htmlReportDir = htmlReportInfo.getFolderPath(); // C:\UFTTest\GuiTest1\Report
 
                 listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
@@ -622,6 +658,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                 // copy to the subdirs of master
                 FilePath source = new FilePath(runWorkspace, htmlReportDir);
+
+                // if it's a parallel runner report path, we must change the
+                // resFileName
+                boolean isParallelRunner = isParallelRunnerReportPath(source);
+
                 listener.getLogger().println("source: " + source);
                 String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
                 String dest = testName;
@@ -666,7 +707,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                 // fill in the urlName of this report. we need a network path not a FS path
                 String resourceUrl = htmlReportInfo.getResourceURL();
-                String urlName = resourceUrl + "/run_results.html"; // like artifact/UFTReport/GuiTest1/run_results.html
+                String resFileName = isParallelRunner ? "/parallelrun_results.html" : "/run_results.html";
+
+                String urlName = resourceUrl + resFileName; // like artifact/UFTReport/GuiTest1/run_results.html
+                                                            // or for Parallel runner /GuiTest1[1]/parallelrun_results.html
 
                 listener.getLogger().println("set the report urlName to " + urlName);
                 htmlReportInfo.setUrlName(urlName);

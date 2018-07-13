@@ -31,8 +31,10 @@
   ~
   -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:cv="/lib/custom">
     <st:bind var="a" value="${descriptor}"/>
+
     <tr>
       <td/>
       <td colspan="2">
@@ -55,10 +57,21 @@
         }
     </script>
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/PARALLEL_RUNNER_UI.css"/>
 
     <f:entry title="Tests" field="fsTests">
         <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
     </f:entry>
+
+    <cv:customOptionalBlock title="UFT parallel running mode." name="runfromfs.isParallelRunnerEnabled"
+                            field="isParallelRunnerEnabled" inline="true">
+        <f:entry field="fileSystemTestSetModel">
+            <f:property field="fileSystemTestSetModel"/>
+        </f:entry>
+    </cv:customOptionalBlock>
+
     <f:entry title="Timeout" field="fsTimeout">
         <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
     </f:entry>

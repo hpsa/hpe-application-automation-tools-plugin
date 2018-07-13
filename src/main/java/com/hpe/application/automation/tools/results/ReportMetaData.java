@@ -45,6 +45,7 @@ public class ReportMetaData {
     private String dateTime;
     private String status;
     private Boolean isHtmlReport;
+    private Boolean isParallelRunnerReport;
 
     public String getFolderPath() {
         return folderPath;
@@ -101,4 +102,10 @@ public class ReportMetaData {
     public void setIsHtmlReport(Boolean isHtmlReport) {
         this.isHtmlReport = isHtmlReport;
     }
+
+    public Boolean getIsParallelRunnerReport() {
+        return isParallelRunnerReport;
+    }
+
+    public void setIsParallelRunnerReport(Boolean parallelRunnerReport) { isParallelRunnerReport = parallelRunnerReport; }
 }

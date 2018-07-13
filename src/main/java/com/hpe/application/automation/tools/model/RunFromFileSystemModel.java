@@ -33,6 +33,7 @@
 
 package com.hpe.application.automation.tools.model;
 
+import com.hpe.application.automation.tools.EncryptionUtils;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
@@ -166,7 +167,6 @@ public class RunFromFileSystemModel {
         this.ignoreErrorStrings = "";
         this.displayController = "false";
     }
-
 
     /**
      * Sets fs tests.
@@ -722,10 +722,20 @@ public class RunFromFileSystemModel {
             props.put("MobileUseProxy", "1");
             props.put("MobileProxyType","2");
             props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
+
             if(isUseAuthentication()){
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
-                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, proxySettings.getFsProxyPassword());
+                String encryptedPassword;
+
+                try {
+                    encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
+                            EncryptionUtils.getSecretKey());
+                }catch (Exception ex) {
+                    return null; // cannot continue without proper config
+                }
+
+                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
             }else{
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,"");

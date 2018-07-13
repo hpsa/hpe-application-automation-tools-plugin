@@ -323,9 +323,16 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix("Test");
+                    List<TestData> tests = new List<TestData>();
+
+                    foreach(var item in testsKeyValue)
+                    {
+                        tests.Add(new TestData(item.Value, item.Key));
+                    }
 
                     //get the tests
-                    IEnumerable<string> tests = GetParamsWithPrefix("Test");
+                    //IEnumerable<string> tests = GetParamsWithPrefix("Test");
 
                     IEnumerable<string> jenkinsEnvVariablesWithCommas = GetParamsWithPrefix("JenkinsEnv");
                     Dictionary<string, string> jenkinsEnvVariables = new Dictionary<string,string>();
@@ -386,7 +393,7 @@ namespace HpToolsLauncher
                         WriteToConsole(Resources.LauncherNoTestsFound);
                     }
 
-                    List<string> validTests = Helper.ValidateFiles(tests);
+                    List<TestData> validTests = Helper.ValidateFiles(tests);
 
                     if (tests != null && tests.Count() > 0 && validTests.Count == 0)
                     {
@@ -481,7 +488,8 @@ namespace HpToolsLauncher
                                 {
                                     // data is something like "16.105.9.23:8080"
                                     string[] strArray4ProxyAddr = proxyAddress.Split(new Char[] { ':' });
-                                    if (strArray.Length == 2)
+
+                                    if (strArray4ProxyAddr.Length == 2)
                                     {
                                         mcConnectionInfo.MobileProxySetting_Address = strArray4ProxyAddr[0];
                                         mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArray4ProxyAddr[1]);
@@ -529,15 +537,30 @@ namespace HpToolsLauncher
                         mobileinfo = _ciParams["mobileinfo"];
                     }
 
+                    Dictionary<string, List<String>> parallelRunnerEnvironments = new Dictionary<string, List<string>>();
+
+                    // retrieve the parallel runner environment for each test
+                    if(_ciParams.ContainsKey("parallelRunnerMode"))
+                    {
+                        foreach(var test in validTests)
+                        {
+                            string envKey = "Parallel" + test.Id + "Env";
+                            List<string> testEnvironments = GetParamsWithPrefix(envKey);
+
+                            // add the environments for all the valid tests
+                            parallelRunnerEnvironments.Add(test.Id, testEnvironments);
+                        }
+                    }
+
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments,displayController);
                     }
 
                     break;
@@ -563,6 +586,26 @@ namespace HpToolsLauncher
                 ++idx;
             }
             return parameters;
+        }
+
+        private Dictionary<string,string> GetKeyValuesWithPrefix(string prefix)
+        {
+            int idx = 1;
+
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+
+            while(_ciParams.ContainsKey(prefix + idx))
+            {
+                string set = _ciParams[prefix + idx];
+                if (set.StartsWith("Root\\"))
+                    set = set.Substring(5);
+                set = set.TrimEnd("\\".ToCharArray());
+                string key = prefix + idx;
+                dict[key] = set.TrimEnd();
+                ++idx;
+            }
+
+            return dict;
         }
 
         /// <summary>
