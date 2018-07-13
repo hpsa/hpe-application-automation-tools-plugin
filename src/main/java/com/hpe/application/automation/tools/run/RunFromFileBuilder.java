@@ -157,13 +157,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
 
-	/**
-	 * Gets param file name.
-	 *
-	 * @return the param file name
-	 */
-	public String getParamFileName() {
-		return ParamFileName;
+	public String getAnalysisTemplate() {
+		return runFromFileModel.getAnalysisTemplate();
 	}
 
 	/**
