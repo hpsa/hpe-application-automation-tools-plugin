@@ -37,7 +37,7 @@
     <l:main-panel>
       <h2>Transaction Summary</h2>
       <h3>${it.name}</h3>
-      <iframe SRC="./${it.name}/Report3.html" width="100%" height="800px" frameBorder="0"></iframe>
+      <iframe SRC="./${it.name}/TransactionSummary.html" width="100%" height="800px" frameBorder="0"></iframe>
     </l:main-panel>
   </l:layout>
 </j:jelly>
