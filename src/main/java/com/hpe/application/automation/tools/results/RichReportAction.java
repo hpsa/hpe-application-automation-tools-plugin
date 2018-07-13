@@ -106,11 +106,12 @@ public class RichReportAction implements Action, SimpleBuildStep.LastBuildAction
             switch (values.length) {
                 case 4:
                     report.updateReport(values[1], values[2], values[3]);
+                    break;
                 case 3:
                     report.updateReport(values[1], values[2], "##");
+                    break;
                 case 2:
                     report.updateReport(values[1], "##", "##");
-
             } 
             richReportMap.put(values[0], report);
         }
