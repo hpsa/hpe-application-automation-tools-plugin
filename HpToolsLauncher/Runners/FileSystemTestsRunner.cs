@@ -321,7 +321,7 @@ namespace HpToolsLauncher
             var testPath = testinf.TestPath;
             var type = Helper.GetTestType(testPath);
 
-            // if we have at leas one environment for parallel runner,
+            // if we have at least one environment for parallel runner,
             // then it must be enabled
             var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
 

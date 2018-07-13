@@ -33,7 +33,6 @@
 
 package com.hpe.application.automation.tools.model;
 
-import com.hpe.application.automation.tools.AlmToolsUtils;
 import com.hpe.application.automation.tools.EncryptionUtils;
 import com.hpe.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
@@ -727,12 +726,12 @@ public class RunFromFileSystemModel {
             if(isUseAuthentication()){
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
-                String encryptedPassword = "";
+                String encryptedPassword;
 
                 try {
                     encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
                             EncryptionUtils.getSecretKey());
-                }catch (Exception ex){
+                }catch (Exception ex) {
                     return null; // cannot continue without proper config
                 }
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Web.Script.Serialization;
@@ -165,7 +166,7 @@ namespace HpToolsLauncher.TestRunners
             {
                 configFilePath =  ParallelRunnerEnvironmentUtil.GetConfigFilePath(testInfo,_mcConnectionInfo,_environments);
                 _configFiles.Add(configFilePath);
-            }catch(Exception ex) // invalid configuration
+            }catch(ParallelRunnerConfigurationException ex) // invalid configuration
             {
                 errorReason = ex.Message;
                 runResults.ErrorDesc = errorReason;
@@ -229,7 +230,23 @@ namespace HpToolsLauncher.TestRunners
             Process parentProcess = currentProcess.Parent();
 
             // if they are not in the same session we will assume it is a service
-            Process explorer = Process.GetProcessesByName("explorer")[0];
+            Process explorer = null;
+            try
+            {
+                explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+
+            // could not retrieve the explorer process
+            if(explorer == null)
+            {
+                // try to start the process from the current session
+                return false;
+            }
+
             return parentProcess.SessionId != explorer.SessionId;
         }
 
@@ -239,7 +256,7 @@ namespace HpToolsLauncher.TestRunners
         /// <param name="fileName">the filename to be ran</param>
         /// <param name="arguments">the arguments for the process</param>
         /// <returns>the corresponding process type, based on the jenkins instance</returns>
-        private object GetProcessTypForCurrentSession(string fileName,string arguments)
+        private object GetProcessTypeForCurrentSession(string fileName,string arguments)
         {
             try
             {
@@ -273,7 +290,7 @@ namespace HpToolsLauncher.TestRunners
         /// <returns> the exit code of the process </returns>
         private int ExecuteProcess(string fileName, string arguments, ref string failureReason)
         {
-            IProcessAdapter processAdapter = ProcessAdapterFactory.CreateAdapter(GetProcessTypForCurrentSession(fileName, arguments));
+            IProcessAdapter processAdapter = ProcessAdapterFactory.CreateAdapter(GetProcessTypeForCurrentSession(fileName, arguments));
 
             if (processAdapter == null)
             {

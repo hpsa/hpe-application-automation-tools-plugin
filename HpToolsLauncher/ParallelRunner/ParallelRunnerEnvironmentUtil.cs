@@ -16,6 +16,9 @@ namespace HpToolsLauncher.ParallelRunner
         public ParallelRunnerConfigurationException(string message) : base(message)
         {
         }
+
+        public ParallelRunnerConfigurationException(string message, Exception innerException) : base(message, innerException)
+        { }
     };
 
     public enum EnvironmentType
@@ -108,6 +111,7 @@ namespace HpToolsLauncher.ParallelRunner
 
             return dictionary;
         }
+
         /// <summary>
         /// Parse the mobile environment provided in jenkins.
         /// </summary>
@@ -426,9 +430,29 @@ namespace HpToolsLauncher.ParallelRunner
 
             JavaScriptSerializer serializer = new JavaScriptSerializer();
 
-            var configJson = serializer.Serialize(config);
+            string configJson = null;
 
-            File.WriteAllText(configFilePath, configJson);
+            try
+            {
+                configJson = serializer.Serialize(config);
+            }
+            catch(InvalidOperationException e)
+            {
+                throw new ParallelRunnerConfigurationException("Invalid json confguration provided: ",e);
+            }
+            catch(ArgumentException e)
+            {
+                throw new ParallelRunnerConfigurationException("Configuration serialization recursion limit exceeded: ", e);
+            }
+
+            try
+            {
+                File.WriteAllText(configFilePath, configJson);
+            }
+            catch (Exception e)
+            {
+                throw new ParallelRunnerConfigurationException("Could not write configuration file: ", e);
+            }
 
             return configFilePath;
         }

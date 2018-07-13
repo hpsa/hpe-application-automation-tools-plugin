@@ -131,7 +131,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public static final String SLA_ULL_NAME = "FullName";
     public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
             "Archiving test reports failed due to xml parsing error: ";
-    private static final String PARALLEL_REPORT_FOLDER = "ParallelReport";
     private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
 
     private final ResultsPublisherModel _resultsPublisherModel;
@@ -452,11 +451,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         FilePath htmlReport = new FilePath(reportFolder,
                                 isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
 
-                        // the report name is different for the parallel runner
-                        /*if(isParallelRunnerReport) {
-                            htmlReport = new FilePath(reportFolder,PARALLEL_RESULT_FILE);
-                        }*/
-
                         FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
                         if (htmlReport.exists()) {
                             reportIsHtml = true;
@@ -658,9 +652,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 }
 
                 String htmlReportDir = htmlReportInfo.getFolderPath(); // C:\UFTTest\GuiTest1\Report
-
-                //boolean isParallelRunner = htmlReportDir.contains(PARALLEL_REPORT_FOLDER);
-                        // htmlReportDir.endsWith(PARALLEL_REPORT_FOLDER + "\\Res1");
 
                 listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
                 listener.getLogger().println("workspace: " + runWorkspace);

@@ -430,39 +430,8 @@ namespace HpToolsLauncher
             public int HighPart;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct LUID_AND_ATTRIBUTES
-        {
-            public LUID pLuid;
-            public UInt32 Attributes;
-        }
-
-        public class TOKEN_PRIVILEGES
-        {
-            public UInt32 PrivilegeCount;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
-            public LUID_AND_ATTRIBUTES[] Privileges = new LUID_AND_ATTRIBUTES[2];
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct TokPriv1Luid
-        {
-            public int Count;
-            public LUID Luid;
-            public UInt32 Attr;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SID_AND_ATTRIBUTES
-        {
-            public IntPtr Sid;
-            public uint Attributes;
-        }
-
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
-
-
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
@@ -500,10 +469,6 @@ namespace HpToolsLauncher
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out LUID lpLuid);
-
-        [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
-        public static extern bool AdjustTokenPrivileges(IntPtr htok, bool disableAllPrivileges, ref TokPriv1Luid newState,
-            int len, IntPtr prev, IntPtr relen);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern uint ResumeThread(IntPtr hThread);

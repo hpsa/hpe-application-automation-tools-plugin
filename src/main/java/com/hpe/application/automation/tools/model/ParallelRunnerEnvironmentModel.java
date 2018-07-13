@@ -42,12 +42,19 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import javax.xml.bind.ValidationException;
 import java.util.*;
 
 /**
  * Represents the environment that Parallel Runner uses to execute a test.
  */
 public class ParallelRunnerEnvironmentModel extends AbstractDescribableImpl<ParallelRunnerEnvironmentModel> {
+    private static class EnvironmentValidationException extends Exception {
+        public EnvironmentValidationException(String message) {
+            super(message);
+        }
+    }
+
     private String environment;
     private String environmentType; // 'Web', 'Mobile'
 
@@ -201,48 +208,36 @@ public class ParallelRunnerEnvironmentModel extends AbstractDescribableImpl<Para
             return false;
         }
 
+        private void checkKeyValueValidity(String key,Map<String,String> pairs,String message) throws EnvironmentValidationException {
+            // if the key is present the value must be present too
+            if(pairs.containsKey(key) && pairs.get(key).trim().isEmpty()) {
+                throw new EnvironmentValidationException(message);
+            }
+        }
+
         /**
          * Validate the environment string.
          * @param environment the environment string
          */
-        private void validateEnvironmentString(String environment) throws Exception {
+        private void validateEnvironmentString(String environment) throws EnvironmentValidationException {
             Map<String,String> pairs = this.getEnvironmentKeyValuePairs(environment);
 
             // check if any property was provided
             if(pairs.isEmpty()) {
-                throw new Exception("No property provided. Enter properties using the following syntax: <name>:<value>");
+                throw new EnvironmentValidationException("No property provided. Enter properties using the following syntax: <name>:<value>");
             }
 
             // check if there are any invalid property names
             for(String key : pairs.keySet()) {
                 if(!isKnownProperty(key)) {
-                    throw new Exception("Invalid property name: " + key);
+                    throw new EnvironmentValidationException("Invalid property name: " + key);
                 }
             }
 
-            // the environment must either be a mobile environment or a browser
-            // environment, and if no properties are present it is neither of those
-            //if(!pairs.containsKey(DeviceIdKey) &&  !pairs.containsKey(BrowserKey) &&
-                    //(!pairs.containsKey(OsTypeKey) && !pairs.containsKey(OsVersionKey) && !pairs.containsKey(ManufacturerAndModelKey))){
-                //throw new Exception("Not enough parameters provided!");
-            //}
-
-            // if the key is present the value must be present too
-            if(pairs.containsKey(DeviceIdKey) && pairs.get(DeviceIdKey).trim().isEmpty()) {
-                throw new Exception("DeviceId value must not be empty!");
-            }
-
-            if(pairs.containsKey(OsVersionKey) && pairs.get(OsVersionKey).trim().isEmpty()) {
-                throw new Exception("OsVersion value must not be empty!");
-            }
-
-            if(pairs.containsKey(OsTypeKey) && pairs.get(OsTypeKey).trim().isEmpty()) {
-                throw new Exception("OsType value must not be empty!");
-            }
-
-            if(pairs.containsKey(ManufacturerAndModelKey) && pairs.get(ManufacturerAndModelKey).trim().isEmpty()) {
-                throw new Exception("ManufacturerAndModel value must not be empty!");
-            }
+            checkKeyValueValidity(DeviceIdKey,pairs,"DeviceId value must not be empty!");
+            checkKeyValueValidity(OsVersionKey,pairs,"OsVersion value must not be empty!");
+            checkKeyValueValidity(OsTypeKey,pairs,"OsType value must not be empty!");
+            checkKeyValueValidity(ManufacturerAndModelKey,pairs,"ManufacturerAndModel value must not be empty!");
 
             // if it's a browser environment
             if(pairs.containsKey(BrowserKey)) {
@@ -250,12 +245,12 @@ public class ParallelRunnerEnvironmentModel extends AbstractDescribableImpl<Para
 
                 // check if the value is present
                 if(browserName.isEmpty()) {
-                    throw new Exception("Browser value must not be empty!");
+                    throw new EnvironmentValidationException("Browser value must not be empty!");
                 }
 
                 // check if ParallelRunner supports the given browser
                 if(!isSupportedBrowser(browserName)) {
-                    throw new Exception(String.format("Invalid browser. %s is not supported!", browserName.toUpperCase()));
+                    throw new EnvironmentValidationException(String.format("Invalid browser. %s is not supported!", browserName.toUpperCase()));
                 }
             }
         }
@@ -273,7 +268,7 @@ public class ParallelRunnerEnvironmentModel extends AbstractDescribableImpl<Para
 
             try{
                 this.validateEnvironmentString(value);
-            }catch (Exception e) {
+            }catch (EnvironmentValidationException e) {
                 return FormValidation.error(e.getMessage());
             }
 

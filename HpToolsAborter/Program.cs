@@ -74,7 +74,7 @@ namespace HpToolsAborter
                 {
                     KillQtpAutomationProcess();
                     KillLoadRunnerAutomationProcess();
-                    KillParallelRunnerAutomatonProcesses();
+                    KillParallelRunnerAutomationProcesses();
                 }
 
                 if (runType=="Alm")
@@ -119,7 +119,7 @@ namespace HpToolsAborter
 
         }
 
-        private static void KillParllelRunnerAutomationProcess(Process parallelRunner)
+        private static void KillParallelRunnerAutomationProcess(Process parallelRunner)
         {
             if(parallelRunner != null)
             {
@@ -140,7 +140,7 @@ namespace HpToolsAborter
             }
         }
 
-        private static void KillParallelRunnerAutomatonProcesses()
+        private static void KillParallelRunnerAutomationProcesses()
         {
             Process[] paralelRunnerProcesses = Process.GetProcessesByName("ParallelRunner");
 
@@ -157,7 +157,7 @@ namespace HpToolsAborter
                 // if ctr-c has failed, just kill the process...
                 if (!closed || !proc.HasExited)
                 {
-                    KillParllelRunnerAutomationProcess(proc);
+                    KillParallelRunnerAutomationProcess(proc);
                 }
             }
         }

@@ -7,6 +7,7 @@ using System.Text;
 
 namespace HpToolsLauncher
 {
+    [Serializable]
     public class ElevatedProcessException : Exception
     {
         public ElevatedProcessException(string message) : base(message) { }
@@ -80,7 +81,7 @@ namespace HpToolsLauncher
                process = Process.GetProcessesByName("explorer").FirstOrDefault();
             }catch(InvalidOperationException e)
             {
-                throw new ElevatedProcessException("Unable to find explorer process: ", e);
+                throw new ElevatedProcessException("An error has occurred while trying to find the 'explorer' process: ", e);
             }
 
             if(process == null)

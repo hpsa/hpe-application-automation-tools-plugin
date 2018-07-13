@@ -172,7 +172,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String perScenarioTimeOut, String ignoreErrorStrings, String displayController, String mcServerName, String fsUserName,
 							  String fsPassword, String mcTenantId, String fsDeviceId, String fsTargetLab,
                               String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
-                              ProxySettings proxySettings, boolean useSSL,boolean isParallelRunnerEnabled, List<ParallelRunnerEnvironmentModel> environments) {
+                              ProxySettings proxySettings, boolean useSSL,boolean isParallelRunnerEnabled) {
 		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
 				perScenarioTimeOut, ignoreErrorStrings, displayController, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
