@@ -188,6 +188,98 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		return ParamFileName;
 	}
 
+	public String getFsTimeout(){
+	    return runFromFileModel.getFsTimeout();
+	}
+
+	public String getFsTests(){
+		return runFromFileModel.getFsTests();
+	}
+
+	public String getControllerPollingInterval(){
+		return runFromFileModel.getControllerPollingInterval();
+	}
+
+	public String getPerScenarioTimeOut(){
+		return runFromFileModel.getPerScenarioTimeOut();
+	}
+
+	public String getDisplayController() {
+		return runFromFileModel.getDisplayController();
+	}
+
+	public String getFsAutActions(){
+		return runFromFileModel.getFsAutActions();
+	}
+
+	public String getFsDeviceId() {
+		return runFromFileModel.getFsDeviceId();
+	}
+
+	public String getFsDevicesMetrics() {
+		return runFromFileModel.getFsDevicesMetrics();
+	}
+
+	public String getFsExtraApps() {
+		return runFromFileModel.getFsExtraApps();
+	}
+
+	public String getFsOs() {
+		return runFromFileModel.getFsOs();
+	}
+
+	public String getFsInstrumented() {
+		return runFromFileModel.getFsInstrumented();
+	}
+
+	public String getFsJobId() {
+		return runFromFileModel.getFsJobId();
+	}
+
+	public String getFsUftRunMode(){
+		return runFromFileModel.getFsUftRunMode();
+	}
+
+	public String getIgnoreErrorStrings(){
+		return runFromFileModel.getIgnoreErrorStrings();
+	}
+
+	public String getMcServerName(){
+		return runFromFileModel.getMcServerName();
+	}
+
+	public String getFsManufacturerAndModel(){
+		return runFromFileModel.getFsManufacturerAndModel();
+	}
+
+	public String getFsLaunchAppName(){
+		return runFromFileModel.getFsLaunchAppName();
+	}
+
+	public ProxySettings getProxySettings(){
+		return runFromFileModel.getProxySettings();
+	}
+
+	public String getMcTenantId(){
+		return runFromFileModel.getMcTenantId();
+	}
+
+	public String getFsPassword(){
+		return runFromFileModel.getFsPassword();
+	}
+
+	public String getFsUserName(){
+		return runFromFileModel.getFsUserName();
+	}
+
+	public String getFsTargetLab(){
+		return runFromFileModel.getFsTargetLab();
+	}
+
+	public boolean getUseSSL() {
+		return runFromFileModel.isUseSSL();
+	}
+
 	/**
 	 * Sets controller polling interval.
 	 *
