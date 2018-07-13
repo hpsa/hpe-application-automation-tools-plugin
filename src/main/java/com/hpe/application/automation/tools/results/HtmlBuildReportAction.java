@@ -125,6 +125,7 @@ public class HtmlBuildReportAction implements Action {
             String dateTime = report.getAttribute("dateTime");
             String status = report.getAttribute("status");
             String isHtmlreport = report.getAttribute("isHtmlreport");
+            String isParallelRunnerReport = report.getAttribute("isParallelRunnerReport");
 
             reportmetadata.setDisPlayName(disPlayName);
             reportmetadata.setUrlName(urlName);
@@ -132,6 +133,7 @@ public class HtmlBuildReportAction implements Action {
             reportmetadata.setDateTime(dateTime);
             reportmetadata.setStatus(status);
             reportmetadata.setIsHtmlReport("true".equals(isHtmlreport));
+            reportmetadata.setIsParallelRunnerReport("true".equals(isParallelRunnerReport));
             listReport.add(reportmetadata);
 
         }

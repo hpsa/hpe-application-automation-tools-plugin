@@ -86,9 +86,30 @@
            <tr>
              <j:choose>
                 <j:when test="${s.isHtmlReport}">
+                    <j:choose>
+                        <j:when test="${s.isParallelRunnerReport}">
 
-                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report" title="Html Report"/></td>
-                    <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
+                            <td class = "bodycell" align = "center">
+                                <img
+                                    src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/parallel_html_report.svg"
+                                    alt="Html_parallel_report"
+                                    title="Html Parallel Report"
+                                    style="width:16px;height:16px;"
+                                />
+                            </td>
+                            <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
+                        </j:when>
+                        <j:otherwise>
+                            <td class = "bodycell" align = "center">
+                                <img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/html_report.svg"
+                                     alt="Html_report"
+                                     title="Html Report"
+                                     style="width:16px;height:16px;"
+                                />
+                            </td>
+                            <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
+                        </j:otherwise>
+                    </j:choose>
                 </j:when>
                 <j:otherwise>
                     <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/rrv_report.png" alt="RRV_report" title="RRV"/></td>

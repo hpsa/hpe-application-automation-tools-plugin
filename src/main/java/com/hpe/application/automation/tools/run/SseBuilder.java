@@ -99,6 +99,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     
     private String almServerName;
     private String credentialsId;
+    private String clientType;
     private String almDomain;
     private String almProject;
     private String description;
@@ -112,6 +113,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     //Databound setters and getters.
     public String getAlmServerName() { return almServerName; }
     public String getCredentialsId() { return credentialsId; }
+    public String getClientType() { return clientType; }
     public String getAlmDomain() { return almDomain; }
     public String getAlmProject() { return almProject; }
     public String getDescription() { return description; }
@@ -147,6 +149,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     public SseBuilder(String almServerName,
     		String almProject,
     		String credentialsId,
+    		String clientType,
     		String almDomain,
     		String runType,
     		String almEntityId,
@@ -159,6 +162,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 		this.timeslotDuration = timeslotDuration;
 		this.runType = runType;
 		this.almEntityId = almEntityId;
+		this.clientType = clientType;
 	}
     
     @Override
@@ -174,6 +178,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 credentials.getUsername(),
                 credentials.getPassword().getPlainText(),
                 almDomain,
+                clientType,
                 almProject,
                 runType,
                 almEntityId,

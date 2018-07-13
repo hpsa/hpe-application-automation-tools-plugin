@@ -34,6 +34,8 @@ namespace HpToolsLauncher
         private TimeSpan _perScenarioTimeOutMinutes;
         private List<string> _ignoreErrorStrings;
 
+        // parallel runner related information
+        private Dictionary<string,List<string>> _parallelRunnerEnvironments;
 
         //saves runners for cleaning up at the end.
         private Dictionary<TestType, IFileSysTestRunner> _colRunnersForCleanup = new Dictionary<TestType, IFileSysTestRunner>();
@@ -54,7 +56,7 @@ namespace HpToolsLauncher
         /// <param name="uftRunMode"></param>
         /// <param name="backgroundWorker"></param>
         /// <param name="useUFTLicense"></param>
-        public FileSystemTestsRunner(List<string> sources,
+        public FileSystemTestsRunner(List<TestData> sources,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int ControllerPollingInterval,
@@ -63,10 +65,12 @@ namespace HpToolsLauncher
                                     Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
+                                    Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
                                     bool useUFTLicense = false)
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, displayController, analysisTemplate, useUFTLicense)
+
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -78,7 +82,7 @@ namespace HpToolsLauncher
         /// <param name="timeout"></param>
         /// <param name="backgroundWorker"></param>
         /// <param name="useUFTLicense"></param>
-        public FileSystemTestsRunner(List<string> sources,
+        public FileSystemTestsRunner(List<TestData> sources,
                                     TimeSpan timeout,
                                     int ControllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
@@ -86,6 +90,7 @@ namespace HpToolsLauncher
                                     Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
+                                    Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
                                     bool useUFTLicense = false)
@@ -114,22 +119,24 @@ namespace HpToolsLauncher
             _mcConnection = mcConnection;
             _mobileInfoForAllGuiTests = mobileInfo;
 
+            _parallelRunnerEnvironments = parallelRunnerEnvironments;
+
             ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
 
             //go over all sources, and create a list of all tests
-            foreach (string source in sources)
+            foreach (TestData source in sources)
             {
                 List<TestInfo> testGroup = new List<TestInfo>();
                 try
                 {
                     //--handle directories which contain test subdirectories (recursively)
-                    if (Helper.IsDirectory(source))
+                    if (Helper.IsDirectory(source.Tests))
                     {
 
-                        var testsLocations = Helper.GetTestsLocations(source);
+                        var testsLocations = Helper.GetTestsLocations(source.Tests);
                         foreach (var loc in testsLocations)
                         {
-                            var test = new TestInfo(loc, loc, source);
+                            var test = new TestInfo(loc, loc, source.Tests,source.Id);
                             testGroup.Add(test);
                         }
                     }
@@ -140,23 +147,30 @@ namespace HpToolsLauncher
                     //other files are dropped
                     {
                         testGroup = new List<TestInfo>();
-                        FileInfo fi = new FileInfo(source);
+                        FileInfo fi = new FileInfo(source.Tests);
                         if (fi.Extension == Helper.LoadRunnerFileExtention)
-                            testGroup.Add(new TestInfo(source, source, source));
+                            testGroup.Add(new TestInfo(source.Tests, source.Tests, source.Tests,source.Id));
                         else if (fi.Extension == ".mtb")
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
                             MtbManager manager = new MtbManager();
-                            var paths = manager.Parse(source);
+                            var paths = manager.Parse(source.Tests);
                             foreach (var p in paths)
                             {
-                                testGroup.Add(new TestInfo(p, p, source));
+                                testGroup.Add(new TestInfo(p, p, source.Tests,source.Id));
                             }
                         }
                         else if (fi.Extension == ".mtbx")
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            testGroup = MtbxManager.Parse(source, _jenkinsEnvVariables, source);
+                            testGroup = MtbxManager.Parse(source.Tests, _jenkinsEnvVariables, source.Tests);
+
+                            // set the test Id for each test from the group
+                            // this is important for parallel runner
+                            foreach(var testInfo in testGroup)
+                            {
+                                testInfo.TestId = source.Id;
+                            }
                         }
                     }
                 }
@@ -181,7 +195,17 @@ namespace HpToolsLauncher
             }
 
             ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));
-            _tests.ForEach(t => ConsoleWriter.WriteLine("" + t.TestName));
+
+            foreach(var test in _tests)
+            {
+                ConsoleWriter.WriteLine("" + test.TestName);
+                if(parallelRunnerEnvironments.ContainsKey(test.TestId))
+                {
+                    parallelRunnerEnvironments[test.TestId].ForEach(
+                        env => ConsoleWriter.WriteLine("    " + env));
+                }
+            }
+
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
         }
 
@@ -299,9 +323,24 @@ namespace HpToolsLauncher
         /// <returns></returns>
         private TestRunResults RunHPToolsTest(TestInfo testinf, ref string errorReason)
         {
-
             var testPath = testinf.TestPath;
             var type = Helper.GetTestType(testPath);
+
+            // if we have at least one environment for parallel runner,
+            // then it must be enabled
+            var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
+
+            if (isParallelRunnerEnabled && type == TestType.QTP)
+            {
+                type = TestType.ParallelRunner;
+            }
+            // if the current test is an api test ignore the parallel runner flag
+            // and just continue as usual
+            else if (isParallelRunnerEnabled && type == TestType.ST)
+            {
+                ConsoleWriter.WriteLine("ParallelRunner does not support API tests, treating as normal test.");
+            }
+
             IFileSysTestRunner runner = null;
             switch (type)
             {
@@ -314,6 +353,9 @@ namespace HpToolsLauncher
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
                     runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate);
+                    break;
+                case TestType.ParallelRunner:
+                    runner = new ParallelTestRunner(this, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests, _parallelRunnerEnvironments);
                     break;
             }
             

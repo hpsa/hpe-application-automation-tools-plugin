@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security;
 using System.Text;
 using System.Timers;
 using System.Web.UI;
@@ -27,6 +28,7 @@ namespace HpToolsLauncher
         QTP,
         ST,
         LoadRunner,
+        ParallelRunner
     }
 
     public enum TestState
@@ -180,14 +182,14 @@ namespace HpToolsLauncher
 
 
         //verify that files/fodlers exist (does not recurse into folders)
-        public static List<string> ValidateFiles(IEnumerable<string> tests)
+        public static List<TestData> ValidateFiles(IEnumerable<TestData> tests)
         {
-            List<string> validTests = new List<string>();
-            foreach (string test in tests)
+            List<TestData> validTests = new List<TestData>();
+            foreach (TestData test in tests)
             {
-                if (!File.Exists(test) && !Directory.Exists(test))
+                if (!File.Exists(test.Tests) && !Directory.Exists(test.Tests))
                 {
-                    ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test));
+                    ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test.Tests));
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 }
                 else
@@ -563,6 +565,95 @@ namespace HpToolsLauncher
             return true;
         }
 
+        public static string GetUFTDirectory()
+        {
+            try
+            {
+                return Environment.GetEnvironmentVariable("ST_INSTALL_PATH");
+            }
+            catch (SecurityException)
+            {
+                return null;
+            }
+        }
+
+        public static string GetParallelRunnerDirectory(string parallelRunnerExecutable)
+        {
+            if (parallelRunnerExecutable == null) return null;
+
+            var uftFolder = GetUFTDirectory();
+
+            if (uftFolder == null) return null;
+
+            return uftFolder + @"bin\" + parallelRunnerExecutable;
+        }
+
+        public static void ChangeDCOMSettingToInteractiveUser()
+        {
+            string errorMsg = "Unable to change DCOM settings. To chage it manually: " +
+                  "run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User";
+
+            string interactiveUser = "Interactive User";
+            string runAs = "RunAs";
+
+            try
+            {
+                var regKey = GetQuickTestProfessionalAutomationRegKey(RegistryView.Registry32);
+
+                if (regKey == null)
+                {
+                    regKey = GetQuickTestProfessionalAutomationRegKey(RegistryView.Registry64);
+                }
+
+                if (regKey == null)
+                    throw new Exception(@"Unable to find in registry SOFTWARE\Classes\AppID\{A67EB23A-1B8F-487D-8E38-A6A3DD150F0B");
+
+                object runAsKey = regKey.GetValue(runAs);
+
+                if (runAsKey == null || !runAsKey.ToString().Equals(interactiveUser))
+                {
+                    regKey.SetValue(runAs, interactiveUser);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(errorMsg + "detailed error is : " + ex.Message);
+            }
+        }
+
+        public static RegistryKey GetQuickTestProfessionalAutomationRegKey(RegistryView registry32)
+        {
+            RegistryKey localKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry64);
+            localKey = localKey.OpenSubKey(@"SOFTWARE\Classes\AppID\{A67EB23A-1B8F-487D-8E38-A6A3DD150F0B}", true);
+
+            return localKey;
+        }
+
+        /// <summary>
+        /// Return the path of the available results folder for the parallel runner.
+        /// </summary>
+        /// <param name="testInfo"> The test information. </param>
+        /// <returns>
+        /// the path to the results folder 
+        /// </returns>
+        public static string GetNextResFolder(string reportPath)
+        {
+            // since ParallelRunner will store the report as "Res1...ResN"
+            // we need to know before parallel runner creates the result folder
+            // what the folder name will be
+            // so we know which result is ours(or if there was any result)
+            string resultFolderName = "Res";
+            int resultFolderIndex = 1;
+
+            while (Directory.Exists(Path.Combine(reportPath, resultFolderName + resultFolderIndex)))
+            {
+                resultFolderIndex += 1;
+            }
+
+            return reportPath + "\\" + resultFolderName + resultFolderIndex;
+        }
+
         #region Report Related
 
         /// <summary>
@@ -728,7 +819,6 @@ namespace HpToolsLauncher
             return runDesc.TestState;
         }
 
-
         public static TestState GetTestStateFromReport(TestRunResults runDesc)
         {
             try
@@ -742,6 +832,7 @@ namespace HpToolsLauncher
                 }
                 //if there is Result.xml -> UFT
                 //if there is sla.xml file -> LR
+                //if there is parallelrun_results.xml -> ParallelRunner
 
                 string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml",
                     SearchOption.TopDirectoryOnly);
@@ -760,6 +851,15 @@ namespace HpToolsLauncher
                     return GetTestStateFromLRReport(runDesc, resultFiles);
                 }
 
+                resultFiles = Directory.GetFiles(runDesc.ReportLocation, "parallelrun_results.html", SearchOption.TopDirectoryOnly);
+
+                // the overall status is given by parallel runner
+                // at the end of the run
+                if (resultFiles != null && resultFiles.Length > 0)
+                {
+                    return runDesc.TestState;
+                }
+
                 //no LR or UFT => error
                 runDesc.ErrorDesc = string.Format("no results file found for " + runDesc.TestName);
                 runDesc.TestState = TestState.Error;
@@ -771,7 +871,6 @@ namespace HpToolsLauncher
             }
 
         }
-
 
         private static TestState GetTestStateFromLRReport(string resultFileFullPath, out string desc)
         {

@@ -25,22 +25,22 @@ namespace HpToolsLauncher
             XDocument doc = XDocument.Load(paramXmlFileName);
             string schemaStr = doc.Descendants("Schema").First().Elements().First().ToString();
             XElement xArgs = doc.Descendants("Arguments").FirstOrDefault();
-            if (xArgs!=null)
-            foreach (XElement arg in xArgs.Elements())
-            {
-                string paramName = arg.Name.ToString().ToLower();
-                if (paramDict.ContainsKey(paramName))
+            if (xArgs != null)
+                foreach (XElement arg in xArgs.Elements())
                 {
-                    var param = paramDict[paramName];
-                    arg.Value = NormalizeParamValue(param);
+                    string paramName = arg.Name.ToString().ToLower();
+                    if (paramDict.ContainsKey(paramName))
+                    {
+                        var param = paramDict[paramName];
+                        arg.Value = NormalizeParamValue(param);
+                    }
                 }
-            }
             string argumentSectionStr = doc.Descendants("Values").First().Elements().First().ToString();
             try
             {
                 XDocument doc1 = XDocument.Parse(argumentSectionStr);
                 XmlSchema schema = XmlSchema.Read(new MemoryStream(Encoding.ASCII.GetBytes(schemaStr), false), null);
-                
+
                 XmlSchemaSet schemas = new XmlSchemaSet();
                 schemas.Add(schema);
 
@@ -49,7 +49,7 @@ namespace HpToolsLauncher
                 {
                     validationMessages += e.Message + Environment.NewLine;
                 });
-                
+
                 if (!string.IsNullOrWhiteSpace(validationMessages))
                     ConsoleWriter.WriteLine("parameter schema validation errors: \n" + validationMessages);
             }
@@ -120,12 +120,12 @@ namespace HpToolsLauncher
             _testName = testName;
         }
 
-        public TestInfo(string testPath, string testName, string testGroup, string reportPath)
+        public TestInfo(string testPath, string testName, string testGroup, string testId)
         {
             _testPath = testPath;
             TestGroup = testGroup;
             _testName = testName;
-            ReportPath = reportPath;
+            TestId = testId;
         }
 
         List<TestParameterInfo> _paramList = new List<TestParameterInfo>();
@@ -153,7 +153,9 @@ namespace HpToolsLauncher
         }
 
         // the path where the report will be saved
-        public string ReportPath{ get;set; }
+        public string ReportPath { get; set; }
+
+        public string TestId { get; set; }
 
         public List<TestParameterInfo> ParameterList
         {
