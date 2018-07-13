@@ -1089,8 +1089,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      * as title (or title variants based on language packs) 
      */
     private FilePath getTransactionSummaryReport(FilePath htmlReportPath) throws IOException, InterruptedException {
-        String[] transactionSummaryNames = {"transaction summary", "dummy", "dummy", "dummy",
-                                            "dummy", "dummy", "dummy", "dummy"};
+        String[] transactionSummaryNames = {
+            "Transaction Summary", //eng
+            "トランザクション サマリ", //jpn
+            "트랜잭션 요약", //kor
+            "事务摘要", //chs
+            "Transaktionsübersicht", //deu
+            "Resumen de transacciones", //spn
+            "Riepilogo transazioni", //ita
+            "Récapitulatif des transactions", //fr
+            "Сводка транзакций", //rus
+        };
 
         FileFilter reportFileFilter = new WildcardFileFilter("Report*.html");
         List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
