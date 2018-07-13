@@ -861,9 +861,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             FilePath dstReportPath = new FilePath(testDirectory);
             FileFilter reportFileFilter = new WildcardFileFilter("*.pdf");
-            List<FilePath> reporFiles = htmlReportPath.list(reportFileFilter);
+            List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
             List<String> richReportNames = new ArrayList<String>();
-            for (FilePath fileToCopy : reporFiles) {
+            for (FilePath fileToCopy : reportFiles) {
                 FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
                 fileToCopy.copyTo(dstFilePath);
                 richReportNames.add(dstFilePath.getName());
@@ -879,8 +879,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                   "<HTML><HEAD>" +
                                   "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
                                   "<TITLE>Rich Report</TITLE>" +
-                                  "</HEAD>" +
-                                  "<BODY>" + error + "<BODY>";
+                                  "</HEAD>" + "<BODY>" + error + "</BODY>";
 
         writeToFile(htmlDirectory, htmlFileContents);
     }
@@ -889,9 +888,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         String htmlFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
                                   "<HTML><HEAD>" +
                                   "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
-                                  "<TITLE>Rich Report</TITLE>" +
-                                  "</HEAD>" +
-                                  "<BODY>";
+                                  "<TITLE>Rich Report</TITLE>" + "</HEAD>" + "<BODY>";
 
         if (richReportNames.size() == 0) {
             htmlFileContents += NO_RICH_REPORTS_ERROR;
@@ -1055,10 +1052,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
 
             FilePath dstReportPath = new FilePath(testDirectory);
-            FilePath fileToCopy1;
-            if ((fileToCopy1 = getTransactionSummaryReport(htmlReportPath)) != null) {
+            FilePath transSummaryReport;
+            if ((transSummaryReport = getTransactionSummaryReport(htmlReportPath)) != null) {
                 FilePath dstFilePath = new FilePath(dstReportPath, TRANSACTION_REPORT_NAME + ".html");
-                fileToCopy1.copyTo(dstFilePath);
+                transSummaryReport.copyTo(dstFilePath);
             } else {
                 File htmlIndexFile = new File(testDirectory, TRANSACTION_REPORT_NAME + ".html");
                 createErrorHtml(htmlIndexFile, NO_TRANSACTION_SUMMARY_REPORT_ERROR);
@@ -1089,18 +1086,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
     /**
      * Scan the LRA folder from slave to find the report containting Transaction Summary
-     * as title (or variants based on language packs) 
+     * as title (or title variants based on language packs) 
      */
     private FilePath getTransactionSummaryReport(FilePath htmlReportPath) throws IOException, InterruptedException {
+        String[] transactionSummaryNames = {"transaction summary", "dummy", "dummy", "dummy",
+                                            "dummy", "dummy", "dummy", "dummy"};
+
         FileFilter reportFileFilter = new WildcardFileFilter("Report*.html");
         List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
-         for (FilePath fileToCopy : reportFiles) {
-            Scanner s = new Scanner(fileToCopy.read()).useDelimiter("\\A");
+        for (FilePath fileToCopy : reportFiles) {
+            Scanner scanner = new Scanner(fileToCopy.read()).useDelimiter("\\A");
 
-            while (s.hasNextLine()) {
-                String myStr = s.nextLine();
-                if (myStr.toLowerCase().contains("transaction summary")) {
-                    return fileToCopy;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                for (String transactionSummaryName: transactionSummaryNames) {
+                    if (line.contains(transactionSummaryName)){
+                        return fileToCopy;
+                    }
                 }
             }
         }
