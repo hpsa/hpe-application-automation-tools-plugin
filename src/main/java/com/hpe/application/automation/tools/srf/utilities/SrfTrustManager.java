@@ -39,6 +39,10 @@ import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+// To prevent man-in-the-middle attacks, hostname checks can be done to verify that the hostname in an end-entity certificate matches the targeted hostname.
+// TLS does not require such checks, but some protocols over TLS (such as HTTPS) do.
+// In earlier versions of the JDK, the certificate chain checks were done at the SSL/TLS layer, and the hostname verification checks were done at the layer over TLS.
+// This class allows for the checking to be done during a single call to this class.
 public class SrfTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
 
     @Override

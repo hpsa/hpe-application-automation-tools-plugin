@@ -68,6 +68,9 @@ public class SrfStepsHtmlUtil {
             }};
       }
 
+      /**
+       * Srf's Selenium test/suite steps business to web map
+       */
       interface SrfSeleniumConsts {
             HashMap<String, String> steps = new HashMap<String, String>() {{
                   put("suite-begin", "Suite");
@@ -154,8 +157,7 @@ public class SrfStepsHtmlUtil {
             JSONObject stepRole = step.getJSONObject("role");
             String stepRoleType = stepRole.getString("type");
 
-            assert excludedRoleSteps != null;
-            if (excludedRoleSteps.contains(stepRoleType)){
+            if (excludedRoleSteps != null && excludedRoleSteps.contains(stepRoleType)){
                   return;
             }
 
