@@ -101,6 +101,7 @@
         <developer>
 			<id>grount</id>
 			<name>Daniel Gront</name>
+			<email>daniel.gront@microfocus.com</email>
 			<roles>
 				<role>Global Owner</role>
 			</roles>
@@ -115,7 +116,7 @@
 		<developer>
 			<id>mseldin</id>
 			<name>Michael Seldin</name>
-			<email>michael.seldin@hpe.com</email>
+			<email>michael.seldin@microfocus.com</email>
 			<roles>
 				<role>ALM Octane</role>
 			</roles>
@@ -123,7 +124,7 @@
 		<developer>
 			<id>Rlu</id>
 			<name>Roy Lu</name>
-			<email>li.lu@hpe.com</email>
+			<email>li.lu@microfocus.com</email>
 			<roles>
 				<role>ALM Lab managment</role>
 			</roles>
@@ -131,7 +132,7 @@
 		<developer>
 			<id>pavelchuchma</id>
 			<name>Pavel Chuchma</name>
-			<email>pavel.chuchma@hpe.com</email>
+			<email>pavel.chuchma@microfocus.com</email>
 			<roles>
 				<role>Service Virtualization</role>
 			</roles>
@@ -139,7 +140,7 @@
 		<developer>
 			<id>imrman</id>
 			<name>Avishai Moshka</name>
-			<email>avishai.moshka@hp.com</email>
+			<email>avishai.moshka@microfocus.com</email>
 			<roles>
 				<role>LoadRunner</role>
 			</roles>
@@ -147,7 +148,7 @@
 		<developer>
 			<id>amitb</id>
 			<name>Amit Bezalel</name>
-			<email>amit.bezalel@hpe.com</email>
+			<email>amit.bezalel@microfocus.com</email>
 			<roles>
 				<role>UFT</role>
 			</roles>
@@ -155,7 +156,7 @@
 		<developer>
 			<id>bamh</id>
 			<name>Hanan Bem</name>
-			<email>hanan.bem@hpe.com</email>
+			<email>hanan.bem@microfocus.com</email>
 			<roles>
 				<role>Performance Center</role>
 			</roles>
@@ -163,7 +164,7 @@
 		<developer>
 			<id>michaelhpe</id>
 			<name>Weimin Jing</name>
-			<email>weimin.jing@hpe.com</email>
+			<email>weimin.jing@microfocus.com</email>
 			<roles>
 				<role>Mobile Center</role>
 			</roles>
@@ -171,7 +172,7 @@
 		<developer>
 			<id>JackyZhuHPE</id>
 			<name>Chunjiang Zhu (Jacky)</name>
-			<email>chun-jiang.zhu@hpe.com</email>
+			<email>chun-jiang.zhu@microfocus.com</email>
 			<roles>
 				<role>ALM/Upload test result to ALM (External Test)</role>
 			</roles>
