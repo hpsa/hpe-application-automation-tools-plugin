@@ -322,6 +322,7 @@ namespace HpToolsLauncher
                             displayController = true;
                         }
                     }
+                    string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : "");
 
                     Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix("Test");
                     List<TestData> tests = new List<TestData>();
@@ -400,7 +401,12 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
                         return null;
                     }
-
+                    
+                    //If a file path was provided and it doesn't exist stop the analysis launcher
+                    if (!analysisTemplate.Equals("") && !Helper.FileExists(analysisTemplate)) {
+                        return null;
+                    }
+                    
                     //--MC connection info
                     McConnectionInfo mcConnectionInfo = new McConnectionInfo();
                     if (_ciParams.ContainsKey("MobileHostAddress"))
@@ -556,11 +562,11 @@ namespace HpToolsLauncher
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments,displayController);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
                     }
 
                     break;
