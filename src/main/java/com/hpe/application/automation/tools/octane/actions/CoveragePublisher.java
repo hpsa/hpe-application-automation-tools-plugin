@@ -143,7 +143,7 @@ public class CoveragePublisher extends Recorder {
 		}
 
 		public String getDisplayName() {
-			return "HPE ALM Octane code coverage publisher";
+			return "ALM Octane code coverage publisher";
 		}
 
 		public FormValidation doCheckJacocoPathPattern(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {
