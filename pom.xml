@@ -42,9 +42,9 @@
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
 	<version>5.4.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	<name>HPE Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following MicroFocus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
-	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
+	<name>Micro Focus Application Automation Tools</name>
+	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools</url>
 
 	<licenses>
 		<license>
@@ -221,7 +221,6 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5.3</version>
 			</plugin>
-			<!--  -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
