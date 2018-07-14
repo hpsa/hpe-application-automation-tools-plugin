@@ -33,7 +33,7 @@
   -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
-  <l:layout title="HPE ALM Octane UFT Tests Discovery Report">
+  <l:layout title="ALM Octane UFT Tests Discovery Report">
     <style type="text/css">
 
     .myTable {
@@ -80,7 +80,7 @@
 
     <st:include it="${it.build}" page="sidepanel.jelly" />
     <l:main-panel>
-       <p><h1><u>HPE ALM Octane UFT Tests Discovery Report</u></h1></p>
+       <p><h1><u>ALM Octane UFT Tests Discovery Report</u></h1></p>
        <br/>
        <br/>
         <p>
