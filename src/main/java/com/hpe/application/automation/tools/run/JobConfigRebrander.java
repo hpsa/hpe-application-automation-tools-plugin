@@ -80,7 +80,8 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
         for (final File subdir : subdirs) {
             XmlFile xmlFile = new XmlFile(new File(subdir,"config.xml"));
             if (xmlFile.exists()) {
-                convertHpToHpe(listener, xmlFile);
+                convertOldNameToNewName(listener, xmlFile, ".hp.");
+                convertOldNameToNewName(listener, xmlFile, ".hpe.");
             }
 
             final File buildsFolder = new File(subdir, "builds");
@@ -88,7 +89,8 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
             for(final File buildDir : builds){
                 XmlFile buildXmlFile = new XmlFile(new File(buildDir,"build.xml"));
                 if (buildXmlFile.exists()) {
-                    convertHpToHpe(listener, buildXmlFile);
+                    convertOldNameToNewName(listener, buildXmlFile, ".hp.");
+                    convertOldNameToNewName(listener, buildXmlFile, ".hpe.");
                 }
             }
 
@@ -96,14 +98,14 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
 
     }
 
-    private void convertHpToHpe(@Nonnull TaskListener listener, XmlFile confXmlFile) {
+    private void convertOldNameToNewName(@Nonnull TaskListener listener, XmlFile confXmlFile, String oldName) {
         try {
             String configuration = FileUtils.readFileToString(confXmlFile.getFile());
-            String newConfiguration = StringUtils.replace(configuration, ".hp.", ".hpe.");
+            String newConfiguration = StringUtils.replace(configuration, oldName, ".microfocus.");
             FileUtils.writeStringToFile(confXmlFile.getFile(), newConfiguration);
         } catch (IOException e) {
             listener.error(
-                    "failed to convert configuration 5.1 to new 5.2 format (hp to HPE): " + e.getMessage());
+                    String.format("failed to convert configuration format (%s to microfocus): %s", oldName, e.getMessage()));
         }
     }
 
@@ -117,7 +119,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
 
         @Override
         public String getDisplayName() {
-            return "Fix old HPE Jenkins builds";
+            return "Fix old Micro Focus Jenkins builds";
         }
 
         @Override
