@@ -477,7 +477,7 @@ namespace LRAnalysisLauncher
 
         private static void ShowHelp()
         {
-            log("HPE LoadRunner Analysis Command Line Executer");
+            log("Micro Focus LoadRunner Analysis Command Line Executer");
             log();
             Console.Write("Usage: LRAnalysisLauncher.exe");
             Console.ForegroundColor = ConsoleColor.Cyan;
