@@ -44,8 +44,8 @@ public class UFTExtension extends ResultFieldsDetectionExtension {
 
     public static final String UFT = "UFT";
 
-    public static final String RUN_FROM_FILE_BUILDER = "com.hpe.application.automation.tools.run.RunFromFileBuilder";
-    public static final String RUN_FROM_ALM_BUILDER = "com.hpe.application.automation.tools.run.RunFromAlmBuilder";
+    public static final String RUN_FROM_FILE_BUILDER = "com.microfocus.application.automation.tools.run.RunFromFileBuilder";
+    public static final String RUN_FROM_ALM_BUILDER = "com.microfocus.application.automation.tools.run.RunFromAlmBuilder";
 
     @Override
     public ResultFields detect(final Run build) {
