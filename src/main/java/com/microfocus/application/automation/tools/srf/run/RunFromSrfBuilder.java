@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.srf.run;
 import com.microfocus.application.automation.tools.srf.model.*;
-import com.microfocus.application.automation.tools.settings.SrfServerSettingsBuilder;
+import com.microfocus.application.automation.tools.srf.settings.SrfServerSettingsBuilder;
 import com.microfocus.application.automation.tools.srf.results.SrfResultFileWriter;
 import com.microfocus.application.automation.tools.srf.utilities.SrfClient;
 import com.microfocus.application.automation.tools.srf.utilities.SrfTrustManager;
@@ -223,7 +223,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             };
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             String path = build.getProject().getParent().getRootDir().toString();
-            path = path.concat("/com.hpe.application.automation.tools.srf.settings.SrfServerSettingsBuilder.xml");
+            path = path.concat("/com.microfocus.application.automation.tools.srf.settings.SrfServerSettingsBuilder.xml");
             File file = new File(path);
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();

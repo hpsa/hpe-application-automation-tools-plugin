@@ -217,7 +217,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
         String ftaasServerAddress = "";
         try {
             String path = build.getProject().getParent().getRootDir().toString();
-            path = path.concat("/com.hpe.application.automation.tools.srf.settings.SrfServerSettingsBuilder.xml");
+            path = path.concat("/com.microfocus.application.automation.tools.srf.settings.SrfServerSettingsBuilder.xml");
             File file = new File(path);
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();

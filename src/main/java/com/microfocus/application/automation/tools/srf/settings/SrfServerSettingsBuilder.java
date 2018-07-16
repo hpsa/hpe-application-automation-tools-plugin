@@ -31,7 +31,7 @@
  *
  */
 
-package com.hpe.application.automation.tools.srf.settings;
+package com.microfocus.application.automation.tools.srf.settings;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -39,8 +39,8 @@ import com.cloudbees.plugins.credentials.common.*;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
-import com.hpe.application.automation.tools.srf.utilities.SrfClient;
-import com.hpe.application.automation.tools.srf.utilities.SrfTrustManager;
+import com.microfocus.application.automation.tools.srf.utilities.SrfClient;
+import com.microfocus.application.automation.tools.srf.utilities.SrfTrustManager;
 import hudson.*;
 import hudson.model.*;
 import hudson.model.queue.Tasks;
