@@ -42,9 +42,9 @@
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
 	<version>5.4.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	<name>HPE Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following MicroFocus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
-	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
+	<name>Micro Focus Application Automation Tools</name>
+	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools</url>
 
 	<licenses>
 		<license>
@@ -99,23 +99,17 @@
 
 	<developers>
         <developer>
-			<id>grount</id>
+			<id>gront</id>
 			<name>Daniel Gront</name>
+			<email>daniel.gront@microfocus.com</email>
 			<roles>
 				<role>Global Owner</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>YafimK</id>
-			<name>Fima (Yafim) Kazak</name>
-			<roles>
-				<role>Global owner and LoadRunner Dev (retired)</role>
-			</roles>
-		</developer>
-		<developer>
 			<id>mseldin</id>
 			<name>Michael Seldin</name>
-			<email>michael.seldin@hpe.com</email>
+			<email>michael.seldin@microfocus.com</email>
 			<roles>
 				<role>ALM Octane</role>
 			</roles>
@@ -123,57 +117,49 @@
 		<developer>
 			<id>Rlu</id>
 			<name>Roy Lu</name>
-			<email>li.lu@hpe.com</email>
+			<email>li.lu@microfocus.com</email>
 			<roles>
-				<role>ALM Lab managment</role>
+				<role>ALM Lab management</role>
 			</roles>
 		</developer>
 		<developer>
 			<id>pavelchuchma</id>
 			<name>Pavel Chuchma</name>
-			<email>pavel.chuchma@hpe.com</email>
+			<email>pavel.chuchma@microfocus.com</email>
 			<roles>
 				<role>Service Virtualization</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>imrman</id>
-			<name>Avishai Moshka</name>
-			<email>avishai.moshka@hp.com</email>
+			<id>rolandomihaivlad</id>
+			<name>Vlad, Rolando-Mihai</name>
+			<email>rolando-mihai.vlad@microfocus.com</email>
 			<roles>
 				<role>LoadRunner</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>amitb</id>
-			<name>Amit Bezalel</name>
-			<email>amit.bezalel@hpe.com</email>
+			<id>tamasflorin</id>
+			<name>Tamas, Ionut Florin</name>
+			<email>ionut-florin.tamas@hpe.com</email>
 			<roles>
 				<role>UFT</role>
 			</roles>
 		</developer>
 		<developer>
 			<id>bamh</id>
-			<name>Hanan Bem</name>
-			<email>hanan.bem@hpe.com</email>
+			<name>Daniel Danan</name>
+			<email>daniel.danan@microfocus.com</email>
 			<roles>
 				<role>Performance Center</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>michaelhpe</id>
-			<name>Weimin Jing</name>
-			<email>weimin.jing@hpe.com</email>
+			<id>janezhang</id>
+			<name>Zhang, Xiao-Jing</name>
+			<email>xiao-jing.zhang2@microfocus.com</email>
 			<roles>
 				<role>Mobile Center</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>JackyZhuHPE</id>
-			<name>Chunjiang Zhu (Jacky)</name>
-			<email>chun-jiang.zhu@hpe.com</email>
-			<roles>
-				<role>ALM/Upload test result to ALM (External Test)</role>
 			</roles>
 		</developer>
 		<developer>
@@ -181,6 +167,13 @@
 			<name>Yuri Guller</name>
 			<email>gullerya@gmail.com</email>
 			<organization>MicroFocus - ALM Octane</organization>
+		</developer>
+		<developer>
+			<id>YafimK</id>
+			<name>Fima (Yafim) Kazak</name>
+			<roles>
+				<role>Global owner and LoadRunner Dev (retired)</role>
+			</roles>
 		</developer>
 	</developers>
 
@@ -220,7 +213,6 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5.3</version>
 			</plugin>
-			<!--  -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
