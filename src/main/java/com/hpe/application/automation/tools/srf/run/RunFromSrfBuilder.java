@@ -32,8 +32,12 @@
  */
 
 package com.hpe.application.automation.tools.srf.run;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hpe.application.automation.tools.srf.model.*;
-import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
+import com.hpe.application.automation.tools.srf.settings.SrfServerSettingsBuilder;
 import com.hpe.application.automation.tools.srf.results.SrfResultFileWriter;
 import com.hpe.application.automation.tools.srf.utilities.SrfClient;
 import com.hpe.application.automation.tools.srf.utilities.SrfTrustManager;
@@ -45,6 +49,7 @@ import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
@@ -71,8 +76,6 @@ import java.io.*;
 import java.net.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -231,7 +234,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             };
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             String path = build.getProject().getParent().getRootDir().toString();
-            path = path.concat("/com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder.xml");
+            path = path.concat("/com.hpe.application.automation.tools.srf.settings.SrfServerSettingsBuilder.xml");
             File file = new File(path);
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -239,9 +242,15 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             // This also shows how you can consult the global configuration of the builder
             JSONObject connectionData = new JSONObject();
 
-            String app = document.getElementsByTagName("srfAppName").item(0).getTextContent();
+            String credentialsId = document.getElementsByTagName("credentialsId").item(0).getTextContent();
+            UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
+                    StandardUsernamePasswordCredentials.class,
+                    build,
+                    URIRequirementBuilder.create().build());
+
+            String app = credentials.getUsername();
             String tenant = app.substring(1, app.indexOf('_'));
-            String secret = document.getElementsByTagName("srfSecretName").item(0).getTextContent();
+            String secret = credentials.getPassword().getPlainText();
             String server = document.getElementsByTagName("srfServerName").item(0).getTextContent();
             boolean https = true;
             if (!server.startsWith("https://")) {
@@ -262,8 +271,8 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             String srfProxy = "";
             String srfTunnel = "";
             try {
-                srfProxy = document.getElementsByTagName("srfProxyName").item(0).getTextContent().trim();
-                srfTunnel = document.getElementsByTagName("srfTunnelPath").item(0).getTextContent();
+                srfProxy = document.getElementsByTagName("srfProxyName").item(0) != null ? document.getElementsByTagName("srfProxyName").item(0).getTextContent().trim() : null;
+                srfTunnel = document.getElementsByTagName("srfTunnelPath").item(0) != null ? document.getElementsByTagName("srfTunnelPath").item(0).getTextContent() : null;
             }
             catch (Exception e){
                throw e;
@@ -411,10 +420,11 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         JSONObject data = new JSONObject();
         JSONObject testParams = new JSONObject();
 
-        if (srfTestId != null && srfTestId.length() > 0) {
-            data.put("testYac", applyJobParams(srfTestId));
+        if (srfTestId != null && !srfTestId.isEmpty()) {
+            String[] testIds = normalizeParam(applyJobParams(srfTestId));
+            data.put("testYac", testIds);
         } else if (srfTagNames != null && !srfTagNames.isEmpty()) {
-            String[] tagNames = normalizeTags();
+            String[] tagNames = normalizeParam(srfTagNames);
             data.put("tags", tagNames);
         } else
             throw new SrfException("Both test id and test tags are empty");
@@ -458,14 +468,14 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
         return data;
     }
 
-    private String[] normalizeTags() {
-        String[] tagNames = applyJobParams(srfTagNames).split(",");
-        for (int i = 0; i < tagNames.length; i++) {
-            // Normalize tag
-            String tag = tagNames[i];
-            tagNames[i] = tag.trim();
+    private String[] normalizeParam(String paramToNormalize) {
+        String[] params = paramToNormalize.split(",");
+        for (int i = 0; i < params.length; i++) {
+            // Normalize param
+            String param = params[i];
+            params[i] = param.trim();
         }
-        return tagNames;
+        return params;
     }
 
     private JSONArray executeTestsSet() throws IOException, SrfException, AuthorizationException {
@@ -672,9 +682,9 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             return "Execute SRF tests";
         }
 
-        public SrfServerSettingsModel[] getSrfServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    SrfServerSettingsBuilder.SrfDescriptorImpl.class).getInstallations();
+        public SrfServerSettingsBuilder.SrfDescriptorImpl getSrfServerSettingsBuilderDescriptor() throws SrfException {
+            return Jenkins.getInstance().getDescriptorByType(
+                        SrfServerSettingsBuilder.SrfDescriptorImpl.class);
         }
 
         public FormValidation doCheckSrfTimeout(@QueryParameter String value) {
