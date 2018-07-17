@@ -1,4 +1,4 @@
-package com.hpe.application.automation.tools.octane.model.processors.scm;
+package com.microfocus.application.automation.tools.octane.model.processors.scm;
 
 import java.io.Serializable;
 
