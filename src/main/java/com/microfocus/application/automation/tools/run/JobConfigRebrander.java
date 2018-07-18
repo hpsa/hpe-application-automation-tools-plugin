@@ -27,6 +27,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -49,7 +50,7 @@ import java.nio.file.Paths;
 public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
     private static final String HPE = ".hpe.";
     private static final String HP = ".hp.";
-
+    private Run<?, ?> build;
     @DataBoundConstructor
     public JobConfigRebrander() {
         // A class which extends Builder should supply an empty constructor.
@@ -121,6 +122,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
             }
         } catch (SecurityException | NullPointerException e) {
             listener.error("Failed to convert Global Settings configurations to microfocus: %s", e.getMessage());
+            build.setResult(Result.FAILURE);
         }
     }
 
@@ -147,6 +149,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
             } catch (IOException | SecurityException e) {
                 listener.error("Failed to delete %s when doing Global Settings configurations convert: %s",
                         newFileName, e.getMessage());
+                build.setResult(Result.UNSTABLE);
             }
         }
     }
@@ -165,6 +168,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
             FileUtils.writeStringToFile(confXmlFile.getFile(), newConfiguration);
         } catch (IOException e) {
             listener.error("Failed to convert job configuration format from %s to microfocus: %s", oldName, e.getMessage());
+            build.setResult(Result.FAILURE);
         }
     }
 
