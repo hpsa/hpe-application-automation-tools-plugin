@@ -35,7 +35,6 @@ import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -48,9 +47,11 @@ import java.nio.file.Paths;
  * Created in order to fix previous builds that we're build with HP/HPE convention plugin and move them to Micro Focus
  */
 public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
-    private static final String HPE = ".hpe.";
-    private static final String HP = ".hp.";
+    private static final String MICROFOCUS = ".microfocus.";
+    private static final String HPE_HP_REGEX = "\\.hp\\.|\\.hpe\\.";
+
     private Run<?, ?> build;
+
     @DataBoundConstructor
     public JobConfigRebrander() {
         // A class which extends Builder should supply an empty constructor.
@@ -68,6 +69,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException{
+        build = run;
         File root = Jenkins.getInstance().getRootDir();
         convertXmlFilesAtRootDir(listener, root);
         File projectsDir = new File(root,"jobs");
@@ -86,7 +88,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
 
     /**
      * Creates XML file of the file we want to convert.
-     * And calls {@link JobConfigRebrander#convertOldNameToNewName(TaskListener, XmlFile, String)}
+     * And calls {@link JobConfigRebrander#convertOldNameToNewName(TaskListener, XmlFile)}
      * to convert from all the old package names.
      * @param listener      A place to send log output
      * @param dir           The directory which we create the file
@@ -95,8 +97,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
     private void convertSpecifiedXmlFile(@Nonnull TaskListener listener, File dir, String xmlFileName) {
         XmlFile xmlFile = new XmlFile(new File(dir, xmlFileName));
         if (xmlFile.exists()) {
-            convertOldNameToNewName(listener, xmlFile, HP);
-            convertOldNameToNewName(listener, xmlFile, HPE);
+            convertOldNameToNewName(listener, xmlFile);
         }
     }
 
@@ -110,11 +111,11 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
         try {
             File[] files = root.listFiles(pathname -> {
                 String name = pathname.getName().toLowerCase();
-                return name.startsWith("com.hpe") && name.endsWith(".xml") && pathname.isFile();
+                return (name.startsWith("com.hpe") || name.startsWith("com.hp")) && name.endsWith(".xml") && pathname.isFile();
             });
 
             for (File file: files) {
-                String newFileName = file.toString().replace(HPE, ".microfocus.");
+                String newFileName = file.toString().replaceAll(HPE_HP_REGEX, MICROFOCUS);
                 File replacedFile  = new File(newFileName);
 
                 removeXmlFileIfExists(listener, newFileName, replacedFile);
@@ -129,8 +130,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
     private void convertXmlFileIfNotExists(@Nonnull TaskListener listener, File file, File replacedFile) {
         if (!replacedFile.exists() && file.renameTo(replacedFile)) {
             XmlFile xmlFile = new XmlFile(replacedFile);
-            convertOldNameToNewName(listener, xmlFile, HP);
-            convertOldNameToNewName(listener, xmlFile, HPE);
+            convertOldNameToNewName(listener, xmlFile);
         }
     }
 
@@ -158,16 +158,15 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
      * Replace all occurrences of {@code oldName} of a given XML file.
      * @param listener    A place to send log output
      * @param confXmlFile The XML file which we convert
-     * @param oldName     The name which we convert from
      * @see XmlFile
      */
-    private void convertOldNameToNewName(@Nonnull TaskListener listener, XmlFile confXmlFile, String oldName) {
+    private void convertOldNameToNewName(@Nonnull TaskListener listener, XmlFile confXmlFile) {
         try {
             String configuration = FileUtils.readFileToString(confXmlFile.getFile());
-            String newConfiguration = StringUtils.replace(configuration, oldName, ".microfocus.");
+            String newConfiguration = configuration.replaceAll(HPE_HP_REGEX, MICROFOCUS);
             FileUtils.writeStringToFile(confXmlFile.getFile(), newConfiguration);
         } catch (IOException e) {
-            listener.error("Failed to convert job configuration format from %s to microfocus: %s", oldName, e.getMessage());
+            listener.error("Failed to convert job configuration format to microfocus: %s", e.getMessage());
             build.setResult(Result.FAILURE);
         }
     }
