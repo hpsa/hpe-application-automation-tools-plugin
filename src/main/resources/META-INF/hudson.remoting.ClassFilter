@@ -3,3 +3,5 @@ com.microfocus.adm.performancecenter.plugins.common.pcEntities.TimeslotDuration
 # SimpleDateFormat and DecimalFormat are native and safe.
 java.text.SimpleDateFormat
 java.text.DecimalFormat
+java.text.DateFormatSymbols
+java.text.DecimalFormatSymbols
