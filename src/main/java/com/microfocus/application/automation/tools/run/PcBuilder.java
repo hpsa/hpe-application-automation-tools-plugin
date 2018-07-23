@@ -264,10 +264,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             runId = pcClient.startRun();
             try {
                 testName = pcClient.getTestName();
-                logger.println(String.format("%s - test name is %s", _simpleDateFormat.format(new Date()), testName));
+                logger.println(String.format("%s - test name is %s \n", _simpleDateFormat.format(new Date()), testName));
             }
             catch (Exception ex) {
-                logger.println(String.format("%s - Error while trying to get testname. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                logger.println(String.format("%s - Error while trying to get testname. Error: %s \n", _simpleDateFormat.format(new Date()), ex.getMessage()));
                 testName = String.format("runId_%s", runId);
             }
 
@@ -276,10 +276,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
                 // This allows a user to access the runId from within Jenkins using a build variable.
                 build.addAction(new AdditionalParametersAction(parameters));
-                logger.print(String.format("%s - Set %s Environment Variable to %s",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
+                logger.print(String.format("%s - Set %s Environment Variable to %s \n",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
             }
             catch (Exception ex) {
-                logger.println(String.format("%s - Error while trying to set environment variable. Error:  %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                logger.println(String.format("%s - Error while trying to set environment variable. Error:  %s \n", _simpleDateFormat.format(new Date()), ex.getMessage()));
             }
 
             response = pcClient.waitForRunCompletion(runId);
