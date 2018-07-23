@@ -84,7 +84,7 @@ public class FileSystemTestSetModel extends AbstractDescribableImpl<FileSystemTe
 
         int testNumber = 1;
 
-        for(FileSystemTestModel testModel : this.fileSystemTestModel) {
+        for(FileSystemTestModel testModel : this.fileSystemTestSet) {
             List<String> tests = testModel.parseTests(envVars);
 
             //  these are the environments for each test
