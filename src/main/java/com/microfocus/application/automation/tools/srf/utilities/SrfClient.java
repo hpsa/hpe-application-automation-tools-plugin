@@ -56,11 +56,13 @@ public class SrfClient {
         this.sslSocketFactory = sslSocketFactory;
         this.proxyHost = proxyUrl != null ? new HttpHost(proxyUrl.getHost(), proxyUrl.getPort()) : null;
 
-        Properties systemProperties = System.getProperties();
-        systemProperties.setProperty("https.proxyHost", proxyHost.getHostName());
-        systemProperties.setProperty("http.proxyHost", proxyHost.getHostName());
-        systemProperties.setProperty("https.proxyPort", String.valueOf(proxyHost.getPort()));
-        systemProperties.setProperty("http.proxyPort", String.valueOf(proxyHost.getPort()));
+        if (proxyHost != null) {
+            Properties systemProperties = System.getProperties();
+            systemProperties.setProperty("https.proxyHost", proxyHost.getHostName());
+            systemProperties.setProperty("http.proxyHost", proxyHost.getHostName());
+            systemProperties.setProperty("https.proxyPort", String.valueOf(proxyHost.getPort()));
+            systemProperties.setProperty("http.proxyPort", String.valueOf(proxyHost.getPort()));
+        }
     }
 
     public SrfClient(String srfServerAddress, String tenantId, SSLSocketFactory sslSocketFactory, URL proxyUrl) {
@@ -174,6 +176,10 @@ public class SrfClient {
             ((HttpURLConnection) connection).setRequestMethod(method.text);
         }
 
+        // set the connection timeout to 5 and the read timeout to 20 seconds
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(20000);
+
         int statusCode = ((HttpURLConnection) connection).getResponseCode();
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader((connection.getInputStream())));
@@ -209,6 +215,10 @@ public class SrfClient {
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setRequestProperty("Content-Type", "application/json");
+
+            // set the connection timeout to 5 and the read timeout to 20 seconds
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(20000);
 
             out = connection.getOutputStream();
             writer = new OutputStreamWriter(out);

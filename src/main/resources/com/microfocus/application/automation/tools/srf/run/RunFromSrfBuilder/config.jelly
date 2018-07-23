@@ -8,44 +8,33 @@
   ~ __________________________________________________________________
   ~ MIT License
   ~
-  ~ Copyright (c) 2018 Micro Focus Company, L.P.
+  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
   ~
-  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Software"), to deal
-  ~ in the Software without restriction, including without limitation the rights
-  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the Software is
-  ~ furnished to do so, subject to the following conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be included in all
-  ~ copies or substantial portions of the Software.
-  ~
-  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  ~ THE SOFTWARE.
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
   ~ ___________________________________________________________________
   ~
   -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-	<!--j:if test="${empty(descriptor.almServers)}">
-		<tr>
-      <td/>
-      <td colspan="2">
-        <div class="help" style="display:block;">
-          ${%SrfServersAreNotDefined}
-        </div>
-      </td>
-      <td/>
-    </tr>  
-	</j:if-->
-
-    <f:entry title="SRF test ID" field="srfTestId" description="The SRF test ID for a single test you want to run." >
+    <j:set var="srfServerSettingsBuilderDescriptor" value="${descriptor.getSrfServerSettingsBuilderDescriptor()}"/>
+    <j:if test="${empty(srfServerSettingsBuilderDescriptor.getSrfServerName())}">
+            <span style="color:red">
+                WARNING: SRF server URL is not configured. Define this URL in <b>Manage Jenkins > Configure System > SRF Common Settings > SRF server URL.</b>
+            </span><br/>
+    </j:if>
+    <j:if test="${empty(srfServerSettingsBuilderDescriptor.getCredentialsId())}">
+            <span style="color:red">
+                WARNING: SRF credentials are not configured. Define these in <b>Manage Jenkins > Configure System > SRF Common Settings > SRF credentials.</b>
+            </span><br/>
+    </j:if>
+    
+    <f:entry title="SRF test ID" field="srfTestId" description="One or more SRF test IDs, separated by commas. Jenkins runs all tests found with all ids listed." >
              <f:textbox name="runFromSrf.srfTestId" value="${instance.runFromSrf.srfTestId}"/>
         </f:entry>
     <f:entry title="SRF test tags" field="srfTagNames" description="One or more SRF test tags, separated by commas. Jenkins runs all tests found with all tags listed." >
@@ -69,4 +58,4 @@
     </f:entry>
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/autEnvironment.js"/>
-`</j:jelly>
+</j:jelly>
