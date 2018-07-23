@@ -262,13 +262,25 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
-            testName = pcClient.getTestName();
+            try {
+                testName = pcClient.getTestName();
+                logger.println(String.format("%s - test name is %s", _simpleDateFormat.format(new Date()), testName));
+            }
+            catch (Exception ex) {
+                logger.println(String.format("%s - Error while trying to get testname. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                testName = String.format("runId_%s", runId);
+            }
 
-            List<ParameterValue> parameters = new ArrayList<>();
-            parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
-            // This allows a user to access the runId from within Jenkins using a build variable.
-            build.addAction(new AdditionalParametersAction(parameters));
-            logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
+            try {
+                List<ParameterValue> parameters = new ArrayList<>();
+                parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
+                // This allows a user to access the runId from within Jenkins using a build variable.
+                build.addAction(new AdditionalParametersAction(parameters));
+                logger.print(String.format("%s - Set %s Environment Variable to %s",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
+            }
+            catch (Exception ex) {
+                logger.println(String.format("%s - Error while trying to set environment variable. Error:  %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+            }
 
             response = pcClient.waitForRunCompletion(runId);
 
@@ -559,7 +571,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
        //     logger.println(String.format("%s - %s Created.", _simpleDateFormat.format(new Date()), fileName);
             return true;
         } catch (IOException e) {
-            logger.println(String.format("%s - Error saving file: %s with Error: %s",_simpleDateFormat.format(new Date()), fileName + e.getMessage()));
+            if(getWorkspacePath().getPath()!= null)
+                logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s",_simpleDateFormat.format(new Date()), getWorkspacePath().getPath(),  fileName, e.getMessage()));
+            else
+                logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s",_simpleDateFormat.format(new Date()), fileName, e.getMessage()));
             return false;
         }
 
