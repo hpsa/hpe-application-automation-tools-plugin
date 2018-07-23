@@ -377,12 +377,17 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		}
 	}
 
-	private static boolean isOctaneSupportTestRename(EntitiesService entitiesService) {
-		String octane_version = getOctaneVersion(entitiesService);
-		boolean supportTestRename = (octane_version != null && versionCompare(OCTANE_VERSION_SUPPORTING_TEST_RENAME, octane_version) <= 0);
-		logger.warn("Support test rename = " + supportTestRename);
-		return supportTestRename;
-	}
+    private static boolean isOctaneSupportTestRename(EntitiesService entitiesService) {
+        try {
+            String octane_version = getOctaneVersion(entitiesService);
+            boolean supportTestRename = (octane_version != null && versionCompare(OCTANE_VERSION_SUPPORTING_TEST_RENAME, octane_version) <= 0);
+            logger.warn("Support test rename = " + supportTestRename);
+            return supportTestRename;
+        } catch (Exception e) {//can occur if user doesnot have permission to get octane version
+            logger.warn("Failed to check isOctaneSupportTestRename : " + e.getMessage());
+            return false;
+        }
+    }
 
 	private static String getOctaneVersion(EntitiesService entitiesService) {
 
