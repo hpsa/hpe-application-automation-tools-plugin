@@ -1470,6 +1470,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return _resultsPublisherModel;
     }
 
+    public String getArchiveTestResultsMode() {
+        return _resultsPublisherModel.getArchiveTestResultsMode();
+    }
+
     /**
      * The type Descriptor.
      */

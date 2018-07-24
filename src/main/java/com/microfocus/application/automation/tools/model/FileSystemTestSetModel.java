@@ -44,8 +44,8 @@ public class FileSystemTestSetModel extends AbstractDescribableImpl<FileSystemTe
      * @param fileSystemTestModels the list of tests and environments
      */
     @DataBoundConstructor
-    public FileSystemTestSetModel(List<FileSystemTestModel> fileSystemTestModels) {
-        this.fileSystemTestSet = fileSystemTestModels;
+    public FileSystemTestSetModel(List<FileSystemTestModel> fileSystemTestSet) {
+        this.fileSystemTestSet = fileSystemTestSet;
     }
 
     /**
@@ -54,15 +54,6 @@ public class FileSystemTestSetModel extends AbstractDescribableImpl<FileSystemTe
      */
     public List<FileSystemTestModel> getFileSystemTestSet() {
         return fileSystemTestSet;
-    }
-
-    /**
-     * Sets the list of tests and environments
-     * @param fileSystemTestSet the list of tests and environments
-     */
-    @DataBoundSetter
-    public void setFileSystemTestSet(List<FileSystemTestModel> fileSystemTestSet) {
-        this.fileSystemTestSet = fileSystemTestSet;
     }
 
     /**
