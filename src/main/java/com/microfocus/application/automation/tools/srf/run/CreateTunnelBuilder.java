@@ -149,7 +149,7 @@ public class CreateTunnelBuilder extends Builder  {
 
         @Override
         public String getDisplayName() {
-            return "Create Tunnel";
+            return "Create SRF Tunnel";
         }
     }
     static class TestRunData implements Serializable {
