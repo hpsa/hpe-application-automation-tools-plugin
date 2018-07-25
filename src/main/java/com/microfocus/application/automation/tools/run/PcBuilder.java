@@ -266,24 +266,17 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 testName = pcClient.getTestName();
                 logger.println(String.format("%s - test name is %s \n", _simpleDateFormat.format(new Date()), testName));
             }
-            catch (Exception ex) {
-                logger.println(String.format("%s - Error while trying to get testname. Error: %s \n", _simpleDateFormat.format(new Date()), ex.getMessage()));
+            catch (PcException ex) {
                 testName = String.format("runId_%s", runId);
+                logger.println(String.format("%s - Error while trying to get test's name. Alternative test's name '%s' will be used. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
             }
 
-            try {
-                List<ParameterValue> parameters = new ArrayList<>();
-                parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
-                // This allows a user to access the runId from within Jenkins using a build variable.
-                build.addAction(new AdditionalParametersAction(parameters));
-                logger.print(String.format("%s - Set %s Environment Variable to %s \n",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
-            }
-            catch (Exception ex) {
-                logger.println(String.format("%s - Error while trying to set environment variable. Error:  %s \n", _simpleDateFormat.format(new Date()), ex.getMessage()));
-            }
-
+            List<ParameterValue> parameters = new ArrayList<>();
+            parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
+            // This allows a user to access the runId from within Jenkins using a build variable.
+            build.addAction(new AdditionalParametersAction(parameters));
+            logger.print(String.format("%s - Set %s Environment Variable to %s \n",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
             response = pcClient.waitForRunCompletion(runId);
-
 
             if (response != null && RunState.get(response.getRunState()) == FINISHED && pcModel.getPostRunAction() != PostRunAction.DO_NOTHING) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
