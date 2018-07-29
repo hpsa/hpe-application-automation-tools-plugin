@@ -233,6 +233,7 @@ public class PcClient {
                         break;
                     }
                     Thread.sleep(2000);
+                    login();
                 }
                 response = restProxy.getRunData(runId);
                 RunState currentState = RunState.get(response.getRunState());

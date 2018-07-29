@@ -281,16 +281,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             if (response != null && RunState.get(response.getRunState()) == FINISHED && pcModel.getPostRunAction() != PostRunAction.DO_NOTHING) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
-                // Adding the trend report section if ID has been set
-                if(("USE_ID").equals(pcModel.getAddRunToTrendReport()) && pcModel.getTrendReportId(true) != null && RunState.get(response.getRunState()) != RUN_FAILURE){
-                    pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId(true));
-                    pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId(true));
-                    pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(true), getTrendReportsDirectory(build));
-                    trendReportReady = true;
-                }
-
-                // Adding the trend report if the Associated Trend report is selected.
-                if(("ASSOCIATED").equals(pcModel.getAddRunToTrendReport()) && RunState.get(response.getRunState()) != RUN_FAILURE){
+                // Adding the trend report section if ID has been set or if the Associated Trend report is selected.
+                if(((("USE_ID").equals(pcModel.getAddRunToTrendReport()) && pcModel.getTrendReportId(true) != null) || ("ASSOCIATED").equals(pcModel.getAddRunToTrendReport())) && RunState.get(response.getRunState()) != RUN_FAILURE){
+                    Thread.sleep(5000);
                     pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId(true));
                     pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId(true));
                     pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(true), getTrendReportsDirectory(build));
@@ -301,7 +294,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 PcRunEventLog eventLog = pcClient.getRunEventLog(runId);
                 eventLogString = buildEventLogString(eventLog);
             }
-
 
         } catch (PcException e) {
             errorMessage = e.getMessage();
