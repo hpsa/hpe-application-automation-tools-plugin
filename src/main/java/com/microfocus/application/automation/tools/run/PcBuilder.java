@@ -242,9 +242,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             pcClient.stopRun(runId);
             throw e;
         } catch (NullPointerException e) {
-            logger.println(String.format("%s - Error: Run could not start!", _simpleDateFormat.format(new Date())));
+            logger.println(String.format("%s - Error: %s", _simpleDateFormat.format(new Date()), e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), e));
+            logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), e.getMessage()));
         } finally {
             pcClient.logout();
         }
@@ -255,22 +255,52 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
-        try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
+        if((pcModel !=null) && (build != null) && (build instanceof AbstractBuild))
+            pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
         boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
-            try {
-                testName = pcClient.getTestName();
-                logger.println(String.format("%s - test name is %s \n", _simpleDateFormat.format(new Date()), testName));
-            }
-            catch (PcException ex) {
-                testName = String.format("runId_%s", runId);
-                logger.println(String.format("%s - Error while trying to get test's name. Alternative test's name '%s' will be used. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
-            }
+        }
+        catch (NumberFormatException ex) {
+            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            throw ex;
+        }
+        catch (ClientProtocolException ex) {
+            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            throw ex;
+        }
+        catch (PcException ex) {
+            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            throw ex;
+        }
+        catch (IOException ex) {
+            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            throw ex;
+        }
 
+        //getTestName failure should not fail test execution.
+        try {
+            testName = pcClient.getTestName();
+            if(testName == null) {
+                testName = String.format("TestId_%s", pcModel.getTestId());
+                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", _simpleDateFormat.format(new Date()), testName));
+            }
+            else
+                logger.println(String.format("%s - test name is %s \n", _simpleDateFormat.format(new Date()), testName));
+        }
+        catch (PcException ex) {
+            testName = String.format("TestId_%s", pcModel.getTestId());
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
+        }
+        catch (IOException ex) {
+            testName = String.format("TestId_%s", pcModel.getTestId());
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
+        }
+
+        try {
             List<ParameterValue> parameters = new ArrayList<>();
             parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
@@ -296,8 +326,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
 
         } catch (PcException e) {
-            errorMessage = e.getMessage();
-            logger.println(String.format("%s - Error: %s", _simpleDateFormat.format(new Date()), errorMessage));
+            logger.println(String.format("%s - Error: %s", _simpleDateFormat.format(new Date()), e.getMessage()));
         }
 
         Testsuites ret = new Testsuites();

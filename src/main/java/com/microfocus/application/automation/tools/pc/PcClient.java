@@ -189,8 +189,19 @@ public class PcClient {
     }
 
     public String getTestName()  throws IOException, PcException{
-        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
-        return pcTest.getTestName();
+
+        try {
+            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId(true)));
+            return pcTest.getTestName();
+        }
+        catch (IOException ex) {
+            logger.println(String.format("%s - getTestData failed for testId : %s", _simpleDateFormat.format(new Date()), model.getTestId(true)));
+            throw ex;
+        }
+        catch (PcException ex) {
+            logger.println(String.format("%s - getTestData failed for testId : %s", _simpleDateFormat.format(new Date()), model.getTestId(true)));
+            throw ex;
+        }
     }
 
     public PcRunResponse waitForRunCompletion(int runId) throws InterruptedException, ClientProtocolException, PcException, IOException {
