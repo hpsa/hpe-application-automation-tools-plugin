@@ -110,14 +110,108 @@ public class PcClient {
 
         logger.println(String.format("%s - \nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", _simpleDateFormat.format(new Date()), Integer.parseInt(model.getTestId(true)), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
 //        logger.println("Sending run request:\n" + model.runParamsToString());
-        PcRunResponse response = restProxy.startRun(testID,
-                testInstance,
-                model.getTimeslotDuration(),
-                model.getPostRunAction().getValue(),
-                model.isVudsMode());
-        logger.println(String.format("%s - \nRun started (TestID: %s, RunID: %s, TimeslotID: %s)\n",_simpleDateFormat.format(new Date()),
-                response.getTestID(), response.getID(), response.getTimeslotID()));
-        return response.getID();
+        PcRunResponse response = null;
+        try {
+            response = restProxy.startRun(testID,
+                    testInstance,
+                    model.getTimeslotDuration(),
+                    model.getPostRunAction().getValue(),
+                    model.isVudsMode());
+            logger.println(String.format("%s - \nRun started (TestID: %s, RunID: %s, TimeslotID: %s)\n", _simpleDateFormat.format(new Date()),
+                    response.getTestID(), response.getID(), response.getTimeslotID()));
+            return response.getID();
+        }
+        catch (NumberFormatException ex) {
+            logger.println(String.format("%s - StartRun failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+        }
+        catch (ClientProtocolException ex) {
+            logger.println(String.format("%s - StartRun failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+        }
+        catch (PcException ex) {
+            logger.println(String.format("%s - StartRun failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+        }
+        catch (IOException ex)
+        {
+            logger.println(String.format("%s - StartRun failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+        }
+        if (!("RETRY".equals(model.getRetry()))) {
+            return 0;
+        }
+        else {
+            int retryCount =0;
+            int retryDelay = 5;
+            int retryOccurrences = 3;
+            if(isInteger(model.getRetryDelay()))
+                retryDelay =  Integer.parseInt(model.getRetryDelay());
+            if(isInteger(model.getRetryOccurrences()))
+                retryOccurrences =  Integer.parseInt(model.getRetryOccurrences());
+
+            while (retryCount<=retryOccurrences)
+            {
+                retryCount++;
+                try {
+                    if(retryCount <= retryOccurrences) {
+                        logger.println(String.format("%s - Failed to start run. Attempting to start again in %s minute(s). %s attemp(s) remaining.", _simpleDateFormat.format(new Date()), retryDelay, retryOccurrences - retryCount + 1));
+                        Thread.sleep(retryDelay * 60 * 1000);
+                    }
+                }
+                catch (InterruptedException ex) {
+                    logger.println(String.format("%s - wait failed", _simpleDateFormat.format(new Date())));
+                }
+
+                try {
+                    response = restProxy.startRun(testID,
+                            testInstance,
+                            model.getTimeslotDuration(),
+                            model.getPostRunAction().getValue(),
+                            model.isVudsMode());
+                }
+                catch (NumberFormatException ex) {
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                }
+                catch (ClientProtocolException ex) {
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                }
+                catch (PcException ex) {
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                }
+                catch (IOException ex)
+                {
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                }
+                int ret = 0;
+                if (response !=null) {
+                    try {
+                        ret = response.getID();
+                    }
+                    catch (Exception ex) {
+                        logger.println(String.format("%s - getID failed. Error: %s", _simpleDateFormat.format(new Date()), ex.getMessage()));
+                    }
+                }
+                if (ret != 0) {
+                    logger.println(String.format("%s - Run started (TestID: %s, RunID: %s, TimeslotID: %s)\n", _simpleDateFormat.format(new Date()),
+                            response.getTestID(), response.getID(), response.getTimeslotID()));
+                    return ret;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private static boolean isInteger(String s) {
+        return isInteger(s,10);
+    }
+
+    public static boolean isInteger(String s, int radix) {
+        if(s.isEmpty()) return false;
+        for(int i = 0; i < s.length(); i++) {
+            if(i == 0 && s.charAt(i) == '-') {
+                if(s.length() == 1) return false;
+                else continue;
+            }
+            if(Character.digit(s.charAt(i),radix) < 0) return false;
+        }
+        return true;
     }
 
     private int getCorrectTestInstanceID(int testID) throws IOException, PcException {

@@ -59,12 +59,16 @@ public class PcModel {
     private final String proxyOutUser;
     private final String proxyOutPassword;
     private String buildParameters;
+    private String retry;
+    private String retryDelay;
+    private String retryOccurrences;
 
 
     @DataBoundConstructor
     public PcModel(String serverAndPort, String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL, String proxyOutUser, String proxyOutPassword) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol,
+                   String proxyOutURL, String proxyOutUser, String proxyOutPassword, String retry, String retryDelay, String retryOccurrences ) {
 
         this.serverAndPort = serverAndPort;
         this.pcServerName = pcServerName;
@@ -86,7 +90,24 @@ public class PcModel {
         this.proxyOutUser = proxyOutUser;
         this.proxyOutPassword = proxyOutPassword;
         this.buildParameters="";
+        this.retry = retry;
+        this.retryDelay = retryDelay;
+        this.retryOccurrences = retryOccurrences;
 
+    }
+
+    public String getRetry() {
+
+        return this.retry;
+    }
+
+    public String getRetryDelay () {
+        return this.retryDelay;
+    }
+
+    public String getRetryOccurrences() {
+
+        return this.retryOccurrences;
     }
 
     protected SecretContainer setPassword(String almPassword) {

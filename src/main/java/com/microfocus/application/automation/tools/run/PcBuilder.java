@@ -98,6 +98,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private PrintStream logger;
     private File WorkspacePath;
     private SimpleDateFormat _simpleDateFormat = new SimpleDateFormat ("E MM.dd.yyyy 'at' hh:mm:ss a zzz");
+    private final String retry;
+    private final String retryDelay;
+    private final String retryOccurrences;
 
 
 
@@ -123,12 +126,18 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             boolean HTTPSProtocol,
             String proxyOutURL,
             String proxyOutUser,
-            String proxyOutPassword) {
+            String proxyOutPassword,
+            String retry,
+            String retryDelay,
+            String retryOccurrences) {
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.timeslotDurationHours = timeslotDurationHours;
         this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
+        this.retry = retry;
+        this.retryDelay = retryDelay;
+        this.retryOccurrences = retryOccurrences;
 
         pcModel =
         new PcModel(
@@ -151,7 +160,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 HTTPSProtocol,
                 proxyOutURL,
                 proxyOutUser,
-                proxyOutPassword);
+                proxyOutPassword,
+                retry,
+                retryDelay,
+                retryOccurrences);
     }
 
     @Override
@@ -214,6 +226,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return pcReportFileName;
     }
 
+
     private String getVersion() {
 		String completeVersion = ConfigurationService.getPluginVersion();
 		if(completeVersion != null) {
@@ -263,6 +276,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
+            if (runId == 0)
+                return null;
         }
         catch (NumberFormatException ex) {
             logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
@@ -410,8 +425,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
 
         boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(true),("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
+        boolean IsRetryValid = validateRetryIsNumeric(getPcModel().getRetry(),getPcModel().getRetryDelay(),getPcModel().getRetryOccurrences());
 
         ret &= isTrendReportIdValid;
+        ret &= IsRetryValid;
         return ret;
         
     }
@@ -434,6 +451,40 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 catch(NumberFormatException e) {
 
                     res = FormValidation.error("Illegal Parameter: trend report ID is not a number");
+                }
+
+            }
+        }
+
+        logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), res.toString().replace(": <div/>","")));
+
+        return res.equals(FormValidation.ok());
+    }
+
+    private boolean validateRetryIsNumeric(String myRetry, String myRetryDelay, String myRetryOccurrences){
+
+        FormValidation res = FormValidation.ok();
+        if("RETRY".equals(myRetry)){
+            if(myRetryDelay.isEmpty() || myRetryOccurrences.isEmpty()){
+                res = FormValidation.error("Parameter Is Missing: Retry on failure parameter is missing");
+            }
+            else{
+
+                try{
+                    if (Integer.parseInt(myRetryDelay)<=0)
+                        res = FormValidation.error("Illegal Parameter: Retry Delay is not a positive number");
+                }
+                catch(NumberFormatException e) {
+
+                    res = FormValidation.error("Illegal Parameter: Retry Delay is not a number");
+                }
+                try{
+                    if (Integer.parseInt(myRetryOccurrences)<=0)
+                        res = FormValidation.error("Illegal Parameter: Retry Occurrences is not a positive number");
+                }
+                catch(NumberFormatException e) {
+
+                    res = FormValidation.error("Illegal Parameter: Retry Occurrences is not a number");
                 }
 
             }
@@ -800,6 +851,18 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().isVudsMode();
     }
 
+    public String getRetry () {
+        return getPcModel().getRetry();
+    }
+
+    public String getRetryOccurrences () {
+        return getPcModel().getRetryOccurrences();
+    }
+
+    public String getRetryDelay () {
+        return getPcModel().getRetryDelay();
+    }
+
     public String getDescription()
     {
         return getPcModel().getDescription();
@@ -876,6 +939,15 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return validateHigherThanInt(value, "Test ID", 0, true);
         }
 
+        public FormValidation doCheckRetryDelay(@QueryParameter String value) {
+
+            return validateHigherThanInt(value, "Delay between attempts (in minutes)", 0, true);
+        }
+
+        public FormValidation doCheckRetryOccurrences(@QueryParameter String value) {
+
+            return validateHigherThanInt(value, "Number of attempts", 0, true);
+        }
 
         // if autoTestInstanceID is selected we don't need to check the validation of the test instance
 //        public static FormValidation CheckOnlyAutoTestInstanceId(String autoTestInstanceID){
@@ -890,7 +962,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         public FormValidation doCheckTestInstanceId(@QueryParameter String value){
             return validateHigherThanInt(value, "Test Instance ID", 0, true);
         }
-
 
         
         public FormValidation doCheckTimeslotDuration(@QueryParameter TimeslotDuration value) {
