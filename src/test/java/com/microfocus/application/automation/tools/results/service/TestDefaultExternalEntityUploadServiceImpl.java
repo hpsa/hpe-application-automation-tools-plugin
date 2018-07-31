@@ -35,7 +35,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 	public static final JenkinsRule jenkins = new JenkinsRule();
 
 	@Test
-	private void testJunit(int i) throws Exception{
+	public void testJunit() throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -45,6 +45,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 				"",
 				""
 				);
+		int i = 107;
 		AlmRestTool u = new AlmRestTool(loginInfo, new SystemOutLogger());
 
 		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
@@ -64,7 +65,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 	}
 
 	@Test
-	private void testtestNG(int i) throws Exception{
+	public void testtestNG() throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -74,6 +75,8 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 				"",
 				""
 				);
+
+		int i = 108;
 		AlmRestTool u = new AlmRestTool(loginInfo, new SystemOutLogger());
 
 		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
@@ -93,7 +96,8 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 	}
 
 	@Test
-	private void testnunit(int i) throws Exception{
+	public void testnunit() throws Exception{
+		int i = 109;
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
