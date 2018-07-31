@@ -22,11 +22,20 @@
 
 package com.microfocus.application.automation.tools.results.service;
 
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 public class TestDefaultExternalEntityUploadServiceImpl {
 
-	
-	private static void testJunit(int i) throws Exception{
+	@ClassRule
+	public static final JenkinsRule jenkins = new JenkinsRule();
+
+	@Test
+	private void testJunit(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -37,8 +46,11 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 				""
 				);
 		AlmRestTool u = new AlmRestTool(loginInfo, new SystemOutLogger());
-		
-		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u,new SystemOutLogger());
+
+		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
+		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
+
+		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, build.getWorkspace(), new SystemOutLogger());
 		String reportFilePath = TestDefaultExternalEntityUploadServiceImpl.class.getResource("junitResult.xml").getPath();
 		String testingFramework = "JUnit";
 		String testingTool = "Jenkins";
@@ -48,11 +60,11 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		long start = System.currentTimeMillis();
 		service.UploadExternalTestSet(loginInfo,reportFilePath, testsetFolderPath, testFolderPath, testingFramework, testingTool, subversion, "local","http://localhost:8085/");
 		long end = System.currentTimeMillis();
-		System.out.println("total time:" + (end -start));		
-		
+		System.out.println("total time:" + (end -start));
 	}
-	
-	private static void testtestNG(int i) throws Exception{
+
+	@Test
+	private void testtestNG(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -63,8 +75,10 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 				""
 				);
 		AlmRestTool u = new AlmRestTool(loginInfo, new SystemOutLogger());
-		
-		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, new SystemOutLogger());
+
+		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
+		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
+		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, build.getWorkspace(), new SystemOutLogger());
 		
 		String reportFilePath = TestDefaultExternalEntityUploadServiceImpl.class.getResource("testng-results.xml").getPath();
 		String testingFramework = "TestNG";
@@ -77,8 +91,9 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		long end = System.currentTimeMillis();
 		System.out.println("total time:" + (end -start));		
 	}
-	
-	private static void testnunit(int i) throws Exception{
+
+	@Test
+	private void testnunit(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -89,8 +104,10 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 				""
 				);
 		AlmRestTool u = new AlmRestTool(loginInfo, new SystemOutLogger());
-		
-		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, new SystemOutLogger());
+
+		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
+		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
+		IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, build.getWorkspace(), new SystemOutLogger());
 		
 		String reportFilePath = TestDefaultExternalEntityUploadServiceImpl.class.getResource("NUnitReport.xml").getPath();
 
@@ -104,10 +121,5 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		long end = System.currentTimeMillis();
 		System.out.println("total time:" + (end -start));	
 	}
-	
-	public static void main(String[] argc) throws Exception{
-		testJunit(109);
-		//testtestNG(107);
-		//testnunit(108);
-	}
+
 }
