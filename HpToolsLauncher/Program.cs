@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,7 +22,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
@@ -41,6 +43,13 @@ namespace HpToolsLauncher
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Waiting for debugger to attach");
+            while (!Debugger.IsAttached)
+            {
+                Thread.Sleep(100);
+            }
+            Console.WriteLine("Debugger attached");
+
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
             ConsoleQuickEdit.Disable();
             if (args.Count() == 0 || args.Contains("/?"))
