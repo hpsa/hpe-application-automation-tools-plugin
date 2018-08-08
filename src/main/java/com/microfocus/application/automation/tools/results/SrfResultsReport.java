@@ -198,7 +198,9 @@ public class SrfResultsReport extends Recorder implements Serializable {
         }
 
         public String getDeepLink(SrfScriptRunModel srfScriptRunModel){
-            String srfUrl = String.format("%1s/results/%1s/details/compare?script-runs=%1s", getSrfServer(owner), srfScriptRunModel.parent.getString("yac"), srfScriptRunModel.yac);
+            String parentYac = srfScriptRunModel.parent.getString("yac");
+            String workspaceId = srfScriptRunModel.parent.getString("workspaceId");
+            String srfUrl = String.format("%1s/workspace/%1s/results/%1s/details/compare?script-runs=%1s", getSrfServer(owner), workspaceId, parentYac, srfScriptRunModel.yac);
             srfUrl = srfUrl.concat("&TENANTID=").concat(srfScriptRunModel.parent.getString("tenantid"));
             return srfUrl;
         }
