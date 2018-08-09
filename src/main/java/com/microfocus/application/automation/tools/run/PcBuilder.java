@@ -38,18 +38,22 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.Testsu
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.FilePath.FileCallable;
 import hudson.Launcher;
 import hudson.PluginWrapper;
 import hudson.console.HyperlinkNote;
 import hudson.model.*;
+import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.remoting.LocalChannel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.remoting.RoleSensitive;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -59,12 +63,17 @@ import javax.xml.bind.Marshaller;
 import java.beans.IntrospectionException;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.lang.Object;
 
 import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.FINISHED;
 import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.RUN_FAILURE;
@@ -97,10 +106,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private String junitResultsFileName;
     private PrintStream logger;
     private File WorkspacePath;
-    private SimpleDateFormat _simpleDateFormat = new SimpleDateFormat ("E MM.dd.yyyy 'at' hh:mm:ss a zzz");
     private final String retry;
     private final String retryDelay;
     private final String retryOccurrences;
+    AbstractBuild<?, ?> _build;
 
 
 
@@ -135,9 +144,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.timeslotDurationHours = timeslotDurationHours;
         this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
-        this.retry = retry;
-        this.retryDelay = retryDelay;
-        this.retryOccurrences = retryOccurrences;
+        this.retry = retry.isEmpty()? "NO_RETRY" : retry;
+        this.retryDelay = retry.equals("NO_RETRY") ? "0" : retryDelay.isEmpty()? "5" : retryDelay ;
+        this.retryOccurrences = retry.equals("NO_RETRY") ? "0" : retryOccurrences.isEmpty()? "3" : retryOccurrences;
 
         pcModel =
         new PcModel(
@@ -161,9 +170,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 proxyOutURL,
                 proxyOutUser,
                 proxyOutPassword,
-                retry,
-                retryDelay,
-                retryOccurrences);
+                this.retry,
+                this.retryDelay,
+                this.retryOccurrences);
     }
 
     @Override
@@ -175,17 +184,26 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
+        _build = build;
         if(build.getWorkspace() != null)
             WorkspacePath =  new File(build.getWorkspace().toURI());
         else
             WorkspacePath =  null;
-        try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
+        if((pcModel !=null) && (build != null) && (build instanceof AbstractBuild))
+            setPcModelBuildParameters(build);
         if(build.getWorkspace() != null)
             perform(build, build.getWorkspace(), launcher, listener);
         else
             return false;
         return true;
     }
+
+    private void setPcModelBuildParameters(AbstractBuild<?, ?> build) {
+            String buildParameters = build.getBuildVariables().toString();
+            if (!buildParameters.isEmpty())
+                pcModel.setBuildParameters(buildParameters);
+    }
+
 
     public File getWorkspacePath(){
         return WorkspacePath;
@@ -241,10 +259,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         try {
             String version = getVersion();
             if(!(version == null || version.equals("unknown")))
-                logger.println(String.format("%s - plugin version is '%s'",_simpleDateFormat.format(new Date()), version));
-            try { pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString()); } catch (Exception ex) { }
+                logger.println(String.format("%s - plugin version is '%s'",SimpleDateFormater(), version));
+            if((pcModel !=null) && (build != null) && (build instanceof AbstractBuild))
+                setPcModelBuildParameters((AbstractBuild) build);
             if (!StringUtils.isBlank(pcModel.getDescription()))
-                logger.println(String.format("%s - \n- - -\nTest description: %s", _simpleDateFormat.format(new Date()), pcModel.getDescription()));
+                logger.println(String.format("%s - Test description: %s", SimpleDateFormater(), pcModel.getDescription()));
             if (!beforeRun(pcClient))
                 return null;
 
@@ -255,9 +274,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             pcClient.stopRun(runId);
             throw e;
         } catch (NullPointerException e) {
-            logger.println(String.format("%s - Error: %s", _simpleDateFormat.format(new Date()), e.getMessage()));
+            logger.println(String.format("%s - Error: %s", SimpleDateFormater(), e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), e.getMessage()));
+            logger.println(String.format("%s - %s", SimpleDateFormater(), e.getMessage()));
         } finally {
             pcClient.logout();
         }
@@ -269,7 +288,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
         if((pcModel !=null) && (build != null) && (build instanceof AbstractBuild))
-            pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
+            setPcModelBuildParameters((AbstractBuild) build);
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
@@ -280,19 +299,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 return null;
         }
         catch (NumberFormatException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  SimpleDateFormater(),ex.getMessage()));
             throw ex;
         }
         catch (ClientProtocolException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  SimpleDateFormater(),ex.getMessage()));
             throw ex;
         }
         catch (PcException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  SimpleDateFormater(),ex.getMessage()));
             throw ex;
         }
         catch (IOException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  _simpleDateFormat.format(new Date()),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  SimpleDateFormater(),ex.getMessage()));
             throw ex;
         }
 
@@ -301,18 +320,18 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testName = pcClient.getTestName();
             if(testName == null) {
                 testName = String.format("TestId_%s", pcModel.getTestId());
-                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", _simpleDateFormat.format(new Date()), testName));
+                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", SimpleDateFormater(), testName));
             }
             else
-                logger.println(String.format("%s - test name is %s \n", _simpleDateFormat.format(new Date()), testName));
+                logger.println(String.format("%s - test name is %s", SimpleDateFormater(), testName));
         }
         catch (PcException ex) {
             testName = String.format("TestId_%s", pcModel.getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", SimpleDateFormater(), testName, ex.getMessage()));
         }
         catch (IOException ex) {
             testName = String.format("TestId_%s", pcModel.getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", _simpleDateFormat.format(new Date()), testName, ex.getMessage()));
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", SimpleDateFormater(), testName, ex.getMessage()));
         }
 
         try {
@@ -320,7 +339,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
             build.addAction(new AdditionalParametersAction(parameters));
-            logger.print(String.format("%s - Set %s Environment Variable to %s \n",_simpleDateFormat.format(new Date()), RUNID_BUILD_VARIABLE, runId));
+            logger.print(String.format("%s - Set %s Environment Variable to %s \n",SimpleDateFormater(), RUNID_BUILD_VARIABLE, runId));
             response = pcClient.waitForRunCompletion(runId);
 
             if (response != null && RunState.get(response.getRunState()) == FINISHED && pcModel.getPostRunAction() != PostRunAction.DO_NOTHING) {
@@ -341,7 +360,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
 
         } catch (PcException e) {
-            logger.println(String.format("%s - Error: %s", _simpleDateFormat.format(new Date()), e.getMessage()));
+            logger.println(String.format("%s - Error: %s", SimpleDateFormater(), e.getMessage()));
         }
 
         Testsuites ret = new Testsuites();
@@ -394,7 +413,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     private boolean validatePcForm() {
         
-        logger.println(String.format("%s - Validating parameters before run", _simpleDateFormat.format(new Date())));
+        logger.println(String.format("%s - Validating parameters before run", SimpleDateFormater()));
         String prefix = "doCheck";
         boolean ret = true;
         Method[] methods = getDescriptor().getClass().getMethods();
@@ -408,7 +427,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     if (modelMethodName.toLowerCase().equals("get" + name) && modelMethod.getParameterTypes().length==0) {
                         try {
                             Object obj = FormValidation.ok();
-                            if (!(name.equals("testinstanceid")&& pcModel.getAutoTestInstanceID().equals("AUTO"))){
+                            if (
+                                    !(name.equals("testinstanceid") && pcModel.getAutoTestInstanceID().equals("AUTO")) &&
+                                    !(name.equals("retrydelay") && (pcModel.getRetry().equals("NO_RETRY")) || pcModel.getRetry().isEmpty()) &&
+                                    !(name.equals("retryoccurrences") && (pcModel.getRetry().equals("NO_RETRY") || pcModel.getRetry().isEmpty()))
+                                    ) {
                                 obj = method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
                             }
                             if (!obj.equals(FormValidation.ok())) {
@@ -456,7 +479,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), res.toString().replace(": <div/>","")));
+        logger.println(String.format("%s - %s", SimpleDateFormater(), res.toString().replace(": <div/>","")));
 
         return res.equals(FormValidation.ok());
     }
@@ -490,7 +513,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), res.toString().replace(": <div/>","")));
+        logger.println(String.format("%s - %s", SimpleDateFormater(), res.toString().replace(": <div/>","")));
 
         return res.equals(FormValidation.ok());
     }
@@ -531,12 +554,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             // Updating all CSV files for plot plugin
             // this helps to show the transaction of each result
             if (isPluginActive("Plot plugin")) {
-                logger.println(String.format("%s Updating csv files for Trending Charts.", _simpleDateFormat.format(new Date())));
+                logger.println(String.format("%s Updating csv files for Trending Charts.", SimpleDateFormater()));
                 updateCSVFilesForPlot(pcClient, runID);
                 String plotUrlPath = "/job/" + build.getParent().getName() + "/plot";
-                logger.println(String.format("%s - %s",_simpleDateFormat.format(new Date()), HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts"))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
+                logger.println(String.format("%s - %s",SimpleDateFormater(), HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts"))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
             }else{
-                logger.println(String.format("%s - You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the %s (Performance Center 12.55 and Later).",_simpleDateFormat.format(new Date()),  HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/HPE+Application+Automation+Tools#HPEApplicationAutomationTools-RunningPerformanceTestsusingHPEPerformanceCenter","documentation")));
+                logger.println(String.format("%s - You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the %s (Performance Center 12.55 and Later).",SimpleDateFormater(),  HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/HPE+Application+Automation+Tools#HPEApplicationAutomationTools-RunningPerformanceTestsusingHPEPerformanceCenter","documentation")));
             }
         }
         return ret;
@@ -615,35 +638,58 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
       //  logger.print(build.getRootDir().getPath());
     }
 
-
     private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId,TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement)throws IOException, PcException, IntrospectionException, NoSuchMethodException{
         String fileName = measurement.toString().toLowerCase()  + "_" +  pctType.toString().toLowerCase() + ".csv";
-        File file = new File(getWorkspacePath().getPath() + "/" + fileName);
-        try{
-            Map<String, String> measurementMap = pcClient.getTrendReportByXML(trendReportID,runId,dataType, pctType, measurement);
-            if (!file.exists()){
-                file.createNewFile();
-            }
-            PrintWriter writer = new PrintWriter(file);
-            for (String key : measurementMap.keySet()) {
-                writer.print(key + ",");
-            }
-            writer.print("\r\n");
-            for (String value : measurementMap.values()) {
-                writer.print(value + ",");
-            }
-            writer.close();
-       //     logger.println(String.format("%s - %s Created.", _simpleDateFormat.format(new Date()), fileName);
-            return true;
-        } catch (IOException e) {
-            if(getWorkspacePath().getPath()!= null)
-                logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s",_simpleDateFormat.format(new Date()), getWorkspacePath().getPath(),  fileName, e.getMessage()));
-            else
-                logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s",_simpleDateFormat.format(new Date()), fileName, e.getMessage()));
-            return false;
-        }
+        Map<String, String> measurementMap = pcClient.getTrendReportByXML(trendReportID, runId, dataType, pctType, measurement);
+        if (!_build.getWorkspace().isRemote()) {
+            try {
+                File file = new File(getWorkspacePath().getPath() + "/" + fileName);
 
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                PrintWriter writer = new PrintWriter(file);
+                for (String key : measurementMap.keySet()) {
+                    writer.print(key + ",");
+                }
+                writer.print("\r\n");
+                for (String value : measurementMap.values()) {
+                    writer.print(value + ",");
+                }
+                writer.close();
+                //     logger.println(String.format("%s - %s Created.", SimpleDateFormater(), fileName);
+                return true;
+            } catch (IOException e) {
+                if (getWorkspacePath().getPath() != null)
+                    logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s", SimpleDateFormater(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+                else
+                    logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s", SimpleDateFormater(), fileName, e.getMessage()));
+            }
+        }
+        else {
+            try {
+                FilePath filePath = new FilePath(_build.getWorkspace().getChannel(), getWorkspacePath().getPath() + "/" + fileName);
+                String filepathContent="";
+                for (String key : measurementMap.keySet()) {
+                    filepathContent += key + ",";
+                }
+                filepathContent += "\r\n";
+                for (String value : measurementMap.values()) {
+                    filepathContent += value + ",";
+                }
+                filePath.write(filepathContent, null);
+                return true;
+            } catch (InterruptedException e) {
+                if (getWorkspacePath().getPath() != null)
+                    logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", SimpleDateFormater(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+                else
+                    logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", SimpleDateFormater(), fileName, e.getMessage()));
+                return false;
+            }
+        }
+        return false;
     }
+
 
 
     private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage, String eventLog) {
@@ -670,7 +716,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getError().add(error);
         testCase.setStatus(JUnitTestCaseStatus.ERROR);
-        logger.println(String.format("%s - %s %s", _simpleDateFormat.format(new Date()) , message ,eventLog));
+        logger.println(String.format("%s - %s %s", SimpleDateFormater() , message ,eventLog));
     }
     
     private void setFailure(Testcase testCase, String message, String eventLog) {
@@ -680,14 +726,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getFailure().add(failure);
         testCase.setStatus(JUnitTestCaseStatus.FAILURE);
-        logger.println(String.format("%s - Failure: %s %s", _simpleDateFormat.format(new Date()), message ,eventLog));
+        logger.println(String.format("%s - Failure: %s %s", SimpleDateFormater(), message ,eventLog));
     }
     
     private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
-        logger.println(String.format("%s - %s", _simpleDateFormat.format(new Date()), HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId)));
+        logger.println(String.format("%s - %s", SimpleDateFormater(), HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId)));
 
         return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, pcModel.getserverAndPort() +  "/" +  build.getUrl() + viewUrl, pcModel.getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
@@ -704,7 +750,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String runIdStr =
                 (runId > 0) ? String.format(" (PC RunID: %s)", String.valueOf(runId)) : "";
         logger.println(String.format("%s - Result Status%s: %s\n- - -",
-                _simpleDateFormat.format(new Date()),
+                SimpleDateFormater(),
                 runIdStr,
                 resultStatus.toString()));
         build.setResult(resultStatus);
@@ -724,14 +770,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     ret = Result.FAILURE;
                 }
             } else {
-                logger.println(String.format("%s - Empty Results", _simpleDateFormat.format(new Date())));
+                logger.println(String.format("%s - Empty Results", SimpleDateFormater()));
                 ret = Result.FAILURE;
             }
             
         } catch (Exception cause) {
             logger.print(String.format(
                     "%s - Failed to create run results, Exception: %s",
-                    _simpleDateFormat.format(new Date()),
+                    SimpleDateFormater(),
                     cause.getMessage()));
             ret = Result.FAILURE;
         }
@@ -890,6 +936,21 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public String getProxyOutUser(){ return getPcModel().getProxyOutUser();}
     public String getProxyOutPassword(){ return getPcModel().getProxyOutPassword();}
 
+    private String  SimpleDateFormater()
+    {
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat ("E yyyy MMM dd 'at' HH:mm:ss.SSS a zzz");
+            String simpleDate = simpleDateFormat.format(new Date());
+            if (simpleDate != null)
+                return simpleDate;
+            else
+                return "";
+        }
+        catch (Exception ex) {
+            return "";
+        }
+    }
+
     // This indicates to Jenkins that this is an implementation of an extension
     // point
     @Extension
@@ -1032,7 +1093,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return PcModel.getPostRunActions();
         }
 
-        
+
     }
     
 }

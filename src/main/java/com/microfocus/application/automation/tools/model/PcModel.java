@@ -91,8 +91,8 @@ public class PcModel {
         this.proxyOutPassword = proxyOutPassword;
         this.buildParameters="";
         this.retry = retry;
-        this.retryDelay = retryDelay;
-        this.retryOccurrences = retryOccurrences;
+        this.retryDelay = retryDelay.isEmpty() ? "5" : retryDelay;
+        this.retryOccurrences = retryOccurrences.isEmpty() ? "3" : retryOccurrences;
 
     }
 
