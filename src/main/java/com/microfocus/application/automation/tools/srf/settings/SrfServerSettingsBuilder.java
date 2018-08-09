@@ -50,6 +50,7 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.auth.AuthenticationException;
 import org.apache.commons.lang.StringUtils;
@@ -67,11 +68,13 @@ import java.net.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 /**
  * Created by shepshel on 20/07/2016.
  */
 public class SrfServerSettingsBuilder extends Builder {
+    private static final Logger logger = Logger.getLogger(SrfServerSettingsBuilder.class.getName());
     private String credentialsId;
     private String srfServerName;
     private String srfProxyName;
@@ -285,6 +288,9 @@ public class SrfServerSettingsBuilder extends Builder {
                 return FormValidation.error("Connection error: " + e.getMessage() + " (Could be a proxy issue)");
             } catch (SocketTimeoutException e) {
                 return FormValidation.error("Connection error: Timed out request");
+            } catch (JSONException e) {
+                logger.severe(e.getLocalizedMessage());
+                return FormValidation.error("Received invalid response");
             } catch (Exception e) {
                 return FormValidation.error("Connection error: " + e.getMessage());
             }
