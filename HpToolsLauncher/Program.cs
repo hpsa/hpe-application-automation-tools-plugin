@@ -43,13 +43,6 @@ namespace HpToolsLauncher
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Waiting for debugger to attach");
-            while (!Debugger.IsAttached)
-            {
-                Thread.Sleep(100);
-            }
-            Console.WriteLine("Debugger attached");
-
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
             ConsoleQuickEdit.Disable();
             if (args.Count() == 0 || args.Contains("/?"))
