@@ -1,0 +1,26 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:s="/lib/samples">
+
+  <!--
+    Creates a text field that shows the value of the "name" property.
+    When submitted, it will be passed to the corresponding constructor parameter.
+  -->
+
+    <f:entry field="sonarServerUrl" title="SonarQube server URL"
+                description="Leaving this field empty will result extracting server URL from sonar configuration">
+            <f:textbox />
+    </f:entry>
+
+    <f:entry field="sonarToken" title="SonarQube Token"
+                description="Leaving this field empty will result extracting server token from sonar configuration">
+            <f:textbox />
+    </f:entry>
+    <f:entry field="sonarProjectKey" title="SonarQube project key"
+                description="Leaving this field empty will result extracting key from sonar configuration">
+            <f:textbox />
+    </f:entry>
+    <f:validateButton
+        title="Test sonar connection" progress="${%Testing...}"
+        method="testConnection" with="sonarServerUrl,sonarToken,sonarProjectKey"/>
+
+</j:jelly>
