@@ -155,9 +155,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 proxyOutURL,
                 proxyOutUser,
                 proxyOutPassword,
-                retry.isEmpty()? "NO_RETRY" : retry,
-                retry.equals("NO_RETRY") ? "0" : retryDelay.isEmpty()? "5" : retryDelay,
-                retry.equals("NO_RETRY") ? "0" : retryOccurrences.isEmpty()? "3" : retryOccurrences);
+                (retry == null || retry.isEmpty())? "NO_RETRY" : retry,
+                ("NO_RETRY".equals(retry)) ? "0" : (retryDelay == null || retryDelay.isEmpty()) ? "5" : retryDelay,
+                ("NO_RETRY".equals(retry)) ? "0" : (retryOccurrences == null || retryOccurrences.isEmpty()) ? "3" : retryOccurrences);
     }
 
     @Override
