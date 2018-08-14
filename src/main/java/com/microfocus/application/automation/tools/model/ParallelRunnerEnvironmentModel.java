@@ -61,22 +61,6 @@ public class ParallelRunnerEnvironmentModel extends AbstractDescribableImpl<Para
     }
 
     /**
-     * Set the parallel runner environment string.
-     * @param environment the parallel runner environment
-     */
-    @DataBoundSetter
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
-
-    /**
-     * Set the environment type
-     * @param environmentType the environment type
-     */
-    @DataBoundSetter
-    public void setEnvironmentType(String environmentType) { this.environmentType = environmentType; }
-
-    /**
      * Returns the environment type
      * @return the environment type
      */

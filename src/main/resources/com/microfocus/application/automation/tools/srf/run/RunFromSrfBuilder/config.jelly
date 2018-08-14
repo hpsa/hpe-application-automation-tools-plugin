@@ -22,19 +22,19 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-	<!--j:if test="${empty(descriptor.almServers)}">
-		<tr>
-      <td/>
-      <td colspan="2">
-        <div class="help" style="display:block;">
-          ${%SrfServersAreNotDefined}
-        </div>
-      </td>
-      <td/>
-    </tr>  
-	</j:if-->
-
-    <f:entry title="SRF test ID" field="srfTestId" description="The SRF test ID for a single test you want to run." >
+    <j:set var="srfServerSettingsBuilderDescriptor" value="${descriptor.getSrfServerSettingsBuilderDescriptor()}"/>
+    <j:if test="${empty(srfServerSettingsBuilderDescriptor.getSrfServerName())}">
+            <span style="color:red">
+                WARNING: SRF server URL is not configured. Define this URL in <b>Manage Jenkins > Configure System > SRF Common Settings > SRF server URL.</b>
+            </span><br/>
+    </j:if>
+    <j:if test="${empty(srfServerSettingsBuilderDescriptor.getCredentialsId())}">
+            <span style="color:red">
+                WARNING: SRF credentials are not configured. Define these in <b>Manage Jenkins > Configure System > SRF Common Settings > SRF credentials.</b>
+            </span><br/>
+    </j:if>
+    
+    <f:entry title="SRF test ID" field="srfTestId" description="One or more SRF test IDs, separated by commas. Jenkins runs all tests found with all ids listed." >
              <f:textbox name="runFromSrf.srfTestId" value="${instance.runFromSrf.srfTestId}"/>
         </f:entry>
     <f:entry title="SRF test tags" field="srfTagNames" description="One or more SRF test tags, separated by commas. Jenkins runs all tests found with all tags listed." >
@@ -58,4 +58,4 @@
     </f:entry>
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/autEnvironment.js"/>
-`</j:jelly>
+</j:jelly>

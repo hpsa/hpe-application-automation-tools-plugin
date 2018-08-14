@@ -83,15 +83,6 @@ public class FileSystemTestModel extends AbstractDescribableImpl<FileSystemTestM
     }
 
     /**
-     * Set the tests to be run by ParallelRunner.
-     * @param tests the tests to be run
-     */
-    @DataBoundSetter
-    public void setTests(String tests) {
-        setTestsWithNewLine(tests);
-    }
-
-    /**
      * Returns the environments on which the tests will run.
      * @return the parallel runner environments
      */
@@ -99,14 +90,6 @@ public class FileSystemTestModel extends AbstractDescribableImpl<FileSystemTestM
         return parallelRunnerEnvironments;
     }
 
-    /**
-     * Sets the ParallelRunner environments.
-     * @param parallelRunnerEnvironments the parallel runner environments
-     */
-    @DataBoundSetter
-    public void setParallelRunnerEnvironments(List<ParallelRunnerEnvironmentModel> parallelRunnerEnvironments) {
-        this.parallelRunnerEnvironments = parallelRunnerEnvironments;
-    }
 
     /**
      * Expand the tests based on the environment variables.
