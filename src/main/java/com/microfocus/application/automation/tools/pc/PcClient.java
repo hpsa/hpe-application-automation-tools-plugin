@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.pc;
 
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import hudson.FilePath;
 
 import java.beans.IntrospectionException;
@@ -54,15 +55,26 @@ public class PcClient {
     private PcRestProxy restProxy;
     private boolean loggedIn;
     private PrintStream logger;
+    public UsernamePasswordCredentials usernamePCPasswordCredentials;
+    public UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
 
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
             model = pcModel;
-
-            if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()){
+            String credentialsProxyId = model.getCredentialsProxyId(true);
+            usernamePCPasswordCredentialsForProxy = PcBuilder.getCredentialsId(credentialsProxyId);
+            String proxyOutUser = (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getUsername();
+            String proxyOutPassword= (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getPassword().getPlainText();
+            if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()) {
                 logger.println(String.format("%s - Using proxy: %s", simpleDateFormater(), model.getProxyOutURL(true)));
+                if(!proxyOutUser.isEmpty()) {
+                    if (model.getCredentialsProxyId().startsWith("$"))
+                        logger.println(String.format("%s - Using proxy credentials of %s as specified in build parameters.", simpleDateFormater(), proxyOutUser));
+                    else
+                        logger.println(String.format("%s - Using proxy credentials of %s as specified in configuration.", simpleDateFormater(), proxyOutUser));
+                }
             }
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),model.getProxyOutUser(true),model.getProxyOutPassword(true));
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),proxyOutUser,proxyOutPassword);
             this.logger = logger;
         }catch (PcException e){
             logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
@@ -78,9 +90,20 @@ public class PcClient {
 
     public boolean login() {
         try {
-            String user = model.getAlmUserName(true);
-            logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", simpleDateFormater(), model.isHTTPSProtocol(), model.getPcServerName(true), user));
-            loggedIn = restProxy.authenticate(user, model.getAlmPassword(true).toString());
+            String credentialsId = model.getCredentialsId(true);
+            usernamePCPasswordCredentials = PcBuilder.getCredentialsId(credentialsId);
+            if(usernamePCPasswordCredentials != null) {
+                if(model.getCredentialsId().startsWith("$"))
+                    logger.println(String.format("%s - Using Performance Center credentials supplied in build parameters", simpleDateFormater()));
+                else
+                    logger.println(String.format("%s - Using Performance Center credentials supplied in configuration", simpleDateFormater()));
+                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", simpleDateFormater(), model.isHTTPSProtocol(), model.getPcServerName(true), usernamePCPasswordCredentials.getUsername()));
+                loggedIn = restProxy.authenticate(usernamePCPasswordCredentials.getUsername(), usernamePCPasswordCredentials.getPassword().getPlainText());
+            }
+            else {
+                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", simpleDateFormater(), model.isHTTPSProtocol(), model.getPcServerName(true), PcBuilder.usernamePCPasswordCredentials.getUsername()));
+                loggedIn = restProxy.authenticate(PcBuilder.usernamePCPasswordCredentials.getUsername(), PcBuilder.usernamePCPasswordCredentials.getPassword().getPlainText());
+            }
         } catch (PcException e) {
             logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
           //  stackTraceToString(e);
