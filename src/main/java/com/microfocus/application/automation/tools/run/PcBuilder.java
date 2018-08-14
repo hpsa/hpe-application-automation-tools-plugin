@@ -529,8 +529,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                                     && !(("retrydelay".equals(name) && "NO_RETRY".equals(getPcModel().getRetry())) || getPcModel().getRetry().isEmpty())
                                     && !(("retryoccurrences".equals(name) && "NO_RETRY".equals(getPcModel().getRetry())) || getPcModel().getRetry().isEmpty())
                                     ) {
-                                if(method.getName().equals("doCheckCredentialsId") && name.equals("credentialsid") && modelMethodName.equals("getCredentialsId")
-                                    || method.getName().equals("doCheckCredentialsProxyId") && name.equals("credentialsproxyid") && modelMethodName.equals("getCredentialsProxyId")
+                                if("doCheckCredentialsId".equals(method.getName()) && "credentialsid".equals(name) && "getCredentialsId".equals(modelMethodName)
+                                    || "doCheckCredentialsProxyId".equals(method.getName()) && "credentialsproxyid".equals(name) && "getCredentialsProxyId".equals(modelMethodName)
                                         )
                                     obj = method.invoke(getDescriptor(), null,null, modelMethod.invoke(getPcModel()));
                                 else
