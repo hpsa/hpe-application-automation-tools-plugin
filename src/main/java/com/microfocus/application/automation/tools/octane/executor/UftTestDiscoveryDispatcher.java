@@ -118,25 +118,23 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 				dispatchDetectionResults(item, entitiesService, result);
 				queue.remove();
 			}
-		} catch (Exception e) {
+        } catch (OctaneRestException e) {
+            String reasonDesc = StringUtils.isNotEmpty(e.getData().getDescriptionTranslated()) ? e.getData().getDescriptionTranslated() : e.getData().getDescription();
+            if (e.getResponseStatus() == HttpStatus.SC_FORBIDDEN) {
+                logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  because of lacking Octane permission : " + reasonDesc);
+            } else {
+                logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  : " + reasonDesc);
+            }
+            queue.remove();
+        } catch (Exception e) {
             if (item != null) {
-                if (e instanceof OctaneRestException) {
-                    OctaneRestException ore = (OctaneRestException) e;
-                    if (ore.getResponseStatus() == HttpStatus.SC_FORBIDDEN) {
-                        String reasonDesc = StringUtils.isNotEmpty(ore.getData().getDescriptionTranslated()) ? ore.getData().getDescriptionTranslated() : ore.getData().getDescription();
-                        logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  because of lacking Octane permission : " + reasonDesc);
-                        queue.remove();
-                        return;
-                    }
-                }
-
                 item.incrementFailCount();
                 if (item.incrementFailCount() > MAX_DISPATCH_TRIALS) {
                     queue.remove();
                     logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  after " + MAX_DISPATCH_TRIALS + " trials");
                 }
             }
-		}
+        }
 	}
 
 	private static void dispatchDetectionResults(ResultQueue.QueueItem item, EntitiesService entitiesService, UftTestDiscoveryResult result) {
