@@ -102,8 +102,8 @@ namespace HpToolsLauncher.ParallelRunner
             // or "manufacturerAndModel: Samsung S6, osVersion: > 6"
             // or for web: "browser: Chrome"
 
-            // the environment string is case-insensitive
-            environment = environment.Trim().ToLower();
+            // the environment string is case-sensitive
+            environment = environment.Trim();
 
             // we get the key value pairs by splitting them
             string[] tokens = environment.Split(EnvironmentTokenSeparator);
@@ -115,7 +115,7 @@ namespace HpToolsLauncher.ParallelRunner
                 // invalid setting, there should be at least two values
                 if (keyValuePair.Length <= 1) continue;
 
-                string key = keyValuePair[0].Trim();
+                string key = keyValuePair[0].Trim().ToLower();
 
                 if (string.IsNullOrEmpty(key)) continue;
 
