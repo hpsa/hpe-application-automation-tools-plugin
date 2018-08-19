@@ -37,7 +37,6 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 import com.hpe.application.automation.tools.model.SonarAdapter;
 import com.hpe.application.automation.tools.octane.Messages;
-import com.hpe.application.automation.tools.octane.configuration.SonarActionFactory;
 import hudson.*;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
@@ -109,13 +108,11 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
         if (sonarProjectKey.isEmpty() || sonarToken.isEmpty() || sonarServerUrl.isEmpty()) {
             try {
                 if (allConfigurations != null) {
-                    GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic("hudson.plugins.sonar.SonarGlobalConfiguration");
-                    if (sonarConfiguration != null) { // sonar installed, configuration exists
-                        SonarAdapter adapter = new SonarAdapter(run, sonarConfiguration);
-                        serverDetails[0] = sonarProjectKey.isEmpty() ? adapter.extractSonarProjectKey() : sonarProjectKey;
-                        serverDetails[1] = sonarServerUrl.isEmpty() ? adapter.extractSonarUrl() : sonarServerUrl;
-                        serverDetails[2] = sonarToken.isEmpty() ? adapter.extractSonarToken() : sonarToken;
-                    }
+                    // GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic("hudson.plugins.sonar.SonarGlobalConfiguration");
+                    SonarAdapter adapter = new SonarAdapter(run);
+                    serverDetails[0] = sonarProjectKey.isEmpty() ? adapter.extractSonarProjectKey() : sonarProjectKey;
+                    serverDetails[1] = sonarServerUrl.isEmpty() ? adapter.extractSonarUrl() : sonarServerUrl;
+                    serverDetails[2] = sonarToken.isEmpty() ? adapter.extractSonarToken() : sonarToken;
                 }
             } catch (Exception e) {
                 throw new InterruptedException("exception occurred while init sonar tracker for job " + run.getDisplayName() + " error message: " + e.getMessage());
@@ -138,15 +135,16 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        PrintStream logger = listener.getLogger();
         ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
-        String jobName = getJobName(run);
-        String callbackUrl = buildCallbaclUrl(jobName);
+        String callbackUrl = buildCallbaclUrl();
         String[] serverDetails = getSonarDetails(run, allConfigurations);
         OctaneSDK.getInstance().getSonarService().setSonarAuthentication(serverDetails[0], serverDetails[1], serverDetails[2]);
         try {
+            String jobName = getJobName(run);
             OctaneSDK.getInstance().getSonarService().registerWebhook(callbackUrl, serverDetails[0], jobName);
         } catch (OctaneSDKSonarException e) {
-            throw new AbortException(e.getMessage());
+            logger.println("Web-hook registration in sonarQube failed: " + e.getMessage());
         }
     }
 
@@ -154,9 +152,9 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
      * build jenkins callback URL for sonar webhook
      * @return full url with job info
      */
-    private String buildCallbaclUrl(String jobName) {
+    private String buildCallbaclUrl() {
         String rootUrl = Jenkins.getInstance().getRootUrl();
-        return rootUrl + "job/" + jobName + "/webhooks/analysis/notify";
+        return rootUrl + "webhooks/notify";
     }
 
 
@@ -189,7 +187,6 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 
     @Extension
     public static class SonarDescriptor extends BuildStepDescriptor<Builder> {
-        String sonarId = "hudson.plugins.sonar.SonarGlobalConfiguration";
 
         public SonarDescriptor() {
             load();
@@ -207,15 +204,8 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
          * @return
          */
         private SonarAdapter getAdapter(AbstractProject project) {
-            ExtensionList filteredExtensions = null;
-            try {
-                filteredExtensions = Jenkins.getInstance().getExtensionList(this.sonarId);
-                GlobalConfiguration sonarConfiguration = (GlobalConfiguration) filteredExtensions.getDynamic(sonarId);
-                SonarAdapter adapter = new SonarAdapter(project, sonarConfiguration);
-                return adapter;
-            } catch (ClassNotFoundException e) {
-                return null;
-            }
+            SonarAdapter adapter = new SonarAdapter(project);
+            return adapter;
         }
 
         public FormValidation doCheckSonarProjectKey(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {

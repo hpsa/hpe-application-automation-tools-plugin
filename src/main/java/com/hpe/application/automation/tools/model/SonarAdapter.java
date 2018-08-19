@@ -19,42 +19,42 @@ import java.util.regex.Pattern;
  * this class is only dependent on sonar plugin for compile time.
  */
 public class SonarAdapter {
+    private final String sonarId = "hudson.plugins.sonar.SonarRunnerBuilder";
     private SonarRunnerBuilder builder = null;
 
-    public SonarAdapter(Run<?, ?> run, GlobalConfiguration sonarConfiguration) {
-        if (sonarConfiguration != null && sonarConfiguration instanceof SonarGlobalConfiguration) { // sonar installed in jenkins
-            DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
-            if (run instanceof AbstractBuild) {
-                AbstractBuild abstractBuild = (AbstractBuild) run;
-                if (abstractBuild instanceof MavenModuleSetBuild) {
-                    postbuilders = ((MavenModuleSetBuild) run).getProject().getPostbuilders();
-                } else {
-                    AbstractProject project = abstractBuild.getProject();
-                    if (project instanceof Project) {
-                        postbuilders = ((Project) project).getBuildersList();
-                    }
+    public SonarAdapter(Run<?, ?> run) {
+        DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
+        if (run instanceof AbstractBuild) {
+            AbstractBuild abstractBuild = (AbstractBuild) run;
+            if (abstractBuild instanceof MavenModuleSetBuild) {
+                postbuilders = ((MavenModuleSetBuild) run).getProject().getPostbuilders();
+            } else {
+                AbstractProject project = abstractBuild.getProject();
+                if (project instanceof Project) {
+                    postbuilders = ((Project) project).getBuildersList();
                 }
-                if (postbuilders != null) {
-                    Builder sonarBuilder = postbuilders.getDynamic("hudson.plugins.sonar.SonarRunnerBuilder");
-                    this.builder = (SonarRunnerBuilder) sonarBuilder;
-                }
+            }
+            if (postbuilders != null) {
+                setSonarBuilder(postbuilders);
             }
         }
     }
 
-    public SonarAdapter(AbstractProject project, GlobalConfiguration sonarConfiguration) {
-        if (sonarConfiguration != null && sonarConfiguration instanceof SonarGlobalConfiguration) { // sonar installed in jenkins
-            DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
-            if (project instanceof MavenModuleSet) {
-                postbuilders = ((MavenModuleSet) project).getPostbuilders();
-            } else if (project instanceof Project) {
-                postbuilders = ((Project) project).getBuildersList();
-            }
-            if (postbuilders != null) {
-                Builder sonarBuilder = postbuilders.getDynamic("hudson.plugins.sonar.SonarRunnerBuilder");
-                this.builder = (SonarRunnerBuilder) sonarBuilder;
-            }
+    public SonarAdapter(AbstractProject project) {
+        DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
+        if (project instanceof MavenModuleSet) {
+            postbuilders = ((MavenModuleSet) project).getPostbuilders();
+        } else if (project instanceof Project) {
+            postbuilders = ((Project) project).getBuildersList();
         }
+        if (postbuilders != null) {
+            setSonarBuilder(postbuilders);
+        }
+    }
+
+    private void setSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postbuilders) {
+        Builder sonarBuilder = postbuilders.getDynamic(sonarId);
+        this.builder = (SonarRunnerBuilder) sonarBuilder;
     }
 
     /**

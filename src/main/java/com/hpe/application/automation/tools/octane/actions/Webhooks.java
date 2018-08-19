@@ -34,17 +34,15 @@
 package com.hpe.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.TasksProcessor;
-import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
-import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
-import com.hpe.application.automation.tools.octane.configuration.ConfigApi;
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.model.SonarAdapter;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
+import hudson.model.AbstractProject;
 import hudson.model.RootAction;
+import hudson.model.TopLevelItem;
+import hudson.model.TopLevelItemDescriptor;
 import jenkins.model.Jenkins;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
@@ -55,11 +53,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created with IntelliJ IDEA.
@@ -75,9 +70,9 @@ public class Webhooks implements RootAction {
 
 	// params for extracting information from json
 	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
-    private final String SONAR_PROJECT_KEY_NAME = "key";
-    private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
-    private final String PROJECT = "project";
+	private final String SONAR_PROJECT_KEY_NAME = "key";
+	private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
+	private final String PROJECT = "project";
 
 	public String getIconFileName() {
 		return null;
@@ -96,29 +91,35 @@ public class Webhooks implements RootAction {
 	}
 
 	public void doNotify(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
-		Object properties = inputNotification.get("properties");
-		// without build context, could not send octane relevant data
-		if (properties != null && properties instanceof HashMap) {
-			// get relevant parameters
-			HashMap sonarAttachedProperties = ((HashMap) properties);
-			String buildNumber = (String) sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME);
-			String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
-			// Jenkins.getInstance().getItem(jobName)
-			String serverIdentity = ConfigurationService.getModel().getIdentity();
-			HashMap project = (HashMap) inputNotification.get(PROJECT);
-			String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+		try {
+			JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
+			Object properties = inputNotification.get("properties");
+			// without build context, could not send octane relevant data
+			if (properties != null && properties instanceof HashMap) {
+				// get relevant parameters
+				HashMap sonarAttachedProperties = ((HashMap) properties);
+				String buildNumber = (String) sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME);
+				String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
+				// get sonar details from job configuration
+				TopLevelItem jenkinsJob = Jenkins.getInstance().getItem(jobName);
+				if (jenkinsJob instanceof AbstractProject) {
+					SonarAdapter adapter = new SonarAdapter(((AbstractProject)jenkinsJob));
+					String serverUrl = adapter.extractSonarUrl();
+					String serverToken = adapter.extractSonarToken();
 
-			// use SDK to fetch and push data
-			try {
-				// OctaneSDK.getInstance().getSonarService().unregisterWebhook(sonarProjectKey, jobName);
-				OctaneSDK.getInstance().getSonarService().injectSonarDataToOctane(sonarProjectKey, serverIdentity, jobName, buildNumber);
-			} catch (OctaneSDKSonarException e) {
-				throw new IOException(e.getMessage());
-			} finally {
-				res.setStatus(HttpStatus.SC_OK);
+					String serverIdentity = ConfigurationService.getModel().getIdentity();
+					HashMap project = (HashMap) inputNotification.get(PROJECT);
+					String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+
+					// use SDK to fetch and push data
+					OctaneSDK.getInstance().getSonarService().injectSonarDataToOctane(sonarProjectKey, serverIdentity, jobName, buildNumber);
+
+				}
 			}
+		} catch (OctaneSDKSonarException e) {
+			logger.error("error while receiving webhook call from sonarQube server: " + e.getMessage());
+		} finally {
+			res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
 		}
 	}
-
 }
