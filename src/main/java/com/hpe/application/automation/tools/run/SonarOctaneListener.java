@@ -34,6 +34,7 @@
 package com.hpe.application.automation.tools.run;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 import com.hpe.application.automation.tools.model.SonarAdapter;
 import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.configuration.SonarActionFactory;
@@ -111,9 +112,9 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
                     GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic("hudson.plugins.sonar.SonarGlobalConfiguration");
                     if (sonarConfiguration != null) { // sonar installed, configuration exists
                         SonarAdapter adapter = new SonarAdapter(run, sonarConfiguration);
-                        serverDetails[0] = sonarServerUrl.isEmpty() ? adapter.extractSonarUrl() : sonarServerUrl;
-                        serverDetails[1] = sonarToken.isEmpty() ? adapter.extractSonarToken() : sonarToken;
-                        serverDetails[2] = sonarProjectKey.isEmpty() ? adapter.extractSonarProjectKey() : sonarProjectKey;
+                        serverDetails[0] = sonarProjectKey.isEmpty() ? adapter.extractSonarProjectKey() : sonarProjectKey;
+                        serverDetails[1] = sonarServerUrl.isEmpty() ? adapter.extractSonarUrl() : sonarServerUrl;
+                        serverDetails[2] = sonarToken.isEmpty() ? adapter.extractSonarToken() : sonarToken;
                     }
                 }
             } catch (Exception e) {
@@ -138,19 +139,33 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
-        String callbackUrl = buildCallbaclUrl(run);
+        String jobName = getJobName(run);
+        String callbackUrl = buildCallbaclUrl(jobName);
         String[] serverDetails = getSonarDetails(run, allConfigurations);
-        OctaneSDK.getInstance().getSonarService().setSonarAuthentication(serverDetails[2], serverDetails[0], serverDetails[1]);
-        OctaneSDK.getInstance().getSonarService().registerWebhook(callbackUrl, serverDetails[0], serverDetails[1], serverDetails[2]);
+        OctaneSDK.getInstance().getSonarService().setSonarAuthentication(serverDetails[0], serverDetails[1], serverDetails[2]);
+        try {
+            OctaneSDK.getInstance().getSonarService().registerWebhook(callbackUrl, serverDetails[0], jobName);
+        } catch (OctaneSDKSonarException e) {
+            throw new AbortException(e.getMessage());
+        }
     }
 
     /**
      * build jenkins callback URL for sonar webhook
-     * @param run
      * @return full url with job info
      */
-    private String buildCallbaclUrl(Run<?, ?> run) {
+    private String buildCallbaclUrl(String jobName) {
         String rootUrl = Jenkins.getInstance().getRootUrl();
+        return rootUrl + "job/" + jobName + "/webhooks/analysis/notify";
+    }
+
+
+    /**
+     * extract job name from project configuration
+     * @param run
+     * @return
+     */
+    private String getJobName(Run<?, ?> run) {
         String jobName = "";
         if (run instanceof AbstractBuild) {
             AbstractBuild abstractBuild = (AbstractBuild) run;
@@ -163,7 +178,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
                 }
             }
         }
-        return rootUrl + "job/" + jobName + "/webhooks/analysis/notify";
+        return jobName;
     }
 
     @Override
@@ -244,8 +259,8 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
             if (url.isEmpty()) {
                 return FormValidation.warning(Messages.missingSonarServerUrl());
             } else {
-                boolean isConnectionWorking = OctaneSDK.getInstance().getSonarService().testConnectivity(projectKey, url, token);
-                if (isConnectionWorking) {
+                String connectionStatus = OctaneSDK.getInstance().getSonarService().getSonarStatus(projectKey);
+                if (!"CONNECTION_FAILURE".equals(connectionStatus)) {
                     return FormValidation.ok("Validation passed. Connected successfully to server " + url);
                 } else {
                     return FormValidation.warning(Messages.cannotEstablishSonarConnection());

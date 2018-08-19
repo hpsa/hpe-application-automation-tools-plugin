@@ -31,48 +31,71 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.tests;
+package com.hpe.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneSDK;
-//import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
+import com.hp.octane.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
+import com.hpe.application.automation.tools.octane.configuration.ConfigApi;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import hudson.model.Job;
-
+import hudson.Extension;
+import hudson.model.RootAction;
+import jenkins.model.Jenkins;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
+import javax.servlet.ServletException;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * this class is used as an API for sonar notifications (webhook)
+ * Created with IntelliJ IDEA.
+ * User: gullery
+ * Date: 8/10/14
+ * Time: 12:47 PM
+ * To change this template use File | Settings | File Templates.
  */
-@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607"})
-public class SonarApi {
 
-    // params for extracting information from json
+@Extension
+public class Webhooks implements RootAction {
+	private static final Logger logger = LogManager.getLogger(Webhooks.class);
+
+	// params for extracting information from json
 	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
-    private final String PROJECT = "project";
     private final String SONAR_PROJECT_KEY_NAME = "key";
+    private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
+    private final String PROJECT = "project";
 
-    private Job job;
-
-	public SonarApi(Job job) {
-		this.job = job;
+	public String getIconFileName() {
+		return null;
 	}
 
-	/**
-	 * upon notification from sonar, we will remove sonar webhook and will execute
-	 * and analysis process that fetches data from sonar API and push results to octane
-	 * @param req
-	 * @param res
-	 * @throws IOException
-	 */
-	public void doNotify(StaplerRequest req, StaplerResponse res) throws IOException {
+	public String getDisplayName() {
+		return null;
+	}
+
+	public String getUrlName() {
+		return "webhooks";
+	}
+
+	public ConfigApi getConfiguration() {
+		return new ConfigApi();
+	}
+
+	public void doNotify(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
 		Object properties = inputNotification.get("properties");
 		// without build context, could not send octane relevant data
@@ -80,21 +103,21 @@ public class SonarApi {
 			// get relevant parameters
 			HashMap sonarAttachedProperties = ((HashMap) properties);
 			String buildNumber = (String) sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME);
-			String jobName = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
+			String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
+			// Jenkins.getInstance().getItem(jobName)
 			String serverIdentity = ConfigurationService.getModel().getIdentity();
 			HashMap project = (HashMap) inputNotification.get(PROJECT);
 			String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 
 			// use SDK to fetch and push data
-//            try {
-//                OctaneSDK.getInstance().getSonarService().unregisterWebhook(sonarProjectKey, jobName);
-//                OctaneSDK.getInstance().getSonarService().injectSonarDataToOctane(sonarProjectKey, serverIdentity, jobName, buildNumber);
-//            } catch (OctaneSDKSonarException e) {
-//                throw new IOException(e.getMessage());
-//            } finally {
-//                res.setStatus(HttpStatus.SC_OK);
-//            }
-
+			try {
+				// OctaneSDK.getInstance().getSonarService().unregisterWebhook(sonarProjectKey, jobName);
+				OctaneSDK.getInstance().getSonarService().injectSonarDataToOctane(sonarProjectKey, serverIdentity, jobName, buildNumber);
+			} catch (OctaneSDKSonarException e) {
+				throw new IOException(e.getMessage());
+			} finally {
+				res.setStatus(HttpStatus.SC_OK);
+			}
 		}
 	}
 
