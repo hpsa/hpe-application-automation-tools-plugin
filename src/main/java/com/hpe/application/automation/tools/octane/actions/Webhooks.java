@@ -42,7 +42,6 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.TopLevelItem;
-import hudson.model.TopLevelItemDescriptor;
 import jenkins.model.Jenkins;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;

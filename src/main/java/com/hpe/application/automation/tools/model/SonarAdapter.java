@@ -3,11 +3,9 @@ package com.hpe.application.automation.tools.model;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
-import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarRunnerBuilder;
 import hudson.tasks.Builder;
 import hudson.util.DescribableList;
-import jenkins.model.GlobalConfiguration;
 
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -54,7 +52,9 @@ public class SonarAdapter {
 
     private void setSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postbuilders) {
         Builder sonarBuilder = postbuilders.getDynamic(sonarId);
-        this.builder = (SonarRunnerBuilder) sonarBuilder;
+        if (sonarBuilder != null) {
+            this.builder = (SonarRunnerBuilder) sonarBuilder;
+        }
     }
 
     /**
