@@ -36,7 +36,7 @@ package com.hpe.application.automation.tools.run;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 import com.hpe.application.automation.tools.model.SonarAdapter;
-import com.hpe.application.automation.tools.octane.Messages;
+import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.*;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
