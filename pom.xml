@@ -1,18 +1,39 @@
+<!--
+  ~
+  ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+  ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~  marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  ~
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
 		<version>2.14</version>
-		<!-- which version of Jenkins is this plugin built against? -->
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.1</version>
+	<version>5.4.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	<name>HP Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
-	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
+	<name>Micro Focus Application Automation Tools</name>
+	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools</url>
 
 	<licenses>
 		<license>
@@ -26,53 +47,58 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>1.642.4</jenkins.version>
+		<jenkins.version>2.60.3</jenkins.version>
 		<workflow.version>2.2</workflow.version>
-		<bdi.version>1.0.2</bdi.version>
 		<maven.exec.skip>false</maven.exec.skip>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+        <java.level>8</java.level>
 	</properties>
 
 	<distributionManagement>
 		<repository>
-		  <id>repo.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/releases</url>
+			<id>repo.jenkins-ci.org</id>
+			<url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven.jenkins-ci.org</id>
-		  <url>https://repo.jenkins-ci.org/snapshots</url>
+			<url>https://repo.jenkins-ci.org/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
+		<connection>scm:git:ssh://github.com/jenkinsci/hpe-application-automation-tools-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
-		<url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
+		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
+
 	<issueManagement>
 		<system>JIRA</system>
-		<url>https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin</url>
+		<url>
+			https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin
+		</url>
 	</issueManagement>
 
 	<organization>
-		<name>HPE</name>
-		<url>http://www.hpe.com</url>
+		<name>Micro Focus</name>
+		<url>http://www.microfocus.com</url>
 	</organization>
 
 	<developers>
-		<developer>
-			<id>YafimK</id>
-			<name>Fima (Yafim) Kazak</name>
-			<email>kazak@hpe.com</email>
+        <developer>
+			<id>gront</id>
+			<name>Daniel Gront</name>
+			<email>daniel.gront@microfocus.com</email>
 			<roles>
-				<role>Global owner and Load Runner Dev</role>
+				<role>Global Owner</role>
 			</roles>
 		</developer>
 		<developer>
 			<id>mseldin</id>
 			<name>Michael Seldin</name>
-			<email>michael.seldin@hpe.com</email>
+			<email>michael.seldin@microfocus.com</email>
 			<roles>
 				<role>ALM Octane</role>
 			</roles>
@@ -80,57 +106,62 @@
 		<developer>
 			<id>Rlu</id>
 			<name>Roy Lu</name>
-			<email>li.lu@hpe.com</email>
+			<email>li.lu@microfocus.com</email>
 			<roles>
-				<role>ALM Lab managment</role>
+				<role>ALM Lab management</role>
 			</roles>
 		</developer>
 		<developer>
 			<id>pavelchuchma</id>
 			<name>Pavel Chuchma</name>
-			<email>pavel.chuchma@hpe.com</email>
+			<email>pavel.chuchma@microfocus.com</email>
 			<roles>
 				<role>Service Virtualization</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>imrman</id>
-			<name>Avishai Moshka</name>
-			<email>avishai.moshka@hp.com</email>
+			<id>rolandomihaivlad</id>
+			<name>Vlad, Rolando-Mihai</name>
+			<email>rolando-mihai.vlad@microfocus.com</email>
 			<roles>
 				<role>LoadRunner</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>amitb</id>
-			<name>Amit Bezalel</name>
-			<email>amit.bezalel@hpe.com</email>
+			<id>tamasflorin</id>
+			<name>Tamas, Ionut Florin</name>
+			<email>ionut-florin.tamas@hpe.com</email>
 			<roles>
 				<role>UFT</role>
 			</roles>
 		</developer>
 		<developer>
 			<id>bamh</id>
-			<name>Hanan Bem</name>
-			<email>hanan.bem@hpe.com</email>
+			<name>Daniel Danan</name>
+			<email>daniel.danan@microfocus.com</email>
 			<roles>
 				<role>Performance Center</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>michaelhpe</id>
-			<name>Weimin Jing</name>
-			<email>weimin.jing@hpe.com</email>
+			<id>janezhang</id>
+			<name>Zhang, Xiao-Jing</name>
+			<email>xiao-jing.zhang2@microfocus.com</email>
 			<roles>
 				<role>Mobile Center</role>
 			</roles>
 		</developer>
 		<developer>
-			<id>JackyZhuHPE</id>
-			<name>Chunjiang Zhu (Jacky)</name>
-			<email>chun-jiang.zhu@hpe.com</email>
+			<id>gullerya</id>
+			<name>Yuri Guller</name>
+			<email>gullerya@gmail.com</email>
+			<organization>MicroFocus - ALM Octane</organization>
+		</developer>
+		<developer>
+			<id>YafimK</id>
+			<name>Fima (Yafim) Kazak</name>
 			<roles>
-				<role>ALM/Upload test result to ALM (External Test)</role>
+				<role>Global owner and LoadRunner Dev (retired)</role>
 			</roles>
 		</developer>
 	</developers>
@@ -171,12 +202,12 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5.3</version>
 			</plugin>
-			<!--  -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<additionalparam>-Xdoclint:none</additionalparam>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -191,7 +222,18 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-			<!--  -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>none</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -210,7 +252,7 @@
 						</goals>
 
 						<configuration>
-							<skip>false</skip>
+							<skip>true</skip>
 							<executable>java</executable>
 							<arguments>
 								<argument> -jar</argument>
@@ -223,7 +265,7 @@
 								<argument>"${project.artifactId}"</argument>
 								<!-- <argument>-deploy</argument> -->
 								<argument>-restart</argument>
-								<argument>--password-file ${id_rsa_file}</argument>
+								<argument>password-file ${id_rsa_file}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -261,19 +303,23 @@
 				<version>2.19.1</version>
 				<configuration>
 					<excludes>
-						<exclude>**/ConfigApiTest.java</exclude>
-						<exclude>**/ConfigurationServiceTest.java</exclude>
-						<exclude>**/JUnitResultsTest.java</exclude>
-						<exclude>**/TestApiTest.java</exclude>
-						<exclude>**/TestDispatcherTest.java</exclude>
-						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
 						<exclude>**/GherkinResultsTest.java</exclude>
-						<exclude>**/TestNGExtensionTest.java</exclude>
-						<!--<exclude>**/TestJenkinsDurationTest.java</exclude>-->
+						<exclude>**/JUnitResultsTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>animal-sniffer-maven-plugin</artifactId>
+				<version>1.16</version>
+				<configuration>
+					<signature>
+						<groupId>org.codehaus.mojo.signature</groupId>
+						<artifactId>java18</artifactId>
+						<version>1.0</version>
+					</signature>
+				</configuration>
+			</plugin>
 
 		</plugins>
 
@@ -289,10 +335,6 @@
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
-		</repository>
-		<repository>
-			<id>hp-application-automation-tools-plugin-mvn-repo</id>
-			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
 		</repository>
 		<repository>
 			<id>bintray-adm-maven</id>
@@ -377,11 +419,15 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1.45909</version>
+			<version>4.20.0.49985</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
 					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -393,19 +439,19 @@
 		</dependency>
 
 
-<!-- Octane jenkins plugins -->
+		<!-- Octane jenkins plugins -->
 
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
-			<groupId>com.hpe.alm.octane.plugins</groupId>
-			<version>1.0</version>
+			<groupId>com.hpe.adm.octane.ciplugins</groupId>
+			<version>1.5.25</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
-			<groupId>com.hpe.alm.octane.plugins</groupId>
-			<version>1.0</version>
+			<groupId>com.hpe.adm.octane.ciplugins</groupId>
+			<version>1.4.25</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
@@ -433,6 +479,12 @@
 			<artifactId>git-server</artifactId>
 			<version>1.7</version>
 			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git-client</artifactId>
+			<version>1.19.6</version>
 		</dependency>
 
 		<dependency>
@@ -509,20 +561,13 @@
 			<version>2.5</version>
 			<optional>true</optional>
 		</dependency>
-		<!-- pipeline as a code  ends here -->
 
 		<dependency>
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-
-		<!--Extensibility-->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>3.7</version>
-		</dependency>
+	
 
 		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
@@ -531,13 +576,9 @@
 			<optional>true</optional>
 		</dependency>
 
+	
+	
 		<!--Test-->
-
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20090211</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -554,26 +595,52 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.4</version>
-		</dependency>
-
-		<!-- BDI dependencies -->
-		<dependency>
-			<groupId>com.hp.bdi</groupId>
-			<artifactId>bdi-sdk</artifactId>
-			<version>${bdi.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.jenkins-ci.main</groupId>
 			<artifactId>jenkins-test-harness-tools</artifactId>
 			<version>2.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-common</artifactId>
+			<version>2.9</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-sse</artifactId>
+			<version>2.9</version>
+		</dependency>
 
+		<dependency>
+			<groupId>com.microfocus.adm.performancecenter</groupId>
+			<artifactId>plugins-common</artifactId>
+			<version>1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.thoughtworks.xstream</groupId>
+					<artifactId>xstream</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- The dependencies were added to comply with the new jenkins base version-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>script-security</artifactId>
+			<version>1.18</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>scm-api</artifactId>
+			<version>1.2</version>
+		</dependency>
 	</dependencies>
-
-
 </project>

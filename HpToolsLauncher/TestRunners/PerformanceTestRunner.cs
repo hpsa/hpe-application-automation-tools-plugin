@@ -1,21 +1,24 @@
-﻿//© Copyright 2013 Hewlett-Packard Development Company, L.P.
-//Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-//and associated documentation files (the "Software"), to deal in the Software without restriction,
-//including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-//subject to the following conditions:
-
-//The above copyright notice and this permission notice shall be included in all copies or
-//substantial portions of the Software.
-
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-//INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-//PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
-//LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-//TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
-//OR OTHER DEALINGS IN THE SOFTWARE.
-
-
+﻿/*
+ *
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ *
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ *
+ */
 
 using System;
 using System.Collections.Generic;
@@ -46,6 +49,8 @@ namespace HpToolsLauncher.TestRunners
         private int _pollingInterval;
         private TimeSpan _perScenarioTimeOutMinutes;
         private RunCancelledDelegate _runCancelled;
+        private bool _displayController;
+        private string _analysisTemplate;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -82,17 +87,16 @@ namespace HpToolsLauncher.TestRunners
 
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
-
-
-
-
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings)
+        
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate)
         {
             this._runner = runner;
             this._timeout = timeout;
             this._pollingInterval = pollingInterval;
             this._perScenarioTimeOutMinutes = perScenarioTimeOut;
             this._ignoreErrorStrings = ignoreErrorStrings;
+            this._displayController = displayController;
+            this._analysisTemplate = analysisTemplate;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -152,6 +156,7 @@ namespace HpToolsLauncher.TestRunners
             //init result params
             runDesc.ErrorDesc = errorReason;
             runDesc.TestPath = scenarioPath;
+            ConsoleWriter.WriteLine(runDesc.TestPath);
             runDesc.TestState = TestState.Unknown;
 
             if (!Helper.isLoadRunnerInstalled())
@@ -295,7 +300,7 @@ namespace HpToolsLauncher.TestRunners
         private bool runScenario(string scenario, ref string errorReason, RunCancelledDelegate runCancelled)
         {
             cleanENV();
-
+            
             ConsoleWriter.WriteLine(string.Format(Resources.LrInitScenario, scenario));
 
             //start controller
@@ -319,10 +324,15 @@ namespace HpToolsLauncher.TestRunners
                 _scenarioEndedEvent = false;
             }
 
-            _engine.ShowMainWindow(0);
-#if DEBUG
-            _engine.ShowMainWindow(1);
-#endif
+            
+            if (_displayController == true)
+            {
+                _engine.ShowMainWindow(1);
+            } else
+            {
+                _engine.ShowMainWindow(0);
+            }
+
             //pointer to the scenario object:
             LrScenario currentScenario = _engine.Scenario;
 
@@ -427,7 +437,7 @@ namespace HpToolsLauncher.TestRunners
 
             ProcessStartInfo analysisRunner = new ProcessStartInfo();
             analysisRunner.FileName = ANALYSIS_LAUNCHER;
-            analysisRunner.Arguments = "\""+lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation+"\"";
+            analysisRunner.Arguments = "\""+lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation + "\" \"" + _analysisTemplate + "\"";
             analysisRunner.UseShellExecute = false;
             analysisRunner.RedirectStandardOutput = true;
 
@@ -927,7 +937,8 @@ namespace HpToolsLauncher.TestRunners
             {
                 foreach (Process p in wlrunProcesses)
                 {
-                    p.Kill();
+                    if (!p.HasExited) { 
+                        p.Kill();
                     // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
                     DateTime nowTime = DateTime.Now;
                     while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
@@ -947,6 +958,7 @@ namespace HpToolsLauncher.TestRunners
                     }
                     Stopper wlrunStopper = new Stopper(2000);
                     wlrunStopper.Start();
+                }
                 }
                 ConsoleWriter.WriteLine("wlrun killed");
             }
