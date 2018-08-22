@@ -26,9 +26,14 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
+import hudson.model.Run;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
+import org.jenkinsci.plugins.workflow.actions.LabelAction;
+import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -50,32 +55,71 @@ public final class CIEventCausesFactory {
 	private CIEventCausesFactory() {
 	}
 
-	public static List<CIEventCause> processCauses(List<Cause> causes) {
+	public static List<CIEventCause> processCauses(Run run) {
+		if (run == null) {
+			throw new IllegalArgumentException("run MUST NOT be null");
+		}
+
 		List<CIEventCause> result = new LinkedList<>();
+		List<Cause> causes = extractCausesFromRun(run);
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
 
-		if (causes != null) {
-			for (Cause cause : causes) {
-				tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
-				if (cause instanceof SCMTrigger.SCMTriggerCause) {
-					tmpResultCause.setType(CIEventCauseType.SCM);
-				} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
-					tmpResultCause.setType(CIEventCauseType.TIMER);
-				} else if (cause instanceof Cause.UserIdCause) {
-					tmpUserCause = (Cause.UserIdCause) cause;
-					tmpResultCause.setType(CIEventCauseType.USER);
-					tmpResultCause.setUser(tmpUserCause.getUserId());
-				} else if (cause instanceof Cause.UpstreamCause) {
-					tmpUpstreamCause = (Cause.UpstreamCause) cause;
+		for (Cause cause : causes) {
+			tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
+			if (cause instanceof SCMTrigger.SCMTriggerCause) {
+				tmpResultCause.setType(CIEventCauseType.SCM);
+				result.add(tmpResultCause);
+			} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
+				tmpResultCause.setType(CIEventCauseType.TIMER);
+				result.add(tmpResultCause);
+			} else if (cause instanceof Cause.UserIdCause) {
+				tmpUserCause = (Cause.UserIdCause) cause;
+				tmpResultCause.setType(CIEventCauseType.USER);
+				tmpResultCause.setUser(tmpUserCause.getUserId());
+				result.add(tmpResultCause);
+			} else if (cause instanceof Cause.UpstreamCause) {
+				tmpUpstreamCause = (Cause.UpstreamCause) cause;
+
+				boolean succeededToBuildFlowCauses = false;
+				Run upstreamRun = tmpUpstreamCause.getUpstreamRun();
+				if (upstreamRun != null && "WorkflowRun".equals(upstreamRun.getClass().getSimpleName())) {
+
+					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
+					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
+					if (rootWFRun.getExecution() != null && rootWFRun.getExecution().getCurrentHeads() != null) {
+						for (FlowNode head : rootWFRun.getExecution().getCurrentHeads()) {
+							if (!(head instanceof StepAtomNode)) {
+								continue;
+							}
+							StepAtomNode stepAtomNode = (StepAtomNode) head;
+							if (stepAtomNode.getDescriptor() != null &&
+									stepAtomNode.getDescriptor().getId().endsWith("BuildTriggerStep") &&
+									stepAtomNode.getAction(LabelAction.class) != null) {
+								String label = stepAtomNode.getAction(LabelAction.class).getDisplayName();
+								if (label != null && label.endsWith(run.getParent().getDisplayName())) {
+									List<CIEventCause> flowCauses = processCauses(stepAtomNode);
+									result.addAll(flowCauses);
+									succeededToBuildFlowCauses = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				if (!succeededToBuildFlowCauses) {
+
+					//  proceed with regular UPSTREAM calculation logic as usual
 					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
 					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
-					tmpResultCause.setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
-				} else {
-					tmpResultCause.setType(CIEventCauseType.UNDEFINED);
+					tmpResultCause.setCauses(processCauses(upstreamRun));
+					result.add(tmpResultCause);
 				}
+			} else {
+				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
 				result.add(tmpResultCause);
 			}
 		}
@@ -96,7 +140,7 @@ public final class CIEventCausesFactory {
 					.setType(CIEventCauseType.UPSTREAM)
 					.setProject(BuildHandlerUtils.getJobCiId(parentRun))
 					.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
-					.setCauses(CIEventCausesFactory.processCauses((parentRun.getCauses())));
+					.setCauses(CIEventCausesFactory.processCauses((parentRun)));
 			causes.add(cause);
 		}
 
@@ -132,5 +176,13 @@ public final class CIEventCausesFactory {
 			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
 		}
 		return jobPlainName;
+	}
+
+	private static List<Cause> extractCausesFromRun(Run<?, ?> run) {
+		if (run.getParent() instanceof MatrixConfiguration) {
+			return ((MatrixRun) run).getParentBuild().getCauses();
+		} else {
+			return run.getCauses();
+		}
 	}
 }

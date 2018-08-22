@@ -107,7 +107,7 @@ public class ModelFactory {
 		snapshotNode.setName(build.getParent().getName());
 		snapshotNode.setBuildCiId(String.valueOf(build.getNumber()));
 		snapshotNode.setNumber(String.valueOf(build.getNumber()));
-		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
+		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build));
 		snapshotNode.setDuration(build.getDuration());
 		snapshotNode.setEstimatedDuration(build.getEstimatedDuration());
 		if (build instanceof AbstractBuild) {

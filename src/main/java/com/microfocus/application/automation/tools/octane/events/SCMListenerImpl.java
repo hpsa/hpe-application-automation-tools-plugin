@@ -96,7 +96,7 @@ public class SCMListenerImpl extends SCMListener {
 		SCMData result = null;
 		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) run;
-			if (build.getChangeSet() != null && !build.getChangeSet().isEmptySet()) {
+			if (!build.getChangeSet().isEmptySet()) {
 				result = scmProcessor.getSCMData(build, scm);
 			}
 		} else if (run.getParent() instanceof WorkflowJob) {
@@ -113,16 +113,8 @@ public class SCMListenerImpl extends SCMListener {
 				.setEventType(CIEventType.SCM)
 				.setProject(BuildHandlerUtils.getJobCiId(run))
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
-				.setCauses(CIEventCausesFactory.processCauses(extractCauses(run)))
+				.setCauses(CIEventCausesFactory.processCauses(run))
 				.setNumber(String.valueOf(run.getNumber()))
 				.setScmData(scmData);
-	}
-
-	private List<Cause> extractCauses(Run<?, ?> r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return ((MatrixRun) r).getParentBuild().getCauses();
-		} else {
-			return r.getCauses();
-		}
 	}
 }

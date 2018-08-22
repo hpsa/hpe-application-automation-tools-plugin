@@ -90,7 +90,7 @@ public class WorkflowListener implements GraphListener {
 				.setParameters(ParameterProcessors.getInstances(parentRun))
 				.setStartTime(parentRun.getStartTimeInMillis())
 				.setEstimatedDuration(parentRun.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(parentRun.getCauses()));
+				.setCauses(CIEventCausesFactory.processCauses(parentRun));
 
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 			event
@@ -117,7 +117,7 @@ public class WorkflowListener implements GraphListener {
 				.setEstimatedDuration(parentRun.getEstimatedDuration())
 				.setDuration(parentRun.getDuration())
 				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
-				.setCauses(CIEventCausesFactory.processCauses(parentRun.getCauses()))
+				.setCauses(CIEventCausesFactory.processCauses(parentRun))
 				.setTestResultExpected(false);
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
@@ -127,7 +127,7 @@ public class WorkflowListener implements GraphListener {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepStartNode);
 		event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
-				.setPhaseType(PhaseType.POST)
+				.setPhaseType(PhaseType.INTERNAL)
 				.setProject(stepStartNode.getDisplayName())
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
 				.setNumber(String.valueOf(parentRun.getNumber()))
@@ -141,7 +141,7 @@ public class WorkflowListener implements GraphListener {
 		StepStartNode stepStartNode = stepEndNode.getStartNode();
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
-				.setPhaseType(PhaseType.POST)
+				.setPhaseType(PhaseType.INTERNAL)
 				.setProject(stepStartNode.getDisplayName())
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
 				.setNumber(String.valueOf(parentRun.getNumber()))
@@ -158,10 +158,5 @@ public class WorkflowListener implements GraphListener {
 				return CIBuildResult.FAILURE;
 		}
 		return CIBuildResult.SUCCESS;
-	}
-
-	private static FlowNode processCauses(Job job) {
-		FlowNode result = null;
-		return result;
 	}
 }

@@ -66,44 +66,44 @@ public final class RunListenerImpl extends RunListener<Run> {
 	private TestListener testListener;
 
 	@Override
-	public void onStarted(final Run r, TaskListener listener) {
+	public void onStarted(Run run, TaskListener listener) {
 		if (noGoConfiguration()) {
 			return;
 		}
-		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+		if (run.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			return;
 		}
 
 		CIEvent event;
-		if (r.getParent() instanceof MatrixConfiguration) {
+		if (run.getParent() instanceof MatrixConfiguration) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					.setProject(BuildHandlerUtils.getJobCiId(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-					.setNumber(String.valueOf(r.getNumber()))
-					.setStartTime(r.getStartTimeInMillis())
-					.setEstimatedDuration(r.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-					.setParameters(ParameterProcessors.getInstances(r));
-			if (isInternal(r)) {
+					.setProject(BuildHandlerUtils.getJobCiId(run))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(run))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
+					.setNumber(String.valueOf(run.getNumber()))
+					.setStartTime(run.getStartTimeInMillis())
+					.setEstimatedDuration(run.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(run))
+					.setParameters(ParameterProcessors.getInstances(run));
+			if (isInternal(run)) {
 				event.setPhaseType(PhaseType.INTERNAL);
 			} else {
 				event.setPhaseType(PhaseType.POST);
 			}
 			OctaneSDK.getInstance().getEventsService().publishEvent(event);
-		} else if (r instanceof AbstractBuild) {
+		} else if (run instanceof AbstractBuild) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					.setProject(BuildHandlerUtils.getJobCiId(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-					.setNumber(String.valueOf(r.getNumber()))
-					.setStartTime(r.getStartTimeInMillis())
-					.setEstimatedDuration(r.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-					.setParameters(ParameterProcessors.getInstances(r));
-			if (isInternal(r)) {
+					.setProject(BuildHandlerUtils.getJobCiId(run))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(run))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
+					.setNumber(String.valueOf(run.getNumber()))
+					.setStartTime(run.getStartTimeInMillis())
+					.setEstimatedDuration(run.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(run))
+					.setParameters(ParameterProcessors.getInstances(run));
+			if (isInternal(run)) {
 				event.setPhaseType(PhaseType.INTERNAL);
 			} else {
 				event.setPhaseType(PhaseType.POST);
@@ -113,35 +113,35 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	@Override
-	public void onFinalized(Run r) {
+	public void onFinalized(Run run) {
 		if (noGoConfiguration()) {
 			return;
 		}
-		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+		if (run.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			return;
 		}
 
-		CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
+		CommonOriginRevision commonOriginRevision = getCommonOriginRevision(run);
 
-		boolean hasTests = testListener.processBuild(r);
+		boolean hasTests = testListener.processBuild(run);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-				.setNumber(String.valueOf(r.getNumber()))
-				.setProject(BuildHandlerUtils.getJobCiId(r))
-				.setStartTime(r.getStartTimeInMillis())
-				.setEstimatedDuration(r.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-				.setResult(BuildHandlerUtils.translateRunResult(r))
-				.setDuration(r.getDuration())
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
+				.setNumber(String.valueOf(run.getNumber()))
+				.setProject(BuildHandlerUtils.getJobCiId(run))
+				.setStartTime(run.getStartTimeInMillis())
+				.setEstimatedDuration(run.getEstimatedDuration())
+				.setCauses(CIEventCausesFactory.processCauses(run))
+				.setResult(BuildHandlerUtils.translateRunResult(run))
+				.setDuration(run.getDuration())
 				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
 				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
 				.setTestResultExpected(hasTests);
 
-		if (r instanceof AbstractBuild) {
-			event.setParameters(ParameterProcessors.getInstances(r))
-					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+		if (run instanceof AbstractBuild) {
+			event.setParameters(ParameterProcessors.getInstances(run))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(run));
 		}
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
@@ -221,12 +221,5 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return null;
 		}
 		return null;
-	}
-
-	private static List<Cause> extractCauses(Run<?, ?> r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return ((MatrixRun) r).getParentBuild().getCauses();
-		}
-		return r.getCauses();
 	}
 }
