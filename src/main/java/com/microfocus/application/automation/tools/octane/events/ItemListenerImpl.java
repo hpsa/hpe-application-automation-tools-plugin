@@ -41,19 +41,18 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 @Extension
 public class ItemListenerImpl extends ItemListener {
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    @Override
-    public void onDeleted(Item item) {
-        CIEvent event;
+	@Override
+	public void onDeleted(Item item) {
+		CIEvent event;
 
-        if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+		if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.DELETED)
+					.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
 
-            event = dtoFactory.newDTO(CIEvent.class)
-                    .setEventType(CIEventType.DELETED)
-                    .setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
-
-            OctaneSDK.getInstance().getEventsService().publishEvent(event);
-        }
-    }
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		}
+	}
 }

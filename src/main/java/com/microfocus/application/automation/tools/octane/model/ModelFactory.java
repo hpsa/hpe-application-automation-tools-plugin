@@ -51,20 +51,7 @@ public class ModelFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job job) {
-		return createStructureItem(job, new HashSet<Job>());
-	}
-
-
-	public static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
-		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
-		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(projectProcessor.getTranslateJobName());
-		pipelineNode.setName(job.getName());
-		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
-		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
-		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
-
-		return pipelineNode;
+		return createStructureItem(job, new HashSet<>());
 	}
 
 	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items, Set<Job> processedJobs) {
@@ -86,7 +73,6 @@ public class ModelFactory {
 
 		return pipelinePhase;
 	}
-
 
 	public static SnapshotNode createSnapshotItem(Run build, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
@@ -141,6 +127,18 @@ public class ModelFactory {
 		snapshotNode.setStatus(status);
 
 		return snapshotNode;
+	}
+
+	private static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
+		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
+		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
+		pipelineNode.setJobCiId(projectProcessor.getTranslateJobName());
+		pipelineNode.setName(job.getName());
+		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
+		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
+		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
+
+		return pipelineNode;
 	}
 
 	private static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
@@ -299,12 +297,7 @@ public class ModelFactory {
 			}
 		}
 
-		Collections.sort(sortedList, new Comparator<CIParameter>() {
-			@Override
-			public int compare(CIParameter p1, CIParameter p2) {
-				return p1.getName().compareTo(p2.getName());
-			}
-		});
+		sortedList.sort(Comparator.comparing(CIParameter::getName));
 
 		StringBuilder subBuildName = new StringBuilder();
 		if (sortedList.size() > 0) {

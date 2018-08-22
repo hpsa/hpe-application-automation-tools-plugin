@@ -23,17 +23,17 @@
 package com.microfocus.application.automation.tools.octane.tests.build;
 
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.microfocus.application.automation.tools.octane.workflow.WorkflowBuildAdapter;
-import com.microfocus.application.automation.tools.octane.workflow.WorkflowGraphListener;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
+import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
+import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.graph.FlowGraphWalker;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Generic utilities handling Job/Run metadata extraction/transformation/processing
@@ -71,25 +71,26 @@ public class BuildHandlerUtils {
 		if (run instanceof AbstractBuild) {
 			return ((AbstractBuild) run).getWorkspace();
 		}
-		if (run instanceof WorkflowBuildAdapter) {
-			return ((WorkflowBuildAdapter) run).getWorkspace();
+		if (run instanceof WorkflowRun) {
+			FlowExecution fe = ((WorkflowRun) run).getExecution();
+			if (fe != null) {
+				FlowGraphWalker w = new FlowGraphWalker(fe);
+				for (FlowNode n : w) {
+					if (n instanceof StepStartNode) {
+						WorkspaceAction action = n.getAction(WorkspaceAction.class);
+						if (action != null) {
+							return action.getWorkspace();
+						}
+					}
+				}
+			}
 		}
 		return null;
 	}
 
-	public static List<Run> getBuildPerWorkspaces(Run run) {
-		if (run instanceof WorkflowRun) {
-			return WorkflowGraphListener.FlowNodeContainer.getFlowNode(run);
-		} else {
-			List<Run> runsList = new ArrayList<>();
-			runsList.add(run);
-			return runsList;
-		}
-	}
-
 	public static String getBuildCiId(Run run) {
 		return String.valueOf(run.getNumber());
-		//  YG  temportarty disabling the support for fluid build number until Octane supports it
+		//  YG  temporary disabling the support for fluid build number until Octane supports it
 		//return run.getNumber() + "_" + run.getStartTimeInMillis();
 	}
 
@@ -103,11 +104,6 @@ public class BuildHandlerUtils {
 		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslateJobName();
 	}
 
-	/**
-	 * Retrieve Job's CI ID
-	 *
-	 * @return Job's CI ID
-	 */
 	public static String translateFolderJobName(String jobPlainName) {
 		String newSplitterCharacters = "/job/";
 		return jobPlainName.replaceAll("/", newSplitterCharacters);

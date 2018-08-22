@@ -27,7 +27,6 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
@@ -51,10 +50,6 @@ import jenkins.model.Jenkins;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Run Listener that handles basic CI events and dispatches notifications to the Octane server
@@ -66,215 +61,191 @@ import java.util.concurrent.TimeUnit;
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
 public final class RunListenerImpl extends RunListener<Run> {
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-    private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    @Inject
-    private TestListener testListener;
+	@Inject
+	private TestListener testListener;
 
-    @Override
-    public void onStarted(final Run r, TaskListener listener) {
-        if (!ConfigurationService.getServerConfiguration().isValid()) {
-            return;
-        }
-        if (ConfigurationService.getModel().isSuspend()) {
-            return;
-        }
+	@Override
+	public void onStarted(final Run r, TaskListener listener) {
+		if (noGoConfiguration()) {
+			return;
+		}
+		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+			return;
+		}
 
-        CIEvent event;
-        if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
-            event = dtoFactory.newDTO(CIEvent.class)
-                    .setEventType(CIEventType.STARTED)
-                    .setProject(BuildHandlerUtils.getJobCiId(r))
-                    .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-                    .setNumber(String.valueOf(r.getNumber()))
-                    .setStartTime(r.getStartTimeInMillis())
-                    .setPhaseType(PhaseType.POST)
-                    .setEstimatedDuration(r.getEstimatedDuration())
-                    .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
+		CIEvent event;
+		if (r.getParent() instanceof MatrixConfiguration) {
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setProject(BuildHandlerUtils.getJobCiId(r))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+					.setNumber(String.valueOf(r.getNumber()))
+					.setStartTime(r.getStartTimeInMillis())
+					.setEstimatedDuration(r.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+					.setParameters(ParameterProcessors.getInstances(r));
+			if (isInternal(r)) {
+				event.setPhaseType(PhaseType.INTERNAL);
+			} else {
+				event.setPhaseType(PhaseType.POST);
+			}
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		} else if (r instanceof AbstractBuild) {
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setProject(BuildHandlerUtils.getJobCiId(r))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+					.setNumber(String.valueOf(r.getNumber()))
+					.setStartTime(r.getStartTimeInMillis())
+					.setEstimatedDuration(r.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+					.setParameters(ParameterProcessors.getInstances(r));
+			if (isInternal(r)) {
+				event.setPhaseType(PhaseType.INTERNAL);
+			} else {
+				event.setPhaseType(PhaseType.POST);
+			}
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		}
+	}
 
-            if (r.getParent().getParent() != null && r.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-                event
-                        .setParentCiId(r.getParent().getParent().getFullName())
-                        .setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
-                        .setProjectDisplayName(r.getParent().getFullName());
-            }
+	@Override
+	public void onFinalized(Run r) {
+		if (noGoConfiguration()) {
+			return;
+		}
+		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+			return;
+		}
 
-            OctaneSDK.getInstance().getEventsService().publishEvent(event);
-            //events on the internal stages of the workflowRun are handled in this place:
-            // com.hpe.application.automation.tools.octane.workflow.WorkflowGraphListener
+		CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
 
-        } else {
-            if (r.getParent() instanceof MatrixConfiguration) {
-                event = dtoFactory.newDTO(CIEvent.class)
-                        .setEventType(CIEventType.STARTED)
-                        .setProject(BuildHandlerUtils.getJobCiId(r))
-                        .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-                        .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-                        .setNumber(String.valueOf(r.getNumber()))
-                        .setStartTime(r.getStartTimeInMillis())
-                        .setEstimatedDuration(r.getEstimatedDuration())
-                        .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-                        .setParameters(ParameterProcessors.getInstances(r));
-                if (isInternal(r)) {
-                    event.setPhaseType(PhaseType.INTERNAL);
-                } else {
-                    event.setPhaseType(PhaseType.POST);
-                }
-                OctaneSDK.getInstance().getEventsService().publishEvent(event);
-            } else if (r instanceof AbstractBuild) {
-                event = dtoFactory.newDTO(CIEvent.class)
-                        .setEventType(CIEventType.STARTED)
-                        .setProject(BuildHandlerUtils.getJobCiId(r))
-                        .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-                        .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-                        .setNumber(String.valueOf(r.getNumber()))
-                        .setStartTime(r.getStartTimeInMillis())
-                        .setEstimatedDuration(r.getEstimatedDuration())
-                        .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-                        .setParameters(ParameterProcessors.getInstances(r));
-                if (isInternal(r)) {
-                    event.setPhaseType(PhaseType.INTERNAL);
-                } else {
-                    event.setPhaseType(PhaseType.POST);
-                }
-                OctaneSDK.getInstance().getEventsService().publishEvent(event);
-            }
-        }
-    }
+		boolean hasTests = testListener.processBuild(r);
 
-    @Override
-    public void onFinalized(Run r) {
-        if (onFinelizedValidations()) return;
+		CIBuildResult result;
+		result = getCiBuildResult(r);
+		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.FINISHED)
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+				.setNumber(String.valueOf(r.getNumber()))
+				.setProject(BuildHandlerUtils.getJobCiId(r))
+				.setStartTime(r.getStartTimeInMillis())
+				.setEstimatedDuration(r.getEstimatedDuration())
+				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+				.setResult(result)
+				.setDuration(r.getDuration())
+				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
+				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
+				.setTestResultExpected(hasTests);
 
-        CommonOriginRevision commonOriginRevision = getCommonOriginRevision(r);
+		if (r instanceof AbstractBuild) {
+			event.setParameters(ParameterProcessors.getInstances(r))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+		}
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
 
-        boolean hasTests = testListener.processBuild(r);
+	private boolean noGoConfiguration() {
+		return ConfigurationService.getServerConfiguration() == null ||
+				!ConfigurationService.getServerConfiguration().isValid() ||
+				ConfigurationService.getModel().isSuspend();
+	}
 
-        CIBuildResult result;
-        result = getCiBuildResult(r);
-        CIEvent event = getCiEvent(r, commonOriginRevision, hasTests, result);
+	private CIBuildResult getCiBuildResult(Run r) {
+		CIBuildResult result;
+		if (r.getResult() == Result.SUCCESS) {
+			result = CIBuildResult.SUCCESS;
+		} else if (r.getResult() == Result.ABORTED) {
+			result = CIBuildResult.ABORTED;
+		} else if (r.getResult() == Result.FAILURE) {
+			result = CIBuildResult.FAILURE;
+		} else if (r.getResult() == Result.UNSTABLE) {
+			result = CIBuildResult.UNSTABLE;
+		} else {
+			result = CIBuildResult.UNAVAILABLE;
+		}
+		return result;
+	}
 
-        if (r instanceof AbstractBuild) {
-            event.setParameters(ParameterProcessors.getInstances(r))
-                    .setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
-        }
-        OctaneSDK.getInstance().getEventsService().publishEvent(event);
-    }
+	private CommonOriginRevision getCommonOriginRevision(Run r) {
+		CommonOriginRevision commonOriginRevision = null;
+		if (r instanceof AbstractBuild) {
+			final SCM scm = ((AbstractBuild) r).getProject().getScm();
+			if (scm != null) {
+				SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+				if (scmProcessor != null) {
+					commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
+				}
+			}
+		}
+		return commonOriginRevision;
+	}
 
+	//  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well
+	private boolean isInternal(Run r) {
+		boolean result = false;
 
-    private CIEvent getCiEvent(Run r, CommonOriginRevision commonOriginRevision, boolean hasTests, CIBuildResult result) {
-        return dtoFactory.newDTO(CIEvent.class)
-                .setEventType(CIEventType.FINISHED)
-                .setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
-                .setNumber(String.valueOf(r.getNumber()))
-                .setProject(BuildHandlerUtils.getJobCiId(r))
-                .setStartTime(r.getStartTimeInMillis())
-                .setEstimatedDuration(r.getEstimatedDuration())
-                .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-                .setResult(result)
-                .setDuration(r.getDuration())
-                .setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
-                .setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
-                .setTestResultExpected(hasTests);
-    }
+		//  get upstream cause, if any
+		Cause.UpstreamCause upstreamCause = null;
+		for (Object cause : r.getCauses()) {
+			if (cause instanceof Cause.UpstreamCause) {
+				upstreamCause = (Cause.UpstreamCause) cause;
+				break;          //  TODO: here we are breaking the merged build support
+			}
+		}
 
-    private boolean onFinelizedValidations() {
-        return (!ConfigurationService.getServerConfiguration().isValid() ||
-                ConfigurationService.getModel().isSuspend());
-    }
+		if (upstreamCause != null) {
+			String causeJobName = upstreamCause.getUpstreamProject();
+			TopLevelItem parent = Jenkins.get().getItem(causeJobName);
+			if (parent == null) {
+				if (causeJobName.contains("/") && !causeJobName.contains(",")) {
+					parent = getJobFromFolder(causeJobName);
+					if (parent == null) {
+						result = false;
+					}
+				}
+			} else {
+				if (parent.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+					result = true;
+				} else {
+					List<PipelinePhase> phases = JobProcessorFactory.getFlowProcessor((Job) parent).getInternals();
+					for (PipelinePhase p : phases) {
+						for (PipelineNode n : p.getJobs()) {
+							if (n != null && n.getName().equals(r.getParent().getName())) {
+								return true;
+							}
+						}
+					}
+					return false;
+				}
+			}
+		}
+		return result;
+	}
 
-    private CIBuildResult getCiBuildResult(Run r) {
-        CIBuildResult result;
-        if (r.getResult() == Result.SUCCESS) {
-            result = CIBuildResult.SUCCESS;
-        } else if (r.getResult() == Result.ABORTED) {
-            result = CIBuildResult.ABORTED;
-        } else if (r.getResult() == Result.FAILURE) {
-            result = CIBuildResult.FAILURE;
-        } else if (r.getResult() == Result.UNSTABLE) {
-            result = CIBuildResult.UNSTABLE;
-        } else {
-            result = CIBuildResult.UNAVAILABLE;
-        }
-        return result;
-    }
+	private static TopLevelItem getJobFromFolder(String causeJobName) {
+		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
+		TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
+		if (item != null) {
+			Collection<? extends Job> allJobs = item.getAllJobs();
+			for (Job job : allJobs) {
+				if (causeJobName.endsWith(job.getName())) {
+					return (TopLevelItem) job;
+				}
+			}
+			return null;
+		}
+		return null;
+	}
 
-    private CommonOriginRevision getCommonOriginRevision(Run r) {
-        CommonOriginRevision commonOriginRevision = null;
-        if (r instanceof AbstractBuild) {
-            final SCM scm = ((AbstractBuild) r).getProject().getScm();
-            if (scm != null) {
-                SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
-                if (scmProcessor != null) {
-                    commonOriginRevision = scmProcessor.getCommonOriginRevision(r);
-                }
-            }
-        }
-        return commonOriginRevision;
-    }
-
-    //  TODO: [YG] this method should be part of causes factory or something like this, it is not suitable for merged build as well
-    private boolean isInternal(Run r) {
-        boolean result = false;
-
-        //  get upstream cause, if any
-        Cause.UpstreamCause upstreamCause = null;
-        for (Cause cause : (List<Cause>) r.getCauses()) {
-            if (cause instanceof Cause.UpstreamCause) {
-                upstreamCause = (Cause.UpstreamCause) cause;
-                break;          //  TODO: here we are breaking the merged build support
-            }
-        }
-
-        if (upstreamCause != null) {
-            String causeJobName = upstreamCause.getUpstreamProject();
-            TopLevelItem parent = Jenkins.getInstance().getItem(causeJobName);
-            if (parent == null) {
-                if (causeJobName.contains("/") && !causeJobName.contains(",")) {
-                    parent = getJobFromFolder(causeJobName);
-                    if (parent == null) {
-                        result = false;
-                    }
-                }
-            } else {
-                if (parent.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-                    result = true;
-                } else {
-                    List<PipelinePhase> phases = JobProcessorFactory.getFlowProcessor((Job) parent).getInternals();
-                    for (PipelinePhase p : phases) {
-                        for (PipelineNode n : p.getJobs()) {
-                            if (n != null && n.getName().equals(r.getParent().getName())) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        return result;
-    }
-
-    private static TopLevelItem getJobFromFolder(String causeJobName) {
-        String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
-        TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
-        if (item != null) {
-            Collection<? extends Job> allJobs = item.getAllJobs();
-            for (Job job : allJobs) {
-                if (causeJobName.endsWith(job.getName())) {
-                    return (TopLevelItem) job;
-                }
-            }
-            return null;
-        }
-        return null;
-    }
-
-    private static List<Cause> extractCauses(Run<?, ?> r) {
-        if (r.getParent() instanceof MatrixConfiguration) {
-            return ((MatrixRun) r).getParentBuild().getCauses();
-        }
-        return r.getCauses();
-    }
+	private static List<Cause> extractCauses(Run<?, ?> r) {
+		if (r.getParent() instanceof MatrixConfiguration) {
+			return ((MatrixRun) r).getParentBuild().getCauses();
+		}
+		return r.getCauses();
+	}
 }
