@@ -36,6 +36,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.param
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessors;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -88,16 +89,7 @@ public class ModelFactory {
 			status = CIBuildStatus.RUNNING;
 		}
 
-		CIBuildResult result = CIBuildResult.UNAVAILABLE;
-		if (build.getResult() == Result.SUCCESS) {
-			result = CIBuildResult.SUCCESS;
-		} else if (build.getResult() == Result.ABORTED) {
-			result = CIBuildResult.ABORTED;
-		} else if (build.getResult() == Result.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (build.getResult() == Result.UNSTABLE) {
-			result = CIBuildResult.UNSTABLE;
-		}
+		CIBuildResult result = BuildHandlerUtils.translateRunResult(build);
 
 		if (!metaOnly) {
 			AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(build.getParent());

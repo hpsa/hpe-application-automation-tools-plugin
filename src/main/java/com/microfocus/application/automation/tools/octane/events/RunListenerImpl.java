@@ -30,7 +30,6 @@ import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
@@ -126,8 +125,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 		boolean hasTests = testListener.processBuild(r);
 
-		CIBuildResult result;
-		result = getCiBuildResult(r);
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
@@ -136,7 +133,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 				.setStartTime(r.getStartTimeInMillis())
 				.setEstimatedDuration(r.getEstimatedDuration())
 				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-				.setResult(result)
+				.setResult(BuildHandlerUtils.translateRunResult(r))
 				.setDuration(r.getDuration())
 				.setCommonHashId(commonOriginRevision != null ? commonOriginRevision.revision : null)
 				.setBranchName(commonOriginRevision != null ? commonOriginRevision.branch : null)
@@ -153,22 +150,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return ConfigurationService.getServerConfiguration() == null ||
 				!ConfigurationService.getServerConfiguration().isValid() ||
 				ConfigurationService.getModel().isSuspend();
-	}
-
-	private CIBuildResult getCiBuildResult(Run r) {
-		CIBuildResult result;
-		if (r.getResult() == Result.SUCCESS) {
-			result = CIBuildResult.SUCCESS;
-		} else if (r.getResult() == Result.ABORTED) {
-			result = CIBuildResult.ABORTED;
-		} else if (r.getResult() == Result.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (r.getResult() == Result.UNSTABLE) {
-			result = CIBuildResult.UNSTABLE;
-		} else {
-			result = CIBuildResult.UNAVAILABLE;
-		}
-		return result;
 	}
 
 	private CommonOriginRevision getCommonOriginRevision(Run r) {

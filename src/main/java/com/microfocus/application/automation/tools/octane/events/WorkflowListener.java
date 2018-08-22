@@ -22,11 +22,8 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
-import com.cloudbees.workflow.rest.external.StageNodeExt;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.causes.CIEventCause;
-import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -43,16 +40,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.actions.TimingAction;
+import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
-import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Octane's listener for WorkflowRun events
@@ -66,41 +60,28 @@ import java.util.*;
 
 @Extension
 public class WorkflowListener implements GraphListener {
-	private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
+	private static final Logger logger = LogManager.getLogger(WorkflowListener.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
 	public void onNewHead(FlowNode flowNode) {
-		if (isWorkflowStartNode(flowNode)) {
+		if (flowNode.getAction(WorkspaceAction.class) != null) {
+			System.out.println(flowNode);
+		}
+
+		if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
 			sendPipelineStartedEvent(flowNode);
-		} else if (isStageStartNode(flowNode)) {
-			sendStageStartedEvent((StepStartNode) flowNode);
-		} else if (isStageEndNode(flowNode)) {
-			sendStageFinishedEvent((StepEndNode) flowNode);
-		} else if (isWorkflowEndNode(flowNode)) {
+		} else if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
 			sendPipelineFinishedEvent((FlowEndNode) flowNode);
+		} else if (BuildHandlerUtils.isStageStartNode(flowNode)) {
+			sendStageStartedEvent((StepStartNode) flowNode);
+		} else if (BuildHandlerUtils.isStageEndNode(flowNode)) {
+			sendStageFinishedEvent((StepEndNode) flowNode);
 		}
 	}
 
-	private static boolean isWorkflowStartNode(FlowNode flowNode) {
-		return flowNode.getParents().isEmpty() ||
-				flowNode.getParents().stream().anyMatch(fn -> fn instanceof FlowStartNode);
-	}
-
-	private static boolean isStageStartNode(FlowNode flowNode) {
-		return flowNode instanceof StepStartNode && StageNodeExt.isStageNode(flowNode);
-	}
-
-	private static boolean isStageEndNode(FlowNode flowNode) {
-		return flowNode instanceof StepEndNode && StageNodeExt.isStageNode(((StepEndNode) flowNode).getStartNode());
-	}
-
-	private static boolean isWorkflowEndNode(FlowNode flowNode) {
-		return flowNode instanceof FlowEndNode;
-	}
-
 	private void sendPipelineStartedEvent(FlowNode flowNode) {
-		WorkflowRun parentRun = extractParentRun(flowNode);
+		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
 				.setProject(BuildHandlerUtils.getJobCiId(parentRun))
@@ -109,7 +90,7 @@ public class WorkflowListener implements GraphListener {
 				.setParameters(ParameterProcessors.getInstances(parentRun))
 				.setStartTime(parentRun.getStartTimeInMillis())
 				.setEstimatedDuration(parentRun.getEstimatedDuration())
-				.setCauses(extractCausesOfRun(parentRun));
+				.setCauses(CIEventCausesFactory.processCauses(parentRun.getCauses()));
 
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 			event
@@ -121,38 +102,8 @@ public class WorkflowListener implements GraphListener {
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
-	private void sendStageStartedEvent(StepStartNode stepStartNode) {
-		CIEvent event;
-		WorkflowRun parentRun = extractParentRun(stepStartNode);
-		event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.STARTED)
-				.setPhaseType(PhaseType.POST)
-				.setProject(stepStartNode.getDisplayName())
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
-				.setNumber(String.valueOf(parentRun.getNumber()))
-				.setStartTime(TimingAction.getStartTime(stepStartNode))
-				.setCauses(extractCausesOfChild(stepStartNode));
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
-	}
-
-	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
-		WorkflowRun parentRun = extractParentRun(stepEndNode);
-		StepStartNode stepStartNode = stepEndNode.getStartNode();
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.FINISHED)
-				.setPhaseType(PhaseType.POST)
-				.setProject(stepStartNode.getDisplayName())
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
-				.setNumber(String.valueOf(parentRun.getNumber()))
-				.setStartTime(TimingAction.getStartTime(stepStartNode))
-				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
-				.setResult(extractFlowNodeResult(stepEndNode))
-				.setCauses(extractCausesOfChild(stepEndNode));
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
-	}
-
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
-		WorkflowRun parentRun = extractParentRun(flowEndNode);
+		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
 
 		//boolean hasTests = testListener.processBuild(r);
 
@@ -165,9 +116,39 @@ public class WorkflowListener implements GraphListener {
 				.setStartTime(parentRun.getStartTimeInMillis())
 				.setEstimatedDuration(parentRun.getEstimatedDuration())
 				.setDuration(parentRun.getDuration())
-				.setResult(extractWorkflowResult(parentRun))
-				.setCauses(extractCausesOfRun(parentRun))
+				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
+				.setCauses(CIEventCausesFactory.processCauses(parentRun.getCauses()))
 				.setTestResultExpected(false);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private void sendStageStartedEvent(StepStartNode stepStartNode) {
+		CIEvent event;
+		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepStartNode);
+		event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.STARTED)
+				.setPhaseType(PhaseType.POST)
+				.setProject(stepStartNode.getDisplayName())
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
+				.setNumber(String.valueOf(parentRun.getNumber()))
+				.setStartTime(TimingAction.getStartTime(stepStartNode))
+				.setCauses(CIEventCausesFactory.processCauses(stepStartNode));
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
+		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepEndNode);
+		StepStartNode stepStartNode = stepEndNode.getStartNode();
+		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.FINISHED)
+				.setPhaseType(PhaseType.POST)
+				.setProject(stepStartNode.getDisplayName())
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
+				.setNumber(String.valueOf(parentRun.getNumber()))
+				.setStartTime(TimingAction.getStartTime(stepStartNode))
+				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
+				.setResult(extractFlowNodeResult(stepEndNode))
+				.setCauses(CIEventCausesFactory.processCauses(stepEndNode));
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
@@ -177,80 +158,6 @@ public class WorkflowListener implements GraphListener {
 				return CIBuildResult.FAILURE;
 		}
 		return CIBuildResult.SUCCESS;
-	}
-
-	private CIBuildResult extractWorkflowResult(WorkflowRun run) {
-		CIBuildResult result;
-		if (run.getResult() == Result.SUCCESS) {
-			result = CIBuildResult.SUCCESS;
-		} else if (run.getResult() == Result.ABORTED) {
-			result = CIBuildResult.ABORTED;
-		} else if (run.getResult() == Result.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (run.getResult() == Result.UNSTABLE) {
-			result = CIBuildResult.UNSTABLE;
-		} else {
-			result = CIBuildResult.UNAVAILABLE;
-		}
-		return result;
-	}
-
-	private List<CIEventCause> extractCausesOfRun(WorkflowRun run) {
-		return CIEventCausesFactory.processCauses(run.getCauses());
-	}
-
-	private List<CIEventCause> extractCausesOfChild(FlowNode flowNode) {
-		List<CIEventCause> causes = new LinkedList<>();
-		processCauses(flowNode, causes, new LinkedHashSet<>());
-		return causes;
-	}
-
-	private static WorkflowRun extractParentRun(FlowNode flowNode) {
-		try {
-			return (WorkflowRun) flowNode.getExecution().getOwner().getExecutable();
-		} catch (IOException ioe) {
-			logger.error("failed to extract parent workflow run from " + flowNode, ioe);
-			throw new IllegalStateException("failed to extract parent workflow run from " + flowNode);
-		}
-	}
-
-	private static void processCauses(FlowNode flowNode, List<CIEventCause> causes, Set<FlowNode> startStagesToSkip) {
-		//  we reached the start of the flow - add WorkflowRun as an initial UPSTREAM cause
-		if (flowNode.getParents().isEmpty()) {
-			WorkflowRun parentRun = extractParentRun(flowNode);
-			CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
-					.setType(CIEventCauseType.UPSTREAM)
-					.setProject(BuildHandlerUtils.getJobCiId(parentRun))
-					.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
-					.setCauses(CIEventCausesFactory.processCauses((parentRun.getCauses())));
-			causes.add(cause);
-		}
-
-		//  if we are calculating causes for the END STEP - exclude it's own START STEP from calculation
-		if (isStageEndNode(flowNode)) {
-			startStagesToSkip.add(((StepEndNode) flowNode).getStartNode());
-		}
-
-		for (FlowNode parent : flowNode.getParents()) {
-			if (isStageEndNode(parent)) {
-				startStagesToSkip.add(((StepEndNode) parent).getStartNode());
-				processCauses(parent, causes, startStagesToSkip);
-			} else if (isStageStartNode(parent)) {
-				if (!startStagesToSkip.contains(parent)) {
-					CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
-							.setType(CIEventCauseType.UPSTREAM)
-							.setProject(parent.getDisplayName())
-							.setBuildCiId(String.valueOf(extractParentRun(parent).getNumber()));
-					causes.add(cause);
-					processCauses(parent, cause.getCauses(), startStagesToSkip);
-				} else {
-					startStagesToSkip.remove(parent);
-					processCauses(parent, causes, startStagesToSkip);
-				}
-			} else {
-				processCauses(parent, causes, startStagesToSkip);
-			}
-		}
 	}
 
 	private static FlowNode processCauses(Job job) {

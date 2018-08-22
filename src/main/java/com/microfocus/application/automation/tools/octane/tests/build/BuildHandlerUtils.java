@@ -22,24 +22,35 @@
 
 package com.microfocus.application.automation.tools.octane.tests.build;
 
+import com.cloudbees.workflow.rest.external.StageNodeExt;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
+import hudson.model.Result;
 import hudson.model.Run;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
+import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowGraphWalker;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+import java.io.IOException;
 
 /**
  * Generic utilities handling Job/Run metadata extraction/transformation/processing
  */
 
 public class BuildHandlerUtils {
+	private static final Logger logger = LogManager.getLogger(BuildHandlerUtils.class);
 
 	public static BuildDescriptor getBuildType(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
@@ -107,5 +118,47 @@ public class BuildHandlerUtils {
 	public static String translateFolderJobName(String jobPlainName) {
 		String newSplitterCharacters = "/job/";
 		return jobPlainName.replaceAll("/", newSplitterCharacters);
+	}
+
+	public static CIBuildResult translateRunResult(Run run) {
+		CIBuildResult result;
+		if (run.getResult() == Result.SUCCESS) {
+			result = CIBuildResult.SUCCESS;
+		} else if (run.getResult() == Result.ABORTED) {
+			result = CIBuildResult.ABORTED;
+		} else if (run.getResult() == Result.FAILURE) {
+			result = CIBuildResult.FAILURE;
+		} else if (run.getResult() == Result.UNSTABLE) {
+			result = CIBuildResult.UNSTABLE;
+		} else {
+			result = CIBuildResult.UNAVAILABLE;
+		}
+		return result;
+	}
+
+	public static boolean isWorkflowStartNode(FlowNode flowNode) {
+		return flowNode.getParents().isEmpty() ||
+				flowNode.getParents().stream().anyMatch(fn -> fn instanceof FlowStartNode);
+	}
+
+	public static boolean isStageStartNode(FlowNode flowNode) {
+		return flowNode instanceof StepStartNode && StageNodeExt.isStageNode(flowNode);
+	}
+
+	public static boolean isStageEndNode(FlowNode flowNode) {
+		return flowNode instanceof StepEndNode && StageNodeExt.isStageNode(((StepEndNode) flowNode).getStartNode());
+	}
+
+	public static boolean isWorkflowEndNode(FlowNode flowNode) {
+		return flowNode instanceof FlowEndNode;
+	}
+
+	public static WorkflowRun extractParentRun(FlowNode flowNode) {
+		try {
+			return (WorkflowRun) flowNode.getExecution().getOwner().getExecutable();
+		} catch (IOException ioe) {
+			logger.error("failed to extract parent workflow run from " + flowNode, ioe);
+			throw new IllegalStateException("failed to extract parent workflow run from " + flowNode);
+		}
 	}
 }
