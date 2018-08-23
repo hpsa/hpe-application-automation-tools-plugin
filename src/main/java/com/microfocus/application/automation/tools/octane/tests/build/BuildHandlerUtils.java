@@ -141,16 +141,16 @@ public class BuildHandlerUtils {
 				flowNode.getParents().stream().anyMatch(fn -> fn instanceof FlowStartNode);
 	}
 
+	public static boolean isWorkflowEndNode(FlowNode flowNode) {
+		return flowNode instanceof FlowEndNode;
+	}
+
 	public static boolean isStageStartNode(FlowNode flowNode) {
 		return flowNode instanceof StepStartNode && StageNodeExt.isStageNode(flowNode);
 	}
 
 	public static boolean isStageEndNode(FlowNode flowNode) {
-		return flowNode instanceof StepEndNode && StageNodeExt.isStageNode(((StepEndNode) flowNode).getStartNode());
-	}
-
-	public static boolean isWorkflowEndNode(FlowNode flowNode) {
-		return flowNode instanceof FlowEndNode;
+		return flowNode instanceof StepEndNode && isStageStartNode(((StepEndNode) flowNode).getStartNode());
 	}
 
 	public static WorkflowRun extractParentRun(FlowNode flowNode) {

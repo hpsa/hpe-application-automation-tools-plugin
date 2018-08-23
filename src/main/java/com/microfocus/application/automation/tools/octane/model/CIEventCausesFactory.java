@@ -32,6 +32,8 @@ import hudson.model.Cause;
 import hudson.model.Run;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
@@ -51,6 +53,7 @@ import java.util.Set;
  */
 
 public final class CIEventCausesFactory {
+	private static final Logger logger = LogManager.getLogger(CIEventCausesFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private CIEventCausesFactory() {
@@ -176,6 +179,7 @@ public final class CIEventCausesFactory {
 		}
 	}
 
+	//  [YG] TODO: when we'll raise a version of pipeline-build-step plugin to 2.7 or above (now 2.2) we'll be able to do this in a much easier and cleaner way
 	private static FlowNode lookupJobEnclosingNode(Run targetRun, List<FlowNode> potentialAncestors) {
 		if (potentialAncestors == null || potentialAncestors.isEmpty()) {
 			return null;
@@ -187,13 +191,15 @@ public final class CIEventCausesFactory {
 				StepDescriptor descriptor = ((StepAtomNode) head).getDescriptor();
 				String label = head.getAction(LabelAction.class).getDisplayName();
 				if (descriptor != null && descriptor.getId().endsWith("BuildTriggerStep") &&
-						label != null && label.endsWith(targetRun.getParent().getDisplayName())) {
+						label != null && label.endsWith(targetRun.getParent().getFullDisplayName())) {
 					result = head;
-					break;
 				}
 			}
 			if (result == null) {
 				result = lookupJobEnclosingNode(targetRun, head.getParents());
+			}
+			if (result != null) {
+				break;
 			}
 		}
 		return result;
