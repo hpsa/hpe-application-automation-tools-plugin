@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Micro Focus Company")]
 [assembly: AssemblyProduct("MicroFocusToolsLauncherTests")]
-[assembly: AssemblyCopyright("Copyright © Micro Focus Company 2018")]
+[assembly: AssemblyCopyright("Copyright © Micro Focus 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
