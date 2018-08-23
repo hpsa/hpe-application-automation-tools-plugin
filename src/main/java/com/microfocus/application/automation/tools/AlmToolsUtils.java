@@ -92,10 +92,10 @@ public class AlmToolsUtils {
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
 
-        String microFocusToolsAborter_exe = "MicroFocusToolsAborter.exe";
+        String hpToolsAborter_exe = "HpToolsAborter.exe";
 
-		URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("MicroFocusToolsAborter.exe");
-        FilePath hpToolsAborterFile = runWorkspace.child(microFocusToolsAborter_exe);
+		URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
+        FilePath hpToolsAborterFile = runWorkspace.child(hpToolsAborter_exe);
         
         args.add(hpToolsAborterFile);
         args.add(paramFileName);

@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HpToolsLauncher</RootNamespace>
-    <AssemblyName>MicroFocusToolsLauncher</AssemblyName>
+    <AssemblyName>HpToolsLauncher</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>

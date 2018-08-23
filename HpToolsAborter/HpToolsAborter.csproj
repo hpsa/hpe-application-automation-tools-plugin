@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HpToolsAborter</RootNamespace>
-    <AssemblyName>MicroFocusToolsAborter</AssemblyName>
+    <AssemblyName>HpToolsAborter</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -35,10 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MicroFocusToolsLauncher, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="HpToolsLauncher, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>..\..\bin\MicroFocusToolsLauncher.exe</HintPath>
+      <HintPath>..\..\bin\HpToolsLauncher.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

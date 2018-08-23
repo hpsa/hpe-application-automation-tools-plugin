@@ -75,9 +75,9 @@ namespace HpToolsLauncher
 
         private static void ShowHelp()
         {
-            Console.WriteLine("Micro Focus Automation Tools Command Line Executer");
+            Console.WriteLine("HPE Automation Tools Command Line Executer");
             Console.WriteLine();
-            Console.Write("Usage: MicroFocusToolsLauncher.exe");
+            Console.Write("Usage: HpToolsLauncher.exe");
             Console.Write("  -paramfile ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("<a file in key=value format> ");
