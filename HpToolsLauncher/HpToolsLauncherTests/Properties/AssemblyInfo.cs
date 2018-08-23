@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MicroFocusToolsLauncherTests")]
+[assembly: AssemblyTitle("HpToolsLauncherTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Micro Focus Company")]
-[assembly: AssemblyProduct("MicroFocusToolsLauncherTests")]
-[assembly: AssemblyCopyright("Copyright © Micro Focus 2018")]
+[assembly: AssemblyCompany("Hewlett-Packard Company")]
+[assembly: AssemblyProduct("HpToolsLauncherTests")]
+[assembly: AssemblyCopyright("Copyright © Hewlett-Packard Company 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

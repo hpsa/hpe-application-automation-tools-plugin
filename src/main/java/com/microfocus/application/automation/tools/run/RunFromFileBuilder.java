@@ -668,12 +668,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		} catch (IOException ioe) {
 			Util.displayIOException(ioe, listener);
 			build.setResult(Result.FAILURE);
-			listener.error("Failed running MicroFocusToolsLauncher " + ioe);
+			listener.error("Failed running HpToolsLauncher " + ioe);
 			return;
 		} catch (InterruptedException e) {
 			build.setResult(Result.ABORTED);
 			PrintStream out = listener.getLogger();
-			listener.error("Failed running MicroFocusToolsLauncher - build aborted " + e);
+			listener.error("Failed running HpToolsLauncher - build aborted " + e);
 
 			try {
 				AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
@@ -682,7 +682,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				build.setResult(Result.FAILURE);
 				return;
 			} catch (InterruptedException e1) {
-				listener.error("Failed running MicroFocusToolsAborter " + e1);
+				listener.error("Failed running HpToolsAborter " + e1);
 			}
 			out.println("Operation Was aborted by user.");
 		}
