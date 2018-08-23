@@ -37,6 +37,7 @@ import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -89,22 +90,11 @@ public final class CIEventCausesFactory {
 					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
 					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
 					if (rootWFRun.getExecution() != null && rootWFRun.getExecution().getCurrentHeads() != null) {
-						for (FlowNode head : rootWFRun.getExecution().getCurrentHeads()) {
-							if (!(head instanceof StepAtomNode)) {
-								continue;
-							}
-							StepAtomNode stepAtomNode = (StepAtomNode) head;
-							if (stepAtomNode.getDescriptor() != null &&
-									stepAtomNode.getDescriptor().getId().endsWith("BuildTriggerStep") &&
-									stepAtomNode.getAction(LabelAction.class) != null) {
-								String label = stepAtomNode.getAction(LabelAction.class).getDisplayName();
-								if (label != null && label.endsWith(run.getParent().getDisplayName())) {
-									List<CIEventCause> flowCauses = processCauses(stepAtomNode);
-									result.addAll(flowCauses);
-									succeededToBuildFlowCauses = true;
-									break;
-								}
-							}
+						FlowNode enclosingNode = lookupJobEnclosingNode(run, rootWFRun.getExecution().getCurrentHeads());
+						if (enclosingNode != null) {
+							List<CIEventCause> flowCauses = processCauses(enclosingNode);
+							result.addAll(flowCauses);
+							succeededToBuildFlowCauses = true;
 						}
 					}
 				}
@@ -184,5 +174,28 @@ public final class CIEventCausesFactory {
 		} else {
 			return run.getCauses();
 		}
+	}
+
+	private static FlowNode lookupJobEnclosingNode(Run targetRun, List<FlowNode> potentialAncestors) {
+		if (potentialAncestors == null || potentialAncestors.isEmpty()) {
+			return null;
+		}
+
+		FlowNode result = null;
+		for (FlowNode head : potentialAncestors) {
+			if (head instanceof StepAtomNode && head.getAction(LabelAction.class) != null) {
+				StepDescriptor descriptor = ((StepAtomNode) head).getDescriptor();
+				String label = head.getAction(LabelAction.class).getDisplayName();
+				if (descriptor != null && descriptor.getId().endsWith("BuildTriggerStep") &&
+						label != null && label.endsWith(targetRun.getParent().getDisplayName())) {
+					result = head;
+					break;
+				}
+			}
+			if (result == null) {
+				result = lookupJobEnclosingNode(targetRun, head.getParents());
+			}
+		}
+		return result;
 	}
 }
