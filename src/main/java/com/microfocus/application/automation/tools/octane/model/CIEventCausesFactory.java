@@ -29,6 +29,7 @@ import com.microfocus.application.automation.tools.octane.tests.build.BuildHandl
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
+import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
@@ -41,6 +42,7 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,7 +95,7 @@ public final class CIEventCausesFactory {
 					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
 					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
 					if (rootWFRun.getExecution() != null && rootWFRun.getExecution().getCurrentHeads() != null) {
-						FlowNode enclosingNode = lookupJobEnclosingNode(run, rootWFRun.getExecution().getCurrentHeads());
+						FlowNode enclosingNode = lookupJobEnclosingNode(run, rootWFRun);
 						if (enclosingNode != null) {
 							List<CIEventCause> flowCauses = processCauses(enclosingNode);
 							result.addAll(flowCauses);
@@ -179,29 +181,49 @@ public final class CIEventCausesFactory {
 		}
 	}
 
-	//  [YG] TODO: when we'll raise a version of pipeline-build-step plugin to 2.7 or above (now 2.2) we'll be able to do this in a much easier and cleaner way
-	private static FlowNode lookupJobEnclosingNode(Run targetRun, List<FlowNode> potentialAncestors) {
-		if (potentialAncestors == null || potentialAncestors.isEmpty()) {
+	private static FlowNode lookupJobEnclosingNode(Run targetRun, WorkflowRun parentRun) {
+		if (parentRun.getExecution() == null) {
 			return null;
 		}
 
 		FlowNode result = null;
-		for (FlowNode head : potentialAncestors) {
-			if (head instanceof StepAtomNode && head.getAction(LabelAction.class) != null) {
-				StepDescriptor descriptor = ((StepAtomNode) head).getDescriptor();
-				String label = head.getAction(LabelAction.class).getDisplayName();
-				if (descriptor != null && descriptor.getId().endsWith("BuildTriggerStep") &&
-						label != null && label.endsWith(targetRun.getParent().getFullDisplayName())) {
-					result = head;
+
+		OctaneParentNodeAction octaneParentNodeAction = targetRun.getAction(OctaneParentNodeAction.class);
+		if (octaneParentNodeAction != null) {
+			//  finished event case - we do expect an action OctaneParentNodeAction to be present with the relevant info
+			try {
+				result = parentRun.getExecution().getNode(octaneParentNodeAction.parentFlowNodeId);
+			} catch (IOException ioe) {
+				logger.error("failed to extract parent flow node for " + targetRun, ioe);
+			}
+		} else {
+			//  started event case - we expect a strict bond here since the parent FlowNode MUST be among the current heads
+			//  the only case for potential break here is if the same JOB will be running concurrently by 2 distinct FlowNodes
+			List<FlowNode> potentialAncestors = parentRun.getExecution().getCurrentHeads();
+			if (potentialAncestors != null) {
+				for (FlowNode head : potentialAncestors) {
+					if (head instanceof StepAtomNode && head.getAction(LabelAction.class) != null) {
+						StepDescriptor descriptor = ((StepAtomNode) head).getDescriptor();
+						String label = head.getAction(LabelAction.class).getDisplayName();
+						if (descriptor != null && descriptor.getId().endsWith("BuildTriggerStep") &&
+								label != null && label.endsWith(targetRun.getParent().getFullDisplayName())) {
+							result = head;
+							targetRun.addAction(new OctaneParentNodeAction(result.getId()));
+							break;
+						}
+					}
 				}
 			}
-			if (result == null) {
-				result = lookupJobEnclosingNode(targetRun, head.getParents());
-			}
-			if (result != null) {
-				break;
-			}
 		}
+
 		return result;
+	}
+
+	private final static class OctaneParentNodeAction extends InvisibleAction {
+		private final String parentFlowNodeId;
+
+		private OctaneParentNodeAction(String parentFlowNodeId) {
+			this.parentFlowNodeId = parentFlowNodeId;
+		}
 	}
 }
