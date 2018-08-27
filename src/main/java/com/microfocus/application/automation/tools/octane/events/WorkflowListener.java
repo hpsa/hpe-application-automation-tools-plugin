@@ -33,9 +33,11 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.*;
+import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
@@ -104,8 +106,8 @@ public class WorkflowListener implements GraphListener {
 
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
-
-		//boolean hasTests = testListener.processBuild(r);
+		TestListener testListener = Jenkins.getInstance().getExtensionList(TestListener.class).get(0);
+		boolean hasTests = testListener.processBuild(parentRun);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
@@ -118,7 +120,7 @@ public class WorkflowListener implements GraphListener {
 				.setDuration(parentRun.getDuration())
 				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
 				.setCauses(CIEventCausesFactory.processCauses(parentRun))
-				.setTestResultExpected(false);
+				.setTestResultExpected(hasTests);
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
