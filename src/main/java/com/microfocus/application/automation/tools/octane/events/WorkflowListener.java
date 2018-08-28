@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
+import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 
@@ -37,7 +38,6 @@ import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.*;
-import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
@@ -65,12 +65,11 @@ public class WorkflowListener implements GraphListener {
 	private static final Logger logger = LogManager.getLogger(WorkflowListener.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	@Inject
+	private TestListener testListener;
+
 	@Override
 	public void onNewHead(FlowNode flowNode) {
-		if (flowNode.getAction(WorkspaceAction.class) != null) {
-			System.out.println(flowNode);
-		}
-
 		if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
 			sendPipelineStartedEvent(flowNode);
 		} else if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
@@ -106,7 +105,6 @@ public class WorkflowListener implements GraphListener {
 
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
-		TestListener testListener = Jenkins.getInstance().getExtensionList(TestListener.class).get(0);
 		boolean hasTests = testListener.processBuild(parentRun);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
@@ -155,10 +153,6 @@ public class WorkflowListener implements GraphListener {
 	}
 
 	private CIBuildResult extractFlowNodeResult(FlowNode node) {
-		for (Action action : node.getActions()) {
-			if (action.getClass().equals(ErrorAction.class))
-				return CIBuildResult.FAILURE;
-		}
-		return CIBuildResult.SUCCESS;
+		return node.getAction(ErrorAction.class) != null ? CIBuildResult.FAILURE : CIBuildResult.SUCCESS;
 	}
 }
