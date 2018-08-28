@@ -121,6 +121,7 @@ public class WorkflowListener implements GraphListener {
 	}
 
 	private void sendStageStartedEvent(StepStartNode stepStartNode) {
+		logger.debug("node " + stepStartNode + " detected as Stage Start node");
 		CIEvent event;
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepStartNode);
 		event = dtoFactory.newDTO(CIEvent.class)
@@ -135,6 +136,7 @@ public class WorkflowListener implements GraphListener {
 	}
 
 	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
+		logger.debug("node " + stepEndNode + " detected as Stage End node");
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepEndNode);
 		StepStartNode stepStartNode = stepEndNode.getStartNode();
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
