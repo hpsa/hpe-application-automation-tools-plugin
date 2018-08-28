@@ -100,7 +100,7 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 			FileInputStream testResultsData;
 			try {
-				testResultsData = new FileInputStream(run.getRootDir() + File.pathSeparator + TestListener.TEST_RESULT_FILE);
+				testResultsData = new FileInputStream(run.getRootDir() + File.separator + TestListener.TEST_RESULT_FILE);
 			} catch (FileNotFoundException fnfe) {
 				logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + item.getProjectName() + " #" + item.getBuildNumber() + "' won't be pushed to Octane", fnfe);
 				queue.remove();
