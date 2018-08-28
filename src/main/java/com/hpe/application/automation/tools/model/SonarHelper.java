@@ -1,12 +1,19 @@
 package com.hpe.application.automation.tools.model;
 
+import com.hpe.application.automation.tools.octane.actions.Webhooks;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.plugins.sonar.SonarRunnerBuilder;
 import hudson.tasks.Builder;
 import hudson.util.DescribableList;
+import jenkins.model.Jenkins;
+import jenkins.security.ApiTokenProperty;
 
+import javax.annotation.CheckForNull;
+import java.io.*;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,11 +23,11 @@ import java.util.regex.Pattern;
  * sonar plugin.
  * this class is only dependent on sonar plugin for compile time.
  */
-public class SonarAdapter {
+public class SonarHelper {
     private final String sonarId = "hudson.plugins.sonar.SonarRunnerBuilder";
     private SonarRunnerBuilder builder = null;
 
-    public SonarAdapter(Run<?, ?> run) {
+    public SonarHelper(Run<?, ?> run) {
         DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
         if (run instanceof AbstractBuild) {
             AbstractBuild abstractBuild = (AbstractBuild) run;
@@ -38,7 +45,7 @@ public class SonarAdapter {
         }
     }
 
-    public SonarAdapter(AbstractProject project) {
+    public SonarHelper(AbstractProject project) {
         DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
         if (project instanceof MavenModuleSet) {
             postbuilders = ((MavenModuleSet) project).getPostbuilders();
@@ -102,5 +109,18 @@ public class SonarAdapter {
         }
         scanner.close();
         return sonarProjectKey;
+    }
+
+
+    public static String get() {
+        // extract token from user
+        String user = ConfigurationService.getModel().getImpersonatedUser();
+        if (user != null && !user.equalsIgnoreCase("")) {
+            User jenkinsUser = User.get(user, false, Collections.emptyMap());
+            if (jenkinsUser != null) {
+                return jenkinsUser.getProperty(ApiTokenProperty.class).getApiToken();
+            }
+        }
+        return "";
     }
 }

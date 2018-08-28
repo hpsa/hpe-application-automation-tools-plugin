@@ -34,14 +34,12 @@
 package com.hpe.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
-import com.hpe.application.automation.tools.model.SonarAdapter;
+import com.hpe.application.automation.tools.model.SonarHelper;
+import com.hpe.application.automation.tools.model.WebhookExpectationAction;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.RootAction;
-import hudson.model.TopLevelItem;
+import hudson.maven.MavenModuleSet;
+import hudson.model.*;
 import jenkins.model.Jenkins;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
@@ -50,9 +48,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 
 /**
@@ -64,14 +62,19 @@ import java.util.HashMap;
  */
 
 @Extension
-public class Webhooks implements RootAction {
+public class Webhooks implements UnprotectedRootAction  {
 	private static final Logger logger = LogManager.getLogger(Webhooks.class);
+	// url details
+	public static final String WEBHOOK_PATH =  "webhooks";
+	public static final String NOTIFY_METHOD =  "/notify";
+	public static final String TOKEN_PREFIX =  "/TOKEN=";
 
-	// params for extracting information from json
+	// json parameter names
 	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
 	private final String SONAR_PROJECT_KEY_NAME = "key";
 	private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
 	private final String PROJECT = "project";
+	private final String IS_EXPECTING_FILE_NAME = "is_expecting.txt";
 
 	public String getIconFileName() {
 		return null;
@@ -82,43 +85,121 @@ public class Webhooks implements RootAction {
 	}
 
 	public String getUrlName() {
-		return "webhooks";
+		return WEBHOOK_PATH;
 	}
 
 	public ConfigApi getConfiguration() {
 		return new ConfigApi();
 	}
 
-	public void doNotify(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		try {
-			JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
-			Object properties = inputNotification.get("properties");
-			// without build context, could not send octane relevant data
-			if (properties != null && properties instanceof HashMap) {
-				// get relevant parameters
-				HashMap sonarAttachedProperties = ((HashMap) properties);
-				String buildNumber = (String) sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME);
+
+	@RequirePOST
+	public void doNotify(StaplerRequest req, StaplerResponse res) throws IOException { logger.info("Received POST from " + req.getRemoteHost());
+		// legal user, handle request
+		JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
+		Object properties = inputNotification.get("properties");
+		// without build context, could not send octane relevant data
+		if (properties != null && properties instanceof HashMap) {
+			// get relevant parameters
+			HashMap sonarAttachedProperties = ((HashMap) properties);
+			// filter notifications from sonar projects, who haven't configured listener parameters
+			if (sonarAttachedProperties.containsKey(BUILD_NUMBER_PARAM_NAME) && sonarAttachedProperties.containsKey(JOB_NAME_PARAM_NAME)) {
+				String buildId = (String)(sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME));
 				String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
 				// get sonar details from job configuration
 				TopLevelItem jenkinsJob = Jenkins.getInstance().getItem(jobName);
-				if (jenkinsJob instanceof AbstractProject) {
-					SonarAdapter adapter = new SonarAdapter(((AbstractProject)jenkinsJob));
-					String serverUrl = adapter.extractSonarUrl();
-					String serverToken = adapter.extractSonarToken();
+				if (isValidJenkinsJob(jenkinsJob)) {
+					AbstractProject jenkinsProject = ((AbstractProject) jenkinsJob);
+					Integer buildNumber = Integer.valueOf(buildId, 10);
+					if (isValidJenkinsBuildNumber(jenkinsProject, buildNumber)) {
+						AbstractBuild build = getBuild(jenkinsProject, buildNumber);
+						if (build != null && isBuildExpectingToGetWebhookCall(build) && !isBuildAlreadyGotWebhookCall(build)) {
+							SonarHelper adapter = new SonarHelper(jenkinsProject);
+							String serverUrl = adapter.extractSonarUrl();
+							String serverToken = adapter.extractSonarToken();
 
-					String serverIdentity = ConfigurationService.getModel().getIdentity();
-					HashMap project = (HashMap) inputNotification.get(PROJECT);
-					String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+							HashMap project = (HashMap) inputNotification.get(PROJECT);
+							String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 
-					// use SDK to fetch and push data
-					OctaneSDK.getInstance().getSonarService().injectSonarDataToOctane(sonarProjectKey, serverIdentity, jobName, buildNumber);
-
+							// use SDK to fetch and push data
+							OctaneSDK.getInstance().getSonarService().enqueueFetchAndPushSonarCoverageToOctane(jobName, buildId, sonarProjectKey, serverUrl, serverToken);
+							markBuildAsRecievedWebhookCall(build, true);
+							res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
+						} else {
+							logger.warn("Got request from sonarqube webhook listener for build ," + buildId + " which is not expecting to get sonarqube data");
+							res.setStatus(HttpStatus.SC_EXPECTATION_FAILED);
+						}
+					} else {
+						logger.warn("Got request from sonarqube webhook listener, but build " + buildId + " context could not be resolved");
+						res.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
+					}
 				}
 			}
-		} catch (OctaneSDKSonarException e) {
-			logger.error("error while receiving webhook call from sonarQube server: " + e.getMessage());
-		} finally {
-			res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
 		}
+	}
+
+
+	private Boolean isBuildAlreadyGotWebhookCall(AbstractBuild build) {
+		try {
+			// build is promised to be exist at this point
+			File rootDir = build.getRootDir();
+			File isExpectingFile = new File(rootDir, IS_EXPECTING_FILE_NAME);
+			FileInputStream fis = new FileInputStream(isExpectingFile);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			Boolean isExpect = (Boolean) ois.readObject();
+			return isExpect;
+		} catch (Exception e) {
+			return Boolean.FALSE;
+		}
+	}
+
+	/**
+	 * use build action to decide whether we need to get a webhook call from sonarqube
+	 * @param build
+	 * @return true or false
+	 */
+	private Boolean isBuildExpectingToGetWebhookCall(AbstractBuild build) {
+		WebhookExpectationAction action = build.getAction(WebhookExpectationAction.class);
+		if (action != null && action.getExpectingToGetWebhookCall()) {
+			return true;
+		}
+		return false;
+	}
+
+
+	// we may get notifications from sonar project of jobs without sonar configuration
+	// or jobs of other CI servers, using this method, we ignore these notifications
+	private boolean isValidJenkinsJob(TopLevelItem jenkinsJob) {
+		return jenkinsJob != null && jenkinsJob instanceof AbstractProject;
+	}
+
+	private AbstractBuild getBuild(AbstractProject jenkinsProject, int buildNumber) {
+		if (jenkinsProject instanceof MavenModuleSet) {
+			return ((MavenModuleSet) jenkinsProject).getBuildByNumber(buildNumber);
+		} else if (jenkinsProject instanceof Project) {
+			return (jenkinsProject).getBuildByNumber(buildNumber);
+		}
+		return null;
+	}
+	// we may get notifications from sonar project of jobs without sonar configuration
+	// or jobs of other CI servers, using this method, we ignore these notifications
+	private boolean isValidJenkinsBuildNumber(AbstractProject jenkinsProject, Integer buildNumber) {
+		// in jenkins, all build ids are numbers
+		try {
+			return getBuild(jenkinsProject, buildNumber) != null;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private void markBuildAsRecievedWebhookCall(AbstractBuild build, Boolean isExpecting) throws IOException {
+		if (build == null) {
+			return;
+		}
+		File buildBaseFolder = build.getRootDir();
+		File isExpectingFile = new File(buildBaseFolder, IS_EXPECTING_FILE_NAME);
+		FileOutputStream fos = new FileOutputStream(isExpectingFile);
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(isExpecting);
 	}
 }
