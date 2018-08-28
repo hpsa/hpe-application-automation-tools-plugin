@@ -103,7 +103,7 @@ public class AutEnvironmentBuilder extends Builder {
             AbstractBuild<?, ?> build,
             EnvVars envVars,
             AutEnvironmentModel autEnvironmentModel,
-            final PrintStream printStreamLogger) throws InterruptedException {
+            final PrintStream printStreamLogger) {
         
         AUTEnvironmentBuilderPerformer performer;
         try {
@@ -121,13 +121,10 @@ public class AutEnvironmentBuilder extends Builder {
             performer = new AUTEnvironmentBuilderPerformer(autEnvModel, variableResolver, logger);
             performer.start();
             assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
-        } catch (InterruptedException e) {
-            build.setResult(Result.ABORTED);
-            throw e;
-        } catch (Throwable cause) {
+
+        } catch (Exception e) {
             build.setResult(Result.FAILURE);
         }
-        
     }
     
     private void assignOutputValue(
