@@ -181,7 +181,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 		if (upstreamCause != null) {
 			String causeJobName = upstreamCause.getUpstreamProject();
-			TopLevelItem parent = Jenkins.get().getItem(causeJobName);
+			TopLevelItem parent = Jenkins.getInstance().getItem(causeJobName);
 			if (parent == null) {
 				if (causeJobName.contains("/") && !causeJobName.contains(",")) {
 					parent = getJobFromFolder(causeJobName);

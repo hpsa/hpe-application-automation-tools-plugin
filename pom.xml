@@ -25,7 +25,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>2.30</version>
+		<version>2.14</version>
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
@@ -47,7 +47,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.105</jenkins.version>
+		<jenkins.version>2.60.3</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -367,27 +367,24 @@
 
 		<!--WORKFLOW (PIPELINE-AS-A-CODE) integration-->
 		<dependency>
-			<artifactId>workflow-job</artifactId>
+			<artifactId>workflow-aggregator</artifactId>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<version>2.18</version>
-			<optional>true</optional>
+			<version>2.5</version>
 		</dependency>
 		<dependency>
-			<artifactId>workflow-cps</artifactId>
+			<artifactId>workflow-api</artifactId>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<version>2.42</version>
-			<optional>true</optional>
+			<version>2.26</version>
+		</dependency>
+		<dependency>
+			<artifactId>workflow-step-api</artifactId>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<version>2.10</version>
 		</dependency>
 		<dependency>
 			<artifactId>script-security</artifactId>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<version>1.39</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<artifactId>branch-api</artifactId>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<version>1.10</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -399,7 +396,7 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>credentials</artifactId>
-			<version>2.1.4</version>
+			<version>2.1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.hp.sv</groupId>
