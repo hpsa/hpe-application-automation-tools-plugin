@@ -22,7 +22,6 @@
 
 package com.microfocus.application.automation.tools.octane.tests.build;
 
-import com.cloudbees.workflow.rest.external.StageNodeExt;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.FilePath;
@@ -33,6 +32,8 @@ import hudson.model.Result;
 import hudson.model.Run;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.actions.LabelAction;
+import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
 import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
@@ -136,21 +137,23 @@ public class BuildHandlerUtils {
 		return result;
 	}
 
-	public static boolean isWorkflowStartNode(FlowNode flowNode) {
-		return flowNode.getParents().isEmpty() ||
-				flowNode.getParents().stream().anyMatch(fn -> fn instanceof FlowStartNode);
+	public static boolean isWorkflowStartNode(FlowNode node) {
+		return node.getParents().isEmpty() ||
+				node.getParents().stream().anyMatch(fn -> fn instanceof FlowStartNode);
 	}
 
-	public static boolean isWorkflowEndNode(FlowNode flowNode) {
-		return flowNode instanceof FlowEndNode;
+	public static boolean isWorkflowEndNode(FlowNode node) {
+		return node instanceof FlowEndNode;
 	}
 
-	public static boolean isStageStartNode(FlowNode flowNode) {
-		return flowNode instanceof StepStartNode && StageNodeExt.isStageNode(flowNode);
+	public static boolean isStageStartNode(FlowNode node) {
+		return node instanceof StepStartNode &&
+				node.getAction(LabelAction.class) != null &&
+				node.getAction(ThreadNameAction.class) == null;
 	}
 
-	public static boolean isStageEndNode(FlowNode flowNode) {
-		return flowNode instanceof StepEndNode && isStageStartNode(((StepEndNode) flowNode).getStartNode());
+	public static boolean isStageEndNode(FlowNode node) {
+		return node instanceof StepEndNode && isStageStartNode(((StepEndNode) node).getStartNode());
 	}
 
 	public static WorkflowRun extractParentRun(FlowNode flowNode) {

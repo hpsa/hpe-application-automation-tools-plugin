@@ -35,9 +35,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.scm.S
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import hudson.model.Cause;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.SCMListener;
@@ -46,11 +44,9 @@ import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
@@ -99,9 +95,9 @@ public class SCMListenerImpl extends SCMListener {
 			if (!build.getChangeSet().isEmptySet()) {
 				result = scmProcessor.getSCMData(build, scm);
 			}
-		} else if (run.getParent() instanceof WorkflowJob) {
+		} else if (run instanceof WorkflowRun) {
 			WorkflowRun wRun = (WorkflowRun) run;
-			if (wRun.getChangeSets() != null && !wRun.getChangeSets().isEmpty()) {
+			if (!wRun.getChangeSets().isEmpty()) {
 				result = scmProcessor.getSCMData(wRun, scm);
 			}
 		}
