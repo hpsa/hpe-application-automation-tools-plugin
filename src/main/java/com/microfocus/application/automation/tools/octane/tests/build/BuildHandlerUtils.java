@@ -147,9 +147,7 @@ public class BuildHandlerUtils {
 	}
 
 	public static boolean isStageStartNode(FlowNode node) {
-		return node instanceof StepStartNode &&
-				node.getAction(LabelAction.class) != null &&
-				node.getAction(ThreadNameAction.class) == null;
+		return node instanceof StepStartNode && node.getAction(LabelAction.class) != null && node.getAction(ThreadNameAction.class) == null;
 	}
 
 	public static boolean isStageEndNode(FlowNode node) {
