@@ -567,7 +567,7 @@
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-	
+
 
 		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
@@ -576,8 +576,8 @@
 			<optional>true</optional>
 		</dependency>
 
-	
-	
+
+
 		<!--Test-->
 
 		<dependency>
