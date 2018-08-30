@@ -41,7 +41,6 @@ import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import hudson.scm.SCM;
@@ -117,7 +116,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (noGoConfiguration()) {
 			return;
 		}
-		if (run.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
+		if ("WorkflowRun".equals(run.getClass().getSimpleName())) {
 			return;
 		}
 
