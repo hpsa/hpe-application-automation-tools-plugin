@@ -35,15 +35,12 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 
 	FreeStyleProject project;
 
-	//@ClassRule
 	public static final JenkinsRule jenkins = new JenkinsRule();
 
-	//@Before
 	public void initialize() throws IOException {
 		project = jenkins.createFreeStyleProject("freestyle-project");
 	}
 
-	//@Test
 	public void testJunit() throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
@@ -72,7 +69,6 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		System.out.println("total time:" + (end -start));
 	}
 
-	//@Test
 	public void testtestNG() throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
@@ -102,7 +98,6 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		System.out.println("total time:" + (end -start));
 	}
 
-	//@Test
 	public void testnunit() throws Exception{
 		int i = 109;
 		AlmRestInfo loginInfo = new AlmRestInfo(
