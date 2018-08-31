@@ -39,7 +39,7 @@ import hudson.FilePath;
 
 public class ReportParserManager {
 	
-	private static ReportParserManager instance;
+	private static ReportParserManager instance = new ReportParserManager();
 
 	private List<ReportParser> parserList;
 	private FilePath workspace;
@@ -48,13 +48,6 @@ public class ReportParserManager {
 	private ReportParserManager() {}
 
 	public static ReportParserManager getInstance(FilePath workspace, Logger logger) {
-		if (instance == null) {
-			synchronized (ReportParserManager.class) {
-				if (instance == null) {
-					instance = new ReportParserManager();
-				}
-			}
-		}
 		if (instance.workspace == null) {
 			instance.workspace = workspace;
 		}

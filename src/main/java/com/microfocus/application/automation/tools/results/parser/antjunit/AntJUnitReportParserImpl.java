@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.results.parser.antjunit;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,6 @@ import com.microfocus.application.automation.tools.results.service.almentities.A
 import com.microfocus.application.automation.tools.results.service.almentities.EntityRelation;
 import com.microfocus.application.automation.tools.results.service.almentities.IAlmConsts;
 import com.microfocus.application.automation.tools.sse.sdk.Base64Encoder;
-import org.apache.commons.io.IOUtils;
 
 public class AntJUnitReportParserImpl implements ReportParser {
 
@@ -51,10 +51,18 @@ public class AntJUnitReportParserImpl implements ReportParser {
 		
 		try {
 			return parseTestSetsFromAntJUnitReport(reportInputStream, testingFramework, testingTool);
+
 		} catch (Exception e) {
 			throw new ReportParseException(e);
+
 		} finally {
-			IOUtils.closeQuietly(reportInputStream);
+			try {
+				if (reportInputStream != null) {
+					reportInputStream.close();
+				}
+			} catch (IOException e) {
+				throw new ReportParseException(e);
+			}
 		}
 	}	
 	
