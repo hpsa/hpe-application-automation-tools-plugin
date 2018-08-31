@@ -106,13 +106,14 @@ public class AutEnvironmentBuilder extends Builder {
             final PrintStream printStreamLogger) {
         
         AUTEnvironmentBuilderPerformer performer;
+
+        Logger logger = new Logger() {
+            public void log(String message) {
+                printStreamLogger.println(message);
+            }
+        };
+
         try {
-            Logger logger = new Logger() {
-                
-                public void log(String message) {
-                    printStreamLogger.println(message);
-                }
-            };
             VariableResolver.ByMap<String> variableResolver =
                     new VariableResolver.ByMap<String>(envVars);
             
@@ -123,6 +124,7 @@ public class AutEnvironmentBuilder extends Builder {
             assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
 
         } catch (Exception e) {
+            logger.log(String.format("Build failed: %s", e.getMessage()));
             build.setResult(Result.FAILURE);
         }
     }
