@@ -97,6 +97,8 @@ public final class AuthenticationTool {
                         ResourceAccessLevel.PUBLIC);
         if (!response.isOk()) {
             throw new SSEException("Cannot append QCSession cookies", response.getFailure());
+        } else {
+            logger.log("Session created.");
         }
     }
 

@@ -51,7 +51,7 @@ public class RestAuthenticator implements Authenticator {
     public static final String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
-        logger.log("Start login to ALM server.");
+        logger.log("Start login to ALM server...");
         boolean ret = true;
         String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
