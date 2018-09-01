@@ -21,30 +21,18 @@
 package com.microfocus.application.automation.tools.lr.run;
 
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
-import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
-    private final boolean abort;
-
-    @DataBoundConstructor
-    public HealthAnalyzerLrStep(boolean abort) {
-        this.abort = abort;
-    }
-
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        if (abort)
-            throw new AbortException("Aborted!");
-        listener.getLogger().println("In LR health analyzer step");
     }
 
     @Extension

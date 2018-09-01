@@ -19,7 +19,12 @@
   -->
 
 <?jelly escape-by-default='true'?>
+
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:dropdownDescriptorSelector
-            field="healthAnalyzerModel" title="Product" descriptors="${descriptor.healthAnalyzerDescriptors}"/>
+    <f:entry title="Products" field="products">
+        <f:hetero-list name="products" hasHeader="true"
+                       descriptors="${descriptor.getProducts()}"
+                       items="${instance.products}"
+                       addCaption="Add new product"/>
+    </f:entry>
 </j:jelly>

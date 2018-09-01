@@ -21,7 +21,6 @@
 package com.microfocus.application.automation.tools.common.run;
 
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
-import hudson.DescriptorExtensionList;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -35,43 +34,41 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.List;
 
 public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
-    private final HealthAnalyzerModel healthAnalyzerModel;
+    private final List<HealthAnalyzerModel> products;
 
     @DataBoundConstructor
-    public HealthAnalyzerBuilder(HealthAnalyzerModel healthAnalyzerModel) {
-        this.healthAnalyzerModel = healthAnalyzerModel;
+    public HealthAnalyzerBuilder(List<HealthAnalyzerModel> products) {
+        this.products = products;
     }
 
-    public HealthAnalyzerModel getHealthAnalyzerModel() {
-        return healthAnalyzerModel;
+    public List<HealthAnalyzerModel> getProducts() {
+        return products;
     }
 
     @Override
-    public void perform
-            (@Nonnull Run<?, ?> run, @Nonnull FilePath workspace,
-             @Nonnull Launcher launcher, @Nonnull TaskListener listener)
-            throws InterruptedException, IOException {
-        healthAnalyzerModel.perform(run, workspace, launcher, listener);
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        for (HealthAnalyzerModel product: products)
+            product.perform(run, workspace, launcher, listener);
     }
 
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Micro Focus Health Analyzer";
+        }
+
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }
 
-        @Nonnull
-        @Override
-        public String getDisplayName() {
-            return "Micro Focus Health Analyzer Builder";
-        }
-
-        public DescriptorExtensionList
-                <HealthAnalyzerModel, HealthAnalyzerModel.HealthAnalyzerModelDescriptor> getHealthAnalyzerDescriptors() {
-            return HealthAnalyzerModel.all();
+        public List<HealthAnalyzerModel.HealthAnalyzerModelDescriptor> getProducts() {
+            return HealthAnalyzerModel.HealthAnalyzerModelDescriptor.all();
         }
     }
 }

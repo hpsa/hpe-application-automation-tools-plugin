@@ -20,10 +20,7 @@
 
 package com.microfocus.application.automation.tools.common.model;
 
-import hudson.DescriptorExtensionList;
-import hudson.ExtensionPoint;
-import hudson.FilePath;
-import hudson.Launcher;
+import hudson.*;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.Run;
@@ -35,12 +32,12 @@ import java.io.IOException;
 
 public abstract class HealthAnalyzerModel implements ExtensionPoint, Describable<HealthAnalyzerModel> {
 
-    public static DescriptorExtensionList<HealthAnalyzerModel, HealthAnalyzerModelDescriptor> all() {
-        return Jenkins.getInstance().getDescriptorList(HealthAnalyzerModel.class);
-    }
-
     public HealthAnalyzerModelDescriptor getDescriptor() {
         return (HealthAnalyzerModelDescriptor) Jenkins.getInstance().getDescriptor(getClass());
+    }
+
+    public static ExtensionList<HealthAnalyzerModel> all() {
+        return Jenkins.getInstance().getExtensionList(HealthAnalyzerModel.class);
     }
 
     public abstract void perform(
@@ -55,6 +52,10 @@ public abstract class HealthAnalyzerModel implements ExtensionPoint, Describable
         @Override
         public String toString() {
             return "Info from HealthAnalyzerModelDescriptor";
+        }
+
+        public static DescriptorExtensionList<HealthAnalyzerModel,HealthAnalyzerModelDescriptor> all() {
+            return Jenkins.getInstance().getDescriptorList(HealthAnalyzerModel.class);
         }
     }
 }
