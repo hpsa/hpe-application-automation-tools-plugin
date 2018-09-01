@@ -26,6 +26,9 @@ import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -59,6 +62,25 @@ public class HealthAnalyzerCommon {
                 new InputStreamReader(reg.getInputStream()))) {
             Stream<String> keys = output.lines().filter(l -> !l.isEmpty());
             return keys.findFirst().isPresent();
+        }
+    }
+
+    public static void ifCheckedDoesUrlExist(
+            @Nonnull final String url, @Nonnull final boolean toCheck, @Nonnull final String productName) throws IOException {
+       if(toCheck && !doesURLExist(url))
+           throw new AbortException(String.format("The server URL of %s does not exist.", productName));
+    }
+
+    private static boolean doesURLExist(String stringUrl) throws IOException
+    {
+        try {
+            URL url = new URL(stringUrl);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setRequestMethod("HEAD");
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
+            return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
+        } catch (UnknownHostException e) {
+            return false;
         }
     }
 }

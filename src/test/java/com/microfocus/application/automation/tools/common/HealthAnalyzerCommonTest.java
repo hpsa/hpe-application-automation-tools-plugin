@@ -20,19 +20,39 @@
 
 package com.microfocus.application.automation.tools.common;
 
+import hudson.AbortException;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedDoesUrlExist;
+import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck;
+import static junit.framework.TestCase.fail;
 
 public class HealthAnalyzerCommonTest {
+    private final static String DUMMY_PRODUCT_NAME = "productName";
+
+    @Test(expected = AbortException.class)
+    public void isCheckedPerformWindowsInstallationCheck_throwsException_ifValueDoesNotExistsAndToCheckIsTrue()
+            throws IOException, InterruptedException {
+        String falseRegistryValue = "non\\existing\\registry\\value";
+        ifCheckedPerformWindowsInstallationCheck(falseRegistryValue, true, DUMMY_PRODUCT_NAME);
+    }
+
+    @Test(expected = AbortException.class)
+    public void ifCheckedDoesUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException{
+        String url = "https://non-exisiting-url-for-checking.com";
+        ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
+    }
 
     @Test
-    public void isRegistryExists_shouldReturnFalse_ifValueDoesNotExists() throws IOException, InterruptedException {
-        String falseRegistryValue = "non\\existing\\registry\\value";
-        assertThat(HealthAnalyzerCommon.isRegistryExists(falseRegistryValue), is(false));
+    public void ifCheckedDoesUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException{
+        String url = "https://google.com";
+        try {
+            ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
+        } catch (AbortException e) {
+            fail("Should not have thrown AbortException");
+        }
     }
 
     // TODO: find registry that exists on every windows
