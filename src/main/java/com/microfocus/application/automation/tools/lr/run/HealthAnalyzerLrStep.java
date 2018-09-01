@@ -20,19 +20,39 @@
 
 package com.microfocus.application.automation.tools.lr.run;
 
+import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
+import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
+    private static final String LR_REGISTRY_PATH =
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Mercury Interactive\\LoadRunner\\CurrentVersion";
+    private final boolean checkLrInstallation;
+
+    @DataBoundConstructor
+    public HealthAnalyzerLrStep(boolean checkLrInstallation) {
+        this.checkLrInstallation = checkLrInstallation;
+    }
+
+    public boolean isCheckLrInstallation() {
+        return checkLrInstallation;
+    }
+
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
+        HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(
+                LR_REGISTRY_PATH, checkLrInstallation, Messages.ProductName());
     }
 
     @Extension
@@ -45,7 +65,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "LoadRunner";
+            return Messages.ProductName();
         }
     }
 }

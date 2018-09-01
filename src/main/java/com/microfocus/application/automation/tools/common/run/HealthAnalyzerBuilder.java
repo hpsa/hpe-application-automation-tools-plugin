@@ -34,6 +34,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
