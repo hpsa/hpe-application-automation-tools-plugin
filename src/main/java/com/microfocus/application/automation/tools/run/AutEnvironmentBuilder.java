@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -103,16 +103,17 @@ public class AutEnvironmentBuilder extends Builder {
             AbstractBuild<?, ?> build,
             EnvVars envVars,
             AutEnvironmentModel autEnvironmentModel,
-            final PrintStream printStreamLogger) throws InterruptedException {
+            final PrintStream printStreamLogger) {
         
         AUTEnvironmentBuilderPerformer performer;
+
+        Logger logger = new Logger() {
+            public void log(String message) {
+                printStreamLogger.println(message);
+            }
+        };
+
         try {
-            Logger logger = new Logger() {
-                
-                public void log(String message) {
-                    printStreamLogger.println(message);
-                }
-            };
             VariableResolver.ByMap<String> variableResolver =
                     new VariableResolver.ByMap<String>(envVars);
             
@@ -121,13 +122,11 @@ public class AutEnvironmentBuilder extends Builder {
             performer = new AUTEnvironmentBuilderPerformer(autEnvModel, variableResolver, logger);
             performer.start();
             assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
-        } catch (InterruptedException e) {
-            build.setResult(Result.ABORTED);
-            throw e;
-        } catch (Throwable cause) {
+
+        } catch (Exception e) {
+            logger.log(String.format("Build failed: %s", e.getMessage()));
             build.setResult(Result.FAILURE);
         }
-        
     }
     
     private void assignOutputValue(

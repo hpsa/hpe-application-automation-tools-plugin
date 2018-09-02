@@ -1,5 +1,5 @@
 <!--
-  ~ © Copyright 2013 EntIT Software LLC
+  ~
   ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
   ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
   ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -29,7 +29,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.4.3-beta-SNAPSHOT</version>
+	<version>5.5.1-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
@@ -567,7 +567,7 @@
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-	
+
 
 		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
@@ -576,8 +576,8 @@
 			<optional>true</optional>
 		</dependency>
 
-	
-	
+
+
 		<!--Test-->
 
 		<dependency>
