@@ -102,11 +102,11 @@
     <!-- add MC server and app info starting -->
      <f:advanced title="Mobile Center options">
             <f:section title="Mobile Center options">
-                <f:entry title="MC Server" field="mcServerName">
-                    <select name="runfromfs.mcServerName">
+                <f:entry title="MC Server" field="mcServerUrl">
+                    <select name="runfromfs.mcServerUrl">
                         <j:forEach var="mcServer" items="${descriptor.mcServers}">
-                            <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
-                                ${mcServer.mcServerName}
+                            <f:option selected="${mcServer.mcServerUrl==instance.mCServerSettingsModel.mcServerUrl}" value="${mcServer.mcServerUrl}">
+                                ${mcServer.mcServerUrl}
                             </f:option>
                         </j:forEach>
                     </select>

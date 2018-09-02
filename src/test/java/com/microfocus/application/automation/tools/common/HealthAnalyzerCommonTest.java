@@ -21,9 +21,11 @@
 package com.microfocus.application.automation.tools.common;
 
 import hudson.AbortException;
+import jenkins.model.Jenkins;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedDoesUrlExist;
 import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck;
@@ -40,13 +42,13 @@ public class HealthAnalyzerCommonTest {
     }
 
     @Test(expected = AbortException.class)
-    public void ifCheckedDoesUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException{
+    public void ifCheckedDoesUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException {
         String url = "https://non-exisiting-url-for-checking.com";
         ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
     }
 
     @Test
-    public void ifCheckedDoesUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException{
+    public void ifCheckedDoesUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException {
         String url = "https://google.com";
         try {
             ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);

@@ -74,13 +74,13 @@ public class HealthAnalyzerCommon {
     private static boolean doesURLExist(String stringUrl) throws IOException
     {
         try {
-            URL url = new URL(stringUrl);
+            URL url = new URL(stringUrl); // MalformedUrlException
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setRequestMethod("HEAD");
             httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
             return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (UnknownHostException e) {
-            return false;
+            return false; // Todo: Provide this as information for the AbortException?
         }
     }
 }

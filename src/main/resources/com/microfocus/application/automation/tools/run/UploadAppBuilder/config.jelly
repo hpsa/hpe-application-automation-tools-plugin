@@ -46,11 +46,11 @@
         }
     </script>
 
-    <f:entry title="MC Server" field="mcServerName">
-        <select name="uploadApp.mcServerName">
+    <f:entry title="MC Server" field="mcServerUrl">
+        <select name="uploadApp.mcServerUrl">
             <j:forEach var="mcServer" items="${descriptor.mcServers}">
-                <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
-                    ${mcServer.mcServerName}
+                <f:option selected="${mcServer.mcServerUrl==instance.mCServerSettingsModel.mcServerUrl}" value="${mcServer.mcServerUrl}">
+                    ${mcServer.mcServerUrl}
                 </f:option>
             </j:forEach>
         </select>
