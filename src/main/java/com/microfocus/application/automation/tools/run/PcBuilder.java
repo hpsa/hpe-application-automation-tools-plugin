@@ -28,6 +28,7 @@ package com.microfocus.application.automation.tools.run;
 
 import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 import com.microfocus.application.automation.tools.model.PcModel;
+import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Error;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Failure;
 import com.microfocus.application.automation.tools.pc.PcClient;
@@ -132,6 +133,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private static PrintStream logger;
     private File WorkspacePath;
     private AbstractBuild<?, ?> _build;
+    private DateFormatter dateFormatter;
 
     @DataBoundConstructor
     public PcBuilder(
@@ -180,7 +182,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.retry = (retry == null || retry.isEmpty())? "NO_RETRY" : retry;
         this.retryDelay = ("NO_RETRY".equals(this.retry)) ? "0" : (retryDelay == null || retryDelay.isEmpty()) ? "5" : retryDelay;
         this.retryOccurrences = ("NO_RETRY".equals(this.retry)) ? "0" : (retryOccurrences == null || retryOccurrences.isEmpty()) ? "3" : retryOccurrences;
-
+        this.dateFormatter = new DateFormatter("");
     }
 
     @Override
@@ -339,7 +341,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     getPcModel().setBuildParameters(build.getBuildVariables().toString());
         }
         catch (Exception ex) {
-            logger.println(String.format("%s - Build parameters will not be taken in consideration: %s", simpleDateFormater(), ex.getMessage()));
+            logger.println(String.format("%s - Build parameters will not be taken in consideration: %s", dateFormatter.getDate(), ex.getMessage()));
         }
     }
 
@@ -358,11 +360,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         try {
             String version = getVersion();
             if(!(version == null || version.equals("unknown")))
-                logger.println(String.format("%s - plugin version is '%s'",simpleDateFormater(), version));
+                logger.println(String.format("%s - plugin version is '%s'",dateFormatter.getDate(), version));
             if((getPcModel() !=null) && (build != null) && (build instanceof AbstractBuild))
                 setPcModelBuildParameters((AbstractBuild) build);
             if (!StringUtils.isBlank(getPcModel().getDescription()))
-                logger.println(String.format("%s - Test description: %s", simpleDateFormater(), getPcModel().getDescription()));
+                logger.println(String.format("%s - Test description: %s", dateFormatter.getDate(), getPcModel().getDescription()));
             if (!beforeRun(pcClient))
                 return null;
 
@@ -373,9 +375,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             pcClient.stopRun(runId);
             throw e;
         } catch (NullPointerException e) {
-            logger.println(String.format("%s - Error: %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - Error: %s", dateFormatter.getDate(), e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
         } finally {
             pcClient.logout();
         }
@@ -397,19 +399,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 return null;
         }
         catch (NumberFormatException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  simpleDateFormater(),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
             throw ex;
         }
         catch (ClientProtocolException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  simpleDateFormater(),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
             throw ex;
         }
         catch (PcException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  simpleDateFormater(),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
             throw ex;
         }
         catch (IOException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  simpleDateFormater(),ex.getMessage()));
+            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
             throw ex;
         }
 
@@ -418,18 +420,18 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testName = pcClient.getTestName();
             if(testName == null) {
                 testName = String.format("TestId_%s", getPcModel().getTestId());
-                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", simpleDateFormater(), testName));
+                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", dateFormatter.getDate(), testName));
             }
             else
-                logger.println(String.format("%s - test name is %s", simpleDateFormater(), testName));
+                logger.println(String.format("%s - test name is %s", dateFormatter.getDate(), testName));
         }
         catch (PcException ex) {
             testName = String.format("TestId_%s", getPcModel().getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", simpleDateFormater(), testName, ex.getMessage()));
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", dateFormatter.getDate(), testName, ex.getMessage()));
         }
         catch (IOException ex) {
             testName = String.format("TestId_%s", getPcModel().getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", simpleDateFormater(), testName, ex.getMessage()));
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", dateFormatter.getDate(), testName, ex.getMessage()));
         }
 
         try {
@@ -437,7 +439,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
             build.addAction(new AdditionalParametersAction(parameters));
-            logger.print(String.format("%s - Set %s Environment Variable to %s \n",simpleDateFormater(), RUNID_BUILD_VARIABLE, runId));
+            logger.print(String.format("%s - Set %s Environment Variable to %s \n",dateFormatter.getDate(), RUNID_BUILD_VARIABLE, runId));
             response = pcClient.waitForRunCompletion(runId);
 
             if (response != null && RunState.get(response.getRunState()) == FINISHED && getPcModel().getPostRunAction() != PostRunAction.DO_NOTHING) {
@@ -458,7 +460,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
 
         } catch (PcException e) {
-            logger.println(String.format("%s - Error: %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - Error: %s", dateFormatter.getDate(), e.getMessage()));
         }
 
         Testsuites ret = new Testsuites();
@@ -511,7 +513,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     private boolean validatePcForm() {
         
-        logger.println(String.format("%s - Validating parameters before run", simpleDateFormater()));
+        logger.println(String.format("%s - Validating parameters before run", dateFormatter.getDate()));
         String prefix = "doCheck";
         boolean ret = true;
         Method[] methods = getDescriptor().getClass().getMethods();
@@ -542,7 +544,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                             }
                             break;
                         } catch (Exception e) {
-                            logger.println(String.format("%s - Validation error: method.getName() = '%s', name = '%s', modelMethodName = '%s', exception = '%s'.", simpleDateFormater(), method.getName(), name, modelMethodName, e.getMessage()));
+                            logger.println(String.format("%s - Validation error: method.getName() = '%s', name = '%s', modelMethodName = '%s', exception = '%s'.", dateFormatter.getDate(), method.getName(), name, modelMethodName, e.getMessage()));
                         }
                     }
                 }
@@ -550,10 +552,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
 
         boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(true),("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
-        boolean IsRetryValid = validateRetryIsNumeric(getPcModel().getRetry(),getPcModel().getRetryDelay(),getPcModel().getRetryOccurrences());
 
         ret &= isTrendReportIdValid;
-        ret &= IsRetryValid;
         return ret;
         
     }
@@ -581,41 +581,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        logger.println(String.format("%s - %s", simpleDateFormater(), res.toString().replace(": <div/>","")));
-
-        return res.equals(FormValidation.ok());
-    }
-
-    private boolean validateRetryIsNumeric(String myRetry, String myRetryDelay, String myRetryOccurrences){
-
-        FormValidation res = FormValidation.ok();
-        if("RETRY".equals(myRetry)){
-            if(myRetryDelay.isEmpty() || myRetryOccurrences.isEmpty()){
-                res = FormValidation.error("Parameter Is Missing: Retry on failure parameter is missing");
-            }
-            else{
-
-                try{
-                    if (Integer.parseInt(myRetryDelay)<=0)
-                        res = FormValidation.error("Illegal Parameter: Retry Delay is not a positive number");
-                }
-                catch(NumberFormatException e) {
-
-                    res = FormValidation.error("Illegal Parameter: Retry Delay is not a number");
-                }
-                try{
-                    if (Integer.parseInt(myRetryOccurrences)<=0)
-                        res = FormValidation.error("Illegal Parameter: Retry Occurrences is not a positive number");
-                }
-                catch(NumberFormatException e) {
-
-                    res = FormValidation.error("Illegal Parameter: Retry Occurrences is not a number");
-                }
-
-            }
-        }
-
-        logger.println(String.format("%s - %s", simpleDateFormater(), res.toString().replace(": <div/>","")));
+        logger.println(String.format("%s - %s", dateFormatter.getDate(), res.toString().replace(": <div/>","")));
 
         return res.equals(FormValidation.ok());
     }
@@ -656,12 +622,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             // Updating all CSV files for plot plugin
             // this helps to show the transaction of each result
             if (isPluginActive("Plot plugin")) {
-                logger.println(String.format("%s Updating csv files for Trending Charts.", simpleDateFormater()));
+                logger.println(String.format("%s Updating csv files for Trending Charts.", dateFormatter.getDate()));
                 updateCSVFilesForPlot(pcClient, runID);
                 String plotUrlPath = "/job/" + build.getParent().getName() + "/plot";
-                logger.println(String.format("%s - %s",simpleDateFormater(), HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts"))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
+                logger.println(String.format("%s - %s",dateFormatter.getDate(), HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts"))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
             }else{
-                logger.println(String.format("%s - You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the %s (Performance Center 12.55 and Later).",simpleDateFormater(),  HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/HPE+Application+Automation+Tools#HPEApplicationAutomationTools-RunningPerformanceTestsusingHPEPerformanceCenter","documentation")));
+                logger.println(String.format("%s - You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the %s (Performance Center 12.55 and Later).",dateFormatter.getDate(),  HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/MICRO+FOCUS+Application+Automation+Tools#MicroFocusApplicationAutomationTools-RunningPerformanceTestsusingPerformanceCenter","documentation")));
             }
         }
         return ret;
@@ -679,65 +645,73 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return false;
     }
 
+    private class TriTrendReportTypes {
+        public TrendReportTypes.DataType getDataType() {
+            return dataType;
+        }
+
+        public TrendReportTypes.PctType getPctType() {
+            return pctType;
+        }
+
+        public TrendReportTypes.Measurement getMeasurement() {
+            return measurement;
+        }
+
+        TrendReportTypes.DataType dataType;
+        TrendReportTypes.PctType pctType;
+        TrendReportTypes.Measurement measurement;
+
+        TriTrendReportTypes (TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) {
+            this.dataType = dataType;
+            this.pctType = pctType;
+            this.measurement = measurement;
+        }
+    }
+
     private void updateCSVFilesForPlot(PcClient pcClient, int runId) throws IOException, PcException, IntrospectionException, NoSuchMethodException {
 
-        //Map<String, String> measurementMap =pcClient.getTrendReportByXML(getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_AVERAGE);
+        TriTrendReportTypes triTrendReportTypes[] = {
+                // Transaction - TRT
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MINIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MAXIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_AVERAGE),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MEDIAN),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_STDDEVIATION),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_COUNT1),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_PERCENTILE_90),
+                // Transaction - TPS
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MINIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MAXIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_AVERAGE),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MEDIAN),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_SUM1),
+                // Transaction - TRS
+                new TriTrendReportTypes(TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_COUNT1),
+                // Monitors - UDP
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MINIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MAXIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_AVERAGE),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MEDIAN),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_STDDEVIATION),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_COUNT1),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_SUM1),
+                // Regular - VU
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MAXIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_AVERAGE),
+                // Regular - WEB
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MINIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MAXIMUM),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_AVERAGE),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MEDIAN),
+                new TriTrendReportTypes(TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_SUM1)
+        };
 
-        // Transaction - TRT
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MINIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_AVERAGE);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MEDIAN);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_COUNT1);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_SUM1);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_PERCENTILE_90);
+        for (TriTrendReportTypes triTrendReportType : triTrendReportTypes
+             ) {
+            saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId, triTrendReportType.getDataType(), triTrendReportType.getPctType(), triTrendReportType.getMeasurement());
+        }
 
-        // Transaction - TPS
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MINIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_AVERAGE);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MEDIAN);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_SUM1);
-
-        // Transaction - TRS
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MINIMUM);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_AVERAGE);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MEDIAN);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_COUNT1);
-
-
-        // Monitors - UDP
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MINIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_AVERAGE);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MEDIAN);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_COUNT1);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_SUM1);
-
-        // Regular - VU
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MINIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_AVERAGE);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MEDIAN);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-
-
-        // Regular - WEB
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MINIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MAXIMUM);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_AVERAGE);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MEDIAN);
-        //saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_STDDEVIATION);
-        saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_SUM1);
-
-
-
-      //  logger.print(build.getRootDir().getPath());
     }
 
     private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId,TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement)throws IOException, PcException, IntrospectionException, NoSuchMethodException{
@@ -759,13 +733,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     writer.print(value + ",");
                 }
                 writer.close();
-                //     logger.println(String.format("%s - %s Created.", simpleDateFormater(), fileName);
                 return true;
             } catch (IOException e) {
                 if (getWorkspacePath().getPath() != null)
-                    logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s", simpleDateFormater(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+                    logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
                 else
-                    logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s", simpleDateFormater(), fileName, e.getMessage()));
+                    logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
             }
         }
         else {
@@ -783,9 +756,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 return true;
             } catch (InterruptedException e) {
                 if (getWorkspacePath().getPath() != null)
-                    logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", simpleDateFormater(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+                    logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
                 else
-                    logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", simpleDateFormater(), fileName, e.getMessage()));
+                    logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
                 return false;
             }
         }
@@ -818,7 +791,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getError().add(error);
         testCase.setStatus(JUnitTestCaseStatus.ERROR);
-        logger.println(String.format("%s - %s %s", simpleDateFormater() , message ,eventLog));
+        logger.println(String.format("%s - %s %s", dateFormatter.getDate() , message ,eventLog));
     }
     
     private void setFailure(Testcase testCase, String message, String eventLog) {
@@ -828,14 +801,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getFailure().add(failure);
         testCase.setStatus(JUnitTestCaseStatus.FAILURE);
-        logger.println(String.format("%s - Failure: %s %s", simpleDateFormater(), message ,eventLog));
+        logger.println(String.format("%s - Failure: %s %s", dateFormatter.getDate(), message ,eventLog));
     }
     
     private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
-        logger.println(String.format("%s - %s", simpleDateFormater(), HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId)));
+        logger.println(String.format("%s - %s", dateFormatter.getDate(), HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId)));
 
         return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, getPcModel().getserverAndPort() +  "/" +  build.getUrl() + viewUrl, getPcModel().getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
@@ -852,7 +825,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String runIdStr =
                 (runId > 0) ? String.format(" (PC RunID: %s)", String.valueOf(runId)) : "";
         logger.println(String.format("%s - Result Status%s: %s\n- - -",
-                simpleDateFormater(),
+                dateFormatter.getDate(),
                 runIdStr,
                 resultStatus.toString()));
         build.setResult(resultStatus);
@@ -872,14 +845,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     ret = Result.FAILURE;
                 }
             } else {
-                logger.println(String.format("%s - Empty Results", simpleDateFormater()));
+                logger.println(String.format("%s - Empty Results", dateFormatter.getDate()));
                 ret = Result.FAILURE;
             }
             
         } catch (Exception cause) {
             logger.print(String.format(
                     "%s - Failed to create run results, Exception: %s",
-                    simpleDateFormater(),
+                    dateFormatter.getDate(),
                     cause.getMessage()));
             ret = Result.FAILURE;
         }
@@ -1007,11 +980,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getRetry();
     }
 
-    public String getRetryOccurrences () {
+    public int getRetryOccurrences () {
         return getPcModel().getRetryOccurrences();
     }
 
-    public String getRetryDelay () {
+    public int getRetryDelay () {
         return getPcModel().getRetryDelay();
     }
 
@@ -1019,8 +992,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     {
         return getPcModel().getDescription();
     }
-
-
 
     public boolean isHTTPSProtocol()
     {
@@ -1033,20 +1004,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     public String getProxyOutURL(){ return getPcModel().getProxyOutURL();}
 
-    private String  simpleDateFormater()
-    {
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat ("E yyyy MMM dd 'at' HH:mm:ss.SSS a zzz");
-            String simpleDate = simpleDateFormat.format(new Date());
-            if (simpleDate != null)
-                return simpleDate;
-            else
-                return "";
-        }
-        catch (Exception ex) {
-            return "";
-        }
-    }
 
     // This indicates to Jenkins that this is an implementation of an extension
     // point

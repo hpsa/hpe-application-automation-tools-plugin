@@ -32,6 +32,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.isInteger;
+
 public class PcModel {
 
     public static final String    COLLATE         = "Collate Results";
@@ -57,8 +59,8 @@ public class PcModel {
     private final String credentialsProxyId;
     private String buildParameters;
     private String retry;
-    private String retryDelay;
-    private String retryOccurrences;
+    private int retryDelay;
+    private int retryOccurrences;
 
 
     @DataBoundConstructor
@@ -86,21 +88,32 @@ public class PcModel {
         this.credentialsProxyId = credentialsProxyId;
         this.buildParameters="";
         this.retry = retry;
-        this.retryDelay = retryDelay.isEmpty() ? "5" : retryDelay;
-        this.retryOccurrences = retryOccurrences.isEmpty() ? "3" : retryOccurrences;
+        this.retryDelay = verifyStringValueIsIntAndPositive(retryDelay, 5);
+        this.retryOccurrences = verifyStringValueIsIntAndPositive(retryOccurrences, 3);
 
     }
+
+    private int verifyStringValueIsIntAndPositive (String supplied, int defaultValue)
+    {
+        if(supplied != null && isInteger(supplied)) {
+            int suppliedInt = Integer.parseInt(supplied);
+            if (suppliedInt > 0)
+                return suppliedInt;
+        }
+        return defaultValue;
+    }
+
 
     public String getRetry() {
 
         return this.retry;
     }
 
-    public String getRetryDelay () {
+    public int getRetryDelay () {
         return this.retryDelay;
     }
 
-    public String getRetryOccurrences() {
+    public int getRetryOccurrences() {
 
         return this.retryOccurrences;
     }

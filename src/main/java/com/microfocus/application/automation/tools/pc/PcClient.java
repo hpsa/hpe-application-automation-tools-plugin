@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools.pc;
 
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
 import hudson.FilePath;
 
 import java.beans.IntrospectionException;
@@ -57,27 +58,29 @@ public class PcClient {
     private PrintStream logger;
     public UsernamePasswordCredentials usernamePCPasswordCredentials;
     public UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
+    DateFormatter dateFormatter;
 
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
+            dateFormatter = new DateFormatter("");
             model = pcModel;
             String credentialsProxyId = model.getCredentialsProxyId(true);
             usernamePCPasswordCredentialsForProxy = PcBuilder.getCredentialsId(credentialsProxyId);
             String proxyOutUser = (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getUsername();
             String proxyOutPassword= (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getPassword().getPlainText();
             if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()) {
-                logger.println(String.format("%s - Using proxy: %s", simpleDateFormater(), model.getProxyOutURL(true)));
+                logger.println(String.format("%s - Using proxy: %s", dateFormatter.getDate(), model.getProxyOutURL(true)));
                 if(!proxyOutUser.isEmpty()) {
                     if (model.getCredentialsProxyId().startsWith("$"))
-                        logger.println(String.format("%s - Using proxy credentials of %s as specified in build parameters.", simpleDateFormater(), proxyOutUser));
+                        logger.println(String.format("%s - Using proxy credentials of %s as specified in build parameters.", dateFormatter.getDate(), proxyOutUser));
                     else
-                        logger.println(String.format("%s - Using proxy credentials of %s as specified in configuration.", simpleDateFormater(), proxyOutUser));
+                        logger.println(String.format("%s - Using proxy credentials of %s as specified in configuration.", dateFormatter.getDate(), proxyOutUser));
                 }
             }
             restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),proxyOutUser,proxyOutPassword);
             this.logger = logger;
         }catch (PcException e){
-            logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
         }
 
     }
@@ -94,24 +97,22 @@ public class PcClient {
             usernamePCPasswordCredentials = PcBuilder.getCredentialsId(credentialsId);
             if(usernamePCPasswordCredentials != null) {
                 if(model.getCredentialsId().startsWith("$"))
-                    logger.println(String.format("%s - Using Performance Center credentials supplied in build parameters", simpleDateFormater()));
+                    logger.println(String.format("%s - Using Performance Center credentials supplied in build parameters", dateFormatter.getDate()));
                 else
-                    logger.println(String.format("%s - Using Performance Center credentials supplied in configuration", simpleDateFormater()));
-                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", simpleDateFormater(), model.isHTTPSProtocol(), model.getPcServerName(true), usernamePCPasswordCredentials.getUsername()));
+                    logger.println(String.format("%s - Using Performance Center credentials supplied in configuration", dateFormatter.getDate()));
+                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", dateFormatter.getDate(), model.isHTTPSProtocol(), model.getPcServerName(true), usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(usernamePCPasswordCredentials.getUsername(), usernamePCPasswordCredentials.getPassword().getPlainText());
             }
             else {
-                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", simpleDateFormater(), model.isHTTPSProtocol(), model.getPcServerName(true), PcBuilder.usernamePCPasswordCredentials.getUsername()));
+                logger.println(String.format("%s - Trying to login\n[PCServer='%s://%s', User='%s']", dateFormatter.getDate(), model.isHTTPSProtocol(), model.getPcServerName(true), PcBuilder.usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(PcBuilder.usernamePCPasswordCredentials.getUsername(), PcBuilder.usernamePCPasswordCredentials.getPassword().getPlainText());
             }
         } catch (PcException e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
-          //  stackTraceToString(e);
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e));
-           // stackTraceToString(e);
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e));
         }
-        logger.println(String.format("%s - Login %s",simpleDateFormater(), loggedIn ? "succeeded" : "failed"));
+        logger.println(String.format("%s - Login %s",dateFormatter.getDate(), loggedIn ? "succeeded" : "failed"));
         return loggedIn;
     }
 
@@ -129,8 +130,7 @@ public class PcClient {
         int testInstance = getCorrectTestInstanceID(testID);
         setCorrectTrendReportID();
 
-        logger.println(String.format("%s - \nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", simpleDateFormater(), Integer.parseInt(model.getTestId(true)), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
-//        logger.println("Sending run request:\n" + model.runParamsToString());
+        logger.println(String.format("%s - \nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", dateFormatter.getDate(), Integer.parseInt(model.getTestId(true)), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
         PcRunResponse response = null;
         try {
             response = restProxy.startRun(testID,
@@ -138,22 +138,15 @@ public class PcClient {
                     model.getTimeslotDuration(),
                     model.getPostRunAction().getValue(),
                     model.isVudsMode());
-            logger.println(String.format("%s - Run started (TestID: %s, RunID: %s, TimeslotID: %s)", simpleDateFormater(),
+            logger.println(String.format("%s - Run started (TestID: %s, RunID: %s, TimeslotID: %s)", dateFormatter.getDate(),
                     response.getTestID(), response.getID(), response.getTimeslotID()));
             return response.getID();
         }
-        catch (NumberFormatException ex) {
-            logger.println(String.format("%s - StartRun failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+        catch (NumberFormatException|ClientProtocolException|PcException ex) {
+            logger.println(String.format("%s - StartRun failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
         }
-        catch (ClientProtocolException ex) {
-            logger.println(String.format("%s - StartRun failed. Error: %s", simpleDateFormater(), ex.getMessage()));
-        }
-        catch (PcException ex) {
-            logger.println(String.format("%s - StartRun failed. Error: %s", simpleDateFormater(), ex.getMessage()));
-        }
-        catch (IOException ex)
-        {
-            logger.println(String.format("%s - StartRun failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+        catch (IOException ex) {
+            logger.println(String.format("%s - StartRun failed. IOException Error: %s", dateFormatter.getDate(), ex.getMessage()));
         }
         if (!("RETRY".equals(model.getRetry()))) {
             return 0;
@@ -162,20 +155,20 @@ public class PcClient {
             //counter
             int retryCount = 0;
             //values
-            int retryDelay = verifyStringValueIsIntAndPositive("retryDelay", model.getRetryDelay(), 5);
-            int retryOccurrences = verifyStringValueIsIntAndPositive("retryOccurrences", model.getRetryOccurrences(), 3);
+            int retryDelay = model.getRetryDelay();
+            int retryOccurrences = model.getRetryOccurrences();
 
             while (retryCount<=retryOccurrences)
             {
                 retryCount++;
                 try {
                     if(retryCount <= retryOccurrences) {
-                        logger.println(String.format("%s - Failed to start run. Attempting to start again in %s minute(s). %s attemp(s) remaining.", simpleDateFormater(), retryDelay, retryOccurrences - retryCount + 1));
+                        logger.println(String.format("%s - Failed to start run. Attempting to start again in %s minute(s). %s attemp(s) remaining.", dateFormatter.getDate(), retryDelay, retryOccurrences - retryCount + 1));
                         Thread.sleep(retryDelay * 60 * 1000);
                     }
                 }
                 catch (InterruptedException ex) {
-                    logger.println(String.format("%s - wait failed", simpleDateFormater()));
+                    logger.println(String.format("%s - wait failed", dateFormatter.getDate()));
                 }
 
                 try {
@@ -186,17 +179,17 @@ public class PcClient {
                             model.isVudsMode());
                 }
                 catch (NumberFormatException ex) {
-                    logger.println(String.format("%s - StartRun retry failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
                 }
                 catch (ClientProtocolException ex) {
-                    logger.println(String.format("%s - StartRun retry failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
                 }
                 catch (PcException ex) {
-                    logger.println(String.format("%s - StartRun retry failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
                 }
                 catch (IOException ex)
                 {
-                    logger.println(String.format("%s - StartRun retry failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+                    logger.println(String.format("%s - StartRun retry failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
                 }
                 int ret = 0;
                 if (response !=null) {
@@ -204,11 +197,11 @@ public class PcClient {
                         ret = response.getID();
                     }
                     catch (Exception ex) {
-                        logger.println(String.format("%s - getID failed. Error: %s", simpleDateFormater(), ex.getMessage()));
+                        logger.println(String.format("%s - getID failed. Error: %s", dateFormatter.getDate(), ex.getMessage()));
                     }
                 }
                 if (ret != 0) {
-                    logger.println(String.format("%s - Run started (TestID: %s, RunID: %s, TimeslotID: %s)\n", simpleDateFormater(),
+                    logger.println(String.format("%s - Run started (TestID: %s, RunID: %s, TimeslotID: %s)\n", dateFormatter.getDate(),
                             response.getTestID(), response.getID(), response.getTimeslotID()));
                     return ret;
                 }
@@ -217,20 +210,6 @@ public class PcClient {
         return 0;
     }
 
-    private int verifyStringValueIsIntAndPositive (String attributeName, String supplied, int defaultValue)
-    {
-        if(isInteger(supplied)) {
-            int suppliedInt = Integer.parseInt(supplied);
-            if(suppliedInt > 0)
-                return suppliedInt;
-            else {
-                logger.println(String.format("%s - attribute %s not greater than zero, using default value %s.", simpleDateFormater(), attributeName, defaultValue ));
-                return defaultValue;
-            }
-        }
-        logger.println(String.format("%s - attribute %s not a number, using default value %s.", simpleDateFormater(), attributeName, defaultValue ));
-        return defaultValue;
-    }
 
     private static boolean isInteger(String s) {
         return isInteger(s,10);
@@ -253,33 +232,33 @@ public class PcClient {
             try {
 
 
-            logger.println(String.format("%s - Searching for available test instance", simpleDateFormater()));
+            logger.println(String.format("%s - Searching for available test instance", dateFormatter.getDate()));
             PcTestInstances pcTestInstances = restProxy.getTestInstancesByTestId(testID);
             int testInstanceID;
             if (pcTestInstances != null && pcTestInstances.getTestInstancesList() != null){
                 PcTestInstance pcTestInstance = pcTestInstances.getTestInstancesList().get(pcTestInstances.getTestInstancesList().size()-1);
                 testInstanceID = pcTestInstance.getInstanceId();
-                logger.println(String.format("%s - Found test instance ID: %s", simpleDateFormater(), testInstanceID));
+                logger.println(String.format("%s - Found test instance ID: %s", dateFormatter.getDate(), testInstanceID));
             }else{
-                logger.println(String.format("%s - Could not find existing test instanceID. Creating a new test instance.", simpleDateFormater()));
-                logger.println(String.format("%s - Searching for available TestSet", simpleDateFormater()));
+                logger.println(String.format("%s - Could not find existing test instanceID. Creating a new test instance.", dateFormatter.getDate()));
+                logger.println(String.format("%s - Searching for available TestSet", dateFormatter.getDate()));
                 // Get a random TestSet
                 PcTestSets pcTestSets = restProxy.GetAllTestSets();
                 if (pcTestSets !=null && pcTestSets.getPcTestSetsList() !=null){
                     PcTestSet pcTestSet = pcTestSets.getPcTestSetsList().get(pcTestSets.getPcTestSetsList().size()-1);
                     int testSetID = pcTestSet.getTestSetID();
-                    logger.println(String.format("%s - Creating Test Instance with testID: %s and TestSetID: %s",simpleDateFormater(), testID,testSetID));
+                    logger.println(String.format("%s - Creating Test Instance with testID: %s and TestSetID: %s",dateFormatter.getDate(), testID,testSetID));
                     testInstanceID = restProxy.createTestInstance(testID,testSetID);
-                    logger.println(String.format("%s - Test Instance with ID : %s has been created successfully.", simpleDateFormater(), testInstanceID));
+                    logger.println(String.format("%s - Test Instance with ID : %s has been created successfully.", dateFormatter.getDate(), testInstanceID));
                 }else{
                     String msg = "There is no TestSet available in the project. Please create a testset from Performance Center UI.";
-                    logger.println(String.format("%s - %s", simpleDateFormater(), msg));
+                    logger.println(String.format("%s - %s", dateFormatter.getDate(), msg));
                     throw new PcException(msg);
                 }
             }
             return testInstanceID;
             } catch (Exception e){
-                logger.println(String.format("%s - getCorrectTestInstanceID failed, reason: %s",simpleDateFormater(), e));
+                logger.println(String.format("%s - getCorrectTestInstanceID failed, reason: %s",dateFormatter.getDate(), e));
                 return Integer.parseInt(null);
             }
         }
@@ -323,11 +302,11 @@ public class PcClient {
             return pcTest.getTestName();
         }
         catch (IOException ex) {
-            logger.println(String.format("%s - getTestData failed for testId : %s", simpleDateFormater(), model.getTestId(true)));
+            logger.println(String.format("%s - getTestData failed for testId : %s", dateFormatter.getDate(), model.getTestId(true)));
             throw ex;
         }
         catch (PcException ex) {
-            logger.println(String.format("%s - getTestData failed for testId : %s", simpleDateFormater(), model.getTestId(true)));
+            logger.println(String.format("%s - getTestData failed for testId : %s", dateFormatter.getDate(), model.getTestId(true)));
             throw ex;
         }
     }
@@ -366,9 +345,9 @@ public class PcClient {
             try {
 
                 if (threeStrikes < 3) {
-                    logger.println(String.format("%s - Cannot get response from PC about the state of RunID: %s %s time(s) consecutively",simpleDateFormater(), runId, (3 - threeStrikes)));
+                    logger.println(String.format("%s - Cannot get response from PC about the state of RunID: %s %s time(s) consecutively",dateFormatter.getDate(), runId, (3 - threeStrikes)));
                     if(threeStrikes==0) {
-                        logger.println(String.format("%s - stopping monitoring on RunID: %s", simpleDateFormater(), runId));
+                        logger.println(String.format("%s - stopping monitoring on RunID: %s", dateFormatter.getDate(), runId));
                         break;
                     }
                     Thread.sleep(2000);
@@ -378,7 +357,7 @@ public class PcClient {
                 RunState currentState = RunState.get(response.getRunState());
                 if (lastState.ordinal() < currentState.ordinal()) {
                     lastState = currentState;
-                    logger.println(String.format("%s - RunID: %s - State = %s",simpleDateFormater(), runId, currentState.value()));
+                    logger.println(String.format("%s - RunID: %s - State = %s",dateFormatter.getDate(), runId, currentState.value()));
                 }
 
                 // In case we are in state before collate or before analyze, we will wait 1 minute for the state to change otherwise we exit
@@ -387,7 +366,7 @@ public class PcClient {
                     counter++;
                     Thread.sleep(1000);
                     if (counter > 60) {
-                        logger.println(String.format("%s - RunID: %s  - Stopped from Performance Center side with state = %s",simpleDateFormater(), runId, currentState.value()));
+                        logger.println(String.format("%s - RunID: %s  - Stopped from Performance Center side with state = %s",dateFormatter.getDate(), runId, currentState.value()));
                         break;
                     }
                 } else {
@@ -412,7 +391,7 @@ public class PcClient {
                     File dir = new File(reportDirectory);
                     dir.mkdirs();
                     String reportArchiveFullPath = dir.getCanonicalPath() + IOUtils.DIR_SEPARATOR + PcBuilder.pcReportArchiveName;
-                    logger.println(String.format("%s - Publishing analysis report", simpleDateFormater()));
+                    logger.println(String.format("%s - Publishing analysis report", dateFormatter.getDate()));
                     restProxy.GetRunResultData(runId, result.getID(), reportArchiveFullPath);
                     FilePath fp = new FilePath(new File(reportArchiveFullPath));
                     fp.unzip(fp.getParent());
@@ -423,7 +402,7 @@ public class PcClient {
                 }
             }
         }
-        logger.println(String.format("%s - Failed to get run report", simpleDateFormater()));
+        logger.println(String.format("%s - Failed to get run report", dateFormatter.getDate()));
         return null;
     }
 
@@ -436,25 +415,25 @@ public class PcClient {
             logoutSucceeded = restProxy.logout();
             loggedIn = !logoutSucceeded;
         } catch (PcException e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
         } catch (Exception e) {
             logger.println(e);
         }
-        logger.println(String.format("%s - Logout %s",simpleDateFormater(), logoutSucceeded ? "succeeded" : "failed"));
+        logger.println(String.format("%s - Logout %s",dateFormatter.getDate(), logoutSucceeded ? "succeeded" : "failed"));
         return logoutSucceeded;
     }
 
     public boolean stopRun(int runId) {
         boolean stopRunSucceeded = false;
         try {
-            logger.println(String.format("%s - Stopping run", simpleDateFormater()));
+            logger.println(String.format("%s - Stopping run", dateFormatter.getDate()));
             stopRunSucceeded = restProxy.stopRun(runId, "stop");
         } catch (PcException e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", simpleDateFormater(), e));
+            logger.println(String.format("%s - %s", dateFormatter.getDate(), e));
         }
-        logger.println(String.format("%s - Stop run %s",simpleDateFormater(), stopRunSucceeded ? "succeeded" : "failed"));
+        logger.println(String.format("%s - Stop run %s",dateFormatter.getDate(), stopRunSucceeded ? "succeeded" : "failed"));
         return stopRunSucceeded;
     }
 
@@ -462,9 +441,9 @@ public class PcClient {
         try {
             return restProxy.getRunEventLog(runId);
         } catch (PcException e) {
-            logger.println(String.format("%s - " + e.getMessage(), simpleDateFormater()));
+            logger.println(String.format("%s - " + e.getMessage(), dateFormatter.getDate()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s",simpleDateFormater(), e));
+            logger.println(String.format("%s - %s",dateFormatter.getDate(), e));
         }
         return null;
     }
@@ -473,16 +452,16 @@ public class PcClient {
     {
 
         TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(true), runId, null);
-        logger.println(String.format("%s - Adding run: %s to trend report: %s", simpleDateFormater(), runId, trendReportId));
+        logger.println(String.format("%s - Adding run: %s to trend report: %s", dateFormatter.getDate(), runId, trendReportId));
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
-            logger.println(String.format("%s - Publishing run: %s on trend report: %s", simpleDateFormater(), runId, trendReportId));
+            logger.println(String.format("%s - Publishing run: %s on trend report: %s", dateFormatter.getDate(), runId, trendReportId));
         }
         catch (PcException e) {
-            logger.println(String.format("%s - Failed to add run to trend report: %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - Failed to add run to trend report: %s", dateFormatter.getDate(), e.getMessage()));
         }
         catch (IOException e) {
-            logger.println(String.format("%s - Failed to add run to trend report: Problem connecting to PC Server", simpleDateFormater()));
+            logger.println(String.format("%s - Failed to add run to trend report: Problem connecting to PC Server", dateFormatter.getDate()));
         }
     }
 
@@ -503,7 +482,7 @@ public class PcClient {
 
                 if (result.getState().equals(PcBuilder.TRENDED) || result.getState().equals(PcBuilder.ERROR)){
                     publishEnded = true;
-                    logger.println(String.format("%s - Run: %s publishing status: %s", simpleDateFormater(), runId, result.getState()));
+                    logger.println(String.format("%s - Run: %s publishing status: %s", dateFormatter.getDate(), runId, result.getState()));
                     break;
                 }else{
                     Thread.sleep(5000);
@@ -522,7 +501,7 @@ public class PcClient {
 
 
         try {
-            logger.println(String.format("%s - Downloading trend report: %s in PDF format", simpleDateFormater(), trendReportId));
+            logger.println(String.format("%s - Downloading trend report: %s in PDF format", dateFormatter.getDate(), trendReportId));
             InputStream in = restProxy.getTrendingPDF(trendReportId);
             File dir = new File(directory);
             if(!dir.exists()){
@@ -531,11 +510,11 @@ public class PcClient {
             String filePath = directory + IOUtils.DIR_SEPARATOR + "trendReport" + trendReportId + ".pdf";
             Path destination = Paths.get(filePath);
             Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
-            logger.println(String.format("%s - Trend report: %s was successfully downloaded", simpleDateFormater(), trendReportId));
+            logger.println(String.format("%s - Trend report: %s was successfully downloaded", dateFormatter.getDate(), trendReportId));
         }
         catch (Exception e) {
 
-            logger.println(String.format("%s - Failed to download trend report: %s", simpleDateFormater(), e.getMessage()));
+            logger.println(String.format("%s - Failed to download trend report: %s", dateFormatter.getDate(), e.getMessage()));
             throw new PcException(e.getMessage());
         }
 
@@ -547,7 +526,7 @@ public class PcClient {
 
         if (filePath == null){return;}
    //     return String.format( HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
-        logger.println(String.format("%s - %s",simpleDateFormater(), HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId)));
+        logger.println(String.format("%s - %s",dateFormatter.getDate(), HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId)));
 
     }
 
@@ -591,7 +570,7 @@ public class PcClient {
                   //  logger.println("No such method exception: " + e);
                 }
                 catch (Exception e){
-                    logger.println(String.format("%s - Error on getTrendReportByXML: %s ", simpleDateFormater(), e));
+                    logger.println(String.format("%s - Error on getTrendReportByXML: %s ", dateFormatter.getDate(), e));
                 }
             }
 
@@ -604,16 +583,6 @@ public class PcClient {
         return measurmentsMap;
 
 
-    }
-
-    private String simpleDateFormater()
-    {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat ("E yyyy MMM dd 'at' HH:mm:ss.SSS a zzz");
-        String simpleDate = simpleDateFormat.format(new Date());
-        if (simpleDate != null)
-            return simpleDate;
-        else
-            return "";
     }
 
 }
