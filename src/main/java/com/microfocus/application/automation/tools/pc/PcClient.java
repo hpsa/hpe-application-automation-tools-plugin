@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.*;
 import java.util.*;
-import java.text.*;
 
 import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
@@ -58,7 +57,7 @@ public class PcClient {
     private PrintStream logger;
     public UsernamePasswordCredentials usernamePCPasswordCredentials;
     public UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
-    DateFormatter dateFormatter;
+    private DateFormatter dateFormatter;
 
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
@@ -211,22 +210,6 @@ public class PcClient {
     }
 
 
-    private static boolean isInteger(String s) {
-        return isInteger(s,10);
-    }
-
-    public static boolean isInteger(String s, int radix) {
-        if(s.isEmpty()) return false;
-        for(int i = 0; i < s.length(); i++) {
-            if(i == 0 && s.charAt(i) == '-') {
-                if(s.length() == 1) return false;
-                else continue;
-            }
-            if(Character.digit(s.charAt(i),radix) < 0) return false;
-        }
-        return true;
-    }
-
     private int getCorrectTestInstanceID(int testID) throws IOException, PcException {
         if("AUTO".equals(model.getAutoTestInstanceID())){
             try {
@@ -375,7 +358,7 @@ public class PcClient {
                 }
                 threeStrikes = 3;
             }
-            catch(Exception e)
+            catch(InterruptedException|PcException e)
             {
                 threeStrikes--;
             }

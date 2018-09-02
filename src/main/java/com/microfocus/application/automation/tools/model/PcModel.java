@@ -32,8 +32,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
 
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.isInteger;
-
 public class PcModel {
 
     public static final String    COLLATE         = "Collate Results";
@@ -103,6 +101,22 @@ public class PcModel {
         return defaultValue;
     }
 
+
+    private static boolean isInteger(String s, int radix) {
+        if(s.isEmpty()) return false;
+        for(int i = 0; i < s.length(); i++) {
+            if(i == 0 && s.charAt(i) == '-') {
+                if(s.length() == 1) return false;
+                else continue;
+            }
+            if(Character.digit(s.charAt(i),radix) < 0) return false;
+        }
+        return true;
+    }
+
+    private static boolean isInteger(String s) {
+        return isInteger(s, 10);
+    }
 
     public String getRetry() {
 

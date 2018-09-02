@@ -336,8 +336,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private void setBuildParameters (AbstractBuild<?, ?> build)
     {
         try {
-            if (build != null)
-                if(build.getBuildVariables() != null)
+            if (build != null && build.getBuildVariables() != null)
                     getPcModel().setBuildParameters(build.getBuildVariables().toString());
         }
         catch (Exception ex) {
@@ -658,9 +657,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return measurement;
         }
 
-        TrendReportTypes.DataType dataType;
-        TrendReportTypes.PctType pctType;
-        TrendReportTypes.Measurement measurement;
+        private TrendReportTypes.DataType dataType;
+        private TrendReportTypes.PctType pctType;
+        private TrendReportTypes.Measurement measurement;
 
         TriTrendReportTypes (TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) {
             this.dataType = dataType;
@@ -1089,37 +1088,37 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
 
         public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
-                                                   @QueryParameter String url,
+                                                   @QueryParameter String pcUrl,
                                                    @QueryParameter String value) {
-            return checkCredentialsId(project, url, value);
+            return checkCredentialsId(project, pcUrl, value);
         }
 
         public FormValidation doCheckCredentialsProxyId(@AncestorInPath Item project,
-                                                        @QueryParameter String url,
+                                                        @QueryParameter String pcUrl,
                                                         @QueryParameter String value) {
-            return checkCredentialsId(project, url, value);
+            return checkCredentialsId(project, pcUrl, value);
         }
 
         public FormValidation checkCredentialsId(@AncestorInPath Item project,
-                                                 @QueryParameter String url,
-                                                 @QueryParameter String value) {
+                                                 @QueryParameter String pcUrl,
+                                                 @QueryParameter String credentialIdValue) {
             if (project == null || !project.hasPermission(Item.EXTENDED_READ)) {
                 return FormValidation.ok();
             }
 
-            value = Util.fixEmptyAndTrim(value);
-            if (value == null) {
+            credentialIdValue = Util.fixEmptyAndTrim(credentialIdValue);
+            if (credentialIdValue == null) {
                 return FormValidation.ok();
             }
 
-            url = Util.fixEmptyAndTrim(url);
-            if (url == null)
+            pcUrl = Util.fixEmptyAndTrim(pcUrl);
+            if (pcUrl == null)
             // not set, can't check
             {
                 return FormValidation.ok();
             }
 
-            if (url.indexOf('$') >= 0)
+            if (pcUrl.indexOf('$') >= 0)
             // set by variable, can't check
             {
                 return FormValidation.ok();
@@ -1130,14 +1129,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     project,
                     project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
                     URIRequirementBuilder.create().build(),
-                    new IdMatcher(value))) {
+                    new IdMatcher(credentialIdValue))) {
 
-                if (StringUtils.equals(value, o.value)) {
+                if (StringUtils.equals(credentialIdValue, o.value)) {
                     return FormValidation.ok();
                 }
             }
             // no credentials available, can't check
-            return FormValidation.warning("Cannot find any credentials with id " + value);
+            return FormValidation.warning("Cannot find any credentials with id " + credentialIdValue);
         }
 
 
