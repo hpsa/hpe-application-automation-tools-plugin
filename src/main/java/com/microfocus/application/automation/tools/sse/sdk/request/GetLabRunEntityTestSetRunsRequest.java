@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,7 +22,10 @@
 
 package com.microfocus.application.automation.tools.sse.sdk.request;
 
+import com.microfocus.application.automation.tools.sse.common.RestXmlUtils;
 import com.microfocus.application.automation.tools.sse.sdk.Client;
+
+import java.util.Map;
 
 /***
  * 
@@ -46,6 +49,13 @@ public class GetLabRunEntityTestSetRunsRequest extends GetRequest {
     protected String getQueryString() {
         
         return String.format("query={procedure-run[%s]}&page-size=2000", _runId);
+    }
+
+    @Override
+    protected Map<String, String> getHeaders() {
+        // It's pretty weird that in 1260 p1 the xml header should be provided.
+        // Otherwise the server would generate wrong query sql.
+        return RestXmlUtils.getAppXmlHeaders();
     }
     
 }
