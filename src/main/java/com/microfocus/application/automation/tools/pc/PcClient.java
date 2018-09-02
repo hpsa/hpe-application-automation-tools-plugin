@@ -57,11 +57,10 @@ public class PcClient {
     private PrintStream logger;
     public UsernamePasswordCredentials usernamePCPasswordCredentials;
     public UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
-    private DateFormatter dateFormatter;
+    private DateFormatter dateFormatter = new DateFormatter("");
 
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
-            dateFormatter = new DateFormatter("");
             model = pcModel;
             String credentialsProxyId = model.getCredentialsProxyId(true);
             usernamePCPasswordCredentialsForProxy = PcBuilder.getCredentialsId(credentialsProxyId);

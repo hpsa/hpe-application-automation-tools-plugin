@@ -38,8 +38,14 @@ public class DateFormatter {
     }
 
     public String getDate(){
-        renewDate();
-        return date;
+        try {
+            renewDate();
+            return date;
+        }
+        catch (Exception ex)
+        {
+            return "";
+        }
     }
 
 }

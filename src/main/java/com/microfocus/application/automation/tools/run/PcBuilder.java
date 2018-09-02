@@ -133,7 +133,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private static PrintStream logger;
     private File WorkspacePath;
     private AbstractBuild<?, ?> _build;
-    private DateFormatter dateFormatter;
+    private DateFormatter dateFormatter = new DateFormatter("");
 
     @DataBoundConstructor
     public PcBuilder(
@@ -182,7 +182,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.retry = (retry == null || retry.isEmpty())? "NO_RETRY" : retry;
         this.retryDelay = ("NO_RETRY".equals(this.retry)) ? "0" : (retryDelay == null || retryDelay.isEmpty()) ? "5" : retryDelay;
         this.retryOccurrences = ("NO_RETRY".equals(this.retry)) ? "0" : (retryOccurrences == null || retryOccurrences.isEmpty()) ? "3" : retryOccurrences;
-        this.dateFormatter = new DateFormatter("");
     }
 
     @Override
