@@ -67,14 +67,13 @@ public class Webhooks implements UnprotectedRootAction  {
 	// url details
 	public static final String WEBHOOK_PATH =  "webhooks";
 	public static final String NOTIFY_METHOD =  "/notify";
-	public static final String TOKEN_PREFIX =  "/TOKEN=";
 
 	// json parameter names
-	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
-	private final String SONAR_PROJECT_KEY_NAME = "key";
-	private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
 	private final String PROJECT = "project";
+	private final String SONAR_PROJECT_KEY_NAME = "key";
 	private final String IS_EXPECTING_FILE_NAME = "is_expecting.txt";
+	private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
+	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
 
 	public String getIconFileName() {
 		return null;
@@ -123,7 +122,7 @@ public class Webhooks implements UnprotectedRootAction  {
 
 							// use SDK to fetch and push data
 							OctaneSDK.getInstance().getSonarService().enqueueFetchAndPushSonarCoverageToOctane(jobName, buildId, sonarProjectKey, serverUrl, serverToken);
-							markBuildAsRecievedWebhookCall(build, true);
+							markBuildAsRecievedWebhookCall(build);
 							res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
 						} else {
 							logger.warn("Got request from sonarqube webhook listener for build ," + buildId + " which is not expecting to get sonarqube data");
@@ -138,7 +137,13 @@ public class Webhooks implements UnprotectedRootAction  {
 		}
 	}
 
-
+	/**
+	 * this method checks if build already got webhook call.
+	 * we are only handling the first call, laters call for the same build
+	 * will be rejected
+	 * @param build
+	 * @return
+	 */
 	private Boolean isBuildAlreadyGotWebhookCall(AbstractBuild build) {
 		try {
 			// build is promised to be exist at this point
@@ -146,8 +151,7 @@ public class Webhooks implements UnprotectedRootAction  {
 			File isExpectingFile = new File(rootDir, IS_EXPECTING_FILE_NAME);
 			FileInputStream fis = new FileInputStream(isExpectingFile);
 			ObjectInputStream ois = new ObjectInputStream(fis);
-			Boolean isExpect = (Boolean) ois.readObject();
-			return isExpect;
+			return (Boolean) ois.readObject();
 		} catch (Exception e) {
 			return Boolean.FALSE;
 		}
@@ -173,6 +177,7 @@ public class Webhooks implements UnprotectedRootAction  {
 		return jenkinsJob != null && jenkinsJob instanceof AbstractProject;
 	}
 
+	// get build build number and jenkins job
 	private AbstractBuild getBuild(AbstractProject jenkinsProject, int buildNumber) {
 		if (jenkinsProject instanceof MavenModuleSet) {
 			return ((MavenModuleSet) jenkinsProject).getBuildByNumber(buildNumber);
@@ -192,7 +197,12 @@ public class Webhooks implements UnprotectedRootAction  {
 		}
 	}
 
-	private void markBuildAsRecievedWebhookCall(AbstractBuild build, Boolean isExpecting) throws IOException {
+	/**
+	 * this method persist the fact a specific build got webhook call.
+	 * @param build
+	 * @throws IOException
+	 */
+	private void markBuildAsRecievedWebhookCall(AbstractBuild build) throws IOException {
 		if (build == null) {
 			return;
 		}
@@ -200,6 +210,6 @@ public class Webhooks implements UnprotectedRootAction  {
 		File isExpectingFile = new File(buildBaseFolder, IS_EXPECTING_FILE_NAME);
 		FileOutputStream fos = new FileOutputStream(isExpectingFile);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
-		oos.writeObject(isExpecting);
+		oos.writeObject(true);
 	}
 }
