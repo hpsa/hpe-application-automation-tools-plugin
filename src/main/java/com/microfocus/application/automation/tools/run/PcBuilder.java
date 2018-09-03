@@ -100,7 +100,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private PcModel pcModel;
     public static UsernamePasswordCredentials usernamePCPasswordCredentials;
     public static UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
-    private static Run<?, ?> _run;
+    private transient static Run<?, ?> _run;
 
     private final String timeslotDurationHours;
     private final String timeslotDurationMinutes;
@@ -132,7 +132,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private String junitResultsFileName;
     private static PrintStream logger;
     private File WorkspacePath;
-    private AbstractBuild<?, ?> _build;
+    private transient AbstractBuild<?, ?> _build;
     private DateFormatter dateFormatter = new DateFormatter("");
 
     @DataBoundConstructor
@@ -644,6 +644,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     private class TriTrendReportTypes {
+
+        private TrendReportTypes.DataType dataType;
+        private TrendReportTypes.PctType pctType;
+        private TrendReportTypes.Measurement measurement;
+
         public TrendReportTypes.DataType getDataType() {
             return dataType;
         }
@@ -655,10 +660,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         public TrendReportTypes.Measurement getMeasurement() {
             return measurement;
         }
-
-        private TrendReportTypes.DataType dataType;
-        private TrendReportTypes.PctType pctType;
-        private TrendReportTypes.Measurement measurement;
 
         TriTrendReportTypes (TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) {
             this.dataType = dataType;
@@ -1105,19 +1106,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 return FormValidation.ok();
             }
 
-            credentialIdValue = Util.fixEmptyAndTrim(credentialIdValue);
-            if (credentialIdValue == null) {
+            String credentialIdValueStr = Util.fixEmptyAndTrim(credentialIdValue);
+            if (credentialIdValueStr == null) {
                 return FormValidation.ok();
             }
 
-            pcUrl = Util.fixEmptyAndTrim(pcUrl);
-            if (pcUrl == null)
+            String pcUrlStr = Util.fixEmptyAndTrim(pcUrl);
+            if (pcUrlStr == null)
             // not set, can't check
             {
                 return FormValidation.ok();
             }
 
-            if (pcUrl.indexOf('$') >= 0)
+            if (pcUrlStr.indexOf('$') >= 0)
             // set by variable, can't check
             {
                 return FormValidation.ok();
@@ -1128,14 +1129,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     project,
                     project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
                     URIRequirementBuilder.create().build(),
-                    new IdMatcher(credentialIdValue))) {
+                    new IdMatcher(credentialIdValueStr))) {
 
-                if (StringUtils.equals(credentialIdValue, o.value)) {
+                if (StringUtils.equals(credentialIdValueStr, o.value)) {
                     return FormValidation.ok();
                 }
             }
             // no credentials available, can't check
-            return FormValidation.warning("Cannot find any credentials with id " + credentialIdValue);
+            return FormValidation.warning("Cannot find any credentials with id " + credentialIdValueStr);
         }
 
 
