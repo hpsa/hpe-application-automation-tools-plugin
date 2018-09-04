@@ -1,5 +1,4 @@
 /*
- * © Copyright 2013 EntIT Software LLC
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -59,8 +58,8 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
  */
 
 @Extension
-public class WorkflowListener implements GraphListener {
-	private static final Logger logger = LogManager.getLogger(WorkflowListener.class);
+public class WorkflowListenerOctaneImpl implements GraphListener {
+	private static final Logger logger = LogManager.getLogger(WorkflowListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Inject
