@@ -44,7 +44,7 @@ import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 import com.microfocus.application.automation.tools.model.PcModel;
 import com.microfocus.application.automation.tools.run.PcBuilder;
@@ -215,7 +215,13 @@ public class PcClient {
 
 
             logger.println(String.format("%s - Searching for available test instance", dateFormatter.getDate()));
-            PcTestInstances pcTestInstances = restProxy.getTestInstancesByTestId(testID);
+            PcTestInstances pcTestInstances = null;
+            try {
+                pcTestInstances = restProxy.getTestInstancesByTestId(testID);
+            } catch (PcException ex) {
+                logger.println(String.format("%s - Failed to get getTestInstancesByTestId.", dateFormatter.getDate()));
+            }
+
             int testInstanceID;
             if (pcTestInstances != null && pcTestInstances.getTestInstancesList() != null){
                 PcTestInstance pcTestInstance = pcTestInstances.getTestInstancesList().get(pcTestInstances.getTestInstancesList().size()-1);

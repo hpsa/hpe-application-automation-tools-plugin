@@ -26,7 +26,7 @@
 * */
 package com.microfocus.application.automation.tools.run;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.application.automation.tools.model.PcModel;
 import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Error;
@@ -36,12 +36,8 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.JUnitT
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testcase;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import hudson.Util;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.PluginWrapper;
+
+import hudson.*;
 import hudson.console.HyperlinkNote;
 import hudson.model.*;
 import hudson.model.queue.Tasks;
@@ -79,8 +75,8 @@ import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 
-import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.FINISHED;
-import static com.microfocus.adm.performancecenter.plugins.common.pcEntities.RunState.RUN_FAILURE;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.FINISHED;
+import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.RUN_FAILURE;
 
 public class PcBuilder extends Builder implements SimpleBuildStep{
     
@@ -343,8 +339,21 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
     }
 
+    public static String getPluginVersion() {
+        Plugin plugin = getJenkinsInstance().getPlugin("hp-application-automation-tools-plugin");
+        return plugin.getWrapper().getVersion();
+    }
+
+    private static Jenkins getJenkinsInstance() {
+        Jenkins result = Jenkins.getInstance();
+        if (result == null) {
+            throw new IllegalStateException("failed to obtain Jenkins instance");
+        }
+        return result;
+    }
+
     private String getVersion() {
-		String completeVersion = ConfigurationService.getPluginVersion();
+		String completeVersion = getPluginVersion();
 		if(completeVersion != null) {
 			String[] partsOfCompleteVersion = completeVersion.split(" [(]");
 			return partsOfCompleteVersion[0];

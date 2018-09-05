@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.pc;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 
 import java.io.PrintStream;
 
@@ -30,7 +30,7 @@ public interface PcTestBase {
 
 	public static final String        SERVER_AND_PORT                 = "jenkins.server:8082";
 	public static final String        PC_SERVER_NAME                  = "pcServer.hp.com";
-	public static final String        CREDENTIALSID                   = "";
+	public static final String        CREDENTIALSID                   = "123456789";
     public static final String        ALM_DOMAIN                      = "ALMDOM";
     public static final String        ALM_PROJECT                     = "ALMPROJ";
     public static final String        TEST_ID                         = "1";

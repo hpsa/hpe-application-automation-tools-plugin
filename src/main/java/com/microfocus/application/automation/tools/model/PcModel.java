@@ -30,7 +30,7 @@ import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 
 public class PcModel {
 
