@@ -44,16 +44,15 @@ import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.triggers.SCMTrigger;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import jenkins.tasks.SimpleBuildWrapper;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.*;
@@ -107,17 +106,16 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
      * @param allConfigurations jenkins global configuration
      * @throws InterruptedException
      */
-    private String[] getSonarDetails(@Nonnull Run<?, ?> run, ExtensionList<GlobalConfiguration> allConfigurations) throws InterruptedException {
-        String [] serverDetails = new String[3];
+    private String[] getSonarDetails(@Nonnull Run<?, ?> run, ExtensionList<GlobalConfiguration> allConfigurations, TaskListener listener) throws InterruptedException {
+        String [] serverDetails = new String[2];
         // if one of the properties is empty, need to query sonar plugin from jenkins to get the data
-        if (sonarProjectKey.isEmpty() || sonarToken.isEmpty() || sonarServerUrl.isEmpty()) {
+         if (sonarProjectKey.isEmpty() || sonarToken.isEmpty() || sonarServerUrl.isEmpty()) {
             try {
                 if (allConfigurations != null) {
-                    // GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic("hudson.plugins.sonar.SonarGlobalConfiguration");
-                    SonarHelper adapter = new SonarHelper(run);
-                    serverDetails[0] = sonarProjectKey.isEmpty() ? adapter.extractSonarProjectKey() : sonarProjectKey;
-                    serverDetails[1] = sonarServerUrl.isEmpty() ? adapter.extractSonarUrl() : sonarServerUrl;
-                    serverDetails[2] = sonarToken.isEmpty() ? adapter.extractSonarToken() : sonarToken;
+                    SonarHelper adapter = new SonarHelper(run, listener);
+                    serverDetails[0] = sonarServerUrl.isEmpty() ? adapter.getServerUrl() : sonarServerUrl;
+                    serverDetails[1] = sonarToken.isEmpty() ? adapter.getServerToken() : sonarToken;
+
                 }
             } catch (Exception e) {
                 throw new InterruptedException("exception occurred while init sonar tracker for job " + run.getDisplayName() + " error message: " + e.getMessage());
@@ -154,10 +152,10 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 
         if (run instanceof AbstractBuild) {
             logger.println("callback URL for jenkins resource will be set to: " + callbackWebHooksURL);
-            String[] serverDetails = getSonarDetails(run, allConfigurations);
+            String[] serverDetails = getSonarDetails(run, allConfigurations, listener);
             try {
-                OctaneSDK.getInstance().getSonarService().ensureWebhookExist(callbackWebHooksURL, serverDetails[1], serverDetails[2]);
-                run.addAction(new WebhookExpectationAction(true));
+                OctaneSDK.getInstance().getSonarService().ensureWebhookExist(callbackWebHooksURL, serverDetails[0], serverDetails[1]);
+                run.addAction(new WebhookExpectationAction(true, serverDetails[0]));
             } catch (OctaneSDKSonarException e) {
                 logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
             }
@@ -183,77 +181,6 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
             return "ALM Octane SonarQube coverage listener";
         }
 
-        /**
-         * get sonar adapter. the adapter adds a dependency at compile time for sonar classes
-         * and enables the usage of sonar interfaces
-         * @param project
-         * @return
-         */
-        private SonarHelper getAdapter(AbstractProject project) {
-            SonarHelper adapter = new SonarHelper(project);
-            return adapter;
-        }
-
-        /**
-         * validate sonar project key
-         * @param project
-         * @param value
-         * @return
-         * @throws IOException
-         * @throws ServletException
-         */
-        public FormValidation doCheckSonarProjectKey(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {
-            // if no value, validate that we can extract data from sonar configuration
-            if (value == null || value.isEmpty()) {
-                SonarHelper adapter = this.getAdapter(project);
-                if (adapter != null && !adapter.extractSonarProjectKey().isEmpty()) {
-                    return FormValidation.ok();
-                } else {
-                    return FormValidation.warning(Messages.CannotExtractSonarCoverageProjectKey());
-                }
-            }
-            return FormValidation.ok();
-        }
-
-        /**
-         * validate legal extraction of sonar token from configuration
-         * @param project
-         * @param value
-         * @return
-         * @throws IOException
-         * @throws ServletException
-         */
-        public FormValidation doCheckSonarToken(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {
-            if (value == null || value.isEmpty()) {
-                SonarHelper adapter = this.getAdapter(project);
-                if (adapter != null && !adapter.extractSonarToken().isEmpty()) {
-                    return FormValidation.ok();
-                } else {
-                    return FormValidation.warning(Messages.CannotExtractSonarServerToken());
-                }
-            }
-            return FormValidation.ok();
-        }
-
-        /**
-         * validate legal extraction of sonar server URL from configuration
-         * @param project
-         * @param value
-         * @return
-         * @throws IOException
-         * @throws ServletException
-         */
-        public FormValidation doCheckSonarServerUrl(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {
-            if (value == null || value.isEmpty()) {
-                SonarHelper adapter = this.getAdapter(project);
-                if (adapter != null && !adapter.extractSonarUrl().isEmpty()) {
-                    return FormValidation.ok();
-                } else {
-                    return FormValidation.warning(Messages.CannotExtractSonarURL());
-                }
-            }
-            return FormValidation.ok();
-        }
 
         /**
          * test sonar connection

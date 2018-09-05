@@ -38,8 +38,10 @@ import com.hpe.application.automation.tools.model.SonarHelper;
 import com.hpe.application.automation.tools.model.WebhookExpectationAction;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
@@ -74,6 +76,7 @@ public class Webhooks implements UnprotectedRootAction  {
 	private final String IS_EXPECTING_FILE_NAME = "is_expecting.txt";
 	private final String JOB_NAME_PARAM_NAME = "sonar.analysis.jobName";
 	private final String BUILD_NUMBER_PARAM_NAME = "sonar.analysis.buildNumber";
+    private static final String PROJECT_KEY_HEADER = "X-SonarQube-Project";
 
 	public String getIconFileName() {
 		return null;
@@ -98,7 +101,7 @@ public class Webhooks implements UnprotectedRootAction  {
 		JSONObject inputNotification = (JSONObject) JSONValue.parse(req.getInputStream());
 		Object properties = inputNotification.get("properties");
 		// without build context, could not send octane relevant data
-		if (properties != null && properties instanceof HashMap) {
+		if (!req.getHeader(PROJECT_KEY_HEADER).isEmpty() && properties != null && properties instanceof HashMap) {
 			// get relevant parameters
 			HashMap sonarAttachedProperties = ((HashMap) properties);
 			// filter notifications from sonar projects, who haven't configured listener parameters
@@ -113,17 +116,19 @@ public class Webhooks implements UnprotectedRootAction  {
 					if (isValidJenkinsBuildNumber(jenkinsProject, buildNumber)) {
 						AbstractBuild build = getBuild(jenkinsProject, buildNumber);
 						if (build != null && isBuildExpectingToGetWebhookCall(build) && !isBuildAlreadyGotWebhookCall(build)) {
-							SonarHelper adapter = new SonarHelper(jenkinsProject);
-							String serverUrl = adapter.extractSonarUrl();
-							String serverToken = adapter.extractSonarToken();
+							WebhookExpectationAction action = build.getAction(WebhookExpectationAction.class);
+							ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
+							GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
+							if (sonarConfiguration != null) {
+								String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(build, sonarConfiguration, action.getServerUrl());
+								HashMap project = (HashMap) inputNotification.get(PROJECT);
+								String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 
-							HashMap project = (HashMap) inputNotification.get(PROJECT);
-							String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
-
-							// use SDK to fetch and push data
-							OctaneSDK.getInstance().getSonarService().enqueueFetchAndPushSonarCoverageToOctane(jobName, buildId, sonarProjectKey, serverUrl, serverToken);
-							markBuildAsRecievedWebhookCall(build);
-							res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
+								// use SDK to fetch and push data
+								OctaneSDK.getInstance().getSonarService().enqueueFetchAndPushSonarCoverageToOctane(jobName, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
+								markBuildAsRecievedWebhookCall(build);
+								res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
+							}
 						} else {
 							logger.warn("Got request from sonarqube webhook listener for build ," + buildId + " which is not expecting to get sonarqube data");
 							res.setStatus(HttpStatus.SC_EXPECTATION_FAILED);

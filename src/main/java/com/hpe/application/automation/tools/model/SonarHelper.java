@@ -1,19 +1,23 @@
 package com.hpe.application.automation.tools.model;
 
-import com.hpe.application.automation.tools.octane.actions.Webhooks;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import hudson.EnvVars;
+import hudson.ExtensionList;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
+import hudson.plugins.sonar.SonarGlobalConfiguration;
+import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarRunnerBuilder;
 import hudson.tasks.Builder;
 import hudson.util.DescribableList;
-import jenkins.model.Jenkins;
+import jenkins.model.GlobalConfiguration;
 import jenkins.security.ApiTokenProperty;
 
-import javax.annotation.CheckForNull;
-import java.io.*;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,43 +28,80 @@ import java.util.regex.Pattern;
  * this class is only dependent on sonar plugin for compile time.
  */
 public class SonarHelper {
-    private final String sonarId = "hudson.plugins.sonar.SonarRunnerBuilder";
-    private SonarRunnerBuilder builder = null;
+    public static final String SONAR_GLOBAL_CONFIG = "hudson.plugins.sonar.SonarGlobalConfiguration";
+    private final String SONAR_ACTION_ID = "hudson.plugins.sonar.SonarRunnerBuilder";
+    private final String SONAR_SERVER_HOST_VARIABLE = "SONAR_HOST_URL";
+    private final String SONAR_SERVER_TOKEN_VARIABLE = "SONAR_AUTH_TOKEN";
 
-    public SonarHelper(Run<?, ?> run) {
+
+    private String serverUrl;
+    private String serverToken;
+    private String projectKey;
+
+
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public String getServerToken() {
+        return serverToken;
+    }
+    // used by the webhook
+    public static String getSonarInstallationTokenByUrl(Run<?, ?> run, GlobalConfiguration sonarConfiguration, String sonarUrl) {
+        if (sonarConfiguration instanceof SonarGlobalConfiguration) {
+            SonarGlobalConfiguration sonar = (SonarGlobalConfiguration) sonarConfiguration;
+            Optional<SonarInstallation> installation = Arrays.stream(sonar.getInstallations()).filter(sonarInstallation -> sonarInstallation.getServerUrl().equals(sonarUrl)).findFirst();
+            if (installation.isPresent()) {
+                return installation.get().getServerAuthenticationToken();
+            }
+        }
+        return "";
+    }
+
+    public SonarHelper(Run<?, ?> run, TaskListener listener) {
         DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
         if (run instanceof AbstractBuild) {
             AbstractBuild abstractBuild = (AbstractBuild) run;
             if (abstractBuild instanceof MavenModuleSetBuild) {
-                postbuilders = ((MavenModuleSetBuild) run).getProject().getPostbuilders();
+                MavenModuleSet project = ((MavenModuleSetBuild) run).getProject();
+                setSonarDetailsFromMavenEnvironment(abstractBuild, listener);
+                postbuilders = project.getPostbuilders();
             } else {
                 AbstractProject project = abstractBuild.getProject();
                 if (project instanceof Project) {
                     postbuilders = ((Project) project).getBuildersList();
                 }
             }
-            if (postbuilders != null) {
-                setSonarBuilder(postbuilders);
+            // for jobs that does not use new sonar approach for maven jobs,
+            // extract data for old approach which used post build step
+            if (postbuilders != null && (this.getServerUrl().isEmpty() || this.getServerToken().isEmpty())) {
+                setDataFromSonarBuilder(postbuilders);
             }
         }
     }
 
-    public SonarHelper(AbstractProject project) {
-        DescribableList<Builder, Descriptor<Builder>> postbuilders = null;
-        if (project instanceof MavenModuleSet) {
-            postbuilders = ((MavenModuleSet) project).getPostbuilders();
-        } else if (project instanceof Project) {
-            postbuilders = ((Project) project).getBuildersList();
-        }
-        if (postbuilders != null) {
-            setSonarBuilder(postbuilders);
+    private void setSonarDetailsFromMavenEnvironment(AbstractBuild project, TaskListener listener) {
+        EnvVars environment = null;
+        try {
+            environment = project.getEnvironment(listener);
+            if (environment != null) {
+                this.serverUrl = environment.get(SONAR_SERVER_HOST_VARIABLE, "");
+                this.serverToken = environment.get(SONAR_SERVER_TOKEN_VARIABLE, "");
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    private void setSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postbuilders) {
-        Builder sonarBuilder = postbuilders.getDynamic(sonarId);
+
+
+    private void setDataFromSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postbuilders) {
+        Builder sonarBuilder = postbuilders.getDynamic(SONAR_ACTION_ID);
         if (sonarBuilder != null) {
-            this.builder = (SonarRunnerBuilder) sonarBuilder;
+            SonarRunnerBuilder builder = (SonarRunnerBuilder) sonarBuilder;
+            this.serverUrl = extractSonarUrl(builder);
+            this.serverToken = extractSonarToken(builder);
+            this.projectKey = extractSonarProjectKey(builder);
         }
     }
 
@@ -68,24 +109,24 @@ public class SonarHelper {
      * get sonar URL address
      * @return
      */
-    public String extractSonarUrl() {
-        return this.builder != null ? this.builder.getSonarInstallation().getServerUrl() : "";
+    private String extractSonarUrl(SonarRunnerBuilder builder) {
+        return builder != null ? builder.getSonarInstallation().getServerUrl() : "";
     }
 
     /**
      * get sonar server token
      * @return
      */
-    public String extractSonarToken() {
-        return this.builder != null ? this.builder.getSonarInstallation().getServerAuthenticationToken() : "";
+    private String extractSonarToken(SonarRunnerBuilder builder) {
+        return builder != null ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
     }
 
     /**
      * get sonar project key from properties section
      * @return
      */
-    public String extractSonarProjectKey() {
-        return this.builder != null ? this.extractProjectKeyFromProperties(this.builder.getProperties()) : "";
+    private String extractSonarProjectKey(SonarRunnerBuilder builder) {
+        return builder != null ? this.extractProjectKeyFromProperties(builder.getProperties()) : "";
     }
 
     /**
