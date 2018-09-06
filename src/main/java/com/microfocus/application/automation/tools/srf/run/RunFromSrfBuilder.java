@@ -211,7 +211,7 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
     public RunFromSrfBuilder.DescriptorImpl getDescriptor() {
         return (RunFromSrfBuilder.DescriptorImpl) super.getDescriptor();
     }
-
+    // TODO: REMOVE THIS AND USE ONLY CLIENT
     public static JSONObject getSrfConnectionData(AbstractBuild<?, ?> build, PrintStream logger) {
         try {
             CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
@@ -495,13 +495,15 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
                                 handleJobError(jobIds, error);
                             }
                             break;
+                        default:
+                            throw new SrfException(String.format("Received unexpected error class type, expected 'JSONObject' or 'JSONArray' but received %s", errorClassName));
                     }
                 } else {
                     jobIds.add(job.getString("jobId"));
                     runningCount.add(job.getString("testRunId"));
                 }
             } catch (Exception e) {
-               systemLogger.severe(e.getLocalizedMessage());
+                systemLogger.severe(e.getLocalizedMessage());
             }
         }
         return jobIds;
