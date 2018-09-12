@@ -1090,7 +1090,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             FilePath dstReportPath = new FilePath(testDirectory);
             FilePath transSummaryReport,
-					 transSummaryReportExcel;
+		     transSummaryReportExcel;
             if ((transSummaryReport = getTransactionSummaryReport(htmlReportPath)) != null) {
                 FilePath dstFilePath = new FilePath(dstReportPath, TRANSACTION_REPORT_NAME + ".html");
                 transSummaryReport.copyTo(dstFilePath);
