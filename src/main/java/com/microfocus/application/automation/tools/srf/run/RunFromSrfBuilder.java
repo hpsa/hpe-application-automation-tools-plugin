@@ -241,6 +241,12 @@ public class RunFromSrfBuilder extends Builder implements Serializable, Observer
             String tenant = app.substring(1, app.indexOf('_'));
             String secret = credentials.getPassword().getPlainText();
             String server = document.getElementsByTagName("srfServerName").item(0).getTextContent();
+
+            // Normalize SRF server URL string if needed
+            if (server.substring(server.length() - 1).equals("/")) {
+                server = server.substring(0, server.length() - 1);
+            }
+
             boolean https = true;
             if (!server.startsWith("https://")) {
                 if (!server.startsWith("http://")) {
