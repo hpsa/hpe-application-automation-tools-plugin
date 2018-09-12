@@ -40,7 +40,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
  */
 
 @Extension
-public class ItemListenerImpl extends ItemListener {
+public class ItemListenerOctaneImpl extends ItemListener {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override

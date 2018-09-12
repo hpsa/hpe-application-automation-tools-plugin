@@ -54,8 +54,8 @@ import java.io.File;
  */
 
 @Extension
-public class SCMListenerImpl extends SCMListener {
-	private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
+public class SCMListenerOctaneImpl extends SCMListener {
+	private static final Logger logger = LogManager.getLogger(SCMListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 
