@@ -119,31 +119,6 @@ public class SonarHelper {
         return builder != null ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
     }
 
-
-    /**
-     * extract project key from properties using regular expression
-     * @param properties
-     * @return
-     */
-    private String extractProjectKeyFromProperties(String properties) {
-        String sonarProjectKey = "";
-        // this regex ignore look for project key definition, and extract the value (excluding un-relevant spaces)
-        Pattern pattern = Pattern.compile("((sonar.projectKey)+[\\s]*)=([\\s]*)(\"[^\"]*\"|[^\\s]*)", Pattern.CASE_INSENSITIVE);
-        Scanner scanner = new Scanner(properties);
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.find()) {
-                sonarProjectKey = matcher.group(4);
-                break;
-            }
-
-        }
-        scanner.close();
-        return sonarProjectKey;
-    }
-
-
     public static String get() {
         // extract token from user
         String user = ConfigurationService.getModel().getImpersonatedUser();
