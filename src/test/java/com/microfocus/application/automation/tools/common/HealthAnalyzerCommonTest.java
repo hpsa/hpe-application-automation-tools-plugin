@@ -21,36 +21,41 @@
 package com.microfocus.application.automation.tools.common;
 
 import hudson.AbortException;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedDoesUrlExist;
-import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
 public class HealthAnalyzerCommonTest {
     private final static String DUMMY_PRODUCT_NAME = "productName";
     private final static String NON_EXISTING_REGISTRY = "non\\existing\\registry\\value";
+    private static HealthAnalyzerCommon healthAnalyzerCommon;
+
+    @BeforeClass
+    public static void setup() {
+        healthAnalyzerCommon = new HealthAnalyzerCommon(DUMMY_PRODUCT_NAME);
+    }
 
     @Test(expected = AbortException.class)
     public void isCheckedPerformWindowsInstallationCheck_throwsException_ifValueDoesNotExistsAndToCheckIsTrue()
             throws IOException, InterruptedException {
-        ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true, DUMMY_PRODUCT_NAME);
+        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
     }
 
     @Test(expected = AbortException.class)
-    public void ifCheckedDoesUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException {
+    public void ifCheckedIsUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException {
         String url = "https://non-exisiting-url-for-checking.com";
-        ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
+        healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
     }
 
     @Test
-    public void ifCheckedDoesUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException {
+    public void ifCheckedIsUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException {
         String url = "https://www.microfocus.com/";
         try {
-            ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
+            healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
         }
@@ -60,7 +65,7 @@ public class HealthAnalyzerCommonTest {
     public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue()
             throws IOException, InterruptedException {
         try {
-            ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true, DUMMY_PRODUCT_NAME);
+            healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
         } catch (AbortException e) {
             assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed, please install it first.");
         }
@@ -69,12 +74,18 @@ public class HealthAnalyzerCommonTest {
 
     // TODO: is checking the folder and and not specific key is enough?
     @Test
-    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException{
+    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException {
         String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
         try {
-            ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true, DUMMY_PRODUCT_NAME);
+            healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
         }
+    }
+
+    @Test(expected = AbortException.class)
+    public void ifCheckedIsFileExist_throwsException_ifFileDoesNotExist() {
+        String path = "non//existing//path";
+        //  healthAnalyzerCommon.ifCheckedIsFileExist(path, true);
     }
 }

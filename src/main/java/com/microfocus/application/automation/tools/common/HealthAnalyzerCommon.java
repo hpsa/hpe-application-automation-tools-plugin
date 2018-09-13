@@ -30,26 +30,34 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class HealthAnalyzerCommon {
-    private HealthAnalyzerCommon() {
+    private final String productName;
+
+    public HealthAnalyzerCommon(@Nonnull final String productName) {
+        Objects.requireNonNull(productName, "The product name value must be not null");
+        this.productName = productName;
     }
 
-    public static void ifCheckedPerformWindowsInstallationCheck
-            (@Nonnull final String registryPath, @Nonnull final boolean toCheck, @Nonnull final String productName)
+    public void ifCheckedPerformWindowsInstallationCheck(@Nonnull final String registryPath, final boolean toCheck)
             throws IOException, InterruptedException {
-        if (toCheck && !HealthAnalyzerCommon.isRegistryExists(registryPath))
-            throwAbortException("%s is not installed, please install it first.", productName);
+        Objects.requireNonNull(registryPath, "The registry value must be not null");
+
+        if (toCheck && !isRegistryExists(registryPath))
+            throwAbortException("%s is not installed, please install it first.");
     }
 
-    private static boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
+    private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
         // TODO: Check if its windows? (System.getProperty("os.name")
         return startRegistryQueryAndGetStatus(registryPath);
     }
 
-    private static boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
+    private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
             throws IOException, InterruptedException {
         ProcessBuilder builder = new ProcessBuilder("reg", "query", registryPath);
         Process reg = builder.start();
@@ -58,7 +66,7 @@ public class HealthAnalyzerCommon {
         return keys;
     }
 
-    private static boolean isProcessStreamHasRegistry(@Nonnull final Process reg) throws IOException {
+    private boolean isProcessStreamHasRegistry(@Nonnull final Process reg) throws IOException {
         try (BufferedReader output = new BufferedReader(
                 new InputStreamReader(reg.getInputStream()))) {
             Stream<String> keys = output.lines().filter(l -> !l.isEmpty());
@@ -66,13 +74,15 @@ public class HealthAnalyzerCommon {
         }
     }
 
-    public static void ifCheckedDoesUrlExist(
-            @Nonnull final String url, @Nonnull final boolean toCheck, @Nonnull final String productName) throws IOException {
+    public void ifCheckedDoesUrlExist(
+            @Nonnull final String url, final boolean toCheck) throws IOException {
+        Objects.requireNonNull(url, "URL must be not be null");
+
         if (toCheck && !isURLExist(url))
-            throwAbortException("The server URL of %s does not exist.", productName);
+            throwAbortException("The server URL of %s does not exist.");
     }
 
-    private static boolean isURLExist(String stringUrl) throws IOException {
+    private boolean isURLExist(String stringUrl) throws IOException {
         try {
             URL url = new URL(stringUrl); // MalformedUrlException
             HttpURLConnection.setFollowRedirects(false);
@@ -88,8 +98,18 @@ public class HealthAnalyzerCommon {
         }
     }
 
-    private static void throwAbortException(@Nonnull final String message, @Nonnull final String productName)
+    private void throwAbortException(@Nonnull final String message)
             throws AbortException {
         throw new AbortException(String.format(message, productName));
+    }
+
+    private boolean isFileExist(@Nonnull final String path)
+            throws InvalidPathException, SecurityException, UnsupportedOperationException {
+        return Paths.get(path).toFile().exists();
+    }
+
+    public void ifChecekedIsFileExist(@Nonnull final String path, final boolean toCheck) throws AbortException {
+        if (toCheck && !isFileExist(path))
+            throwAbortException("The file at path: %s does not exist");
     }
 }

@@ -37,6 +37,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     private static final String LR_REGISTRY_PATH =
             "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Mercury Interactive\\LoadRunner\\CurrentVersion";
     private final boolean checkLrInstallation;
+    private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
 
     @DataBoundConstructor
     public HealthAnalyzerLrStep(boolean checkLrInstallation) {
@@ -51,8 +52,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
-        HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(
-                LR_REGISTRY_PATH, checkLrInstallation, Messages.ProductName());
+        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
     }
 
     @Extension

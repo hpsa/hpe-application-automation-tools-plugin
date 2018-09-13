@@ -39,6 +39,7 @@ import java.io.IOException;
 
 public class HealthAnalyzerMcStep extends HealthAnalyzerModel {
     private final boolean checkMcServer;
+    private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
     private String mcServerUrl;
 
     @DataBoundConstructor
@@ -64,7 +65,7 @@ public class HealthAnalyzerMcStep extends HealthAnalyzerModel {
     public void perform(
             @Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
             throws InterruptedException, IOException {
-        HealthAnalyzerCommon.ifCheckedDoesUrlExist(mcServerUrl, checkMcServer, Messages.ProductName());
+        healthAnalyzerCommon.ifCheckedDoesUrlExist(mcServerUrl, checkMcServer);
     }
 
     @Extension
