@@ -21,24 +21,23 @@
 package com.microfocus.application.automation.tools.common;
 
 import hudson.AbortException;
-import jenkins.model.Jenkins;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedDoesUrlExist;
 import static com.microfocus.application.automation.tools.common.HealthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
 public class HealthAnalyzerCommonTest {
     private final static String DUMMY_PRODUCT_NAME = "productName";
+    private final static String NON_EXISTING_REGISTRY = "non\\existing\\registry\\value";
 
     @Test(expected = AbortException.class)
     public void isCheckedPerformWindowsInstallationCheck_throwsException_ifValueDoesNotExistsAndToCheckIsTrue()
             throws IOException, InterruptedException {
-        String falseRegistryValue = "non\\existing\\registry\\value";
-        ifCheckedPerformWindowsInstallationCheck(falseRegistryValue, true, DUMMY_PRODUCT_NAME);
+        ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true, DUMMY_PRODUCT_NAME);
     }
 
     @Test(expected = AbortException.class)
@@ -49,11 +48,21 @@ public class HealthAnalyzerCommonTest {
 
     @Test
     public void ifCheckedDoesUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException {
-        String url = "https://google.com";
+        String url = "https://www.microfocus.com/";
         try {
             ifCheckedDoesUrlExist(url, true, DUMMY_PRODUCT_NAME);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
+        }
+    }
+
+    @Test
+    public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue()
+            throws IOException, InterruptedException {
+        try {
+            ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true, DUMMY_PRODUCT_NAME);
+        } catch (AbortException e) {
+            assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed, please install it first.");
         }
     }
 

@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.common;
 import hudson.AbortException;
 
 import javax.annotation.Nonnull;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,7 +41,7 @@ public class HealthAnalyzerCommon {
             (@Nonnull final String registryPath, @Nonnull final boolean toCheck, @Nonnull final String productName)
             throws IOException, InterruptedException {
         if (toCheck && !HealthAnalyzerCommon.isRegistryExists(registryPath))
-            throw new AbortException(String.format("%s is not installed, please install it first", productName));
+            throwAbortException("%s is not installed, please install it first.", productName);
     }
 
     private static boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
@@ -67,20 +68,28 @@ public class HealthAnalyzerCommon {
 
     public static void ifCheckedDoesUrlExist(
             @Nonnull final String url, @Nonnull final boolean toCheck, @Nonnull final String productName) throws IOException {
-       if(toCheck && !doesURLExist(url))
-           throw new AbortException(String.format("The server URL of %s does not exist.", productName));
+        if (toCheck && !isURLExist(url))
+            throwAbortException("The server URL of %s does not exist.", productName);
     }
 
-    private static boolean doesURLExist(String stringUrl) throws IOException
-    {
+    private static boolean isURLExist(String stringUrl) throws IOException {
         try {
             URL url = new URL(stringUrl); // MalformedUrlException
+            HttpURLConnection.setFollowRedirects(false);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout(3000); // 3 Seconds
             httpURLConnection.setRequestMethod("HEAD");
             httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
             return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (UnknownHostException e) {
             return false; // Todo: Provide this as information for the AbortException?
+        } catch (SSLHandshakeException e) {
+            return true;
         }
+    }
+
+    private static void throwAbortException(@Nonnull final String message, @Nonnull final String productName)
+            throws AbortException {
+        throw new AbortException(String.format(message, productName));
     }
 }
