@@ -100,7 +100,6 @@ public class SonarHelper {
             SonarRunnerBuilder builder = (SonarRunnerBuilder) sonarBuilder;
             this.serverUrl = extractSonarUrl(builder);
             this.serverToken = extractSonarToken(builder);
-            this.projectKey = extractSonarProjectKey(builder);
         }
     }
 
