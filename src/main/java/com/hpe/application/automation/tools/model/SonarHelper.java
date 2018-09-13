@@ -2,7 +2,6 @@ package com.hpe.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.EnvVars;
-import hudson.ExtensionList;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
@@ -36,7 +35,7 @@ public class SonarHelper {
 
     private String serverUrl;
     private String serverToken;
-    private String projectKey;
+
 
 
     public String getServerUrl() {

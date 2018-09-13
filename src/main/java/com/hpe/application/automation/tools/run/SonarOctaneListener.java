@@ -40,7 +40,6 @@ import com.hpe.application.automation.tools.model.WebhookExpectationAction;
 import com.hpe.application.automation.tools.octane.actions.Webhooks;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.*;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -48,13 +47,10 @@ import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import jenkins.tasks.SimpleBuildWrapper;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
 import java.io.*;
 
 
