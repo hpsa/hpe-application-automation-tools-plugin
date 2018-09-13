@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -79,6 +79,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
     }
 
     public class SrfTestResultAction extends TestResultAction {
+        private final Logger logger = Logger.getLogger(SrfResultsReport.class.getName());
         private JSONArray _buildInfo;
         private PrintStream _logger;
         private TestObject _target;
@@ -135,8 +136,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
             _result=result;
         }
 
-        public String getSuiteId(TestResult testResult, int suiteIndex) {
-            return ((SuiteResult) ((ArrayList) testResult.getSuites()).get(suiteIndex)).getId();
+        public String getSuiteName(ClassResult classResult) {
+            return classResult.getName();
         }
 
         public SrfScriptRunModel[] getScriptRuns(ClassResult classResult) {
@@ -160,7 +161,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
                     return null;
 
                 String name = jTest.getString("name").toLowerCase();
-                String normalizedName = SrfScriptRunModel.normalizeName(name);
+                String yac = jTest.getString("yac");
+                String normalizedName = String.format("%s_%s", SrfScriptRunModel.normalizeName(name), yac);
                 if(normalizedName.compareTo(testName) == 0) {
                     scriptRunsJson = jTest.getJSONArray("scriptRuns");
                     break;

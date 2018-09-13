@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -8,25 +8,14 @@
  * __________________________________________________________________
  * MIT License
  *
- * Copyright (c) 2018 Micro Focus Company, L.P.
+ * © Copyright 2012-2018 Micro Focus or one of its affiliates.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
  *
  */
@@ -50,6 +39,7 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.auth.AuthenticationException;
 import org.apache.commons.lang.StringUtils;
@@ -67,11 +57,13 @@ import java.net.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 /**
  * Created by shepshel on 20/07/2016.
  */
 public class SrfServerSettingsBuilder extends Builder {
+    private static final Logger logger = Logger.getLogger(SrfServerSettingsBuilder.class.getName());
     private String credentialsId;
     private String srfServerName;
     private String srfProxyName;
@@ -285,6 +277,9 @@ public class SrfServerSettingsBuilder extends Builder {
                 return FormValidation.error("Connection error: " + e.getMessage() + " (Could be a proxy issue)");
             } catch (SocketTimeoutException e) {
                 return FormValidation.error("Connection error: Timed out request");
+            } catch (JSONException e) {
+                logger.severe(e.getLocalizedMessage());
+                return FormValidation.error("Received invalid response");
             } catch (Exception e) {
                 return FormValidation.error("Connection error: " + e.getMessage());
             }

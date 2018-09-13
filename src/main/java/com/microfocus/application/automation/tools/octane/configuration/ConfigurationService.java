@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -68,7 +68,7 @@ public class ConfigurationService {
     }
 
     private static OctaneServerSettingsBuilder.OctaneDescriptorImpl getOctaneDescriptor() {
-        OctaneServerSettingsBuilder.OctaneDescriptorImpl octaneDescriptor = getJenkinsInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
+        OctaneServerSettingsBuilder.OctaneDescriptorImpl octaneDescriptor = Jenkins.getInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
         if (octaneDescriptor == null) {
             throw new IllegalArgumentException("failed to obtain Octane plugin descriptor");
         }
@@ -82,16 +82,7 @@ public class ConfigurationService {
      * @return plugin version
      */
     public static String getPluginVersion() {
-        Plugin plugin = getJenkinsInstance().getPlugin("hp-application-automation-tools-plugin");
+        Plugin plugin = Jenkins.getInstance().getPlugin("hp-application-automation-tools-plugin");
         return plugin.getWrapper().getVersion();
-    }
-
-
-    private static Jenkins getJenkinsInstance() {
-        Jenkins result = Jenkins.getInstance();
-        if (result == null) {
-            throw new IllegalStateException("failed to obtain Jenkins instance");
-        }
-        return result;
     }
 }

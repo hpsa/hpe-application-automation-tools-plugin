@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -37,12 +37,10 @@ public class ObjectStreamIterator<E> implements Iterator<E> {
 	private static Logger logger = LogManager.getLogger(ObjectStreamIterator.class);
 
 	private MyObjectInputStream ois;
-	private FilePath filePath;
 	private E next;
 
-	public ObjectStreamIterator(FilePath filePath, boolean deleteOnClose) throws IOException, InterruptedException {
-		this.filePath = filePath;
-		ois = new MyObjectInputStream(new BufferedInputStream(filePath.read()), deleteOnClose);
+	public ObjectStreamIterator(FilePath filePath) throws IOException, InterruptedException {
+		ois = new MyObjectInputStream(new BufferedInputStream(filePath.read()));
 	}
 
 	@Override
@@ -77,11 +75,8 @@ public class ObjectStreamIterator<E> implements Iterator<E> {
 
 	private class MyObjectInputStream extends ObjectInputStream {
 
-		private boolean deleteOnClose;
-
-		public MyObjectInputStream(InputStream in, boolean deleteOnClose) throws IOException {
+		private MyObjectInputStream(InputStream in) throws IOException {
 			super(in);
-			this.deleteOnClose = deleteOnClose;
 		}
 
 		@Override
@@ -90,13 +85,6 @@ public class ObjectStreamIterator<E> implements Iterator<E> {
 				super.close();
 			} catch (IOException ioe) {
 				logger.error("Failed to close the stream", ioe); // NON-NLS
-			}
-			if (deleteOnClose) {
-				try {
-					filePath.delete();
-				} catch (Exception e) {
-					logger.error("Failed to perform clean up", e); // NON-NLS
-				}
 			}
 		}
 	}

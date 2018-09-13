@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -301,7 +301,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
                 );
     			AlmRestTool u = new AlmRestTool(loginInfo, logger);
     			logger.log("INFO: Start to upload "+fullpath);
-    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, logger );
+    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, build.getWorkspace(), logger);
     			try {
 	    			service.UploadExternalTestSet(loginInfo,
 	    					fullpath,

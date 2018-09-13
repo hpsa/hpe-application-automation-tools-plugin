@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -42,7 +42,6 @@ import java.util.Map;
  */
 
 public enum ParameterProcessors {
-	//	DYNAMIC("com.seitenbau.jenkins.plugins.dynamicparameter", DynamicParameterProcessor.class),
 	EXTENDED("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition", ExtendedChoiceParameterProcessor.class),
 	INHERENT("hudson.model", InherentParameterProcessor.class),
 	NODE_LABEL("org.jvnet.jenkins.plugins.nodelabelparameter", NodeLabelParameterProcessor.class),
@@ -77,7 +76,7 @@ public enum ParameterProcessors {
 		if (job instanceof MatrixProject) {
 			AxisList axisList = ((MatrixProject) job).getAxes();
 			for (Axis axis : axisList) {
-				result.add(ModelFactory.createParameterConfig(axis.getName(), CIParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
+				result.add(ModelFactory.createParameterConfig(axis.getName(), CIParameterType.AXIS, new ArrayList<>(axis.getValues())));
 			}
 		}
 
@@ -146,10 +145,8 @@ public enum ParameterProcessors {
 			if (className.startsWith(p.targetPluginClassName)) {
 				try {
 					return p.processorClass.newInstance();
-				} catch (InstantiationException ie) {
+				} catch (InstantiationException | IllegalAccessException ie) {
 					logger.error("failed to instantiate instance of parameters processor of type " + className, ie);
-				} catch (IllegalAccessException iae) {
-					logger.error("failed to instantiate instance of parameters processor of type " + className, iae);
 				}
 			}
 		}

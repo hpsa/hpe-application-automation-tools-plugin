@@ -20,62 +20,46 @@
  *
  */
 
-package com.microfocus.application.automation.tools.octane.workflow;
+package com.microfocus.application.automation.tools.octane.testrunner;
 
-import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.executor.TestsToRunFramework;
+import com.microfocus.application.automation.tools.model.EnumDescription;
+import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-/*
- * Created by gadiel on 21/06/2016.
- */
-public class BuildRelations {
-    private static BuildRelations instance;
-    private static Map<String,CIEventCause> map;
+public class TestsToRunConverterModel implements Serializable {
 
-    private BuildRelations()
-    {
-        map = new ConcurrentHashMap<String,CIEventCause>();
-    }
+    private static final long serialVersionUID = 1L;
 
-    public static BuildRelations getInstance()
-    {
-        if(instance == null)
-            instance = new BuildRelations();
-        return instance;
-    }
+    public final static EnumDescription none = new EnumDescription("", "");
 
-    public void removePairByKey(String key)
-    {
-        if(map.containsKey(key))
-        {
-            map.remove(key);
+    public final static List<EnumDescription> Frameworks;
+
+    private String framework;
+
+    static {
+        List<EnumDescription> temp = new ArrayList<>();
+        temp.add(none);
+        for (TestsToRunFramework fr : TestsToRunFramework.values()) {
+            temp.add(new EnumDescription(fr.value(), fr.getDesc()));
         }
-    }
-    public void addBuildRelation(String projectName, CIEventCause ciEventCause)
-    {
-        map.put(projectName,ciEventCause);
+        Frameworks = temp;
     }
 
-    public boolean containKey(String key)
-    {
-        return map.containsKey(key);
+    @DataBoundConstructor
+    public TestsToRunConverterModel(String framework) {
+
+        this.framework = framework;
     }
 
-    public CIEventCause getValue(String key)
-    {
-        return (CIEventCause)map.get(key);
-    }
-
-    public String print()
-    {
-        String totalMap="";
-        for(String s : map.keySet())
-        {
-            totalMap = totalMap.concat(s+"_");
-        }
-        return totalMap;
+    public String getFramework() {
+        return framework;
     }
 
 }
+
+
+

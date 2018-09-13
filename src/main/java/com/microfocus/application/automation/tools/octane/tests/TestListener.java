@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -55,7 +55,6 @@ public class TestListener {
 	private ResultQueue queue;
 
 	public boolean processBuild(Run run) {
-
 		FilePath resultPath = new FilePath(new FilePath(run.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, run);
 		boolean success = true;
@@ -87,13 +86,10 @@ public class TestListener {
 		try {
 			for (OctaneTestsExtension ext : OctaneTestsExtension.all()) {
 				if (ext.supports(run)) {
-					List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(run);
-					for (Run buildX : buildsList) {
-						TestResultContainer testResultContainer = ext.getTestResults(buildX, hpRunnerType, jenkinsRootUrl);
-						if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-							resultWriter.writeResults(testResultContainer);
-							hasTests = true;
-						}
+					TestResultContainer testResultContainer = ext.getTestResults(run, hpRunnerType, jenkinsRootUrl);
+					if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+						resultWriter.writeResults(testResultContainer);
+						hasTests = true;
 					}
 				}
 			}

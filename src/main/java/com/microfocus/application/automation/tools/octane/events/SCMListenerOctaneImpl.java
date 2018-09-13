@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -35,9 +35,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.scm.S
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import hudson.model.Cause;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.SCMListener;
@@ -46,11 +44,9 @@ import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
@@ -58,8 +54,8 @@ import java.util.List;
  */
 
 @Extension
-public class SCMListenerImpl extends SCMListener {
-	private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
+public class SCMListenerOctaneImpl extends SCMListener {
+	private static final Logger logger = LogManager.getLogger(SCMListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 
@@ -96,12 +92,12 @@ public class SCMListenerImpl extends SCMListener {
 		SCMData result = null;
 		if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) run;
-			if (build.getChangeSet() != null && !build.getChangeSet().isEmptySet()) {
+			if (!build.getChangeSet().isEmptySet()) {
 				result = scmProcessor.getSCMData(build, scm);
 			}
-		} else if (run.getParent() instanceof WorkflowJob) {
+		} else if (run instanceof WorkflowRun) {
 			WorkflowRun wRun = (WorkflowRun) run;
-			if (wRun.getChangeSets() != null && !wRun.getChangeSets().isEmpty()) {
+			if (!wRun.getChangeSets().isEmpty()) {
 				result = scmProcessor.getSCMData(wRun, scm);
 			}
 		}
@@ -113,16 +109,8 @@ public class SCMListenerImpl extends SCMListener {
 				.setEventType(CIEventType.SCM)
 				.setProject(BuildHandlerUtils.getJobCiId(run))
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(run))
-				.setCauses(CIEventCausesFactory.processCauses(extractCauses(run)))
+				.setCauses(CIEventCausesFactory.processCauses(run))
 				.setNumber(String.valueOf(run.getNumber()))
 				.setScmData(scmData);
-	}
-
-	private List<Cause> extractCauses(Run<?, ?> r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return ((MatrixRun) r).getParentBuild().getCauses();
-		} else {
-			return r.getCauses();
-		}
 	}
 }

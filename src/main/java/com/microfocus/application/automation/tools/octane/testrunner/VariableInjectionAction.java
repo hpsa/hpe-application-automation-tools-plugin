@@ -20,27 +20,49 @@
  *
  */
 
-package com.microfocus.application.automation.tools.octane.workflow;
+package com.microfocus.application.automation.tools.octane.testrunner;
 
-import com.cloudbees.workflow.rest.external.StatusExt;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import hudson.EnvVars;
+import hudson.model.AbstractBuild;
+import hudson.model.EnvironmentContributingAction;
 
-public class WorkFlowUtils {
+import javax.annotation.CheckForNull;
+import java.util.HashMap;
+import java.util.Map;
 
-    public static CIBuildResult convertStatus(StatusExt status) {
+public class VariableInjectionAction implements EnvironmentContributingAction {
 
-        switch (status) {
-            case FAILED:
-                return CIBuildResult.FAILURE;
-            case SUCCESS:
-                return CIBuildResult.SUCCESS;
-            case UNSTABLE:
-                return CIBuildResult.UNSTABLE;
-            case ABORTED:
-                return CIBuildResult.ABORTED;
-            default:
-                return CIBuildResult.UNAVAILABLE;
+    private Map<String, String> variables;
+
+    public VariableInjectionAction(String key, String value) {
+        variables = new HashMap<>();
+        variables.put(key, value);
+    }
+
+    @Override
+    public void buildEnvVars(AbstractBuild<?, ?> abstractBuild, EnvVars envVars) {
+        if (envVars != null && variables != null) {
+            for (Map.Entry<String, String> entry : variables.entrySet()) {
+                envVars.put(entry.getKey(), entry.getValue());
+            }
         }
+    }
 
+    @CheckForNull
+    @Override
+    public String getIconFileName() {
+        return null;
+    }
+
+    @CheckForNull
+    @Override
+    public String getDisplayName() {
+        return "VariableInjectionAction";
+    }
+
+    @CheckForNull
+    @Override
+    public String getUrlName() {
+        return null;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -40,20 +40,19 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
  */
 
 @Extension
-public class ItemListenerImpl extends ItemListener {
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+public class ItemListenerOctaneImpl extends ItemListener {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    @Override
-    public void onDeleted(Item item) {
-        CIEvent event;
+	@Override
+	public void onDeleted(Item item) {
+		CIEvent event;
 
-        if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+		if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.DELETED)
+					.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
 
-            event = dtoFactory.newDTO(CIEvent.class)
-                    .setEventType(CIEventType.DELETED)
-                    .setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
-
-            OctaneSDK.getInstance().getEventsService().publishEvent(event);
-        }
-    }
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		}
+	}
 }
