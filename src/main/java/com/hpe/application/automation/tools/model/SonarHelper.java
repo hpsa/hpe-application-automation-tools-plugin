@@ -119,13 +119,6 @@ public class SonarHelper {
         return builder != null ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
     }
 
-    /**
-     * get sonar project key from properties section
-     * @return
-     */
-    private String extractSonarProjectKey(SonarRunnerBuilder builder) {
-        return builder != null ? this.extractProjectKeyFromProperties(builder.getProperties()) : "";
-    }
 
     /**
      * extract project key from properties using regular expression
