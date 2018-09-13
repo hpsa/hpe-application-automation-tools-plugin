@@ -66,10 +66,15 @@ public class HealthAnalyzerCommonTest {
         }
     }
 
-    // TODO: find registry that exists on every windows
-//    @Test
-//    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException{
-//        String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Adobe\\Repair\\Acrobat Reader\\11.0\\IOD";
-//        assertThat(HealthAnalyzerCommon.isRegistryExists(existingRegistryValue), is(true));
-//    }
+
+    // TODO: is checking the folder and and not specific key is enough?
+    @Test
+    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException{
+        String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
+        try {
+            ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true, DUMMY_PRODUCT_NAME);
+        } catch (AbortException e) {
+            fail("Should not have thrown AbortException");
+        }
+    }
 }
