@@ -24,7 +24,7 @@
     <st:documentation>
         Optional block with checkbox that opens a ListBox.
         <st:attribute name="checkBoxState" use="required">
-            The variable that holds the state of the checkbox toggle state
+            The variable holds the state of the checkbox toggle state
         </st:attribute>
         <st:attribute name="checkBoxTitle" use="required">
             The title next to the checkbox

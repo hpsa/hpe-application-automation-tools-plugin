@@ -19,12 +19,26 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:ha="/lib/healthanalyzer">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+    <st:documentation>
+        Optional block with repeatable text field.
+        <st:attribute name="checkBoxState" use="required">
+            The variable holds the state of the checkbox toggle state
+        </st:attribute>
+        <st:attribute name="checkBoxTitle" use="required">
+            The title next to the checkbox
+        </st:attribute>
+        <st:attribute name="textTitle" use="required">
+            The title next to the text field
+        </st:attribute>
+        <st:attribute name="repeatableList" use="required">
+            The field in the class which holds the list of the repeatable item of the type "RepeatableField.java"
+        </st:attribute>
+    </st:documentation>
 
-    <f:entry field="checkLrInstallation">
-        <f:checkbox title="Check if LoadRunner is installed"/>
-    </f:entry>
-
-    <ha:optionalRepeatableText checkBoxState="checkFileExistence" checkBoxTitle="Check scenario files exist"
-                               textTitle="Files" repeatableList="filesList"/>
+    <f:optionalBlock title="${checkBoxTitle}" name="${checkBoxState}" checked="${instance[checkBoxState]}" inline="true">
+        <f:entry title="${textTitle}">
+            <f:repeatableProperty field="${repeatableList}" minimum="1" noAddButton="true"/>
+        </f:entry>
+    </f:optionalBlock>
 </j:jelly>

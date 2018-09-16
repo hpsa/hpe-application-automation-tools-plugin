@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.common;
 
+import com.microfocus.application.automation.tools.common.model.RepeatableField;
 import hudson.AbortException;
 
 import javax.annotation.Nonnull;
@@ -30,12 +31,16 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+/**
+ * The HealthAnalyzerCommon provides generic methods for every product to use
+ * Requires to be initiated with the product name
+ */
 public class HealthAnalyzerCommon {
     private final String productName;
 
@@ -49,7 +54,7 @@ public class HealthAnalyzerCommon {
         Objects.requireNonNull(registryPath, "The registry value must be not null");
 
         if (toCheck && !isRegistryExists(registryPath))
-            throwAbortException("%s is not installed, please install it first.");
+            throwAbortException("%s is not installed, please install it first.", productName);
     }
 
     private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
@@ -79,7 +84,7 @@ public class HealthAnalyzerCommon {
         Objects.requireNonNull(url, "URL must be not be null");
 
         if (toCheck && !isURLExist(url))
-            throwAbortException("The server URL of %s does not exist.");
+            throwAbortException("The server URL of %s does not exist.", productName);
     }
 
     private boolean isURLExist(String stringUrl) throws IOException {
@@ -98,18 +103,23 @@ public class HealthAnalyzerCommon {
         }
     }
 
-    private void throwAbortException(@Nonnull final String message)
+    private void throwAbortException(@Nonnull final String message, final String... args)
             throws AbortException {
-        throw new AbortException(String.format(message, productName));
+        throw new AbortException(String.format(message, args));
     }
 
-    private boolean isFileExist(@Nonnull final String path)
-            throws InvalidPathException, SecurityException, UnsupportedOperationException {
+    private boolean isFileExist(@Nonnull final String path) {
         return Paths.get(path).toFile().exists();
     }
 
-    public void ifChecekedIsFileExist(@Nonnull final String path, final boolean toCheck) throws AbortException {
-        if (toCheck && !isFileExist(path))
-            throwAbortException("The file at path: %s does not exist");
+    public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, final boolean toCheck)
+            throws AbortException {
+        if (!toCheck)
+            return;
+
+        for (RepeatableField file : files)
+            if (!isFileExist(file.getField()))
+                throwAbortException("The file: %s at path: %s does not exist", file.getField(), productName);
+
     }
 }

@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.lr.run;
 
 import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
+import com.microfocus.application.automation.tools.common.model.RepeatableField;
 import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.FilePath;
@@ -32,20 +33,33 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.List;
 
 public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     private static final String LR_REGISTRY_PATH =
             "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Mercury Interactive\\LoadRunner\\CurrentVersion";
     private final boolean checkLrInstallation;
+    private final List<RepeatableField> filesList;
+    private final boolean checkFileExistence;
     private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
 
     @DataBoundConstructor
-    public HealthAnalyzerLrStep(boolean checkLrInstallation) {
+    public HealthAnalyzerLrStep(boolean checkLrInstallation, List<RepeatableField> filesList, boolean checkFileExistence) {
         this.checkLrInstallation = checkLrInstallation;
+        this.filesList = filesList;
+        this.checkFileExistence = checkFileExistence;
+    }
+
+    public boolean isCheckFileExistence() {
+        return checkFileExistence;
     }
 
     public boolean isCheckLrInstallation() {
         return checkLrInstallation;
+    }
+
+    public List<RepeatableField> getFilesList() {
+        return filesList;
     }
 
     @Override
@@ -53,6 +67,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
+        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(filesList, checkFileExistence);
     }
 
     @Extension
