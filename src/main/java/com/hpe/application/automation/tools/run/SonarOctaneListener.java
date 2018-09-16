@@ -34,7 +34,6 @@
 package com.hpe.application.automation.tools.run;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 import com.hpe.application.automation.tools.model.SonarHelper;
 import com.hpe.application.automation.tools.model.WebhookExpectationAction;
 import com.hpe.application.automation.tools.octane.actions.Webhooks;
@@ -152,7 +151,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
             try {
                 OctaneSDK.getInstance().getSonarService().ensureWebhookExist(callbackWebHooksURL, serverDetails[0], serverDetails[1]);
                 run.addAction(new WebhookExpectationAction(true, serverDetails[0]));
-            } catch (OctaneSDKSonarException e) {
+            } catch (Exception e) {
                 logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
             }
         }
