@@ -27,6 +27,7 @@ import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.microfocus.application.automation.tools.model.EnumDescription;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.*;
@@ -59,6 +60,15 @@ public class TestsToRunConverterBuilder extends Builder {
         String rawTests = null;
         String executingDirectory = DEFAULT_EXECUTING_DIRECTORY;
         if (parameterAction != null) {
+            ParameterValue suiteIdParameter = parameterAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME);
+            if (suiteIdParameter != null) {
+                printToConsole(listener, UftConstants.SUITE_ID_PARAMETER_NAME + " : " + suiteIdParameter.getValue());
+            }
+            ParameterValue suiteRunIdParameter = parameterAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+            if (suiteRunIdParameter != null) {
+                printToConsole(listener, UftConstants.SUITE_RUN_ID_PARAMETER_NAME + " : " + suiteRunIdParameter.getValue());
+            }
+
             ParameterValue testsParameter = parameterAction.getParameter(TESTS_TO_RUN_PARAMETER);
             if (testsParameter != null && testsParameter.getValue() instanceof String) {
                 rawTests = (String) testsParameter.getValue();
@@ -74,7 +84,7 @@ public class TestsToRunConverterBuilder extends Builder {
                     printToConsole(listener, CHECKOUT_DIRECTORY_PARAMETER + " parameter found, but its value is empty or its type is not String. Using default value.");
                 }
             }
-            printToConsole(listener, "Using checkout directory : " + executingDirectory);
+            printToConsole(listener, "checkout directory : " + executingDirectory);
         }
         if (StringUtils.isEmpty(rawTests)) {
             printToConsole(listener, TESTS_TO_RUN_PARAMETER + " is not found or has empty value. Skipping.");
