@@ -25,6 +25,18 @@
         <f:checkbox title="Check if LoadRunner is installed"/>
     </f:entry>
 
-    <ha:optionalRepeatableText checkBoxState="checkFileExistence" checkBoxTitle="Check scenario files exist"
-                               textTitle="Files" repeatableList="filesList"/>
+    <!--<ha:optionalRepeatableText checkBoxState="checkFileExistence" checkBoxTitle="Check scenario files exist"-->
+    <!--textTitle="Files" repeatableList="filesList"/>-->
+
+
+    <!--<f:optionalBlock title="Check scenario files exist" name="checkFiles" checked="${instance.filesExist}">-->
+        <!--<f:entry title="Files">-->
+            <!--<f:repeatableProperty noAddButton="true" minimum="1" field="filesList"/>-->
+        <!--</f:entry>-->
+    <!--</f:optionalBlock>-->
+
+    <ha:optionalRepeatableText checkBoxMethod="${instance.filesExist}" outerClassInstanceName="checkFiles"
+                               checkBoxTitle="Check scenario files exist" textTitle="Files" repeatableList="filesList"/>
+
+
 </j:jelly>

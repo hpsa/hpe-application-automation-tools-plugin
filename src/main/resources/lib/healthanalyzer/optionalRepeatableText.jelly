@@ -22,8 +22,12 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <st:documentation>
         Optional block with repeatable text field.
-        <st:attribute name="checkBoxState" use="required">
-            The variable holds the state of the checkbox toggle state
+        <st:attribute name="checkBoxMethod" use="required">
+            The method name that asserts if the list is toggled or not, mostly if the instance is
+            initialized and contains elements
+        </st:attribute>
+        <st:attribute name="outerClassInstanceName" use="required">
+            The outer class name of the instance which holds the list
         </st:attribute>
         <st:attribute name="checkBoxTitle" use="required">
             The title next to the checkbox
@@ -32,13 +36,20 @@
             The title next to the text field
         </st:attribute>
         <st:attribute name="repeatableList" use="required">
-            The field in the class which holds the list of the repeatable item of the type "RepeatableField.java"
+            The inner field in the class which holds the list of the repeatable item of the type "RepeatableField.java"
+            That exposes a method to the inner field list
         </st:attribute>
     </st:documentation>
 
-    <f:optionalBlock title="${checkBoxTitle}" name="${checkBoxState}" checked="${instance[checkBoxState]}" inline="true">
-        <f:entry title="${textTitle}">
-            <f:repeatableProperty field="${repeatableList}" minimum="1" noAddButton="true"/>
-        </f:entry>
-    </f:optionalBlock>
+<f:block>
+    <table style="width:100%">
+        <f:optionalBlock title="${checkBoxTitle}" name="${outerClassInstanceName}" checked="${checkBoxMethod}">
+            <f:entry title="${textTitle}">
+                <f:repeatableProperty field="${repeatableList}" minimum="1" noAddButton="true"/>
+            </f:entry>
+        </f:optionalBlock>
+    </table>
+</f:block>
+
+
 </j:jelly>
