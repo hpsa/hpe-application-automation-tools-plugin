@@ -449,7 +449,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.28</version>
+			<version>1.5.33</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
@@ -545,6 +545,24 @@
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
+	
+
+		<dependency>
+			<groupId>com.seitenbau.jenkins.plugins</groupId>
+			<artifactId>dynamicparameter</artifactId>
+			<version>0.2.0</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!--sonar plugin for compile phase only-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>sonar</artifactId>
+			<version>2.6.1</version>
+			<scope>compile</scope>
+		</dependency>
+	
+		<!--Test-->
 
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
