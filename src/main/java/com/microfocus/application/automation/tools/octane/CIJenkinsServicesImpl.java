@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane;
@@ -88,7 +86,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	@Override
 	public CIServerInfo getServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
-		String serverUrl = getJenkins().getRootUrl();
+		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
@@ -122,7 +120,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return new File(getJenkins().getRootDir(), "userContent");
+		return new File(Jenkins.getInstance().getRootDir(), "userContent");
 	}
 
 	@Override
@@ -143,7 +141,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	@Override
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		CIProxyConfiguration result = null;
-		ProxyConfiguration proxy = getJenkins().proxy;
+		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
 		if (proxy != null) {
 			boolean noProxyHost = false;
 			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
@@ -171,14 +169,14 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		TopLevelItem tmpItem;
 		List<PipelineNode> list = new ArrayList<>();
 		try {
-			boolean hasReadPermission = getJenkins().hasPermission(Item.READ);
+			boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
 			if (!hasReadPermission) {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			List<String> itemNames = (List<String>) getJenkins().getTopLevelItemNames();
+			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 			for (String name : itemNames) {
-				tmpItem = getJenkins().getItem(name);
+				tmpItem = Jenkins.getInstance().getItem(name);
 
 				if (tmpItem == null) {
 					continue;
@@ -253,7 +251,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		SecurityContext securityContext = startImpersonation();
 		try {
 			PipelineNode result;
-			boolean hasRead = getJenkins().hasPermission(Item.READ);
+			boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
 			if (!hasRead) {
 				throw new PermissionException(403);
 			}
@@ -302,7 +300,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	private void stopImpersonation(SecurityContext originalContext) {
 		if (originalContext != null) {
-			ACL.impersonate(originalContext.getAuthentication());
+			ACL.as(originalContext.getAuthentication());
 		} else {
 			logger.warn("Could not roll back impersonation, originalContext is null ");
 		}
@@ -389,8 +387,8 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
 			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-				 InputStream logStream = run.getLogInputStream();
-				 PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+			     InputStream logStream = run.getLogInputStream();
+			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
 				IOUtils.copy(logStream, out);
 				out.flush();
 			} catch (IOException ioe) {
@@ -407,10 +405,6 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	private Run getBuildFromQueueItem(String jobId, String buildId) {
 		Run result = null;
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins == null) {
-			throw new IllegalStateException("failed to obtain Jenkins' instance");
-		}
 		Job project = getJobByRefId(jobId);
 		if (project != null) {
 			result = project.getBuildByNumber(Integer.parseInt(buildId));
@@ -443,11 +437,11 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		ParameterValue tmpValue;
 		ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
 		if (paramsDefProperty != null) {
-			Map<String,CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
+			Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
 			for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
 				parameterHandled = false;
 				CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
-				if(ciParameter!=null) {
+				if (ciParameter != null) {
 					tmpValue = null;
 					switch (ciParameter.getType()) {
 						case FILE:
@@ -498,7 +492,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 			}
 
 			//add parameters that are not defined in job
-			for(CIParameter notDefinedParameter : ciParametersMap.values()){
+			for (CIParameter notDefinedParameter : ciParametersMap.values()) {
 				tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
 				result.add(tmpValue);
 			}
@@ -562,7 +556,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	private TopLevelItem getTopLevelItem(String jobRefId) {
 		TopLevelItem item;
 		try {
-			item = getJenkins().getItem(jobRefId);
+			item = Jenkins.getInstance().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
 			String user = ConfigurationService.getModel().getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
@@ -624,13 +618,4 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 			stopImpersonation(securityContext);
 		}
 	}
-
-	private Jenkins getJenkins() {
-		Jenkins result = Jenkins.getInstance();
-		if (result == null) {
-			throw new IllegalStateException("Jenkins instance is not available");
-		}
-		return result;
-	}
-
 }
