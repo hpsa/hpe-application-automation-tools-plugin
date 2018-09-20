@@ -545,14 +545,6 @@
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-	
-
-		<dependency>
-			<groupId>com.seitenbau.jenkins.plugins</groupId>
-			<artifactId>dynamicparameter</artifactId>
-			<version>0.2.0</version>
-			<optional>true</optional>
-		</dependency>
 
 		<!--sonar plugin for compile phase only-->
 		<dependency>
@@ -561,8 +553,6 @@
 			<version>2.6.1</version>
 			<scope>compile</scope>
 		</dependency>
-	
-		<!--Test-->
 
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
