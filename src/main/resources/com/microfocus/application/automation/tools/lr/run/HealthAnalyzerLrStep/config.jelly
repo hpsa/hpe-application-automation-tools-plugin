@@ -25,18 +25,13 @@
         <f:checkbox title="Check if LoadRunner is installed"/>
     </f:entry>
 
-    <!--<ha:optionalRepeatableText checkBoxState="checkFileExistence" checkBoxTitle="Check scenario files exist"-->
-    <!--textTitle="Files" repeatableList="filesList"/>-->
-
-
-    <!--<f:optionalBlock title="Check scenario files exist" name="checkFiles" checked="${instance.filesExist}">-->
-        <!--<f:entry title="Files">-->
-            <!--<f:repeatableProperty noAddButton="true" minimum="1" field="filesList"/>-->
-        <!--</f:entry>-->
-    <!--</f:optionalBlock>-->
 
     <ha:optionalRepeatableText checkBoxMethod="${instance.filesExist}" outerClassInstanceName="checkFiles"
-                               checkBoxTitle="Check scenario files exist" textTitle="Files" repeatableList="filesList"/>
+                               checkBoxTitle="Check scenario files exist" textTitle="Files" repeatableList="filesList"
+    />
 
+    <f:entry field="checkOsVersion">
+        <f:checkbox title="Check if slave is Windows machine"/>
+    </f:entry>
 
 </j:jelly>

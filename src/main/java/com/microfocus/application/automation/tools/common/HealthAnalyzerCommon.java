@@ -94,7 +94,9 @@ public class HealthAnalyzerCommon {
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setConnectTimeout(3000); // 3 Seconds
             httpURLConnection.setRequestMethod("HEAD");
-            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
+            httpURLConnection.setRequestProperty(
+                    "User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2)" +
+                            " Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
             return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (UnknownHostException e) {
             return false; // Todo: Provide this as information for the AbortException?
@@ -105,14 +107,14 @@ public class HealthAnalyzerCommon {
 
     private void throwAbortException(@Nonnull final String message, final String... args)
             throws AbortException {
-        throw new AbortException(String.format(message, args));
+        throw new AbortException(String.format(message, (Object[]) args));
     }
 
     private boolean isFileExist(@Nonnull final String path) {
         return Paths.get(path).toFile().exists();
     }
 
-    public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, final boolean toCheck)
+    public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, boolean toCheck)
             throws AbortException {
         if (!toCheck)
             return;
@@ -121,5 +123,12 @@ public class HealthAnalyzerCommon {
             if (!isFileExist(file.getField()))
                 throwAbortException("The file: %s at path: %s does not exist", file.getField(), productName);
 
+    }
+
+    public void ifChecekedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
+        OperatingSystem currentOs = OperatingSystem.get();
+
+        if (toCheck && !os.equals(currentOs))
+            throwAbortException("Your operating system: %s is not %s.", os.toString(), currentOs.toString());
     }
 }

@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.lr.run;
 
 import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
+import com.microfocus.application.automation.tools.common.OperatingSystem;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
 import com.microfocus.application.automation.tools.common.model.RepeatableField;
 import com.microfocus.application.automation.tools.common.model.RepeatableListField;
@@ -39,15 +40,22 @@ import java.util.List;
 public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     private static final String LR_REGISTRY_PATH =
             "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Mercury Interactive\\LoadRunner\\CurrentVersion";
+    private static final transient HealthAnalyzerCommon healthAnalyzerCommon =
+            new HealthAnalyzerCommon(Messages.ProductName());
     private final boolean checkLrInstallation;
+    private final boolean checkOsVersion;
     private final RepeatableListField checkFiles;
-    private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
 
 
     @DataBoundConstructor
-    public HealthAnalyzerLrStep(boolean checkLrInstallation, RepeatableListField checkFiles) {
+    public HealthAnalyzerLrStep(boolean checkLrInstallation, boolean checkOsVersion, RepeatableListField checkFiles) {
         this.checkLrInstallation = checkLrInstallation;
+        this.checkOsVersion = checkOsVersion;
         this.checkFiles = checkFiles;
+    }
+
+    public boolean isCheckOsVersion() {
+        return checkOsVersion;
     }
 
     public RepeatableListField getCheckFiles() {
@@ -71,7 +79,8 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
-        // healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(filesList, checkFileExistence);
+        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(getFilesList(), isFilesExist());
+        healthAnalyzerCommon.ifChecekedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion);
     }
 
     @Extension
