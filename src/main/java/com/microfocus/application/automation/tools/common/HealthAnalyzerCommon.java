@@ -26,11 +26,13 @@ import hudson.AbortException;
 import javax.annotation.Nonnull;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -111,7 +113,9 @@ public class HealthAnalyzerCommon {
     }
 
     private boolean isFileExist(@Nonnull final String path) {
-        return Paths.get(path).toFile().exists();
+        File file = Paths.get(path).toFile();
+
+        return file.exists() && !file.isDirectory() && file.isFile();
     }
 
     public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, boolean toCheck)
@@ -121,7 +125,7 @@ public class HealthAnalyzerCommon {
 
         for (RepeatableField file : files)
             if (!isFileExist(file.getField()))
-                throwAbortException("The file: %s at path: %s does not exist", file.getField(), productName);
+                throwAbortException("The file at path: %s does not exist", file.getField());
 
     }
 
