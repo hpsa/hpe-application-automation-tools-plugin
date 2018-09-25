@@ -112,10 +112,15 @@ public class HealthAnalyzerCommon {
         throw new AbortException(String.format(message, (Object[]) args));
     }
 
-    private boolean isFileExist(@Nonnull final String path) {
+    private boolean isFileExist(@Nonnull final String path) throws AbortException{
         File file = Paths.get(path).toFile();
 
-        return file.exists() && !file.isDirectory() && file.isFile();
+        if (file.exists()) {
+            if (file.isDirectory())
+                throwAbortException("The %s is a file and not a directory", path);
+            return file.isFile();
+        }
+        return false;
     }
 
     public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, boolean toCheck)
@@ -129,7 +134,7 @@ public class HealthAnalyzerCommon {
 
     }
 
-    public void ifChecekedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
+    public void ifCheckedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
         OperatingSystem currentOs = OperatingSystem.get();
 
         if (toCheck && !os.equals(currentOs))

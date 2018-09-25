@@ -19,7 +19,7 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler" xmlns:ha="/lib/healthanalyzer">
     <st:documentation>
         Optional block with repeatable text field.
         <st:attribute name="checkBoxMethod" use="required">
@@ -41,15 +41,13 @@
         </st:attribute>
     </st:documentation>
 
-<f:block>
-    <table style="width:100%">
-        <f:optionalBlock title="${checkBoxTitle}" name="${outerClassInstanceName}" checked="${checkBoxMethod}">
+
+    <f:block>
+        <ha:customOptionalBlock title="${checkBoxTitle}" name="${outerClassInstanceName}" checked="${checkBoxMethod}">
             <f:entry title="${textTitle}">
                 <f:repeatableProperty field="${repeatableList}" minimum="1" noAddButton="true"/>
             </f:entry>
-        </f:optionalBlock>
-    </table>
-</f:block>
-
+        </ha:customOptionalBlock>
+    </f:block>
 
 </j:jelly>

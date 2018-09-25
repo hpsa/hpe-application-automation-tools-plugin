@@ -24,10 +24,9 @@
     <f:entry field="checkLrInstallation">
         <f:checkbox title="Check if LoadRunner is installed"/>
     </f:entry>
-
-
     <ha:optionalRepeatableText checkBoxMethod="${instance.filesExist}" outerClassInstanceName="checkFiles"
-                               checkBoxTitle="Check scenario files exist" textTitle="Files" repeatableList="filesList"
+                               checkBoxTitle="Check if scenario files exist" textTitle="Files"
+                               repeatableList="filesList"
     />
 
     <f:entry field="checkOsVersion">

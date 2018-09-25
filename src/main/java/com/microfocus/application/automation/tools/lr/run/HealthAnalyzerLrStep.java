@@ -80,7 +80,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
         // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
         healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(getFilesList(), isFilesExist());
-        healthAnalyzerCommon.ifChecekedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion);
+        healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion);
     }
 
     @Extension
