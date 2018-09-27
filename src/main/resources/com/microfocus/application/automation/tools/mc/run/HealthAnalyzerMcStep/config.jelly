@@ -20,6 +20,9 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:ha="/lib/healthanalyzer">
-    <ha:serverCheckBox checkBoxState="checkMcServer" checkBoxTitle="checkboxTitle" listTitle="listTitle"
-                       serverUrl="mcServerUrl" serverName="mcServerName" getServersMethodName="mcServers"/>
+
+    <ha:optionalDropDownList listWrapperClass="mcServerUrl" isCheckedMethod="${instance.checkMcServer}"
+                             innerClassField="field" entryTitle="Servers" optionalBlockTitle="Check if MC server exist"
+                             />
+
 </j:jelly>

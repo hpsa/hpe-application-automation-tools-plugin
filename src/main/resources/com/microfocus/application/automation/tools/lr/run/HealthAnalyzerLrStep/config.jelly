@@ -21,16 +21,19 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:ha="/lib/healthanalyzer">
 
-    <f:entry field="checkLrInstallation">
-        <f:checkbox title="Check if LoadRunner is installed"/>
-    </f:entry>
+    <f:block>
+        <f:entry field="checkLrInstallation">
+            <f:checkbox title="Check if LoadRunner is installed"/>
+        </f:entry>
+
+        <f:entry field="checkOsVersion">
+            <f:checkbox title="Check if slave is Windows machine"/>
+        </f:entry>
+    </f:block>
+
     <ha:optionalRepeatableText checkBoxMethod="${instance.filesExist}" outerClassInstanceName="checkFiles"
                                checkBoxTitle="Check if scenario files exist" textTitle="Files"
                                repeatableList="filesList"
     />
-
-    <f:entry field="checkOsVersion">
-        <f:checkbox title="Check if slave is Windows machine"/>
-    </f:entry>
 
 </j:jelly>

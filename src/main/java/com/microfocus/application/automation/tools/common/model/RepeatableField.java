@@ -39,6 +39,10 @@ public class RepeatableField extends AbstractDescribableImpl<RepeatableField> {
         return field;
     }
 
+    public void setField(String field) {
+        this.field = field;
+    }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<RepeatableField> {
         @Nonnull

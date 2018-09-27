@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.mc.run;
 
 import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
+import com.microfocus.application.automation.tools.common.model.RepeatableField;
 import com.microfocus.application.automation.tools.mc.Messages;
 import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
@@ -30,6 +31,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -38,34 +40,31 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class HealthAnalyzerMcStep extends HealthAnalyzerModel {
-    private final boolean checkMcServer;
     private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
-    private String mcServerUrl;
+    private final RepeatableField mcServerUrl;
 
     @DataBoundConstructor
-    public HealthAnalyzerMcStep(boolean checkMcServer, String mcServerUrl) {
-        this.checkMcServer = checkMcServer;
+    public HealthAnalyzerMcStep(RepeatableField mcServerUrl) {
         this.mcServerUrl = mcServerUrl;
     }
 
-    public String getMcServerUrl() {
+    public RepeatableField getMcServerUrl() {
         return mcServerUrl;
     }
 
-    @DataBoundSetter
-    public void setMcServerUrl(String mcServerUrl) {
-        this.mcServerUrl = mcServerUrl;
+    public String getField() {
+        return isCheckMcServer() ? mcServerUrl.getField() : null;
     }
 
     public boolean isCheckMcServer() {
-        return checkMcServer;
+        return mcServerUrl != null && mcServerUrl.getField() != null;
     }
 
     @Override
     public void perform(
             @Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
             throws InterruptedException, IOException {
-        healthAnalyzerCommon.ifCheckedDoesUrlExist(mcServerUrl, checkMcServer);
+        healthAnalyzerCommon.ifCheckedDoesUrlExist(mcServerUrl.getField(), isCheckMcServer());
     }
 
     @Extension
@@ -81,9 +80,14 @@ public class HealthAnalyzerMcStep extends HealthAnalyzerModel {
             return Messages.ProductName();
         }
 
-        public MCServerSettingsModel[] getMcServers() {
-            return Jenkins.getInstance().getDescriptorByType(
+        public ListBoxModel doFillFieldItems() {
+            ListBoxModel items = new ListBoxModel();
+            MCServerSettingsModel[] servers = Jenkins.getInstance().getDescriptorByType(
                     MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+
+            for (MCServerSettingsModel server : servers)
+                items.add(server.getMcServerName(), server.getMcServerUrl());
+            return items;
         }
     }
 }
