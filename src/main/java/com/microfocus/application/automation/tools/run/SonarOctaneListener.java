@@ -31,13 +31,13 @@
  *
  */
 
-package com.hpe.application.automation.tools.run;
+package com.microfocus.application.automation.tools.run;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
-import com.hpe.application.automation.tools.model.SonarHelper;
-import com.hpe.application.automation.tools.model.WebhookExpectationAction;
-import com.hpe.application.automation.tools.octane.actions.Webhooks;
+import com.microfocus.application.automation.tools.model.SonarHelper;
+import com.microfocus.application.automation.tools.model.WebhookExpectationAction;
+import com.microfocus.application.automation.tools.octane.actions.Webhooks;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.*;
 import hudson.model.*;

@@ -1,5 +1,9 @@
+package com.microfocus.application.automation.tools.model;
+
+import hudson.model.Action;
+
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -20,37 +24,34 @@
  *
  */
 
-
-package com.microfocus.application.automation.tools.octane.testrunner;
-
-import hudson.EnvVars;
-import hudson.model.AbstractBuild;
-import hudson.model.EnvironmentContributingAction;
-
 import javax.annotation.CheckForNull;
-import java.util.HashMap;
-import java.util.Map;
+
 
 /*
-    Handle variable injection for tests of converter builder.
+    Class for handling webhook exception
  */
 
-public class VariableInjectionAction implements EnvironmentContributingAction {
+public class WebhookExpectationAction implements Action {
 
-    private Map<String, String> variables;
 
-    public VariableInjectionAction(String key, String value) {
-        variables = new HashMap<>();
-        variables.put(key, value);
+    private Boolean isExpectingToGetWebhookCall;
+    private String serverUrl;
+
+
+    public String getServerUrl() {
+        return serverUrl;
     }
 
-    @Override
-    public void buildEnvVars(AbstractBuild<?, ?> abstractBuild, EnvVars envVars) {
-        if (envVars != null && variables != null) {
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                envVars.put(entry.getKey(), entry.getValue());
-            }
-        }
+
+
+
+    public Boolean getExpectingToGetWebhookCall() {
+        return isExpectingToGetWebhookCall;
+    }
+
+    public WebhookExpectationAction(Boolean isExpectingToGetWebhookCall, String serverUrl) {
+        this.isExpectingToGetWebhookCall = isExpectingToGetWebhookCall;
+        this.serverUrl = serverUrl;
     }
 
     @CheckForNull
@@ -62,7 +63,7 @@ public class VariableInjectionAction implements EnvironmentContributingAction {
     @CheckForNull
     @Override
     public String getDisplayName() {
-        return "VariableInjectionAction";
+        return null;
     }
 
     @CheckForNull
