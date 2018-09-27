@@ -22,7 +22,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:ha="/lib/healthanalyzer">
 
     <ha:optionalDropDownList listWrapperClass="mcServerUrl" isCheckedMethod="${instance.checkMcServer}"
-                             innerClassField="field" entryTitle="Servers" optionalBlockTitle="Check if MC server exist"
+                             innerClassField="field" entryTitle="Servers" optionalBlockTitle="Check if Mobile Center server exist"
                              />
 
 </j:jelly>
