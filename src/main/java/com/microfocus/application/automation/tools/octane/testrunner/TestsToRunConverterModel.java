@@ -1,5 +1,4 @@
 /*
- * © Copyright 2013 EntIT Software LLC
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -30,6 +29,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Test model for storing of available frameworks for converting
+ */
 public class TestsToRunConverterModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
