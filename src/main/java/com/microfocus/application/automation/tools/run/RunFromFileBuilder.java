@@ -59,16 +59,16 @@ import java.util.Iterator;
 import java.util.Properties;
 
 /**
- * Describs a regular jenkins build step from UFT or LR
+ * Describes a regular jenkins build step from UFT or LR
  */
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
+    private final RunFromMcFileBuilder runMcFromFileBuilder;
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
-    private final RunFromMcFileBuilder runMcFromFileBuilder;
     private FileSystemTestSetModel fileSystemTestSetModel;
     private RunFromUftFileBuilder runUftFromFileBuilder = new RunFromUftFileBuilder();
     private boolean isParallelRunnerEnabled;
@@ -136,14 +136,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @SuppressWarnings("squid:S00107")
     @Deprecated
     public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
-                              String perScenarioTimeOut, String ignoreErrorStrings, String displayController, String analysisTemplate, String mcServerName, String fsUserName,
-                              String fsPassword, String mcTenantId, String fsDeviceId, String fsTargetLab,
-                              String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
-                              ProxySettings proxySettings, boolean useSSL, boolean isParallelRunnerEnabled) {
+                              String perScenarioTimeOut, String ignoreErrorStrings, String displayController,
+                              String analysisTemplate, String mcServerName, String fsUserName, String fsPassword,
+                              String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
+                              String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
+                              String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
+                              boolean useSSL, boolean isParallelRunnerEnabled) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
-                perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
-                fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
+                perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName, fsUserName,
+                fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions,
+                fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
         this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
@@ -496,7 +499,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener)
             throws IOException {
 
         // get the mc server settings

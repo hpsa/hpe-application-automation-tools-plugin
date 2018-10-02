@@ -22,7 +22,6 @@ package com.microfocus.application.automation.tools.uft.run;
 
 import com.microfocus.application.automation.tools.model.FileSystemTestSetModel;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
-import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Result;
@@ -41,7 +40,8 @@ import java.util.Properties;
 public class RunFromUftFileBuilder {
     private FileSystemTestSetModel fileSystemTestSetModel;
 
-    public RunFromUftFileBuilder(){}
+    public RunFromUftFileBuilder() {
+    }
 
     public RunFromUftFileBuilder(FileSystemTestSetModel fileSystemTestSetModel) {
         this.fileSystemTestSetModel = fileSystemTestSetModel;
@@ -58,7 +58,8 @@ public class RunFromUftFileBuilder {
      * @param index     the index for the prefix
      * @throws Exception
      */
-    public static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key, String time, int index) throws Exception {
+    public static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
+                                               String time, int index) throws Exception {
         if (RunFromFileSystemModel.isMtbxContent(content)) {
             try {
                 String prefix = index > 0 ? index + "_" : "";
@@ -80,7 +81,8 @@ public class RunFromUftFileBuilder {
      * @param time      current time string
      * @throws Exception
      */
-    public static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key, String time) throws Exception {
+    public static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
+                                               String time) throws Exception {
         replaceTestWithMtbxFile(workspace, props, content, key, time, 0);
     }
 
@@ -94,7 +96,8 @@ public class RunFromUftFileBuilder {
      * @throws IOException
      * @throws InterruptedException
      */
-    private static String createMtbxFileInWs(FilePath workspace, String mtbxContent, String timeString) throws IOException, InterruptedException {
+    private static String createMtbxFileInWs(FilePath workspace, String mtbxContent, String timeString)
+            throws IOException, InterruptedException {
         String fileName = "test_suite_" + timeString + ".mtbx";
 
         FilePath remoteFile = workspace.child(fileName);

@@ -20,8 +20,6 @@
 
 package com.microfocus.application.automation.tools.lr.run;
 
-import com.microfocus.application.automation.tools.model.FileSystemTestSetModel;
-import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
@@ -30,29 +28,6 @@ import org.kohsuke.stapler.QueryParameter;
  * Describs a regular jenkins build step from UFT or LR
  */
 public class RunFromLrFileBuilder {
-    /**
-     * Do check fs timeout form validation.
-     *
-     * @param value the value
-     * @return the form validation
-     */
-    public FormValidation doCheckFsTimeout(@QueryParameter String value) {
-        if (StringUtils.isEmpty(value)) {
-            return FormValidation.ok();
-        }
-
-        String sanitizedValue = value.trim();
-        if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
-            sanitizedValue = sanitizedValue.substring(1);
-        }
-
-        if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
-            return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
-        }
-
-        return FormValidation.ok();
-    }
-
     /**
      * Check if the value is parameterized.
      *
@@ -94,7 +69,31 @@ public class RunFromLrFileBuilder {
         }
 
         if (!isParameterizedValue(value) && !StringUtils.isNumeric(value)) {
-            return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, $ScenarioDuration or ${ScenarioDuration}.");
+            return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: " +
+                    "23, $ScenarioDuration or ${ScenarioDuration}.");
+        }
+
+        return FormValidation.ok();
+    }
+
+    /**
+     * Do check fs timeout form validation.
+     *
+     * @param value the value
+     * @return the form validation
+     */
+    public FormValidation doCheckFsTimeout(@QueryParameter String value) {
+        if (StringUtils.isEmpty(value)) {
+            return FormValidation.ok();
+        }
+
+        String sanitizedValue = value.trim();
+        if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
+            sanitizedValue = sanitizedValue.substring(1);
+        }
+
+        if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
+            return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or ${Timeout}.");
         }
 
         return FormValidation.ok();

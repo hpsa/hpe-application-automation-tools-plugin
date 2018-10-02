@@ -53,58 +53,6 @@ public class RunFromMcFileBuilder extends Builder {
         this.runFromFileModel = runFromFileModel;
     }
 
-    public void setRunFromFileModel(RunFromFileSystemModel runFromFileModel) {
-        this.runFromFileModel = runFromFileModel;
-    }
-
-    /**
-     * Gets mc server settings model.
-     *
-     * @return the mc server settings model
-     */
-    public MCServerSettingsModel getMCServerSettingsModel() {
-        for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
-            if (this.runFromFileModel != null
-                    && runFromFileModel.getMcServerName() != null
-                    && mcServer.getMcServerName() != null
-                    && runFromFileModel.getMcServerName().equals(mcServer.getMcServerName())) {
-                return mcServer;
-            }
-        }
-        return null;
-    }
-
-    public RunFromFileBuilder.DescriptorImpl getDescriptor() {
-        return (RunFromFileBuilder.DescriptorImpl) super.getDescriptor();
-    }
-
-    public void addMcProperties(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener, MCServerSettingsModel mcServerSettingsModel, Properties mergedProperties, RunFromFileBuilder runFromFileBuilder) {
-        String mcServerUrl;
-        JSONObject jobDetails;
-        if (mcServerSettingsModel != null) {
-            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
-            if (runFromFileModel.getProxySettings() == null) {
-                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
-            } else {
-                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(), runFromFileModel.getProxySettings().getFsProxyUserName(),
-                        runFromFileModel.getProxySettings().getFsProxyPassword());
-            }
-            mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
-            mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
-        }
-
-        if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
-            try {
-                String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
-                mergedProperties.put("MobilePassword", encPassword);
-            } catch (Exception e) {
-                build.setResult(Result.FAILURE);
-                listener.fatalError("problem in mobile center password encryption" + e);
-            }
-        }
-    }
-
-
     /**
      * Gets job id.
      * If there is already a job created by jenkins plugin, and exists then return this job id,
@@ -121,17 +69,21 @@ public class RunFromMcFileBuilder extends Builder {
      */
     @JavaScriptMethod
     public static String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                           String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+                                  String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
         if (null != previousJobId && !previousJobId.isEmpty()) {
-            JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId);
+            JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress,
+                    proxyUserName, proxyPassword, previousJobId);
+
             if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
                 return previousJobId;
             } else {
-                return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword);
+                return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
+                        proxyPassword);
             }
         }
-        return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword);
+        return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
+                proxyPassword);
     }
 
     /**
@@ -174,5 +126,60 @@ public class RunFromMcFileBuilder extends Builder {
     public static MCServerSettingsModel[] getMcServers() {
         return Jenkins.getInstance().getDescriptorByType(
                 MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+    }
+
+    public void setRunFromFileModel(RunFromFileSystemModel runFromFileModel) {
+        this.runFromFileModel = runFromFileModel;
+    }
+
+    /**
+     * Gets mc server settings model.
+     *
+     * @return the mc server settings model
+     */
+    public MCServerSettingsModel getMCServerSettingsModel() {
+        for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
+            if (this.runFromFileModel != null
+                    && runFromFileModel.getMcServerName() != null
+                    && mcServer.getMcServerName() != null
+                    && runFromFileModel.getMcServerName().equals(mcServer.getMcServerName())) {
+                return mcServer;
+            }
+        }
+        return null;
+    }
+
+    public RunFromFileBuilder.DescriptorImpl getDescriptor() {
+        return (RunFromFileBuilder.DescriptorImpl) super.getDescriptor();
+    }
+
+    public void addMcProperties(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
+                                MCServerSettingsModel mcServerSettingsModel, Properties mergedProperties) {
+        String mcServerUrl;
+        JSONObject jobDetails;
+        if (mcServerSettingsModel != null) {
+            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
+            if (runFromFileModel.getProxySettings() == null) {
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
+            } else {
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl,
+                        runFromFileModel.getProxySettings().getFsProxyAddress(),
+                        runFromFileModel.getProxySettings().getFsProxyUserName(),
+                        runFromFileModel.getProxySettings().getFsProxyPassword());
+            }
+            mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
+            mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
+        }
+
+        if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
+            try {
+                String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),
+                        EncryptionUtils.getSecretKey());
+                mergedProperties.put("MobilePassword", encPassword);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("problem in mobile center password encryption" + e);
+            }
+        }
     }
 }
