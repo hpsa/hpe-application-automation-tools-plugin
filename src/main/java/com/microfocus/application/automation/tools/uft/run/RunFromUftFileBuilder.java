@@ -41,6 +41,8 @@ import java.util.Properties;
 public class RunFromUftFileBuilder {
     private FileSystemTestSetModel fileSystemTestSetModel;
 
+    public RunFromUftFileBuilder(){}
+
     public RunFromUftFileBuilder(FileSystemTestSetModel fileSystemTestSetModel) {
         this.fileSystemTestSetModel = fileSystemTestSetModel;
     }
@@ -108,7 +110,9 @@ public class RunFromUftFileBuilder {
         this.fileSystemTestSetModel = fileSystemTestSetModel;
     }
 
-    public void replaceTestWithMtbxForNonParallelRunner(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, Properties mergedProperties, String time, String firstTestKey, String firstTestContent) {
+    public void replaceTestWithMtbxForNonParallelRunner(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace,
+                                                        @Nonnull TaskListener listener, Properties mergedProperties,
+                                                        String time, String firstTestKey, String firstTestContent) {
         try {
             replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
         } catch (Exception e) {
@@ -117,7 +121,9 @@ public class RunFromUftFileBuilder {
         }
     }
 
-    public void replaceTestWithMtbxForParallelRunner(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, EnvVars env, Properties mergedProperties, String time, RunFromFileBuilder runFromFileBuilder) {
+    public void replaceTestWithMtbxForParallelRunner(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace,
+                                                     @Nonnull TaskListener listener, EnvVars env,
+                                                     Properties mergedProperties, String time) {
         // add the parallel runner properties
         fileSystemTestSetModel.addTestSetProperties(mergedProperties, env);
 
@@ -131,6 +137,25 @@ public class RunFromUftFileBuilder {
                 build.setResult(Result.FAILURE);
                 listener.error("Failed to save MTBX file : " + e.getMessage());
             }
+        }
+    }
+
+    public void replaceTestWithMtbx(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace,
+                                    @Nonnull TaskListener listener, EnvVars env, Properties mergedProperties,
+                                    String time, boolean isParallelRunnerEnabled) {
+        // parallel runner is enabled
+        if (isParallelRunnerEnabled) {
+            replaceTestWithMtbxForParallelRunner(build, workspace, listener, env, mergedProperties, time);
+        } else {
+            // handling mtbx file content :
+            // If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
+            // We save mtbx content in workspace and replace content of Test1 by reference to saved file
+            // this only applies to the normal file system flow
+            String firstTestKey = "Test1";
+            String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+
+            replaceTestWithMtbxForNonParallelRunner(build, workspace, listener, mergedProperties, time,
+                    firstTestKey, firstTestContent);
         }
     }
 }

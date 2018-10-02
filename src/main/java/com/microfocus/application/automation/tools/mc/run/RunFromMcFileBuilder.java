@@ -53,9 +53,6 @@ public class RunFromMcFileBuilder extends Builder {
         this.runFromFileModel = runFromFileModel;
     }
 
-    public RunFromMcFileBuilder() {
-    }
-
     public void setRunFromFileModel(RunFromFileSystemModel runFromFileModel) {
         this.runFromFileModel = runFromFileModel;
     }
@@ -123,7 +120,7 @@ public class RunFromMcFileBuilder extends Builder {
      * @return the job id
      */
     @JavaScriptMethod
-    public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
+    public static String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
                            String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
         if (null != previousJobId && !previousJobId.isEmpty()) {
@@ -145,7 +142,7 @@ public class RunFromMcFileBuilder extends Builder {
      */
     @SuppressWarnings("squid:S2259")
     @JavaScriptMethod
-    public String getMcServerUrl(String serverName) {
+    public static String getMcServerUrl(String serverName) {
         String serverUrl = "";
         MCServerSettingsModel[] servers = Jenkins.getInstance().getDescriptorByType(
                 MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
@@ -163,7 +160,7 @@ public class RunFromMcFileBuilder extends Builder {
      * @return the boolean
      */
     @SuppressWarnings("squid:S2259")
-    public boolean hasMCServers() {
+    public static boolean hasMCServers() {
         return Jenkins.getInstance().getDescriptorByType(
                 MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
     }
@@ -174,7 +171,7 @@ public class RunFromMcFileBuilder extends Builder {
      * @return the mc server settings model [ ]
      */
     @SuppressWarnings("squid:S2259")
-    public MCServerSettingsModel[] getMcServers() {
+    public static MCServerSettingsModel[] getMcServers() {
         return Jenkins.getInstance().getDescriptorByType(
                 MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
     }

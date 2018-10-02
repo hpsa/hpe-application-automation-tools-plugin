@@ -59,7 +59,7 @@ public class RunFromLrFileBuilder {
      * @param value the value
      * @return boolean
      */
-    public boolean isParameterizedValue(String value) {
+    public static boolean isParameterizedValue(String value) {
         //Parameter (with or without brackets)
         return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
     }
@@ -70,7 +70,7 @@ public class RunFromLrFileBuilder {
      * @param value the value
      * @return the form validation
      */
-    public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
+    public static FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
         if (StringUtils.isEmpty(value)) {
             return FormValidation.ok();
         }
@@ -88,7 +88,7 @@ public class RunFromLrFileBuilder {
      * @param value the value
      * @return the form validation
      */
-    public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
+    public static FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
         if (StringUtils.isEmpty(value)) {
             return FormValidation.ok();
         }

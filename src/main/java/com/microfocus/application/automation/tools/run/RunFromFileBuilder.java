@@ -63,15 +63,14 @@ import java.util.Properties;
  */
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
-
     private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
-    private final RunFromMcFileBuilder runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
+    private final RunFromMcFileBuilder runMcFromFileBuilder;
     private FileSystemTestSetModel fileSystemTestSetModel;
-    private final RunFromUftFileBuilder runUftFromFileBuilder = new RunFromUftFileBuilder(fileSystemTestSetModel);
+    private RunFromUftFileBuilder runUftFromFileBuilder = new RunFromUftFileBuilder();
     private boolean isParallelRunnerEnabled;
 
     /**
@@ -85,8 +84,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
-        this.runUftFromFileBuilder.setFileSystemTestSetModel(fileSystemTestSetModel);
-        this.runMcFromFileBuilder.setRunFromFileModel(runFromFileModel);
+        this.runUftFromFileBuilder = new RunFromUftFileBuilder(fileSystemTestSetModel);
+        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     /**
@@ -96,7 +95,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(String fsTests) {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
-        this.runMcFromFileBuilder.setRunFromFileModel(runFromFileModel);
+        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     /**
@@ -106,7 +105,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
         this.runFromFileModel = runFromFileModel;
-        this.runMcFromFileBuilder.setRunFromFileModel(runFromFileModel);
+        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     /**
@@ -145,7 +144,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName, fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
                 fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
-        this.runMcFromFileBuilder.setRunFromFileModel(runFromFileModel);
+        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     public FileSystemTestSetModel getFileSystemTestSetModel() {
@@ -510,7 +509,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         // now merge them into one list
         Properties mergedProperties = new Properties();
         runMcFromFileBuilder.addMcProperties(build, listener, mcServerSettingsModel, mergedProperties, this);
-        assertEnvironmentVariable(listener, env);
+        assertEnvironmentVariables(listener, env);
         addModelProperties(build, env, mergedProperties);
         addEnvironmentVariablesToProperties(env, mergedProperties);
 
@@ -521,20 +520,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
-
-        // parallel runner is enabled
-        if (isParallelRunnerEnabled) {
-            runUftFromFileBuilder.replaceTestWithMtbxForParallelRunner(build, workspace, listener, env, mergedProperties, time, this);
-        } else {
-            // handling mtbx file content :
-            // If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
-            // We save mtbx content in workspace and replace content of Test1 by reference to saved file
-            // this only applies to the normal file system flow
-            String firstTestKey = "Test1";
-            String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
-
-            runUftFromFileBuilder.replaceTestWithMtbxForNonParallelRunner(build, workspace, listener, mergedProperties, time, firstTestKey, firstTestContent);
-        }
+        runUftFromFileBuilder.replaceTestWithMtbx(build, workspace, listener,
+                env, mergedProperties, time, isParallelRunnerEnabled);
 
         // get properties serialized into a stream
         String propsSerialization = getPropsSerializationString(build, listener, mergedProperties);
@@ -600,7 +587,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
     }
 
-    private String getPropsSerializationString(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener, Properties mergedProperties) {
+    private String getPropsSerializationString(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
+                                               Properties mergedProperties) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
             mergedProperties.store(stream, "");
@@ -635,7 +623,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
     }
 
-    private void assertEnvironmentVariable(@Nonnull TaskListener listener, EnvVars env) throws IOException {
+    private void assertEnvironmentVariables(@Nonnull TaskListener listener, EnvVars env) throws IOException {
         if (env == null) {
             listener.fatalError("Environment not set");
             throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
@@ -694,7 +682,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * The Instance.
          */
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
-        private RunFromMcFileBuilder runMcFromFileBuilder = new RunFromMcFileBuilder();
         private RunFromLrFileBuilder runFromLrFileBuilder = new RunFromLrFileBuilder();
 
         /**
@@ -726,8 +713,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the job id
          */
         @JavaScriptMethod
-        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
-            return runMcFromFileBuilder.getJobId(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId);
+        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
+                               String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+            return RunFromMcFileBuilder.getJobId(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
+                    proxyPassword, previousJobId);
         }
 
         /**
@@ -743,8 +732,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the json object
          */
         @JavaScriptMethod
-        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
-            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, jobId);
+        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
+                                               String proxyAddress, String proxyUserName,
+                                               String proxyPassword, String jobId) {
+            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId,
+                    proxyAddress, proxyUserName, proxyPassword, jobId);
         }
 
         /**
@@ -756,7 +748,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
         @JavaScriptMethod
         public String getMcServerUrl(String serverName) {
-            return runMcFromFileBuilder.getMcServerUrl(serverName);
+            return RunFromMcFileBuilder.getMcServerUrl(serverName);
         }
 
         @Override
@@ -803,7 +795,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @SuppressWarnings("squid:S2259")
         public boolean hasMCServers() {
-            return runMcFromFileBuilder.hasMCServers();
+            return RunFromMcFileBuilder.hasMCServers();
         }
 
         /**
@@ -814,7 +806,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
 
         public MCServerSettingsModel[] getMcServers() {
-            return runMcFromFileBuilder.getMcServers();
+            return RunFromMcFileBuilder.getMcServers();
         }
 
         /**
@@ -824,7 +816,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the form validation
          */
         public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
-            return runFromLrFileBuilder.doCheckControllerPollingInterval(value);
+            return RunFromLrFileBuilder.doCheckControllerPollingInterval(value);
         }
 
         /**
@@ -834,7 +826,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the form validation
          */
         public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
-            return runFromLrFileBuilder.doCheckPerScenarioTimeOut(value);
+            return RunFromLrFileBuilder.doCheckPerScenarioTimeOut(value);
         }
 
         /**
@@ -844,7 +836,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return boolean
          */
         public boolean isParameterizedValue(String value) {
-            return runFromLrFileBuilder.isParameterizedValue(value);
+            return RunFromLrFileBuilder.isParameterizedValue(value);
         }
     }
 }
