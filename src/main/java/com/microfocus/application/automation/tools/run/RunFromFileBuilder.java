@@ -512,7 +512,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
         // now merge them into one list
         Properties mergedProperties = new Properties();
-        runMcFromFileBuilder.addMcProperties(build, listener, mcServerSettingsModel, mergedProperties, this);
+        runMcFromFileBuilder.addMcProperties(build, listener, mcServerSettingsModel, mergedProperties);
         assertEnvironmentVariables(listener, env);
         addModelProperties(build, env, mergedProperties);
         addEnvironmentVariablesToProperties(env, mergedProperties);
