@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.events;
@@ -30,6 +28,8 @@ import com.microfocus.application.automation.tools.octane.model.processors.proje
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 /**
@@ -41,18 +41,22 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 @Extension
 public class ItemListenerOctaneImpl extends ItemListener {
+	private static final Logger logger = LogManager.getLogger(ItemListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
 	public void onDeleted(Item item) {
-		CIEvent event;
+		try {
+			CIEvent event;
+			if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+				event = dtoFactory.newDTO(CIEvent.class)
+						.setEventType(CIEventType.DELETED)
+						.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
 
-		if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-			event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.DELETED)
-					.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
-
-			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+				OctaneSDK.getInstance().getEventsService().publishEvent(event);
+			}
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch DELETED event for " + item, throwable);
 		}
 	}
 }
