@@ -25,7 +25,7 @@ THE SOFTWARE.
 <!-- This custom optional block was added in order to change the left-padding by 36px of the optional block -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:f="/lib/form">
     <st:documentation>
         Foldable block that can be expanded to show more controls by checking the checkbox.
 
@@ -63,34 +63,33 @@ THE SOFTWARE.
     <j:if test="${attrs.help == null and attrs.field != null}">
         <!-- infer the help page from the current descriptor and field if possible -->
         <j:set target="${attrs}" property="help"
-               value="${descriptor.getHelpFile(attrs.field)}" />
+               value="${descriptor.getHelpFile(attrs.field)}"/>
     </j:if>
 
     <j:choose>
         <j:when test="${attrs.title!=null}">
-            <tr class="optional-block-start row-group-start ${attrs.inline?'':'row-set-start'}" hasHelp="${attrs.help!=null}"><!-- this ID marks the beginning -->
-
-                    <td colspan="3" style="padding-left: 36px">
-                        <f:checkbox name="${attrs.name}" class="optional-block-control block-control" onclick="javascript:updateOptionalBlock(this,true)"
-                                    negative="${attrs.negative}" checked="${attrs.checked}" field="${attrs.field}" title="${title}"/>
-                    </td>
-
-
+            <tr class="optional-block-start row-group-start ${attrs.inline?'':'row-set-start'}"
+                hasHelp="${attrs.help!=null}"><!-- this ID marks the beginning -->
+                <td colspan="3" style="padding-left: 36px">
+                    <f:checkbox name="${attrs.name}" class="optional-block-control block-control"
+                                onclick="javascript:updateOptionalBlock(this,true)"
+                                negative="${attrs.negative}" checked="${attrs.checked}" field="${attrs.field}"
+                                title="${title}"/>
+                </td>
                 <f:helpLink url="${attrs.help}" featureName="${title}"/>
-
             </tr>
             <j:if test="${attrs.help!=null}">
-                <f:helpArea />
+                <f:helpArea/>
             </j:if>
-            <tr class="rowvg-start" />
-            <d:invokeBody />
+            <tr class="rowvg-start"/>
+            <d:invokeBody/>
             <!-- end marker -->
-            <tr class="${attrs.inline?'':'row-set-end'} rowvg-end optional-block-end row-group-end" />
+            <tr class="${attrs.inline?'':'row-set-end'} rowvg-end optional-block-end row-group-end"/>
         </j:when>
 
         <j:otherwise>
             <f:rowSet name="${attrs.name}">
-                <d:invokeBody />
+                <d:invokeBody/>
             </f:rowSet>
         </j:otherwise>
     </j:choose>
