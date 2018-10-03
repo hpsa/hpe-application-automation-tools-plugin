@@ -30,9 +30,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -101,10 +101,14 @@ public class HealthAnalyzerCommon {
                             " Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
             return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (UnknownHostException e) {
-            return false; // Todo: Provide this as information for the AbortException?
+            return false;
         } catch (SSLHandshakeException e) {
             return true;
+        } catch (MalformedURLException e) {
+            throwAbortException("The URL: %s malformed. Either no legal protocol could be found in a specification" +
+                    " string or the string could not be parsed.", stringUrl);
         }
+        return false;
     }
 
     private void throwAbortException(@Nonnull final String message, final String... args)
@@ -112,7 +116,7 @@ public class HealthAnalyzerCommon {
         throw new AbortException(String.format(message, (Object[]) args));
     }
 
-    private boolean isFileExist(@Nonnull final String path) throws AbortException{
+    private boolean isFileExist(@Nonnull final String path) throws AbortException {
         File file = Paths.get(path).toFile();
 
         if (file.exists()) {
