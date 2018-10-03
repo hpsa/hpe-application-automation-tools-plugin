@@ -1,4 +1,5 @@
 /*
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -16,33 +17,45 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
+ *
  */
 
-package com.microfocus.application.automation.tools.octane.tests.detection;
+package com.microfocus.application.automation.tools.octane.actions;
 
 import hudson.Extension;
-import hudson.model.FreeStyleProject;
-import hudson.model.Run;
-import hudson.tasks.Builder;
+import hudson.security.csrf.CrumbExclusion;
+import java.io.IOException;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@SuppressWarnings("squid:S1872")
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+
+
+
+/**
+ * this class allows webhook resource to be excluded from CSRF validations
+ * in case jenkins configured to have this kind of validation
+ */
 @Extension
-public class UFTExtension extends ResultFieldsDetectionExtension {
-
-	public static final String UFT = "UFT";
-
-	public static final String RUN_FROM_FILE_BUILDER = "RunFromFileBuilder";
-	public static final String RUN_FROM_ALM_BUILDER = "RunFromAlmBuilder";
+public class SonarQubeWebHookCrumbExclusion extends CrumbExclusion {
 
 	@Override
-	public ResultFields detect(final Run build) {
-		if (build.getParent() instanceof FreeStyleProject) {
-			for (Builder builder : ((FreeStyleProject) build.getParent()).getBuilders()) {
-				if (RUN_FROM_FILE_BUILDER.equals(builder.getClass().getSimpleName()) || RUN_FROM_ALM_BUILDER.equals(builder.getClass().getSimpleName())) {
-					return new ResultFields(UFT, UFT, null);
-				}
-			}
+	public boolean process(HttpServletRequest req, HttpServletResponse resp, FilterChain chain) throws IOException, ServletException {
+		String pathInfo = req.getPathInfo();
+		if (isEmpty(pathInfo)) {
+			return false;
 		}
-		return null;
+		if (!pathInfo.equals(getExclusionPath())) {
+			return false;
+		}
+		chain.doFilter(req, resp);
+		return true;
+	}
+
+	public String getExclusionPath() {
+		return "/" + Webhooks.WEBHOOK_PATH + Webhooks.NOTIFY_METHOD;
 	}
 }
