@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.results;
 
+import com.microfocus.application.automation.tools.lr.results.RunLrResultRecorder;
 import com.microfocus.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
 import com.microfocus.application.automation.tools.results.projectparser.performance.LrJobResults;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
@@ -409,21 +410,20 @@ public void testCreatingJobDataSet()
 @Test
 public void testParseScenarioResults() throws Exception {
 
-	RunResultRecorder runResultRecorder = new RunResultRecorder(ResultsPublisherModel.CreateHtmlReportResults.getValue());
+    ResultsPublisherModel resultsPublisherModel = new ResultsPublisherModel(ResultsPublisherModel.CreateHtmlReportResults.getValue());
+    RunLrResultRecorder runLrResultRecorder = new RunLrResultRecorder(resultsPublisherModel);
 	FilePath runReportPath = new FilePath(new File(getClass().getResource("RunReport.xml").getPath()));
     JobLrScenarioResult result = null;
     try {
-	   	Method method = runResultRecorder.getClass().getDeclaredMethod("parseScenarioResults", FilePath.class);
+	   	Method method = runLrResultRecorder.getClass().getDeclaredMethod("parseScenarioResults", FilePath.class);
 		method.setAccessible(true);
-        result = (JobLrScenarioResult) method.invoke(runResultRecorder, runReportPath);
+        result = (JobLrScenarioResult) method.invoke(runLrResultRecorder, runReportPath);
     } catch(NoSuchMethodException e) {
 		e.printStackTrace();
 	} catch(IllegalAccessException e) {
 		e.printStackTrace();
-
 	} catch(InvocationTargetException e) {
 		e.printStackTrace();
-
 	}
 
     assertNotNull("RunResult parser result is empty", result);
