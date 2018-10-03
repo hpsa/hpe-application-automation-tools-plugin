@@ -449,7 +449,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.26</version>
+			<version>1.5.33</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
@@ -544,6 +544,14 @@
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
+		</dependency>
+
+		<!--sonar plugin for compile phase only-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>sonar</artifactId>
+			<version>2.6.1</version>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>

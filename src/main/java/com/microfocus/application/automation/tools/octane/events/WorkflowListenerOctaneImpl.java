@@ -16,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.events;
@@ -67,14 +66,18 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 	@Override
 	public void onNewHead(FlowNode flowNode) {
-		if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
-			sendPipelineStartedEvent(flowNode);
-		} else if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
-			sendPipelineFinishedEvent((FlowEndNode) flowNode);
-		} else if (BuildHandlerUtils.isStageStartNode(flowNode)) {
-			sendStageStartedEvent((StepStartNode) flowNode);
-		} else if (BuildHandlerUtils.isStageEndNode(flowNode)) {
-			sendStageFinishedEvent((StepEndNode) flowNode);
+		try {
+			if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
+				sendPipelineStartedEvent(flowNode);
+			} else if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
+				sendPipelineFinishedEvent((FlowEndNode) flowNode);
+			} else if (BuildHandlerUtils.isStageStartNode(flowNode)) {
+				sendStageStartedEvent((StepStartNode) flowNode);
+			} else if (BuildHandlerUtils.isStageEndNode(flowNode)) {
+				sendStageFinishedEvent((StepEndNode) flowNode);
+			}
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch STARTED/FINISHED event for " + flowNode, throwable);
 		}
 	}
 

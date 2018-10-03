@@ -16,33 +16,52 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
+ *
  */
 
-package com.microfocus.application.automation.tools.octane.tests.detection;
+package com.microfocus.application.automation.tools.octane.testrunner;
 
-import hudson.Extension;
-import hudson.model.FreeStyleProject;
-import hudson.model.Run;
-import hudson.tasks.Builder;
+import com.hp.octane.integrations.executor.TestsToRunFramework;
+import com.microfocus.application.automation.tools.model.EnumDescription;
+import org.kohsuke.stapler.DataBoundConstructor;
 
-@SuppressWarnings("squid:S1872")
-@Extension
-public class UFTExtension extends ResultFieldsDetectionExtension {
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-	public static final String UFT = "UFT";
+/*
+ * Test model for storing of available frameworks for converting
+ */
+public class TestsToRunConverterModel implements Serializable {
 
-	public static final String RUN_FROM_FILE_BUILDER = "RunFromFileBuilder";
-	public static final String RUN_FROM_ALM_BUILDER = "RunFromAlmBuilder";
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public ResultFields detect(final Run build) {
-		if (build.getParent() instanceof FreeStyleProject) {
-			for (Builder builder : ((FreeStyleProject) build.getParent()).getBuilders()) {
-				if (RUN_FROM_FILE_BUILDER.equals(builder.getClass().getSimpleName()) || RUN_FROM_ALM_BUILDER.equals(builder.getClass().getSimpleName())) {
-					return new ResultFields(UFT, UFT, null);
-				}
-			}
-		}
-		return null;
-	}
+    public final static EnumDescription none = new EnumDescription("", "");
+
+    public final static List<EnumDescription> Frameworks;
+
+    private String framework;
+
+    static {
+        List<EnumDescription> temp = new ArrayList<>();
+        temp.add(none);
+        for (TestsToRunFramework fr : TestsToRunFramework.values()) {
+            temp.add(new EnumDescription(fr.value(), fr.getDesc()));
+        }
+        Frameworks = temp;
+    }
+
+    @DataBoundConstructor
+    public TestsToRunConverterModel(String framework) {
+
+        this.framework = framework;
+    }
+
+    public String getFramework() {
+        return framework;
+    }
+
 }
+
+
+
