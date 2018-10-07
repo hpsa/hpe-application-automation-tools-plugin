@@ -26,6 +26,7 @@ import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
+import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -41,7 +42,7 @@ import java.util.Properties;
 /**
  * Describs a regular jenkins build step from UFT or LR
  */
-public class RunFromMcFileBuilder extends Builder {
+public class RunFromMcFileBuilder {
     private RunFromFileSystemModel runFromFileModel;
 
     /**
@@ -132,26 +133,7 @@ public class RunFromMcFileBuilder extends Builder {
         this.runFromFileModel = runFromFileModel;
     }
 
-    /**
-     * Gets mc server settings model.
-     *
-     * @return the mc server settings model
-     */
-    public MCServerSettingsModel getMCServerSettingsModel() {
-        for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
-            if (this.runFromFileModel != null
-                    && runFromFileModel.getMcServerName() != null
-                    && mcServer.getMcServerName() != null
-                    && runFromFileModel.getMcServerName().equals(mcServer.getMcServerName())) {
-                return mcServer;
-            }
-        }
-        return null;
-    }
 
-    public RunFromFileBuilder.DescriptorImpl getDescriptor() {
-        return (RunFromFileBuilder.DescriptorImpl) super.getDescriptor();
-    }
 
     public void addMcProperties(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
                                 MCServerSettingsModel mcServerSettingsModel, Properties mergedProperties) {

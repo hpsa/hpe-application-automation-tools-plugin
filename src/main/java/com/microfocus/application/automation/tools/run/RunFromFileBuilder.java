@@ -651,7 +651,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @return the mc server settings model
      */
     public MCServerSettingsModel getMCServerSettingsModel() {
-        return runMcFromFileBuilder.getMCServerSettingsModel();
+        for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
+            if (this.runFromFileModel != null
+                    && runFromFileModel.getMcServerName() != null
+                    && mcServer.getMcServerName() != null
+                    && runFromFileModel.getMcServerName().equals(mcServer.getMcServerName())) {
+                return mcServer;
+            }
+        }
+        return null;
     }
 
     @Override
