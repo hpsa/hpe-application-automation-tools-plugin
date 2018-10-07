@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.events;
@@ -58,12 +56,6 @@ public class SCMListenerOctaneImpl extends SCMListener {
 	private static final Logger logger = LogManager.getLogger(SCMListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-
-	@Override
-	public void onCheckout(Run<?, ?> build, SCM scm, FilePath workspace, TaskListener listener, File changelogFile, SCMRevisionState pollingBaseline) throws Exception {
-		super.onCheckout(build, scm, workspace, listener, changelogFile, pollingBaseline);
-	}
-
 	@Override
 	public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
 		super.onChangeLogParsed(run, scm, listener, changelog);
@@ -81,10 +73,14 @@ public class SCMListenerOctaneImpl extends SCMListener {
 			return;
 		}
 
-		SCMData scmData = extractSCMData(run, scm, scmProcessor);
-		if (scmData != null) {
-			CIEvent event = createSCMEvent(run, scmData);
-			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		try {
+			SCMData scmData = extractSCMData(run, scm, scmProcessor);
+			if (scmData != null) {
+				CIEvent event = createSCMEvent(run, scmData);
+				OctaneSDK.getInstance().getEventsService().publishEvent(event);
+			}
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch SCM event for " + run, throwable);
 		}
 	}
 
