@@ -128,7 +128,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private String junitResultsFileName;
     private static PrintStream logger;
     private File WorkspacePath;
-    private transient AbstractBuild<?, ?> _build;
+    private FilePath Workspace;
     private DateFormatter dateFormatter = new DateFormatter("");
 
     @DataBoundConstructor
@@ -189,7 +189,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        _build = build;
         if(build.getWorkspace() != null)
             WorkspacePath =  new File(build.getWorkspace().toURI());
         else
@@ -722,55 +721,29 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     }
 
+
     private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId,TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement)throws IOException, PcException, IntrospectionException, NoSuchMethodException{
         String fileName = measurement.toString().toLowerCase()  + "_" +  pctType.toString().toLowerCase() + ".csv";
         Map<String, String> measurementMap = pcClient.getTrendReportByXML(trendReportID, runId, dataType, pctType, measurement);
-        if (!_build.getWorkspace().isRemote()) {
-            try {
-                File file = new File(getWorkspacePath().getPath() + "/" + fileName);
-
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-                PrintWriter writer = new PrintWriter(file);
-                for (String key : measurementMap.keySet()) {
-                    writer.print(key + ",");
-                }
-                writer.print("\r\n");
-                for (String value : measurementMap.values()) {
-                    writer.print(value + ",");
-                }
-                writer.close();
-                return true;
-            } catch (IOException e) {
-                if (getWorkspacePath().getPath() != null)
-                    logger.println(String.format("%s - Error saving file: %s to workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
-                else
-                    logger.println(String.format("%s - Error saving file: %s because workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
+        try {
+            FilePath filePath = new FilePath(Workspace.getChannel(), getWorkspacePath().getPath() + "/" + fileName);
+            String filepathContent="";
+            for (String key : measurementMap.keySet()) {
+                filepathContent += key + ",";
             }
-        }
-        else {
-            try {
-                FilePath filePath = new FilePath(_build.getWorkspace().getChannel(), getWorkspacePath().getPath() + "/" + fileName);
-                String filepathContent="";
-                for (String key : measurementMap.keySet()) {
-                    filepathContent += key + ",";
-                }
-                filepathContent += "\r\n";
-                for (String value : measurementMap.values()) {
-                    filepathContent += value + ",";
-                }
-                filePath.write(filepathContent, null);
-                return true;
-            } catch (InterruptedException e) {
-                if (getWorkspacePath().getPath() != null)
-                    logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
-                else
-                    logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
-                return false;
+            filepathContent += "\r\n";
+            for (String value : measurementMap.values()) {
+                filepathContent += value + ",";
             }
-        }
-        return false;
+            filePath.write(filepathContent, null);
+            return true;
+        } catch (InterruptedException e) {
+            if (getWorkspacePath().getPath() != null)
+                logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+            else
+                logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
+            return false;
+            }
     }
 
 
@@ -892,6 +865,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        Workspace = workspace;
+        WorkspacePath = new File(workspace.toURI());
         Result resultStatus = Result.FAILURE;
         //trendReportReady = false;
         logger = listener.getLogger();

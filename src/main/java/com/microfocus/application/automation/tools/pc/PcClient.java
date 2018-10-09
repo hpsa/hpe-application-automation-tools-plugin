@@ -457,7 +457,9 @@ public class PcClient {
 
         ArrayList<PcTrendedRun> trendReportMetaDataResultsList;
         boolean publishEnded = false;
-        int counter = 0;
+        int counterPublishStarted = 0;
+        int counterPublishNotStarted = 0;
+        boolean resultNotFound = true;
 
         do {
             trendReportMetaDataResultsList = restProxy.getTrendReportMetaData(trendReportId);
@@ -465,8 +467,8 @@ public class PcClient {
             if (trendReportMetaDataResultsList.isEmpty())  break;
 
             for (PcTrendedRun result : trendReportMetaDataResultsList) {
-
-                if (result.getRunID() != runId) continue;
+                resultNotFound = result.getRunID() != runId;
+                if (resultNotFound) continue;
 
                 if (result.getState().equals(PcBuilder.TRENDED) || result.getState().equals(PcBuilder.ERROR)){
                     publishEnded = true;
@@ -474,15 +476,22 @@ public class PcClient {
                     break;
                 }else{
                     Thread.sleep(5000);
-                    counter++;
-                    if(counter >= 120){
+                    counterPublishStarted++;
+                    if(counterPublishStarted >= 120){
                         String msg = "Error: Publishing didn't ended after 10 minutes, aborting...";
                         throw new PcException(msg);
                     }
                 }
              }
-
-        }while (!publishEnded && counter < 120);
+             if (!publishEnded && resultNotFound) {
+                Thread.sleep(5000);
+                 counterPublishNotStarted++;
+                 if(counterPublishNotStarted >= 120){
+                     String msg = "Error: Publishing didn't start after 10 minutes, aborting...";
+                     throw new PcException(msg);
+                 }
+            }
+        }while (!publishEnded && counterPublishStarted < 120 && counterPublishNotStarted < 120);
     }
 
     public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {
