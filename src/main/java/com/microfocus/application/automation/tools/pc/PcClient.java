@@ -153,8 +153,8 @@ public class PcClient {
             //counter
             int retryCount = 0;
             //values
-            int retryDelay = model.getRetryDelay();
-            int retryOccurrences = model.getRetryOccurrences();
+            int retryDelay = Integer.parseInt(model.getRetryDelay());
+            int retryOccurrences = Integer.parseInt(model.getRetryOccurrences());
 
             while (retryCount<=retryOccurrences)
             {

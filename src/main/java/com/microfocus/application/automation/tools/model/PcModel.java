@@ -57,8 +57,8 @@ public class PcModel {
     private final String credentialsProxyId;
     private String buildParameters;
     private String retry;
-    private int retryDelay;
-    private int retryOccurrences;
+    private String retryDelay;
+    private String retryOccurrences;
 
 
     @DataBoundConstructor
@@ -91,14 +91,14 @@ public class PcModel {
 
     }
 
-    private int verifyStringValueIsIntAndPositive (String supplied, int defaultValue)
+    private String  verifyStringValueIsIntAndPositive (String supplied, int defaultValue)
     {
         if(supplied != null && isInteger(supplied)) {
             int suppliedInt = Integer.parseInt(supplied);
             if (suppliedInt > 0)
-                return suppliedInt;
+                return Integer.toString(suppliedInt);
         }
-        return defaultValue;
+        return Integer.toString(defaultValue);
     }
 
 
@@ -123,11 +123,11 @@ public class PcModel {
         return this.retry;
     }
 
-    public int getRetryDelay () {
+    public String getRetryDelay () {
         return this.retryDelay;
     }
 
-    public int getRetryOccurrences() {
+    public String getRetryOccurrences() {
 
         return this.retryOccurrences;
     }

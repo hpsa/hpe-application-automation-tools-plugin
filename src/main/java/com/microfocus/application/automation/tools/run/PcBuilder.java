@@ -988,11 +988,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getRetry();
     }
 
-    public int getRetryOccurrences () {
+    public String getRetryOccurrences () {
         return getPcModel().getRetryOccurrences();
     }
 
-    public int getRetryDelay () {
+    public String  getRetryDelay () {
         return getPcModel().getRetryDelay();
     }
 
