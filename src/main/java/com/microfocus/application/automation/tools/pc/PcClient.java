@@ -177,8 +177,13 @@ public class PcClient {
                 try {
                     if(retryCount <= retryOccurrences) {
                         logger.println(String.format("%s - %s. %s (%s %s). %s: %s.",
-                                dateFormatter.getDate(), Messages.StartRunRetryFailed(), Messages.AttemptingStartAgainSoon(), retryDelay, Messages.Minutes(),
-                                Messages.AttemptsRemaining(), retryOccurrences - retryCount + 1));
+                                dateFormatter.getDate(),
+                                Messages.StartRunRetryFailed(),
+                                Messages.AttemptingStartAgainSoon(),
+                                retryDelay,
+                                Messages.Minutes(),
+                                Messages.AttemptsRemaining(),
+                                retryOccurrences - retryCount + 1));
                         Thread.sleep(retryDelay * 60 * 1000);
                     }
                 } catch (InterruptedException ex) {
@@ -192,9 +197,17 @@ public class PcClient {
                             model.getPostRunAction().getValue(),
                             model.isVudsMode());
                 } catch (NumberFormatException|ClientProtocolException|PcException ex) {
-                    logger.println(String.format("%s -%s. %s: %s", dateFormatter.getDate(), Messages.StartRunRetryFailed(), Messages.Error(), ex.getMessage()));
+                    logger.println(String.format("%s -%s. %s: %s",
+                            dateFormatter.getDate(),
+                            Messages.StartRunRetryFailed(),
+                            Messages.Error(),
+                            ex.getMessage()));
                 } catch (IOException ex) {
-                    logger.println(String.format("%s -%s. %s: %s", dateFormatter.getDate(), Messages.StartRunRetryFailed(), Messages.Error(), ex.getMessage()));
+                    logger.println(String.format("%s -%s. %s: %s",
+                            dateFormatter.getDate(),
+                            Messages.StartRunRetryFailed(),
+                            Messages.Error(),
+                            ex.getMessage()));
                 }
                 int ret = 0;
                 if (response !=null) {
@@ -202,12 +215,20 @@ public class PcClient {
                         ret = response.getID();
                     }
                     catch (Exception ex) {
-                        logger.println(String.format("%s - %s. %s: %s", dateFormatter.getDate(), Messages.RetrievingIDFailed(), Messages.Error(), ex.getMessage()));
+                        logger.println(String.format("%s - %s. %s: %s",
+                                dateFormatter.getDate(),
+                                Messages.RetrievingIDFailed(),
+                                Messages.Error(),
+                                ex.getMessage()));
                     }
                 }
                 if (ret != 0) {
-                    logger.println(String.format("%s - %s (TestID: %s, RunID: %s, TimeslotID: %s)\n", dateFormatter.getDate(), Messages.RunStarted(),
-                            response.getTestID(), response.getID(), response.getTimeslotID()));
+                    logger.println(String.format("%s - %s (TestID: %s, RunID: %s, TimeslotID: %s)\n",
+                            dateFormatter.getDate(),
+                            Messages.RunStarted(),
+                            response.getTestID(),
+                            response.getID(),
+                            response.getTimeslotID()));
                     return ret;
                 }
             }
@@ -219,41 +240,65 @@ public class PcClient {
     private int getCorrectTestInstanceID(int testID) throws IOException, PcException {
         if("AUTO".equals(model.getAutoTestInstanceID())){
             try {
-
-
-            logger.println(String.format("%s - %s.", dateFormatter.getDate(), Messages.SearchingTestInstance()));
+            logger.println(String.format("%s - %s.",
+                    dateFormatter.getDate(),
+                    Messages.SearchingTestInstance()));
             PcTestInstances pcTestInstances = null;
             try {
                 pcTestInstances = restProxy.getTestInstancesByTestId(testID);
             } catch (PcException ex) {
-                logger.println(String.format("%s - getTestInstancesByTestId %s. Error: %s", dateFormatter.getDate(), Messages.Failure(), Messages.Error(), ex.getMessage()));
+                logger.println(String.format("%s - getTestInstancesByTestId %s. Error: %s",
+                        dateFormatter.getDate(),
+                        Messages.Failure(),
+                        Messages.Error(),
+                        ex.getMessage()));
             }
 
             int testInstanceID;
             if (pcTestInstances != null && pcTestInstances.getTestInstancesList() != null){
                 PcTestInstance pcTestInstance = pcTestInstances.getTestInstancesList().get(pcTestInstances.getTestInstancesList().size()-1);
                 testInstanceID = pcTestInstance.getInstanceId();
-                logger.println(String.format("%s - %s: %s", dateFormatter.getDate(), Messages.FoundTestInstanceID(), testInstanceID));
-            }else{
-                logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.NotFoundTestInstanceID()));
-                logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.SearchingAvailableTestSet()));
+                logger.println(String.format("%s - %s: %s",
+                        dateFormatter.getDate(),
+                        Messages.FoundTestInstanceID(),
+                        testInstanceID));
+            } else {
+                logger.println(String.format("%s - %s",
+                        dateFormatter.getDate(),
+                        Messages.NotFoundTestInstanceID()));
+                logger.println(String.format("%s - %s",
+                        dateFormatter.getDate(),
+                        Messages.SearchingAvailableTestSet()));
                 // Get a random TestSet
                 PcTestSets pcTestSets = restProxy.GetAllTestSets();
                 if (pcTestSets !=null && pcTestSets.getPcTestSetsList() !=null){
                     PcTestSet pcTestSet = pcTestSets.getPcTestSetsList().get(pcTestSets.getPcTestSetsList().size()-1);
                     int testSetID = pcTestSet.getTestSetID();
-                    logger.println(String.format("%s - %s (testID: %s, TestSetID: %s)",dateFormatter.getDate(), Messages.CreatingNewTestInstance(), testID,testSetID));
+                    logger.println(String.format("%s - %s (testID: %s, TestSetID: %s)",
+                            dateFormatter.getDate(),
+                            Messages.CreatingNewTestInstance(),
+                            testID,
+                            testSetID));
                     testInstanceID = restProxy.createTestInstance(testID,testSetID);
-                    logger.println(String.format("%s - %s: %s", dateFormatter.getDate(), Messages.TestInstanceCreatedSuccessfully(), testInstanceID));
-                }else{
+                    logger.println(String.format("%s - %s: %s",
+                            dateFormatter.getDate(),
+                            Messages.TestInstanceCreatedSuccessfully(),
+                            testInstanceID));
+                } else {
                     String msg = Messages.NoTestSetAvailable();
-                    logger.println(String.format("%s - %s", dateFormatter.getDate(), msg));
+                    logger.println(String.format("%s - %s",
+                            dateFormatter.getDate(),
+                            msg));
                     throw new PcException(msg);
                 }
             }
             return testInstanceID;
             } catch (Exception e){
-                logger.println(String.format("%s - getCorrectTestInstanceID %s. %s: %s",dateFormatter.getDate(), Messages.Failure(), Messages.Error(), e.getMessage()));
+                logger.println(String.format("%s - getCorrectTestInstanceID %s. %s: %s",
+                        dateFormatter.getDate(),
+                        Messages.Failure(),
+                        Messages.Error(),
+                        e.getMessage()));
                 return Integer.parseInt(null);
             }
         }
@@ -336,9 +381,14 @@ public class PcClient {
 
                 if (threeStrikes < 3) {
                     logger.println(String.format("%s - Cannot get response from PC about the state of the Run (ID=%s) %s time(s) consecutively",
-                            dateFormatter.getDate(), runId, (3 - threeStrikes)));
+                            dateFormatter.getDate(),
+                            runId,
+                            (3 - threeStrikes)));
                     if(threeStrikes==0) {
-                        logger.println(String.format("%s - %s: %s", dateFormatter.getDate(), Messages.StoppingMonitoringOnRun(), runId));
+                        logger.println(String.format("%s - %s: %s",
+                                dateFormatter.getDate(),
+                                Messages.StoppingMonitoringOnRun(),
+                                runId));
                         break;
                     }
                     Thread.sleep(2000);
@@ -348,7 +398,10 @@ public class PcClient {
                 RunState currentState = RunState.get(response.getRunState());
                 if (lastState.ordinal() < currentState.ordinal()) {
                     lastState = currentState;
-                    logger.println(String.format("%s - RunID: %s - State = %s",dateFormatter.getDate(), runId, currentState.value()));
+                    logger.println(String.format("%s - RunID: %s - State = %s",
+                            dateFormatter.getDate(),
+                            runId,
+                            currentState.value()));
                 }
 
                 // In case we are in state before collate or before analyze, we will wait 1 minute for the state to change otherwise we exit
@@ -357,7 +410,11 @@ public class PcClient {
                     counter++;
                     Thread.sleep(1000);
                     if (counter > 60) {
-                        logger.println(String.format("%s - Run ID: %s  - %s = %s",dateFormatter.getDate(), runId, Messages.StoppedFromPC(), currentState.value()));
+                        logger.println(String.format("%s - Run ID: %s  - %s = %s",
+                                dateFormatter.getDate(),
+                                runId,
+                                Messages.StoppedFromPC(),
+                                currentState.value()));
                         break;
                     }
                 } else {
@@ -406,11 +463,15 @@ public class PcClient {
             logoutSucceeded = restProxy.logout();
             loggedIn = !logoutSucceeded;
         } catch (PcException e) {
-            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
+            logger.println(String.format("%s - %s",
+                    dateFormatter.getDate(),
+                    e.getMessage()));
         } catch (Exception e) {
             logger.println(e);
         }
-        logger.println(String.format("%s - %s",dateFormatter.getDate(), logoutSucceeded ? Messages.LogoutSucceeded() : Messages.LogoutFailed()));
+        logger.println(String.format("%s - %s",
+                dateFormatter.getDate(),
+                logoutSucceeded ? Messages.LogoutSucceeded() : Messages.LogoutFailed()));
         return logoutSucceeded;
     }
 
@@ -432,9 +493,13 @@ public class PcClient {
         try {
             return restProxy.getRunEventLog(runId);
         } catch (PcException e) {
-            logger.println(String.format("%s - " + e.getMessage(), dateFormatter.getDate()));
+            logger.println(String.format("%s - %s",
+                    dateFormatter.getDate(),
+                    e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s",dateFormatter.getDate(), e));
+            logger.println(String.format("%s - %s",
+                    dateFormatter.getDate(),
+                    e.getMessage()));
         }
         return null;
     }
@@ -443,16 +508,28 @@ public class PcClient {
     {
 
         TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(true), runId, null);
-        logger.println(String.format("%s - Adding run: %s to trend report: %s", dateFormatter.getDate(), runId, trendReportId));
+        logger.println(String.format("%s - Adding run: %s to trend report: %s",
+                dateFormatter.getDate(),
+                runId,
+                trendReportId));
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
-            logger.println(String.format("%s - %: %s %s: %s", dateFormatter.getDate(), Messages.PublishingRun(), runId, Messages.OnTrendReport(), trendReportId));
-        }
-        catch (PcException e) {
-            logger.println(String.format("%s - %s: %s", dateFormatter.getDate(), Messages.FailedToAddRunToTrendReport(), e.getMessage()));
-        }
-        catch (IOException e) {
-            logger.println(String.format("%s - %s: %s.", dateFormatter.getDate(), Messages.FailedToAddRunToTrendReport(), Messages.ProblemConnectingToPCServer()));
+            logger.println(String.format("%s - %s: %s %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.PublishingRun(),
+                    runId,
+                    Messages.OnTrendReport(),
+                    trendReportId));
+        } catch (PcException e) {
+            logger.println(String.format("%s - %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.FailedToAddRunToTrendReport(),
+                    e.getMessage()));
+        } catch (IOException e) {
+            logger.println(String.format("%s - %s: %s.",
+                    dateFormatter.getDate(),
+                    Messages.FailedToAddRunToTrendReport(),
+                    Messages.ProblemConnectingToPCServer()));
         }
     }
 
@@ -475,13 +552,19 @@ public class PcClient {
 
                 if (result.getState().equals(PcBuilder.TRENDED) || result.getState().equals(PcBuilder.ERROR)){
                     publishEnded = true;
-                    logger.println(String.format("%s - Run: %s %s: %s", dateFormatter.getDate(), runId, Messages.PublishingStatus(), result.getState()));
+                    logger.println(String.format("%s - Run: %s %s: %s",
+                            dateFormatter.getDate(),
+                            runId,
+                            Messages.PublishingStatus(),
+                            result.getState()));
                     break;
-                }else{
+                } else {
                     Thread.sleep(5000);
                     counterPublishStarted++;
                     if(counterPublishStarted >= 120){
-                        String msg = String.format("%s: %s", Messages.Error(), Messages.PublishingEndTimeout());
+                        String msg = String.format("%s: %s",
+                                Messages.Error(),
+                                Messages.PublishingEndTimeout());
                         throw new PcException(msg);
                     }
                 }
@@ -490,18 +573,24 @@ public class PcClient {
                 Thread.sleep(5000);
                  counterPublishNotStarted++;
                  if(counterPublishNotStarted >= 120){
-                     String msg = String.format("%s: %s", Messages.Error(), Messages.PublishingStartTimeout());
+                     String msg = String.format("%s: %s",
+                             Messages.Error(),
+                             Messages.PublishingStartTimeout());
                      throw new PcException(msg);
                  }
             }
-        }while (!publishEnded && counterPublishStarted < 120 && counterPublishNotStarted < 120);
+        } while (!publishEnded && counterPublishStarted < 120 && counterPublishNotStarted < 120);
     }
 
     public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {
 
 
         try {
-            logger.println(String.format("%s - %s: %s %s", dateFormatter.getDate(), Messages.DownloadingTrendReport(), trendReportId, Messages.InPDFFormat()));
+            logger.println(String.format("%s - %s: %s %s",
+                    dateFormatter.getDate(),
+                    Messages.DownloadingTrendReport(),
+                    trendReportId,
+                    Messages.InPDFFormat()));
             InputStream in = restProxy.getTrendingPDF(trendReportId);
             File dir = new File(directory);
             if(!dir.exists()){
@@ -510,11 +599,18 @@ public class PcClient {
             String filePath = directory + IOUtils.DIR_SEPARATOR + "trendReport" + trendReportId + ".pdf";
             Path destination = Paths.get(filePath);
             Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
-            logger.println(String.format("%s - %s: %s %s", dateFormatter.getDate(), Messages.TrendReport(), trendReportId, Messages.SuccessfullyDownloaded()));
+            logger.println(String.format("%s - %s: %s %s",
+                    dateFormatter.getDate(),
+                    Messages.TrendReport(),
+                    trendReportId,
+                    Messages.SuccessfullyDownloaded()));
         }
         catch (Exception e) {
 
-            logger.println(String.format("%s - %s: %s", dateFormatter.getDate(), Messages.FailedToDownloadTrendReport(), e.getMessage()));
+            logger.println(String.format("%s - %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.FailedToDownloadTrendReport(),
+                    e.getMessage()));
             throw new PcException(e.getMessage());
         }
 
@@ -526,7 +622,9 @@ public class PcClient {
 
         if (filePath == null){return;}
    //     return String.format( HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
-        logger.println(String.format("%s - %s",dateFormatter.getDate(), HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId)));
+        logger.println(String.format("%s - %s",
+                dateFormatter.getDate(),
+                HyperlinkNote.encodeTo(filePath, Messages.ViewTrendReport() + " " + trendReportId)));
 
     }
 
