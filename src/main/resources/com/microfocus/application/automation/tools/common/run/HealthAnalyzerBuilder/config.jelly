@@ -25,7 +25,7 @@
         <f:hetero-list name="products" hasHeader="true"
                        descriptors="${descriptor.getProducts()}"
                        items="${instance.products}"
-                       addCaption="Add new product"
+                       addCaption="${%addCaption}"
                        oneEach="true"/>
     </f:entry>
 </j:jelly>

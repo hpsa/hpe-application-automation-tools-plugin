@@ -23,16 +23,16 @@
 
     <f:block>
         <f:entry field="checkLrInstallation">
-            <f:checkbox title="Check if LoadRunner is installed"/>
+            <f:checkbox title="${%checkIfLrInstalled}"/>
         </f:entry>
 
         <f:entry field="checkOsVersion">
-            <f:checkbox title="Check if slave is Windows machine"/>
+            <f:checkbox title="${%checkIfSlaveIsWindows}"/>
         </f:entry>
     </f:block>
 
     <ha:optionalRepeatableText checkBoxMethod="${instance.filesExist}" outerClassInstanceName="checkFiles"
-                               checkBoxTitle="Check if scenario files exist" textTitle="Files"
+                               checkBoxTitle="${%checkIfScenarioFilesExist}" textTitle="Files"
                                repeatableList="filesList"
     />
 

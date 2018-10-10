@@ -942,8 +942,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		@SuppressWarnings("squid:S2259")
 
 		public MCServerSettingsModel[] getMcServers() {
-			return Jenkins.getInstance().getDescriptorByType(
+			MCServerSettingsModel[] t = Jenkins.getInstance().getDescriptorByType(
 					MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+			return t;
 		}
 
 		/**
