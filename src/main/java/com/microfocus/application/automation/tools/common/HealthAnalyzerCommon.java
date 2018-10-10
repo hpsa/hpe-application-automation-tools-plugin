@@ -60,8 +60,9 @@ public class HealthAnalyzerCommon {
     }
 
     private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
-        // TODO: Check if its windows? (System.getProperty("os.name")
-        return startRegistryQueryAndGetStatus(registryPath);
+        if (OperatingSystem.IS_WINDOWS)
+            return startRegistryQueryAndGetStatus(registryPath);
+        throw new AbortException("Registry existence check works only on Windows");
     }
 
     private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
@@ -127,9 +128,9 @@ public class HealthAnalyzerCommon {
         return false;
     }
 
-    public void ifCheckedPerformFilesExistenceCheck(@Nonnull final List<RepeatableField> files, boolean toCheck)
+    public void ifCheckedPerformFilesExistenceCheck(final List<RepeatableField> files, boolean toCheck)
             throws AbortException {
-        if (!toCheck)
+        if (!toCheck || files == null || files.size() == 0)
             return;
 
         for (RepeatableField file : files)
@@ -139,9 +140,7 @@ public class HealthAnalyzerCommon {
     }
 
     public void ifCheckedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
-        OperatingSystem currentOs = OperatingSystem.get();
-
-        if (toCheck && !os.equals(currentOs))
-            throwAbortException("Your operating system: %s is not %s.", os.toString(), currentOs.toString());
+        if (toCheck && !os.equalsCurrentOs())
+            throwAbortException("Your operating system: %s is not %s.", os.toString(), OperatingSystem.getOs());
     }
 }

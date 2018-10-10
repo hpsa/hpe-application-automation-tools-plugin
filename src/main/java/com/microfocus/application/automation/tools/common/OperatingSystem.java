@@ -24,35 +24,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum OperatingSystem {
-    POSIX,
+    LINUX,
     WINDOWS,
     MAC;
 
-    private static String systemPropertyOs;
+    private static final String OS = System.getProperty("os.name").toLowerCase();
+    // TODO: should i implement my own containsIgnoreCase? instead of toLowerCase each?
+    public static final boolean IS_WINDOWS = OS.contains(WINDOWS.name().toLowerCase());
+    public static final boolean IS_MAC = OS.contains(MAC.name().toLowerCase());
+    private static final List<String> POSIX_NAMES = Arrays.asList(
+            "linux", "os/2", "irix", "hp-ux", "aix", "soalris", "sunos");
+    public static final boolean IS_LINUX = POSIX_NAMES.contains(OS.toLowerCase());
 
-    public static OperatingSystem get() {
-        systemPropertyOs = System.getProperty("os.name").toLowerCase();
-
-        if (isWindows())
-            return WINDOWS;
-        else if (isPosix())
-            return POSIX;
-        else if (isMac())
-            return MAC;
-        throw new UnsupportedOperationException(
-                String.format("The operating system: %s is unsupported.", systemPropertyOs));
+    public static String getOs() {
+        return OS;
     }
 
-    private static boolean isWindows() {
-        return systemPropertyOs.contains(WINDOWS.name().toLowerCase());
-    }
-
-    private static boolean isMac() {
-        return systemPropertyOs.contains(MAC.name().toLowerCase());
-    }
-
-    private static boolean isPosix() {
-        List<String> posixNames = Arrays.asList("linux", "os/2", "irix", "hp-ux", "aix", "soalris", "sunos");
-        return posixNames.contains(systemPropertyOs);
+    public boolean equalsCurrentOs() {
+        return IS_LINUX ? true : OS.contains(this.name().toLowerCase());
     }
 }

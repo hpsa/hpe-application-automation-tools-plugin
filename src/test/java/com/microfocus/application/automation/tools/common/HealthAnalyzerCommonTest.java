@@ -36,12 +36,10 @@ public class HealthAnalyzerCommonTest {
     private final static String DUMMY_PRODUCT_NAME = "productName";
     private final static String NON_EXISTING_REGISTRY = "non\\existing\\registry\\value";
     private static HealthAnalyzerCommon healthAnalyzerCommon;
-    private static OperatingSystem os;
 
     @BeforeClass
     public static void setup() {
         healthAnalyzerCommon = new HealthAnalyzerCommon(DUMMY_PRODUCT_NAME);
-        os = OperatingSystem.get();
     }
 
     @Test(expected = AbortException.class)
@@ -69,7 +67,7 @@ public class HealthAnalyzerCommonTest {
     @Test
     public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue()
             throws IOException, InterruptedException {
-        if (os.equals(OperatingSystem.WINDOWS)) {
+        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
             try {
                 healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
             } catch (AbortException e) {
@@ -78,11 +76,9 @@ public class HealthAnalyzerCommonTest {
         }
     }
 
-
-    // TODO: is checking the folder and and not specific key is enough?
     @Test
     public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException {
-        if (os.equals(OperatingSystem.WINDOWS)) {
+        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
             String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
             try {
                 healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true);
@@ -102,7 +98,7 @@ public class HealthAnalyzerCommonTest {
 
     @Test(expected = AbortException.class)
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws AbortException {
-        if (os.equals(OperatingSystem.WINDOWS)) {
+        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
             List<RepeatableField> files = new ArrayList<>();
             RepeatableField field = new RepeatableField("C:\\Users");
             files.add(field);
@@ -113,19 +109,30 @@ public class HealthAnalyzerCommonTest {
     @Test
     public void ifCheckedPerformFilesExistenceCheck_notThrowing_ifFileExist() {
         List<RepeatableField> files = new ArrayList<>();
-        RepeatableField field;
+        RepeatableField field = null;
 
-        if (os.equals(OperatingSystem.WINDOWS)) {
+        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
             field = new RepeatableField("C:\\Windows\\notepad.exe");
-        } else if (os.equals(OperatingSystem.MAC)) {
-            field = null;
+        } else if (OperatingSystem.MAC.equalsCurrentOs()) {
             // TODO
-        } else {
+        } else if (OperatingSystem.LINUX.equalsCurrentOs()) {
             field = new RepeatableField("//proc");
         }
 
         files.add(field);
         try {
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+        } catch (AbortException e) {
+            fail("Should not have thrown AbortException");
+        }
+    }
+
+    @Test
+    public void ifCheckedPerformFilesExistenceCheck_shouldReturnTrue_ifNoFilesExist() {
+
+        try {
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true);
+            List<RepeatableField> files = new ArrayList<>();
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");

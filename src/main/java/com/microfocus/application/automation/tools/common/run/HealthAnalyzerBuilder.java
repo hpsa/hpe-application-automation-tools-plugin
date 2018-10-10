@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.common.run;
 
+import com.microfocus.application.automation.tools.common.Messages;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
 import hudson.Extension;
 import hudson.FilePath;
@@ -29,14 +30,14 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.List;
+
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
 
 public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
     private final List<HealthAnalyzerModel> products;
@@ -52,7 +53,7 @@ public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        for (HealthAnalyzerModel product: products)
+        for (HealthAnalyzerModel product : products)
             product.perform(run, workspace, launcher, listener);
     }
 
@@ -61,7 +62,7 @@ public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Micro Focus Health Analyzer";
+            return Messages.HealthAnalyzerBuilder_displayName(CompanyName());
         }
 
         @Override

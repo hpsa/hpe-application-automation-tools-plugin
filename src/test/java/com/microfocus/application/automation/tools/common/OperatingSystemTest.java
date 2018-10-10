@@ -21,41 +21,43 @@
 package com.microfocus.application.automation.tools.common;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Properties;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class OperatingSystemTest {
 
-    private static Properties properties;
-
-    @BeforeClass
-    public static void initialize() {
-        properties = System.getProperties();
+    @Test
+    public void equalsCurrentOs_windows() throws NoSuchFieldException, IllegalAccessException {
+        initializeOperatingSystemOs("Windows 7");
+        Assert.assertTrue(OperatingSystem.WINDOWS.equalsCurrentOs());
     }
 
     @Test
-    public void get_windows() {
-        properties.setProperty("os.name", "Windows 7");
-        Assert.assertTrue(OperatingSystem.get().equals(OperatingSystem.WINDOWS));
+    public void equalsCurrentOs_linux() throws NoSuchFieldException, IllegalAccessException {
+        initializeOperatingSystemOs("Linux");
+        Assert.assertTrue(OperatingSystem.LINUX.equalsCurrentOs());
     }
 
     @Test
-    public void get_linux() {
-        properties.setProperty("os.name", "Linux");
-        Assert.assertTrue(OperatingSystem.get().equals(OperatingSystem.POSIX));
+    public void equalsCurrentOs_mac() throws NoSuchFieldException, IllegalAccessException {
+        initializeOperatingSystemOs("Mac OS X");
+        Assert.assertTrue(OperatingSystem.MAC.equalsCurrentOs());
     }
 
     @Test
-    public void get_mac(){
-        properties.setProperty("os.name", "Mac OS X");
-        Assert.assertTrue(OperatingSystem.get().equals(OperatingSystem.MAC));
+    public void equalsCurrentOs_invalidOsReturnsFalse() throws NoSuchFieldException, IllegalAccessException {
+        initializeOperatingSystemOs("Invalid OS");
+        Assert.assertFalse(OperatingSystem.WINDOWS.equalsCurrentOs());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void get_throwsException() {
-        properties.setProperty("os.name", "Invalid OS");
-        OperatingSystem.get();
+    private void initializeOperatingSystemOs(final String os) throws IllegalAccessException, NoSuchFieldException {
+        Field field = OperatingSystem.class.getDeclaredField("OS");
+        field.setAccessible(true);
+        Field modifiers = Field.class.getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        field.set(null, os.toLowerCase());
     }
 }
