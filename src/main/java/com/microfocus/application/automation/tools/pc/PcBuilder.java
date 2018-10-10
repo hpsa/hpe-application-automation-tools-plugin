@@ -24,14 +24,16 @@
 /*
 * Create the PCModel and the PCClient and allows the connection between the job and PC
 * */
-package com.microfocus.application.automation.tools.run;
+package com.microfocus.application.automation.tools.pc;
 
+import com.microfocus.application.automation.tools.pc.Messages;
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
-import com.microfocus.application.automation.tools.model.PcModel;
+import com.microfocus.application.automation.tools.pc.PcClient;
+import com.microfocus.application.automation.tools.pc.PcModel;
 import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
+import com.microfocus.application.automation.tools.run.AdditionalParametersAction;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Error;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Failure;
-import com.microfocus.application.automation.tools.pc.PcClient;
 import com.microfocus.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testcase;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuite;
@@ -260,7 +262,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 URIRequirementBuilder.create().build());
 
         if (usernamePCPasswordCredentials == null) {
-            logger.println("Cannot find credentials with the credentialsId:" + credentialsId);
+            logger.println(String.format("%s : %s",
+                    Messages.CannotFindCredentials(),
+                    credentialsId));
         }
 
         return usernamePCPasswordCredentials;
@@ -334,19 +338,22 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     getPcModel().setBuildParameters(build.getBuildVariables().toString());
         }
         catch (Exception ex) {
-            logger.println(String.format("%s - Build parameters will not be taken in consideration: %s", dateFormatter.getDate(), ex.getMessage()));
+            logger.println(String.format("%s - %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.BuildParameterNotConsidered(),
+                    ex.getMessage()));
         }
     }
 
     public static String getPluginVersion() {
-        Plugin plugin = getJenkinsInstance().getPlugin("hp-application-automation-tools-plugin");
+        Plugin plugin = getJenkinsInstance().getPlugin(Messages.ArtifactId());
         return plugin.getWrapper().getVersion();
     }
 
     private static Jenkins getJenkinsInstance() {
         Jenkins result = Jenkins.getInstance();
         if (result == null) {
-            throw new IllegalStateException("failed to obtain Jenkins instance");
+            throw new IllegalStateException(Messages.FailedToObtainInstance());
         }
         return result;
     }
@@ -366,11 +373,17 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         try {
             String version = getVersion();
             if(!(version == null || version.equals("unknown")))
-                logger.println(String.format("%s - plugin version is '%s'",dateFormatter.getDate(), version));
+                logger.println(String.format("%s - %s '%s'",
+                        dateFormatter.getDate(),
+                        Messages.PluginVersionIs(),
+                        version));
             if((getPcModel() !=null) && (build != null) && (build instanceof AbstractBuild))
                 setPcModelBuildParameters((AbstractBuild) build);
             if (!StringUtils.isBlank(getPcModel().getDescription()))
-                logger.println(String.format("%s - Test description: %s", dateFormatter.getDate(), getPcModel().getDescription()));
+                logger.println(String.format("%s - %s: %s",
+                        dateFormatter.getDate(),
+                        Messages.TestDescription(),
+                        getPcModel().getDescription()));
             if (!beforeRun(pcClient))
                 return null;
 
@@ -381,9 +394,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             pcClient.stopRun(runId);
             throw e;
         } catch (NullPointerException e) {
-            logger.println(String.format("%s - Error: %s", dateFormatter.getDate(), e.getMessage()));
+            logger.println(String.format("%s - %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.Error(),
+                    e.getMessage()));
         } catch (Exception e) {
-            logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
+            logger.println(String.format("%s - %s",
+                    dateFormatter.getDate(),
+                    e.getMessage()));
         } finally {
             pcClient.logout();
         }
@@ -403,21 +421,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             runId = pcClient.startRun();
             if (runId == 0)
                 return null;
-        }
-        catch (NumberFormatException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
+        } catch (NumberFormatException|ClientProtocolException|PcException ex) {
+            logger.println(String.format("%s - %s. %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.StartRunFailed(),
+                    Messages.Error(),
+                    ex.getMessage()));
             throw ex;
-        }
-        catch (ClientProtocolException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
-            throw ex;
-        }
-        catch (PcException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
-            throw ex;
-        }
-        catch (IOException ex) {
-            logger.println(String.format("%s - startRun failed. Error: %s",  dateFormatter.getDate(),ex.getMessage()));
+        } catch (IOException ex) {
+            logger.println(String.format("%s - %s. %s: %s",
+                    dateFormatter.getDate(),
+                    Messages.StartRunFailed(),
+                    Messages.Error(),
+                    ex.getMessage()));
             throw ex;
         }
 
@@ -426,18 +442,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testName = pcClient.getTestName();
             if(testName == null) {
                 testName = String.format("TestId_%s", getPcModel().getTestId());
-                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.", dateFormatter.getDate(), testName));
-            }
-            else
-                logger.println(String.format("%s - test name is %s", dateFormatter.getDate(), testName));
-        }
-        catch (PcException ex) {
+                logger.println(String.format("%s - getTestName failed. Using '%s' as testname.",
+                        dateFormatter.getDate(),
+                        testName));
+            } else
+                logger.println(String.format("%s - %s %s",
+                        dateFormatter.getDate(),
+                        Messages.TestNameIs(),
+                        testName));
+        }  catch (PcException|IOException ex) {
             testName = String.format("TestId_%s", getPcModel().getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", dateFormatter.getDate(), testName, ex.getMessage()));
-        }
-        catch (IOException ex) {
-            testName = String.format("TestId_%s", getPcModel().getTestId());
-            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n", dateFormatter.getDate(), testName, ex.getMessage()));
+            logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n",
+                    dateFormatter.getDate(),
+                    testName,
+                    ex.getMessage()));
         }
 
         try {
@@ -445,7 +463,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
             build.addAction(new AdditionalParametersAction(parameters));
-            logger.print(String.format("%s - Set %s Environment Variable to %s \n",dateFormatter.getDate(), RUNID_BUILD_VARIABLE, runId));
+            logger.print(String.format("%s - %s: %s = %s \n",
+                    dateFormatter.getDate(),
+                    Messages.SetEnvironmentVariable(),
+                    RUNID_BUILD_VARIABLE,
+                    runId));
             response = pcClient.waitForRunCompletion(runId);
 
             if (response != null && RunState.get(response.getRunState()) == FINISHED && getPcModel().getPostRunAction() != PostRunAction.DO_NOTHING) {
@@ -466,7 +488,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
 
         } catch (PcException e) {
-            logger.println(String.format("%s - Error: %s", dateFormatter.getDate(), e.getMessage()));
+            logger.println(String.format("%s - Error: %s",
+                    dateFormatter.getDate(),
+                    e.getMessage()));
         }
 
         Testsuites ret = new Testsuites();
@@ -519,7 +543,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     private boolean validatePcForm() {
         
-        logger.println(String.format("%s - Validating parameters before run", dateFormatter.getDate()));
+        logger.println(String.format("%s - %s",
+                dateFormatter.getDate(),
+                Messages.ValidatingParametersBeforeRun()));
         String prefix = "doCheck";
         boolean ret = true;
         Method[] methods = getDescriptor().getClass().getMethods();
@@ -550,7 +576,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                             }
                             break;
                         } catch (Exception e) {
-                            logger.println(String.format("%s - Validation error: method.getName() = '%s', name = '%s', modelMethodName = '%s', exception = '%s'.", dateFormatter.getDate(), method.getName(), name, modelMethodName, e.getMessage()));
+                            logger.println(String.format("%s - Validation error: method.getName() = '%s', name = '%s', modelMethodName = '%s', exception = '%s'.",
+                                    dateFormatter.getDate(),
+                                    method.getName(),
+                                    name,
+                                    modelMethodName,
+                                    e.getMessage()));
                         }
                     }
                 }
@@ -571,7 +602,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         FormValidation res = FormValidation.ok();
         if(addRunToTrendReport){
             if(trendReportId.isEmpty()){
-                res = FormValidation.error("Parameter Is Missing: trend report ID is missing");
+                res = FormValidation.error(String.format("%s: %s.",
+                        Messages.ParameterIsMissing(),
+                        Messages.TrendReportIDIsMissing()));
             }
             else{
 
@@ -581,13 +614,15 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 }
                 catch(NumberFormatException e) {
 
-                    res = FormValidation.error("Illegal Parameter: trend report ID is not a number");
+                    res = FormValidation.error(Messages.IllegalParameter());
                 }
 
             }
         }
 
-        logger.println(String.format("%s - %s", dateFormatter.getDate(), res.toString().replace(": <div/>","")));
+        logger.println(String.format("%s - %s",
+                dateFormatter.getDate(),
+                res.toString().replace(": <div/>","")));
 
         return res.equals(FormValidation.ok());
     }
@@ -628,12 +663,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             // Updating all CSV files for plot plugin
             // this helps to show the transaction of each result
             if (isPluginActive("Plot plugin")) {
-                logger.println(String.format("%s Updating csv files for Trending Charts.", dateFormatter.getDate()));
+                logger.println(String.format("%s %s.",
+                        dateFormatter.getDate(),
+                        Messages.UpdatingCsvFilesForTrendingCharts()));
                 updateCSVFilesForPlot(pcClient, runID);
                 String plotUrlPath = "/job/" + build.getParent().getName() + "/plot";
-                logger.println(String.format("%s - %s",dateFormatter.getDate(), HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts"))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
+                logger.println(String.format("%s - %s",
+                        dateFormatter.getDate(),
+                        HyperlinkNote.encodeTo(plotUrlPath, Messages.TrendingCharts()))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
             }else{
-                logger.println(String.format("%s - You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the %s (Performance Center 12.55 and Later).",dateFormatter.getDate(),  HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/MICRO+FOCUS+Application+Automation+Tools#MicroFocusApplicationAutomationTools-RunningPerformanceTestsusingPerformanceCenter","documentation")));
+                logger.println(String.format("%s - %s %s (%s).",
+                        dateFormatter.getDate(),
+                        Messages.YouCanViewTrendCharts(),
+                        HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/MICRO+FOCUS+Application+Automation+Tools#MicroFocusApplicationAutomationTools-RunningPerformanceTestsusingPerformanceCenter", Messages.Documentation()),
+                        Messages.PerformanceCenter1255AndLater()));
             }
         }
         return ret;
@@ -739,9 +782,22 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return true;
         } catch (InterruptedException e) {
             if (getWorkspacePath().getPath() != null)
-                logger.println(String.format("%s - Error saving file: %s to remote workspace path: %s with Error: %s", dateFormatter.getDate(), getWorkspacePath().getPath(), fileName, e.getMessage()));
+                logger.println(String.format("%s - %s: %s %s: %s. %s: %s",
+                        dateFormatter.getDate(),
+                        Messages.ErrorSavingFile(),
+                        fileName,
+                        Messages.ToWorkspacePath(),
+                        getWorkspacePath().getPath(),
+                        Messages.Error(),
+                        e.getMessage()));
             else
-                logger.println(String.format("%s - Error saving file: %s because remote workspace path is unavailable. Error: %s", dateFormatter.getDate(), fileName, e.getMessage()));
+                logger.println(String.format("%s - %s: %s. %s. %s: %s",
+                        dateFormatter.getDate(),
+                        Messages.ErrorSavingFile(),
+                        fileName,
+                        Messages.WorkspacePathIsUnavailable(),
+                        Messages.Error(),
+                        e.getMessage()));
             return false;
             }
     }
@@ -751,14 +807,26 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage, String eventLog) {
         RunState runState = RunState.get(response.getRunState());
         if (runState == RUN_FAILURE) {
-            setError(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
+            setError(testCase,
+                    String.format("%s. %s",
+                            runState,
+                            errorMessage),
+                    eventLog);
         } else if (statusBySLA && runState == FINISHED && !(response.getRunSLAStatus().equalsIgnoreCase("passed"))) {
-            setFailure(testCase, "Run measurements did not reach SLA criteria. Run SLA Status: "
+            setFailure(testCase, Messages.RunMeasurementsNotReachSLACriteria() + ": "
                                  + response.getRunSLAStatus(), eventLog);
         } else if (runState.hasFailure()) {          
-            setFailure(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
+            setFailure(testCase,
+                    String.format("%s. %s",
+                            runState,
+                            errorMessage),
+                    eventLog);
         } else if(errorMessage != null && !errorMessage.isEmpty()){
-            setFailure(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
+            setFailure(testCase,
+                    String.format("%s. %s",
+                            runState,
+                            errorMessage),
+                    eventLog);
         }
         else{
             testCase.setStatus(JUnitTestCaseStatus.PASS);
@@ -772,7 +840,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getError().add(error);
         testCase.setStatus(JUnitTestCaseStatus.ERROR);
-        logger.println(String.format("%s - %s %s", dateFormatter.getDate() , message ,eventLog));
+        logger.println(String.format("%s - %s %s",
+                dateFormatter.getDate(),
+                message ,
+                eventLog));
     }
     
     private void setFailure(Testcase testCase, String message, String eventLog) {
@@ -782,16 +853,25 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             testCase.getSystemErr().add(eventLog);
         testCase.getFailure().add(failure);
         testCase.setStatus(JUnitTestCaseStatus.FAILURE);
-        logger.println(String.format("%s - Failure: %s %s", dateFormatter.getDate(), message ,eventLog));
+        logger.println(String.format("%s - %s: %s %s",
+                dateFormatter.getDate(),
+                Messages.Failure(),
+                message,
+                eventLog));
     }
     
     private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
-        logger.println(String.format("%s - %s", dateFormatter.getDate(), HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId)));
+        logger.println(String.format("%s - %s", dateFormatter.getDate(), HyperlinkNote.encodeTo(viewUrl, Messages.ViewAnalysisReportOfRun() + " " + runId)));
 
-        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, getPcModel().getserverAndPort() +  "/" +  build.getUrl() + viewUrl, getPcModel().getserverAndPort() + "/" + build.getUrl() + downloadUrl);
+        return String.format("%s: %s" +
+                        "\n\n%s:\n%s" +
+                        "\n\n%s:\n%s",
+                Messages.LoadTestRunID(), runId,
+                Messages.ViewAnalysisReport(),  getPcModel().getserverAndPort() +  "/" +  build.getUrl() + viewUrl,
+                Messages.DownloadReport(), getPcModel().getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
     
     private String getArtifactsUrlPattern(Run<?, ?> build) {
@@ -805,8 +885,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private void provideStepResultStatus(Result resultStatus, Run<?, ?> build) {
         String runIdStr =
                 (runId > 0) ? String.format(" (PC RunID: %s)", String.valueOf(runId)) : "";
-        logger.println(String.format("%s - Result Status%s: %s\n- - -",
+        logger.println(String.format("%s - %s%s: %s\n- - -",
                 dateFormatter.getDate(),
+                Messages.ResultStatus(),
                 runIdStr,
                 resultStatus.toString()));
         build.setResult(resultStatus);
@@ -826,14 +907,16 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     ret = Result.FAILURE;
                 }
             } else {
-                logger.println(String.format("%s - Empty Results", dateFormatter.getDate()));
+                logger.println(String.format("%s - s", dateFormatter.getDate(), Messages.EmptyResults()));
                 ret = Result.FAILURE;
             }
             
         } catch (Exception cause) {
             logger.print(String.format(
-                    "%s - Failed to create run results, Exception: %s",
+                    "%s - %s. %s: %s",
                     dateFormatter.getDate(),
+                    Messages.FailedToCreateRunResults(),
+                    Messages.Exception(),
                     cause.getMessage()));
             ret = Result.FAILURE;
         }
@@ -1009,7 +1092,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         @Override
         public String getDisplayName() {
             
-            return "Execute performance test using Performance Center";
+            return Messages.DisplayName();
         }
         
         public FormValidation doCheckPcServerName(@QueryParameter String value) {
@@ -1120,7 +1203,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 }
             }
             // no credentials available, can't check
-            return FormValidation.warning("Cannot find any credentials with id " + credentialIdValueStr);
+            return FormValidation.warning(String.format("%s s",
+                    Messages.CannotFindAnyCredentials(),
+                    credentialIdValueStr));
         }
 
 
@@ -1136,9 +1221,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 boolean limitIncluded) {
             FormValidation ret = FormValidation.ok();
             value = value.trim();
-            String messagePrefix = field + " must be ";
             if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error(messagePrefix + "set");
+                ret = FormValidation.error(" " + Messages.MustBeSet());
             } else {
                 try {
                     //regular expression: parameter (with brackets or not)
@@ -1147,14 +1231,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     //regular expression: number
                     else if (value.matches("[0-9]*$|")) {
                         if (limitIncluded && Integer.parseInt(value) <= limit)
-                            ret = FormValidation.error(messagePrefix + "higher than " + limit);
+                            ret = FormValidation.error(" " + Messages.MustBeHigherThan() + " " + limit);
                         else if (Integer.parseInt(value) < limit)
-                            ret = FormValidation.error(messagePrefix + "at least " + limit);
+                            ret = FormValidation.error(" " + Messages.MustBeAtLeast() + " " + limit);
                     }
                     else
-                        ret = FormValidation.error(messagePrefix + "a whole number or a parameter, e.g.: 23, $TESTID or ${TEST_ID}.");
+                        ret = FormValidation.error(" " + Messages.MustBeAWholeNumberOrAParameter() + ", " + Messages.ForExample() + ": 23, $TESTID or ${TEST_ID}.");
                 } catch (Exception e) {
-                    ret = FormValidation.error(messagePrefix + "a whole number or a parameter (e.g.: $TESTID or ${TestID})");
+                    ret = FormValidation.error(" " + Messages.MustBeAWholeNumberOrAParameter() + " (" + Messages.ForExample() +": $TESTID or ${TestID})");
                 }
             }
             
@@ -1165,7 +1249,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         private FormValidation validateString(String value, String field) {
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value.trim())) {
-                ret = FormValidation.error(field + " must be set");
+                ret = FormValidation.error(field + " " + Messages.MustBeSet());
             }
             
             return ret;

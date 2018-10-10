@@ -23,11 +23,13 @@
 /*
 * Takes all the parameter from the job in order to create a loadtest object
 * */
-package com.microfocus.application.automation.tools.model;
+package com.microfocus.application.automation.tools.pc;
 
 import java.util.Arrays;
 import java.util.List;
 
+import com.microfocus.application.automation.tools.model.SecretContainer;
+import com.microfocus.application.automation.tools.model.SecretContainerImpl;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;

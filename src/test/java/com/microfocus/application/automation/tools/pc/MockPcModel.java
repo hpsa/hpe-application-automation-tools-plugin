@@ -22,7 +22,6 @@
 
 package com.microfocus.application.automation.tools.pc;
 
-import com.microfocus.application.automation.tools.model.PcModel;
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.application.automation.tools.model.SecretContainer;
 import com.microfocus.application.automation.tools.model.SecretContainerTest;
