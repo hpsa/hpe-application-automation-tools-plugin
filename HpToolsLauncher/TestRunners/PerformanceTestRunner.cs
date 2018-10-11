@@ -31,7 +31,7 @@ using HP.LoadRunner.Interop.Wlrun;
 using HpToolsLauncher.Properties;
 using System.Xml;
 using System.Security.AccessControl;
-//using Analysis.Api;
+using HpToolsLauncher.RTS;
 
 namespace HpToolsLauncher.TestRunners
 {
@@ -51,6 +51,7 @@ namespace HpToolsLauncher.TestRunners
         private RunCancelledDelegate _runCancelled;
         private bool _displayController;
         private string _analysisTemplate;
+        private List<ScriptRTSModel> _scriptRTSSet;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -88,7 +89,7 @@ namespace HpToolsLauncher.TestRunners
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
         
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate)
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate, List<ScriptRTSModel> scriptRTSSet)
         {
             this._runner = runner;
             this._timeout = timeout;
@@ -97,6 +98,8 @@ namespace HpToolsLauncher.TestRunners
             this._ignoreErrorStrings = ignoreErrorStrings;
             this._displayController = displayController;
             this._analysisTemplate = analysisTemplate;
+
+            this._scriptRTSSet = scriptRTSSet;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -339,6 +342,27 @@ namespace HpToolsLauncher.TestRunners
             //try to open the scenario and validate the scenario and connect to load generators
             if (openScenario(scenario, ref errorReason) && validateScenario(currentScenario, ref errorReason))
             {
+                //apply rts to scripts
+                foreach(ScriptRTSModel scriptRTS in _scriptRTSSet)
+                {
+                    try
+                    {
+                        LrScripts currentScripts = currentScenario.Scripts;
+                        LrScript currentScript = currentScripts.Item[scriptRTS.GetScriptName()];
+                        string runtimeSettings = "",
+                               actionLogic = "";
+                        currentScript.GetScriptRunTimeSettings(ref runtimeSettings, ref actionLogic);
+                        RTSHelper rtsHelper = new RTSHelper(runtimeSettings, RTSHelper.COMMAND_ARGUMENTS, scriptRTS.GetKeyValuePairs());
+                        string updatedRuntimeSettings = rtsHelper.GetUpdatedIniFileText();
+                        currentScript.SetScriptRunTimeSettings(updatedRuntimeSettings, actionLogic);
+                    }
+                    catch (Exception e)
+                    {
+                        errorReason = string.Format(Resources.LrRTSError, e.Message);
+                        return false;
+                    }
+                }
+
                 //set the result dir:
                 ConsoleWriter.WriteLine("setting scenario result folder to " + Path.Combine(_resultsFolder, LRR_FOLDER));
                 currentScenario.ResultDir = Path.Combine(_resultsFolder, LRR_FOLDER);
@@ -966,5 +990,5 @@ namespace HpToolsLauncher.TestRunners
             cleanENV();
         }
 
-    }
+}
 }

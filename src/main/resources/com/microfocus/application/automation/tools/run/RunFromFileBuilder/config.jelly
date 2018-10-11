@@ -96,6 +96,9 @@
 			<f:entry title="Display Controller" field="displayController">
         <f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
       </f:entry>
+      <f:entry title="Runtime Settings">
+        <f:property field="scriptRTSSetModel"/>
+      </f:entry>
     	</f:section>
     </f:advanced>
 

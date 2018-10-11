@@ -26,6 +26,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using HpToolsLauncher.Properties;
+using HpToolsLauncher.RTS;
 
 namespace HpToolsLauncher
 {
@@ -575,15 +576,16 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    List<ScriptRTSModel> scriptRTSSet = GetScriptRTSSet();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, scriptRTSSet);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, scriptRTSSet);
                     }
 
                     break;
@@ -732,5 +734,34 @@ namespace HpToolsLauncher
 
         }
 
+        private List<ScriptRTSModel> GetScriptRTSSet()
+        {
+            List<ScriptRTSModel> scriptRTSSet = new List<ScriptRTSModel>();
+
+            IEnumerable<string> scriptNames = GetParamsWithPrefix("ScriptRTS");
+            foreach (string scriptName in scriptNames)
+            {
+                ScriptRTSModel scriptRTS = new ScriptRTSModel(scriptName);
+
+                IEnumerable<string> additionalAttributes = GetParamsWithPrefix("AdditionalAttribute");
+                foreach (string additionalAttribute in additionalAttributes)
+                {
+                    //Each additional attribute contains: script name, aditional attribute name, value and description
+                    string[] additionalAttributeArguments = additionalAttribute.Split(";".ToCharArray());
+                    if (additionalAttributeArguments[0].Equals(scriptName))
+                    {
+                        scriptRTS.AddAdditionalAttribute(new AdditionalAttributeModel(
+                            additionalAttributeArguments[1],
+                            additionalAttributeArguments[2],
+                            additionalAttributeArguments[3])
+                        );
+                    }
+                }
+
+                scriptRTSSet.Add(scriptRTS);
+            }
+
+            return scriptRTSSet;
+        }
     }
 }

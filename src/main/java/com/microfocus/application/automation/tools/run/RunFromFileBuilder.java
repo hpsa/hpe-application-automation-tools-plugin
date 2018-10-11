@@ -72,6 +72,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	private RunFromFileSystemModel runFromFileModel;
 	private FileSystemTestSetModel fileSystemTestSetModel;
 	private boolean isParallelRunnerEnabled;
+	private ScriptRTSSetModel scriptRTSSetModel; 
 
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
@@ -83,15 +84,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 */
 	@DataBoundConstructor
 	public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-							  FileSystemTestSetModel fileSystemTestSetModel) {
+							  FileSystemTestSetModel fileSystemTestSetModel,
+							  ScriptRTSSetModel scriptRTSSetModel) {
 		this.runFromFileModel = new RunFromFileSystemModel(fsTests);
 		this.fileSystemTestSetModel = fileSystemTestSetModel;
 		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+		this.scriptRTSSetModel = scriptRTSSetModel;
 	}
 
 
     public FileSystemTestSetModel getFileSystemTestSetModel() {
 		return fileSystemTestSetModel;
+	}
+
+	public ScriptRTSSetModel getScriptRTSSetModel() {
+		return scriptRTSSetModel;
 	}
 
     /**
@@ -505,6 +512,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
 			throws IOException {
 
+
+
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
@@ -515,8 +524,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		} catch (IOException | InterruptedException e) {
 			listener.error("Failed loading build environment " + e);
 		}
-
-
 
 		// this is an unproper replacment to the build.getVariableResolver since workflow run won't support the
 		// getBuildEnviroment() as written here:
@@ -580,6 +587,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
+
+		//RTS Additional attributes
+		scriptRTSSetModel.addScriptsToProps(mergedProperties);
 
 		// parallel runner is enabled
 		if(isParallelRunnerEnabled) {
