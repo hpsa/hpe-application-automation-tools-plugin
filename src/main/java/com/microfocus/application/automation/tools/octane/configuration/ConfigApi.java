@@ -92,7 +92,7 @@ public class ConfigApi {
 		if (configuration.containsKey("password")) {
 			password = Secret.fromString(configuration.getString("password"));
 		}
-		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, password, impersonatedUser);
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, password, impersonatedUser,null);
 		ConfigurationService.configurePlugin(model);
 
 		String serverIdentity = (String) configuration.get("serverIdentity");

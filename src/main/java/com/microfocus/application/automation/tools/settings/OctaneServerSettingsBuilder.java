@@ -173,6 +173,17 @@ public class OctaneServerSettingsBuilder extends Builder {
 					newModel.setIdentity(identity);
 				}
 			}
+			if(jsonObject.containsKey("sscPollingTimeout")){
+                String sscPollingTimeoutString = jsonObject.getString("sscPollingTimeout");
+                if(sscPollingTimeoutString != null && !sscPollingTimeoutString.isEmpty()) {
+                    try {
+                        long sscPollingTimeout = Long.valueOf(sscPollingTimeoutString);
+                        newModel.setPollingTimeoutHours(sscPollingTimeout);
+                    } catch (NumberFormatException e){
+                        newModel.setPollingTimeoutHours(0);
+                    }
+                }
+			}
 			setModel(newModel);
 			return super.configure(req, formData);
 		}

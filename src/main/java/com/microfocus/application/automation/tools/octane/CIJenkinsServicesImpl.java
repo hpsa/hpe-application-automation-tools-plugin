@@ -43,6 +43,7 @@ import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
@@ -98,8 +99,10 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				.setInstanceIdFrom(model.getIdentityFrom())
 				.setSendingTime(System.currentTimeMillis())
 				.setImpersonatedUser(model.getImpersonatedUser())
-				.setSuspended(model.isSuspend());
-
+				.setSuspended(model.isSuspend())
+				.setSSCBaseAuthToken(model.getSscBaseToken())
+				.setMaxPollingTimeoutHours(model.getPollingTimeoutHours());
+		result.setSSCURL(SSCServerConfigUtil.getSSCServer());
 		return result;
 	}
 
