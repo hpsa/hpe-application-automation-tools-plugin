@@ -53,15 +53,13 @@ public class PcClient {
     private PcRestProxy restProxy;
     private boolean loggedIn;
     private PrintStream logger;
-    public UsernamePasswordCredentials usernamePCPasswordCredentials;
-    public UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
     private DateFormatter dateFormatter = new DateFormatter("");
 
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
             model = pcModel;
             String credentialsProxyId = model.getCredentialsProxyId(true);
-            usernamePCPasswordCredentialsForProxy = PcBuilder.getCredentialsId(credentialsProxyId);
+            UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy = PcBuilder.getCredentialsId(credentialsProxyId);
             String proxyOutUser = (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getUsername();
             String proxyOutPassword= (usernamePCPasswordCredentialsForProxy == null || model.getProxyOutURL(true).isEmpty()) ? "" : usernamePCPasswordCredentialsForProxy.getPassword().getPlainText();
             if(model.getProxyOutURL(true) != null && !model.getProxyOutURL(true).isEmpty()) {
@@ -90,7 +88,7 @@ public class PcClient {
     public boolean login() {
         try {
             String credentialsId = model.getCredentialsId(true);
-            usernamePCPasswordCredentials = PcBuilder.getCredentialsId(credentialsId);
+            UsernamePasswordCredentials usernamePCPasswordCredentials = PcBuilder.getCredentialsId(credentialsId);
             if(usernamePCPasswordCredentials != null) {
                 if(model.getCredentialsId().startsWith("$"))
                     logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.UsingPCCredentialsBuildParameters()));
