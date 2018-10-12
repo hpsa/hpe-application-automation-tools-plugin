@@ -644,9 +644,47 @@ namespace HpToolsLauncher.TestRunners
             ThreadPool.QueueUserWorkItem(DoTask, autoEvent);
 
             //wait for the scenario to end gracefully:
-            int time = _pollingInterval * 1000;
+            //int time = _pollingInterval * 1000;
+            int time = 1000;
+            LrScenario currentScenario = _engine.Scenario;
             while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
             {
+                string stats;
+                int passed = 0, failed = 0;
+                double hitsPerSecond = 0;
+                currentScenario.GetTransactionStatisticsDetails(out stats);
+                currentScenario.GetTransactionStatistics(ref passed, ref failed, ref hitsPerSecond);                
+                int scenarioDuration = currentScenario.ScenarioDuration;
+                int errorsCount = currentScenario.GetErrorsCount("");
+
+                string myTime ="", host = "", id = "", message = "", script = "";
+                int line = 0;
+                
+                try
+                {
+                    if (errorsCount > 0)
+                    {
+                        currentScenario.GetErrorMessage("", 0, ref myTime, ref host, ref id, ref message, ref script, ref line);
+                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteLine(e.Message);
+                }
+                using (StreamWriter w = File.AppendText("scenario_log.txt"))
+                {
+                    w.Write($"GetErrorMessage() {myTime} {host} {id} {message} {script} {line}\n");
+                    foreach (int vuserState in Enum.GetValues(typeof(VUSERS_STATE)))
+                    {
+                        w.Write($"{((VUSERS_STATE)vuserState).ToString()}: {currentScenario.GetVusersCount(vuserState)}\n");
+                    }
+                    w.Write($"Errors Count: {errorsCount}\n");
+                    w.Write($"GetScenarioDuration: {scenarioDuration}\n");
+                    w.Write($"GetTransactionStatisticsDetails(): {stats}\n");
+                    w.Write($"GetTransactionsStatistics(): {passed} {failed} {hitsPerSecond}\n");
+                    w.Write("--------------------------------------------------------------------------------------------------------------------------\n");
+                }
+                
                 if (_runCancelled())
                 {
                     errorReason = Resources.GeneralTimedOut;
@@ -966,5 +1004,19 @@ namespace HpToolsLauncher.TestRunners
             cleanENV();
         }
 
+        enum VUSERS_STATE {
+            VusersInDown = 1,
+            VusersInPending = 2,
+            VusersInLoading = 3,
+            VusersInReady = 4,
+            VusersInRunning = 5,
+            VusersInRendezvous = 6,
+            VusersInPassed = 7,
+            VusersInFailed = 8,
+            VusersInError = 9,
+            VusersInExiting = 10,
+            VusersInStopped = 11,
+            VusersInGradualExiting = 12
+        }
     }
 }
