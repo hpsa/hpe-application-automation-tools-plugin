@@ -40,7 +40,7 @@
         <table width="100%">
           
 			<f:entry title="${%MC server name}" field="mcServerUrl">
-				<f:textbox value="${inst.mcServerUrl}" name="mc.mcServerUrl" />
+				<f:textbox value="${inst.mcServerName}" name="mc.mcServerName" />
 			</f:entry>
 
 			<f:entry title="${%MC server URL}" field="mcServerUrl">
