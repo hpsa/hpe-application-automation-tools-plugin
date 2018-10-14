@@ -20,35 +20,28 @@
 
 package com.microfocus.application.automation.tools.common.model;
 
-import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import java.util.List;
 
-public class RepeatableField extends AbstractDescribableImpl<RepeatableField> {
-    private String field;
+/**
+ * This class was used in order as a workaround for
+ * <a href="https://issues.jenkins.io/browse/JENKINS-33891">JENKINS-33891</a>
+ * That is used in optionalBlock
+ */
+public class VariableListWrapper {
+    private List<VariableWrapper> filesList;
 
     @DataBoundConstructor
-    public RepeatableField(@Nonnull String field) {
-        this.field = field;
+    public VariableListWrapper(List<VariableWrapper> filesList) {
+        this.filesList = filesList;
     }
 
-    public String getField() {
-        return field;
+    public List<VariableWrapper> getFilesList() {
+        return filesList;
     }
 
-    public void setField(String field) {
-        this.field = field;
-    }
-
-    @Extension
-    public static class DescriptorImpl extends Descriptor<RepeatableField> {
-        @Nonnull
-        @Override
-        public String getDisplayName() {
-            return "";
-        }
+    public void setFilesList(List<VariableWrapper> filesList) {
+        this.filesList = filesList;
     }
 }

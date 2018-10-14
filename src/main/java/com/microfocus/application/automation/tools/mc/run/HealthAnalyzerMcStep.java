@@ -22,7 +22,7 @@ package com.microfocus.application.automation.tools.mc.run;
 
 import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
-import com.microfocus.application.automation.tools.common.model.RepeatableField;
+import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import com.microfocus.application.automation.tools.mc.Messages;
 import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
@@ -34,21 +34,20 @@ import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class HealthAnalyzerMcStep extends HealthAnalyzerModel {
     private final transient HealthAnalyzerCommon healthAnalyzerCommon = new HealthAnalyzerCommon(Messages.ProductName());
-    private final RepeatableField mcServerUrl;
+    private final VariableWrapper mcServerUrl;
 
     @DataBoundConstructor
-    public HealthAnalyzerMcStep(RepeatableField mcServerUrl) {
+    public HealthAnalyzerMcStep(VariableWrapper mcServerUrl) {
         this.mcServerUrl = mcServerUrl;
     }
 
-    public RepeatableField getMcServerUrl() {
+    public VariableWrapper getMcServerUrl() {
         return mcServerUrl;
     }
 

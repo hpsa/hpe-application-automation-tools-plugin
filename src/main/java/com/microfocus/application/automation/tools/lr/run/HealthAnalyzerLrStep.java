@@ -23,8 +23,8 @@ package com.microfocus.application.automation.tools.lr.run;
 import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
 import com.microfocus.application.automation.tools.common.OperatingSystem;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
-import com.microfocus.application.automation.tools.common.model.RepeatableField;
-import com.microfocus.application.automation.tools.common.model.RepeatableListField;
+import com.microfocus.application.automation.tools.common.model.VariableWrapper;
+import com.microfocus.application.automation.tools.common.model.VariableListWrapper;
 import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.FilePath;
@@ -44,11 +44,11 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
             new HealthAnalyzerCommon(Messages.ProductName());
     private final boolean checkLrInstallation;
     private final boolean checkOsVersion;
-    private final RepeatableListField checkFiles;
+    private final VariableListWrapper checkFiles;
 
 
     @DataBoundConstructor
-    public HealthAnalyzerLrStep(boolean checkLrInstallation, boolean checkOsVersion, RepeatableListField checkFiles) {
+    public HealthAnalyzerLrStep(boolean checkLrInstallation, boolean checkOsVersion, VariableListWrapper checkFiles) {
         this.checkLrInstallation = checkLrInstallation;
         this.checkOsVersion = checkOsVersion;
         this.checkFiles = checkFiles;
@@ -58,7 +58,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
         return checkOsVersion;
     }
 
-    public RepeatableListField getCheckFiles() {
+    public VariableListWrapper getCheckFiles() {
         return checkFiles;
     }
 
@@ -66,7 +66,7 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
         return checkFiles != null;
     }
 
-    public List<RepeatableField> getFilesList() {
+    public List<VariableWrapper> getFilesList() {
         return checkFiles != null ? checkFiles.getFilesList() : null;
     }
 
@@ -77,7 +77,6 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        // TODO: Should I check for the exceptions that comes from the ifCheckedPerform..?
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
         healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(getFilesList(), isFilesExist());
         healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion);

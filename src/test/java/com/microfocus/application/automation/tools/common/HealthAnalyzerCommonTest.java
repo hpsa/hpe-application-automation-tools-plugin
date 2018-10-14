@@ -20,7 +20,7 @@
 
 package com.microfocus.application.automation.tools.common;
 
-import com.microfocus.application.automation.tools.common.model.RepeatableField;
+import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import hudson.AbortException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -90,8 +90,8 @@ public class HealthAnalyzerCommonTest {
 
     @Test(expected = AbortException.class)
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifFileDoesNotExist() throws AbortException {
-        List<RepeatableField> files = new ArrayList<>();
-        RepeatableField field = new RepeatableField("C:\\non\\existing\\jenkins\\plugin\\path");
+        List<VariableWrapper> files = new ArrayList<>();
+        VariableWrapper field = new VariableWrapper("C:\\non\\existing\\jenkins\\plugin\\path");
         files.add(field);
         healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
     }
@@ -99,8 +99,8 @@ public class HealthAnalyzerCommonTest {
     @Test(expected = AbortException.class)
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws AbortException {
         if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
-            List<RepeatableField> files = new ArrayList<>();
-            RepeatableField field = new RepeatableField("C:\\Users");
+            List<VariableWrapper> files = new ArrayList<>();
+            VariableWrapper field = new VariableWrapper("C:\\Users");
             files.add(field);
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
         }
@@ -108,15 +108,15 @@ public class HealthAnalyzerCommonTest {
 
     @Test
     public void ifCheckedPerformFilesExistenceCheck_notThrowing_ifFileExist() {
-        List<RepeatableField> files = new ArrayList<>();
-        RepeatableField field = null;
+        List<VariableWrapper> files = new ArrayList<>();
+        VariableWrapper field = null;
 
         if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
-            field = new RepeatableField("C:\\Windows\\notepad.exe");
+            field = new VariableWrapper("C:\\Windows\\notepad.exe");
         } else if (OperatingSystem.MAC.equalsCurrentOs()) {
             // TODO
         } else if (OperatingSystem.LINUX.equalsCurrentOs()) {
-            field = new RepeatableField("//proc");
+            field = new VariableWrapper("//proc");
         }
 
         files.add(field);
@@ -132,7 +132,7 @@ public class HealthAnalyzerCommonTest {
 
         try {
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true);
-            List<RepeatableField> files = new ArrayList<>();
+            List<VariableWrapper> files = new ArrayList<>();
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");

@@ -20,7 +20,7 @@
 
 package com.microfocus.application.automation.tools.common;
 
-import com.microfocus.application.automation.tools.common.model.RepeatableField;
+import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import hudson.AbortException;
 
 import javax.annotation.Nonnull;
@@ -125,15 +125,16 @@ public class HealthAnalyzerCommon {
                 throwAbortException("The %s is a file and not a directory", path);
             return file.isFile();
         }
+
         return false;
     }
 
-    public void ifCheckedPerformFilesExistenceCheck(final List<RepeatableField> files, boolean toCheck)
+    public void ifCheckedPerformFilesExistenceCheck(final List<VariableWrapper> files, boolean toCheck)
             throws AbortException {
-        if (!toCheck || files == null || files.size() == 0)
+        if (!toCheck || files == null || files.isEmpty())
             return;
 
-        for (RepeatableField file : files)
+        for (VariableWrapper file : files)
             if (!isFileExist(file.getField()))
                 throwAbortException("The file at path: %s does not exist", file.getField());
 
