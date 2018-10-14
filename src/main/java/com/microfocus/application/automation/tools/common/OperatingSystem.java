@@ -41,6 +41,6 @@ public enum OperatingSystem {
     }
 
     public boolean equalsCurrentOs() {
-        return IS_LINUX ? true : OS.contains(this.name().toLowerCase());
+        return IS_LINUX || OS.contains(this.name().toLowerCase());
     }
 }

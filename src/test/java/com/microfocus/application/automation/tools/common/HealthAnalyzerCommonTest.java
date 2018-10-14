@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.common;
 
 import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import hudson.AbortException;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.microfocus.application.automation.tools.common.OperatingSystemTest.initializeOperatingSystemOs;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
@@ -36,26 +38,33 @@ public class HealthAnalyzerCommonTest {
     private final static String DUMMY_PRODUCT_NAME = "productName";
     private final static String NON_EXISTING_REGISTRY = "non\\existing\\registry\\value";
     private static HealthAnalyzerCommon healthAnalyzerCommon;
+    private static String os;
 
     @BeforeClass
     public static void setup() {
         healthAnalyzerCommon = new HealthAnalyzerCommon(DUMMY_PRODUCT_NAME);
+        os = System.getProperty("os.name");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        initializeOperatingSystemOs(os);
     }
 
     @Test(expected = AbortException.class)
     public void isCheckedPerformWindowsInstallationCheck_throwsException_ifValueDoesNotExistsAndToCheckIsTrue()
-            throws IOException, InterruptedException {
+            throws Exception {
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
     }
 
     @Test(expected = AbortException.class)
-    public void ifCheckedIsUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws IOException {
+    public void ifCheckedIsUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws Exception {
         String url = "https://non-exisiting-url-for-checking.com";
         healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
     }
 
     @Test
-    public void ifCheckedIsUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws IOException {
+    public void ifCheckedIsUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws Exception {
         String url = "https://www.microfocus.com/";
         try {
             healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
@@ -65,20 +74,34 @@ public class HealthAnalyzerCommonTest {
     }
 
     @Test
-    public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue()
-            throws IOException, InterruptedException {
-        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
+    public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue() throws Exception {
+        if (OperatingSystem.IS_WINDOWS) {
             try {
                 healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+                fail();
             } catch (AbortException e) {
                 assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed, please install it first.");
             }
         }
     }
 
+    @Test(expected = AbortException.class)
+    public void runningMethodOnNonWindows_throwsException() throws Exception {
+        initializeOperatingSystemOs("Linux");
+        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+        initializeOperatingSystemOs(System.getProperty("os.name"));
+    }
+
+    @Test (expected = AbortException.class)
+    public void runningMethodOnWindowsWhenRegistryNotExists_throwsException() throws Exception{
+        if (OperatingSystem.IS_WINDOWS) {
+            healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+        }
+    }
+
     @Test
-    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws IOException, InterruptedException {
-        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
+    public void isRegistryExists_shouldReturnTrue_ifValueExists() throws Exception {
+        if (OperatingSystem.IS_WINDOWS) {
             String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
             try {
                 healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true);
@@ -89,7 +112,7 @@ public class HealthAnalyzerCommonTest {
     }
 
     @Test(expected = AbortException.class)
-    public void ifCheckedPerformFilesExistenceCheck_throwsException_ifFileDoesNotExist() throws AbortException {
+    public void ifCheckedPerformFilesExistenceCheck_throwsException_ifFileDoesNotExist() throws Exception {
         List<VariableWrapper> files = new ArrayList<>();
         VariableWrapper field = new VariableWrapper("C:\\non\\existing\\jenkins\\plugin\\path");
         files.add(field);
@@ -97,8 +120,8 @@ public class HealthAnalyzerCommonTest {
     }
 
     @Test(expected = AbortException.class)
-    public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws AbortException {
-        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
+    public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws Exception {
+        if (OperatingSystem.IS_WINDOWS) {
             List<VariableWrapper> files = new ArrayList<>();
             VariableWrapper field = new VariableWrapper("C:\\Users");
             files.add(field);
@@ -111,11 +134,11 @@ public class HealthAnalyzerCommonTest {
         List<VariableWrapper> files = new ArrayList<>();
         VariableWrapper field = null;
 
-        if (OperatingSystem.WINDOWS.equalsCurrentOs()) {
+        if (OperatingSystem.IS_WINDOWS) {
             field = new VariableWrapper("C:\\Windows\\notepad.exe");
-        } else if (OperatingSystem.MAC.equalsCurrentOs()) {
+        } else if (OperatingSystem.IS_MAC) {
             // TODO
-        } else if (OperatingSystem.LINUX.equalsCurrentOs()) {
+        } else if (OperatingSystem.IS_LINUX) {
             field = new VariableWrapper("//proc");
         }
 
@@ -129,7 +152,6 @@ public class HealthAnalyzerCommonTest {
 
     @Test
     public void ifCheckedPerformFilesExistenceCheck_shouldReturnTrue_ifNoFilesExist() {
-
         try {
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true);
             List<VariableWrapper> files = new ArrayList<>();
@@ -137,5 +159,34 @@ public class HealthAnalyzerCommonTest {
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
         }
+    }
+
+    @Test
+    public void malformedUrl_throwsException_withCorrectValue() {
+        String url = "www.malformedurl";
+        try {
+            healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
+            fail();
+        } catch (IOException e) {
+            assertEquals(e.getMessage(), String.format("The URL: %s malformed. Either no legal protocol could be found in a specification" +
+                    " string or the string could not be parsed.", url));
+        }
+    }
+
+    @Test
+    public void ifCheckedPerformOsCheck_shouldThrowException_withCorrectValue() throws Exception{
+            initializeOperatingSystemOs("windows");
+            try {
+                healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.LINUX, true);
+                fail();
+            } catch (AbortException e) {
+                assertEquals(e.getMessage(), String.format("Your operating system: %s is not %s.", "linux", OperatingSystem.getOs()));
+            }
+    }
+
+    @Test
+    public void ifCheckedPerformOsCheck_doesNotThrowException() throws Exception{
+        initializeOperatingSystemOs("windows");
+        healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, true);
     }
 }

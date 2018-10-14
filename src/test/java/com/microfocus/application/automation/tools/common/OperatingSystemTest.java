@@ -20,13 +20,62 @@
 
 package com.microfocus.application.automation.tools.common;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 public class OperatingSystemTest {
+    private static String os;
+    public static void initializeOperatingSystemOs(final String os) throws NoSuchFieldException, IllegalAccessException {
+        changeStaticFinalField(os, "OS");
+
+        if (os.toLowerCase().contains("windows")) {
+            changeBooleanStaticFinalField(true, "IS_WINDOWS");
+            changeBooleanStaticFinalField(false, "IS_MAC");
+            changeBooleanStaticFinalField(false, "IS_LINUX");
+        } else if (os.toLowerCase().contains("linux")) {
+            changeBooleanStaticFinalField(false, "IS_WINDOWS");
+            changeBooleanStaticFinalField(false, "IS_MAC");
+            changeBooleanStaticFinalField(true, "IS_LINUX");
+        } else if (os.toLowerCase().contains("mac")) {
+            changeBooleanStaticFinalField(false, "IS_WINDOWS");
+            changeBooleanStaticFinalField(true, "IS_MAC");
+            changeBooleanStaticFinalField(false, "IS_LINUX");
+        }
+    }
+
+    private static void changeStaticFinalField(String value, String declaredField)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = OperatingSystem.class.getDeclaredField(declaredField);
+        field.setAccessible(true);
+        Field modifiers = Field.class.getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        field.set(null, value.toLowerCase());
+    }
+
+    private static void changeBooleanStaticFinalField(boolean value, String declaredField)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = OperatingSystem.class.getDeclaredField(declaredField);
+        field.setAccessible(true);
+        Field modifiers = Field.class.getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        field.set(null, value);
+    }
+
+    @BeforeClass
+    public static void setup() throws Exception {
+        os = System.getProperty("os.name");
+    }
+
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        initializeOperatingSystemOs(os);
+    }
+
 
     @Test
     public void equalsCurrentOs_windows() throws NoSuchFieldException, IllegalAccessException {
@@ -50,14 +99,5 @@ public class OperatingSystemTest {
     public void equalsCurrentOs_invalidOsReturnsFalse() throws NoSuchFieldException, IllegalAccessException {
         initializeOperatingSystemOs("Invalid OS");
         Assert.assertFalse(OperatingSystem.WINDOWS.equalsCurrentOs());
-    }
-
-    private void initializeOperatingSystemOs(final String os) throws IllegalAccessException, NoSuchFieldException {
-        Field field = OperatingSystem.class.getDeclaredField("OS");
-        field.setAccessible(true);
-        Field modifiers = Field.class.getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        field.set(null, os.toLowerCase());
     }
 }

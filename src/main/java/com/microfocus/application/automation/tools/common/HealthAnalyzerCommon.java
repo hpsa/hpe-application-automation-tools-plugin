@@ -106,10 +106,9 @@ public class HealthAnalyzerCommon {
         } catch (SSLHandshakeException e) {
             return true;
         } catch (MalformedURLException e) {
-            throwAbortException("The URL: %s malformed. Either no legal protocol could be found in a specification" +
-                    " string or the string could not be parsed.", stringUrl);
+            throw new AbortException(String.format("The URL: %s malformed. Either no legal protocol could be found " +
+                    "in a specification string or the string could not be parsed.", stringUrl));
         }
-        return false;
     }
 
     private void throwAbortException(@Nonnull final String message, final String... args)
@@ -142,6 +141,6 @@ public class HealthAnalyzerCommon {
 
     public void ifCheckedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
         if (toCheck && !os.equalsCurrentOs())
-            throwAbortException("Your operating system: %s is not %s.", os.toString(), OperatingSystem.getOs());
+            throwAbortException("Your operating system: %s is not %s.", os.toString().toLowerCase(), OperatingSystem.getOs());
     }
 }
