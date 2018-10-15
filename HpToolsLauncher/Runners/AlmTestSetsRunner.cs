@@ -718,56 +718,62 @@ namespace HpToolsLauncher
                 }
             }
 
-            //check status for each test
+            //close last test
+            if (prevTest != null)
+            {
+                WriteTestRunSummary(prevTest);
+            }
+
+            //done with all tests, stop collecting output in the testRun object.
+            ConsoleWriter.ActiveTestRun = null;
+
+            string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
+            SetTestResults(currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
+            
+            //update the total runtime
+            runDesc.TotalRunTime = sw.Elapsed;
+
+            // test has executed in time
             if (timeout == -1 || sw.Elapsed.TotalSeconds < timeout)
             {
-                //close last test
-                if (prevTest != null)
-                {
-                    WriteTestRunSummary(prevTest);
-                }
-
-                //done with all tests, stop collecting output in the testRun object.
-                ConsoleWriter.ActiveTestRun = null;
-                for (int k = 1; k <= executionStatus.Count; ++k)
-                {
-                    if (System.IO.File.Exists(abortFilename))
-                    {
-                        break;
-                    }
-
-                    TestExecStatus testExecStatusObj = executionStatus[k];
-                    currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
-                    if (currentTest == null)
-                    {
-                        ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} after whole execution", k));
-                        continue;
-                    }
-
-                    activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
-
-                    UpdateCounters(activeTestDesc, runDesc);
-
-                    //currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
-
-                    string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
-
-                    activeTestDesc.TestPath = testPath;
-                }
-
-                //update the total runtime
-                runDesc.TotalRunTime = sw.Elapsed;
-
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, testSuiteName, DateTime.Now.ToString(Launcher.DateFormat)));
             }
             else
             {
                 _blnRunCancelled = true;
+                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
+                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
             }
 
             return runDesc;
+        }
+
+        private void SetTestResults(ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
+        {
+            // write the status for each test
+            for (int k = 1; k <= executionStatus.Count; ++k)
+            {
+                if (System.IO.File.Exists(abortFilename))
+                {
+                    break;
+                }
+
+                TestExecStatus testExecStatusObj = executionStatus[k];
+                currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+
+                if (currentTest == null)
+                {
+                    ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} after whole execution", k));
+                    continue;
+                }
+
+                activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
+                UpdateCounters(activeTestDesc, runDesc);
+
+                activeTestDesc.TestPath = testPath;
+            }
         }
 
         /// <summary>
@@ -866,6 +872,7 @@ namespace HpToolsLauncher
             {
                 sb.AppendLine("Exception while reading step data: " + ex.Message);
             }
+
             return sb.ToString().TrimEnd();
         }
 

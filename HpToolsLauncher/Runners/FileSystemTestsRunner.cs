@@ -415,7 +415,9 @@ namespace HpToolsLauncher
             //if timeout has passed
             if (_stopwatch.Elapsed > _timeout && !_blnRunCancelled)
             {
+                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
+                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
 
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                 _blnRunCancelled = true;

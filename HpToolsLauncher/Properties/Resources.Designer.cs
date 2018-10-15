@@ -448,7 +448,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ==============\nJob timed out!\n==============.
+        ///   Looks up a localized string similar to Job timed out!.
         /// </summary>
         internal static string GeneralTimedOut {
             get {
@@ -1003,6 +1003,15 @@ namespace HpToolsLauncher.Properties {
         internal static string SingleSeperator {
             get {
                 return ResourceManager.GetString("SingleSeperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ==============.
+        /// </summary>
+        internal static string SmallDoubleSeparator {
+            get {
+                return ResourceManager.GetString("SmallDoubleSeparator", resourceCulture);
             }
         }
         
