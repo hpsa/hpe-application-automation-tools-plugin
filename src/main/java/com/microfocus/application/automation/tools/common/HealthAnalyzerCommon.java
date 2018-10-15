@@ -47,22 +47,22 @@ public class HealthAnalyzerCommon {
     private final String productName;
 
     public HealthAnalyzerCommon(@Nonnull final String productName) {
-        Objects.requireNonNull(productName, "The product name value must be not null");
+        Objects.requireNonNull(productName, Messages.HealthAnalyzerCommon_productNameValueMustBeNotNull());
         this.productName = productName;
     }
 
     public void ifCheckedPerformWindowsInstallationCheck(@Nonnull final String registryPath, final boolean toCheck)
             throws IOException, InterruptedException {
-        Objects.requireNonNull(registryPath, "The registry value must be not null");
+        Objects.requireNonNull(registryPath, Messages.HealthAnalyzerCommon_registryValueMustBeNotNull());
 
         if (toCheck && !isRegistryExists(registryPath))
-            throwAbortException("%s is not installed, please install it first.", productName);
+            throw new AbortException(Messages.HealthAnalyzerCommon_notInstalled(productName));
     }
 
     private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
         if (OperatingSystem.IS_WINDOWS)
             return startRegistryQueryAndGetStatus(registryPath);
-        throw new AbortException("Registry existence check works only on Windows");
+        throw new AbortException(Messages.HealthAnalyzerCommon_registryWorksOnlyOnWindows());
     }
 
     private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
@@ -84,10 +84,10 @@ public class HealthAnalyzerCommon {
 
     public void ifCheckedDoesUrlExist(
             @Nonnull final String url, final boolean toCheck) throws IOException {
-        Objects.requireNonNull(url, "URL must be not be null");
+        Objects.requireNonNull(url, Messages.HealthAnalyzerCommon_urlMustBeNotNull());
 
         if (toCheck && !isURLExist(url))
-            throwAbortException("The server URL of %s does not exist.", productName);
+            throw new AbortException(Messages.HealthAnalyzerCommon_serverUrlNotExist(productName));
     }
 
     private boolean isURLExist(String stringUrl) throws IOException {
@@ -106,14 +106,8 @@ public class HealthAnalyzerCommon {
         } catch (SSLHandshakeException e) {
             return true;
         } catch (MalformedURLException e) {
-            throw new AbortException(String.format("The URL: %s malformed. Either no legal protocol could be found " +
-                    "in a specification string or the string could not be parsed.", stringUrl));
+            throw new AbortException(Messages.HealthAnalyzerCommon_malformedUrl(stringUrl));
         }
-    }
-
-    private void throwAbortException(@Nonnull final String message, final String... args)
-            throws AbortException {
-        throw new AbortException(String.format(message, (Object[]) args));
     }
 
     private boolean isFileExist(@Nonnull final String path) throws AbortException {
@@ -121,7 +115,7 @@ public class HealthAnalyzerCommon {
 
         if (file.exists()) {
             if (file.isDirectory())
-                throwAbortException("The %s is a file and not a directory", path);
+                throw new AbortException(Messages.HealthAnalyzerCommon_isDirectory(path));
             return file.isFile();
         }
 
@@ -135,12 +129,14 @@ public class HealthAnalyzerCommon {
 
         for (VariableWrapper file : files)
             if (!isFileExist(file.getField()))
-                throwAbortException("The file at path: %s does not exist", file.getField());
+                throw new AbortException(Messages.HealthAnalyzerCommon_fileNotExist(file.getField()));
 
     }
 
     public void ifCheckedPerformOsCheck(final OperatingSystem os, boolean toCheck) throws AbortException {
         if (toCheck && !os.equalsCurrentOs())
-            throwAbortException("Your operating system: %s is not %s.", os.toString().toLowerCase(), OperatingSystem.getOs());
+            throw new AbortException(
+                    Messages.HealthAnalyzerCommon_operatingSystemIncorrect(
+                            os.toString().toLowerCase(), OperatingSystem.getOs()));
     }
 }
