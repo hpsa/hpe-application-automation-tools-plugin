@@ -135,7 +135,7 @@ public class HealthAnalyzerCommonTest {
         VariableWrapper field = null;
 
         if (OperatingSystem.IS_WINDOWS) {
-            field = new VariableWrapper("C:\\Windows\\notepad.exe");
+            field = new VariableWrapper("C:\\Windows\\regedit.exe");
         } else if (OperatingSystem.IS_MAC) {
             // TODO
         } else if (OperatingSystem.IS_LINUX) {
@@ -146,7 +146,7 @@ public class HealthAnalyzerCommonTest {
         try {
             healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
         } catch (AbortException e) {
-            fail("Should not have thrown AbortException");
+            fail("Should not have thrown AbortException: The file doesn't exist");
         }
     }
 
