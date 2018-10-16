@@ -308,6 +308,14 @@
 					<excludes>
 						<exclude>**/GherkinResultsTest.java</exclude>
 						<exclude>**/JUnitResultsTest.java</exclude>
+						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
+						<exclude>**/PluginActionsTest.java</exclude>
+						<exclude>**/octane/actions/project/*</exclude>
+						<exclude>**/octane/configuration/ConfigApiTest.java</exclude>
+						<exclude>**/octane/configuration/ConfigurationListenerTest.java</exclude>
+						<exclude>**/octane/configuration/ConfigurationServiceTest.java</exclude>
+						<exclude>**/octane/tests/TestApiTest.java</exclude>
+						<exclude>InjectedTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
