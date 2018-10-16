@@ -53,10 +53,12 @@ public class HealthAnalyzerCommon {
 
     public void ifCheckedPerformWindowsInstallationCheck(@Nonnull final String registryPath, final boolean toCheck)
             throws IOException, InterruptedException {
-        Objects.requireNonNull(registryPath, Messages.HealthAnalyzerCommon_registryValueMustBeNotNull());
+        if (toCheck) {
+            Objects.requireNonNull(registryPath, Messages.HealthAnalyzerCommon_registryValueMustBeNotNull());
 
-        if (toCheck && !isRegistryExists(registryPath))
-            throw new AbortException(Messages.HealthAnalyzerCommon_notInstalled(productName));
+            if (!isRegistryExists(registryPath))
+                throw new AbortException(Messages.HealthAnalyzerCommon_notInstalled(productName));
+        }
     }
 
     private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
@@ -84,10 +86,12 @@ public class HealthAnalyzerCommon {
 
     public void ifCheckedDoesUrlExist(
             @Nonnull final String url, final boolean toCheck) throws IOException {
-        Objects.requireNonNull(url, Messages.HealthAnalyzerCommon_urlMustBeNotNull());
+        if (toCheck) {
+            Objects.requireNonNull(url, Messages.HealthAnalyzerCommon_urlMustBeNotNull());
 
-        if (toCheck && !isURLExist(url))
-            throw new AbortException(Messages.HealthAnalyzerCommon_serverUrlNotExist(productName));
+            if (!isURLExist(url))
+                throw new AbortException(Messages.HealthAnalyzerCommon_serverUrlNotExist(productName));
+        }
     }
 
     private boolean isURLExist(String stringUrl) throws IOException {
