@@ -36,9 +36,11 @@ public class SSCServerConfigUtil {
     }
 
     private static String getSSCServerFromDescriptor(Descriptor sscDescriptor) {
-        Object urlObj = getFieldValue(sscDescriptor, "url");
-        if(urlObj != null) {
-            return urlObj.toString();
+        if (sscDescriptor != null) {
+            Object urlObj = getFieldValue(sscDescriptor, "url");
+            if (urlObj != null) {
+                return urlObj.toString();
+            }
         }
         return null;
     }
