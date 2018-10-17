@@ -51,6 +51,7 @@ namespace HpToolsLauncher.TestRunners
         private RunCancelledDelegate _runCancelled;
         private bool _displayController;
         private string _analysisTemplate;
+        private SummaryDataLogger _summaryDataLogger;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -88,7 +89,7 @@ namespace HpToolsLauncher.TestRunners
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
         
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate)
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate, SummaryDataLogger summaryDataLogger)
         {
             this._runner = runner;
             this._timeout = timeout;
@@ -97,6 +98,7 @@ namespace HpToolsLauncher.TestRunners
             this._ignoreErrorStrings = ignoreErrorStrings;
             this._displayController = displayController;
             this._analysisTemplate = analysisTemplate;
+            this._summaryDataLogger = summaryDataLogger;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -427,7 +429,29 @@ namespace HpToolsLauncher.TestRunners
             return true;
         }
 
+        private void LogDataDuringScenarioExecution()
+        {
+            ThreadStart summaryDataLoggingThread = () =>
+            {
+                try
+                {
+                    LrScenario currentScenario = _engine.Scenario;
 
+                    while (!_scenarioEnded)
+                    {
+                        _summaryDataLogger.LogSummaryData(currentScenario);
+                        Thread.Sleep(_summaryDataLogger.GetPollingInterval());
+                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrSummaryDataLoggingError, e.Message));
+                    return;
+                }
+            };
+            Thread t = new Thread(summaryDataLoggingThread);
+            t.Start();
+        }
 
         private void generateAnalysisReport(TestRunResults runDesc)
         {
@@ -624,7 +648,8 @@ namespace HpToolsLauncher.TestRunners
 
             while (!_scenarioEnded)
             {
-                if (!_scenarioEndedEvent)
+                //Currently logging events causes controller scenario end event to unregister causing hptoolslauncher to be stuck
+                if (!_scenarioEndedEvent || _summaryDataLogger.IsAnyDataLogged())
                 {
                     //if all Vusers are in ending state, scenario is finished.
                     _scenarioEnded = isFinished();
@@ -644,47 +669,14 @@ namespace HpToolsLauncher.TestRunners
             ThreadPool.QueueUserWorkItem(DoTask, autoEvent);
 
             //wait for the scenario to end gracefully:
-            //int time = _pollingInterval * 1000;
-            int time = 1000;
-            LrScenario currentScenario = _engine.Scenario;
-            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
-            {
-                string stats;
-                int passed = 0, failed = 0;
-                double hitsPerSecond = 0;
-                currentScenario.GetTransactionStatisticsDetails(out stats);
-                currentScenario.GetTransactionStatistics(ref passed, ref failed, ref hitsPerSecond);                
-                int scenarioDuration = currentScenario.ScenarioDuration;
-                int errorsCount = currentScenario.GetErrorsCount("");
+            int time = _pollingInterval * 1000;
 
-                string myTime ="", host = "", id = "", message = "", script = "";
-                int line = 0;
-                
-                try
-                {
-                    if (errorsCount > 0)
-                    {
-                        currentScenario.GetErrorMessage("", 0, ref myTime, ref host, ref id, ref message, ref script, ref line);
-                    }
-                }
-                catch (Exception e)
-                {
-                    ConsoleWriter.WriteLine(e.Message);
-                }
-                using (StreamWriter w = File.AppendText("scenario_log.txt"))
-                {
-                    w.Write($"GetErrorMessage() {myTime} {host} {id} {message} {script} {line}\n");
-                    foreach (int vuserState in Enum.GetValues(typeof(VUSERS_STATE)))
-                    {
-                        w.Write($"{((VUSERS_STATE)vuserState).ToString()}: {currentScenario.GetVusersCount(vuserState)}\n");
-                    }
-                    w.Write($"Errors Count: {errorsCount}\n");
-                    w.Write($"GetScenarioDuration: {scenarioDuration}\n");
-                    w.Write($"GetTransactionStatisticsDetails(): {stats}\n");
-                    w.Write($"GetTransactionsStatistics(): {passed} {failed} {hitsPerSecond}\n");
-                    w.Write("--------------------------------------------------------------------------------------------------------------------------\n");
-                }
-                
+            if (_summaryDataLogger.IsAnyDataLogged())
+            {
+                LogDataDuringScenarioExecution();
+            }
+            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
+            {   
                 if (_runCancelled())
                 {
                     errorReason = Resources.GeneralTimedOut;
@@ -1002,21 +994,6 @@ namespace HpToolsLauncher.TestRunners
             //ConsoleWriter.WriteLine("Closing controller");
             closeController();
             cleanENV();
-        }
-
-        enum VUSERS_STATE {
-            VusersInDown = 1,
-            VusersInPending = 2,
-            VusersInLoading = 3,
-            VusersInReady = 4,
-            VusersInRunning = 5,
-            VusersInRendezvous = 6,
-            VusersInPassed = 7,
-            VusersInFailed = 8,
-            VusersInError = 9,
-            VusersInExiting = 10,
-            VusersInStopped = 11,
-            VusersInGradualExiting = 12
-        }
+        }        
     }
 }

@@ -26,6 +26,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using HpToolsLauncher.Properties;
+using HpToolsLauncher.TestRunners;
 
 namespace HpToolsLauncher
 {
@@ -575,15 +576,16 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger);
                     }
 
                     break;
@@ -732,5 +734,32 @@ namespace HpToolsLauncher
 
         }
 
+        private SummaryDataLogger GetSummaryDataLogger()
+        {
+            string[] summaryDataLogFlags = _ciParams["SummaryDataLog"].Split(";".ToCharArray());
+            SummaryDataLogger summaryDataLogger;
+            if (summaryDataLogFlags.Length == 4)
+            {
+                int summaryDataLoggerPollingInterval;
+                //If the polling interval is not a valid number, set it to default (10 seconds)
+                if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval)) {
+                    summaryDataLoggerPollingInterval = 10;
+                }
+
+                summaryDataLogger = new SummaryDataLogger(
+                    summaryDataLogFlags[0].Equals("1"),
+                    summaryDataLogFlags[1].Equals("1"),
+                    summaryDataLogFlags[2].Equals("1"),
+                    summaryDataLoggerPollingInterval                    
+                );
+            }
+            else
+            {
+                summaryDataLogger = new SummaryDataLogger();
+            }
+            
+            return summaryDataLogger;
+
+        }
     }
 }

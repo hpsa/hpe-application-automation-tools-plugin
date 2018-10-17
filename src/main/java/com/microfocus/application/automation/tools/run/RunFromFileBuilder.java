@@ -71,6 +71,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	private String ParamFileName = "ApiRun.txt";
 	private RunFromFileSystemModel runFromFileModel;
 	private FileSystemTestSetModel fileSystemTestSetModel;
+	private SummaryDataLogModel summaryDataLogModel;
 	private boolean isParallelRunnerEnabled;
 
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
@@ -83,15 +84,23 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 */
 	@DataBoundConstructor
 	public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-							  FileSystemTestSetModel fileSystemTestSetModel) {
+							  FileSystemTestSetModel fileSystemTestSetModel,
+							  SummaryDataLogModel summaryDataLogModel) {
 		this.runFromFileModel = new RunFromFileSystemModel(fsTests);
 		this.fileSystemTestSetModel = fileSystemTestSetModel;
 		this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+		this.summaryDataLogModel = summaryDataLogModel;
 	}
 
 
     public FileSystemTestSetModel getFileSystemTestSetModel() {
 		return fileSystemTestSetModel;
+	}
+
+	public SummaryDataLogModel getSummaryDataLogModel() { return summaryDataLogModel; }
+
+	public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
+		this.summaryDataLogModel = summaryDataLogModel;
 	}
 
     /**
@@ -580,6 +589,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
+
+		summaryDataLogModel.addToProps(mergedProperties);
 
 		// parallel runner is enabled
 		if(isParallelRunnerEnabled) {
