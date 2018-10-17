@@ -308,6 +308,7 @@
 					<excludes>
 						<exclude>**/GherkinResultsTest.java</exclude>
 						<exclude>**/JUnitResultsTest.java</exclude>
+
 					</excludes>
 				</configuration>
 			</plugin>
@@ -563,6 +564,12 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
