@@ -24,15 +24,10 @@ import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import hudson.AbortException;
 
 import javax.annotation.Nonnull;
-import javax.net.ssl.SSLHandshakeException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -81,36 +76,6 @@ public class HealthAnalyzerCommon {
                 new InputStreamReader(reg.getInputStream()))) {
             Stream<String> keys = output.lines().filter(l -> !l.isEmpty());
             return keys.findFirst().isPresent();
-        }
-    }
-
-    public void ifCheckedDoesUrlExist(
-            @Nonnull final String url, final boolean toCheck) throws IOException {
-        if (toCheck) {
-            Objects.requireNonNull(url, Messages.HealthAnalyzerCommon_urlMustBeNotNull());
-
-            if (!isURLExist(url))
-                throw new AbortException(Messages.HealthAnalyzerCommon_serverUrlNotExist(productName));
-        }
-    }
-
-    private boolean isURLExist(String stringUrl) throws IOException {
-        try {
-            URL url = new URL(stringUrl); // MalformedUrlException
-            HttpURLConnection.setFollowRedirects(false);
-            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setConnectTimeout(3000); // 3 Seconds
-            httpURLConnection.setRequestMethod("HEAD");
-            httpURLConnection.setRequestProperty(
-                    "User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2)" +
-                            " Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
-            return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
-        } catch (UnknownHostException e) {
-            return false;
-        } catch (SSLHandshakeException e) {
-            return true;
-        } catch (MalformedURLException e) {
-            throw new AbortException(Messages.HealthAnalyzerCommon_malformedUrl(stringUrl));
         }
     }
 

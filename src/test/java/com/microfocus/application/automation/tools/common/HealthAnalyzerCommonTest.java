@@ -26,7 +26,6 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,22 +56,6 @@ public class HealthAnalyzerCommonTest {
         healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
     }
 
-    @Test(expected = AbortException.class)
-    public void ifCheckedIsUrlExist_throwsException_ifUrlDoesNotExistsAndToCheckIsTrue() throws Exception {
-        String url = "https://non-exisiting-url-for-checking.com";
-        healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
-    }
-
-    @Test
-    public void ifCheckedIsUrlExists_shouldNotThrowException_ifUrlExistAndToCheckIsTrue() throws Exception {
-        String url = "https://www.microfocus.com/";
-        try {
-            healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
-        } catch (AbortException e) {
-            fail("Should not have thrown AbortException");
-        }
-    }
-
     @Test
     public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue() throws Exception {
         if (OperatingSystem.IS_WINDOWS) {
@@ -92,8 +75,8 @@ public class HealthAnalyzerCommonTest {
         initializeOperatingSystemOs(System.getProperty("os.name"));
     }
 
-    @Test (expected = AbortException.class)
-    public void runningMethodOnWindowsWhenRegistryNotExists_throwsException() throws Exception{
+    @Test(expected = AbortException.class)
+    public void runningMethodOnWindowsWhenRegistryNotExists_throwsException() throws Exception {
         if (OperatingSystem.IS_WINDOWS) {
             healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
         }
@@ -162,30 +145,18 @@ public class HealthAnalyzerCommonTest {
     }
 
     @Test
-    public void malformedUrl_throwsException_withCorrectValue() {
-        String url = "www.malformedurl";
+    public void ifCheckedPerformOsCheck_shouldThrowException_withCorrectValue() throws Exception {
+        initializeOperatingSystemOs("windows");
         try {
-            healthAnalyzerCommon.ifCheckedDoesUrlExist(url, true);
+            healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.LINUX, true);
             fail();
-        } catch (IOException e) {
-            assertEquals(e.getMessage(), String.format("The URL: %s malformed. Either no legal protocol could be found in a specification" +
-                    " string or the string could not be parsed.", url));
+        } catch (AbortException e) {
+            assertEquals(e.getMessage(), String.format("Your operating system: %s is not %s.", "linux", OperatingSystem.getOs()));
         }
     }
 
     @Test
-    public void ifCheckedPerformOsCheck_shouldThrowException_withCorrectValue() throws Exception{
-            initializeOperatingSystemOs("windows");
-            try {
-                healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.LINUX, true);
-                fail();
-            } catch (AbortException e) {
-                assertEquals(e.getMessage(), String.format("Your operating system: %s is not %s.", "linux", OperatingSystem.getOs()));
-            }
-    }
-
-    @Test
-    public void ifCheckedPerformOsCheck_doesNotThrowException() throws Exception{
+    public void ifCheckedPerformOsCheck_doesNotThrowException() throws Exception {
         initializeOperatingSystemOs("windows");
         healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, true);
     }
