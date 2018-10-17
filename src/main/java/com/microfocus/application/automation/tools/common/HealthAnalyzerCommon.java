@@ -31,7 +31,9 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -39,6 +41,7 @@ import java.util.stream.Stream;
  * Requires to be initiated with the product name
  */
 public class HealthAnalyzerCommon {
+    private static final Logger logger = Logger.getLogger(HealthAnalyzerCommon.class.getName());
     private final String productName;
 
     public HealthAnalyzerCommon(@Nonnull final String productName) {
@@ -58,8 +61,28 @@ public class HealthAnalyzerCommon {
 
     private boolean isRegistryExists(@Nonnull final String registryPath) throws IOException, InterruptedException {
         if (OperatingSystem.IS_WINDOWS)
-            return startRegistryQueryAndGetStatus(registryPath);
+            return createProcessInThreadAndReturnResult(registryPath);
         throw new AbortException(Messages.HealthAnalyzerCommon_registryWorksOnlyOnWindows());
+    }
+
+    private boolean createProcessInThreadAndReturnResult(@Nonnull String registryPath) throws InterruptedException {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Callable<Boolean> task = () -> startRegistryQueryAndGetStatus(registryPath);
+        Future<Boolean> future = executor.submit(task);
+        executor.shutdown();
+        executor.awaitTermination(500, TimeUnit.MILLISECONDS);
+        return getFutureResult(future);
+    }
+
+    private boolean getFutureResult(Future<Boolean> future) throws InterruptedException {
+        boolean result = false;
+        try {
+            result = future.isDone() && future.get();
+        } catch (ExecutionException e) {
+            logger.log(Level.SEVERE,
+                    "failed to get result from the thread to check if registry exist: " + e.getMessage());
+        }
+        return result;
     }
 
     private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
