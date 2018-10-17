@@ -31,6 +31,7 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -58,6 +59,8 @@ public class HealthAnalyzerBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Extension
+    // @Symbol - to expose this step in the snippet generator, it's name as a parameter.
+    @Symbol("healthAnalyzer")
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
         @Nonnull
         @Override
