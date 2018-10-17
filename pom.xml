@@ -308,14 +308,7 @@
 					<excludes>
 						<exclude>**/GherkinResultsTest.java</exclude>
 						<exclude>**/JUnitResultsTest.java</exclude>
-						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
-						<exclude>**/PluginActionsTest.java</exclude>
-						<exclude>**/octane/actions/project/*</exclude>
-						<exclude>**/octane/configuration/ConfigApiTest.java</exclude>
-						<exclude>**/octane/configuration/ConfigurationListenerTest.java</exclude>
-						<exclude>**/octane/configuration/ConfigurationServiceTest.java</exclude>
-						<exclude>**/octane/tests/TestApiTest.java</exclude>
-						<exclude>InjectedTest.java</exclude>
+
 					</excludes>
 				</configuration>
 			</plugin>
@@ -571,6 +564,12 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
