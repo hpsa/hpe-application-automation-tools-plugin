@@ -29,7 +29,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.5.2-beta-SNAPSHOT</version>
+	<version>5.5.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -308,6 +308,7 @@
 					<excludes>
 						<exclude>**/GherkinResultsTest.java</exclude>
 						<exclude>**/JUnitResultsTest.java</exclude>
+
 					</excludes>
 				</configuration>
 			</plugin>
@@ -449,7 +450,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.26</version>
+			<version>1.5.33</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
@@ -546,6 +547,14 @@
 			<version>1.2.3</version>
 		</dependency>
 
+		<!--sonar plugin for compile phase only-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>sonar</artifactId>
+			<version>2.6.1</version>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-common</artifactId>
@@ -555,6 +564,12 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-sse</artifactId>
 			<version>2.9</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

@@ -16,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.events;
@@ -43,6 +42,8 @@ import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import hudson.scm.SCM;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,6 +58,7 @@ import java.util.List;
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
 public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractBuild> {
+	private static final Logger logger = LogManager.getLogger(AbstractBuildListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Inject
@@ -68,23 +70,27 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 			return;
 		}
 
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.STARTED)
-				.setProject(BuildHandlerUtils.getJobCiId(build))
-				.setProjectDisplayName(BuildHandlerUtils.getJobCiId(build))
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(build))
-				.setNumber(String.valueOf(build.getNumber()))
-				.setStartTime(build.getStartTimeInMillis())
-				.setEstimatedDuration(build.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(build))
-				.setParameters(ParameterProcessors.getInstances(build));
+		try {
+			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setProject(BuildHandlerUtils.getJobCiId(build))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(build))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(build))
+					.setNumber(String.valueOf(build.getNumber()))
+					.setStartTime(build.getStartTimeInMillis())
+					.setEstimatedDuration(build.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(build))
+					.setParameters(ParameterProcessors.getInstances(build));
 
-		if (isInternal(build)) {
-			event.setPhaseType(PhaseType.INTERNAL);
-		} else {
-			event.setPhaseType(PhaseType.POST);
+			if (isInternal(build)) {
+				event.setPhaseType(PhaseType.INTERNAL);
+			} else {
+				event.setPhaseType(PhaseType.POST);
+			}
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch STARTED event for " + build, throwable);
 		}
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	@Override
@@ -93,35 +99,40 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 			return;
 		}
 
-		boolean hasTests = testListener.processBuild(build);
+		try {
+			boolean hasTests = testListener.processBuild(build);
 
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.FINISHED)
-				.setProject(BuildHandlerUtils.getJobCiId(build))
-				.setProjectDisplayName(BuildHandlerUtils.getJobCiId(build))
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(build))
-				.setNumber(String.valueOf(build.getNumber()))
-				.setStartTime(build.getStartTimeInMillis())
-				.setEstimatedDuration(build.getEstimatedDuration())
-				.setCauses(CIEventCausesFactory.processCauses(build))
-				.setParameters(ParameterProcessors.getInstances(build))
-				.setResult(BuildHandlerUtils.translateRunResult(build))
-				.setDuration(build.getDuration())
-				.setTestResultExpected(hasTests);
+			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.FINISHED)
+					.setProject(BuildHandlerUtils.getJobCiId(build))
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(build))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(build))
+					.setNumber(String.valueOf(build.getNumber()))
+					.setStartTime(build.getStartTimeInMillis())
+					.setEstimatedDuration(build.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(build))
+					.setParameters(ParameterProcessors.getInstances(build))
+					.setResult(BuildHandlerUtils.translateRunResult(build))
+					.setDuration(build.getDuration())
+					.setTestResultExpected(hasTests);
 
-		CommonOriginRevision commonOriginRevision = getCommonOriginRevision(build);
-		if (commonOriginRevision != null) {
-			event
-					.setCommonHashId(commonOriginRevision.revision)
-					.setBranchName(commonOriginRevision.branch);
+			CommonOriginRevision commonOriginRevision = getCommonOriginRevision(build);
+			if (commonOriginRevision != null) {
+				event
+						.setCommonHashId(commonOriginRevision.revision)
+						.setBranchName(commonOriginRevision.branch);
+			}
+
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch FINISHED event for " + build, throwable);
 		}
-
-		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	private boolean noGoConfiguration() {
 		return ConfigurationService.getServerConfiguration() == null ||
 				!ConfigurationService.getServerConfiguration().isValid() ||
+				ConfigurationService.getModel() == null ||
 				ConfigurationService.getModel().isSuspend();
 	}
 
