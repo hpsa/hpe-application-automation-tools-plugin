@@ -101,6 +101,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		return scriptRTSSetModel;
 	}
 
+	public void setScriptRTSSetModel(ScriptRTSSetModel scriptRTSSetModel) {
+		this.scriptRTSSetModel = scriptRTSSetModel;
+	}
+
     /**
      * Gets the parallel runner flag.
      *

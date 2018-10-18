@@ -748,7 +748,7 @@ namespace HpToolsLauncher
                 {
                     //Each additional attribute contains: script name, aditional attribute name, value and description
                     string[] additionalAttributeArguments = additionalAttribute.Split(";".ToCharArray());
-                    if (additionalAttributeArguments[0].Equals(scriptName))
+                    if (additionalAttributeArguments.Length == 4 && additionalAttributeArguments[0].Equals(scriptName))
                     {
                         scriptRTS.AddAdditionalAttribute(new AdditionalAttributeModel(
                             additionalAttributeArguments[1],

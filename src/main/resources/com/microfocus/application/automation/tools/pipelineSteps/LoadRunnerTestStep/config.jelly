@@ -58,6 +58,11 @@
             <f:entry title="Display Controller" field="displayController">
                 <f:checkbox name="runPipeline.displayController"/>
             </f:entry>
+            <f:section title="Runtime Settings">
+                <f:entry name="Runtime Settings" field="scriptRTSSetModel">
+                    <f:property field="scriptRTSSetModel"/>
+                </f:entry>
+            </f:section>
         </f:advanced>
     </f:section>
 </j:jelly>

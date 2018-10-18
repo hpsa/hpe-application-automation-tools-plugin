@@ -754,7 +754,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured during RTS: {0}.
+        ///   Looks up a localized string similar to An error occured during RTS parsing at script {0}: {1}.
         /// </summary>
         internal static string LrRTSError {
             get {

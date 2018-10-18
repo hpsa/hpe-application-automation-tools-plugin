@@ -358,7 +358,7 @@ namespace HpToolsLauncher.TestRunners
                     }
                     catch (Exception e)
                     {
-                        errorReason = string.Format(Resources.LrRTSError, e.Message);
+                        errorReason = string.Format(Resources.LrRTSError, scriptRTS.GetScriptName(), e.Message);
                         return false;
                     }
                 }
