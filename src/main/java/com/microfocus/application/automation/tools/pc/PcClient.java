@@ -30,6 +30,7 @@ package com.microfocus.application.automation.tools.pc;
 
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
+import com.microfocus.application.automation.tools.run.PcBuilder;
 import hudson.FilePath;
 
 import java.beans.IntrospectionException;

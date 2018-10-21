@@ -33,7 +33,7 @@ import com.microfocus.application.automation.tools.results.projectparser.perform
 import com.microfocus.application.automation.tools.results.projectparser.performance.TimeRange;
 import com.microfocus.application.automation.tools.results.projectparser.performance.TimeRangeResult;
 import com.microfocus.application.automation.tools.results.projectparser.performance.WholeRunResult;
-import com.microfocus.application.automation.tools.pc.PcBuilder;
+import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.run.SseBuilder;

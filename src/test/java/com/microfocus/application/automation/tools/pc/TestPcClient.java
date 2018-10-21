@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.pc;
 
+import com.microfocus.application.automation.tools.run.PcBuilder;
 import hudson.FilePath;
 
 import org.junit.Assert;

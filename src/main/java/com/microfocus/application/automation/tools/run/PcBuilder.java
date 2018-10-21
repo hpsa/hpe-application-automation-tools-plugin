@@ -24,9 +24,9 @@
 /*
 * Create the PCModel and the PCClient and allows the connection between the job and PC
 * */
-package com.microfocus.application.automation.tools.pc;
+package com.microfocus.application.automation.tools.run;
 
-import com.microfocus.application.automation.tools.pc.Messages;
+import com.microfocus.application.automation.tools.run.Messages;
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.application.automation.tools.pc.PcClient;
 import com.microfocus.application.automation.tools.pc.PcModel;
