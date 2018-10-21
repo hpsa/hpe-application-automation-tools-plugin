@@ -1,0 +1,53 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler" xmlns:ha="/lib/healthanalyzer">
+    <st:documentation>
+        Optional block with repeatable text field.
+        <st:attribute name="checkBoxMethod" use="required">
+            The method name that asserts if the list is toggled or not, mostly if the instance is
+            initialized and contains elements
+        </st:attribute>
+        <st:attribute name="outerClassInstanceName" use="required">
+            The outer class name of the instance which holds the list
+        </st:attribute>
+        <st:attribute name="checkBoxTitle" use="required">
+            The title next to the checkbox
+        </st:attribute>
+        <st:attribute name="textTitle" use="required">
+            The title next to the text field
+        </st:attribute>
+        <st:attribute name="repeatableList" use="required">
+            The inner field in the class which holds the list of the repeatable item of the type "RepeatableField.java"
+            That exposes a method to the inner field list
+        </st:attribute>
+    </st:documentation>
+
+
+    <f:block>
+        <ha:customOptionalBlock title="${checkBoxTitle}" name="${outerClassInstanceName}" checked="${checkBoxMethod}">
+            <ha:customEntry title="${textTitle}">
+                <f:repeatableProperty field="${repeatableList}" minimum="1" noAddButton="true"/>
+            </ha:customEntry>
+        </ha:customOptionalBlock>
+    </f:block>
+
+</j:jelly>

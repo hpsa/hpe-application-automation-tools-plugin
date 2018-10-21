@@ -36,6 +36,7 @@ import com.microfocus.application.automation.tools.results.service.ExternalEntit
 import com.microfocus.application.automation.tools.results.service.IExternalEntityUploadService;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.matrix.MatrixAggregatable;
@@ -50,6 +51,7 @@ import hudson.model.Item;
 import hudson.model.Queue;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
@@ -67,8 +69,10 @@ import java.util.List;
 
 import hudson.util.ListBoxModel;
 import hudson.util.VariableResolver;
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -78,11 +82,11 @@ import com.microfocus.application.automation.tools.results.service.DefaultExtern
 
 /**
 
- * 
+ *
  * @author Jacky Zhu
  */
-public class TestResultToALMUploader extends Recorder implements Serializable, MatrixAggregatable {
-    
+public class TestResultToALMUploader extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
+
     private static final long serialVersionUID = 1L;
     private UploadTestResultToAlmModel uploadTestResultToAlmModel;
     private String almServerName;
@@ -233,15 +237,16 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
+                        TaskListener listener) throws InterruptedException, IOException {
+
     	ExternalEntityUploadLogger logger = new ExternalEntityUploadLogger(listener.getLogger());
 
     	// Credentials id maybe can't be blank
         if (StringUtils.isBlank(credentialsId)) {
             logger.log("INFO: credentials is not configured.");
             build.setResult(Result.UNSTABLE);
-            return true;
+            return;
         }
         UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
 
@@ -301,7 +306,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
                 );
     			AlmRestTool u = new AlmRestTool(loginInfo, logger);
     			logger.log("INFO: Start to upload "+fullpath);
-    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, build.getWorkspace(), logger);
+    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, workspace, logger);
     			try {
 	    			service.UploadExternalTestSet(loginInfo,
 	    					fullpath,
@@ -321,7 +326,6 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         	}
         }
         logger.log("INFO: 'Upload test result to ALM' Completed.");
-        return true;
     }
 
     /**
@@ -370,106 +374,108 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     @Override
     public Action getProjectAction(AbstractProject<?, ?> project) {
-        
+
         return new TestResultProjectAction(project);
     }
-    
+
     @Override
     public MatrixAggregator createAggregator(
             MatrixBuild build,
             Launcher launcher,
             BuildListener listener) {
-        
+
         return new TestResultAggregator(build, launcher, listener);
     }
-    
+
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
-        
+
         return BuildStepMonitor.BUILD;
     }
 
     @Extension
+    // To expose this builder in the Snippet Generator.
+    @Symbol("uploadResultToALM")
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        
+
         public DescriptorImpl() {
-            
+
             load();
         }
-        
+
         @Override
         public String getDisplayName() {
-            
+
             return "Upload test result to ALM";
         }
-        
+
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            
+
             return true;
         }
-        
+
         public boolean hasAlmServers() {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
         }
-        
+
         public AlmServerSettingsModel[] getAlmServers() {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }
-        
+
         public FormValidation doCheckAlmUserName(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("User name must be set");
             }
-            
+
             return FormValidation.ok();
-        }        
+        }
         public FormValidation doCheckAlmDomain(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("Domain must be set");
             }
-            
+
             return FormValidation.ok();
         }
-        
+
         public FormValidation doCheckAlmProject(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("Project must be set");
             }
-            
+
             return FormValidation.ok();
         }
-        
+
         public FormValidation doCheckAlmTestFolder(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("TestFolder are missing");
             }
-            
+
             return FormValidation.ok();
-        }  
-        
+        }
+
         public FormValidation doCheckAlmTestSetFolder(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("TestSetFolder are missing");
             }
-            
+
             return FormValidation.ok();
-        }        
-        
+        }
+
         public FormValidation doCheckTestingResultFile(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("Testing result file must be set");
             }
-            
+
             return FormValidation.ok();
-        }  
-        
+        }
+
         public List<EnumDescription> getTestingFrameworks() {
             return UploadTestResultToAlmModel.testingFrameworks;
         }
@@ -508,6 +514,6 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
             // no credentials available, can't check
             return FormValidation.warning("Cannot find any credentials with id " + value);
         }
-        
+
     }
 }
