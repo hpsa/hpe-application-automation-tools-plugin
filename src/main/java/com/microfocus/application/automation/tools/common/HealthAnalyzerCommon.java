@@ -32,8 +32,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -41,7 +39,6 @@ import java.util.stream.Stream;
  * Requires to be initiated with the product name
  */
 public class HealthAnalyzerCommon {
-    private static final Logger logger = Logger.getLogger(HealthAnalyzerCommon.class.getName());
     private final String productName;
 
     public HealthAnalyzerCommon(@Nonnull final String productName) {
@@ -65,7 +62,8 @@ public class HealthAnalyzerCommon {
         throw new AbortException(Messages.HealthAnalyzerCommon_registryWorksOnlyOnWindows());
     }
 
-    private boolean createProcessInThreadAndReturnResult(@Nonnull String registryPath) throws InterruptedException {
+    private boolean createProcessInThreadAndReturnResult(@Nonnull String registryPath)
+            throws InterruptedException, AbortException {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Callable<Boolean> task = () -> startRegistryQueryAndGetStatus(registryPath);
         Future<Boolean> future = executor.submit(task);
@@ -74,24 +72,18 @@ public class HealthAnalyzerCommon {
         return getFutureResult(future);
     }
 
-    private boolean getFutureResult(Future<Boolean> future) throws InterruptedException {
-        boolean result = false;
+    private boolean getFutureResult(Future<Boolean> future) throws InterruptedException, AbortException {
         try {
-            result = future.isDone() && future.get();
+            return future.isDone() && future.get();
         } catch (ExecutionException e) {
-            logger.log(Level.SEVERE,
-                    "failed to get result from the thread to check if registry exist: " + e.getMessage());
+            throw new AbortException("failed to get result from the thread to check if registry exist: " + e.getMessage());
         }
-        return result;
     }
 
-    private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath)
-            throws IOException, InterruptedException {
+    private boolean startRegistryQueryAndGetStatus(@Nonnull final String registryPath) throws IOException {
         ProcessBuilder builder = new ProcessBuilder("reg", "query", registryPath);
         Process reg = builder.start();
-        boolean keys = isProcessStreamHasRegistry(reg);
-        reg.waitFor(1, TimeUnit.MINUTES);
-        return keys;
+        return isProcessStreamHasRegistry(reg);
     }
 
     private boolean isProcessStreamHasRegistry(@Nonnull final Process reg) throws IOException {
