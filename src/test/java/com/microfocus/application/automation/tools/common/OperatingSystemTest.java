@@ -20,29 +20,36 @@
 
 package com.microfocus.application.automation.tools.common;
 
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 public class OperatingSystemTest {
     private static String os;
+
     public static void initializeOperatingSystemOs(final String os) throws NoSuchFieldException, IllegalAccessException {
         changeStaticFinalField(os, "OS");
 
         if (os.toLowerCase().contains("windows")) {
-            changeBooleanStaticFinalField(true, "IS_WINDOWS");
-            changeBooleanStaticFinalField(false, "IS_MAC");
-            changeBooleanStaticFinalField(false, "IS_LINUX");
+            setAllBooleanStaticFinalFields(true, false, false);
         } else if (os.toLowerCase().contains("linux")) {
-            changeBooleanStaticFinalField(false, "IS_WINDOWS");
-            changeBooleanStaticFinalField(false, "IS_MAC");
-            changeBooleanStaticFinalField(true, "IS_LINUX");
+            setAllBooleanStaticFinalFields(false, false, true);
         } else if (os.toLowerCase().contains("mac")) {
-            changeBooleanStaticFinalField(false, "IS_WINDOWS");
-            changeBooleanStaticFinalField(true, "IS_MAC");
-            changeBooleanStaticFinalField(false, "IS_LINUX");
+            setAllBooleanStaticFinalFields(false, true, false);
+        } else {
+            setAllBooleanStaticFinalFields(false, false, false);
         }
+    }
+
+    private static void setAllBooleanStaticFinalFields(boolean isWindows, boolean isMac, boolean isLinux)
+            throws NoSuchFieldException, IllegalAccessException {
+        changeBooleanStaticFinalField(isWindows, "IS_WINDOWS");
+        changeBooleanStaticFinalField(isMac, "IS_MAC");
+        changeBooleanStaticFinalField(isLinux, "IS_LINUX");
     }
 
     private static void changeStaticFinalField(String value, String declaredField)
@@ -66,7 +73,7 @@ public class OperatingSystemTest {
     }
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setup() {
         os = System.getProperty("os.name");
     }
 
