@@ -23,16 +23,16 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
-    <f:entry title="Polling Interval" field="pollingInterval">
+    <f:entry title="${%PollingInterval}" field="pollingInterval">
         <f:textbox name="pollingInterval" value="${instance.pollingInterval}" default=""/>
     </f:entry>
-    <f:entry title="Log Vusers States" field="logVusersStates">
+    <f:entry title="${%LogVusersStates}" field="logVusersStates">
         <f:checkbox name="logVusersStates" checked="${instance.logVusersStates}"/>
     </f:entry>
-    <f:entry title="Log Error Count" field="logErrorCount">
+    <f:entry title="${%LogErrorCount}" field="logErrorCount">
         <f:checkbox name="logErrorCount" checked="${instance.logErrorCount}"/>
     </f:entry>
-    <f:entry title="Log Transaction Statistics" field="logTransactionStatistics">
+    <f:entry title="${%LogTransactionStatistics}" field="logTransactionStatistics">
         <f:checkbox name="logTransactionStatistics" checked="${instance.logTransactionStatistics}"/>
     </f:entry>
 </j:jelly>
