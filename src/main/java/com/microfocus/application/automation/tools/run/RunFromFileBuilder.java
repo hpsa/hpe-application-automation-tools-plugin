@@ -58,6 +58,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+import static com.microfocus.application.automation.tools.Messages.RunFromFileBuilderStepName;
+
 /**
  * Describes a regular jenkins build step from UFT or LR
  */
@@ -765,7 +768,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         @Override
         public String getDisplayName() {
-            return "Execute Micro Focus tests from file system";
+            return RunFromFileBuilderStepName(CompanyName());
         }
 
         /**
