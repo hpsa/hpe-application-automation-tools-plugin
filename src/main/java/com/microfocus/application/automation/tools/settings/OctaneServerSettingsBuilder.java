@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,11 +16,11 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.settings;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -29,7 +28,6 @@ import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationParser;
 import com.microfocus.application.automation.tools.octane.configuration.MqmProject;
-import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -43,10 +41,12 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
@@ -55,8 +55,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -71,20 +71,29 @@ public class OctaneServerSettingsBuilder extends Builder {
 		return (OctaneDescriptorImpl) super.getDescriptor();
 	}
 
+	public static OctaneDescriptorImpl getOctaneSettingsManager() {
+		OctaneDescriptorImpl octaneDescriptor = Jenkins.getInstance().getDescriptorByType(OctaneDescriptorImpl.class);
+		if (octaneDescriptor == null) {
+			throw new IllegalStateException("failed to obtain Octane plugin descriptor");
+		}
+
+		return octaneDescriptor;
+	}
+
 	/**
 	 * Descriptor for {@link OctaneServerSettingsBuilder}. Used as a singleton. The class is marked as
 	 * public so that it can be accessed from views.
 	 * <p>
-	 * <p>
 	 * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt> for the
 	 * actual HTML fragment for the configuration screen.
 	 */
-
 	@Extension
 	public static final class OctaneDescriptorImpl extends BuildStepDescriptor<Builder> {
 
 		@CopyOnWrite
 		private OctaneServerSettingsModel[] servers;
+
+		private transient Map<String, OctaneConfiguration> octaneConfigurations = new HashMap<>();
 
 		@Override
 		protected XmlFile getConfigFile() {
@@ -115,29 +124,31 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		public OctaneDescriptorImpl() {
 			load();
+			// todo: validate & clean || migrate old config and save
+		}
 
-			OctaneServerSettingsModel model = getModel();
-			if (StringUtils.isEmpty(model.getIdentity())) {
-				model.setIdentity(UUID.randomUUID().toString());
-				model.setIdentityFrom(new Date().getTime());
-				save();
+		public void initOctaneClients() {
+			if (!isInitialConfigValid(servers)) {
+				return;
 			}
-
-			try {
-				OctaneSDK.init(new CIJenkinsServicesImpl());
-			} catch (IllegalStateException ise) {
-				logger.warn("Octane SDK already initialized");
+			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
+				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
+						innerServerConfiguration.getSharedSpace());
+				octaneConfiguration.setClient(innerServerConfiguration.getUsername());
+				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
+				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
+				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
 			}
 		}
 
-		private static ServerConfiguration convertToServerConfiguration(OctaneServerSettingsModel model) {
-			return new ServerConfiguration(
-					model.getLocation(),
-					model.getSharedSpace(),
-					model.getUsername(),
-					model.getPassword(),
-					model.getImpersonatedUser(),
-					model.isSuspend());
+		private boolean isInitialConfigValid(OctaneServerSettingsModel[] servers) {
+			if (servers == null) {
+				return false;
+			} else if (servers.length > 1) {
+				return true;
+			}
+			OctaneServerSettingsModel innerServerConfiguration = servers[0];
+			return innerServerConfiguration.getLocation() != null && !innerServerConfiguration.getLocation().isEmpty();
 		}
 
 		@Override
@@ -158,23 +169,90 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+			Object data = formData.get("mqm");
+			JSONArray jsonArray = new JSONArray();
+			if (data instanceof JSONObject) {
+				jsonArray.add(data);
+			} else if (data instanceof JSONArray) {
+				jsonArray.addAll((JSONArray) data);
+			}
 
-			JSONObject jsonObject = (JSONObject) formData.get("mqm");
-			List<OctaneServerSettingsModel> list = req.bindJSONToList(OctaneServerSettingsModel.class, jsonObject);
-			OctaneServerSettingsModel newModel = list.get(0);
+			//	todo: list above contains full list of all configurations
+			//	todo: traverse the list and
+			//		1) apply changes on known instance ID configurations
+			//		2) remove missing configurations
+			//		3) add new configurations
+			handleDeletedConfigurations(jsonArray);
+			for (Object jsonObject : jsonArray) {
+				JSONObject json = (JSONObject) jsonObject;
+				OctaneServerSettingsModel newModel = req.bindJSON(OctaneServerSettingsModel.class, json);
+				String identity = "";
+				OctaneServerSettingsModel oldModel;
+				if (json.containsKey("showIdentity")) {
+					JSONObject showIdentity = (JSONObject) json.get("showIdentity");
+					identity = showIdentity.getString("identity");
+					validateConfiguration(doCheckInstanceId(identity), "Plugin instance id");
+				}
 
-			if (jsonObject.containsKey("showIdentity")) {
-				JSONObject showIdentityJo = (JSONObject) jsonObject.get("showIdentity");
-				String identity = showIdentityJo.getString("identity");
-				validateConfiguration(doCheckInstanceId(identity), "Plugin instance id");
+				String internalId = json.getString("internalId");
+				oldModel = getSettingsByInternalId(internalId);
+				if (oldModel != null) {
+					newModel.setIdentity(identity.isEmpty() ? oldModel.getIdentity() : identity);
+					newModel.setInternalId(oldModel.getInternalId());
+				}
 
-				OctaneServerSettingsModel oldModel = getModel();
-				if (!oldModel.getIdentity().equals(identity)) {
-					newModel.setIdentity(identity);
+
+				if (json.containsKey("maxTimeoutHours")) {
+					String sscPollingTimeoutString = json.getString("maxTimeoutHours");
+					if (sscPollingTimeoutString != null && !sscPollingTimeoutString.isEmpty()) {
+						try {
+							long sscPollingTimeout = Long.valueOf(sscPollingTimeoutString);
+							newModel.setMaxTimeoutHours(sscPollingTimeout);
+						} catch (NumberFormatException e) {
+							newModel.setMaxTimeoutHours(0);
+						}
+					}
+				}
+				setModel(newModel);
+			}
+
+			return super.configure(req, formData);
+		}
+
+		private void handleDeletedConfigurations(JSONArray jsonArray) {
+			if (servers == null) {
+				return;
+			}
+
+			Map<String, Integer> index = new HashMap<>();
+			for (int i = 0; i < servers.length; i++) {
+				OctaneServerSettingsModel innerServerConfiguration = servers[i];
+				boolean configFound = false;
+				for (Object jsonObj : jsonArray) {
+					if (innerServerConfiguration.getInternalId().equals(((JSONObject) jsonObj).getString("internalId"))) {
+						configFound = true;
+						break;
+					}
+				}
+				if (!configFound) {
+					OctaneConfiguration octaneConfiguration = octaneConfigurations.get(innerServerConfiguration.getInternalId());
+					if (octaneConfiguration != null) {
+						logger.info("Removing client with instance Id: " + innerServerConfiguration.getIdentity());
+						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(innerServerConfiguration.getIdentity()));
+						index.put(innerServerConfiguration.getInternalId(), i);
+					}
 				}
 			}
-			setModel(newModel);
-			return super.configure(req, formData);
+
+			for (Map.Entry<String, Integer> entry : index.entrySet()) {
+				System.out.println(entry.getKey() + ":" + entry.getValue());
+				servers = ArrayUtils.remove(servers, entry.getValue().intValue());
+				octaneConfigurations.remove(entry.getKey());
+			}
+
+			if (!index.isEmpty()) {
+				save();
+			}
 		}
 
 		public void setModel(OctaneServerSettingsModel newModel) {
@@ -188,31 +266,80 @@ public class OctaneServerSettingsBuilder extends Builder {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 			}
 
-			OctaneServerSettingsModel oldModel = getModel();
-
-			//set identity in new model
-			boolean identityChanged = StringUtils.isNotEmpty(newModel.getIdentity());
-			if (!identityChanged) { //set identity from old model
-				newModel.setIdentity(oldModel.getIdentity());
+			OctaneServerSettingsModel oldModel = getSettingsByInternalId(newModel.getInternalId());
+			//  set identity in new model
+			if (oldModel == null) {
+				if(newModel.getIdentity() == null || newModel.getIdentity().isEmpty()){
+					newModel.setIdentity(UUID.randomUUID().toString());
+				}
+				if(newModel.getIdentityFrom() == null) {
+					newModel.setIdentityFrom(System.currentTimeMillis());
+				}
+			} else if (oldModel.getIdentity() != null && !oldModel.getIdentity().isEmpty()) {
 				newModel.setIdentityFrom(oldModel.getIdentityFrom());
 			}
 
-			servers = (new OctaneServerSettingsModel[]{newModel});
-			save();
+			if (oldModel == null) {
+				if (servers == null) {
+					servers = new OctaneServerSettingsModel[]{newModel};
+				} else {
+					if (servers.length == 1 && !servers[0].isValid()) {
+						//  replacing the first dummy one
+						servers[0] = newModel;
+					} else {
+						//  adding new one
+						OctaneServerSettingsModel[] newServers = new OctaneServerSettingsModel[servers.length + 1];
+						System.arraycopy(servers, 0, newServers, 0, servers.length);
+						newServers[servers.length] = newModel;
+						servers = newServers;
+					}
+				}
+			} else {
+				updateServer(servers, newModel, oldModel);
+			}
+			OctaneConfiguration octaneConfiguration = octaneConfigurations.containsKey(newModel.getInternalId()) ?
+					octaneConfigurations.get(newModel.getInternalId()) :
+					new OctaneConfiguration(newModel.getIdentity(), newModel.getLocation(), newModel.getSharedSpace());
+			octaneConfiguration.setSharedSpace(newModel.getSharedSpace());
+			octaneConfiguration.setUrl(newModel.getLocation());
+			octaneConfiguration.setClient(newModel.getUsername());
+			octaneConfiguration.setSecret(newModel.getPassword().getPlainText());
 
-			ServerConfiguration oldConfiguration = convertToServerConfiguration(oldModel);
-			ServerConfiguration newConfiguration = convertToServerConfiguration(newModel);
-			if (!oldConfiguration.equals(newConfiguration)) {
-				fireOnChanged(newConfiguration, oldConfiguration);
+			if (!octaneConfigurations.containsValue(octaneConfiguration)) {
+				octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
+				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+			}
+
+
+			if (!newModel.equals(oldModel)) {
+				fireOnChanged(newModel, oldModel);
+			}
+
+			save();
+		}
+
+		private void updateServer(OctaneServerSettingsModel[] servers, OctaneServerSettingsModel newModel,  OctaneServerSettingsModel oldModel) {
+			if (servers != null) {
+				for (int i = 0; i < servers.length; i++) {
+					if (newModel.getInternalId().equals(servers[i].getInternalId())) {
+						servers[i] = newModel;
+						if(!newModel.getIdentity().equals(oldModel.getIdentity())){
+							logger.info("Removing client with instance Id: " + oldModel.getIdentity());
+							OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(octaneConfigurations.get(oldModel.getInternalId()).getInstanceId()));
+							octaneConfigurations.remove(newModel.getInternalId());
+						}
+						break;
+					}
+				}
 			}
 		}
 
-		private void fireOnChanged(ServerConfiguration configuration, ServerConfiguration oldConfiguration) {
-			OctaneSDK.getInstance().getConfigurationService().notifyChange();
+		private void fireOnChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf) {
+			OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getConfigurationService().notifyChange());
 			ExtensionList<ConfigurationListener> listeners = ExtensionList.lookup(ConfigurationListener.class);
 			for (ConfigurationListener listener : listeners) {
 				try {
-					listener.onChanged(configuration, oldConfiguration);
+					listener.onChanged(newConf, oldConf);
 				} catch (ThreadDeath t) {
 					throw t;
 				} catch (Throwable t) {
@@ -261,12 +388,38 @@ public class OctaneServerSettingsBuilder extends Builder {
 			return servers;
 		}
 
-		public OctaneServerSettingsModel getModel() {
-			return getServers()[0];
+		public OctaneServerSettingsModel getSettings(String instanceId) {
+			if (instanceId == null || instanceId.isEmpty()) {
+				throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
+			}
+
+			OctaneServerSettingsModel result = null;
+			if (servers != null) {
+				for (OctaneServerSettingsModel setting : servers) {
+					if (instanceId.equals(setting.getIdentity())) {
+						result = setting;
+						break;
+					}
+				}
+			}
+			return result;
 		}
 
-		public ServerConfiguration getServerConfiguration() {
-			return convertToServerConfiguration(getModel());
+		public OctaneServerSettingsModel getSettingsByInternalId(String internalId) {
+			if (internalId == null || internalId.isEmpty()) {
+				return null;
+			}
+
+			OctaneServerSettingsModel result = null;
+			if (servers != null) {
+				for (OctaneServerSettingsModel setting : servers) {
+					if (internalId.equals(setting.getInternalId())) {
+						result = setting;
+						break;
+					}
+				}
+			}
+			return result;
 		}
 
 		private SecurityContext impersonate(String user) throws FormValidation {
@@ -289,7 +442,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		public FormValidation doCheckInstanceId(@QueryParameter String value) {
-			if (StringUtils.isBlank(value)) {
+			if (value == null || value.isEmpty()) {
 				return FormValidation.error("Plugin Instance Id cannot be empty");
 			}
 

@@ -21,14 +21,13 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -66,10 +65,6 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onStarted(AbstractBuild build, TaskListener listener) {
-		if (noGoConfiguration()) {
-			return;
-		}
-
 		try {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
@@ -81,13 +76,12 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 					.setEstimatedDuration(build.getEstimatedDuration())
 					.setCauses(CIEventCausesFactory.processCauses(build))
 					.setParameters(ParameterProcessors.getInstances(build));
-
 			if (isInternal(build)) {
 				event.setPhaseType(PhaseType.INTERNAL);
 			} else {
 				event.setPhaseType(PhaseType.POST);
 			}
-			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 		} catch (Throwable throwable) {
 			logger.error("failed to build and/or dispatch STARTED event for " + build, throwable);
 		}
@@ -95,13 +89,8 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onFinalized(AbstractBuild build) {
-		if (noGoConfiguration()) {
-			return;
-		}
-
 		try {
 			boolean hasTests = testListener.processBuild(build);
-
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
 					.setProject(BuildHandlerUtils.getJobCiId(build))
@@ -115,25 +104,16 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 					.setResult(BuildHandlerUtils.translateRunResult(build))
 					.setDuration(build.getDuration())
 					.setTestResultExpected(hasTests);
-
 			CommonOriginRevision commonOriginRevision = getCommonOriginRevision(build);
 			if (commonOriginRevision != null) {
 				event
 						.setCommonHashId(commonOriginRevision.revision)
 						.setBranchName(commonOriginRevision.branch);
 			}
-
-			OctaneSDK.getInstance().getEventsService().publishEvent(event);
+			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 		} catch (Throwable throwable) {
 			logger.error("failed to build and/or dispatch FINISHED event for " + build, throwable);
 		}
-	}
-
-	private boolean noGoConfiguration() {
-		return ConfigurationService.getServerConfiguration() == null ||
-				!ConfigurationService.getServerConfiguration().isValid() ||
-				ConfigurationService.getModel() == null ||
-				ConfigurationService.getModel().isSuspend();
 	}
 
 	private CommonOriginRevision getCommonOriginRevision(AbstractBuild build) {

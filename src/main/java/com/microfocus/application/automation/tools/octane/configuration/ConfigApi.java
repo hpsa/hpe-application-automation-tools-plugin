@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.configuration;
@@ -40,32 +38,34 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ConfigApi {
 	private static final Logger logger = LogManager.getLogger(ConfigApi.class);
 
 	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
 		checkPermission();
-		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+		res.serveExposedBean(req, getConfigurations(), Flavor.JSON);
 	}
 
 	@RequirePOST
 	public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		checkPermission();
 
-		JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
+		JSONObject newConfiguration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
 		String uiLocation;
-		if (!configuration.containsKey("uiLocation")) {
+		if (!newConfiguration.containsKey("uiLocation")) {
 			// allow per-partes project specification
-			String location = (String) configuration.get("location");
-			String sharedSpace = (String) configuration.get("sharedSpace");
+			String location = (String) newConfiguration.get("location");
+			String sharedSpace = (String) newConfiguration.get("sharedSpace");
 			if (StringUtils.isEmpty(location) || StringUtils.isEmpty(sharedSpace)) {
 				res.sendError(400, "Either (uiLocation) or (location and shared space) must be specified");
 				return;
 			}
 			uiLocation = location.replaceAll("/$", "") + "/ui?p=" + sharedSpace;
 		} else {
-			uiLocation = configuration.getString("uiLocation");
+			uiLocation = newConfiguration.getString("uiLocation");
 		}
 		try {
 			// validate location format
@@ -75,57 +75,58 @@ public class ConfigApi {
 			return;
 		}
 
-		String impersonatedUser = configuration.containsKey("impersonatedUser") ? configuration.getString("impersonatedUser") : "";
+		String impersonatedUser = newConfiguration.containsKey("impersonatedUser") ? newConfiguration.getString("impersonatedUser") : "";
 
-		String username;
-		Secret password;
-		if (!configuration.containsKey("username")) {
-			// when username is not provided, use existing credentials (password can be overridden later)
-			ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-			username = serverConfiguration.username;
-			password = serverConfiguration.password;
-		} else {
-			// when username is provided, clear password unless provided later
-			username = configuration.getString("username");
-			password = Secret.fromString("");
+		String username = "";
+		Secret password = Secret.fromString("");
+		if (newConfiguration.containsKey("username")) {
+			username = newConfiguration.getString("username");
 		}
-		if (configuration.containsKey("password")) {
-			password = Secret.fromString(configuration.getString("password"));
+		if (newConfiguration.containsKey("password")) {
+			password = Secret.fromString(newConfiguration.getString("password"));
 		}
-		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, password, impersonatedUser);
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, password, impersonatedUser, null);
 		ConfigurationService.configurePlugin(model);
 
-		String serverIdentity = (String) configuration.get("serverIdentity");
-		if (!StringUtils.isEmpty(serverIdentity)) {
-			ConfigurationService.getModel().setIdentity(serverIdentity);
-		}
-
-		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+		res.serveExposedBean(req, getConfiguration(model.getIdentity()), Flavor.JSON);
 	}
 
 	private void checkPermission() {
 		Jenkins.getInstance().getACL().checkPermission(Jenkins.ADMINISTER);
 	}
 
-	private Configuration getConfiguration() {
-		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+	private Configuration getConfiguration(String identity) {
+		OctaneServerSettingsModel settings = ConfigurationService.getSettings(identity);
 		return new Configuration(
-				serverConfiguration.location,
-				serverConfiguration.sharedSpace,
-				serverConfiguration.username,
-				serverConfiguration.impersonatedUser,
-				ConfigurationService.getModel().getIdentity());
+				settings.getLocation(),
+				settings.getSharedSpace(),
+				settings.getUsername(),
+				settings.getImpersonatedUser(),
+				settings.getIdentity());
+	}
+
+	private Configurations getConfigurations() {
+		List<Configuration> result = new LinkedList<>();
+		ConfigurationService.getAllSettings().forEach(one -> {
+			if (one.isValid()) {
+				result.add(new Configuration(
+						one.getLocation(),
+						one.getSharedSpace(),
+						one.getUsername(),
+						one.getImpersonatedUser(),
+						one.getIdentity()));
+			}
+		});
+		return new Configurations(result);
 	}
 
 	@ExportedBean
 	public static final class Configuration {
-
 		private String location;
 		private String sharedSpace;
 		private String username;
 		private String serverIdentity;
 		private String impersonatedUser;
-
 
 		public Configuration(String location, String sharedSpace, String username, String impersonatedUser, String serverIdentity) {
 			this.location = location;
@@ -141,11 +142,6 @@ public class ConfigApi {
 		}
 
 		@Exported(inline = true)
-		public String getImpersonatedUser() {
-			return impersonatedUser;
-		}
-
-		@Exported(inline = true)
 		public String getSharedSpace() {
 			return sharedSpace;
 		}
@@ -156,8 +152,27 @@ public class ConfigApi {
 		}
 
 		@Exported(inline = true)
+		public String getImpersonatedUser() {
+			return impersonatedUser;
+		}
+
+		@Exported(inline = true)
 		public String getServerIdentity() {
 			return serverIdentity;
+		}
+	}
+
+	@ExportedBean
+	public static final class Configurations {
+		private final List<Configuration> configurations;
+
+		public Configurations(List<Configuration> configurations) {
+			this.configurations = new LinkedList<>(configurations);
+		}
+
+		@Exported(inline = true)
+		public Configuration[] getConfigurations() {
+			return configurations.toArray(new Configuration[0]);
 		}
 	}
 }
