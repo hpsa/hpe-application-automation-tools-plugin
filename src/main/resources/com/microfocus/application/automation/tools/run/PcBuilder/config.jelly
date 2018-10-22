@@ -371,13 +371,13 @@
     <td>On Timeslot creation failure</td>
     <td colspan="2">
         <table style="width:100%" id="retryTable">
-        <f:radioBlock field="retry" name="retry" value="NO_RETRY" checked="${instance.pcModel.retry =='NO_RETRY'}" title="Do Not Repeat" inline="true" />
-        <f:radioBlock field="retry" name="retry" value="RETRY" checked="${instance.pcModel.retry=='RETRY'}" title="Repeat with the following parameters" inline="true">
+        <f:radioBlock field="retry" name="pc.retry" value="NO_RETRY" checked="${instance.pcModel.retry =='NO_RETRY'}" title="Do Not Repeat" inline="true" />
+        <f:radioBlock field="retry" name="pc.retry" value="RETRY" checked="${instance.pcModel.retry=='RETRY'}" title="Repeat with the following parameters" inline="true">
             <f:entry title="Delay between attempts (in minutes):" field="retry">
-                <f:textbox  name="retryDelay" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.retryDelay}" inline="true"/>
+                <f:textbox  name="pc.retryDelay" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.retryDelay}" inline="true"/>
             </f:entry>
             <f:entry title="Number of attempts:" field="retry">
-                <f:textbox  name="retryOccurrences" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.retryOccurrences}" inline="true"/>
+                <f:textbox  name="pc.retryOccurrences" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.retryOccurrences}" inline="true"/>
             </f:entry>
         </f:radioBlock>
         </table>
