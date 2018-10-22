@@ -116,7 +116,7 @@
     <Compile Include="TestParameterInfo.cs" />
     <Compile Include="TestRunners\ParallelTestRunner.cs" />
     <Compile Include="TestRunners\PerformanceTestRunner.cs" />
-    <Compile Include="TestRunners\SummaryDataLogger.cs" />
+    <Compile Include="SummaryDataLogger.cs" />
     <Compile Include="TestRunResults.cs" />
     <Compile Include="TestRunners\GuiTestRunner.cs" />
     <Compile Include="RTS\AdditionalAttributeModel.cs" />
