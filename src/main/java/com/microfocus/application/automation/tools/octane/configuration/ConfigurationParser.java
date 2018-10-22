@@ -24,8 +24,8 @@ package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -80,14 +80,9 @@ public class ConfigurationParser {
 	}
 
 	public FormValidation checkConfiguration(String location, String sharedSpace, String username, Secret password) {
-		OctaneConfiguration configuration = dtoFactory.newDTO(OctaneConfiguration.class)
-				.setUrl(location)
-				.setSharedSpace(sharedSpace)
-				.setApiKey(username)
-				.setSecret(password.getPlainText());
 		OctaneResponse checkResponse;
 		try {
-			checkResponse = OctaneSDK.getInstance().getConfigurationService().validateConfiguration(configuration);
+			checkResponse = OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
 		} catch (IOException ioe) {
 			logger.warn("Connection check failed due to communication problem", ioe);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));

@@ -23,6 +23,7 @@
 package com.microfocus.application.automation.tools.octane.buildLogs;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
@@ -42,17 +43,17 @@ public class RunListenerForLogs extends RunListener<Run> {
 
 	@Override
 	public void onFinalized(Run run) {
-		if (ConfigurationService.getServerConfiguration() == null ||
-				!ConfigurationService.getServerConfiguration().isValid() ||
-				ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
-
 		try {
 			String jobCiId = BuildHandlerUtils.getJobCiId(run);
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
-			OctaneSDK.getInstance().getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
+			OctaneSDK.getClients().forEach(octaneClient -> {
+				String instanceId = octaneClient.getInstanceId();
+				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
+				if (settings != null && !settings.isSuspend()) {
+					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
+				}
+			});
 		} catch (Throwable t) {
 			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
 		}

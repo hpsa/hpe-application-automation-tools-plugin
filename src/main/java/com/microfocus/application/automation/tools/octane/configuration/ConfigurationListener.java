@@ -22,10 +22,11 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import hudson.ExtensionPoint;
 
 public interface ConfigurationListener extends ExtensionPoint {
 
-    void onChanged(ServerConfiguration conf, ServerConfiguration oldConf);
+    void onChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf);
 
 }
