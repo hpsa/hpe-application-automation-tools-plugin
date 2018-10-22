@@ -23,13 +23,14 @@
 package com.microfocus.application.automation.tools.octane.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.VulnerabilitiesService;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
+import hudson.model.listeners.RunListener;
 import hudson.tasks.Publisher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,83 +40,94 @@ import java.lang.reflect.Field;
 /**
  * Jenkins events life cycle listener for processing vulnerabilities scan results on build completed
  */
+
 @Extension
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872"})
-public class VulnerabilitiesListener {
-    private static Logger logger = LogManager.getLogger(VulnerabilitiesListener.class);
+public class VulnerabilitiesListener extends RunListener<Run> {
+	private static Logger logger = LogManager.getLogger(VulnerabilitiesListener.class);
 
-    private VulnerabilitiesService vulnerabilitiesService = OctaneSDK.getInstance().getVulnerabilitiesService();
+	@Override
+	public void onFinalized(Run run) {
+		String jobCiId = BuildHandlerUtils.getJobCiId(run);
+		String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
-    public void processBuild(Run run) {
-        String jobCiId = BuildHandlerUtils.getJobCiId(run);
-        String buildCiId = BuildHandlerUtils.getBuildCiId(run);
-        ProjectAndVersionJobConfig projectAndVersionJobConfig = verifySSCConfig(run);
-        if (projectAndVersionJobConfig == null) {
-            logger.warn("Octane configuration is not valid");
-            return;
-        }
+		//  [YG]: TODO productize the below code
+//		long queueItemTimeout = 0;
+//		ParametersAction parameters = run.getAction(ParametersAction.class);
+//		if (parameters != null && parameters.getParameter("some-predefined-value") != null) {
+//			queueItemTimeout = Long.parseLong((String) parameters.getParameter("some-predefined-value").getValue());
+//		}
 
-        vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(jobCiId, buildCiId, projectAndVersionJobConfig.project,
-                projectAndVersionJobConfig.version,
-                run.getStartTimeInMillis());
-    }
 
-    private ProjectAndVersionJobConfig verifySSCConfig(Run run) {
+		OctaneSDK.getClients().forEach(octaneClient -> {
+			String instanceId = octaneClient.getInstanceId();
+			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
+			if (settings != null && !settings.isSuspend()) {
+				ProjectAndVersionJobConfig projectAndVersionJobConfig = getProjectVersionInJobConfig(run);
+				if (projectAndVersionJobConfig == null) {
+					logger.warn("Octane configuration is not valid");
+					return;
+				}
 
-        if (!(ConfigurationService.getServerConfiguration() != null && ConfigurationService.getServerConfiguration().isValid()) ||
-                ConfigurationService.getModel().isSuspend()) {
-            logger.warn("Octane is configured to suspend. No need to get SSC Project Configuration ");
-            return null;
-        }
-        return getProjectVersionInJobConfig(run);
-    }
-    static class ProjectAndVersionJobConfig {
-        public String project;
-        public String version;
+				octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
+						jobCiId,
+						buildCiId,
+						projectAndVersionJobConfig.project,
+						projectAndVersionJobConfig.version,
+						run.getStartTimeInMillis(),
+						settings.getMaxTimeoutHours());
+			}
+		});
+	}
 
-        public ProjectAndVersionJobConfig(String projectName, String projectVersion) {
-            this.project = projectName;
-            this.version = projectVersion;
-        }
-    }
-    private ProjectAndVersionJobConfig getProjectVersionInJobConfig(Run run) {
-        AbstractProject project = ((AbstractBuild) run).getProject();
-        for (Object publisherO : project.getPublishersList()) {
-            if (publisherO instanceof Publisher) {
-                Publisher publisher = (Publisher) publisherO;
-                publisher.getClass().getName().equals(
-                        "com.fortify.plugin.jenkins.FPRPublisher");
-                return getProjectNameByReflection(publisherO);
-            }
-        }
-        logger.warn("Unable to find SSC config in project configuration.");
-        return null;
-    }
+	static class ProjectAndVersionJobConfig {
+		public String project;
+		public String version;
 
-    private ProjectAndVersionJobConfig getProjectNameByReflection(Object someObject) {
+		public ProjectAndVersionJobConfig(String projectName, String projectVersion) {
+			this.project = projectName;
+			this.version = projectVersion;
+		}
+	}
 
-        String projectName = getFieldValue(someObject, "projectName");
-        String projectVersion = getFieldValue(someObject, "projectVersion");
-        if (projectName != null && projectVersion != null) {
-            return new ProjectAndVersionJobConfig(projectName, projectVersion);
-        }
-        return null;
-    }
-    private String getFieldValue(Object someObject, String fieldName) {
-        for (Field field : someObject.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
-            if(field.getName().equals(fieldName)) {
-                Object value = null;
-                try {
-                    value = field.get(someObject);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                if (value != null) {
-                    return value.toString();
-                }
-            }
-        }
-        return null;
-    }
+	private ProjectAndVersionJobConfig getProjectVersionInJobConfig(Run run) {
+		AbstractProject project = ((AbstractBuild) run).getProject();
+		for (Object publisherO : project.getPublishersList()) {
+			if (publisherO instanceof Publisher) {
+				Publisher publisher = (Publisher) publisherO;
+				publisher.getClass().getName().equals(
+						"com.fortify.plugin.jenkins.FPRPublisher");
+				return getProjectNameByReflection(publisherO);
+			}
+		}
+		logger.warn("Unable to find SSC config in project configuration.");
+		return null;
+	}
+
+	private ProjectAndVersionJobConfig getProjectNameByReflection(Object someObject) {
+		String projectName = getFieldValue(someObject, "projectName");
+		String projectVersion = getFieldValue(someObject, "projectVersion");
+		if (projectName != null && projectVersion != null) {
+			return new ProjectAndVersionJobConfig(projectName, projectVersion);
+		}
+		return null;
+	}
+
+	private String getFieldValue(Object someObject, String fieldName) {
+		for (Field field : someObject.getClass().getDeclaredFields()) {
+			field.setAccessible(true);
+			if (field.getName().equals(fieldName)) {
+				Object value = null;
+				try {
+					value = field.get(someObject);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				if (value != null) {
+					return value.toString();
+				}
+			}
+		}
+		return null;
+	}
 }

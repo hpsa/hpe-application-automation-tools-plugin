@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,15 +16,10 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
-import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Cause;
 import hudson.model.Job;
@@ -45,8 +39,6 @@ import java.util.List;
  */
 
 public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
 	WorkFlowJobProcessor(Job job) {
 		super((WorkflowJob) job);
 	}
@@ -55,7 +47,7 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 		return new ArrayList<>();
 	}
 
-	public void scheduleBuild(String parametersBody) {
+	public void scheduleBuild(String parametersBody, String issuingDescription) {
 		int delay = this.job.getQuietPeriod();
 
 		if (parametersBody != null && !parametersBody.isEmpty()) {
@@ -68,21 +60,7 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 
 			//  TODO: support parameters
 		}
-		this.job.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"));
-	}
-
-	private OctaneConfiguration getOctaneConfiguration() {
-		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
-				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
-			result = dtoFactory.newDTO(OctaneConfiguration.class)
-					.setUrl(serverConfiguration.location)
-					.setSharedSpace(serverConfiguration.sharedSpace)
-					.setApiKey(serverConfiguration.username)
-					.setSecret(serverConfiguration.password.getPlainText());
-		}
-		return result;
+		this.job.scheduleBuild(delay, new Cause.RemoteCause(issuingDescription, "octane driven execution"));
 	}
 
 	@Override
