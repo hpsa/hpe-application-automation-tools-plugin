@@ -20,7 +20,7 @@
  *
  */
 
-package com.microfocus.application.automation.tools.model;
+package com.microfocus.application.automation.tools.lr.model;
 
 import hudson.Extension;
 import hudson.util.FormValidation;

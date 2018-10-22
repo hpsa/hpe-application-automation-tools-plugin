@@ -24,7 +24,7 @@ package com.microfocus.application.automation.tools.pipelineSteps;
 
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
-import com.microfocus.application.automation.tools.model.SummaryDataLogModel;
+import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.Extension;
