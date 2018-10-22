@@ -27,6 +27,7 @@ using System.Security.Cryptography;
 using System.Text;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
+using HpToolsLauncher.RTS;
 
 namespace HpToolsLauncher
 {
@@ -575,17 +576,18 @@ namespace HpToolsLauncher
                             parallelRunnerEnvironments.Add(test.Id, testEnvironments);
                         }
                     }
-
+                    
                     SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
+                    List<ScriptRTSModel> scriptRTSSet = GetScriptRTSSet();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet);
                     }
 
                     break;
@@ -742,7 +744,8 @@ namespace HpToolsLauncher
             {
                 int summaryDataLoggerPollingInterval;
                 //If the polling interval is not a valid number, set it to default (10 seconds)
-                if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval)) {
+                if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval))
+                {
                     summaryDataLoggerPollingInterval = 10;
                 }
 
@@ -750,16 +753,45 @@ namespace HpToolsLauncher
                     summaryDataLogFlags[0].Equals("1"),
                     summaryDataLogFlags[1].Equals("1"),
                     summaryDataLogFlags[2].Equals("1"),
-                    summaryDataLoggerPollingInterval                    
+                    summaryDataLoggerPollingInterval
                 );
             }
             else
             {
                 summaryDataLogger = new SummaryDataLogger();
             }
-            
-            return summaryDataLogger;
 
+            return summaryDataLogger;
+        }
+
+        private List<ScriptRTSModel> GetScriptRTSSet()
+        {
+            List<ScriptRTSModel> scriptRTSSet = new List<ScriptRTSModel>();
+
+            IEnumerable<string> scriptNames = GetParamsWithPrefix("ScriptRTS");
+            foreach (string scriptName in scriptNames)
+            {
+                ScriptRTSModel scriptRTS = new ScriptRTSModel(scriptName);
+
+                IEnumerable<string> additionalAttributes = GetParamsWithPrefix("AdditionalAttribute");
+                foreach (string additionalAttribute in additionalAttributes)
+                {
+                    //Each additional attribute contains: script name, aditional attribute name, value and description
+                    string[] additionalAttributeArguments = additionalAttribute.Split(";".ToCharArray());
+                    if (additionalAttributeArguments.Length == 4 && additionalAttributeArguments[0].Equals(scriptName))
+                    {
+                        scriptRTS.AddAdditionalAttribute(new AdditionalAttributeModel(
+                            additionalAttributeArguments[1],
+                            additionalAttributeArguments[2],
+                            additionalAttributeArguments[3])
+                        );
+                    }
+                }
+
+                scriptRTSSet.Add(scriptRTS);
+            }
+
+            return scriptRTSSet;
         }
     }
 }

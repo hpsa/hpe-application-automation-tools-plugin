@@ -119,6 +119,9 @@
     <Compile Include="TestRunners\SummaryDataLogger.cs" />
     <Compile Include="TestRunResults.cs" />
     <Compile Include="TestRunners\GuiTestRunner.cs" />
+    <Compile Include="RTS\AdditionalAttributeModel.cs" />
+    <Compile Include="RTS\RTSHelper.cs" />
+    <Compile Include="RTS\ScriptRTSModel.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
