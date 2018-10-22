@@ -1,0 +1,53 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler" xmlns:ha="/lib/healthanalyzer">
+
+    <st:documentation>
+        Optional block with checkbox that opens a ListBoxModel.
+        <st:attribute name="optionalBlockTitle">
+            The title of the optional block
+        </st:attribute>
+        <st:attribute name="listWrapperClass" use="required">
+            The field the holds the selected list needs to be wrapped in a class.
+            For example see: RepeatableField class
+        </st:attribute>
+        <st:attribute name="isCheckedMethod" use="required">
+            Checks if the checkbox is toggled by checking if the field is not null
+        </st:attribute>
+        <st:attribute name="entryTitle">
+            The title that is next to the drop down list
+        </st:attribute>
+        <st:attribute name="innerClassField" use="required">
+            The inner class field.
+            It's name should be the same as it is declared in the class.
+            For example: in RepeatableField class the field that holds the value called "field", and it has a getter
+            named "getField" inside the drop down list class.
+        </st:attribute>
+    </st:documentation>
+
+    <ha:customOptionalBlock title="${optionalBlockTitle}" name="${listWrapperClass}" checked="${isCheckedMethod}">
+        <ha:customEntry title="${entryTitle}" field="${innerClassField}">
+            <f:select/>
+        </ha:customEntry>
+    </ha:customOptionalBlock>
+
+</j:jelly>

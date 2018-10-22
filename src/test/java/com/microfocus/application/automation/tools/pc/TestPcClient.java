@@ -22,13 +22,12 @@
 
 package com.microfocus.application.automation.tools.pc;
 
+import com.microfocus.application.automation.tools.run.PcBuilder;
 import hudson.FilePath;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.microfocus.application.automation.tools.run.PcBuilder;
 
 import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 
