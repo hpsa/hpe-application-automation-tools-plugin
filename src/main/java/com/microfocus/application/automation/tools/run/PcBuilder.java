@@ -26,12 +26,10 @@
 * */
 package com.microfocus.application.automation.tools.run;
 
-import com.microfocus.application.automation.tools.run.Messages;
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.application.automation.tools.pc.PcClient;
 import com.microfocus.application.automation.tools.pc.PcModel;
 import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
-import com.microfocus.application.automation.tools.run.AdditionalParametersAction;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Error;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Failure;
 import com.microfocus.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
@@ -907,7 +905,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     ret = Result.FAILURE;
                 }
             } else {
-                logger.println(String.format("%s - s", dateFormatter.getDate(), Messages.EmptyResults()));
+                logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.EmptyResults()));
                 ret = Result.FAILURE;
             }
             
