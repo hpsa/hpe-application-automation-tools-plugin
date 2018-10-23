@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.lr.model;
 
+import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -65,6 +66,6 @@ public class ScriptRTSSetModel extends AbstractDescribableImpl<ScriptRTSSetModel
     public static class DescriptorImpl extends Descriptor<ScriptRTSSetModel>
     {
         @Nonnull
-        public String getDisplayName() {return "Script RTS Set Model";}
+        public String getDisplayName() { return Messages.ScriptRTSSetModel(); }
     }
 }

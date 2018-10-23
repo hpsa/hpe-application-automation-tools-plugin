@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.lr.model;
 
+import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -56,6 +57,6 @@ public class AdditionalAttributeModel extends AbstractDescribableImpl<Additional
     public static class DescriptorImpl extends Descriptor<AdditionalAttributeModel>
     {
         @Nonnull
-        public String getDisplayName() {return "Additional Attribute Model";}
+        public String getDisplayName() { return Messages.AdditionalAttributeModel(); }
     }
 }
