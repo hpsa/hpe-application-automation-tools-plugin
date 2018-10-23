@@ -24,7 +24,7 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
   <H3>Script</H3>
-  <f:entry title="Script Name" field="scriptName">
+  <f:entry title="${%ScriptName}" field="scriptName">
     <f:textbox field="scriptName"/>
   </f:entry>
   <f:block>
