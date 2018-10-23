@@ -51,6 +51,7 @@ namespace HpToolsLauncher.TestRunners
         private RunCancelledDelegate _runCancelled;
         private bool _displayController;
         private string _analysisTemplate;
+        private SummaryDataLogger _summaryDataLogger;
 
         private bool _scenarioEnded;
         private bool _scenarioEndedEvent;
@@ -88,7 +89,7 @@ namespace HpToolsLauncher.TestRunners
         Dictionary<string, ControllerError> _errors;
         int _errorsCount;
         
-        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate)
+        public PerformanceTestRunner(IAssetRunner runner, TimeSpan timeout, int pollingInterval, TimeSpan perScenarioTimeOut, List<string> ignoreErrorStrings, bool displayController, string analysisTemplate, SummaryDataLogger summaryDataLogger)
         {
             this._runner = runner;
             this._timeout = timeout;
@@ -97,6 +98,7 @@ namespace HpToolsLauncher.TestRunners
             this._ignoreErrorStrings = ignoreErrorStrings;
             this._displayController = displayController;
             this._analysisTemplate = analysisTemplate;
+            this._summaryDataLogger = summaryDataLogger;
             this._scenarioEnded = false;
             _engine = null;
             this._errors = null;
@@ -427,7 +429,29 @@ namespace HpToolsLauncher.TestRunners
             return true;
         }
 
+        private void LogDataDuringScenarioExecution()
+        {
+            ThreadStart summaryDataLoggingThread = () =>
+            {
+                try
+                {
+                    LrScenario currentScenario = _engine.Scenario;
 
+                    while (!_scenarioEnded)
+                    {
+                        _summaryDataLogger.LogSummaryData(currentScenario);
+                        Thread.Sleep(_summaryDataLogger.GetPollingInterval());
+                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrSummaryDataLoggingError, e.Message));
+                    return;
+                }
+            };
+            Thread t = new Thread(summaryDataLoggingThread);
+            t.Start();
+        }
 
         private void generateAnalysisReport(TestRunResults runDesc)
         {
@@ -624,7 +648,8 @@ namespace HpToolsLauncher.TestRunners
 
             while (!_scenarioEnded)
             {
-                if (!_scenarioEndedEvent)
+                //Currently logging events causes controller scenario end event to unregister causing hptoolslauncher to be stuck
+                if (!_scenarioEndedEvent || _summaryDataLogger.IsAnyDataLogged())
                 {
                     //if all Vusers are in ending state, scenario is finished.
                     _scenarioEnded = isFinished();
@@ -645,8 +670,13 @@ namespace HpToolsLauncher.TestRunners
 
             //wait for the scenario to end gracefully:
             int time = _pollingInterval * 1000;
-            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
+
+            if (_summaryDataLogger.IsAnyDataLogged())
             {
+                LogDataDuringScenarioExecution();
+            }
+            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
+            {   
                 if (_runCancelled())
                 {
                     errorReason = Resources.GeneralTimedOut;
@@ -964,7 +994,6 @@ namespace HpToolsLauncher.TestRunners
             //ConsoleWriter.WriteLine("Closing controller");
             closeController();
             cleanENV();
-        }
-
+        }        
     }
 }

@@ -31,6 +31,7 @@ import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.uft.run.RunFromUftFileBuilder;
+import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -73,6 +74,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
     private FileSystemTestSetModel fileSystemTestSetModel;
+    private SummaryDataLogModel summaryDataLogModel;
     private RunFromUftFileBuilder runUftFromFileBuilder = new RunFromUftFileBuilder();
     private boolean isParallelRunnerEnabled;
 
@@ -83,12 +85,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-                              FileSystemTestSetModel fileSystemTestSetModel) {
+                              FileSystemTestSetModel fileSystemTestSetModel,
+                              SummaryDataLogModel summaryDataLogModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.runUftFromFileBuilder = new RunFromUftFileBuilder(fileSystemTestSetModel);
         this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
+        this.summaryDataLogModel = summaryDataLogModel;
     }
 
     /**
@@ -157,6 +161,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         return fileSystemTestSetModel;
     }
 
+    public SummaryDataLogModel getSummaryDataLogModel() { return summaryDataLogModel; }
+
+    public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
+        this.summaryDataLogModel = summaryDataLogModel;
+    }
     /**
      * Gets the parallel runner flag.
      *
@@ -527,6 +536,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
+        summaryDataLogModel.addToProps(mergedProperties);
         runUftFromFileBuilder.replaceTestWithMtbx(build, workspace, listener,
                 env, mergedProperties, time, isParallelRunnerEnabled);
 
