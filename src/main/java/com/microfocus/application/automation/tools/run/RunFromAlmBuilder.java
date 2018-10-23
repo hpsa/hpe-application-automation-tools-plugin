@@ -64,6 +64,9 @@ import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.RunFromAlmModel;
 import com.microfocus.application.automation.tools.run.AlmRunTypes.RunType;
 
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+import static com.microfocus.application.automation.tools.Messages.RunFromAlmBuilderStepName;
+
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
     private final RunFromAlmModel runFromAlmModel;
@@ -322,7 +325,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            return "Execute functional tests from Micro Focus ALM";
+            return RunFromAlmBuilderStepName(CompanyName());
         }
         
         public boolean hasAlmServers() {
