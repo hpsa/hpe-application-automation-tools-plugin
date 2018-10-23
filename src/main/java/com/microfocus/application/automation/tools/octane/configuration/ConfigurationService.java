@@ -69,6 +69,9 @@ public class ConfigurationService {
 	 */
 	public static String getPluginVersion() {
 		Plugin plugin = Jenkins.getInstance().getPlugin("hp-application-automation-tools-plugin");
+		if(plugin == null){
+			return "na";
+		}
 		return plugin.getWrapper().getVersion();
 	}
 }
