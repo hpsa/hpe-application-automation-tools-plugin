@@ -28,6 +28,11 @@ using System.Text.RegularExpressions;
 
 namespace HpToolsLauncher.RTS
 {
+    /// <summary>
+    /// Class responsible for building the runtime settings xml which is sent to controller to update runtime settings
+    /// It can modify an existing xml string by editing or adding properties (under the form key-value) to a given section
+    /// At the moment it is being used to modify additional attributes
+    /// </summary>
     public class RTSHelper
     {
         public struct KeyValuePair
@@ -90,7 +95,6 @@ namespace HpToolsLauncher.RTS
         }
 
         /**
-         * 
          * Create the section if it doesn't exist 
          */
         private void CreateSection()

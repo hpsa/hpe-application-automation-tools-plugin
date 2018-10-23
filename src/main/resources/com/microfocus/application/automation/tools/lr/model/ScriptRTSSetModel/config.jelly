@@ -21,10 +21,8 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
-
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:block>
-        <cv:customRepeatableProperty field="scripts" minimum="0" add="+ Script RTS"/>
+        <f:repeatableProperty field="scripts" minimum="0" add="+ Script RTS"/>
     </f:block>
 </j:jelly>

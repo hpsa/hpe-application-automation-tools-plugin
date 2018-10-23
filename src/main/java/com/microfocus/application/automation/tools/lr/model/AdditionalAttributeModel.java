@@ -29,6 +29,11 @@ import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
+/**
+ * An additional attribute in the controller runtime's settings consists of: name, value and
+ * description (optional)
+ *
+ */
 public class AdditionalAttributeModel extends AbstractDescribableImpl<AdditionalAttributeModel> {
     private String name;
     private String value;

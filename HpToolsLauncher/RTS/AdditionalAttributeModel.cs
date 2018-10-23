@@ -27,6 +27,9 @@ using System.Text;
 
 namespace HpToolsLauncher.RTS
 {
+    /// <summary>
+    /// Model class which describes the structure of an additional attribute
+    /// </summary>
     public class AdditionalAttributeModel
     {
         private string name;

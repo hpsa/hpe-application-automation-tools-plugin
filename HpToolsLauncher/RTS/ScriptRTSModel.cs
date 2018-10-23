@@ -27,6 +27,9 @@ using System.Text;
 
 namespace HpToolsLauncher.RTS
 {
+    /// <summary>
+    /// Model class which contains the script name and runtime settings (currently additional attributes)
+    /// </summary>
     public class ScriptRTSModel
     {
         private string scriptName;

@@ -32,6 +32,14 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Use case: users can add runtime settings to scripts from jenkins (currently only additional
+ * attributes)
+ * This model will be sent to HpToolsLauncher (by saving it in the props.txt file) which parses
+ * the scripts and performs api calls on controller
+ *
+ * Describes a container for scripts and their associated runtime settings
+ */
 public class ScriptRTSSetModel extends AbstractDescribableImpl<ScriptRTSSetModel> {
     private List<ScriptRTSModel> scripts;
 
