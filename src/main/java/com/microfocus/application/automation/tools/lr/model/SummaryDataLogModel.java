@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.lr.model;
 
+import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import hudson.model.AbstractDescribableImpl;
@@ -79,7 +80,7 @@ public class SummaryDataLogModel extends AbstractDescribableImpl<SummaryDataLogM
     @Extension
     public static class DescriptorImpl extends Descriptor<SummaryDataLogModel> {
         @Nonnull
-        public String getDisplayName() {return "Summary Data Log Model";}
+        public String getDisplayName() { return Messages.SummaryDataLogModel(); }
 
         public FormValidation doCheckPollingInterval(@QueryParameter String value) {
             if (!StringUtils.isNumeric(value)) {
