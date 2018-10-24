@@ -23,12 +23,16 @@ package com.microfocus.application.automation.tools.octane.configuration;
 
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 /*
     Utility to help retrieving the configuration of the SSC Server URL.
  */
 public class SSCServerConfigUtil {
+
+    private static final Logger logger = LogManager.getLogger(SSCServerConfigUtil.class);
 
     public static String getSSCServer() {
         Descriptor sscDescriptor = getSSCDescriptor();
@@ -53,7 +57,7 @@ public class SSCServerConfigUtil {
                 try {
                     value = field.get(someObject);
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    logger.error(e);
                 }
                 if (value != null) {
                     return value;

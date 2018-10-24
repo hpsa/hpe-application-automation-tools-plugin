@@ -225,10 +225,9 @@ public class TestExecutionJobCreatorService {
 	/**
 	 * Create (if needed) and run test discovery
 	 *
-	 * @param sharedSpaceId shared space ID
 	 * @param discoveryInfo discovery info
 	 */
-	public static void runTestDiscovery(String sharedSpaceId, DiscoveryInfo discoveryInfo) {
+	public static void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 
         /*
         {
@@ -243,7 +242,7 @@ public class TestExecutionJobCreatorService {
           "forceFullDiscovery": true
         }
          */
-		FreeStyleProject proj = getDiscoveryJob(sharedSpaceId, discoveryInfo);
+		FreeStyleProject proj = getDiscoveryJob(discoveryInfo);
 
 		//start job
 		if (proj != null) {
@@ -257,7 +256,7 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
-	private static FreeStyleProject getDiscoveryJob(String sharedSpaceId, DiscoveryInfo discoveryInfo) {
+	private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
 
 		try {
 			String discoveryJobName = buildDiscoveryJobName(discoveryInfo.getTestingToolType(), discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
@@ -293,7 +292,7 @@ public class TestExecutionJobCreatorService {
 			}
 
 			if (uftTestDetectionPublisher == null) {
-				uftTestDetectionPublisher = new UFTTestDetectionPublisher(sharedSpaceId, discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
+				uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getConfigurationId(), discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
 				publishers.add(uftTestDetectionPublisher);
 			}
 

@@ -391,11 +391,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 		SecurityContext securityContext = startImpersonation();
 		try {
-			ConfigurationService.getAllSettings().stream()
-					.filter(settings -> getInstanceId().equals(settings.getIdentity()))
-					.findFirst()
-					.map(OctaneServerSettingsModel::getSharedSpace)
-					.ifPresent(sharedSpaceId -> TestExecutionJobCreatorService.runTestDiscovery(sharedSpaceId, discoveryInfo));
+			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
 		} finally {
 			stopImpersonation(securityContext);
 		}
