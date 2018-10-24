@@ -96,14 +96,9 @@
             <f:entry title="Display Controller" field="displayController">
                 <f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
             </f:entry>
-            <f:section title="${%SummaryDataLog}">
+            <f:section title="Summary Data Log">
                 <f:entry name="Summary Data Log Model" field="summaryDataLogModel">
                     <f:property field="summaryDataLogModel" />
-                </f:entry>
-            </f:section>
-            <f:section title="${%RuntimeSettings}">
-                <f:entry name="Runtime Settings" field="scriptRTSSetModel">
-                    <f:property field="scriptRTSSetModel"/>
                 </f:entry>
             </f:section>
     	</f:section>
