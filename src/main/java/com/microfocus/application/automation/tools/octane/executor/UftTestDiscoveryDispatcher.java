@@ -114,10 +114,17 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 					continue;
 				}
 
-				logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-				for (OctaneClient client : OctaneSDK.getClients()) {
-					dispatchDetectionResults(item, client.getEntitiesService(), result);
+				OctaneClient client = null;
+				try {
+					client = OctaneSDK.getClientByInstanceId(result.getConfigurationId());
+				} catch (Exception e) {
+					logger.error("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] does not have valid configuration " + result.getConfigurationId() + " : " + e.getMessage());
+					queue.remove();
+					continue;
 				}
+
+				logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
+				dispatchDetectionResults(item, client.getEntitiesService(), result);
 				queue.remove();
 			}
 		} catch (OctaneRestException e) {

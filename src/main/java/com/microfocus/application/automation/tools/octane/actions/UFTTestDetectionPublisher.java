@@ -22,10 +22,13 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.executor.UFTTestDetectionService;
 import hudson.Extension;
@@ -40,6 +43,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -50,13 +54,10 @@ import java.util.List;
  */
 
 public class UFTTestDetectionPublisher extends Recorder {
-	private final String sharedSpaceId;
+	private final String configurationId;
 	private final String workspaceName;
 	private final String scmRepositoryId;
 
-	public String getSharedSpaceId() {
-		return sharedSpaceId;
-	}
 
 	public String getWorkspaceName() {
 		return workspaceName;
@@ -68,15 +69,15 @@ public class UFTTestDetectionPublisher extends Recorder {
 
 	// Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 	@DataBoundConstructor
-	public UFTTestDetectionPublisher(String sharedSpaceId, String workspaceName, String scmRepositoryId) {
-		this.sharedSpaceId = sharedSpaceId;
+	public UFTTestDetectionPublisher(String configurationId, String workspaceName, String scmRepositoryId) {
+		this.configurationId = configurationId;
 		this.workspaceName = workspaceName;
 		this.scmRepositoryId = scmRepositoryId;
 	}
 
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		UftTestDiscoveryResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), getScmRepositoryId(), listener);
+		UftTestDiscoveryResult results = UFTTestDetectionService.startScanning(build, getConfigurationId(), getWorkspaceName(), getScmRepositoryId(), listener);
 		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
 		build.addAction(buildAction);
 
@@ -93,44 +94,50 @@ public class UFTTestDetectionPublisher extends Recorder {
 		return BuildStepMonitor.NONE;
 	}
 
+	public String getConfigurationId() {
+		return configurationId;
+	}
+
 	@Extension // This indicates to Jenkins that this is an implementation of an extension point.
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-		public ListBoxModel doFillSharedSpaceIdItems() {
+		public ListBoxModel doFillConfigurationIdItems() {
 			ListBoxModel m = new ListBoxModel();
-			if (!ConfigurationService.getAllSettings().isEmpty()) {
-				ConfigurationService.getAllSettings().forEach(settings -> m.add(settings.getSharedSpace(), settings.getSharedSpace()));
+
+			for (OctaneClient octaneClient : OctaneSDK.getClients()) {
+				OctaneServerSettingsModel model = ConfigurationService.getSettings(octaneClient.getInstanceId());
+				m.add(model.getCaption(), model.getIdentity());
 			}
 			return m;
 		}
 
-		public FormValidation doCheckSharedSpaceId(@QueryParameter String value) {
-			if (value == null || value.isEmpty()) {
-				return FormValidation.error("Please select shared space");
+		public FormValidation doCheckConfigurationId(@QueryParameter String value) {
+			if (StringUtils.isEmpty(value)) {
+				return FormValidation.error("Please select configuration");
 			} else {
 				return FormValidation.ok();
 			}
 		}
 
-		public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String sharedSpaceId) {
+		public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String configurationId) {
 			ListBoxModel m = new ListBoxModel();
-			if (sharedSpaceId != null && !sharedSpaceId.isEmpty()) {
-				EntitiesService entitiesService = OctaneSDK.getClientBySharedSpaceId(sharedSpaceId).getEntitiesService();
-				List<Entity> workspaces = entitiesService.getEntities(null, "workspaces", null, null);
-				for (Entity workspace : workspaces) {
-					m.add(workspace.getName(), String.valueOf(workspace.getId()));
+			if (StringUtils.isNotEmpty(configurationId)) {
+				try {
+					EntitiesService entitiesService = OctaneSDK.getClientByInstanceId(configurationId).getEntitiesService();
+					List<Entity> workspaces = entitiesService.getEntities(null, "workspaces", null, null);
+					for (Entity workspace : workspaces) {
+						m.add(workspace.getName(), String.valueOf(workspace.getId()));
+					}
+				} catch (Exception e) {
+					//octane configuration not found
+					return m;
 				}
 			}
 			return m;
 		}
 
-		public FormValidation doCheckWorkspaceName(
-				@QueryParameter(value = "workspaceName") String value,
-				@QueryParameter(value = "sharedSpaceId") String sharedSpaceId) {
-			if (sharedSpaceId == null || sharedSpaceId.isEmpty()) {
-				return FormValidation.error("Please select shared space");
-			}
-			if (value == null || value.isEmpty()) {
+		public FormValidation doCheckWorkspaceName(@QueryParameter(value = "workspaceName") String value) {
+			if (StringUtils.isEmpty(value)) {
 				return FormValidation.error("Please select workspace");
 			}
 			return FormValidation.ok();
@@ -141,7 +148,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 		}
 
 		public String getDisplayName() {
-			return "ALM Octane UFT Tests Scanner";
+			return Messages.UFTTestDetectionPublisherConfigurationLabel();
 		}
 	}
 }

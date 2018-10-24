@@ -52,7 +52,7 @@ public class UFTTestDetectionService {
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private static final String DETECTION_RESULT_FILE = "detection_result.xml";
 
-    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
+    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
         ChangeLogSet<? extends ChangeLogSet.Entry> changeSet = build.getChangeSet();
         Object[] changeSetItems = changeSet.getItems();
         UftTestDiscoveryResult result = null;
@@ -118,6 +118,7 @@ public class UFTTestDetectionService {
             }
 
             result.setScmRepositoryId(scmRepositoryId);
+            result.setConfigurationId(configurationId);
             result.setWorkspaceId(workspaceId);
             result.setFullScan(fullScan);
             result.sortItems();

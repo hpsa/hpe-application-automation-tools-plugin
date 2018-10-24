@@ -82,7 +82,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
 
         clearExecutionJobs(jobs);
-        clearDiscoveryJobs(jobs);
+        //clearDiscoveryJobs(jobs); temporary disabled
     }
 
     private void clearExecutionJobs(List<FreeStyleProject> jobs) {
@@ -129,8 +129,9 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
             }
         }
 
+        //TOO not working correctly
         if (!workspace2executorLogical2DiscoveryJobMap.isEmpty()) {
-            if (OctaneSDK.getClients().get(0).getConfigurationService().isConfigurationValid()) {
+            if (OctaneSDK.getClients().get(0).getConfigurationService().isCurrentConfigurationValid()) {
                 EntitiesService entitiesService = OctaneSDK.getClients().get(0).getEntitiesService();
                 int deleteCounter = 0;
                 for (Long workspaceId : workspace2executorLogical2DiscoveryJobMap.keySet()) {

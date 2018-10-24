@@ -160,6 +160,10 @@ public class OctaneServerSettingsModel {
 		this.internalId = internalId;
 	}
 
+	public String getCaption() {
+		return getLocation() + "?p=" + getSharedSpace();
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
