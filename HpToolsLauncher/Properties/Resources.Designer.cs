@@ -754,15 +754,6 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured during RTS in script {0}: {1}.
-        /// </summary>
-        internal static string LrRTSError {
-            get {
-                return ResourceManager.GetString("LrRTSError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot collate results ret code = {0}..
         /// </summary>
         internal static string LrScenarioCollateFail {
