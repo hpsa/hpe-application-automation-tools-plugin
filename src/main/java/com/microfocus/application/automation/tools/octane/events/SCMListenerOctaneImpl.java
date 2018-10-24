@@ -20,18 +20,16 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessor;
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.scm.SCMData;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessors;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
@@ -39,12 +37,9 @@ import hudson.model.TaskListener;
 import hudson.model.listeners.SCMListener;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
-import hudson.scm.SCMRevisionState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import java.io.File;
 
 /**
  * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
@@ -60,13 +55,6 @@ public class SCMListenerOctaneImpl extends SCMListener {
 	public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
 		super.onChangeLogParsed(run, scm, listener, changelog);
 
-		if (ConfigurationService.getServerConfiguration() != null && !ConfigurationService.getServerConfiguration().isValid()) {
-			return;
-		}
-		if (ConfigurationService.getModel() != null && ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
-
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
 		if (scmProcessor == null) {
 			logger.debug("no processors found for SCM provider of type '" + scm.getType() + "', SCM data won't be extracted");
@@ -77,7 +65,7 @@ public class SCMListenerOctaneImpl extends SCMListener {
 			SCMData scmData = extractSCMData(run, scm, scmProcessor);
 			if (scmData != null) {
 				CIEvent event = createSCMEvent(run, scmData);
-				OctaneSDK.getInstance().getEventsService().publishEvent(event);
+				CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 			}
 		} catch (Throwable throwable) {
 			logger.error("failed to build and/or dispatch SCM event for " + run, throwable);

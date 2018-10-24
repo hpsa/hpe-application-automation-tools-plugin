@@ -31,7 +31,9 @@ import jenkins.MasterToSlaveFileCallable;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.FileSet;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 
 /**
@@ -112,8 +114,7 @@ public class CucumberResultsService {
         public String[] invoke(File rootDir, VirtualChannel channel) throws IOException {
             FileSet fs = Util.createFileSet(rootDir, glob);
             DirectoryScanner ds = fs.getDirectoryScanner();
-            String[] files = ds.getIncludedFiles();
-            return files;
+            return ds.getIncludedFiles();
         }
     }
 

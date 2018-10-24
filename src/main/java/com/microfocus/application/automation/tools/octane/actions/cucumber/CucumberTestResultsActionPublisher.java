@@ -66,8 +66,7 @@ public class CucumberTestResultsActionPublisher extends Recorder {
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
         CucumberTestResultsAction action = new CucumberTestResultsAction(build, glob, listener);
         build.addAction(action);
-        boolean resultsFound = action.copyResultsToBuildFolder();
-        return resultsFound;
+        return action.copyResultsToBuildFolder();
     }
 
     @Override

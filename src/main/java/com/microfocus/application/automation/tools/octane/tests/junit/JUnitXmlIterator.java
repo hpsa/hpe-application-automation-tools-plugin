@@ -25,7 +25,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.octane.integrations.util.SdkConstants;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;

@@ -20,10 +20,12 @@
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -37,13 +39,10 @@ import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
@@ -51,6 +50,7 @@ import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
@@ -79,36 +79,13 @@ import java.util.stream.Collectors;
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
  */
 
-public class CIJenkinsServicesImpl extends CIPluginServicesBase {
+public class CIJenkinsServicesImpl extends CIPluginServices {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
 	public CIServerInfo getServerInfo() {
-		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
-		String serverUrl = Jenkins.getInstance().getRootUrl();
-		if (serverUrl != null && serverUrl.endsWith("/")) {
-			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-		}
-		OctaneServerSettingsModel model = ConfigurationService.getModel();
-		result.setType(CIServerTypes.JENKINS.value())
-				.setVersion(Jenkins.VERSION)
-				.setUrl(serverUrl)
-				.setInstanceId(model.getIdentity())
-				.setInstanceIdFrom(model.getIdentityFrom())
-				.setSendingTime(System.currentTimeMillis())
-				.setImpersonatedUser(model.getImpersonatedUser())
-				.setSuspended(model.isSuspend());
-
-		return result;
-	}
-
-	@Override
-	public void suspendCIEvents(boolean suspend) {
-		OctaneServerSettingsModel model = ConfigurationService.getModel();
-		model.setSuspend(suspend);
-		ConfigurationService.configurePlugin(model);
-		logger.info("suspend ci event: " + suspend);
+		return getJenkinsServerInfo();
 	}
 
 	@Override
@@ -119,23 +96,16 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	}
 
 	@Override
-	public File getAllowedOctaneStorage() {
-		return new File(Jenkins.getInstance().getRootDir(), "userContent");
+	public void suspendCIEvents(boolean suspend) {
+		OctaneServerSettingsModel model = ConfigurationService.getSettings(getInstanceId());
+		model.setSuspend(suspend);
+		ConfigurationService.configurePlugin(model);
+		logger.info("suspend ci event: " + suspend);
 	}
 
 	@Override
-	public OctaneConfiguration getOctaneConfiguration() {
-		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-		if (serverConfiguration != null && serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
-				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
-			result = dtoFactory.newDTO(OctaneConfiguration.class)
-					.setUrl(serverConfiguration.location)
-					.setSharedSpace(serverConfiguration.sharedSpace)
-					.setApiKey(serverConfiguration.username)
-					.setSecret(serverConfiguration.password.getPlainText());
-		}
-		return result;
+	public File getAllowedOctaneStorage() {
+		return new File(Jenkins.getInstance().getRootDir(), "userContent");
 	}
 
 	@Override
@@ -283,9 +253,13 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	}
 
 	private SecurityContext startImpersonation() {
-		String user = ConfigurationService.getModel().getImpersonatedUser();
+		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
+		if (settings == null) {
+			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
+		}
+		String user = settings.getImpersonatedUser();
 		SecurityContext originalContext = null;
-		if (user != null && !user.equalsIgnoreCase("")) {
+		if (user != null && !user.isEmpty()) {
 			User jenkinsUser = User.get(user, false, Collections.emptyMap());
 			if (jenkinsUser != null) {
 				originalContext = ACL.impersonate(jenkinsUser.impersonate());
@@ -365,19 +339,106 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return result;
 	}
 
-	//  TODO: implement
 	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
-		return null;
+	public InputStream getTestsResult(String jobCiId, String buildCiId) {
+		Job job = (Job) Jenkins.getInstance().getItemByFullName(jobCiId);
+		if (job == null) {
+			logger.warn("job '" + jobCiId + "' no longer exists, its test results won't be pushed to Octane");
+			return null;
+		}
+		Run run = job.getBuildByNumber(Integer.parseInt(buildCiId));
+		if (run == null) {
+			logger.warn("build '" + jobCiId + " #" + buildCiId + "' no longer exists, its test results won't be pushed to Octane");
+			return null;
+		}
+
+		try {
+			return new FileInputStream(run.getRootDir() + File.separator + TestListener.TEST_RESULT_FILE);
+		} catch (Exception fnfe) {
+			logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + jobCiId + " #" + buildCiId + "' won't be pushed to Octane", fnfe);
+			return null;
+		}
 	}
 
 	@Override
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
-		Run build = getBuildFromQueueItem(jobCiId, buildCiId);
-		if (build != null) {
-			return getOctaneLogFile(build);
+		Run run = getRunFromQueueItem(jobCiId, buildCiId);
+		if (run != null) {
+			return getOctaneLogFile(run);
 		} else {
 			return null;
+		}
+	}
+
+	@Override
+	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
+		InputStream result = null;
+		Run run = getRunFromQueueItem(jobId, buildId);
+		if (run != null) {
+			File coverageReport = new File(run.getRootDir(), reportFileName);
+			if (coverageReport.exists()) {
+				try {
+					result = new FileInputStream(coverageReport);
+				} catch (FileNotFoundException fnfe) {
+					logger.warn("file not found for '" + reportFileName + "' although just verified its existence, concurrency?");
+				}
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			ConfigurationService.getAllSettings().stream()
+					.filter(settings -> getInstanceId().equals(settings.getIdentity()))
+					.findFirst()
+					.map(OctaneServerSettingsModel::getSharedSpace)
+					.ifPresent(sharedSpaceId -> TestExecutionJobCreatorService.runTestDiscovery(sharedSpaceId, discoveryInfo));
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public void deleteExecutor(String id) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			UftJobCleaner.deleteExecutor(id);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+
+	}
+
+	@Override
+	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
+		} finally {
+			stopImpersonation(securityContext);
 		}
 	}
 
@@ -403,7 +464,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return result;
 	}
 
-	private Run getBuildFromQueueItem(String jobId, String buildId) {
+	private Run getRunFromQueueItem(String jobId, String buildId) {
 		Run result = null;
 		Job project = getJobByRefId(jobId);
 		if (project != null) {
@@ -424,10 +485,15 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 				parametersAction = new ParametersAction(createParameters(project, ciParameters));
 			}
 
-			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
+			project.scheduleBuild(delay, new Cause.RemoteCause(
+					ConfigurationService.getSettings(getInstanceId()) == null ?
+							"non available URL" :
+							ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven execution"), parametersAction);
 		} else if (job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 			AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
-			workFlowJobProcessor.scheduleBuild(originalBody);
+			workFlowJobProcessor.scheduleBuild(
+					originalBody,
+					ConfigurationService.getSettings(getInstanceId()) == null ? "non available URL" : ConfigurationService.getSettings(getInstanceId()).getLocation());
 		}
 	}
 
@@ -558,7 +624,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		try {
 			item = Jenkins.getInstance().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
-			String user = ConfigurationService.getModel().getImpersonatedUser();
+			String user = ConfigurationService.getSettings(getInstanceId()).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
 				throw new PermissionException(403);
 			} else {
@@ -568,54 +634,26 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return item;
 	}
 
-	@Override
-	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
-		} finally {
-			stopImpersonation(securityContext);
+	public static CIServerInfo getJenkinsServerInfo() {
+		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
+		String serverUrl = Jenkins.getInstance().getRootUrl();
+		if (serverUrl != null && serverUrl.endsWith("/")) {
+			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
+		result.setType(CIServerTypes.JENKINS.value())
+				.setVersion(Jenkins.VERSION)
+				.setUrl(serverUrl)
+				.setSendingTime(System.currentTimeMillis());
+		return result;
 	}
 
-	@Override
-	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public void deleteExecutor(String id) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			UftJobCleaner.deleteExecutor(id);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-
-	}
-
-	@Override
-	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
+	public static void publishEventToRelevantClients(CIEvent event) {
+		OctaneSDK.getClients().forEach(octaneClient -> {
+			String instanceId = octaneClient.getInstanceId();
+			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
+			if (settings != null && !settings.isSuspend()) {
+				octaneClient.getEventsService().publishEvent(event);
+			}
+		});
 	}
 }

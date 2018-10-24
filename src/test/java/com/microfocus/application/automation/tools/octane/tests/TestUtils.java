@@ -83,4 +83,14 @@ public class TestUtils {
 		}
 		Assert.assertTrue("More tests expected: " + copy.toString(), copy.isEmpty());
 	}
+
+	static public String getMavenHome() {
+		String result = System.getenv("MAVEN_HOME") != null && !System.getenv("MAVEN_HOME").isEmpty() ?
+				System.getenv("MAVEN_HOME") :
+				System.getenv("M2_HOME");
+		if (result == null || result.isEmpty()) {
+			throw new IllegalStateException("nor MAVEN_HOME neither M2_HOME is defined, won't run");
+		}
+		return result;
+	}
 }

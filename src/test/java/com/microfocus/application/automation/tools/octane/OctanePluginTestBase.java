@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,20 +16,38 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
-package com.microfocus.application.automation.tools.octane.client;
+package com.microfocus.application.automation.tools.octane;
 
-import com.hp.mqm.client.MqmRestClient;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.util.Secret;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.jvnet.hudson.test.JenkinsRule;
 
-public interface JenkinsMqmRestClientFactory {
+import java.util.UUID;
 
-    MqmRestClient obtain(String location, String sharedSpace, String username, Secret password);
+public abstract class OctanePluginTestBase {
+	protected static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	protected static String instanceId = UUID.randomUUID().toString();
+	protected static String ssp = UUID.randomUUID().toString();
 
-    MqmRestClient obtainTemp(String location, String sharedSpace, String username, Secret password);
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
+	public static final JenkinsRule.WebClient client = rule.createWebClient();
 
-    void updateMqmRestClient(String location, String sharedSpace, String username, Secret password);
+	@BeforeClass
+	public static void init() {
 
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(
+				"http://localhost:8008/ui/?p=" + ssp,
+				"username",
+				Secret.fromString("password"),
+				"");
+		model.setIdentity(instanceId);
+		ConfigurationService.configurePlugin(model);
+	}
 }

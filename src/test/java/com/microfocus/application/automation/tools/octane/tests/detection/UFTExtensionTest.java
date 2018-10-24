@@ -22,11 +22,11 @@
 
 package com.microfocus.application.automation.tools.octane.tests.detection;
 
-import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
-import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestAttributes;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestResultContainer;
+import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
+import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SubversionSCM;
@@ -73,7 +73,7 @@ public class UFTExtensionTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test -Dmaven.repo.local=%s\\m2-temp",
-				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+				TestUtils.getMavenHome(),System.getenv("TEMP")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", ""));
 
 		AbstractBuild buildMock = Mockito.mock(AbstractBuild.class);
