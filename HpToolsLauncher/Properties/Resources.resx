@@ -448,4 +448,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LrSummaryDataLoggingError" xml:space="preserve">
     <value>An error occured during summary data logging: {0}</value>
   </data>
+  <data name="LrRTSError" xml:space="preserve">
+    <value>An error occured during RTS in script {0}: {1}</value>
+  </data>
 </root>
