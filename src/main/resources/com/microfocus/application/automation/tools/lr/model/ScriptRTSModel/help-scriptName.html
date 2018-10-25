@@ -19,19 +19,7 @@
   ~ ___________________________________________________________________
   ~
   -->
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
 
-    <f:entry title="${%PollingInterval}" field="pollingInterval">
-        <f:textbox name="pollingInterval" value="${instance.pollingInterval}" default=""/>
-    </f:entry>
-    <f:entry title="${%LogVusersStates}" field="logVusersStates">
-        <f:checkbox name="logVusersStates" checked="${instance.logVusersStates}"/>
-    </f:entry>
-    <f:entry title="${%LogErrorCount}" field="logErrorCount">
-        <f:checkbox name="logErrorCount" checked="${instance.logErrorCount}"/>
-    </f:entry>
-    <f:entry title="${%LogTransactionStatistics}" field="logTransactionStatistics">
-        <f:checkbox name="logTransactionStatistics" checked="${instance.logTransactionStatistics}"/>
-    </f:entry>
-</j:jelly>
+<div>
+    The script name is found in Controller's Script Information dialog (Percentage Mode scenario) or Group Information dialog (Vuser Group Mode scenario).
+</div>

@@ -32,6 +32,7 @@ import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
+import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -72,6 +73,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private FileSystemTestSetModel fileSystemTestSetModel;
     private boolean isParallelRunnerEnabled;
     private SummaryDataLogModel summaryDataLogModel;
+    private ScriptRTSSetModel scriptRTSSetModel;
 
     /**
      * Instantiates a new Run from file builder.
@@ -81,11 +83,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
                               FileSystemTestSetModel fileSystemTestSetModel,
-                              SummaryDataLogModel summaryDataLogModel) {
+                              SummaryDataLogModel summaryDataLogModel,
+                              ScriptRTSSetModel scriptRTSSetModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.summaryDataLogModel = summaryDataLogModel;
+        this.scriptRTSSetModel = scriptRTSSetModel;
     }
 
 
@@ -253,6 +257,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
         this.summaryDataLogModel = summaryDataLogModel;
     }
+
+    public void setScriptRTSSetModel(ScriptRTSSetModel scriptRTSSetModel) {
+        this.scriptRTSSetModel = scriptRTSSetModel;
+    }
+
+    public ScriptRTSSetModel getScriptRTSSetModel() { return scriptRTSSetModel; }
 
     public String getFsTimeout() {
         return runFromFileModel.getFsTimeout();
@@ -645,6 +655,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
         summaryDataLogModel.addToProps(mergedProperties);
+        scriptRTSSetModel.addScriptsToProps(mergedProperties);
         mergedProperties.put("resultsFilename", ResultFilename);
 
         // parallel runner is enabled
