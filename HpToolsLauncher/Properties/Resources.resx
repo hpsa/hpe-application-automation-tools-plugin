@@ -283,8 +283,17 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LauncherNoTests" xml:space="preserve">
     <value>No test sets were found. Add some test sets or folders.</value>
   </data>
+  <data name="LauncherNoFailedTestsFound" xml:space="preserve">
+    <value>No failed tests were found. Select some test sets or folders.</value>
+  </data>
   <data name="LauncherNoValidTests" xml:space="preserve">
     <value>No valid tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoValidCleanupTests" xml:space="preserve">
+     <value>No valid cleanup tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoValidFailedTests" xml:space="preserve">
+     <value>No valid failed tests to rerun were found. Fix the test paths.</value>
   </data>
   <data name="LauncherParamRequired" xml:space="preserve">
     <value>The parameter '{0}' is required to run a test from QC.</value>
@@ -312,6 +321,9 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="LauncherNoTestsFound" xml:space="preserve">
     <value>No tests were found. Add tests or folders containing tests.</value>
+  </data>
+  <data name="LauncherNoCleanupTestsFound" xml:space="preserve">
+     <value>No cleanup tests were found. Add cleanup tests.</value>
   </data>
   <data name="LoadRunnerNotInstalled" xml:space="preserve">
     <value>LoadRunner is not installed on {0}.</value>

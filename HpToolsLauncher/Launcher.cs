@@ -253,16 +253,33 @@ namespace HpToolsLauncher
             }
 
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(_runtype, _ciParams);
+            IAssetRunner runner;
 
-            //runner instantiation failed (no tests to run or other problem)
-            if (runner == null)
+            if (_runtype.Equals(TestStorageType.FileSystem))
             {
-                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-            }
+               //create the runner according to type
+               runner = CreateRunner(_runtype, _ciParams);
 
-            //run the tests!
-            RunTests(runner, resultsFilename);
+              //runner instantiation failed (no tests to run or other problem)
+              if (runner == null)
+              {
+                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+              }
+
+              RunTests(runner, resultsFilename);
+
+            } else {//TestStorageType.Alm
+                //create the runner according to type
+                runner = CreateRunner(_runtype, _ciParams);
+
+                //runner instantiation failed (no tests to run or other problem)
+                if (runner == null)
+                {
+                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                }
+
+                RunTests(runner, resultsFilename);
+            }
 
             //Console.WriteLine("Press any key to exit...");
             //Console.ReadKey();
@@ -341,12 +358,144 @@ namespace HpToolsLauncher
                     }
                     string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : "");
 
-                    Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix("Test");
+                    //add buid tests
                     List<TestData> tests = new List<TestData>();
+                    Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix("Test");
 
-                    foreach(var item in testsKeyValue)
+                    foreach (var item in testsKeyValue)
                     {
                         tests.Add(new TestData(item.Value, item.Key));
+                    }
+
+                    //build tests
+                    if (tests == null || tests.Count() == 0)
+                    {
+                        WriteToConsole(Resources.LauncherNoTestsFound);
+                    }
+
+
+                    List<TestData> validBuildTests = Helper.ValidateFiles(tests);
+
+                    if (tests != null && tests.Count() > 0 && validBuildTests.Count == 0)
+                    {
+                        ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
+                        return null;
+                    }
+
+                    //check if reruns options should be available
+                    string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
+                    bool rerunFailedTests;
+                    if (string.IsNullOrEmpty(onCheckFailedTests))
+                    {
+                        rerunFailedTests = false;
+                    }
+                    else
+                    {
+                        rerunFailedTests = Convert.ToBoolean(onCheckFailedTests.ToLower());
+                    }
+
+                    ConsoleWriter.WriteLine("Rerun failed tests:  " + rerunFailedTests);
+
+                    //add build tests and cleanup tests in correct order
+                   List <TestData> validTests = new List<TestData>();
+
+                    if (!rerunFailedTests)
+                    {
+                        ConsoleWriter.WriteLine("Run only build tests");
+
+                        //run only the build tests
+                        foreach (var item in validBuildTests)
+                        {
+                            validTests.Add(item);
+                        }
+                    }  else
+                    { //add also cleanup tests
+                        string fsTestType = (_ciParams.ContainsKey("testType") ? _ciParams["testType"] : "");
+
+                        List<TestData> failedTests = new List<TestData>();
+                        Dictionary<string, string> failedTestsKeyValue = GetKeyValuesWithPrefix("FailedTest");
+
+                        foreach (var item in failedTestsKeyValue)
+                        {
+                            failedTests.Add(new TestData(item.Value, item.Key));
+                        }
+
+                        List<TestData> validFailedTests = new List<TestData>();
+                        if (failedTests == null || failedTests.Count() == 0)
+                        {
+                            WriteToConsole(Resources.LauncherNoFailedTestsFound);
+                        }
+                        else
+                        {
+                            validFailedTests = Helper.ValidateFiles(failedTests);
+                            if (failedTests != null && failedTests.Count() > 0 && validFailedTests.Count == 0)
+                            {
+                                ConsoleWriter.WriteLine(Resources.LauncherNoValidFailedTests);
+                                return null;
+                            }
+                        }
+
+                        List<TestData> cleanupTests = new List<TestData>();
+
+                        Dictionary<string, string> cleanuptTestsKeyValue = GetKeyValuesWithPrefix("CleanupTest");
+
+                        foreach (var item in cleanuptTestsKeyValue)
+                        {
+                            cleanupTests.Add(new TestData(item.Value, item.Key));
+                        }
+
+                        List<TestData> validCleanupTests = new List<TestData>();
+                        if (cleanupTests == null || cleanupTests.Count() == 0)
+                        {
+                            WriteToConsole(Resources.LauncherNoCleanupTestsFound);
+                        } else
+                        {
+                            validCleanupTests = Helper.ValidateFiles(cleanupTests);
+                            if (cleanupTests != null && cleanupTests.Count() > 0 && validCleanupTests.Count == 0)
+                            {
+                                ConsoleWriter.WriteLine(Resources.LauncherNoValidCleanupTests);
+                                return null;
+                            }
+                        }
+
+                        List<string> reruns = GetParamsWithPrefix("Reruns");
+                        List<int> numberOfReruns = new List<int>();
+                        foreach (var item in reruns)
+                        {
+                            numberOfReruns.Add(int.Parse(item));
+                        }
+
+                        int currentRerun;
+
+                       
+                        for (int i = 0; i < numberOfReruns.Count; i++)
+                        {
+                            currentRerun = numberOfReruns.ElementAt(i);
+                                                      
+                            if (fsTestType.Equals("Of any of the build's tests"))
+                            {
+                                while (currentRerun > 0)
+                                {
+                                    validTests.Add(validCleanupTests.ElementAt(i));
+                                    foreach(var item in validFailedTests)
+                                    {
+                                        validTests.Add(item);
+                                    }
+
+                                    currentRerun--;
+                                }
+                            } else
+                            {
+                                while (currentRerun > 0)
+                                {
+                                    validTests.Add(validCleanupTests.ElementAt(i));
+                                    
+                                    validTests.Add(validFailedTests.ElementAt(i));
+
+                                    currentRerun--;
+                                }
+                            }
+                        }
                     }
 
                     //get the tests
@@ -406,19 +555,7 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    if (tests == null || tests.Count() == 0)
-                    {
-                        WriteToConsole(Resources.LauncherNoTestsFound);
-                    }
 
-                    List<TestData> validTests = Helper.ValidateFiles(tests);
-
-                    if (tests != null && tests.Count() > 0 && validTests.Count == 0)
-                    {
-                        ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
-                        return null;
-                    }
-                    
                     //If a file path was provided and it doesn't exist stop the analysis launcher
                     if (!analysisTemplate.Equals("") && !Helper.FileExists(analysisTemplate)) {
                         return null;

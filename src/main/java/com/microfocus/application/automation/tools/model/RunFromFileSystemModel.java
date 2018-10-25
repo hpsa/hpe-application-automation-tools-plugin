@@ -30,11 +30,11 @@ import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.util.*;
 
 /**
  * Holds the data for RunFromFile build type.
@@ -48,7 +48,11 @@ public class RunFromFileSystemModel {
 
     public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
+    public final static EnumDescription ANY_BUILD_TEST = new EnumDescription("Of any of the build's tests", "Of any of the build's tests");
+    public final static EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription("Of a specific test in the build", "Of a specific test in the build");
+
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
+    public final static List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST);
 
     private String fsTests;
     private String fsTimeout;
@@ -75,6 +79,12 @@ public class RunFromFileSystemModel {
     private String fsJobId;
     private ProxySettings proxySettings;
     private boolean useSSL;
+
+    private String numberOfReruns;
+    private String cleanupTest;
+    private String onCheckFailedTest;
+    private String fsTestType;
+    private List<RerunSettings> rerunSettings;
 
     /**
      * Instantiates a new Run from file system model.
@@ -107,7 +117,9 @@ public class RunFromFileSystemModel {
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL,
+                                  String numberOfReruns, String cleanupTest, String onCheckFailedTest, String fsTestType,
+                                  List<RerunSettings> rerunSettings) {
 
         this.setFsTests(fsTests);
 
@@ -139,6 +151,12 @@ public class RunFromFileSystemModel {
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
 
+        this.numberOfReruns = numberOfReruns;
+        this.cleanupTest = cleanupTest;
+        this.onCheckFailedTest = onCheckFailedTest;
+        this.fsTestType = fsTestType;
+        this.setRerunSettings(rerunSettings);
+
     }
 
 
@@ -147,7 +165,6 @@ public class RunFromFileSystemModel {
      *
      * @param fsTests the fs tests
      */
-    @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests) {
         this.setFsTests(fsTests);
 
@@ -159,6 +176,37 @@ public class RunFromFileSystemModel {
         this.ignoreErrorStrings = "";
         this.displayController = "false";
         this.analysisTemplate = "";
+        this.onCheckFailedTest = "false";
+    }
+
+    /**
+     * Instantiates a new file system model.
+     *
+     * @param fsTests the fs tests
+     */
+    @DataBoundConstructor
+    public RunFromFileSystemModel(String fsTests, List<RerunSettings> rerunSettings) {
+        this.setFsTests(fsTests);
+
+        List<String> testPaths = getTests(getBuildTests(), rerunSettings);
+        for(String testPath : testPaths){
+            if(!listContainsTest(rerunSettings, testPath)) {
+                rerunSettings.add(new RerunSettings(testPath, false, 0, ""));
+            }
+        }
+
+        this.setRerunSettings(rerunSettings);
+
+        //Init default vals
+        this.fsTimeout = "";
+        this.fsUftRunMode = fsUftRunModes.get(0).getValue();
+        this.controllerPollingInterval = "30";
+        this.perScenarioTimeOut = "10";
+        this.ignoreErrorStrings = "";
+        this.displayController = "false";
+        this.analysisTemplate = "";
+        this.fsTestType = fsTestTypes.get(0).getValue();
+        this.onCheckFailedTest = "false";
     }
 
     /**
@@ -172,6 +220,15 @@ public class RunFromFileSystemModel {
         if (!this.fsTests.contains("\n")) {
             this.fsTests += "\n";
         }
+    }
+
+    /**
+     * Sets the rerun settings (number of reruns and cleanup tests)
+     *
+     * @param rerunSettings the rerun settings
+     */
+    public void setRerunSettings(List<RerunSettings> rerunSettings) {
+        this.rerunSettings = rerunSettings;
     }
 
     /**
@@ -337,6 +394,23 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Gets the rerun settings
+     *
+     * @return the rerun settings
+     */
+    public List<RerunSettings> getRerunSettings(){
+        List<String> testPaths = getTests(getBuildTests(), rerunSettings);
+        for(String testPath : testPaths){
+            if(!listContainsTest(rerunSettings, testPath)) {
+                rerunSettings.add(new RerunSettings(testPath, false, 0, ""));
+            }
+        }
+
+        return rerunSettings;
+    }
+
+
+    /**
      * Gets fs timeout.
      *
      * @return the fs timeout
@@ -360,6 +434,8 @@ public class RunFromFileSystemModel {
      * @return the fs runModes
      */
     public List<EnumDescription> getFsUftRunModes() { return fsUftRunModes; }
+
+    public List<EnumDescription> getFsTestTypes() { return fsTestTypes; }
 
     /**
      * Gets mc server name.
@@ -621,7 +697,40 @@ public class RunFromFileSystemModel {
     }
 
 
-	/**
+    @DataBoundSetter
+    public void setFsTestType(String fsTestType) {
+        this.fsTestType = fsTestType;
+    }
+
+    public String getNumberOfReruns() {
+        return numberOfReruns;
+    }
+
+    public void setNumberOfReruns(String numberOfReruns) {
+        this.numberOfReruns = numberOfReruns;
+    }
+
+    public String getCleanupTest() {
+        return cleanupTest;
+    }
+
+    public void setCleanupTest(String cleanupTest) {
+        this.cleanupTest = cleanupTest;
+    }
+
+    public String getOnCheckFailedTest() {
+        return onCheckFailedTest;
+    }
+
+    public void setOnCheckFailedTest(String onCheckFailedTest) {
+        this.onCheckFailedTest = onCheckFailedTest;
+    }
+
+    public String getFsTestType() {
+        return fsTestType;
+    }
+
+    /**
 	 * Gets properties.
 	 *
 	 * @param envVars     the env vars
@@ -661,6 +770,7 @@ public class RunFromFileSystemModel {
 
     private Properties createProperties(EnvVars envVars) {
         Properties props = new Properties();
+        List<String> buildTestsList = new ArrayList<>();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
             String expandedFsTests = envVars.expand(fsTests);
@@ -675,13 +785,74 @@ public class RunFromFileSystemModel {
 
             for (String test : testsArr) {
                 test = test.trim();
-                props.put("Test" + i, test);
-                i++;
+                List<String> buildTests = listFilesForFolder(new File(test));
+                for(String buildTestPath : buildTests){
+                    props.put("Test" + i, buildTestPath);
+                    buildTestsList.add(buildTestPath);
+                    i++;
+                }
             }
         } else {
             props.put("fsTests", "");
         }
 
+        if(!StringUtils.isEmpty(this.onCheckFailedTest)){
+            props.put("onCheckFailedTest", this.onCheckFailedTest);
+        } else {
+            props.put("onCheckFailedTest", "");
+        }
+
+        props.put("testType", this.fsTestType);
+
+        if(this.fsTestType.equals(fsTestTypes.get(0).getDescription())){//any test in the build
+            //add failed tests
+            int i = 1;
+            for(String failedTest : buildTestsList){
+                props.put("FailedTest" + i, failedTest);
+                i++;
+            }
+
+            //add number of reruns
+            if(StringUtils.isEmpty(this.numberOfReruns)){
+                props.put("Reruns1", "0");
+            } else {
+                props.put("Reruns1", this.numberOfReruns);
+            }
+
+            //add cleanup test
+            if(StringUtils.isEmpty(this.cleanupTest)){
+                props.put("CleanupTest1", "");
+            } else {
+                props.put("CleanupTest1", this.cleanupTest);
+            }
+
+        } else {//specific tests in the build
+            //set number of reruns
+            List<String> selectedTests = new ArrayList<>();
+            List<String> cleanupTests = new ArrayList<>();
+            List<Integer> reruns = new ArrayList<>();
+            for(RerunSettings settings : this.rerunSettings){
+                if(settings.getChecked()){//test is selected
+                    selectedTests.add(settings.getTest());
+                    reruns.add(settings.getNumberOfReruns());
+                    cleanupTests.add(settings.getCleanupTest());
+                }
+            }
+
+            if(selectedTests.isEmpty()){//no test selected for rerun
+                props.put("FailedTest1", "");
+                props.put("Reruns1", "0");
+                props.put("CleanupTest1", "");
+            } else {
+                int j;
+                for(int i = 0; i < selectedTests.size(); i++){
+                    j = i + 1;
+                    props.put("FailedTest" + j, selectedTests.get(i));
+                    props.put("Reruns" + j, String.valueOf(reruns.get(i)));
+                    props.put("CleanupTest" + j, cleanupTests.get(i));
+                }
+            }
+        }
 
         if (StringUtils.isEmpty(fsTimeout)){
             props.put("fsTimeout", "-1");
@@ -795,5 +966,98 @@ public class RunFromFileSystemModel {
         }
         return JobConfigurationProxy
                 .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
+    }
+
+    /**
+     * Retrieves the build tests
+     *
+     * @return an mtbx file with tests, a single test or a list of tests from test folder
+     */
+    public List<String> getBuildTests() {
+        List<String> buildTests = new ArrayList<>();
+
+        String directoryPath = this.fsTests.replace("\\", "/").trim();
+
+        final File folder = new File(directoryPath);
+
+        buildTests = listFilesForFolder(folder);
+
+        return buildTests;
+    }
+
+    /**
+     * Retrieves the mtbx path, a test path or the list of tests inside a folder
+     *
+     * @param folder the test path setup in the configuration (can be the an mtbx file, a single test or a folder containing other tests)
+     * @return a list of tests
+     */
+    private List<String> listFilesForFolder(final File folder) {
+        List<String> buildTests = new ArrayList<>();
+        if(folder.isDirectory()) {
+            for (final File fileEntry : folder.listFiles()) {
+                if (fileEntry.isDirectory()) {
+                    if (!fileEntry.getName().contains("Action")) {
+                        buildTests.add(fileEntry.getPath().trim());
+                    } else {
+                        buildTests.add(folder.getPath().trim()); //single test
+                        break;
+                    }
+                }
+            }
+        } else {//mtbx file
+            if (folder.getName().contains("mtbx")) {//mtbx file
+                buildTests.add(folder.getPath().trim());
+            }
+        }
+
+        return buildTests;
+    }
+
+    /**
+     * Checks if a list of tests contains another test
+     *
+     * @param rerunSettings the list of tests
+     * @param test the verified test
+     * @return true if the list already contains the test, false otherwise
+     */
+    private Boolean listContainsTest(List<RerunSettings> rerunSettings, String test){
+        for(RerunSettings settings : rerunSettings) {
+            if(settings.getTest().trim().equals(test.trim())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Updates the list of current tests based on the updated list of build tests
+     *
+     * @param buildTests the list of build tests setup in the configuration
+     * @param rerunSettings the list of current tests
+     * @return the updated list of tests to rerun
+     */
+    private List<String> getTests(List<String> buildTests, List<RerunSettings> rerunSettings){
+        List<String> rerunTests = new ArrayList<>();
+        for(RerunSettings rerun : rerunSettings){
+            rerunTests.add(rerun.getTest().trim());
+        }
+
+        for(String test :  buildTests){
+            if(!rerunTests.contains(test)){
+                rerunTests.add(test.trim());
+            }
+        }
+
+        for (Iterator<RerunSettings> it = rerunSettings.iterator(); it.hasNext() ;)
+        {
+            RerunSettings rerunSettings1 = it.next();
+            if(!buildTests.contains(rerunSettings1.getTest().trim())){
+                rerunTests.remove(rerunSettings1.getTest());
+                it.remove();
+            }
+        }
+
+        return rerunTests;
     }
 }

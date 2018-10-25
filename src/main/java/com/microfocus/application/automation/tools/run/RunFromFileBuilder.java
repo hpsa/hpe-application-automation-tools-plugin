@@ -26,10 +26,7 @@ import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.lr.run.RunFromLrFileBuilder;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.mc.run.RunFromMcFileBuilder;
-import com.microfocus.application.automation.tools.model.FileSystemTestSetModel;
-import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
-import com.microfocus.application.automation.tools.model.ProxySettings;
-import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
+import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.uft.run.RunFromUftFileBuilder;
 import hudson.*;
 import hudson.model.*;
@@ -56,10 +53,11 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
-import static com.microfocus.application.automation.tools.Messages.CompanyName;
-import static com.microfocus.application.automation.tools.Messages.RunFromFileBuilderStepName;
+//import static com.microfocus.application.automation.tools.Messages.CompanyName;
+//import static com.microfocus.application.automation.tools.Messages.RunFromFileBuilderStepName;
 
 /**
  * Describes a regular jenkins build step from UFT or LR
@@ -68,7 +66,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
-    private final RunFromMcFileBuilder runMcFromFileBuilder;
+    private RunFromMcFileBuilder runMcFromFileBuilder;
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
@@ -83,8 +81,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-                              FileSystemTestSetModel fileSystemTestSetModel) {
-        this.runFromFileModel = new RunFromFileSystemModel(fsTests);
+                              FileSystemTestSetModel fileSystemTestSetModel, List<RerunSettings> rerunSettings) {
+        this.runFromFileModel = new RunFromFileSystemModel(fsTests, rerunSettings);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.runUftFromFileBuilder = new RunFromUftFileBuilder(fileSystemTestSetModel);
@@ -100,6 +98,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
+
+    public RunFromFileBuilder(String fsTests, List<RerunSettings> rerunSettings) {
+        runFromFileModel = new RunFromFileSystemModel(fsTests, rerunSettings);
+    }
+
 
     /**
      * Instantiates a new Run from file builder.
@@ -144,12 +147,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled) {
+                              boolean useSSL, boolean isParallelRunnerEnabled,  String numberOfReruns, String cleanupTest,
+                              String onCheckFailedTest, String fsTestType, List<RerunSettings> rerunSettings) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName, fsUserName,
                 fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions,
-                fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
+                fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL,
+                numberOfReruns, cleanupTest, onCheckFailedTest, fsTestType, rerunSettings);
         this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
@@ -210,6 +215,61 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     public void setFsTests(String fsTests) {
         runFromFileModel.setFsTests(fsTests);
+    }
+
+    public String getNumberOfReruns() { return runFromFileModel.getNumberOfReruns(); }
+
+    /**
+     * Set number of reruns for the cleanup tests
+     *
+     * @param numberOfReruns
+     */
+    @DataBoundSetter
+    public void setNumberOfReruns(String numberOfReruns) {
+        runFromFileModel.setNumberOfReruns(numberOfReruns);
+    }
+
+    public String getCleanupTest() { return runFromFileModel.getCleanupTest(); }
+
+    /**
+     * Set the cleanup test
+     *
+     * @param cleanupTest
+     */
+    @DataBoundSetter
+    public void setCleanupTest(String cleanupTest) {
+        runFromFileModel.setCleanupTest(cleanupTest);
+    }
+
+    public String getOnCheckFailedTest() { return  runFromFileModel.getOnCheckFailedTest(); }
+
+    /**
+     * Indicates if the failed tests should be rerun or not
+     *
+     * @param onCheckFailedTest true(rerun failed tests, false otherwise)
+     */
+    @DataBoundSetter
+    public void setOnCheckFailedTest(String onCheckFailedTest){
+        runFromFileModel.setOnCheckFailedTest(onCheckFailedTest);
+    }
+
+    public String getFsTestType() { return runFromFileModel.getFsTestType(); }
+
+    /**
+     * Indicates if the rerun settings should be applied to all the build tests or only to specific tests
+     *
+     * @param fsTestType
+     */
+    @DataBoundSetter
+    public void setFsTestType(String fsTestType){
+        runFromFileModel.setFsTestType(fsTestType);
+    }
+
+    public List<RerunSettings> getRerunSettings() { return runFromFileModel.getRerunSettings(); }
+
+    @DataBoundSetter
+    public void setRerunSettings(List<RerunSettings> rerunSettings) {
+        runFromFileModel.setRerunSettings(rerunSettings);
     }
 
     public String getControllerPollingInterval() {
@@ -768,7 +828,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         @Override
         public String getDisplayName() {
-            return RunFromFileBuilderStepName(CompanyName());
+            return "name";//RunFromFileBuilderStepName(CompanyName());
         }
 
         /**
