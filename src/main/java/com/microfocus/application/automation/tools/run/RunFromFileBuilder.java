@@ -31,6 +31,7 @@ import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
+import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -70,6 +71,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private RunFromFileSystemModel runFromFileModel;
     private FileSystemTestSetModel fileSystemTestSetModel;
     private boolean isParallelRunnerEnabled;
+    private SummaryDataLogModel summaryDataLogModel;
 
     /**
      * Instantiates a new Run from file builder.
@@ -78,10 +80,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-                              FileSystemTestSetModel fileSystemTestSetModel) {
+                              FileSystemTestSetModel fileSystemTestSetModel,
+                              SummaryDataLogModel summaryDataLogModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+        this.summaryDataLogModel = summaryDataLogModel;
     }
 
 
@@ -242,6 +246,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setAnalysisTemplate(String analysisTemplate) {
         runFromFileModel.setAnalysisTemplate(analysisTemplate);
+    }
+
+    public SummaryDataLogModel getSummaryDataLogModel() { return summaryDataLogModel; }
+
+    public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
+        this.summaryDataLogModel = summaryDataLogModel;
     }
 
     public String getFsTimeout() {
@@ -634,6 +644,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         ResultFilename = "Results" + time + ".xml";
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
+        summaryDataLogModel.addToProps(mergedProperties);
         mergedProperties.put("resultsFilename", ResultFilename);
 
         // parallel runner is enabled

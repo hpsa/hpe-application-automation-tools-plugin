@@ -41,6 +41,7 @@ namespace HpToolsLauncher
         private bool _useUFTLicense;
         private bool _displayController;
         private string _analysisTemplate;
+        private SummaryDataLogger _summaryDataLogger;
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
@@ -85,9 +86,10 @@ namespace HpToolsLauncher
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
                                     bool useUFTLicense = false)
 
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, useUFTLicense)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -110,6 +112,7 @@ namespace HpToolsLauncher
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -131,6 +134,7 @@ namespace HpToolsLauncher
             _useUFTLicense = useUFTLicense;
             _displayController = displayController;
             _analysisTemplate = analysisTemplate;
+            _summaryDataLogger = summaryDataLogger;
             _tests = new List<TestInfo>();
 
             _mcConnection = mcConnection;
@@ -369,7 +373,7 @@ namespace HpToolsLauncher
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger);
                     break;
                 case TestType.ParallelRunner:
                     runner = new ParallelTestRunner(this, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests, _parallelRunnerEnvironments);
