@@ -448,7 +448,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ==============\nJob timed out!\n==============.
+        ///   Looks up a localized string similar to Job timed out!.
         /// </summary>
         internal static string GeneralTimedOut {
             get {
@@ -1043,7 +1043,20 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Micro Focus Testing Tool is missing : Micro Focus Service Test/Micro Focus Unified Function Testing.
+=======
+        ///   Looks up a localized string similar to ==============.
+        /// </summary>
+        internal static string SmallDoubleSeparator {
+            get {
+                return ResourceManager.GetString("SmallDoubleSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HPE Testing Tool is missing : HPE Service Test/HPE Unified Function Testing.
+>>>>>>> f913287c2337a0e3e0bedebd51fdda8100beedd9
         /// </summary>
         internal static string STExecuterNotFound {
             get {
