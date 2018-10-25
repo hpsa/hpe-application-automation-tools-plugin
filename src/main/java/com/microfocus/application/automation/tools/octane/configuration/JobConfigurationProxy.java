@@ -36,6 +36,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineContext;
 import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.services.entities.EntitiesService;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
@@ -49,7 +50,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -76,8 +76,8 @@ public class JobConfigurationProxy {
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
 		CIServerInfo ciServerInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
-
-		OctaneClient octaneClient = getOctaneClient();
+		String instanceId = pipelineObject.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 
 
@@ -121,7 +121,9 @@ public class JobConfigurationProxy {
 	@JavaScriptMethod
 	public JSONObject updatePipelineOnSever(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+
+		String instanceId = pipelineObject.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		try {
 			long pipelineId = pipelineObject.getLong("id");
@@ -207,16 +209,11 @@ public class JobConfigurationProxy {
 		return result;
 	}
 
-
-	private OctaneClient getOctaneClient() {
-		OctaneClient octaneClient = OctaneSDK.getClients().get(0);
-		return octaneClient;
-	}
-
 	@JavaScriptMethod
 	public JSONObject deleteTests(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+		String instanceId = pipelineObject.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 			long workspaceId = pipelineObject.getLong("workspaceId");
@@ -231,8 +228,8 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject loadJobConfigurationFromServer() {
-		OctaneClient octaneClient = getOctaneClient();
+	public JSONObject loadJobConfigurationFromServer(String instanceId) {
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		JSONObject ret = new JSONObject();
 		JSONObject workspaces = new JSONObject();
@@ -278,6 +275,7 @@ public class JobConfigurationProxy {
 
 					for (PipelineContext relatedPipeline : workspacePipelines.getValue()) {
 						JSONObject pipelineJSON = fromPipeline(relatedPipeline, relatedWorkspace);
+						pipelineJSON.put("instanceId", instanceId);
 						relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getContextEntityId()), pipelineJSON);
 					}
 					JSONObject workspaceJSON = new JSONObject();
@@ -297,7 +295,7 @@ public class JobConfigurationProxy {
 				Entity preSelectedWorkspace = sortedWorkspacesMap.keySet().iterator().next();
 				PipelineContext preSelectedPipeline = sortedWorkspacesMap.get(preSelectedWorkspace).get(0);
 				JSONObject preSelectedPipelineJSON = fromPipeline(preSelectedPipeline, preSelectedWorkspace);
-
+				preSelectedPipelineJSON.put("instanceId", instanceId);
 				//WORKAROUND BEGIN
 				//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
 				enrichPipelineInternal(preSelectedPipelineJSON, octaneClient);
@@ -321,7 +319,8 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject loadWorkspaceConfiguration(JSONObject pipelineJSON) {
-		OctaneClient octaneClient = getOctaneClient();
+		String instanceId = pipelineJSON.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
 
 		try {
@@ -354,7 +353,8 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject enrichPipeline(JSONObject pipelineJSON) {
-		OctaneClient octaneClient = getOctaneClient();
+		String instanceId = pipelineJSON.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
 		try {
 			enrichPipelineInternal(pipelineJSON, octaneClient);
@@ -437,10 +437,10 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchListItems(String logicalListName, String term, long workspaceId, boolean multiValue, boolean extensible) {
+	public JSONObject searchListItems(String logicalListName, String term, String instanceId, long workspaceId, boolean multiValue, boolean extensible) {
 		int defaultSize = 10;
 		JSONObject ret = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 			ResponseEntityList listItemPagedList = queryListItems(octaneClient, logicalListName, term, workspaceId, defaultSize);
 			List<Entity> listItems = listItemPagedList.getData();
@@ -493,15 +493,14 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchReleases(String term, long workspaceId) {
+	public JSONObject searchReleases(String term, String instanceId, long workspaceId) {
 		int defaultSize = 5;
 		JSONObject ret = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		try {
 
 			ResponseEntityList releasePagedList = queryReleasesByName(octaneClient, term, workspaceId, defaultSize);
-			;
 			List<Entity> releases = releasePagedList.getData();
 			boolean moreResults = releasePagedList.getTotalCount() > releases.size();
 
@@ -535,10 +534,10 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchWorkspaces(String term) {
+	public JSONObject searchWorkspaces(String term, String instanceId) {
 		int defaultSize = 5;
 		JSONObject ret = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		try {
 			ResponseEntityList workspacePagedList = queryWorkspacesByName(octaneClient, term, defaultSize);
@@ -567,10 +566,32 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchTaxonomies(String term, long workspaceId, JSONArray pipelineTaxonomies) {
+	public JSONObject searchSharedSpaces(String term) {
+		JSONObject ret = new JSONObject();
+		JSONArray retArray = new JSONArray();
+		try {
+			for (OctaneServerSettingsModel model : ConfigurationService.getAllSettings()) {
+
+				JSONObject relJson = new JSONObject();
+				relJson.put("id", model.getIdentity());
+				relJson.put("text", model.getLocation() + " " + model.getSharedSpace());
+				retArray.add(relJson);
+			}
+			ret.put("results", retArray);
+
+		} catch (Exception e) {
+			logger.warn("Failed to retrieve workspaces", e);
+			return error("Unable to retrieve workspaces");
+		}
+
+		return ret;
+	}
+
+	@JavaScriptMethod
+	public JSONObject searchTaxonomies(String term, String instanceId, long workspaceId, JSONArray pipelineTaxonomies) {
 		int defaultSize = 20;
 		JSONObject ret = new JSONObject();
-		OctaneClient octaneClient = getOctaneClient();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 
 			//currently existing taxonomies on pipeline -> we need to show these options as disabled
@@ -911,7 +932,7 @@ public class JobConfigurationProxy {
 	}
 
 	private static List<Entity> getPipelineListNodeFieldsMetadata(OctaneClient octaneClient, long workspaceId) {
-		List<String> conditions = new LinkedList();
+		List<String> conditions = new LinkedList<>();
 		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition("entity_name", "pipeline_node"));
 		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.conditionIn("name", Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
 
