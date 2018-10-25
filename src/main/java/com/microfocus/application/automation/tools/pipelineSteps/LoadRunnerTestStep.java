@@ -25,6 +25,7 @@ package com.microfocus.application.automation.tools.pipelineSteps;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
+import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.Extension;
@@ -202,6 +203,16 @@ public class LoadRunnerTestStep extends AbstractStepImpl {
     public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
         runFromFileBuilder.setSummaryDataLogModel(summaryDataLogModel);
     }
+
+    public ScriptRTSSetModel getScriptRTSSetModel() {
+        return runFromFileBuilder.getScriptRTSSetModel();
+    }
+
+    @DataBoundSetter
+    public void setScriptRTSSetModel(ScriptRTSSetModel scriptRTSSetModel) {
+        runFromFileBuilder.setScriptRTSSetModel(scriptRTSSetModel);
+    }
+
     /**
      * Gets run from file builder.
      *
