@@ -87,7 +87,7 @@
         </f:entry>
 
 	    <f:entry>
-             <label for="numberOfTests" style="margin-left: -70px;">Reruns:</label>
+             <label class="attach-previous" style="margin-left: -70px; margin-right: 5px;">Reruns:</label>
              <f:number field="numberOfReruns" name="runfromfs.numberOfReruns" value="${instance.runfromfs.numberOfReruns}" default="0" style="width: 60px"/>
 
              <input type="button" id="clearBtn" onclick="clearRerunSettings()"/>
