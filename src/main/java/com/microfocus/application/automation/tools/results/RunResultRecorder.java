@@ -535,6 +535,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 // add to Report list
                                 ReportMetaData reportMetaData = new ReportMetaData();
                                 reportMetaData.setIsHtmlReport(false);
+                                reportMetaData.setIsParallelRunnerReport(false);
                                 // reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
                                 File testFileFullName = new File(testFolderPath);
                                 String testName = testFileFullName.getName();
