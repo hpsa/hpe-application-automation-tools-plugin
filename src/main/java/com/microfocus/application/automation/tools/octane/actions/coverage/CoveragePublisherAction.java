@@ -22,76 +22,82 @@ import hudson.model.BuildListener;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * this action initiate a copy of all coverage reports from workspace to build folder.
  * the files are calculated by a pattern that the user enters in job configuration page
  */
 public class CoveragePublisherAction implements Action {
-    private final AbstractBuild build;
+	private final AbstractBuild build;
 
-    public CoveragePublisherAction(AbstractBuild build, BuildListener listener) {
-        this.build = build;
-        CoverageService.setListener(listener);
-    }
+	public CoveragePublisherAction(AbstractBuild build, BuildListener listener) {
+		this.build = build;
+		CoverageService.setListener(listener);
+	}
 
-    /**
-     * this method copy all reports from specified path pattern
-     * @return true if files have been copied, otherwise return false
-     */
-    public boolean copyCoverageReportsToBuildFolder(String filePattern, String defaultFileName) {
-        try {
-            CoverageService.log("start copying coverage report to build folder, using file patten of " + filePattern);
-            String[] files = CoverageService.getCoverageFiles(build.getWorkspace(), filePattern);
-            ArrayList<String> filteredFiles = filterFilesByFileExtension(files);
-            boolean found = filteredFiles.size() > 0;
-            int index = 0;
+	/**
+	 * this method copy all reports from specified path pattern
+	 *
+	 * @return list of file names that were copied; NEVER NULL; if an empty list returned - no coverage reports found
+	 */
+	public List<String> copyCoverageReportsToBuildFolder(String filePattern, String defaultFileName) {
+		List<String> result = new LinkedList<>();
+		if (build.getWorkspace() != null) {
+			try {
+				CoverageService.log("start copying coverage report to build folder, using file patten of " + filePattern);
+				String[] files = CoverageService.getCoverageFiles(build.getWorkspace(), filePattern);
+				List<String> matchingReportFiles = filterFilesByFileExtension(files);
+				int index = 0;
 
-            for (String fileName : filteredFiles) {
-                File resultFile = new File(build.getWorkspace().child(fileName).toURI());
-                File targetReportFile = new File(build.getRootDir(), CoverageService.getCoverageReportFileName(index++, defaultFileName));
-                CoverageService.copyCoverageFile(resultFile, targetReportFile, build.getWorkspace());
-            }
+				for (String fileName : matchingReportFiles) {
+					File resultFile = new File(build.getWorkspace().child(fileName).toURI());
+					String nextOutputFilename = CoverageService.getCoverageReportFileName(index++, defaultFileName);
+					result.add(nextOutputFilename);
+					File targetReportFile = new File(build.getRootDir(), nextOutputFilename);
+					CoverageService.copyCoverageFile(resultFile, targetReportFile, build.getWorkspace());
+				}
 
-            if (!found) {
-                // most likely a configuration error in the job - e.g. false pattern to match the cucumber result files
-                CoverageService.log("No coverage file that matched the specified pattern was found in workspace");
-            }
-            return found;
+				if (result.isEmpty()) {
+					// most likely a configuration error in the job - e.g. false pattern to match the cucumber result files
+					CoverageService.log("No coverage file that matched the specified pattern was found in workspace");
+				}
+			} catch (Exception e) {
+				CoverageService.log("Copying coverage files to build folder failed because of " + e.toString());
+			}
+		}
+		return result;
+	}
 
-        } catch (Exception e) {
-            CoverageService.log("Copying coverage files to build folder failed because of " + e.toString());
-            return false;
-        }
-    }
+	/**
+	 * pre validation of coverage files by file extension.
+	 *
+	 * @param files to validate
+	 * @return filtered list of files
+	 */
+	private ArrayList<String> filterFilesByFileExtension(String[] files) {
+		ArrayList<String> filteredList = new ArrayList<>();
+		for (String fileFullPath : files) {
+			if (fileFullPath.endsWith(CoverageService.Lcov.LCOV_FILE_EXTENSION) || fileFullPath.endsWith(CoverageService.Jacoco.JACOCO_FILE_EXTENSION)) {
+				filteredList.add(fileFullPath);
+			}
+		}
+		return filteredList;
+	}
 
-    /**
-     * pre validation of coverage files by file extension.
-     * @param files to validate
-     * @return filtered list of files
-     */
-    private ArrayList<String> filterFilesByFileExtension(String[] files) {
-        ArrayList<String> filteredList = new ArrayList<>();
-        for (String fileFullPath : files) {
-            if (fileFullPath.endsWith(CoverageService.Lcov.LCOV_FILE_EXTENSION) || fileFullPath.endsWith(CoverageService.Jacoco.JACOCO_FILE_EXTENSION)) {
-                filteredList.add(fileFullPath);
-            }
-        }
-        return filteredList;
-    }
+	@Override
+	public String getIconFileName() {
+		return null;
+	}
 
-    @Override
-    public String getIconFileName() {
-        return null;
-    }
+	@Override
+	public String getDisplayName() {
+		return null;
+	}
 
-    @Override
-    public String getDisplayName() {
-        return null;
-    }
-
-    @Override
-    public String getUrlName() {
-        return null;
-    }
+	@Override
+	public String getUrlName() {
+		return null;
+	}
 }

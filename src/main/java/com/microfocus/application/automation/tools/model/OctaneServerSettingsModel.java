@@ -28,93 +28,160 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
 
+/*
+ * Model for sorting the Octane configuration
+ */
 public class OctaneServerSettingsModel {
+	private String internalId = UUID.randomUUID().toString();
 
-    private String identity;
-    private Long identityFrom;
+	private String identity;
+	private Long identityFrom;
 
-    private String uiLocation;
-    private String username;
-    private Secret password;
-    private String impersonatedUser;
-    private boolean suspend;
+	private String uiLocation;
+	private String username;
+	private Secret password;
+	private String impersonatedUser;
+	private boolean suspend;
+	private String sscBaseToken;
 
-    // inferred from uiLocation
-    private String location;
-    private String sharedSpace;
+	// inferred from uiLocation
+	private String location;
+	private String sharedSpace;
+	private long maxTimeoutHours;
 
+	public OctaneServerSettingsModel() {
+	}
 
-    public OctaneServerSettingsModel() {
+	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
+		this(uiLocation, username, password, impersonatedUser, null);
+	}
 
-    }
+	@DataBoundConstructor
+	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser, String sscBaseToken) {
+		this.uiLocation = StringUtils.trim(uiLocation);
+		this.username = username;
+		this.password = password;
+		this.impersonatedUser = impersonatedUser;
+		this.sscBaseToken = sscBaseToken;
+	}
 
-    @DataBoundConstructor
-    public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
-        this.uiLocation = StringUtils.trim(uiLocation);
-        this.username = username;
-        this.password = password;
-        this.impersonatedUser = impersonatedUser;
-    }
+	public String getInternalId() {
+		return internalId;
+	}
 
-    public boolean isSuspend(){
-        return this.suspend;
-    }
+	public boolean isSuspend() {
+		return this.suspend;
+	}
 
-    @DataBoundSetter
-    public void setSuspend(boolean suspend){
-        this.suspend = suspend;
-    }
+	@DataBoundSetter
+	public void setSuspend(boolean suspend) {
+		this.suspend = suspend;
+	}
 
-    public String getUiLocation() {
-        return uiLocation;
-    }
+	public String getSscBaseToken() {
+		return this.sscBaseToken;
+	}
 
-    public String getUsername() {
-        return username;
-    }
+	public void setSscBaseToken(String sscBaseToken) {
+		this.sscBaseToken = sscBaseToken;
+	}
 
-    public Secret getPassword() {
-        return password;
-    }
+	public String getUiLocation() {
+		return uiLocation;
+	}
 
-    public String getImpersonatedUser() {
-        return impersonatedUser;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public String getIdentity() {
-        return identity;
-    }
+	public Secret getPassword() {
+		return password;
+	}
 
-    public void setIdentity(String identity) {
-        if (StringUtils.isEmpty(identity)) {
-            throw new IllegalArgumentException("Empty identity is not allowed");
-        }
-        this.identity = identity;
-        this.setIdentityFrom(new Date().getTime());
-    }
+	public String getImpersonatedUser() {
+		return impersonatedUser;
+	}
 
-    public Long getIdentityFrom() {
-        return identityFrom;
-    }
+	public String getIdentity() {
+		return identity;
+	}
 
-    public String getLocation() {
-        return location;
-    }
+	public void setIdentity(String identity) {
+		if (StringUtils.isEmpty(identity)) {
+			throw new IllegalArgumentException("Empty identity is not allowed");
+		}
+		this.identity = identity;
+		this.setIdentityFrom(new Date().getTime());
+	}
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+	public Long getIdentityFrom() {
+		return identityFrom;
+	}
 
-    public String getSharedSpace() {
-        return sharedSpace;
-    }
+	public String getLocation() {
+		return location;
+	}
 
-    public void setSharedSpace(String sharedSpace) {
-        this.sharedSpace = sharedSpace;
-    }
+	public void setLocation(String location) {
+		this.location = location;
+	}
 
-    public void setIdentityFrom(Long identityFrom) {
-        this.identityFrom = identityFrom;
-    }
+	public String getSharedSpace() {
+		return sharedSpace;
+	}
+
+	public void setSharedSpace(String sharedSpace) {
+		this.sharedSpace = sharedSpace;
+	}
+
+	public void setIdentityFrom(Long identityFrom) {
+		this.identityFrom = identityFrom;
+	}
+
+	public long getMaxTimeoutHours() {
+		return maxTimeoutHours;
+	}
+
+	public void setMaxTimeoutHours(long maxTimeoutHours) {
+		this.maxTimeoutHours = maxTimeoutHours;
+	}
+
+	public boolean isValid() {
+		return identity != null && !identity.isEmpty() &&
+				location != null && !location.isEmpty() &&
+				internalId != null && !internalId.isEmpty() &&
+				sharedSpace != null && !sharedSpace.isEmpty();
+	}
+
+	public void setInternalId(String internalId) {
+		this.internalId = internalId;
+	}
+
+	public String getCaption() {
+		return getLocation() + "?p=" + getSharedSpace();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		OctaneServerSettingsModel that = (OctaneServerSettingsModel) o;
+		return suspend == that.suspend &&
+				maxTimeoutHours == that.maxTimeoutHours &&
+				Objects.equals(identity, that.identity) &&
+				Objects.equals(username, that.username) &&
+				Objects.equals(password, that.password) &&
+				Objects.equals(impersonatedUser, that.impersonatedUser) &&
+				Objects.equals(sscBaseToken, that.sscBaseToken) &&
+				Objects.equals(location, that.location) &&
+				Objects.equals(sharedSpace, that.sharedSpace);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId);
+	}
 }

@@ -1,6 +1,6 @@
 /*
  *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Certain versions of software and/or documents ("Material") accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
  *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
@@ -11,7 +11,7 @@
  * © Copyright 2012-2018 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
@@ -26,6 +26,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using HpToolsLauncher.Properties;
+using HpToolsLauncher.TestRunners;
+using HpToolsLauncher.RTS;
 
 namespace HpToolsLauncher
 {
@@ -711,16 +713,18 @@ namespace HpToolsLauncher
                             parallelRunnerEnvironments.Add(test.Id, testEnvironments);
                         }
                     }
-
+                    
+                    SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
+                    List<ScriptRTSModel> scriptRTSSet = GetScriptRTSSet();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = "Fast";
                         uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate);
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet);
                     }
 
                     break;
@@ -869,5 +873,62 @@ namespace HpToolsLauncher
 
         }
 
+        private SummaryDataLogger GetSummaryDataLogger()
+        {
+            string[] summaryDataLogFlags = _ciParams["SummaryDataLog"].Split(";".ToCharArray());
+            SummaryDataLogger summaryDataLogger;
+            if (summaryDataLogFlags.Length == 4)
+            {
+                int summaryDataLoggerPollingInterval;
+                //If the polling interval is not a valid number, set it to default (10 seconds)
+                if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval))
+                {
+                    summaryDataLoggerPollingInterval = 10;
+                }
+
+                summaryDataLogger = new SummaryDataLogger(
+                    summaryDataLogFlags[0].Equals("1"),
+                    summaryDataLogFlags[1].Equals("1"),
+                    summaryDataLogFlags[2].Equals("1"),
+                    summaryDataLoggerPollingInterval
+                );
+            }
+            else
+            {
+                summaryDataLogger = new SummaryDataLogger();
+            }
+
+            return summaryDataLogger;
+        }
+
+        private List<ScriptRTSModel> GetScriptRTSSet()
+        {
+            List<ScriptRTSModel> scriptRTSSet = new List<ScriptRTSModel>();
+
+            IEnumerable<string> scriptNames = GetParamsWithPrefix("ScriptRTS");
+            foreach (string scriptName in scriptNames)
+            {
+                ScriptRTSModel scriptRTS = new ScriptRTSModel(scriptName);
+
+                IEnumerable<string> additionalAttributes = GetParamsWithPrefix("AdditionalAttribute");
+                foreach (string additionalAttribute in additionalAttributes)
+                {
+                    //Each additional attribute contains: script name, aditional attribute name, value and description
+                    string[] additionalAttributeArguments = additionalAttribute.Split(";".ToCharArray());
+                    if (additionalAttributeArguments.Length == 4 && additionalAttributeArguments[0].Equals(scriptName))
+                    {
+                        scriptRTS.AddAdditionalAttribute(new AdditionalAttributeModel(
+                            additionalAttributeArguments[1],
+                            additionalAttributeArguments[2],
+                            additionalAttributeArguments[3])
+                        );
+                    }
+                }
+
+                scriptRTSSet.Add(scriptRTS);
+            }
+
+            return scriptRTSSet;
+        }
     }
 }

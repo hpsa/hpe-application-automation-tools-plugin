@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -448,7 +448,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Job timed out!.
+        ///   Looks up a localized string similar to ==============\nJob timed out!\n==============.
         /// </summary>
         internal static string GeneralTimedOut {
             get {
@@ -520,24 +520,6 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No cleanup tests were found. Add cleanup tests..
-        /// </summary>
-        internal static string LauncherNoCleanupTestsFound {
-            get {
-                return ResourceManager.GetString("LauncherNoCleanupTestsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No failed tests were found. Select some test sets or folders..
-        /// </summary>
-        internal static string LauncherNoFailedTestsFound {
-            get {
-                return ResourceManager.GetString("LauncherNoFailedTestsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No results filename provided, please add one.
         /// </summary>
         internal static string LauncherNoResFilenameFound {
@@ -570,24 +552,6 @@ namespace HpToolsLauncher.Properties {
         internal static string LauncherNoTestsFound {
             get {
                 return ResourceManager.GetString("LauncherNoTestsFound", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No valid cleanup tests were found. Fix the test paths..
-        /// </summary>
-        internal static string LauncherNoValidCleanupTests {
-            get {
-                return ResourceManager.GetString("LauncherNoValidCleanupTests", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No valid failed tests to rerun were found. Fix the test paths..
-        /// </summary>
-        internal static string LauncherNoValidFailedTests {
-            get {
-                return ResourceManager.GetString("LauncherNoValidFailedTests", resourceCulture);
             }
         }
         
@@ -790,6 +754,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occured during RTS in script {0}: {1}.
+        /// </summary>
+        internal static string LrRTSError {
+            get {
+                return ResourceManager.GetString("LrRTSError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot collate results ret code = {0}..
         /// </summary>
         internal static string LrScenarioCollateFail {
@@ -934,6 +907,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occured during summary data logging: {0}.
+        /// </summary>
+        internal static string LrSummaryDataLoggingError {
+            get {
+                return ResourceManager.GetString("LrSummaryDataLoggingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Test FAILED. {0} errors occurred during scenario execution..
         /// </summary>
         internal static string LRTestFailDueToFatalErrors {
@@ -1043,20 +1025,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-<<<<<<< HEAD
         ///   Looks up a localized string similar to Micro Focus Testing Tool is missing : Micro Focus Service Test/Micro Focus Unified Function Testing.
-=======
-        ///   Looks up a localized string similar to ==============.
-        /// </summary>
-        internal static string SmallDoubleSeparator {
-            get {
-                return ResourceManager.GetString("SmallDoubleSeparator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to HPE Testing Tool is missing : HPE Service Test/HPE Unified Function Testing.
->>>>>>> f913287c2337a0e3e0bedebd51fdda8100beedd9
         /// </summary>
         internal static string STExecuterNotFound {
             get {
