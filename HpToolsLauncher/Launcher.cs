@@ -255,12 +255,7 @@ namespace HpToolsLauncher
             }
 
             //create the runner according to type
-            IAssetRunner runner;
-
-            // if (_runtype.Equals(TestStorageType.FileSystem))
-            //{
-            //create the runner according to type
-            runner = CreateRunner(_runtype, _ciParams);
+            IAssetRunner runner = CreateRunner(_runtype, _ciParams);
 
             //runner instantiation failed (no tests to run or other problem)
             if (runner == null)
@@ -269,20 +264,7 @@ namespace HpToolsLauncher
             }
 
             RunTests(runner, resultsFilename);
-
-            /*} else {//TestStorageType.Alm
-                //create the runner according to type
-                runner = CreateRunner(_runtype, _ciParams);
-
-                //runner instantiation failed (no tests to run or other problem)
-                if (runner == null)
-                {
-                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-                }
-
-                RunTests(runner, resultsFilename);
-            }*/
-
+                        
             //Console.WriteLine("Press any key to exit...");
             //Console.ReadKey();
             ConsoleQuickEdit.Enable();
