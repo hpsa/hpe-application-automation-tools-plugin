@@ -27,6 +27,7 @@ import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
+import com.microfocus.application.automation.tools.model.uft.RerunSettings;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;

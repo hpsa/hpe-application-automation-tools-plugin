@@ -24,6 +24,7 @@ package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
+import com.microfocus.application.automation.tools.model.uft.RerunSettings;
 import hudson.EnvVars;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
@@ -807,23 +808,20 @@ public class RunFromFileSystemModel {
         if(this.fsTestType.equals(fsTestTypes.get(0).getDescription())){//any test in the build
             //add failed tests
             int i = 1;
+            int index = 1;
             for(String failedTest : buildTestsList){
                 props.put("FailedTest" + i, failedTest);
                 i++;
             }
 
             //add number of reruns
-            if(StringUtils.isEmpty(this.numberOfReruns)){
-                props.put("Reruns1", "0");
-            } else {
-                props.put("Reruns1", this.numberOfReruns);
+            if(!StringUtils.isEmpty(this.numberOfReruns)){
+                props.put("Reruns" + index, this.numberOfReruns);
             }
 
             //add cleanup test
-            if(StringUtils.isEmpty(this.cleanupTest)){
-                props.put("CleanupTest1", "");
-            } else {
-                props.put("CleanupTest1", this.cleanupTest);
+            if(!StringUtils.isEmpty(this.cleanupTest)){
+                props.put("CleanupTest" + index, this.cleanupTest);
             }
 
         } else {//specific tests in the build
@@ -839,11 +837,7 @@ public class RunFromFileSystemModel {
                 }
             }
 
-            if(selectedTests.isEmpty()){//no test selected for rerun
-                props.put("FailedTest1", "");
-                props.put("Reruns1", "0");
-                props.put("CleanupTest1", "");
-            } else {
+            if(!selectedTests.isEmpty()){//there are tests selected for rerun
                 int j;
                 for(int i = 0; i < selectedTests.size(); i++){
                     j = i + 1;
@@ -974,13 +968,11 @@ public class RunFromFileSystemModel {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public List<String> getBuildTests() {
-        List<String> buildTests = new ArrayList<>();
-
         String directoryPath = this.fsTests.replace("\\", "/").trim();
 
         final File folder = new File(directoryPath);
 
-        buildTests = listFilesForFolder(folder);
+        List<String> buildTests = listFilesForFolder(folder);
 
         return buildTests;
     }
