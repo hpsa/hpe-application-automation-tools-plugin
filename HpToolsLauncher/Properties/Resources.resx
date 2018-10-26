@@ -286,6 +286,18 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LauncherNoValidTests" xml:space="preserve">
     <value>No valid tests were found. Fix the test paths.</value>
   </data>
+  <data name="LauncherNoCleanupTestsFound" xml:space="preserve">
+    <value>No cleanup tests were found. Add some cleanup tests.</value>
+  </data>
+  <data name="LauncherNoValidCleanupTests" xml:space="preserve">
+    <value>No valid cleanup tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoFailedTestsFound" xml:space="preserve">
+    <value>No failed tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoValidFailedTests" xml:space="preserve">
+    <value>No valid failed tests to rerun were found. Fix the test paths.</value>
+  </data>
   <data name="LauncherParamRequired" xml:space="preserve">
     <value>The parameter '{0}' is required to run a test from QC.</value>
   </data>
@@ -450,5 +462,8 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="LrRTSError" xml:space="preserve">
     <value>An error occured during RTS in script {0}: {1}</value>
+  </data>
+  <data name="SmallDoubleSeparator" xml:space="preserve">
+    <value>===========================</value>
   </data>
 </root>
