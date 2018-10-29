@@ -654,8 +654,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         ResultFilename = "Results" + time + ".xml";
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
-        summaryDataLogModel.addToProps(mergedProperties);
-        scriptRTSSetModel.addScriptsToProps(mergedProperties);
+
+        if (summaryDataLogModel != null) {
+            summaryDataLogModel.addToProps(mergedProperties);
+        }
+        if (scriptRTSSetModel != null) {
+            scriptRTSSetModel.addScriptsToProps(mergedProperties);
+        }
         mergedProperties.put("resultsFilename", ResultFilename);
 
         // parallel runner is enabled
