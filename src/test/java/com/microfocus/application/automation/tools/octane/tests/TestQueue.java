@@ -102,6 +102,11 @@ public class TestQueue implements ResultQueue {
 		}
 	}
 
+	@Override
+	public void close() {
+		//  NO-OP
+	}
+
 	public synchronized int size() {
 		return queue.size();
 	}

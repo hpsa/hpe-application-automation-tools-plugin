@@ -70,6 +70,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 	private static String OCTANE_VERSION = null;
 
 	private UftTestDiscoveryQueue queue;
+	private volatile boolean stopped = false;
 
 	public UftTestDiscoveryDispatcher() {
 		super("Uft Test Discovery Dispatcher");
@@ -78,6 +79,10 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
 	@Override
 	protected void doExecute(TaskListener listener) {
+		if (stopped) {
+			return;
+		}
+
 		if (queue.peekFirst() == null) {
 			return;
 		}
@@ -144,6 +149,12 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 				}
 			}
 		}
+	}
+
+	public void close() {
+		logger.info("stopping the UFT dispatcher and closing its queue");
+		stopped = true;
+		queue.close();
 	}
 
 	private static void dispatchDetectionResults(ResultQueue.QueueItem item, EntitiesService entitiesService, UftTestDiscoveryResult result) {
