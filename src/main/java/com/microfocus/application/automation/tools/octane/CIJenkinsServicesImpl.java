@@ -38,11 +38,13 @@ import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
@@ -362,7 +364,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
-		Run run = getRunFromQueueItem(jobCiId, buildCiId);
+		Run run = getRunByRefNames(jobCiId, buildCiId);
 		if (run != null) {
 			return getOctaneLogFile(run);
 		} else {
@@ -373,7 +375,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	@Override
 	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
 		InputStream result = null;
-		Run run = getRunFromQueueItem(jobId, buildId);
+		Run run = getRunByRefNames(jobId, buildId);
 		if (run != null) {
 			File coverageReport = new File(run.getRootDir(), reportFileName);
 			if (coverageReport.exists()) {
@@ -385,6 +387,28 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
+		Run run = getRunByRefNames(jobId, buildId);
+		if (run instanceof AbstractBuild) {
+			String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+			String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
+			SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild((AbstractBuild) run);
+			if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
+				return dtoFactory.newDTO(SSCProjectConfiguration.class)
+						.setSSCUrl(sscServerUrl)
+						.setSSCBaseAuthToken(sscAuthToken)
+						.setProjectName(projectVersionPair.project)
+						.setProjectVersion(projectVersionPair.version);
+			} else {
+				return null;
+			}
+		} else {
+			logger.debug("SSC supported on deviations of AbstractProject only");
+			return null;
+		}
 	}
 
 	@Override
@@ -460,7 +484,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	private Run getRunFromQueueItem(String jobId, String buildId) {
+	private Run getRunByRefNames(String jobId, String buildId) {
 		Run result = null;
 		Job project = getJobByRefId(jobId);
 		if (project != null) {
