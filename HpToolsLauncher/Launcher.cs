@@ -738,23 +738,32 @@ namespace HpToolsLauncher
 
         private SummaryDataLogger GetSummaryDataLogger()
         {
-            string[] summaryDataLogFlags = _ciParams["SummaryDataLog"].Split(";".ToCharArray());
             SummaryDataLogger summaryDataLogger;
-            if (summaryDataLogFlags.Length == 4)
-            {
-                int summaryDataLoggerPollingInterval;
-                //If the polling interval is not a valid number, set it to default (10 seconds)
-                if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval))
-                {
-                    summaryDataLoggerPollingInterval = 10;
-                }
 
-                summaryDataLogger = new SummaryDataLogger(
-                    summaryDataLogFlags[0].Equals("1"),
-                    summaryDataLogFlags[1].Equals("1"),
-                    summaryDataLogFlags[2].Equals("1"),
-                    summaryDataLoggerPollingInterval
-                );
+            if (_ciParams.ContainsKey("SummaryDataLog"))
+            {
+                string[] summaryDataLogFlags = _ciParams["SummaryDataLog"].Split(";".ToCharArray());
+
+                if (summaryDataLogFlags.Length == 4)
+                {
+                    int summaryDataLoggerPollingInterval;
+                    //If the polling interval is not a valid number, set it to default (10 seconds)
+                    if (!Int32.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval))
+                    {
+                        summaryDataLoggerPollingInterval = 10;
+                    }
+
+                    summaryDataLogger = new SummaryDataLogger(
+                        summaryDataLogFlags[0].Equals("1"),
+                        summaryDataLogFlags[1].Equals("1"),
+                        summaryDataLogFlags[2].Equals("1"),
+                        summaryDataLoggerPollingInterval
+                    );
+                }
+                else
+                {
+                    summaryDataLogger = new SummaryDataLogger();
+                }
             }
             else
             {
