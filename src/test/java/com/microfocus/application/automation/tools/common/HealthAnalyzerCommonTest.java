@@ -63,7 +63,7 @@ public class HealthAnalyzerCommonTest {
                 healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
                 fail();
             } catch (AbortException e) {
-                assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed, please install it first.");
+                assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed. Please install it first.");
             }
         }
     }

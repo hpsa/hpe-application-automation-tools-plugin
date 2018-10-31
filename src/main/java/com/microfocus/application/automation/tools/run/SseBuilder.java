@@ -71,6 +71,9 @@ import hudson.util.ListBoxModel;
 import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
 
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+import static com.microfocus.application.automation.tools.Messages.SseBuilderStepName;
+
 /***
  * This Jenkins plugin contains an unofficial implementation of some of the elements of the HPE ALM
  * Lab Management SDK. Users are free to use this plugin as they wish, but HPE does not take
@@ -379,8 +382,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            
-            return "Execute tests using ALM Lab Management";
+            return SseBuilderStepName(CompanyName());
         }
         
         public boolean hasAlmServers() {

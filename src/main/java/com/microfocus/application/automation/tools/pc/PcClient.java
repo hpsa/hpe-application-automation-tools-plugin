@@ -95,11 +95,11 @@ public class PcClient {
                     logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.UsingPCCredentialsBuildParameters()));
                 else
                     logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.UsingPCCredentialsConfiguration()));
-                logger.println(String.format("%s - %s\n[PCServer='%s://%s', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), model.getPcServerName(true), usernamePCPasswordCredentials.getUsername()));
+                logger.println(String.format("%s - %s\n[PCServer='%s://%s/loadtest', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), model.getPcServerName(true), usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(usernamePCPasswordCredentials.getUsername(), usernamePCPasswordCredentials.getPassword().getPlainText());
             }
             else {
-                logger.println(String.format("%s - %s\n[PCServer='%s://%s', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), model.getPcServerName(true), PcBuilder.usernamePCPasswordCredentials.getUsername()));
+                logger.println(String.format("%s - %s\n[PCServer='%s://%s/loadtest', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), model.getPcServerName(true), PcBuilder.usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(PcBuilder.usernamePCPasswordCredentials.getUsername(), PcBuilder.usernamePCPasswordCredentials.getPassword().getPlainText());
             }
         } catch (PcException e) {
@@ -571,11 +571,17 @@ public class PcClient {
              if (!publishEnded && resultNotFound) {
                 Thread.sleep(5000);
                  counterPublishNotStarted++;
-                 if(counterPublishNotStarted >= 120){
-                     String msg = String.format("%s: %s",
-                             Messages.Error(),
+                 if(counterPublishNotStarted >= 120){ //waiting 10 minutes for timeout
+                     String msg = String.format("%s",
                              Messages.PublishingStartTimeout());
                      throw new PcException(msg);
+                 } else if (counterPublishNotStarted % 12 == 0){ //warning every minute until timeout
+                     logger.println(String.format("%s - %s. %s: %s ... ",
+                             dateFormatter.getDate(),
+                             Messages.WaitingForTrendReportToStart(),
+                             Messages.MinutesUntilTimeout(),
+                             10 - (counterPublishNotStarted / 12)
+                     ));
                  }
             }
         } while (!publishEnded && counterPublishStarted < 120 && counterPublishNotStarted < 120);
