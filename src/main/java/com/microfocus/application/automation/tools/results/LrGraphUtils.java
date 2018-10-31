@@ -165,7 +165,7 @@ public final class LrGraphUtils {
         JSONObject avgTransactionResponseTimeGraphSet =
                 extractAvgTrtData(avgTransactionResponseTimeResults, scenarioResults.getValue().getTransactions());
         if (!avgTransactionResponseTimeGraphSet.getJSONArray(LABELS).isEmpty()) {
-            avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response TIme");
+            avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response Time");
             avgTransactionResponseTimeGraphSet.put(X_AXIS_TITLE, "Build number");
             avgTransactionResponseTimeGraphSet
                     .put(Y_AXIS_TITLE, "Time (Sec.)");
