@@ -25,6 +25,8 @@ import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 
@@ -33,6 +35,8 @@ import java.lang.reflect.Field;
  */
 
 public class SSCServerConfigUtil {
+
+	private static final Logger logger = LogManager.getLogger(SSCServerConfigUtil.class);
 
 	public static String getSSCServer() {
 		Descriptor sscDescriptor = getSSCDescriptor();
@@ -75,7 +79,7 @@ public class SSCServerConfigUtil {
 				try {
 					value = field.get(someObject);
 				} catch (IllegalAccessException e) {
-					e.printStackTrace();
+					logger.error("Failed to getFieldValue", e);
 				}
 				if (value != null) {
 					return value.toString();
