@@ -24,11 +24,13 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.microfocus.application.automation.tools.octane.executor.UftTestDiscoveryDispatcher;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.settings.OctaneServerSettingsBuilder;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
+import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -69,5 +71,8 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 	@Override
 	public void onBeforeShutdown() {
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
+
+		UftTestDiscoveryDispatcher dispatcher = Jenkins.getInstance().getExtensionList(UftTestDiscoveryDispatcher.class).get(0);
+		dispatcher.close();
 	}
 }

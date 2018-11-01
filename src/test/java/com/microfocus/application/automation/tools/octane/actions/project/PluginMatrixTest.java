@@ -22,12 +22,12 @@
 
 package com.microfocus.application.automation.tools.octane.actions.project;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
@@ -62,11 +62,9 @@ public class PluginMatrixTest extends OctanePluginTestBase {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         rule.createProject(MatrixProject.class, projectName);
 
-        Page page;
-        PipelineNode pipeline;
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(0, pipeline.getParameters().size());
@@ -89,12 +87,10 @@ public class PluginMatrixTest extends OctanePluginTestBase {
         ));
         p.addProperty(params);
 
-        Page page;
-        PipelineNode pipeline;
         CIParameter tmpParam;
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(5, pipeline.getParameters().size());
@@ -172,14 +168,12 @@ public class PluginMatrixTest extends OctanePluginTestBase {
                 new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
         )));
 
-        Page page;
-        PipelineNode pipeline;
         List<PipelinePhase> tmpPhases;
         PipelineNode tmpNode;
         CIParameter tmpParam;
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(2, pipeline.getParameters().size());

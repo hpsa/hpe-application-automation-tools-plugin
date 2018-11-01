@@ -23,8 +23,7 @@
 package com.microfocus.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.microfocus.application.automation.tools.model.SonarHelper;
-import com.microfocus.application.automation.tools.model.WebhookExpectationAction;
+import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -110,7 +109,7 @@ public class Webhooks implements UnprotectedRootAction {
 							ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
 							GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
 							if (sonarConfiguration != null) {
-								String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(build, sonarConfiguration, action.getServerUrl());
+								String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl());
 								HashMap project = (HashMap) inputNotification.get(PROJECT);
 								String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 

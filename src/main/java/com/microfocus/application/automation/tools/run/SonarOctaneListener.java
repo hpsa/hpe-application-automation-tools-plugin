@@ -23,8 +23,8 @@ package com.microfocus.application.automation.tools.run;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
-import com.microfocus.application.automation.tools.model.SonarHelper;
-import com.microfocus.application.automation.tools.model.WebhookExpectationAction;
+import com.microfocus.application.automation.tools.octane.model.SonarHelper;
+import com.microfocus.application.automation.tools.octane.actions.WebhookExpectationAction;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.actions.Webhooks;
 import hudson.Extension;

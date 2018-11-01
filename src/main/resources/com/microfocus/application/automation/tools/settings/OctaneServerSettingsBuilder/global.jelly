@@ -37,7 +37,7 @@
     -->
     <f:section title="ALM Octane CI">
         <f:entry title="ALM Octane Server Configuration" description="">
-            <f:repeatable add="Add Octane server" var="mqm" items="${descriptor.servers}"  minimum="1">
+            <f:repeatable add="Add ALM Octane server" var="mqm" items="${descriptor.servers}"  minimum="1">
                 <table width="100%">
                     <f:invisibleEntry>
                         <f:textbox field="internalId" value="${mqm.internalId}"/>
