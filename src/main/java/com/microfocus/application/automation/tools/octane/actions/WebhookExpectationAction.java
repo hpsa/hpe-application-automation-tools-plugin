@@ -1,3 +1,7 @@
+package com.microfocus.application.automation.tools.octane.actions;
+
+import hudson.model.Action;
+
 /*
  *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
@@ -20,28 +24,44 @@
  *
  */
 
-package com.microfocus.application.automation.tools.octane.executor;
+import javax.annotation.CheckForNull;
 
-import com.microfocus.application.automation.tools.octane.AbstractResultQueueImpl;
-import jenkins.model.Jenkins;
-
-import java.io.File;
-import java.io.IOException;
-
-/**
- * Queue for jenkins coverage reports before dispatching
+/*
+    Class for handling webhook exception
  */
-public class CoverageReportsQueue extends AbstractResultQueueImpl {
 
-    public CoverageReportsQueue(int maxRetries) throws IOException {
-        super(maxRetries);
-        Jenkins jenkinsContainer = Jenkins.getInstance();
-        if (jenkinsContainer != null) {
-            File queueFile = new File(jenkinsContainer.getRootDir(), "coverage-reports-queue.dat");
-            init(queueFile);
-        } else {
-            throw new IllegalStateException("Jenkins container not initialized properly");
-        }
-    }
+public class WebhookExpectationAction implements Action {
+	private Boolean isExpectingToGetWebhookCall;
+	private String serverUrl;
 
+	public String getServerUrl() {
+		return serverUrl;
+	}
+
+	public Boolean getExpectingToGetWebhookCall() {
+		return isExpectingToGetWebhookCall;
+	}
+
+	public WebhookExpectationAction(Boolean isExpectingToGetWebhookCall, String serverUrl) {
+		this.isExpectingToGetWebhookCall = isExpectingToGetWebhookCall;
+		this.serverUrl = serverUrl;
+	}
+
+	@CheckForNull
+	@Override
+	public String getIconFileName() {
+		return null;
+	}
+
+	@CheckForNull
+	@Override
+	public String getDisplayName() {
+		return null;
+	}
+
+	@CheckForNull
+	@Override
+	public String getUrlName() {
+		return null;
+	}
 }

@@ -43,6 +43,8 @@ public interface ResultQueue {
 
 	void clear();
 
+	void close();
+
 	class QueueItem implements Serializable {
 		private static final long serialVersionUID = 1;
 		String instanceId;

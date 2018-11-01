@@ -31,9 +31,7 @@ import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.UftTestDispatchUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkStringUtils;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.ResultQueue;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.FilePath;
@@ -61,15 +59,15 @@ import java.util.*;
  * Actually list of discovered tests are persisted in job run directory. Queue contains only reference to that job run.
  */
 @Extension
-public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork implements ConfigurationListener {
+public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	private final static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
 
 	private final static int MAX_DISPATCH_TRIALS = 5;
 	private static final String OCTANE_VERSION_SUPPORTING_TEST_RENAME = "12.60.3";
-	private static String OCTANE_VERSION = null;
 
 	private UftTestDiscoveryQueue queue;
+	private volatile boolean stopped = false;
 
 	public UftTestDiscoveryDispatcher() {
 		super("Uft Test Discovery Dispatcher");
@@ -78,6 +76,10 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
 	@Override
 	protected void doExecute(TaskListener listener) {
+		if (stopped) {
+			return;
+		}
+
 		if (queue.peekFirst() == null) {
 			return;
 		}
@@ -144,6 +146,12 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 				}
 			}
 		}
+	}
+
+	public void close() {
+		logger.info("stopping the UFT dispatcher and closing its queue");
+		stopped = true;
+		queue.close();
 	}
 
 	private static void dispatchDetectionResults(ResultQueue.QueueItem item, EntitiesService entitiesService, UftTestDiscoveryResult result) {
@@ -410,25 +418,19 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 	}
 
 	private static String getOctaneVersion(EntitiesService entitiesService) {
+		String octaneVersion = null;
 
-		if (OCTANE_VERSION == null) {
-			List<Entity> entities = entitiesService.getEntities(null, "server_version", null, null);
-			if (entities.size() == 1) {
-				Entity entity = entities.get(0);
-				OCTANE_VERSION = entity.getStringValue("version");
-				logger.warn("Received Octane version - " + OCTANE_VERSION);
+		List<Entity> entities = entitiesService.getEntities(null, "server_version", null, null);
+		if (entities.size() == 1) {
+			Entity entity = entities.get(0);
+			octaneVersion = entity.getStringValue("version");
+			logger.debug("Received Octane version - " + octaneVersion);
 
-			} else {
-				logger.error(String.format("Request for Octane version returned %s items. return version is not defined.", entities.size()));
-			}
+		} else {
+			logger.error(String.format("Request for Octane version returned %s items. return version is not defined.", entities.size()));
 		}
 
-		return OCTANE_VERSION;
-	}
-
-	@Override
-	public void onChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf) {
-		OCTANE_VERSION = null;
+		return octaneVersion;
 	}
 
 	/**

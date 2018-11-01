@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
 import com.microfocus.application.automation.tools.octane.actions.PluginActions;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.junit.Test;
@@ -62,7 +63,6 @@ public class PluginActionsTest extends OctanePluginTestBase {
 	}
 
 	@Test
-	//todo: remove when moving to multi SSP
 	public void testPluginActions_REST_Status() throws IOException, SAXException {
 		Page page = client.goTo("nga/api/v1/status", "application/json");
 		System.out.println(page.getWebResponse().getContentAsString());
@@ -83,17 +83,16 @@ public class PluginActionsTest extends OctanePluginTestBase {
 	@Test
 	public void testPluginActions_REST_Jobs_NoParams() throws IOException, SAXException {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
-		Page page = client.goTo("nga/api/v1/jobs", "application/json");
-		System.out.println(page.getWebResponse().getContentAsString());
-		CIJobsList response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+
+		String taskUrl = "nga/api/v1/jobs";
+		CIJobsList response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
 		assertEquals(rule.getInstance().getTopLevelItemNames().size(), response.getJobs().length);
 
 		rule.createFreeStyleProject(projectName);
-		page = client.goTo("nga/api/v1/jobs", "application/json");
-		response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+		response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
@@ -109,9 +108,9 @@ public class PluginActionsTest extends OctanePluginTestBase {
 	public void testPluginActions_REST_Jobs_WithParams() throws IOException, SAXException {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject fsp;
-		Page page = client.goTo("nga/api/v1/jobs", "application/json");
-		System.out.println(page.getWebResponse().getContentAsString());
-		CIJobsList response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+
+		String taskUrl = "nga/api/v1/jobs";
+		CIJobsList response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
@@ -124,9 +123,7 @@ public class PluginActionsTest extends OctanePluginTestBase {
 				(ParameterDefinition) new FileParameterDefinition("ParamC", "file param")
 		));
 		fsp.addProperty(params);
-
-		page = client.goTo("nga/api/v1/jobs", "application/json");
-		response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+		response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());

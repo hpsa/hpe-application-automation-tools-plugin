@@ -127,6 +127,13 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 		currentItem = null;
 	}
 
+	@Override
+	public void close() {
+		if (queue != null) {
+			queue.close();
+		}
+	}
+
 	private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {
 
 		@Override

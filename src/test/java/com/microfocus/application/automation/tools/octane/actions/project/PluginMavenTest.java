@@ -22,14 +22,12 @@
 
 package com.microfocus.application.automation.tools.octane.actions.project;
 
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebRequest;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
@@ -41,7 +39,6 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -59,15 +56,14 @@ import static org.junit.Assert.*;
 public class PluginMavenTest extends OctanePluginTestBase {
     //  Structure test: maven, no params, no children
     @Test
-    public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
+    public void testStructureMavenNoParamsNoChildren() throws IOException {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
         project.runHeadless();
-        Page page;
-        PipelineNode pipeline;
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
+
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(0, pipeline.getParameters().size());
@@ -76,15 +72,14 @@ public class PluginMavenTest extends OctanePluginTestBase {
     }
 
     @Test
-    //@Ignore
-    public void testDoRun() throws IOException, SAXException, InterruptedException {
+    public void testDoRun() throws IOException, InterruptedException {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         int retries = 0;
         MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
         p.runHeadless();
 
-        WebRequest webRequest = new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.GET);
-        client.loadWebResponse(webRequest);
+        String taskUrl = "nga/api/v1/jobs/" + projectName + "/run";
+        TestUtils.sendTask(taskUrl, null);
 
         while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
             Thread.sleep(1000);
@@ -92,8 +87,6 @@ public class PluginMavenTest extends OctanePluginTestBase {
         assertEquals(p.getBuilds().toArray().length, 1);
     }
 
-    //  Structure test: maven, with params, no children
-    //
     @Test
     public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
         String projectName = "root-job-" + UUID.randomUUID().toString();
@@ -108,12 +101,11 @@ public class PluginMavenTest extends OctanePluginTestBase {
         ));
         p.addProperty(params);
 
-        Page page;
-        PipelineNode pipeline;
-        CIParameter tmpParam;
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+        CIParameter tmpParam;
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
+
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(5, pipeline.getParameters().size());
@@ -200,14 +192,13 @@ public class PluginMavenTest extends OctanePluginTestBase {
                 new BuildTriggerConfig("jobC, jobD", ResultCondition.ALWAYS, false, null)
         )));
 
-        Page page;
-        PipelineNode pipeline;
         List<PipelinePhase> tmpPhases;
         PipelineNode tmpNode;
         CIParameter tmpParam;
 
-        page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
-        pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+        String taskUrl = "nga/api/v1/jobs/" + projectName;
+        PipelineNode pipeline = TestUtils.sendTask(taskUrl, PipelineNode.class);
+
         assertEquals(projectName, pipeline.getJobCiId());
         assertEquals(projectName, pipeline.getName());
         assertEquals(2, pipeline.getParameters().size());

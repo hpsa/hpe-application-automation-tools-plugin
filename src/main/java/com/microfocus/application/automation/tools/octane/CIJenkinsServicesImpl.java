@@ -38,11 +38,13 @@ import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
@@ -186,34 +188,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 			}
 			result.setJobs(list.toArray(new PipelineNode[0]));
-			stopImpersonation(securityContext);
 		} catch (AccessDeniedException e) {
-			stopImpersonation(securityContext);
 			throw new PermissionException(403);
+		} finally {
+			stopImpersonation(securityContext);
 		}
 		return result;
-	}
-
-	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
-		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
-				.setName(name);
-		if (includeParameters) {
-			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
-		}
-		return tmpConfig;
-	}
-
-	private PipelineNode createPipelineNodeFromJobName(String name) {
-		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(name)
-				.setName(name);
-	}
-
-	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
-		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(folderName + "/" + name)
-				.setName(folderName + "/" + name);
 	}
 
 	@Override
@@ -252,139 +232,149 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 
-	private SecurityContext startImpersonation() {
-		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
-		if (settings == null) {
-			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
-		}
-		String user = settings.getImpersonatedUser();
-		SecurityContext originalContext = null;
-		if (user != null && !user.isEmpty()) {
-			User jenkinsUser = User.get(user, false, Collections.emptyMap());
-			if (jenkinsUser != null) {
-				originalContext = ACL.impersonate(jenkinsUser.impersonate());
-			} else {
-				throw new PermissionException(401);
-			}
-		} else {
-			logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
-		}
-		return originalContext;
-	}
-
-	private void stopImpersonation(SecurityContext originalContext) {
-		if (originalContext != null) {
-			ACL.as(originalContext.getAuthentication());
-		} else {
-			logger.warn("Could not roll back impersonation, originalContext is null ");
-		}
-	}
-
 	@Override
 	public void runPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
-		Job job = getJobByRefId(jobCiId);
-		if (job != null) {
-			boolean hasBuildPermission = job.hasPermission(Item.BUILD);
-			if (!hasBuildPermission) {
-				stopImpersonation(securityContext);
-				throw new PermissionException(403);
+		try {
+			Job job = getJobByRefId(jobCiId);
+			if (job != null) {
+				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
+				if (!hasBuildPermission) {
+					stopImpersonation(securityContext);
+					throw new PermissionException(403);
+				}
+				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+					doRunImpl(job, originalBody);
+				}
+			} else {
+				throw new ConfigurationException(404);
 			}
-			if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-				doRunImpl(job, originalBody);
-			}
+		} finally {
 			stopImpersonation(securityContext);
-		} else {
-			stopImpersonation(securityContext);
-			throw new ConfigurationException(404);
 		}
 	}
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
-		SnapshotNode result = null;
-		Job job = getJobByRefId(jobCiId);
-		if (job != null) {
-			Run run = job.getLastBuild();
+		try {
+			SnapshotNode result = null;
+			Job job = getJobByRefId(jobCiId);
+			if (job != null) {
+				Run run = job.getLastBuild();
+				if (run != null) {
+					result = ModelFactory.createSnapshotItem(run, subTree);
+				}
+			}
+			return result;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			SnapshotNode result = null;
+			Run run = getRunByRefNames(jobId, buildId);
 			if (run != null) {
 				result = ModelFactory.createSnapshotItem(run, subTree);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
 			}
+			return result;
+		} finally {
+			stopImpersonation(securityContext);
 		}
-		stopImpersonation(securityContext);
-		return result;
 	}
 
 	@Override
-	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
-		SecurityContext securityContext = startImpersonation();
-
-		SnapshotNode result = null;
-		Job job = getJobByRefId(jobCiId);
-
-		Integer buildNumber = null;
+	public InputStream getTestsResult(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
 		try {
-			buildNumber = Integer.parseInt(buildCiId);
-		} catch (NumberFormatException nfe) {
-			logger.error("failed to parse build CI ID to build number, " + nfe.getMessage(), nfe);
-		}
-		if (job != null && buildNumber != null) {
-			Run build = job.getBuildByNumber(buildNumber);
-			if (build != null) {
-				result = ModelFactory.createSnapshotItem(build, subTree);
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				try {
+					result = new FileInputStream(run.getRootDir() + File.separator + TestListener.TEST_RESULT_FILE);
+				} catch (Exception fnfe) {
+					logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + jobId + " #" + buildId + "' won't be pushed to Octane", fnfe);
+				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
 			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
 		}
-
-		stopImpersonation(securityContext);
-		return result;
 	}
 
 	@Override
-	public InputStream getTestsResult(String jobCiId, String buildCiId) {
-		Job job = (Job) Jenkins.getInstance().getItemByFullName(jobCiId);
-		if (job == null) {
-			logger.warn("job '" + jobCiId + "' no longer exists, its test results won't be pushed to Octane");
-			return null;
-		}
-		Run run = job.getBuildByNumber(Integer.parseInt(buildCiId));
-		if (run == null) {
-			logger.warn("build '" + jobCiId + " #" + buildCiId + "' no longer exists, its test results won't be pushed to Octane");
-			return null;
-		}
-
+	public InputStream getBuildLog(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
 		try {
-			return new FileInputStream(run.getRootDir() + File.separator + TestListener.TEST_RESULT_FILE);
-		} catch (Exception fnfe) {
-			logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + jobCiId + " #" + buildCiId + "' won't be pushed to Octane", fnfe);
-			return null;
-		}
-	}
-
-	@Override
-	public InputStream getBuildLog(String jobCiId, String buildCiId) {
-		Run run = getRunFromQueueItem(jobCiId, buildCiId);
-		if (run != null) {
-			return getOctaneLogFile(run);
-		} else {
-			return null;
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				result = getOctaneLogFile(run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
 		}
 	}
 
 	@Override
 	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
-		InputStream result = null;
-		Run run = getRunFromQueueItem(jobId, buildId);
-		if (run != null) {
-			File coverageReport = new File(run.getRootDir(), reportFileName);
-			if (coverageReport.exists()) {
-				try {
-					result = new FileInputStream(coverageReport);
-				} catch (FileNotFoundException fnfe) {
-					logger.warn("file not found for '" + reportFileName + "' although just verified its existence, concurrency?");
+		SecurityContext originalContext = startImpersonation();
+		try {
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				File coverageReport = new File(run.getRootDir(), reportFileName);
+				if (coverageReport.exists()) {
+					try {
+						result = new FileInputStream(coverageReport);
+					} catch (FileNotFoundException fnfe) {
+						logger.warn("file not found for '" + reportFileName + "' although just verified its existence, concurrency?");
+					}
 				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
 			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
 		}
-		return result;
+	}
+
+	@Override
+	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
+		try {
+			SSCProjectConfiguration result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run instanceof AbstractBuild) {
+				String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+				String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
+				SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild((AbstractBuild) run);
+				if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
+					result = dtoFactory.newDTO(SSCProjectConfiguration.class)
+							.setSSCUrl(sscServerUrl)
+							.setSSCBaseAuthToken(sscAuthToken)
+							.setProjectName(projectVersionPair.project)
+							.setProjectVersion(projectVersionPair.version);
+				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
+		}
 	}
 
 	@Override
@@ -425,7 +415,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(securityContext);
 		}
-
 	}
 
 	@Override
@@ -436,6 +425,56 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(securityContext);
 		}
+	}
+
+	private SecurityContext startImpersonation() {
+		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
+		if (settings == null) {
+			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
+		}
+		String user = settings.getImpersonatedUser();
+		SecurityContext originalContext = null;
+		if (user != null && !user.isEmpty()) {
+			User jenkinsUser = User.get(user, false, Collections.emptyMap());
+			if (jenkinsUser != null) {
+				originalContext = ACL.impersonate(jenkinsUser.impersonate());
+			} else {
+				throw new PermissionException(401);
+			}
+		} else {
+			logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
+		}
+		return originalContext;
+	}
+
+	private void stopImpersonation(SecurityContext originalContext) {
+		if (originalContext != null) {
+			ACL.as(originalContext.getAuthentication());
+		} else {
+			logger.warn("Could not roll back impersonation, originalContext is null ");
+		}
+	}
+
+	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
+				.setName(name);
+		if (includeParameters) {
+			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
+		}
+		return tmpConfig;
+	}
+
+	private PipelineNode createPipelineNodeFromJobName(String name) {
+		return dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(name)
+				.setName(name);
+	}
+
+	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
+		return dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(folderName + "/" + name)
+				.setName(folderName + "/" + name);
 	}
 
 	private InputStream getOctaneLogFile(Run run) {
@@ -460,7 +499,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	private Run getRunFromQueueItem(String jobId, String buildId) {
+	private Run getRunByRefNames(String jobId, String buildId) {
 		Run result = null;
 		Job project = getJobByRefId(jobId);
 		if (project != null) {
