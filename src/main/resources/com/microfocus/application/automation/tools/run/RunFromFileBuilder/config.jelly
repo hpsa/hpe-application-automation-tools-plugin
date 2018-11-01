@@ -38,7 +38,7 @@
     </tr>
 
 
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"/>
+    <!--script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"/-->
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
@@ -73,7 +73,13 @@
 				</select>
 			</f:entry>
 
-		<f:entry>
+        <f:section>
+            <f:entry field="uftSettingsModel">
+                <f:property field="uftSettingsModel"/>
+            </f:entry>
+        </f:section>
+
+		<!--f:entry>
             <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="runfromfs.onCheckFailedTest"  checked="${instance.runFromFileModel.onCheckFailedTest}" onclick="enableCombobox(this)"/>
 
             <select id="testTypeSelect" field="fsTestType" name="runfromfs.fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}"
@@ -106,12 +112,11 @@
             <div id="infoMessage" style="margin-left: -70px; visibility: hidden;">Select one test or more from the list bellow in order to apply the relevant options</div>
         </f:entry>
 
-
-        <f:entry field="rerunSettings">
+        <f:entry field="rerunSettingModels">
             <div id="testsTable" style="margin-left: -70px; visibility: hidden;">
-                 <f:repeatableProperty field="rerunSettings"  minimum="1" header="Cleanup Test Before Rerun" noAddButton="true"/>
+                 <f:repeatableProperty field="rerunSettingModels"  minimum="1" header="Cleanup Test Before Rerun" noAddButton="true"/>
             </div>
-        </f:entry>
+        </f:entry-->
 
     	</f:section>
     </f:advanced>

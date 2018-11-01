@@ -20,7 +20,7 @@
  *
  */
 
-package com.microfocus.application.automation.tools.model.uft;
+package com.microfocus.application.automation.tools.uft.model;
 
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -30,14 +30,14 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 
-public class RerunSettings extends AbstractDescribableImpl<RerunSettings> {
+public class RerunSettingsModel extends AbstractDescribableImpl<RerunSettingsModel> {
     private String test;
     private Boolean checked;
     private Integer numberOfReruns;
     private String cleanupTest;
 
     @DataBoundConstructor
-    public RerunSettings(String test, Boolean checked, Integer numberOfReruns, String cleanupTest) {
+    public RerunSettingsModel(String test, Boolean checked, Integer numberOfReruns, String cleanupTest) {
         this.test = test;
         this.checked = checked;
         this.numberOfReruns = numberOfReruns;
@@ -81,13 +81,13 @@ public class RerunSettings extends AbstractDescribableImpl<RerunSettings> {
     }
 
     @Override
-    public Descriptor<RerunSettings> getDescriptor() {
+    public Descriptor<RerunSettingsModel> getDescriptor() {
         return null;
     }
 
     @Extension
-    public static class DescriptorImpl extends Descriptor<RerunSettings> {
+    public static class DescriptorImpl extends Descriptor<RerunSettingsModel> {
         @Nonnull
-        public String getDisplayName() {return "Rerun settings test model";}
+        public String getDisplayName() {return "Rerun settings model";}
     }
 }

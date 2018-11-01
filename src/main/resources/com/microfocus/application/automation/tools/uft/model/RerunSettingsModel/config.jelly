@@ -24,13 +24,13 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
     <f:entry>
-        <f:checkbox field="checked" name="rerunSettings.checked" style="width: 30px;"/>
+        <f:checkbox field="checked" name="rerunSettingModels.checked" style="width: 30px;"/>
 
-        <f:textbox field="test" name="rerunSettings.test" value="${instance.test}" style="width: 100px; margin-left: 10px;" />
+        <f:textbox field="test" name="rerunSettingModels.test" value="${instance.test}" style="width: 100px; margin-left: 10px;" />
 
-        <f:number field="numberOfReruns" name="rerunSettings.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; margin-left: 20px;"/>
+        <f:number field="numberOfReruns" name="rerunSettingModels.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; margin-left: 20px;"/>
 
-        <f:textbox field="cleanupTest" name="rerunSettings.cleanupTest" value="${instance.cleanupTest}" style="width: 350px;"/>
+        <f:textbox field="cleanupTest" name="rerunSettingModels.cleanupTest" value="${instance.cleanupTest}" style="width: 350px;"/>
 
     </f:entry>
 </j:jelly>
