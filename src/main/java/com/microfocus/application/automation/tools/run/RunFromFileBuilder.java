@@ -30,6 +30,7 @@ import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
+import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import hudson.*;
 import hudson.model.*;
@@ -80,17 +81,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @param fsTests the fs tests
      */
     @DataBoundConstructor
-    public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-                              UftSettingsModel uftSettingsModel,
+    public RunFromFileBuilder(String fsTests,
+                              boolean isParallelRunnerEnabled,
                               FileSystemTestSetModel fileSystemTestSetModel,
                               SummaryDataLogModel summaryDataLogModel,
-                              ScriptRTSSetModel scriptRTSSetModel) {
+                              ScriptRTSSetModel scriptRTSSetModel,
+                              UftSettingsModel uftSettingsModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.summaryDataLogModel = summaryDataLogModel;
         this.scriptRTSSetModel = scriptRTSSetModel;
-        this.uftSettingsModel = new UftSettingsModel(getFsTests());
+        this.uftSettingsModel = uftSettingsModel;
+        if(uftSettingsModel != null){
+            uftSettingsModel.setFsTestPath(getFsTests());
+        }
     }
 
 
@@ -102,11 +107,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public RunFromFileBuilder(String fsTests) {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
     }
-
-    /*public RunFromFileBuilder(String fsTests, UftSettingsModel uftSettingsModel) {
-        runFromFileModel = new RunFromFileSystemModel(fsTests, uftSettingsModel);
-    }*/
-
 
     /**
      * Instantiates a new Run from file builder.
@@ -151,15 +151,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
                               boolean useSSL, boolean isParallelRunnerEnabled){
-                              //String numberOfReruns, String cleanupTest,
-                              //String onCheckFailedTest, String fsTestType, List<RerunSettingsModel> rerunSettingModels) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL);//, uftSettingsModel);
-                //numberOfReruns, cleanupTest, onCheckFailedTest, fsTestType, rerunSettingModels);
+                proxySettings, useSSL);
     }
 
     /**
@@ -224,15 +221,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         return remoteFile.getRemote();
     }
 
-    public UftSettingsModel getUftSettingsModel() {
-        return uftSettingsModel;
-    }
-
-    @DataBoundSetter
-    public void setUftSettingsModel(UftSettingsModel uftSettingsModel) {
-        this.uftSettingsModel = uftSettingsModel;
-    }
-
     public FileSystemTestSetModel getFileSystemTestSetModel() {
         return fileSystemTestSetModel;
     }
@@ -282,6 +270,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     public ScriptRTSSetModel getScriptRTSSetModel() { return scriptRTSSetModel; }
 
+    public UftSettingsModel getUftSettingsModel() {
+        return uftSettingsModel;
+    }
+
+    @DataBoundSetter
+    public void setUftSettingsModel(UftSettingsModel uftSettingsModel) {
+        this.uftSettingsModel = uftSettingsModel;
+    }
+
     public String getFsTimeout() {
         return runFromFileModel.getFsTimeout();
     }
@@ -303,61 +300,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void setFsTests(String fsTests) {
         runFromFileModel.setFsTests(fsTests);
     }
-
-   // public String getNumberOfReruns() { return runFromFileModel.getNumberOfReruns(); }
-
-    /**
-     * Set number of reruns for the cleanup tests
-     *
-     * @param numberOfReruns
-     */
-    /*@DataBoundSetter
-    public void setNumberOfReruns(String numberOfReruns) {
-        runFromFileModel.setNumberOfReruns(numberOfReruns);
-    }
-
-    public String getCleanupTest() { return runFromFileModel.getCleanupTest(); }*/
-
-    /**
-     * Set the cleanup test
-     *
-     * @param cleanupTest
-     */
-    /*@DataBoundSetter
-    public void setCleanupTest(String cleanupTest) {
-        runFromFileModel.setCleanupTest(cleanupTest);
-    }
-
-    public String getOnCheckFailedTest() { return  runFromFileModel.getOnCheckFailedTest(); }*/
-
-    /**
-     * Indicates if the failed tests should be rerun or not
-     *
-     * @param onCheckFailedTest true(rerun failed tests, false otherwise)
-     */
-   /* @DataBoundSetter
-    public void setOnCheckFailedTest(String onCheckFailedTest){
-        runFromFileModel.setOnCheckFailedTest(onCheckFailedTest);
-    }*/
-
-   // public String getFsTestType() { return runFromFileModel.getFsTestType(); }
-
-    /**
-     * Indicates if the rerun settings should be applied to all the build tests or only to specific tests
-     *
-     * @param
-     */
-    @DataBoundSetter
-    /*public void setFsTestType(String fsTestType){
-        runFromFileModel.setFsTestType(fsTestType);
-    }
-
-    public List<RerunSettingsModel> getRerunSettings() { return runFromFileModel.getRerunSettingModels(); }
-
-    @DataBoundSetter
-    public void setRerunSettings(List<RerunSettingsModel> rerunSettingModels) {
-        runFromFileModel.setRerunSettingModels(rerunSettingModels);
-    }*/
 
     public String getControllerPollingInterval() {
         return runFromFileModel.getControllerPollingInterval();
@@ -733,6 +675,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
         if (scriptRTSSetModel != null) {
             scriptRTSSetModel.addScriptsToProps(mergedProperties);
+        }
+
+        if(uftSettingsModel != null) {
+            uftSettingsModel.addToProperties(mergedProperties);
         }
         mergedProperties.put("resultsFilename", ResultFilename);
 

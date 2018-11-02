@@ -1,5 +1,28 @@
+/*
+ *
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ *
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ *
+ */
+
 package com.microfocus.application.automation.tools.uft.model;
 
+import com.microfocus.application.automation.tools.UftToolUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -8,11 +31,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
+import org.apache.commons.lang.StringUtils;
 
 public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> {
     private String fsTestPath;
@@ -20,7 +43,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     private String cleanupTest;
     private String onCheckFailedTest;
     private String fsTestType;
-    private List<RerunSettingsModel> rerunSettingModels;
+    private List<RerunSettingsModel> rerunSettingsModels;
 
     public final static EnumDescription ANY_BUILD_TEST = new EnumDescription("Of any of the build's tests", "Of any of the build's tests");
     public final static EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription("Of a specific test in the build", "Of a specific test in the build");
@@ -28,43 +51,36 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     public final static List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST);
 
     @DataBoundConstructor
-    public UftSettingsModel(String fsTestPath){
-        this.fsTestPath = fsTestPath;
-        List<String> testPaths = getTests(getBuildTests(), rerunSettingModels);
-        for(String testPath : testPaths) {
-            if (!listContainsTest(rerunSettingModels, testPath)) {
-                rerunSettingModels.add(new RerunSettingsModel(testPath, false, 0, ""));
-            }
-        }
-
-        this.setRerunSettingModels(rerunSettingModels);
-    }
-
-
-    public UftSettingsModel(String fsTestPath, String numberOfReruns, String cleanupTest, String onCheckFailedTest, String fsTestType,
-                            List<RerunSettingsModel> rerunSettingModels) {
-        this.fsTestPath = fsTestPath;
+    public UftSettingsModel(String numberOfReruns, String cleanupTest, String onCheckFailedTest, String fsTestType,
+                            List<RerunSettingsModel> rerunSettingsModels) {
         this.numberOfReruns = numberOfReruns;
         this.cleanupTest = cleanupTest;
         this.onCheckFailedTest = onCheckFailedTest;
         this.fsTestType = fsTestType;
-        List<String> testPaths = getTests(getBuildTests(), rerunSettingModels);
-        for(String testPath : testPaths) {
-            if (!listContainsTest(rerunSettingModels, testPath)) {
-                rerunSettingModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(getFsTestPath()), rerunSettingsModels);
+        if(testPaths != null) {
+            for (String testPath : testPaths) {
+                if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                    rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+                }
             }
         }
 
-        this.setRerunSettingModels(rerunSettingModels);
+        this.setRerunSettingsModels(rerunSettingsModels);
     }
 
     public String getFsTestPath() {
         return fsTestPath;
     }
 
-    @DataBoundSetter
     public void setFsTestPath(String fsTestPath) {
         this.fsTestPath = fsTestPath;
+        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(getFsTestPath()), rerunSettingsModels);
+        for(String testPath : testPaths) {
+            if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+            }
+        }
     }
 
     public String getNumberOfReruns() {
@@ -103,13 +119,9 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         this.fsTestType = fsTestType;
     }
 
-    /*public List<RerunSettingsModel> getRerunSettingModels() {
-        return rerunSettingModels;
-    }*/
-
     @DataBoundSetter
-    public void setRerunSettingModels(List<RerunSettingsModel> rerunSettingModels) {
-        this.rerunSettingModels = rerunSettingModels;
+    public void setRerunSettingsModels(List<RerunSettingsModel> rerunSettingsModels) {
+        this.rerunSettingsModels = rerunSettingsModels;
     }
 
     /**
@@ -117,111 +129,77 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      *
      * @return the rerun settings
      */
-    public List<RerunSettingsModel> getRerunSettingModels(){
-        List<String> testPaths = getTests(getBuildTests(), rerunSettingModels);
+    public List<RerunSettingsModel> getRerunSettingsModels(){
+        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(fsTestPath), rerunSettingsModels);
         for(String testPath : testPaths){
-            if(!listContainsTest(rerunSettingModels, testPath)) {
-                rerunSettingModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+            if(!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
             }
         }
 
-        return rerunSettingModels;
+        return rerunSettingsModels;
     }
 
     public List<EnumDescription> getFsTestTypes() { return fsTestTypes; }
 
+    public void addToProperties(Properties props){
+        List<String> buildTestsList = new ArrayList<>();
+        int index = 1;
+        while(props.getProperty("Test" +  index) != null){
+            buildTestsList.add(props.getProperty("Test" +  index));
+            index++;
+        }
 
-    /**
-     * Retrieves the build tests
-     *
-     * @return an mtbx file with tests, a single test or a list of tests from test folder
-     */
-    public List<String> getBuildTests() {
-        //String directory = "C:\\Users\\laakso\\Documents\\UFT_tests";
-        String directory = this.fsTestPath;
-        String directoryPath = directory.replace("\\", "/").trim();
+        if(!StringUtils.isEmpty(this.onCheckFailedTest)){
+            props.put("onCheckFailedTest", this.onCheckFailedTest);
+        } else {
+            props.put("onCheckFailedTest", "");
+        }
 
-        final File folder = new File(directoryPath);
+        props.put("testType", this.fsTestType);
 
-        List<String> buildTests = listFilesForFolder(folder);
+        if(this.fsTestType.equals(fsTestTypes.get(0).getDescription())){//any test in the build
+            //add failed tests
+            int i = 1;
+            index = 1;
+            for(String failedTest : buildTestsList){
+                props.put("FailedTest" + i, failedTest);
+                i++;
+            }
 
-        return buildTests;
-    }
+            //add number of reruns
+            if(!StringUtils.isEmpty(this.numberOfReruns)){
+                props.put("Reruns" + index, this.numberOfReruns);
+            }
 
-    /**
-     * Retrieves the mtbx path, a test path or the list of tests inside a folder
-     *
-     * @param folder the test path setup in the configuration (can be the an mtbx file, a single test or a folder containing other tests)
-     * @return a list of tests
-     */
-    private List<String> listFilesForFolder(final File folder) {
-        List<String> buildTests = new ArrayList<>();
-        if(folder.isDirectory()) {
-            for (final File fileEntry : folder.listFiles()) {
-                if (fileEntry.isDirectory()) {
-                    if (!fileEntry.getName().contains("Action")) {
-                        buildTests.add(fileEntry.getPath().trim());
-                    } else {
-                        buildTests.add(folder.getPath().trim()); //single test
-                        break;
-                    }
+            //add cleanup test
+            if(!StringUtils.isEmpty(this.cleanupTest)){
+                props.put("CleanupTest" + index, this.cleanupTest);
+            }
+
+        } else {//specific tests in the build
+            //set number of reruns
+            List<String> selectedTests = new ArrayList<>();
+            List<String> cleanupTests = new ArrayList<>();
+            List<Integer> reruns = new ArrayList<>();
+            for(RerunSettingsModel settings : this.rerunSettingsModels){
+                if(settings.getChecked()){//test is selected
+                    selectedTests.add(settings.getTest());
+                    reruns.add(settings.getNumberOfReruns());
+                    cleanupTests.add(settings.getCleanupTest());
                 }
             }
-        } else {//mtbx file
-            if (folder.getName().contains("mtbx")) {//mtbx file
-                buildTests.add(folder.getPath().trim());
+
+            if(!selectedTests.isEmpty()){//there are tests selected for rerun
+                int j;
+                for(int i = 0; i < selectedTests.size(); i++){
+                    j = i + 1;
+                    props.put("FailedTest" + j, selectedTests.get(i));
+                    props.put("Reruns" + j, String.valueOf(reruns.get(i)));
+                    props.put("CleanupTest" + j, cleanupTests.get(i));
+                }
             }
         }
-
-        return buildTests;
-    }
-
-    /**
-     * Checks if a list of tests contains another test
-     *
-     * @param rerunSettingModels the list of tests
-     * @param test the verified test
-     * @return true if the list already contains the test, false otherwise
-     */
-    private Boolean listContainsTest(List<RerunSettingsModel> rerunSettingModels, String test){
-        for(RerunSettingsModel settings : rerunSettingModels) {
-            if(settings.getTest().trim().equals(test.trim())){
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Updates the list of current tests based on the updated list of build tests
-     *
-     * @param buildTests the list of build tests setup in the configuration
-     * @param rerunSettingModels the list of current tests
-     * @return the updated list of tests to rerun
-     */
-    private List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels){
-        List<String> rerunTests = new ArrayList<>();
-        for(RerunSettingsModel rerun : rerunSettingModels){
-            rerunTests.add(rerun.getTest().trim());
-        }
-
-        for(String test :  buildTests){
-            if(!rerunTests.contains(test)){
-                rerunTests.add(test.trim());
-            }
-        }
-
-        for (Iterator<RerunSettingsModel> it = rerunSettingModels.iterator(); it.hasNext() ;)
-        {
-            RerunSettingsModel rerunSettingsModel1 = it.next();
-            if(!buildTests.contains(rerunSettingsModel1.getTest().trim())){
-                rerunTests.remove(rerunSettingsModel1.getTest());
-                it.remove();
-            }
-        }
-
-        return rerunTests;
     }
 
     @Extension

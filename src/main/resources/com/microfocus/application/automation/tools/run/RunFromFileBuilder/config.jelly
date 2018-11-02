@@ -72,53 +72,13 @@
 					</j:forEach>
 				</select>
 			</f:entry>
+        </f:section>
 
         <f:section>
             <f:entry field="uftSettingsModel">
                 <f:property field="uftSettingsModel"/>
             </f:entry>
         </f:section>
-
-		<!--f:entry>
-            <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="runfromfs.onCheckFailedTest"  checked="${instance.runFromFileModel.onCheckFailedTest}" onclick="enableCombobox(this)"/>
-
-            <select id="testTypeSelect" field="fsTestType" name="runfromfs.fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}"
-                onchange="selectValueCombo(this)">
-                <j:forEach var="testType" items="${instance.runFromFileModel.fsTestTypes}">
-                    <f:option selected="${testType.value == instance.runFromFileModel.fsTestType}" value="${testType.value}">
-                        ${testType.description}
-                    </f:option>
-                </j:forEach>
-            </select>
-        </f:entry>
-
-	    <f:entry>
-             <label class="attach-previous" style="margin-left: -70px; margin-right: 5px;">Reruns:</label>
-             <f:number field="numberOfReruns" name="runfromfs.numberOfReruns" value="${instance.runfromfs.numberOfReruns}" default="0" style="width: 60px"/>
-
-             <input type="button" id="clearBtn" onclick="clearRerunSettings()"/>
-
-             <label id="clear" style="margin-right: 5px; margin-left: 5px; visibility: hidden;">Clear |</label>
-
-             <input type="button" id="copyPasteBtn" title="Copy rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
-        </f:entry>
-
-        <f:entry field="cleanupTest">
-            <label id="cleanupTestLabel" style="margin-left: -70px;">Cleanup test: </label>
-            <f:textbox name="runfromfs.cleanupTest" value="${instance.runfromfs.cleanupTest}" style="width: 350px;"/>
-        </f:entry>
-
-        <f:entry>
-            <div id="infoMessage" style="margin-left: -70px; visibility: hidden;">Select one test or more from the list bellow in order to apply the relevant options</div>
-        </f:entry>
-
-        <f:entry field="rerunSettingModels">
-            <div id="testsTable" style="margin-left: -70px; visibility: hidden;">
-                 <f:repeatableProperty field="rerunSettingModels"  minimum="1" header="Cleanup Test Before Rerun" noAddButton="true"/>
-            </div>
-        </f:entry-->
-
-    	</f:section>
     </f:advanced>
 	
     <f:advanced title="LoadRunner-Specific Settings">

@@ -36,8 +36,6 @@
                     ${testType.description}
                 </f:option>
             </j:forEach>
-            <!--f:option>Of any of the build's tests</f:option>
-            <f:option>Of a specific test in the build</f:option-->
         </select>
     </f:entry>
 
@@ -45,11 +43,11 @@
          <label class="attach-previous" style="margin-left: -70px; margin-right: 5px;">Reruns:</label>
          <f:number field="numberOfReruns" name="uftSettingsModel.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px"/>
 
-         <input type="button" id="clearBtn" onclick="clearRerunSettings()"/>
+         <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" onclick="clearRerunSettings()"/>
 
          <label id="clear" style="margin-right: 5px; margin-left: 5px; visibility: hidden;">Clear |</label>
 
-         <input type="button" id="copyPasteBtn" title="Copy rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
+         <input type="button" id="copyPasteBtn" title="Copy the rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
     </f:entry>
 
     <f:entry field="cleanupTest">
@@ -58,14 +56,15 @@
     </f:entry>
 
     <f:entry>
-        <div id="infoMessage" style="margin-left: -70px; visibility: hidden;">Select one test or more from the list bellow in order to apply the relevant options</div>
+        <div id="infoMessage" style="margin-left: -70px; margin-top: 20px; visibility: hidden;">Select one test or more from the list bellow in order to apply the relevant options</div>
     </f:entry>
 
     <f:section>
-        <f:entry field="rerunSettingModels">
+        <f:entry field="rerunSettingsModels">
             <div id="testsTable" style="margin-left: -70px; visibility: hidden;">
-                 <f:repeatableProperty field="rerunSettingModels"  minimum="1" header="Cleanup Test Before Rerun" noAddButton="true"/>
+                 <f:repeatableProperty field="rerunSettingsModels"  minimum="1" header="Test" noAddButton="true" />
             </div>
         </f:entry>
     </f:section>
+
 </j:jelly>

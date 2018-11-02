@@ -80,11 +80,6 @@ public class RerunSettingsModel extends AbstractDescribableImpl<RerunSettingsMod
         this.cleanupTest = cleanupTest;
     }
 
-    @Override
-    public Descriptor<RerunSettingsModel> getDescriptor() {
-        return null;
-    }
-
     @Extension
     public static class DescriptorImpl extends Descriptor<RerunSettingsModel> {
         @Nonnull
