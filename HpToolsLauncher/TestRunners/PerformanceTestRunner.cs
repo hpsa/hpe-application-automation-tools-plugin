@@ -859,7 +859,7 @@ namespace HpToolsLauncher.TestRunners
             catch
             {
                 ConsoleWriter.WriteErrLine("Lost connection to Controller");
-                return isFinished;
+                return true;
             }
 
             isFinished = _vuserStatus[(int)VuserStatus.Down] == 0 &&
