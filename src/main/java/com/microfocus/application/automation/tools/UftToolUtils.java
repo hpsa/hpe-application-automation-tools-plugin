@@ -41,16 +41,18 @@ public class UftToolUtils {
      * @return the updated rerun settings list
      */
     public static List<RerunSettingsModel> getSettings(String fsTestPath, List<RerunSettingsModel> rerunSettings){
-        List<String> testPaths = getTests(getBuildTests(fsTestPath), rerunSettings);
-        if(testPaths != null) {
+        if(rerunSettings != null) {
+            List<String> testPaths = getTests( getBuildTests(fsTestPath), rerunSettings);
             for (String testPath : testPaths) {
-                if (!UftToolUtils.listContainsTest(rerunSettings, testPath)) {
+                if (!listContainsTest(rerunSettings, testPath)) {
                     rerunSettings.add(new RerunSettingsModel(testPath, false, 0, ""));
                 }
             }
+
+            return rerunSettings;
         }
 
-        return rerunSettings;
+        return new ArrayList<>();
     }
 
     /**
@@ -79,20 +81,20 @@ public class UftToolUtils {
      */
     public static List<String> listFilesForFolder(final File folder) {
         List<String> buildTests = new ArrayList<>();
+        if(!folder.isDirectory() && folder.getName().contains("mtbx")) {
+            buildTests.add(folder.getPath().trim());
+            return buildTests;
+        }
         if(folder.isDirectory()) {
             for (final File fileEntry : folder.listFiles()) {
                 if (fileEntry.isDirectory()) {
-                    if (!fileEntry.getName().contains("Action")) {
-                        buildTests.add(fileEntry.getPath().trim());
-                    } else {
-                        buildTests.add(folder.getPath().trim()); //single test
+                    if(fileEntry.getName().contains("Action")){
+                        buildTests.add(folder.getPath().trim());//single test
                         break;
+                    } else {
+                        buildTests.add(fileEntry.getPath().trim());
                     }
                 }
-            }
-        } else {//mtbx file
-            if (folder.getName().contains("mtbx")) {//mtbx file
-                buildTests.add(folder.getPath().trim());
             }
         }
 
@@ -139,7 +141,7 @@ public class UftToolUtils {
             }
         }
 
-        for (Iterator<RerunSettingsModel> it = rerunSettingModels.iterator(); it.hasNext() ;)
+        for (Iterator<RerunSettingsModel> it = rerunSettingModels.iterator(); it.hasNext();)
         {
             RerunSettingsModel rerunSettingsModel1 = it.next();
             if(!buildTests.contains(rerunSettingsModel1.getTest().trim())){
