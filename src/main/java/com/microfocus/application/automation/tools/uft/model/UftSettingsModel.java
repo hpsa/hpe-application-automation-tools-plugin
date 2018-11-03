@@ -57,7 +57,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         this.cleanupTest = cleanupTest;
         this.onCheckFailedTest = onCheckFailedTest;
         this.fsTestType = fsTestType;
-        this.setRerunSettingsModels(UftToolUtils.getSettings(getFsTestPath(), rerunSettingsModels));
+        this.setRerunSettingsModels(UftToolUtils.updateRerunSettings(getFsTestPath(), rerunSettingsModels));
     }
 
     public String getFsTestPath() {
@@ -66,7 +66,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
     public void setFsTestPath(String fsTestPath) {
         this.fsTestPath = fsTestPath;
-        UftToolUtils.getSettings(this.fsTestPath, rerunSettingsModels);
+        UftToolUtils.updateRerunSettings(getFsTestPath(), rerunSettingsModels);
     }
 
     public String getNumberOfReruns() {
@@ -116,7 +116,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * @return the rerun settings
      */
     public List<RerunSettingsModel> getRerunSettingsModels(){
-        return UftToolUtils.getSettings(fsTestPath, rerunSettingsModels);
+       return UftToolUtils.updateRerunSettings(fsTestPath, rerunSettingsModels);
     }
 
     public List<EnumDescription> getFsTestTypes() { return fsTestTypes; }
@@ -127,13 +127,6 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * @param props
      */
     public void addToProperties(Properties props){
-        List<String> buildTestsList = new ArrayList<>();
-        int index = 1;
-        while(props.getProperty("Test" +  index) != null){
-            buildTestsList.add(props.getProperty("Test" +  index));
-            index++;
-        }
-
         if(!StringUtils.isEmpty(this.onCheckFailedTest)){
             props.put("onCheckFailedTest", this.onCheckFailedTest);
         } else {
@@ -145,42 +138,31 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         if(this.fsTestType.equals(fsTestTypes.get(0).getDescription())){//any test in the build
             //add failed tests
             int i = 1;
-            index = 1;
-            for(String failedTest : buildTestsList){
-                props.put("FailedTest" + i, failedTest);
-                i++;
+            int index = 1;
+            while(props.getProperty("Test" +  index) != null){
+                props.put("FailedTest" + index, props.getProperty("Test" +  index));
+                index++;
             }
 
             //add number of reruns
             if(!StringUtils.isEmpty(this.numberOfReruns)){
-                props.put("Reruns" + index, this.numberOfReruns);
+                props.put("Reruns" + i, this.numberOfReruns);
             }
 
             //add cleanup test
             if(!StringUtils.isEmpty(this.cleanupTest)){
-                props.put("CleanupTest" + index, this.cleanupTest);
+                props.put("CleanupTest" + i, this.cleanupTest);
             }
 
         } else {//specific tests in the build
             //set number of reruns
-            List<String> selectedTests = new ArrayList<>();
-            List<String> cleanupTests = new ArrayList<>();
-            List<Integer> reruns = new ArrayList<>();
+            int j = 1;
             for(RerunSettingsModel settings : this.rerunSettingsModels){
                 if(settings.getChecked()){//test is selected
-                    selectedTests.add(settings.getTest());
-                    reruns.add(settings.getNumberOfReruns());
-                    cleanupTests.add(settings.getCleanupTest());
-                }
-            }
-
-            if(!selectedTests.isEmpty()){//there are tests selected for rerun
-                int j;
-                for(int i = 0; i < selectedTests.size(); i++){
-                    j = i + 1;
-                    props.put("FailedTest" + j, selectedTests.get(i));
-                    props.put("Reruns" + j, String.valueOf(reruns.get(i)));
-                    props.put("CleanupTest" + j, cleanupTests.get(i));
+                    props.put("FailedTest" + j, settings.getTest());
+                    props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
+                    props.put("CleanupTest" + j, settings.getCleanupTest());
+                    j++;
                 }
             }
         }

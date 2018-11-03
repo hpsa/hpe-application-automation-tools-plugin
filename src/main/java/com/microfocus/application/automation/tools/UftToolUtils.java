@@ -34,25 +34,21 @@ public class UftToolUtils {
     private UftToolUtils(){}
 
     /**
-     * Initializes the rerun settings models list with the list of tests to rerun
+     * Update rerun settings list
      *
-     * @param fsTestPath the path of the build tests
-     * @param rerunSettings the rerun settings models list to initialize
-     * @return the updated rerun settings list
+     * @param fsTestPath the build tests path
+     * @param rerunSettingsModels the rerun settings models to update
+     * @return
      */
-    public static List<RerunSettingsModel> getSettings(String fsTestPath, List<RerunSettingsModel> rerunSettings){
-        if(rerunSettings != null) {
-            List<String> testPaths = getTests( getBuildTests(fsTestPath), rerunSettings);
-            for (String testPath : testPaths) {
-                if (!listContainsTest(rerunSettings, testPath)) {
-                    rerunSettings.add(new RerunSettingsModel(testPath, false, 0, ""));
-                }
+    public static List<RerunSettingsModel> updateRerunSettings(String fsTestPath, List<RerunSettingsModel> rerunSettingsModels){
+        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(fsTestPath), rerunSettingsModels);
+        for(String testPath : testPaths){
+            if(!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
             }
-
-            return rerunSettings;
         }
 
-        return new ArrayList<>();
+        return rerunSettingsModels;
     }
 
     /**
@@ -61,16 +57,17 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String fsTestPath) {
-        List<String> buildTests = new ArrayList<>();
         if(fsTestPath != null) {
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
             final File folder = new File(directoryPath);
 
-            buildTests = listFilesForFolder(folder);
+            List<String> buildTests = listFilesForFolder(folder);
+
+            return buildTests;
         }
 
-        return buildTests;
+        return null;
     }
 
     /**
