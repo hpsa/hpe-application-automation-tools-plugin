@@ -57,16 +57,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         this.cleanupTest = cleanupTest;
         this.onCheckFailedTest = onCheckFailedTest;
         this.fsTestType = fsTestType;
-        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(getFsTestPath()), rerunSettingsModels);
-        if(testPaths != null) {
-            for (String testPath : testPaths) {
-                if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
-                    rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
-                }
-            }
-        }
-
-        this.setRerunSettingsModels(rerunSettingsModels);
+        this.setRerunSettingsModels(UftToolUtils.getSettings(getFsTestPath(), rerunSettingsModels));
     }
 
     public String getFsTestPath() {
@@ -75,12 +66,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
     public void setFsTestPath(String fsTestPath) {
         this.fsTestPath = fsTestPath;
-        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(getFsTestPath()), rerunSettingsModels);
-        for(String testPath : testPaths) {
-            if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
-                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
-            }
-        }
+        UftToolUtils.getSettings(this.fsTestPath, rerunSettingsModels);
     }
 
     public String getNumberOfReruns() {
@@ -130,18 +116,16 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * @return the rerun settings
      */
     public List<RerunSettingsModel> getRerunSettingsModels(){
-        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(fsTestPath), rerunSettingsModels);
-        for(String testPath : testPaths){
-            if(!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
-                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
-            }
-        }
-
-        return rerunSettingsModels;
+        return UftToolUtils.getSettings(fsTestPath, rerunSettingsModels);
     }
 
     public List<EnumDescription> getFsTestTypes() { return fsTestTypes; }
 
+    /**
+     * Add properties (failed tests, cleanup tests, number of reruns) to properties file
+     *
+     * @param props
+     */
     public void addToProperties(Properties props){
         List<String> buildTestsList = new ArrayList<>();
         int index = 1;

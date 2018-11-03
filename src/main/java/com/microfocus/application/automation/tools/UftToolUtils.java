@@ -34,23 +34,41 @@ public class UftToolUtils {
     private UftToolUtils(){}
 
     /**
+     * Initializes the rerun settings models list with the list of tests to rerun
+     *
+     * @param fsTestPath the path of the build tests
+     * @param rerunSettings the rerun settings models list to initialize
+     * @return the updated rerun settings list
+     */
+    public static List<RerunSettingsModel> getSettings(String fsTestPath, List<RerunSettingsModel> rerunSettings){
+        List<String> testPaths = getTests(getBuildTests(fsTestPath), rerunSettings);
+        if(testPaths != null) {
+            for (String testPath : testPaths) {
+                if (!UftToolUtils.listContainsTest(rerunSettings, testPath)) {
+                    rerunSettings.add(new RerunSettingsModel(testPath, false, 0, ""));
+                }
+            }
+        }
+
+        return rerunSettings;
+    }
+
+    /**
      * Retrieves the build tests
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String fsTestPath) {
-       // String directory = this.fsTestPath;
+        List<String> buildTests = new ArrayList<>();
         if(fsTestPath != null) {
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
             final File folder = new File(directoryPath);
 
-            List<String> buildTests = listFilesForFolder(folder);
-
-            return buildTests;
+            buildTests = listFilesForFolder(folder);
         }
 
-        return null;
+        return buildTests;
     }
 
     /**
@@ -106,11 +124,11 @@ public class UftToolUtils {
      * @return the updated list of tests to rerun
      */
     public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels){
+        List<String> rerunTests = new ArrayList<>();
         if(buildTests == null || rerunSettingModels == null){
-            return null;
+            return rerunTests;
         }
 
-        List<String> rerunTests = new ArrayList<>();
         for(RerunSettingsModel rerun : rerunSettingModels){
             rerunTests.add(rerun.getTest().trim());
         }
