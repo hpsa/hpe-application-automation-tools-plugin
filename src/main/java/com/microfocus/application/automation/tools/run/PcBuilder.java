@@ -86,7 +86,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
-    private static final String RUNID_BUILD_VARIABLE = "HP_RUN_ID";
+    private static final String RUNID_BUILD_VARIABLE = "PC_RUN_ID";
 
     public static final String    TRENDED         = "Trended";
     public static final String    PENDING         = "Pending";
