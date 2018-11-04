@@ -21,11 +21,11 @@
 package com.microfocus.application.automation.tools.common.utils;
 
 import com.microfocus.application.automation.tools.common.Messages;
+import com.microfocus.application.automation.tools.common.masterToSlave.FunctionFileCallable;
+import com.microfocus.application.automation.tools.common.masterToSlave.SupplierFileCallable;
 import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import hudson.AbortException;
 import hudson.FilePath;
-import hudson.remoting.VirtualChannel;
-import jenkins.MasterToSlaveFileCallable;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -153,44 +153,6 @@ public class HealthAnalyzerCommon implements Serializable {
                         .toLowerCase()));
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "An exception was thrown", e);
-        }
-    }
-
-    @FunctionalInterface
-    private interface ThrowingFunction<T, R> extends Serializable {
-        R apply(T t) throws AbortException, InterruptedException;
-    }
-
-    @FunctionalInterface
-    private interface ThrowingSupplier<T> extends Serializable {
-        T get() throws AbortException;
-    }
-
-    private class SupplierFileCallable<T> extends MasterToSlaveFileCallable<T> {
-        private final ThrowingSupplier<T> supplier;
-
-        private SupplierFileCallable(ThrowingSupplier<T> supplier) {
-            this.supplier = supplier;
-        }
-
-        @Override
-        public T invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            return supplier.get();
-        }
-    }
-
-    private class FunctionFileCallable<T extends Serializable, R> extends MasterToSlaveFileCallable<R> {
-        private final ThrowingFunction<T, R> function;
-        private final T value;
-
-        private FunctionFileCallable(ThrowingFunction<T, R> function, T value) {
-            this.function = function;
-            this.value = value;
-        }
-
-        @Override
-        public R invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            return function.apply(value);
         }
     }
 }
