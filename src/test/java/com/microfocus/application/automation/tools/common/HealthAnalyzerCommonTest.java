@@ -21,6 +21,8 @@
 package com.microfocus.application.automation.tools.common;
 
 import com.microfocus.application.automation.tools.common.model.VariableWrapper;
+import com.microfocus.application.automation.tools.common.utils.HealthAnalyzerCommon;
+import com.microfocus.application.automation.tools.common.utils.OperatingSystem;
 import hudson.AbortException;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -99,7 +101,7 @@ public class HealthAnalyzerCommonTest {
         List<VariableWrapper> files = new ArrayList<>();
         VariableWrapper field = new VariableWrapper("C:\\non\\existing\\jenkins\\plugin\\path");
         files.add(field);
-        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true, workspace);
     }
 
     @Test(expected = AbortException.class)
@@ -108,7 +110,7 @@ public class HealthAnalyzerCommonTest {
             List<VariableWrapper> files = new ArrayList<>();
             VariableWrapper field = new VariableWrapper("C:\\Users");
             files.add(field);
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true, workspace);
         }
     }
 
@@ -127,7 +129,7 @@ public class HealthAnalyzerCommonTest {
 
         files.add(field);
         try {
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true, workspace);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException: The file doesn't exist");
         }
@@ -136,9 +138,9 @@ public class HealthAnalyzerCommonTest {
     @Test
     public void ifCheckedPerformFilesExistenceCheck_shouldReturnTrue_ifNoFilesExist() {
         try {
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true);
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true, workspace);
             List<VariableWrapper> files = new ArrayList<>();
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true, workspace);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
         }

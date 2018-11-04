@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.common;
 
+import com.microfocus.application.automation.tools.common.utils.OperatingSystem;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
