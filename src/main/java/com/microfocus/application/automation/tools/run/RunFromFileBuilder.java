@@ -23,14 +23,16 @@
 package com.microfocus.application.automation.tools.run;
 
 import com.microfocus.application.automation.tools.AlmToolsUtils;
-import com.microfocus.application.automation.tools.lr.run.RunFromLrFileBuilder;
+import com.microfocus.application.automation.tools.EncryptionUtils;
+import com.microfocus.application.automation.tools.Messages;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
-import com.microfocus.application.automation.tools.mc.run.RunFromMcFileBuilder;
 import com.microfocus.application.automation.tools.model.FileSystemTestSetModel;
 import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
-import com.microfocus.application.automation.tools.uft.run.RunFromUftFileBuilder;
+import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
+import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
+import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -41,6 +43,7 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -62,16 +65,15 @@ import java.util.Properties;
  * Describes a regular jenkins build step from UFT or LR
  */
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
-
     private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
-    private final RunFromMcFileBuilder runMcFromFileBuilder;
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
     private FileSystemTestSetModel fileSystemTestSetModel;
-    private RunFromUftFileBuilder runUftFromFileBuilder = new RunFromUftFileBuilder();
     private boolean isParallelRunnerEnabled;
+    private SummaryDataLogModel summaryDataLogModel;
+    private ScriptRTSSetModel scriptRTSSetModel;
 
     /**
      * Instantiates a new Run from file builder.
@@ -80,13 +82,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
-                              FileSystemTestSetModel fileSystemTestSetModel) {
+                              FileSystemTestSetModel fileSystemTestSetModel,
+                              SummaryDataLogModel summaryDataLogModel,
+                              ScriptRTSSetModel scriptRTSSetModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
-        this.runUftFromFileBuilder = new RunFromUftFileBuilder(fileSystemTestSetModel);
-        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
+        this.summaryDataLogModel = summaryDataLogModel;
+        this.scriptRTSSetModel = scriptRTSSetModel;
     }
+
 
     /**
      * Instantiates a new Run from file builder.
@@ -95,7 +100,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(String fsTests) {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
-        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     /**
@@ -105,7 +109,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
         this.runFromFileModel = runFromFileModel;
-        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
     }
 
     /**
@@ -144,10 +147,72 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               boolean useSSL, boolean isParallelRunnerEnabled) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
-                perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName, fsUserName,
-                fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions,
-                fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
-        this.runMcFromFileBuilder = new RunFromMcFileBuilder(runFromFileModel);
+                perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
+                fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
+                fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
+                proxySettings, useSSL);
+    }
+
+    /**
+     * Replace the fsTests given as mtbx with the actual mtbx file.
+     *
+     * @param workspace the current workspace
+     * @param props     the properties
+     * @param content   the mtbx content
+     * @param key       the test key
+     * @param time      current time string
+     * @param index     the index for the prefix
+     * @throws Exception
+     */
+    private static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
+                                                String time, int index) throws Exception {
+        if (RunFromFileSystemModel.isMtbxContent(content)) {
+            try {
+                String prefx = index > 0 ? index + "_" : "";
+                String mtbxFilePath = prefx + createMtbxFileInWs(workspace, content, time);
+                props.setProperty(key, mtbxFilePath);
+            } catch (IOException | InterruptedException e) {
+                throw new Exception(e);
+            }
+        }
+    }
+
+    /**
+     * Replace the fsTests given as mtbx with the actual mtbx file.
+     *
+     * @param workspace the current workspace
+     * @param props     the properties
+     * @param content   the mtbx content
+     * @param key       the test key
+     * @param time      current time string
+     * @throws Exception
+     */
+    private static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
+                                                String time) throws Exception {
+        replaceTestWithMtbxFile(workspace, props, content, key, time, 0);
+    }
+
+    /**
+     * Creates an .mtbx file with the provided mtbx content.
+     *
+     * @param workspace   jenkins workspace
+     * @param mtbxContent the motbx content
+     * @param timeString  current time represented as a String
+     * @return the remote file path
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private static String createMtbxFileInWs(FilePath workspace, String mtbxContent, String timeString)
+            throws IOException, InterruptedException {
+        String fileName = "test_suite_" + timeString + ".mtbx";
+
+        FilePath remoteFile = workspace.child(fileName);
+
+        String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+        InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
+        remoteFile.copyFrom(in);
+
+        return remoteFile.getRemote();
     }
 
     public FileSystemTestSetModel getFileSystemTestSetModel() {
@@ -186,6 +251,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void setAnalysisTemplate(String analysisTemplate) {
         runFromFileModel.setAnalysisTemplate(analysisTemplate);
     }
+
+    public SummaryDataLogModel getSummaryDataLogModel() { return summaryDataLogModel; }
+
+    public void setSummaryDataLogModel(SummaryDataLogModel summaryDataLogModel) {
+        this.summaryDataLogModel = summaryDataLogModel;
+    }
+
+    public void setScriptRTSSetModel(ScriptRTSSetModel scriptRTSSetModel) {
+        this.scriptRTSSetModel = scriptRTSSetModel;
+    }
+
+    public ScriptRTSSetModel getScriptRTSSetModel() { return scriptRTSSetModel; }
 
     public String getFsTimeout() {
         return runFromFileModel.getFsTimeout();
@@ -505,33 +582,132 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         // get the mc server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
-        EnvVars env = getEnvironmentVariables(build, listener);
+
+        EnvVars env = null;
+        try {
+            env = build.getEnvironment(listener);
+
+        } catch (IOException | InterruptedException e) {
+            listener.error("Failed loading build environment " + e);
+        }
+
 
         // this is an unproper replacment to the build.getVariableResolver since workflow run won't support the
         // getBuildEnviroment() as written here:
-        // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
+        // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE
+        // .md#variable-substitutions
+
+        JSONObject jobDetails = null;
+        String mcServerUrl = "";
         // now merge them into one list
         Properties mergedProperties = new Properties();
-        runMcFromFileBuilder.addMcProperties(build, listener, mcServerSettingsModel, mergedProperties);
-        assertEnvironmentVariables(listener, env);
-        addModelProperties(build, env, mergedProperties);
-        addEnvironmentVariablesToProperties(env, mergedProperties);
+        if (mcServerSettingsModel != null) {
+            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
+            if (runFromFileModel.getProxySettings() == null) {
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
+            } else {
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl,
+                        runFromFileModel.getProxySettings().getFsProxyAddress(),
+                        runFromFileModel.getProxySettings().getFsProxyUserName(),
+                        runFromFileModel.getProxySettings().getFsProxyPassword());
+            }
 
-        String time = getCurrentDate();
+            mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
+            mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
+        }
+
+        if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
+            try {
+                String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),
+                        EncryptionUtils.getSecretKey());
+                mergedProperties.put("MobilePassword", encPassword);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("problem in mobile center password encryption" + e);
+            }
+        }
+
+        if (env == null) {
+            listener.fatalError("Enviroment not set");
+            throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
+        }
+        if (build instanceof AbstractBuild) {
+            VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
+            mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+        } else {
+            mergedProperties.putAll(runFromFileModel.getProperties(env));
+        }
+
+        int idx = 0;
+        for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
+            String key = iterator.next();
+            idx++;
+            mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
+        }
+
+        Date now = new Date();
+        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+        String time = formatter.format(now);
+
         // get a unique filename for the params file
         ParamFileName = "props" + time + ".txt";
         ResultFilename = "Results" + time + ".xml";
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
+
+        if (summaryDataLogModel != null) {
+            summaryDataLogModel.addToProps(mergedProperties);
+        }
+        if (scriptRTSSetModel != null) {
+            scriptRTSSetModel.addScriptsToProps(mergedProperties);
+        }
         mergedProperties.put("resultsFilename", ResultFilename);
-        runUftFromFileBuilder.replaceTestWithMtbx(build, workspace, listener,
-                env, mergedProperties, time, isParallelRunnerEnabled);
+
+        // parallel runner is enabled
+        if (isParallelRunnerEnabled) {
+            // add the parallel runner properties
+            fileSystemTestSetModel.addTestSetProperties(mergedProperties, env);
+
+            // we need to replace each mtbx test with mtbx file path
+            for (int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size(); index++) {
+                String key = "Test" + index;
+                String content = mergedProperties.getProperty(key + index, "");
+                try {
+                    replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
+                } catch (Exception e) {
+                    build.setResult(Result.FAILURE);
+                    listener.error("Failed to save MTBX file : " + e.getMessage());
+                }
+            }
+        } else {
+            // handling mtbx file content :
+            // If we have mtbx content - it is located in Test1 property and there is no other test properties (like
+            // Test2 etc)
+            // We save mtbx content in workspace and replace content of Test1 by reference to saved file
+            // this only applies to the normal file system flow
+            String firstTestKey = "Test1";
+            String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+
+            try {
+                replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.error("Failed to save MTBX file : " + e.getMessage());
+            }
+        }
 
         // get properties serialized into a stream
-        String propsSerialization = getPropsSerializationString(build, listener, mergedProperties);
-
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            mergedProperties.store(stream, "");
+        } catch (IOException e) {
+            listener.error("Storing run variable failed: " + e);
+            build.setResult(Result.FAILURE);
+        }
+        String propsSerialization = stream.toString();
         FilePath CmdLineExe;
         try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
+
             // Get the URL to the Script used to run the test, which is bundled
             // in the plugin
             @SuppressWarnings("squid:S2259")
@@ -555,9 +731,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             try {
                 // create a file for the properties file, and save the properties
                 propsFileName.copyFrom(propsStream);
+
                 // Copy the script to the project workspace
                 CmdLineExe.copyFrom(cmdExeUrl);
+
                 CmdLineExe2.copyFrom(cmdExe2Url);
+
             } catch (IOException | InterruptedException e) {
                 build.setResult(Result.FAILURE);
                 listener.error("Copying executable files to executing node " + e);
@@ -589,60 +768,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             }
             out.println("Operation Was aborted by user.");
         }
-    }
-
-    private String getPropsSerializationString(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
-                                               Properties mergedProperties) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            mergedProperties.store(stream, "");
-        } catch (IOException e) {
-            listener.error("Storing run variable failed: " + e);
-            build.setResult(Result.FAILURE);
-        }
-        return stream.toString();
-    }
-
-    private void addEnvironmentVariablesToProperties(EnvVars env, Properties mergedProperties) {
-        int idx = 0;
-        for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
-            String key = iterator.next();
-            idx++;
-            mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
-        }
-    }
-
-    private String getCurrentDate() {
-        Date now = new Date();
-        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-        return formatter.format(now);
-    }
-
-    private void addModelProperties(@Nonnull Run<?, ?> build, EnvVars env, Properties mergedProperties) {
-        if (build instanceof AbstractBuild) {
-            VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
-            mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
-        } else {
-            mergedProperties.putAll(runFromFileModel.getProperties(env));
-        }
-    }
-
-    private void assertEnvironmentVariables(@Nonnull TaskListener listener, EnvVars env) throws IOException {
-        if (env == null) {
-            listener.fatalError("Environment not set");
-            throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
-        }
-    }
-
-    private EnvVars getEnvironmentVariables(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener) {
-        EnvVars env = null;
-        try {
-            env = build.getEnvironment(listener);
-
-        } catch (IOException | InterruptedException e) {
-            listener.error("Failed loading build environment " + e);
-        }
-        return env;
     }
 
     /**
@@ -694,7 +819,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * The Instance.
          */
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
-        private RunFromLrFileBuilder runFromLrFileBuilder = new RunFromLrFileBuilder();
 
         /**
          * Instantiates a new Descriptor.
@@ -727,8 +851,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @JavaScriptMethod
         public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
                                String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
-            return RunFromMcFileBuilder.getJobId(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
-                    proxyPassword, previousJobId);
+            if (null != previousJobId && !previousJobId.isEmpty()) {
+                JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress,
+                        proxyUserName, proxyPassword, previousJobId);
+                if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
+                    return previousJobId;
+                } else {
+                    return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress,
+                            proxyUserName, proxyPassword);
+                }
+            }
+            return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
+                    proxyPassword);
         }
 
         /**
@@ -745,10 +879,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @JavaScriptMethod
         public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                                               String proxyAddress, String proxyUserName,
-                                               String proxyPassword, String jobId) {
-            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId,
-                    proxyAddress, proxyUserName, proxyPassword, jobId);
+                                               String proxyAddress, String proxyUserName, String proxyPassword,
+                                               String jobId) {
+            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
+                    proxyPassword, jobId);
         }
 
         /**
@@ -760,12 +894,20 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
         @JavaScriptMethod
         public String getMcServerUrl(String serverName) {
-            return RunFromMcFileBuilder.getMcServerUrl(serverName);
+            String serverUrl = "";
+            MCServerSettingsModel[] servers = Jenkins.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+            for (MCServerSettingsModel mcServer : servers) {
+                if (mcServer.getMcServerName().equals(serverName)) {
+                    serverUrl = mcServer.getMcServerUrl();
+                }
+            }
+            return serverUrl;
         }
 
         @Override
         public String getDisplayName() {
-            return "Execute Micro Focus tests from file system";
+            return Messages.RunFromFileBuilderStepName(Messages.CompanyName());
         }
 
         /**
@@ -787,6 +929,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @SuppressWarnings("squid:S1172")
         public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value) {
+
             return FormValidation.ok();
         }
 
@@ -797,7 +940,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the form validation
          */
         public FormValidation doCheckFsTimeout(@QueryParameter String value) {
-            return runFromLrFileBuilder.doCheckFsTimeout(value);
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            String sanitizedValue = value.trim();
+            if (sanitizedValue.length() > 0 && sanitizedValue.charAt(0) == '-') {
+                sanitizedValue = sanitizedValue.substring(1);
+            }
+
+            if (!isParameterizedValue(sanitizedValue) && !StringUtils.isNumeric(sanitizedValue)) {
+                return FormValidation.error("Timeout must be a parameter or a number, e.g.: 23, $Timeout or " +
+                        "${Timeout}.");
+            }
+
+            return FormValidation.ok();
         }
 
         /**
@@ -807,7 +964,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @SuppressWarnings("squid:S2259")
         public boolean hasMCServers() {
-            return RunFromMcFileBuilder.hasMCServers();
+            return Jenkins.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
         }
 
         /**
@@ -818,7 +976,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
 
         public MCServerSettingsModel[] getMcServers() {
-            return RunFromMcFileBuilder.getMcServers();
+            return Jenkins.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
         }
 
         /**
@@ -828,7 +987,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the form validation
          */
         public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
-            return RunFromLrFileBuilder.doCheckControllerPollingInterval(value);
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            if (!StringUtils.isNumeric(value)) {
+                return FormValidation.error("Controller Polling Interval must be a number");
+            }
+
+            return FormValidation.ok();
         }
 
         /**
@@ -838,7 +1005,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the form validation
          */
         public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
-            return RunFromLrFileBuilder.doCheckPerScenarioTimeOut(value);
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            if (!isParameterizedValue(value) && !StringUtils.isNumeric(value)) {
+                return FormValidation.error("Per Scenario Timeout must be a parameter or a number, e.g.: 23, " +
+                        "$ScenarioDuration or ${ScenarioDuration}.");
+            }
+
+            return FormValidation.ok();
         }
 
         /**
@@ -848,7 +1024,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return boolean
          */
         public boolean isParameterizedValue(String value) {
-            return RunFromLrFileBuilder.isParameterizedValue(value);
+            //Parameter (with or without brackets)
+            return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
         }
     }
 }

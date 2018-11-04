@@ -160,7 +160,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to problem while setting remote host: {0}.
+        ///   Looks up a localized string similar to Problem while setting remote host: {0}.
         /// </summary>
         internal static string AlmRunnerProblemWithHost {
             get {
@@ -313,7 +313,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No HPE testing tool is installed on {0}.
+        ///   Looks up a localized string similar to No Micro Focus testing tool is installed on {0}.
         /// </summary>
         internal static string FileSystemTestsRunner_No_HP_testing_tool_is_installed_on {
             get {
@@ -574,7 +574,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured while disposing runner: {0}..
+        ///   Looks up a localized string similar to An error occurred while disposing runner: {0}..
         /// </summary>
         internal static string LauncherRunnerDisposeError {
             get {
@@ -637,7 +637,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to initilize Analysis launcher..
+        ///   Looks up a localized string similar to Failed to initialize Analysis launcher..
         /// </summary>
         internal static string LrAnlysisInitFail {
             get {
@@ -754,6 +754,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occured during RTS in script {0}: {1}.
+        /// </summary>
+        internal static string LrRTSError {
+            get {
+                return ResourceManager.GetString("LrRTSError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot collate results ret code = {0}..
         /// </summary>
         internal static string LrScenarioCollateFail {
@@ -772,7 +781,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Timeout passed. Stopping sceario by force..
+        ///   Looks up a localized string similar to Timeout passed. Stopping scenario by force..
         /// </summary>
         internal static string LrScenarioEndedTimeOut {
             get {
@@ -781,7 +790,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Errors occured during scenario execution. Stopping the scenario run..
+        ///   Looks up a localized string similar to Errors occurred during scenario execution. Stopping the scenario run..
         /// </summary>
         internal static string LrScenarioEndedWithErrors {
             get {
@@ -799,7 +808,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Scenario Execution timeout ({0} seconds) passed..
+        ///   Looks up a localized string similar to Scenario Execution timeout {0} (d:h:m:s) passed..
         /// </summary>
         internal static string LrScenarioTimeOut {
             get {
@@ -898,7 +907,16 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test FAILED. {0} errors occured during scenario execution..
+        ///   Looks up a localized string similar to An error occured during summary data logging: {0}.
+        /// </summary>
+        internal static string LrSummaryDataLoggingError {
+            get {
+                return ResourceManager.GetString("LrSummaryDataLoggingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test FAILED. {0} errors occurred during scenario execution..
         /// </summary>
         internal static string LRTestFailDueToFatalErrors {
             get {
@@ -916,7 +934,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Setting test state to WARNING. {0} Ignored errors occured during scenario execution..
+        ///   Looks up a localized string similar to Setting test state to WARNING. {0} Ignored errors occurred during scenario execution..
         /// </summary>
         internal static string LRTestWarningDueToIgnoredErrors {
             get {
@@ -1007,7 +1025,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HPE Testing Tool is missing : HPE Service Test/HPE Unified Function Testing.
+        ///   Looks up a localized string similar to Micro Focus Testing Tool is missing : Micro Focus Service Test/Micro Focus Unified Function Testing.
         /// </summary>
         internal static string STExecuterNotFound {
             get {
@@ -1025,7 +1043,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UFT cannot start while HPE Sprinter is running..
+        ///   Looks up a localized string similar to UFT cannot start while Micro Focus Sprinter is running..
         /// </summary>
         internal static string UFT_Sprinter_Running {
             get {

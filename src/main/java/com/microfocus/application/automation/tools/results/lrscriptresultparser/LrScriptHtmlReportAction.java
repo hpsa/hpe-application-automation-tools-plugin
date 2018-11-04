@@ -69,7 +69,7 @@ public class LrScriptHtmlReportAction implements Action {
 
     @Override
     public String getDisplayName() {
-        return "LR script report";
+        return "LR VuGen Report";
     }
 
     @Override

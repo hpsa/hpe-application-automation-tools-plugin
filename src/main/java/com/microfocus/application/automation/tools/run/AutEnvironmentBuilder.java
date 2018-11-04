@@ -47,6 +47,9 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.VariableResolver;
 
+import static com.microfocus.application.automation.tools.Messages.AutEnvironmentBuilderStepName;
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+
 /**
  * Created by barush on 21/10/2014.
  */
@@ -191,8 +194,7 @@ public class AutEnvironmentBuilder extends Builder {
         
         @Override
         public String getDisplayName() {
-
-            return "Execute AUT Environment preparation using Micro Focus ALM Lab Management";
+            return AutEnvironmentBuilderStepName(CompanyName());
         }
         
         public AlmServerSettingsModel[] getAlmServers() {

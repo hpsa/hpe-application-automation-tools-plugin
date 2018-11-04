@@ -42,16 +42,38 @@ function octane_job_configuration(target, progress, proxy) {
     }
 
     function configure() {
-        progressFunc("Retrieving configuration from server");
-        proxy.loadJobConfigurationFromServer(function (t) {
-            progressFunc();
-            var response = t.responseObject();
-            if (response.errors) {
-                response.errors.forEach(renderError);
-            } else {
-                renderConfiguration(response);
-            }
+        var sharedspaceDiv = $("<div class='mqm'><label><h3>Select sharedspace</h3></label><select id='sharedspaceSelect'></select></div>");
+        $(target).append(sharedspaceDiv);
+        $("#sharedspaceSelect").select2({
+            placeholder: 'Select a sharedspace',
+            ajax: {
+                dataType: 'json',
+                delay: 250,
+                transport: function (params, success, failure) {
+                    var term = "";
+                    if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                    proxy.searchSharedSpaces(term, (function (data) {
+                        queryToMqmCallback(data, success, failure)
+                    }));
+                },
+                cache: true
+            },
+            templateResult: formatSelect2Option
         });
+        $("#sharedspaceSelect").on("select2:select", function(e) {
+            progressFunc("Retrieving configuration from server");
+
+            proxy.loadJobConfigurationFromServer(e.params.data.id, function (t) {
+                progressFunc();
+                var response = t.responseObject();
+                if (response.errors) {
+                    response.errors.forEach(renderError);
+                } else {
+                    renderConfiguration(response, undefined, e.params.data.id);
+                }
+            });
+        });
+
     }
 
     function renderError(error) {
@@ -77,7 +99,7 @@ function octane_job_configuration(target, progress, proxy) {
         }
     }
 
-    function renderConfiguration(jobConfiguration, pipelineId) {
+    function renderConfiguration(jobConfiguration, pipelineId, instanceId) {
         var result = $(target);
         result.empty();
 
@@ -542,7 +564,7 @@ function octane_job_configuration(target, progress, proxy) {
             var tagTypeInput = $("<input type='text' class='setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
-            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.instanceId, pipeline.workspaceId, function(error) {
                 doValidateTag(error, validationAreaTagType);
             }));
             var tagTypeSpan = $("<span>");
@@ -670,10 +692,11 @@ function octane_job_configuration(target, progress, proxy) {
                     id: null,
                     isRoot: true,
                     fieldTags: [],
-                    taxonomyTags: []
+                    taxonomyTags: [],
+                    instanceId: instanceId
                 };
-                jobConfiguration.currentPipeline = pipeline;
 
+                jobConfiguration.currentPipeline = pipeline;
                 result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
                 covertSelectorsToSelect2(pipeline);
@@ -909,7 +932,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function newTagTypeValidation(tagTypeInput, workspaceId, callback) {
+        function newTagTypeValidation(tagTypeInput, instanceId, workspaceId, callback) {
             return function () {
                 var error = undefined;
 
@@ -944,7 +967,7 @@ function octane_job_configuration(target, progress, proxy) {
                 if (!tagTypeInput.val()) {
                     return "Environment type must be specified";
                 }
-                proxy.searchTaxonomies(tagTypeInput.val(), workspaceId, [], searchTaxCallback);
+                proxy.searchTaxonomies(tagTypeInput.val(), instanceId, workspaceId, [], searchTaxCallback);
 
             };
         }
@@ -1029,7 +1052,7 @@ function octane_job_configuration(target, progress, proxy) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
                             var listId = 0;
-                            proxy.searchListItems(selector.logicalListName, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
+                            proxy.searchListItems(selector.logicalListName, term, pipeline.instanceId, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1047,7 +1070,7 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchTaxonomies(term, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
+                            proxy.searchTaxonomies(term, pipeline.instanceId, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1079,7 +1102,7 @@ function octane_job_configuration(target, progress, proxy) {
                             } else {
                                 tmpWorkspaceId = pipeline.workspaceId;
                             }
-                            proxy.searchReleases(term, tmpWorkspaceId, (function (data) {
+                            proxy.searchReleases(term, pipeline.instanceId, tmpWorkspaceId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1096,7 +1119,8 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchWorkspaces(term, (function (data) {
+                            var instanceId = jobConfiguration.currentPipeline.instanceId;
+                            proxy.searchWorkspaces(term, instanceId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1104,7 +1128,6 @@ function octane_job_configuration(target, progress, proxy) {
                     },
                     templateResult: formatSelect2Option
                 });
-
                 fieldSelectors.forEach(createFieldsSelect2);
             });
         }

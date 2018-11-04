@@ -33,8 +33,20 @@
     <dependencies>
         <dependency>
             <groupId>info.cukes</groupId>
-            <artifactId>cucumber-jvm</artifactId>
+            <artifactId>cucumber-java</artifactId>
             <version>1.2.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.alm.octane</groupId>
+            <artifactId>octane-cucumber-jvm</artifactId>
+            <version>12.55.7</version>
         </dependency>
     </dependencies>
 
