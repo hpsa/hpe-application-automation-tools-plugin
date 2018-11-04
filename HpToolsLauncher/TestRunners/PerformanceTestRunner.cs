@@ -715,11 +715,10 @@ namespace HpToolsLauncher.TestRunners
             if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
             {
                 _stopWatch.Stop();
-                ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
-                errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
+                errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.ToString("dd\\:hh\\:mm\\:ss"));
+                ConsoleWriter.WriteErrLine(errorReason);
             }
-
-
+            
             if (_scenarioEndedEvent)
             {
                 try
@@ -734,9 +733,6 @@ namespace HpToolsLauncher.TestRunners
             //if scenario not ended until now, force stop it.
             if (!_scenarioEnded)
             {
-
-                ConsoleWriter.WriteErrLine(Resources.LrScenarioTimeOut);
-
                 int ret = _engine.Scenario.StopNow();
                 if (ret != 0)
                 {
@@ -855,8 +851,16 @@ namespace HpToolsLauncher.TestRunners
 
         private bool isFinished()
         {
-            updateVuserStatus();
             bool isFinished = false;
+            try
+            {
+                updateVuserStatus();
+            }
+            catch
+            {
+                ConsoleWriter.WriteErrLine("Lost connection to Controller");
+                return true;
+            }
 
             isFinished = _vuserStatus[(int)VuserStatus.Down] == 0 &&
                          _vuserStatus[(int)VuserStatus.Pending] == 0 &&
