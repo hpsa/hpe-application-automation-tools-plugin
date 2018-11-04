@@ -42,6 +42,7 @@ import java.util.stream.Stream;
  * Requires to be initiated with the product name
  */
 public class HealthAnalyzerCommon implements Serializable {
+    private static final String AN_EXCEPTION_WAS_THROWN = "An exception was thrown";
     private static final Logger logger = Logger.getLogger(HealthAnalyzerCommon.class.getName());
     private final String productName;
 
@@ -61,21 +62,21 @@ public class HealthAnalyzerCommon implements Serializable {
         }
     }
 
-    private boolean isRegistryExistsOnSlave(@Nonnull final String registryPath, FilePath workspace) throws
+    public boolean isRegistryExistsOnSlave(@Nonnull final String registryPath, FilePath workspace) throws
             InterruptedException {
-        FunctionFileCallable<String, Boolean> callable = new FunctionFileCallable<>(this
-                ::createProcessInThreadAndReturnResult, registryPath);
+        FunctionFileCallable<String, Boolean> callable = new FunctionFileCallable<>(this::isRegistryExist,
+                registryPath);
         try {
             if (OperatingSystem.IS_WINDOWS)
                 return workspace.act(callable);
             throw new AbortException(Messages.HealthAnalyzerCommon_registryWorksOnlyOnWindows());
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "An exception was thrown", e);
+            logger.log(Level.SEVERE, AN_EXCEPTION_WAS_THROWN, e);
         }
         return false;
     }
 
-    private boolean createProcessInThreadAndReturnResult(@Nonnull String registryPath)
+    public boolean isRegistryExist(@Nonnull String registryPath)
             throws InterruptedException, AbortException {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Callable<Boolean> task = () -> startRegistryQueryAndGetStatus(registryPath);
@@ -114,13 +115,16 @@ public class HealthAnalyzerCommon implements Serializable {
         try {
             return workspace.act(callable);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "An exception was thrown", e);
+            logger.log(Level.SEVERE, AN_EXCEPTION_WAS_THROWN, e);
         }
 
         return false;
     }
 
-    private boolean isFileExist(final String path) throws AbortException {
+    public boolean isFileExist(final String path) throws AbortException {
+        if (path == null || path.isEmpty())
+            return true;
+
         File file = Paths.get(path).toFile();
         if (file.exists()) {
             if (file.isDirectory())
@@ -144,15 +148,15 @@ public class HealthAnalyzerCommon implements Serializable {
     }
 
     public void ifCheckedPerformOsCheck(final OperatingSystem os, boolean toCheck, FilePath workspace) throws
-            IOException {
+            InterruptedException {
         SupplierFileCallable<Boolean> supplier = new SupplierFileCallable<>(os::equalsCurrentOs);
 
         try {
             if (toCheck && !workspace.act(supplier))
                 throw new AbortException(Messages.HealthAnalyzerCommon_operatingSystemIncorrect(os.toString()
                         .toLowerCase()));
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "An exception was thrown", e);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, AN_EXCEPTION_WAS_THROWN, e);
         }
     }
 }
