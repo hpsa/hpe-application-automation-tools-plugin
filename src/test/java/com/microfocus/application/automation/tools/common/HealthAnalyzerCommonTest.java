@@ -65,7 +65,7 @@ public class HealthAnalyzerCommonTest {
 
     @Test
     public void runningMethodOnWindowsWhenRegistryNotExists_throwsException() throws Exception {
-        if (OperatingSystem.IS_WINDOWS) {
+        if (OperatingSystem.isWindows()) {
             boolean returnValue = healthAnalyzerCommon.isRegistryExist(NON_EXISTING_REGISTRY);
             assertEquals("Operating system mismatch", false, returnValue);
         }
@@ -73,7 +73,7 @@ public class HealthAnalyzerCommonTest {
 
     @Test
     public void isRegistryExists_shouldReturnTrue_ifValueExists() throws Exception {
-        if (OperatingSystem.IS_WINDOWS) {
+        if (OperatingSystem.isWindows()) {
             String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
             try {
                 healthAnalyzerCommon.isRegistryExist(existingRegistryValue);
@@ -92,7 +92,7 @@ public class HealthAnalyzerCommonTest {
 
     @Test(expected = AbortException.class)
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws Exception {
-        if (OperatingSystem.IS_WINDOWS) {
+        if (OperatingSystem.isWindows()) {
             String file = "C:\\Users";
             healthAnalyzerCommon.isFileExist(file);
         }
@@ -102,11 +102,11 @@ public class HealthAnalyzerCommonTest {
     public void ifCheckedPerformFilesExistenceCheck_notThrowing_ifFileExist() {
         String file = null;
 
-        if (OperatingSystem.IS_WINDOWS) {
+        if (OperatingSystem.isWindows()) {
             file = "C:\\Windows\\regedit.exe";
-        } else if (OperatingSystem.IS_MAC) {
-            // TODO
-        } else if (OperatingSystem.IS_LINUX) {
+        } else if (OperatingSystem.isMac()) {
+            file = "//bin";
+        } else if (OperatingSystem.isLinux()) {
             file = "//proc";
         }
 
