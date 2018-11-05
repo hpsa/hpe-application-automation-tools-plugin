@@ -24,6 +24,9 @@
          xmlns:cv="/lib/custom">
     <st:bind var="a" value="${descriptor}"/>
 
+    <st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
+    <st:bind var="cleanupTests" value="${instance.runFromFileModel.cleanupTests}"/>
+
     <tr>
       <td/>
       <td colspan="2">
@@ -34,19 +37,12 @@
       <td/>
     </tr>
 
-    <script type="text/javascript">
-        function useAuthentication(obj){
-            if(obj.checked){
-                document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled=null;
-                document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled=null;
-            }else{
-                document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled="true";
-                document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled="true";
-            }
-        }
-    </script>
+
+    <!--script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"/-->
+
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
 
     <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/PARALLEL_RUNNER_UI.css"/>
 
@@ -76,7 +72,13 @@
 					</j:forEach>
 				</select>
 			</f:entry>
-    	</f:section>
+        </f:section>
+
+        <f:section>
+            <f:entry field="uftSettingsModel">
+                <f:property field="uftSettingsModel"/>
+            </f:entry>
+        </f:section>
     </f:advanced>
 	
     <f:advanced title="LoadRunner-Specific Settings">

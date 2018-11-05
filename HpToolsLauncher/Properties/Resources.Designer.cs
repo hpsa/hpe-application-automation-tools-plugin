@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -520,6 +520,24 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No cleanup tests were found. Add some cleanup tests..
+        /// </summary>
+        internal static string LauncherNoCleanupTestsFound {
+            get {
+                return ResourceManager.GetString("LauncherNoCleanupTestsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No failed tests were found. Fix the test paths..
+        /// </summary>
+        internal static string LauncherNoFailedTestsFound {
+            get {
+                return ResourceManager.GetString("LauncherNoFailedTestsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No results filename provided, please add one.
         /// </summary>
         internal static string LauncherNoResFilenameFound {
@@ -552,6 +570,24 @@ namespace HpToolsLauncher.Properties {
         internal static string LauncherNoTestsFound {
             get {
                 return ResourceManager.GetString("LauncherNoTestsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid cleanup tests were found. Fix the test paths..
+        /// </summary>
+        internal static string LauncherNoValidCleanupTests {
+            get {
+                return ResourceManager.GetString("LauncherNoValidCleanupTests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid failed tests to rerun were found. Fix the test paths..
+        /// </summary>
+        internal static string LauncherNoValidFailedTests {
+            get {
+                return ResourceManager.GetString("LauncherNoValidFailedTests", resourceCulture);
             }
         }
         
@@ -1021,6 +1057,15 @@ namespace HpToolsLauncher.Properties {
         internal static string SingleSeperator {
             get {
                 return ResourceManager.GetString("SingleSeperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ===========================.
+        /// </summary>
+        internal static string SmallDoubleSeparator {
+            get {
+                return ResourceManager.GetString("SmallDoubleSeparator", resourceCulture);
             }
         }
         

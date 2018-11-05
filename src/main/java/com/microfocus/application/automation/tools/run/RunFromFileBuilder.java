@@ -26,13 +26,12 @@ import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
-import com.microfocus.application.automation.tools.model.FileSystemTestSetModel;
-import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
-import com.microfocus.application.automation.tools.model.ProxySettings;
-import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
+import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
+import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
+import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -74,6 +73,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private boolean isParallelRunnerEnabled;
     private SummaryDataLogModel summaryDataLogModel;
     private ScriptRTSSetModel scriptRTSSetModel;
+    private UftSettingsModel uftSettingsModel;
 
     /**
      * Instantiates a new Run from file builder.
@@ -81,15 +81,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @param fsTests the fs tests
      */
     @DataBoundConstructor
-    public RunFromFileBuilder(String fsTests, boolean isParallelRunnerEnabled,
+    public RunFromFileBuilder(String fsTests,
+                              boolean isParallelRunnerEnabled,
                               FileSystemTestSetModel fileSystemTestSetModel,
                               SummaryDataLogModel summaryDataLogModel,
-                              ScriptRTSSetModel scriptRTSSetModel) {
+                              ScriptRTSSetModel scriptRTSSetModel,
+                              UftSettingsModel uftSettingsModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.summaryDataLogModel = summaryDataLogModel;
         this.scriptRTSSetModel = scriptRTSSetModel;
+        this.uftSettingsModel = uftSettingsModel;
+        if(uftSettingsModel != null){
+            uftSettingsModel.setFsTestPath(getFsTests());
+        }
     }
 
 
@@ -144,7 +150,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled) {
+                              boolean useSSL, boolean isParallelRunnerEnabled){
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
@@ -263,6 +269,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     }
 
     public ScriptRTSSetModel getScriptRTSSetModel() { return scriptRTSSetModel; }
+
+    public UftSettingsModel getUftSettingsModel() {
+        return uftSettingsModel;
+    }
+
+    @DataBoundSetter
+    public void setUftSettingsModel(UftSettingsModel uftSettingsModel) {
+        this.uftSettingsModel = uftSettingsModel;
+    }
 
     public String getFsTimeout() {
         return runFromFileModel.getFsTimeout();
@@ -660,6 +675,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
         if (scriptRTSSetModel != null) {
             scriptRTSSetModel.addScriptsToProps(mergedProperties);
+        }
+
+        if(uftSettingsModel != null) {
+            uftSettingsModel.addToProperties(mergedProperties);
         }
         mergedProperties.put("resultsFilename", ResultFilename);
 

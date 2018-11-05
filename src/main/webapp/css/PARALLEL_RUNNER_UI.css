@@ -111,3 +111,47 @@
     letter-spacing: normal;
     color: #000000;
 }
+
+#testsTable {
+    border: 1px;
+    width:85%;
+    margin-left: -70px;
+}
+
+.testsDropDown {
+    margin-left: 20px;
+}
+
+#checkBox1 {
+    margin-left: -70px;
+}
+
+#testsDropDown {
+    width: 85%;
+}
+
+#clearBtn {
+    background-image: url("/plugin/hp-application-automation-tools-plugin/icons/uft_icons/eraser.png");
+    background-size: 18px;
+    width: 20px;
+    margin-left: 20px;
+    visibility: hidden;
+}
+
+#cleanupTestInput {
+    width: 250px;
+    margin-left: 10px;
+}
+
+#cleanupTestList {
+    margin-left: 20px;
+}
+
+#copyPasteBtn {
+    background-image: url("/plugin/hp-application-automation-tools-plugin/icons/uft_icons/copy_paste.png");
+    background-size: 45px;
+    width: 50px;
+    height: 28px;
+    margin-left: 10px;
+    visibility: hidden;
+}
