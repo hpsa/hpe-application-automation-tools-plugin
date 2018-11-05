@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.common;
 
+import com.microfocus.application.automation.tools.common.utils.OperatingSystem;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -27,6 +28,8 @@ import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+
+import static junit.framework.TestCase.assertEquals;
 
 public class OperatingSystemTest {
     private static String os;
@@ -92,19 +95,22 @@ public class OperatingSystemTest {
 
     @Test
     public void equalsCurrentOs_linux() throws NoSuchFieldException, IllegalAccessException {
-        initializeOperatingSystemOs("Linux");
-        Assert.assertTrue(OperatingSystem.LINUX.equalsCurrentOs());
+        String os = "Linux";
+        initializeOperatingSystemOs(os);
+        assertEquals("Operating system should be " + os, true, OperatingSystem.IS_LINUX);
     }
 
     @Test
     public void equalsCurrentOs_mac() throws NoSuchFieldException, IllegalAccessException {
-        initializeOperatingSystemOs("Mac OS X");
-        Assert.assertTrue(OperatingSystem.MAC.equalsCurrentOs());
+        String os = "Mac OS X";
+        initializeOperatingSystemOs(os);
+        assertEquals("Operating system should be " + os, true, OperatingSystem.IS_MAC);
     }
 
     @Test
     public void equalsCurrentOs_invalidOsReturnsFalse() throws NoSuchFieldException, IllegalAccessException {
+        String os = "Invalid OS";
         initializeOperatingSystemOs("Invalid OS");
-        Assert.assertFalse(OperatingSystem.WINDOWS.equalsCurrentOs());
+        assertEquals("Operating system should be " + os, false, OperatingSystem.IS_WINDOWS);
     }
 }

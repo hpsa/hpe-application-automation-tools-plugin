@@ -20,8 +20,8 @@
 
 package com.microfocus.application.automation.tools.lr.run;
 
-import com.microfocus.application.automation.tools.common.HealthAnalyzerCommon;
-import com.microfocus.application.automation.tools.common.OperatingSystem;
+import com.microfocus.application.automation.tools.common.utils.HealthAnalyzerCommon;
+import com.microfocus.application.automation.tools.common.utils.OperatingSystem;
 import com.microfocus.application.automation.tools.common.model.HealthAnalyzerModel;
 import com.microfocus.application.automation.tools.common.model.VariableWrapper;
 import com.microfocus.application.automation.tools.common.model.VariableListWrapper;
@@ -77,9 +77,9 @@ public class HealthAnalyzerLrStep extends HealthAnalyzerModel {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation);
-        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(getFilesList(), isFilesExist());
-        healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion);
+        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(LR_REGISTRY_PATH, checkLrInstallation, workspace);
+        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(getFilesList(), isFilesExist(), workspace);
+        healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, checkOsVersion, workspace);
     }
 
     @Extension

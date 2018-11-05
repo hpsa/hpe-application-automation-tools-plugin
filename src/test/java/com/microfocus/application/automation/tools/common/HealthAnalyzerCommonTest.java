@@ -20,14 +20,12 @@
 
 package com.microfocus.application.automation.tools.common;
 
-import com.microfocus.application.automation.tools.common.model.VariableWrapper;
+import com.microfocus.application.automation.tools.common.utils.HealthAnalyzerCommon;
+import com.microfocus.application.automation.tools.common.utils.OperatingSystem;
 import hudson.AbortException;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.microfocus.application.automation.tools.common.OperatingSystemTest.initializeOperatingSystemOs;
 import static junit.framework.TestCase.assertEquals;
@@ -50,35 +48,26 @@ public class HealthAnalyzerCommonTest {
         initializeOperatingSystemOs(os);
     }
 
-    @Test(expected = AbortException.class)
+    @Test
     public void isCheckedPerformWindowsInstallationCheck_throwsException_ifValueDoesNotExistsAndToCheckIsTrue()
             throws Exception {
-        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+        boolean returnValue = healthAnalyzerCommon.isRegistryExist(NON_EXISTING_REGISTRY);
+        assertEquals("Operating system mismatch", false, returnValue);
     }
 
     @Test
-    public void isCheckedPerformWindowsInstallationCheck_throwsCorrectExceptionValue() throws Exception {
-        if (OperatingSystem.IS_WINDOWS) {
-            try {
-                healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
-                fail();
-            } catch (AbortException e) {
-                assertEquals(e.getMessage(), DUMMY_PRODUCT_NAME + " is not installed. Please install it first.");
-            }
-        }
-    }
-
-    @Test(expected = AbortException.class)
     public void runningMethodOnNonWindows_throwsException() throws Exception {
         initializeOperatingSystemOs("Linux");
-        healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+        boolean returnValue = healthAnalyzerCommon.isRegistryExist(NON_EXISTING_REGISTRY);
+        assertEquals("Operating system mismatch", false, returnValue);
         initializeOperatingSystemOs(System.getProperty("os.name"));
     }
 
-    @Test(expected = AbortException.class)
+    @Test
     public void runningMethodOnWindowsWhenRegistryNotExists_throwsException() throws Exception {
         if (OperatingSystem.IS_WINDOWS) {
-            healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(NON_EXISTING_REGISTRY, true);
+            boolean returnValue = healthAnalyzerCommon.isRegistryExist(NON_EXISTING_REGISTRY);
+            assertEquals("Operating system mismatch", false, returnValue);
         }
     }
 
@@ -87,47 +76,42 @@ public class HealthAnalyzerCommonTest {
         if (OperatingSystem.IS_WINDOWS) {
             String existingRegistryValue = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
             try {
-                healthAnalyzerCommon.ifCheckedPerformWindowsInstallationCheck(existingRegistryValue, true);
+                healthAnalyzerCommon.isRegistryExist(existingRegistryValue);
             } catch (AbortException e) {
                 fail("Should not have thrown AbortException");
             }
         }
     }
 
-    @Test(expected = AbortException.class)
+    @Test
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifFileDoesNotExist() throws Exception {
-        List<VariableWrapper> files = new ArrayList<>();
-        VariableWrapper field = new VariableWrapper("C:\\non\\existing\\jenkins\\plugin\\path");
-        files.add(field);
-        healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+        String file = "C:\\non\\existing\\jenkins\\plugin\\path";
+        boolean returnValue = healthAnalyzerCommon.isFileExist(file);
+        assertEquals("Operating system mismatch", false, returnValue);
     }
 
     @Test(expected = AbortException.class)
     public void ifCheckedPerformFilesExistenceCheck_throwsException_ifDirectory() throws Exception {
         if (OperatingSystem.IS_WINDOWS) {
-            List<VariableWrapper> files = new ArrayList<>();
-            VariableWrapper field = new VariableWrapper("C:\\Users");
-            files.add(field);
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            String file = "C:\\Users";
+            healthAnalyzerCommon.isFileExist(file);
         }
     }
 
     @Test
     public void ifCheckedPerformFilesExistenceCheck_notThrowing_ifFileExist() {
-        List<VariableWrapper> files = new ArrayList<>();
-        VariableWrapper field = null;
+        String file = null;
 
         if (OperatingSystem.IS_WINDOWS) {
-            field = new VariableWrapper("C:\\Windows\\regedit.exe");
+            file = "C:\\Windows\\regedit.exe";
         } else if (OperatingSystem.IS_MAC) {
             // TODO
         } else if (OperatingSystem.IS_LINUX) {
-            field = new VariableWrapper("//proc");
+            file = "//proc";
         }
 
-        files.add(field);
         try {
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            healthAnalyzerCommon.isFileExist(file);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException: The file doesn't exist");
         }
@@ -136,28 +120,11 @@ public class HealthAnalyzerCommonTest {
     @Test
     public void ifCheckedPerformFilesExistenceCheck_shouldReturnTrue_ifNoFilesExist() {
         try {
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(null, true);
-            List<VariableWrapper> files = new ArrayList<>();
-            healthAnalyzerCommon.ifCheckedPerformFilesExistenceCheck(files, true);
+            healthAnalyzerCommon.isFileExist(null);
+            String file = "";
+            healthAnalyzerCommon.isFileExist(file);
         } catch (AbortException e) {
             fail("Should not have thrown AbortException");
         }
-    }
-
-    @Test
-    public void ifCheckedPerformOsCheck_shouldThrowException_withCorrectValue() throws Exception {
-        initializeOperatingSystemOs("windows");
-        try {
-            healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.LINUX, true);
-            fail();
-        } catch (AbortException e) {
-            assertEquals(e.getMessage(), String.format("Your operating system: %s is not %s.", "linux", OperatingSystem.getOs()));
-        }
-    }
-
-    @Test
-    public void ifCheckedPerformOsCheck_doesNotThrowException() throws Exception {
-        initializeOperatingSystemOs("windows");
-        healthAnalyzerCommon.ifCheckedPerformOsCheck(OperatingSystem.WINDOWS, true);
     }
 }
