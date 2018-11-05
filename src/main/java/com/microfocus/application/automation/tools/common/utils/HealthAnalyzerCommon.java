@@ -67,7 +67,7 @@ public class HealthAnalyzerCommon implements Serializable {
         FunctionFileCallable<String, Boolean> callable = new FunctionFileCallable<>(this::isRegistryExist,
                 registryPath);
         try {
-            if (OperatingSystem.IS_WINDOWS)
+            if (OperatingSystem.isWindows())
                 return workspace.act(callable);
             throw new AbortException(Messages.HealthAnalyzerCommon_registryWorksOnlyOnWindows());
         } catch (IOException e) {

@@ -35,7 +35,7 @@ public class OperatingSystemTest {
     private static String os;
 
     public static void initializeOperatingSystemOs(final String os) throws NoSuchFieldException, IllegalAccessException {
-        changeStaticFinalField(os, "OS");
+        changeStaticFinalField(os, "os");
 
         if (os.toLowerCase().contains("windows")) {
             setAllBooleanStaticFinalFields(true, false, false);
@@ -50,9 +50,9 @@ public class OperatingSystemTest {
 
     private static void setAllBooleanStaticFinalFields(boolean isWindows, boolean isMac, boolean isLinux)
             throws NoSuchFieldException, IllegalAccessException {
-        changeBooleanStaticFinalField(isWindows, "IS_WINDOWS");
-        changeBooleanStaticFinalField(isMac, "IS_MAC");
-        changeBooleanStaticFinalField(isLinux, "IS_LINUX");
+        changeBooleanStaticFinalField(isWindows, "windows");
+        changeBooleanStaticFinalField(isMac, "mac");
+        changeBooleanStaticFinalField(isLinux, "linux");
     }
 
     private static void changeStaticFinalField(String value, String declaredField)
@@ -97,20 +97,20 @@ public class OperatingSystemTest {
     public void equalsCurrentOs_linux() throws NoSuchFieldException, IllegalAccessException {
         String os = "Linux";
         initializeOperatingSystemOs(os);
-        assertEquals("Operating system should be " + os, true, OperatingSystem.IS_LINUX);
+        assertEquals("Operating system should be " + os, true, OperatingSystem.isLinux());
     }
 
     @Test
     public void equalsCurrentOs_mac() throws NoSuchFieldException, IllegalAccessException {
         String os = "Mac OS X";
         initializeOperatingSystemOs(os);
-        assertEquals("Operating system should be " + os, true, OperatingSystem.IS_MAC);
+        assertEquals("Operating system should be " + os, true, OperatingSystem.isMac());
     }
 
     @Test
     public void equalsCurrentOs_invalidOsReturnsFalse() throws NoSuchFieldException, IllegalAccessException {
         String os = "Invalid OS";
         initializeOperatingSystemOs("Invalid OS");
-        assertEquals("Operating system should be " + os, false, OperatingSystem.IS_WINDOWS);
+        assertEquals("Operating system should be " + os, false, OperatingSystem.isWindows());
     }
 }

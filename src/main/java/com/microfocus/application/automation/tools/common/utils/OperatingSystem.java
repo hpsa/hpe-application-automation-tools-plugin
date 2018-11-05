@@ -28,27 +28,38 @@ public enum OperatingSystem {
     WINDOWS,
     MAC;
 
-    private static String OS = System.getProperty("os.name").toLowerCase();
-    // TODO: should i implement my own containsIgnoreCase? instead of toLowerCase each?
-    public static boolean IS_WINDOWS = OS.contains(WINDOWS.name().toLowerCase());
-    public static boolean IS_MAC = OS.contains(MAC.name().toLowerCase());
     private static final List<String> POSIX_NAMES = Arrays.asList(
             "linux", "os/2", "irix", "hp-ux", "aix", "soalris", "sunos");
-    public static boolean IS_LINUX = POSIX_NAMES.contains(OS.toLowerCase());
+    private static String os = System.getProperty("os.name").toLowerCase();
+    private static boolean windows = os.contains(WINDOWS.name().toLowerCase());
+    private static boolean mac = os.contains(MAC.name().toLowerCase());
+    private static boolean linux = POSIX_NAMES.contains(os.toLowerCase());
 
     public static String getOs() {
-        return OS;
+        return os;
+    }
+
+    private static void refreshOsVariablesForSlave() {
+        os = System.getProperty("os.name").toLowerCase();
+        windows = os.contains(WINDOWS.name().toLowerCase());
+        mac = os.contains(MAC.name().toLowerCase());
+        linux = POSIX_NAMES.contains(os.toLowerCase());
     }
 
     public boolean equalsCurrentOs() {
         refreshOsVariablesForSlave();
-        return IS_LINUX || OS.contains(this.name().toLowerCase());
+        return linux || os.contains(this.name().toLowerCase());
     }
 
-    private static void refreshOsVariablesForSlave() {
-        OS = System.getProperty("os.name").toLowerCase();
-        IS_WINDOWS = OS.contains(WINDOWS.name().toLowerCase());
-        IS_MAC = OS.contains(MAC.name().toLowerCase());
-        IS_LINUX = POSIX_NAMES.contains(OS.toLowerCase());
+    public static boolean isWindows() {
+        return windows;
+    }
+
+    public static boolean isMac() {
+        return mac;
+    }
+
+    public static boolean isLinux() {
+        return linux;
     }
 }
