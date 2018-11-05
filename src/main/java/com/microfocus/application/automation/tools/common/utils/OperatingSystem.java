@@ -45,7 +45,7 @@ public enum OperatingSystem {
         return IS_LINUX || OS.contains(this.name().toLowerCase());
     }
 
-    private void refreshOsVariablesForSlave() {
+    private static void refreshOsVariablesForSlave() {
         OS = System.getProperty("os.name").toLowerCase();
         IS_WINDOWS = OS.contains(WINDOWS.name().toLowerCase());
         IS_MAC = OS.contains(MAC.name().toLowerCase());
