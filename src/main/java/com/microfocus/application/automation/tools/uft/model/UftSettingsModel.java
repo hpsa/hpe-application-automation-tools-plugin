@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.uft.model;
 
-import com.microfocus.application.automation.tools.UftToolUtils;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -31,7 +31,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;

@@ -20,7 +20,7 @@
  *
  */
 
-package com.microfocus.application.automation.tools;
+package com.microfocus.application.automation.tools.uft.utils;
 
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 

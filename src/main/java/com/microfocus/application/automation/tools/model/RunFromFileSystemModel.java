@@ -23,7 +23,7 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
-import com.microfocus.application.automation.tools.UftToolUtils;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
