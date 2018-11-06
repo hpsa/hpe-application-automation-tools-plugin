@@ -662,7 +662,6 @@ public class RunFromFileSystemModel {
 
     private Properties createProperties(EnvVars envVars) {
         Properties props = new Properties();
-        List<String> buildTestsList = new ArrayList<>();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
             String expandedFsTests = envVars.expand(fsTests);
@@ -677,12 +676,8 @@ public class RunFromFileSystemModel {
 
             for (String test : testsArr) {
                 test = test.trim();
-                List<String> buildTests = UftToolUtils.listFilesForFolder(new File(test));
-                for(String buildTestPath : buildTests){
-                    props.put("Test" + i, buildTestPath);
-                    buildTestsList.add(buildTestPath);
-                    i++;
-                }
+                props.put("Test" + i, test);
+                i++;
             }
         } else {
             props.put("fsTests", "");
