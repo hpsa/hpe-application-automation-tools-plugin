@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class MasterToSlaveList2 extends MasterToSlaveFileCallable<List<String>> {
+public class UftMasterToSlave extends MasterToSlaveFileCallable<List<String>> {
     @Override
     public List<String> invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
         return UftToolUtils.listFilesForFolder(f);

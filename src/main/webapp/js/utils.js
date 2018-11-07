@@ -2,8 +2,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var checkbox = document.getElementById('checkBox1');
     if(checkbox.checked){
         document.getElementsByName("fsTestType")[0].disabled = false;
+        document.getElementsByName("nodesList")[0].disabled = false;
+        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = false;
+
     }else{
         document.getElementsByName("fsTestType")[0].disabled = true;
+        document.getElementsByName("nodesList")[0].disabled = true;
+        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = true;
     }
 
     var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
@@ -37,10 +42,12 @@ function useAuthentication(obj){
 function enableCombobox(object){
     if (object.checked){
         document.getElementsByName("fsTestType")[0].disabled = false;
-        input = document.getElementById('attachment');
-        fileSelected(input);
+        document.getElementsByName("nodesList")[0].disabled = false;
+        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = false;
     } else {
         document.getElementsByName("fsTestType")[0].disabled = true;
+        document.getElementsByName("nodesList")[0].disabled = true;
+        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = true;
     }
 }
 

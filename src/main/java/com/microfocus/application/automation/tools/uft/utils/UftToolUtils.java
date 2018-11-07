@@ -83,14 +83,15 @@ public class UftToolUtils {
     public static List<String> getTestsFromNode(String nodeName, String path){
         Node node = Jenkins.getInstance().getNode(nodeName);
         FilePath filePath = new FilePath(node.getChannel(), path);
-        MasterToSlaveList2 masterToSlaveList2 = new MasterToSlaveList2();
+        UftMasterToSlave uftMasterToSlave = new UftMasterToSlave();
         List<String> tests = new ArrayList<>();
         try {
-            tests = filePath.act(masterToSlaveList2);//invoke listFilesForFolder
+            tests = filePath.act(uftMasterToSlave);//invoke listFilesForFolder
         } catch (IOException e) {
             logger.info(String.format("File path not found %s", e.getMessage()));
         } catch (InterruptedException e) {
             logger.info(String.format("Remote operation failed %s", e.getMessage()));
+            e.printStackTrace();
         }
 
         return tests;
