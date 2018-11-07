@@ -91,7 +91,6 @@ public class UftToolUtils {
             logger.info(String.format("File path not found %s", e.getMessage()));
         } catch (InterruptedException e) {
             logger.info(String.format("Remote operation failed %s", e.getMessage()));
-            e.printStackTrace();
         }
 
         return tests;
