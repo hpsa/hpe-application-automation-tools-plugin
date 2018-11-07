@@ -20,11 +20,11 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.*;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.Messages;
-import com.microfocus.application.automation.tools.octane.OctaneServerMock;
 import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
+import com.microfocus.application.automation.tools.octane.OctaneServerMock;
 import com.microfocus.application.automation.tools.octane.tests.ExtensionUtil;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
@@ -34,11 +34,13 @@ import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2701", "squid:S2698"})
 public class ConfigurationServiceTest extends OctanePluginTestBase {
@@ -56,12 +58,63 @@ public class ConfigurationServiceTest extends OctanePluginTestBase {
 
 	@Test
 	public void testGetServerConfiguration() {
-		OctaneServerSettingsModel configuration = ConfigurationService.getSettings(instanceId);
-		assertEquals("http://localhost:8008", configuration.getLocation());
+		OctaneServerSettingsModel configuration = ConfigurationService.getAllSettings().get(0);
+//		assertEquals("http://localhost:8008", configuration.getLocation());
 		assertEquals(OctanePluginTestBase.ssp, configuration.getSharedSpace());
 		assertEquals("username", configuration.getUsername());
 		assertEquals(password, configuration.getPassword());
 	}
+
+	@Test
+	public void testConfigManipulation() throws Exception {
+		HtmlPage configPage = client.goTo("configure");
+		HtmlForm updateConfigForm = configPage.getFormByName("config");
+
+
+		//update identity for existing server config
+		((HtmlCheckBoxInput) updateConfigForm.getElementsByAttribute("input", "name", "showIdentity").get(0)).setChecked(true);
+		String newInstanceId = UUID.randomUUID().toString();
+		OctaneServerSettingsModel oldModel = ConfigurationService.getSettings(instanceId);
+		String oldIdentity = oldModel.getIdentity();
+		String oldModelInternalId = oldModel.getInternalId();
+		((HtmlInput) findInputText(updateConfigForm, "_.identity", instanceId)).setDefaultValue(newInstanceId);
+
+		rule.submit(updateConfigForm);
+		OctaneServerSettingsModel newModel = ConfigurationService.getSettings(newInstanceId);
+		String newIdentity = newModel.getIdentity();
+		String newModelInternalId = newModel.getInternalId();
+
+		assertEquals(newModelInternalId, oldModelInternalId);
+		assertNotEquals(oldIdentity, newIdentity);
+		assertEquals(newInstanceId, newIdentity);
+
+		//add new configuration
+		configPage = client.goTo("configure");
+		HtmlForm addConfigForm = configPage.getFormByName("config");
+		HtmlElement addButton = findButton(addConfigForm, "Add ALM Octane server");
+		configPage = (HtmlPage) HtmlElementUtil.click(addButton);
+		addConfigForm = configPage.getFormByName("config");
+
+
+		ssp = UUID.randomUUID().toString();
+		((HtmlInput) findInputText(addConfigForm, "_.uiLocation", null)).setValueAttribute("http://localhost:8008/ui/?p=" + ssp + "/1002");
+		((HtmlInput) findInputText(addConfigForm, "_.username", null)).setValueAttribute("username");
+		((HtmlInput) findInputText(addConfigForm, "_.password", null)).setValueAttribute("password");
+
+		rule.submit(addConfigForm);
+		assertEquals(2, ConfigurationService.getAllSettings().size());
+
+		//remove configuration
+		configPage = client.goTo("configure");
+		HtmlForm deleteConfigForm = configPage.getFormByName("config");
+		HtmlElement deleteButton = findButton(deleteConfigForm, "Delete ALM Octane server");
+		configPage = (HtmlPage) HtmlElementUtil.click(deleteButton);
+		deleteConfigForm = configPage.getFormByName("config");
+
+		rule.submit(deleteConfigForm);
+		assertEquals(1, ConfigurationService.getAllSettings().size());
+	}
+
 
 	@Test
 	public void testConfigurationRoundTrip() throws Exception {
@@ -108,6 +161,30 @@ public class ConfigurationServiceTest extends OctanePluginTestBase {
 		assertTrue(validation.getMessage().contains(Messages.ConnectionSharedSpaceInvalid()));
 
 		serverMock.removeTestSpecificHandler(testHandler);
+	}
+
+	private HtmlElement findButton(HtmlElement form, String buttonText) {
+		List<HtmlElement> list = new LinkedList<>();
+		for (HtmlElement htmlElement : form.getHtmlElementsByTagName("button")) {
+			if (buttonText.equals(htmlElement.getFirstChild().asText())) {
+				list.add(htmlElement);
+			}
+		}
+		return list.size() > 0 ? list.get(0) : null;
+	}
+
+	private HtmlElement findInputText(HtmlElement form, String inputName, String value) {
+		for (HtmlElement htmlElement : ((HtmlForm) form).getInputsByName(inputName))
+			if (value == null || value.isEmpty()) {
+				if (htmlElement.getAttribute("value").isEmpty()) {
+					return htmlElement;
+				}
+			} else {
+				if (value.equals(htmlElement.getAttribute("value"))) {
+					return htmlElement;
+				}
+			}
+		return null;
 	}
 
 	private static final class ConfigurationTestHandler extends OctaneServerMock.TestSpecificHandler {

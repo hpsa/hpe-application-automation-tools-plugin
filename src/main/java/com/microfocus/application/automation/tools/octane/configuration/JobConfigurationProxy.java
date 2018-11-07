@@ -75,8 +75,9 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
-		CIServerInfo ciServerInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
 		String instanceId = pipelineObject.getString("instanceId");
+		CIServerInfo ciServerInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
+		ciServerInfo.setInstanceId(instanceId);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 
@@ -99,6 +100,8 @@ public class JobConfigurationProxy {
 			//WORKAROUND END
 
 			JSONObject pipelineJSON = fromPipeline(createdPipelineContext, workspaces.get(0));
+			enrichPipelineInstanceId(pipelineJSON, instanceId);
+
 			//WORKAROUND BEGIN
 			//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
 			enrichPipelineInternal(pipelineJSON, octaneClient);
@@ -181,6 +184,8 @@ public class JobConfigurationProxy {
 
 			//TODO uncomment after getting pipelineContext
 			JSONObject pipelineJSON = fromPipeline(pipeline, workspaces.get(0));
+			enrichPipelineInstanceId(pipelineJSON, instanceId);
+
 			//WORKAROUND BEGIN
 			//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
 			enrichPipelineInternal(pipelineJSON, octaneClient);
@@ -275,7 +280,7 @@ public class JobConfigurationProxy {
 
 					for (PipelineContext relatedPipeline : workspacePipelines.getValue()) {
 						JSONObject pipelineJSON = fromPipeline(relatedPipeline, relatedWorkspace);
-						pipelineJSON.put("instanceId", instanceId);
+						enrichPipelineInstanceId(pipelineJSON, instanceId);
 						relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getContextEntityId()), pipelineJSON);
 					}
 					JSONObject workspaceJSON = new JSONObject();
@@ -295,7 +300,7 @@ public class JobConfigurationProxy {
 				Entity preSelectedWorkspace = sortedWorkspacesMap.keySet().iterator().next();
 				PipelineContext preSelectedPipeline = sortedWorkspacesMap.get(preSelectedWorkspace).get(0);
 				JSONObject preSelectedPipelineJSON = fromPipeline(preSelectedPipeline, preSelectedWorkspace);
-				preSelectedPipelineJSON.put("instanceId", instanceId);
+				enrichPipelineInstanceId(preSelectedPipelineJSON, instanceId);
 				//WORKAROUND BEGIN
 				//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
 				enrichPipelineInternal(preSelectedPipelineJSON, octaneClient);
@@ -371,6 +376,11 @@ public class JobConfigurationProxy {
 		enrichRelease(pipelineJSON, octaneClient);
 		enrichTaxonomies(pipelineJSON, octaneClient);
 		enrichFields(pipelineJSON, octaneClient);
+	}
+
+	private static void enrichPipelineInstanceId(JSONObject pipelineJSON, String instanceId) {
+		pipelineJSON.put("instanceId", instanceId);
+		pipelineJSON.put("instanceCaption", ConfigurationService.getSettings(instanceId).getCaption());
 	}
 
 	private static void enrichRelease(JSONObject pipeline, OctaneClient octaneClient) {
@@ -569,20 +579,17 @@ public class JobConfigurationProxy {
 	public JSONObject searchSharedSpaces(String term) {
 		JSONObject ret = new JSONObject();
 		JSONArray retArray = new JSONArray();
-		try {
-			for (OctaneServerSettingsModel model : ConfigurationService.getAllSettings()) {
 
-				JSONObject relJson = new JSONObject();
-				relJson.put("id", model.getIdentity());
-				relJson.put("text", model.getLocation() + " " + model.getSharedSpace());
-				retArray.add(relJson);
+		for (OctaneServerSettingsModel model : ConfigurationService.getAllSettings()) {
+			if (StringUtils.isNotEmpty(term) && !model.getCaption().toLowerCase().contains(term.toLowerCase())) {
+				continue;
 			}
-			ret.put("results", retArray);
-
-		} catch (Exception e) {
-			logger.warn("Failed to retrieve workspaces", e);
-			return error("Unable to retrieve workspaces");
+			JSONObject relJson = new JSONObject();
+			relJson.put("id", model.getIdentity());
+			relJson.put("text", model.getCaption());
+			retArray.add(relJson);
 		}
+		ret.put("results", retArray);
 
 		return ret;
 	}
