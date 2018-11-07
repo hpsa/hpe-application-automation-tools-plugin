@@ -126,4 +126,9 @@ function clearRerunSettings(){
     });
 }
 
+function selectNode(selectedObject){
+    var selectedNode = document.getElementsByName('uftSettingsModel.selectedNode')[0];
+    selectedNode.value = selectedObject.value;
+}
+
 

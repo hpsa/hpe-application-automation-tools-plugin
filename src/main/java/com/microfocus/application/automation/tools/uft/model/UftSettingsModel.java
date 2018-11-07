@@ -22,21 +22,27 @@
 
 package com.microfocus.application.automation.tools.uft.model;
 
+import com.microfocus.application.automation.tools.uft.utils.MasterToSlaveList2;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Node;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 
 public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> {
+    private String selectedNode;
+    private String selectedElement;
     private String fsTestPath;
     private String numberOfReruns;
     private String cleanupTest;
@@ -50,13 +56,47 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     public final static List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST);
 
     @DataBoundConstructor
-    public UftSettingsModel(String numberOfReruns, String cleanupTest, String onCheckFailedTest, String fsTestType,
+    public UftSettingsModel(String selectedNode,String selectedElement,
+                            String numberOfReruns, String cleanupTest, String onCheckFailedTest, String fsTestType,
                             List<RerunSettingsModel> rerunSettingsModels) {
+        this.selectedNode = selectedNode;
+        this.selectedElement = selectedElement;
         this.numberOfReruns = numberOfReruns;
         this.cleanupTest = cleanupTest;
         this.onCheckFailedTest = onCheckFailedTest;
         this.fsTestType = fsTestType;
-        this.setRerunSettingsModels(UftToolUtils.updateRerunSettings(getFsTestPath(), rerunSettingsModels));
+        this.setRerunSettingsModels(UftToolUtils.updateRerunSettings(getSelectedNode(), getFsTestPath(), rerunSettingsModels));
+    }
+
+    public List<String> getNodes() {
+        List<Node> nodeList = Jenkins.getInstance().getNodes();
+
+        List<String> nodes = new ArrayList<>();
+        nodes.add("master");
+        for(Node node : nodeList){
+            nodes.add(node.getDisplayName());
+        }
+
+        return nodes;
+    }
+
+
+    public String getSelectedNode() {
+        return selectedNode;
+    }
+
+    @DataBoundSetter
+    public void setSelectedNode(String selectedNode) {
+        this.selectedNode = selectedNode;
+    }
+
+    public String getSelectedElement() {
+        return selectedElement;
+    }
+
+    @DataBoundSetter
+    public void setSelectedElement(String selectedElement) {
+        this.selectedElement = selectedElement;
     }
 
     public String getFsTestPath() {
@@ -65,7 +105,6 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
     public void setFsTestPath(String fsTestPath) {
         this.fsTestPath = fsTestPath;
-        UftToolUtils.updateRerunSettings(getFsTestPath(), rerunSettingsModels);
     }
 
     public String getNumberOfReruns() {
@@ -115,7 +154,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * @return the rerun settings
      */
     public List<RerunSettingsModel> getRerunSettingsModels(){
-       return UftToolUtils.updateRerunSettings(fsTestPath, rerunSettingsModels);
+       return UftToolUtils.updateRerunSettings(selectedNode, getFsTestPath(), rerunSettingsModels);
     }
 
     public List<EnumDescription> getFsTestTypes() { return fsTestTypes; }
@@ -126,6 +165,12 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * @param props
      */
     public void addToProperties(Properties props){
+        if(!StringUtils.isEmpty(this.selectedNode)){
+            props.put("Selected node", this.selectedNode);
+        } else {
+            props.put("Selected node", "master");
+        }
+
         if(!StringUtils.isEmpty(this.onCheckFailedTest)){
             props.put("onCheckFailedTest", this.onCheckFailedTest);
         } else {
