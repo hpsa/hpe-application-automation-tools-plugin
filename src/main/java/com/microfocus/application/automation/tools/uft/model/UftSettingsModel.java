@@ -221,7 +221,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         public String getDisplayName() {return "UFT Settings Model";}
 
         public FormValidation doCheckSelectedNode(@QueryParameter String value, @QueryParameter String onCheckFailedTest) {
-             if(value.isEmpty()) {
+             if(onCheckFailedTest.toLowerCase().equals("true") && value.isEmpty()) {
                  return FormValidation.error("You must select a node from the list.");
              }
 
