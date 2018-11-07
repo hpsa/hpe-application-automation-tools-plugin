@@ -23,13 +23,20 @@
 package com.microfocus.application.automation.tools.uft.utils;
 
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
+import hudson.FilePath;
+import hudson.model.Node;
+import jenkins.model.Jenkins;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class UftToolUtils {
+
+    private static final Logger logger = Logger.getLogger(UftToolUtils.class.getName());
 
     private UftToolUtils(){}
 
@@ -40,8 +47,8 @@ public class UftToolUtils {
      * @param rerunSettingsModels the rerun settings models to update
      * @return
      */
-    public static List<RerunSettingsModel> updateRerunSettings(String fsTestPath, List<RerunSettingsModel> rerunSettingsModels){
-        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(fsTestPath), rerunSettingsModels);
+    public static List<RerunSettingsModel> updateRerunSettings(String nodeName, String fsTestPath, List<RerunSettingsModel> rerunSettingsModels){
+        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(nodeName, fsTestPath), rerunSettingsModels);
         for(String testPath : testPaths){
             if(!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
                 rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
@@ -56,18 +63,37 @@ public class UftToolUtils {
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
-    public static List<String> getBuildTests(String fsTestPath) {
+    public static List<String> getBuildTests(String nodeName, String fsTestPath) {
         if(fsTestPath != null) {
+            List<String> buildTests;
+            Node node = Jenkins.getInstance().getNode(nodeName);
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
-            final File folder = new File(directoryPath);
-
-            List<String> buildTests = listFilesForFolder(folder);
-
+            if(Jenkins.getInstance().getNodes().isEmpty() || (node == null)){//run tests on master
+                buildTests = listFilesForFolder(new File(directoryPath));
+            } else {//run tests on selected node
+                buildTests = getTestsFromNode(nodeName, directoryPath);
+            }
             return buildTests;
         }
 
         return null;
+    }
+
+    public static List<String> getTestsFromNode(String nodeName, String path){
+        Node node = Jenkins.getInstance().getNode(nodeName);
+        FilePath filePath = new FilePath(node.getChannel(), path);
+        UftMasterToSlave uftMasterToSlave = new UftMasterToSlave();
+        List<String> tests = new ArrayList<>();
+        try {
+            tests = filePath.act(uftMasterToSlave);//invoke listFilesForFolder
+        } catch (IOException e) {
+            logger.info(String.format("File path not found %s", e.getMessage()));
+        } catch (InterruptedException e) {
+            logger.info(String.format("Remote operation failed %s", e.getMessage()));
+        }
+
+        return tests;
     }
 
     /**

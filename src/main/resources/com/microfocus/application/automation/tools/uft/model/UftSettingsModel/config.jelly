@@ -26,6 +26,7 @@
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
 
+
     <f:entry>
         <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
 
@@ -37,6 +38,22 @@
                 </f:option>
             </j:forEach>
         </select>
+    </f:entry>
+
+
+    <f:entry title="Nodes" field="selectedElement">
+        <select name="selectedElement" onchange="selectNode(this)" style="width: 100px;">
+            <j:forEach var="node" items="${instance.getNodes()}">
+                <f:option selected="${node==instance.selectedElement}" value="${node}">
+                    ${node}
+                </f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
+
+    <f:entry field="selectedNode">
+        <label id="selectedNodeLabel" style="margin-left: -70px; margin-bottom: 30px;">Selected node: </label>
+        <f:textbox name="uftSettingsModel.selectedNode" value="${instance.selectedNode}" style="width: 350px;"/>
     </f:entry>
 
     <f:entry>
