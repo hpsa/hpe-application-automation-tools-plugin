@@ -451,9 +451,36 @@ public class OctaneServerSettingsBuilder extends Builder {
 			return FormValidation.ok();
 		}
 
+		public FormValidation doCheckUiLocation(@QueryParameter String value, @QueryParameter(value = "internalId") String internalId) {
+			FormValidation ret = FormValidation.ok();
+			//Relevant only for new server configuration (empty internalId)
+			if (!StringUtils.isBlank(internalId)) {
+				return ret;
+			}
+			if (StringUtils.isBlank(value)) {
+				ret = FormValidation.error("Location must be set");
+				return ret;
+			}
+			MqmProject mqmProject = null;
+			try {
+				mqmProject = ConfigurationParser.parseUiLocation(value);
+
+			} catch (Exception e) {
+				ret = FormValidation.error("Failed to parse location.");
+			}
+			for (OctaneServerSettingsModel serverSettingsModel : servers) {
+				if (mqmProject != null && serverSettingsModel.getSharedSpace().equals(mqmProject.getSharedSpace()) &&
+						serverSettingsModel.getLocation().equals(mqmProject.getLocation())) {
+					ret = FormValidation.error("This ALM Octane server configuration was already set.");
+					return ret;
+				}
+			}
+			return ret;
+		}
+
 		private void validateConfiguration(FormValidation result, String formField) throws FormException {
 			if (!result.equals(FormValidation.ok())) {
-				throw new FormException("Validation of property in ALM Octane Server Configuration failed: " + result.getMessage(), formField);
+				throw new FormException("Validation of property in ALM Octane server Configuration failed: " + result.getMessage(), formField);
 			}
 		}
 	}

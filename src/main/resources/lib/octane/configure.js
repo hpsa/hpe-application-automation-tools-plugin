@@ -41,38 +41,49 @@ function octane_job_configuration(target, progress, proxy) {
         return left.toLowerCase() === right.toLowerCase();
     }
 
-    function configure() {
-        var sharedspaceDiv = $("<div class='mqm'><label><h3>Select sharedspace</h3></label><select id='sharedspaceSelect'></select></div>");
-        $(target).append(sharedspaceDiv);
-        $("#sharedspaceSelect").select2({
-            placeholder: 'Select a sharedspace',
-            ajax: {
-                dataType: 'json',
-                delay: 250,
-                transport: function (params, success, failure) {
-                    var term = "";
-                    if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                    proxy.searchSharedSpaces(term, (function (data) {
-                        queryToMqmCallback(data, success, failure)
-                    }));
-                },
-                cache: true
-            },
-            templateResult: formatSelect2Option
-        });
-        $("#sharedspaceSelect").on("select2:select", function(e) {
-            progressFunc("Retrieving configuration from server");
+    function loadJobConfigurationFromServer(sharedspace) {
+        progressFunc("Retrieving configuration from server");
 
-            proxy.loadJobConfigurationFromServer(e.params.data.id, function (t) {
-                progressFunc();
-                var response = t.responseObject();
-                if (response.errors) {
-                    response.errors.forEach(renderError);
-                } else {
-                    renderConfiguration(response, undefined, e.params.data.id);
-                }
-            });
+        proxy.loadJobConfigurationFromServer(sharedspace.id, function (t) {
+            progressFunc();
+            var response = t.responseObject();
+            if (response.errors) {
+                response.errors.forEach(renderError);
+            } else {
+                renderConfiguration(response, undefined, sharedspace.id);
+            }
         });
+    }
+
+    function configure() {
+        proxy.searchSharedSpaces("", (function (sharedspaces) {
+            if(sharedspaces.responseJSON.results.length===1){
+                loadJobConfigurationFromServer(sharedspaces.responseJSON.results[0]);
+            }else{
+                var sharedspaceDiv = $("<div class='mqm'><label><h3>Select ALM Octane server configuration</h3></label><select id='sharedspaceSelect'></select></div>");
+                $(target).append(sharedspaceDiv);
+                $("#sharedspaceSelect").select2({
+                    placeholder: 'Select a configuration',
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchSharedSpaces(term, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+                $("#sharedspaceSelect").on("select2:select", function(e) {
+                    loadJobConfigurationFromServer(e.params.data);
+                });
+            }
+        }));
+
 
     }
 
@@ -705,7 +716,10 @@ function octane_job_configuration(target, progress, proxy) {
             selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
 
-            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/></div>");
+            var selectWorkspaceDiv = $("<div class='mutton rpos'>" +
+                "<div id='configuration-div' class='config-label'>ALM Octane : " + jobConfiguration.currentPipeline.instanceCaption + "</div>" +
+                "<div id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/>" +
+                "</div></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
             //sort workspaces by name to show in UI
