@@ -380,7 +380,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Errors occurred during scenario execution. Stopping the scenario run.</value>
   </data>
   <data name="LrScenarioTimeOut" xml:space="preserve">
-    <value>Scenario Execution timeout ({0} seconds) passed.</value>
+    <value>Scenario Execution timeout {0} (d:h:m:s) passed.</value>
   </data>
   <data name="LrScenarioValidationCannotConnectLG" xml:space="preserve">
     <value>Cannot connect to Load Generator {0}.</value>

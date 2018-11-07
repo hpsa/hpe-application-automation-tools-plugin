@@ -266,6 +266,7 @@ namespace HpToolsLauncher
                         runResult.TestState = TestState.Error;
                         runResult.ErrorDesc = ex.Message;
                         runResult.TestName = test.TestName;
+                        runResult.TestPath = test.TestPath;
                     }
 
                     //get the original source for this test, for grouping tests under test classes

@@ -844,7 +844,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Scenario Execution timeout ({0} seconds) passed..
+        ///   Looks up a localized string similar to Scenario Execution timeout {0} (d:h:m:s) passed..
         /// </summary>
         internal static string LrScenarioTimeOut {
             get {
