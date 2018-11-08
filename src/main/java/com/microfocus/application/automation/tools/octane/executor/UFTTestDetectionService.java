@@ -121,6 +121,16 @@ public class UFTTestDetectionService {
             result.setConfigurationId(configurationId);
             result.setWorkspaceId(workspaceId);
             result.setFullScan(fullScan);
+
+            //we add test runner only for discovery jobs that were created for test runners
+            ParametersAction parameterAction = build.getAction(ParametersAction.class);
+            if (parameterAction != null) {
+                ParameterValue testRunnerParameter = parameterAction.getParameter(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME);
+                if (testRunnerParameter != null && testRunnerParameter.getValue() instanceof String) {
+                    result.setTestRunnerId((String) testRunnerParameter.getValue());
+                }
+            }
+
             result.sortItems();
             publishDetectionResults(getReportXmlFile(build), buildListener, result);
 

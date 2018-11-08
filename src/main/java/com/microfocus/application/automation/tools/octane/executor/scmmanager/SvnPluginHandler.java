@@ -26,6 +26,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -97,5 +98,20 @@ public class SvnPluginHandler implements ScmPluginHandler {
 	@Override
 	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
 		return null;
+	}
+
+	@Override
+	public String getScmRepositoryUrl(SCM scm) {
+		return ((SubversionSCM) scm).getLocations()[0].remote;
+	}
+
+	@Override
+	public String getScmRepositoryCredentialsId(SCM scm) {
+		return ((SubversionSCM) scm).getLocations()[0].credentialsId;
+	}
+
+	@Override
+	public SCMType getScmType() {
+		return SCMType.SVN;
 	}
 }

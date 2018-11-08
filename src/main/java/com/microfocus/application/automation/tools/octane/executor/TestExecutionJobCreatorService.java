@@ -23,20 +23,26 @@
 package com.microfocus.application.automation.tools.octane.executor;
 
 import antlr.ANTLRException;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
+import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunConverterBuilder;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.model.*;
+import hudson.scm.SCM;
 import hudson.tasks.BuildWrapper;
+import hudson.tasks.Builder;
 import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
 import jenkins.model.BuildDiscarder;
@@ -110,8 +116,7 @@ public class TestExecutionJobCreatorService {
 	private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
 
 		try {
-			String projectName = String.format("%s %s %s",
-					suiteExecutionInfo.getTestingToolType().toString(),
+			String projectName = String.format("%s %s",
 					UftConstants.EXECUTION_JOB_MIDDLE_NAME,
 					suiteExecutionInfo.getSuiteId());
 
@@ -236,7 +241,7 @@ public class TestExecutionJobCreatorService {
             "url": "git@github.com:radislavB/UftTests.git"
           },
           "executorId": "1",
-          "executorLogialName": "ABC",
+          "executorLogicalName": "ABC",
           "workspaceId": "1002",
           "testingToolType": "uft",
           "forceFullDiscovery": true
@@ -246,20 +251,35 @@ public class TestExecutionJobCreatorService {
 
 		//start job
 		if (proj != null) {
-			ParameterValue executorIdParam = new StringParameterValue(UftConstants.EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId());
+			List<ParameterValue> paramList =  new ArrayList<>();
 			ParameterValue fullScanParam = new BooleanParameterValue(UftConstants.FULL_SCAN_PARAMETER_NAME, discoveryInfo.isForceFullDiscovery());
-			ParametersAction parameters = new ParametersAction(executorIdParam, fullScanParam);
+			paramList.add(fullScanParam);
 
+			ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
+			if (parameters.getParameterDefinitionNames().contains(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME)) {
+				ParameterValue testRunnerIdParam = new StringParameterValue(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, discoveryInfo.getExecutorId());
+				paramList.add(testRunnerIdParam);
+			}
+
+			ParametersAction paramAction = new ParametersAction(paramList);
 			Cause cause = new Cause.UserIdCause();
 			CauseAction causeAction = new CauseAction(cause);
-			proj.scheduleBuild2(0, parameters, causeAction);
+			proj.scheduleBuild2(0, paramAction, causeAction);
 		}
 	}
 
 	private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
+		if (EntityConstants.TestRunner.ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+			return getDiscoveryJobForTestRunner(discoveryInfo);
+		} else {
+			return getDiscoveryJobForUftExecutor(discoveryInfo);
+		}
+	}
+
+	private static FreeStyleProject getDiscoveryJobForUftExecutor(DiscoveryInfo discoveryInfo) {
 
 		try {
-			String discoveryJobName = buildDiscoveryJobName(discoveryInfo.getTestingToolType(), discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
+			String discoveryJobName = String.format("%s %s (%s)", UftConstants.DISCOVERY_JOB_MIDDLE_NAME, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
 			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
 			if (proj == null) {
@@ -303,6 +323,52 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
+	private static FreeStyleProject getDiscoveryJobForTestRunner(DiscoveryInfo discoveryInfo) {
+		try {
+			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
+			//validate creation of job
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
+			if (proj == null) {
+
+				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
+				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
+						discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
+			}
+
+			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, false);
+			setBuildDiscarder(proj, 20);
+			addConstantParameter(proj, UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane test runner ID");
+			addConstantParameter(proj, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
+			addBooleanParameter(proj, UftConstants.FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
+
+			//set polling once in two minutes
+			SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
+			proj.addTrigger(scmTrigger);
+			delayPollingStart(proj, scmTrigger);
+			addDiscoveryAssignedNode(proj);
+			addTimestamper(proj);
+
+			//add post-build action - publisher
+			UFTTestDetectionPublisher uftTestDetectionPublisher = null;
+			List publishers = proj.getPublishersList();
+			for (Object publisher : publishers) {
+				if (publisher instanceof UFTTestDetectionPublisher) {
+					uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+				}
+			}
+
+			if (uftTestDetectionPublisher == null) {
+				uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getConfigurationId(), discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
+				publishers.add(uftTestDetectionPublisher);
+			}
+
+			return proj;
+		} catch (IOException | ANTLRException e) {
+			logger.error("Failed to  create DiscoveryJob for test runner: " + e.getMessage());
+			return null;
+		}
+	}
+
 	private static void addTimestamper(FreeStyleProject proj) {
 		try {
 			Descriptor<BuildWrapper> wrapperDescriptor = Jenkins.getInstance().getBuildWrapper("TimestamperBuildWrapper");
@@ -317,11 +383,6 @@ public class TestExecutionJobCreatorService {
 		} catch (Descriptor.FormException e) {
 			logger.error("Failed to  addTimestamper : " + e.getMessage());
 		}
-	}
-
-	private static String buildDiscoveryJobName(TestingToolType testingToolType, String executorId, String executorLogicalName) {
-		String name = String.format("%s %s %s (%s)", testingToolType.toString(), UftConstants.DISCOVERY_JOB_MIDDLE_NAME, executorId, executorLogicalName);
-		return name;
 	}
 
 	private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) throws IOException {
@@ -428,5 +489,110 @@ public class TestExecutionJobCreatorService {
 		} catch (IOException | ANTLRException e) {
 			logger.error("Failed to  set addExecutionAssignedNode : " + e.getMessage());
 		}
+	}
+
+	public static FreeStyleProject createExecutor(DiscoveryInfo discoveryInfo) {
+		try {
+			String projectName = String.format("%s-%s-%s", UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
+
+
+			//validate creation of job
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
+			if (proj == null) {
+				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
+				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
+						discoveryInfo.getExecutorId()));
+			}
+
+			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, true);
+			setBuildDiscarder(proj, 40);
+			addStringParameter(proj, UftConstants.TESTS_TO_RUN_PARAMETER_NAME, "", "Tests to run");
+			addStringParameter(proj, UftConstants.CHEKOUT_DIR_PARAMETER_NAME, "${WORKSPACE}\\${CHECKOUT_SUBDIR}", "Shared UFT directory");
+
+			addExecutionAssignedNode(proj);
+			addTimestamper(proj);
+
+			//add build action
+			Builder convertedBuilder = new TestsToRunConverterBuilder(TestsToRunFramework.MF_UFT.value());
+			Builder uftRunner = new RunFromFileBuilder("${testsToRunConverted}");
+			proj.getBuildersList().add(convertedBuilder);
+			proj.getBuildersList().add(uftRunner);
+
+
+			//add post-build action - publisher
+			RunResultRecorder runResultRecorder = null;
+			List publishers = proj.getPublishersList();
+			for (Object publisher : publishers) {
+				if (publisher instanceof RunResultRecorder) {
+					runResultRecorder = (RunResultRecorder) publisher;
+				}
+			}
+			if (runResultRecorder == null) {
+				runResultRecorder = new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue());
+				publishers.add(runResultRecorder);
+			}
+			return proj;
+		} catch (IOException e) {
+			logger.error("Failed to create executor job : " + e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * This method is called after upgrade uftExecutor to testRunner in Octane. Upgrade contains reference to non-existing executor job.
+	 * This method is intended to create missing executor job.
+	 * Creation is triggered only if missing job name starts with UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS.
+	 * Scm details for new job is taken from matching discovery job. Matching is done by testRunner logical name
+	 * @param uftExecutorJobNameWithTestRunner
+	 * @return
+	 */
+	public static FreeStyleProject createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
+		if (StringUtils.isNotEmpty(uftExecutorJobNameWithTestRunner) && uftExecutorJobNameWithTestRunner.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+			DTOFactory dtoFactory = DTOFactory.getInstance();
+			String[] parts = uftExecutorJobNameWithTestRunner.split("-");
+			String testRunnerId = parts[parts.length - 2];
+			String testRunnerLogicalName = parts[parts.length - 1];
+
+			//find matching discovery job
+			List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+			FreeStyleProject foundDiscoveryJob = null;
+			for (FreeStyleProject job : jobs) {
+				if (UftJobRecognizer.isDiscoveryJob(job)) {
+
+					ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+					ParameterDefinition parameterDefinition;
+
+					if (job.getName().contains(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+						parameterDefinition = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME);
+					} else {
+						parameterDefinition = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
+					}
+					if (parameterDefinition != null && testRunnerLogicalName.equals(parameterDefinition.getDefaultParameterValue().getValue().toString())) {
+						foundDiscoveryJob = job;
+						break;
+					}
+				}
+			}
+
+			if (foundDiscoveryJob != null) {
+				//build DiscoveryInfo
+				DiscoveryInfo discoveryInfo = dtoFactory.newDTO(DiscoveryInfo.class);
+				discoveryInfo.setExecutorId(testRunnerId);
+				discoveryInfo.setExecutorLogicalName(testRunnerLogicalName);
+				discoveryInfo.setTestingToolType(TestingToolType.UFT);
+				SCM scm = foundDiscoveryJob.getScm();
+				ScmPluginHandler scmHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getClass().getName());
+				discoveryInfo.setScmRepositoryCredentialsId(scmHandler.getScmRepositoryCredentialsId(scm));
+				discoveryInfo.setScmRepository(dtoFactory.newDTO(SCMRepository.class)
+						.setType(scmHandler.getScmType())
+						.setUrl(scmHandler.getScmRepositoryUrl(scm)));
+
+				//createExecutor
+				return TestExecutionJobCreatorService.createExecutor(discoveryInfo);
+			} else {
+				logger.warn(uftExecutorJobNameWithTestRunner + " : job is no found. Trial to create it failed as no discovery job is found with test runner logical name " + testRunnerLogicalName);
+			}
+		}
+		return null;
 	}
 }

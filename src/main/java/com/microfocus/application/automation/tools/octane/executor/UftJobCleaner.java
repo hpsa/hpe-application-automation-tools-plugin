@@ -117,8 +117,8 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
         Map<Long, Map<String, FreeStyleProject>> workspace2executorLogical2DiscoveryJobMap = new HashMap<>();
         for (FreeStyleProject job : jobs) {
-            if (UftJobRecognizer.isDiscoveryJobJob(job)) {
-                String executorLogicalName = getExecutorLogicalName(job);
+            if (UftJobRecognizer.isDiscoveryJob(job)) {
+                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(job);
                 Long workspaceId = getOctaneWorkspaceId(job);
                 if (executorLogicalName != null && workspaceId != null) {
                     if (!workspace2executorLogical2DiscoveryJobMap.containsKey(workspaceId)) {
@@ -174,19 +174,6 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         return octaneExecutorIds;
     }
 
-    private static Long getExecutorId(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_ID_PARAMETER_NAME);
-        String value = (String) pd.getDefaultParameterValue().getValue();
-        return Long.valueOf(value);
-    }
-
-    private static String getExecutorLogicalName(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
-        String value = (String) pd.getDefaultParameterValue().getValue();
-        return value;
-    }
 
     private Long getOctaneWorkspaceId(FreeStyleProject job) {
 
@@ -206,15 +193,17 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     /**
      * Delete discovery job that related to specific executor in Octane
      *
-     * @param id
+     * @param executorToDelete
      */
-    public static void deleteExecutor(String id) {
-        long executorToDelete = Long.parseLong(id);
+    public static void deleteDiscoveryJobByExecutor(String executorToDelete) {
+
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isDiscoveryJobJob(proj)) {
-                Long executorId = getExecutorId(proj);
-                if (executorId != null && executorId == executorToDelete) {
+            if (UftJobRecognizer.isDiscoveryJob(proj)) {
+                String executorId = UftJobRecognizer.getExecutorId(proj);
+                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
+                if ((StringUtils.isNotEmpty(executorId) && executorId.equals(executorToDelete)) ||
+                        (StringUtils.isNotEmpty(executorLogicalName) && executorLogicalName.equals(executorToDelete))) {
                     boolean waitBeforeDelete = false;
 
                     if (proj.isBuilding()) {
