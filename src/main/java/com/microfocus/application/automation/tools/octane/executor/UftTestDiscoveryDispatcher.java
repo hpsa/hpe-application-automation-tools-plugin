@@ -26,6 +26,7 @@ import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.UftTestDispatchUtils;
@@ -269,7 +270,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		}
 
 		//GET TESTS FROM OCTANE
-		Map<String, Entity> octaneTestsMapByKey = UftTestDispatchUtils.getTestsFromServer(entitiesService, Long.parseLong(result.getWorkspaceId()), Long.parseLong(result.getScmRepositoryId()), allTestNames);
+		Collection<String> additionalFields = SdkStringUtils.isNotEmpty(result.getTestRunnerId()) ? Arrays.asList(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) : null;
+		Map<String, Entity> octaneTestsMapByKey = UftTestDispatchUtils.getTestsFromServer(entitiesService, Long.parseLong(result.getWorkspaceId()), Long.parseLong(result.getScmRepositoryId()), true, allTestNames, additionalFields);
 
 
 		//MATCHING
@@ -296,7 +298,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 						hasDiff = true;
 						discoveredTest.setOctaneStatus(OctaneStatus.NEW);
 					} else {
-						boolean testsEqual = UftTestDispatchUtils.checkTestEquals(discoveredTest, octaneTest);
+						boolean testsEqual = UftTestDispatchUtils.checkTestEquals(discoveredTest, octaneTest, result.getTestRunnerId());
 						if (testsEqual) { //if equal - skip
 							discoveredTest.setOctaneStatus(OctaneStatus.NONE);
 						}

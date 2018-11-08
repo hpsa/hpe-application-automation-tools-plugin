@@ -25,6 +25,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
@@ -47,6 +48,7 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
@@ -237,6 +239,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
+			//create UFT test runner job on the fly if missing
+			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+				job = createExecutorByJobName(jobCiId);
+			}
 			if (job != null) {
 				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 				if (!hasBuildPermission) {
@@ -388,6 +394,36 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
+	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
+		if (EntityConstants.TestRunner.ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+			SecurityContext securityContext = startImpersonation();
+			try {
+				Job project = TestExecutionJobCreatorService.createExecutor(discoveryInfo);
+				PipelineNode result = ModelFactory.createStructureItem(project);
+				return result;
+			} finally {
+				stopImpersonation(securityContext);
+			}
+		} else {
+			return null;
+		}
+	}
+
+
+	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			Job project = TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
+			return project;
+		} catch (Exception e) {
+			logger.warn("Failed to create createExecutor by name : " + e.getMessage());
+			return null;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
 	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
 		SecurityContext securityContext = startImpersonation();
 		try {
@@ -411,7 +447,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public void deleteExecutor(String id) {
 		SecurityContext securityContext = startImpersonation();
 		try {
-			UftJobCleaner.deleteExecutor(id);
+			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
 		} finally {
 			stopImpersonation(securityContext);
 		}
