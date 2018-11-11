@@ -26,6 +26,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.EnvVars;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
@@ -120,5 +121,20 @@ public class GitPluginHandler implements ScmPluginHandler {
 	@Override
 	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
 		return ((GitChangeSet.Path) affectedFile).getDst();
+	}
+
+	@Override
+	public String getScmRepositoryUrl(SCM scm) {
+		return ((GitSCM) scm).getUserRemoteConfigs().get(0).getUrl();
+	}
+
+	@Override
+	public String getScmRepositoryCredentialsId(SCM scm) {
+		return ((GitSCM) scm).getUserRemoteConfigs().get(0).getCredentialsId();
+	}
+
+	@Override
+	public SCMType getScmType() {
+		return SCMType.GIT;
 	}
 }

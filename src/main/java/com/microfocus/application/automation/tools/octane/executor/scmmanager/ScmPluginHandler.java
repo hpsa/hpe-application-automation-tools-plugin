@@ -25,9 +25,11 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.SCM;
 
 import java.io.IOException;
 
@@ -42,4 +44,10 @@ public interface ScmPluginHandler {
     String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile);
 
     String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile);
+
+    String getScmRepositoryUrl(SCM scm);
+
+    String getScmRepositoryCredentialsId(SCM scm);
+
+    SCMType getScmType();
 }
