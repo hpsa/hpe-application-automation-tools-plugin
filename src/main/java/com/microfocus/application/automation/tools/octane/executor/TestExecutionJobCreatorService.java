@@ -269,8 +269,8 @@ public class TestExecutionJobCreatorService {
 	}
 
 	private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
-		if (EntityConstants.TestRunner.ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
-			return getDiscoveryJobForTestRunner(discoveryInfo);
+		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+			return getDiscoveryJobForUftTestRunner(discoveryInfo);
 		} else {
 			return getDiscoveryJobForUftExecutor(discoveryInfo);
 		}
@@ -323,7 +323,7 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
-	private static FreeStyleProject getDiscoveryJobForTestRunner(DiscoveryInfo discoveryInfo) {
+	private static FreeStyleProject getDiscoveryJobForUftTestRunner(DiscoveryInfo discoveryInfo) {
 		try {
 			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
