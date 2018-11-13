@@ -170,8 +170,6 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     public void addToProperties(Properties props, EnvVars envVars){
         if(!StringUtils.isEmpty(this.selectedNode)){
             props.put("Selected node", envVars.expand(this.selectedNode));
-        } else {
-            props.put("Selected node", "master");
         }
 
         if(!StringUtils.isEmpty(this.onCheckFailedTest)){
@@ -208,7 +206,9 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
                 if(settings.getChecked()){//test is selected
                     props.put("FailedTest" + j, settings.getTest());
                     props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
-                    props.put("CleanupTest" + j, settings.getCleanupTest());
+                    if(!StringUtils.isEmpty(settings.getCleanupTest())){
+                        props.put("CleanupTest" + j, settings.getCleanupTest());
+                    }
                     j++;
                 }
             }
@@ -220,9 +220,9 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         @Nonnull
         public String getDisplayName() {return "UFT Settings Model";}
 
-        public FormValidation doCheckSelectedNode(@QueryParameter String value, @QueryParameter String onCheckFailedTest) {
-             if(onCheckFailedTest.toLowerCase().equals("true") && value.isEmpty()) {
-                 return FormValidation.error("You must select a node from the list.");
+        public FormValidation doCheckSelectedNode(@QueryParameter String value) {
+            if (StringUtils.isBlank(value.trim())){
+                 return FormValidation.error("You must select the node chosen in the main job configuration.");
              }
 
             return FormValidation.ok();

@@ -27,11 +27,10 @@
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
 
 
-    <f:entry>
+    <f:entry field="fsTestType">
         <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
 
-        <select id="testTypeSelect" field="fsTestType" name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}"
-            onchange="selectValueCombo(this)">
+        <select name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
             <j:forEach var="testType" items="${instance.fsTestTypes}">
                 <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
                     ${testType.description}
@@ -53,7 +52,7 @@
 
     <f:entry field="selectedNode">
         <label id="selectedNodeLabel" style="margin-left: -70px; margin-bottom: 30px;">Selected node: </label>
-        <f:textbox name="uftSettingsModel.selectedNode" value="${instance.selectedNode}" style="width: 350px;"/>
+        <f:textbox name="selectedNode" field="selectedNode" value="${instance.selectedNode}" style="width: 350px;"/>
     </f:entry>
 
     <f:entry>

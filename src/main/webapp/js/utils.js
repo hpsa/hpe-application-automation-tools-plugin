@@ -1,18 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     var checkbox = document.getElementById('checkBox1');
     if(checkbox.checked){
-        document.getElementsByName("fsTestType")[0].disabled = false;
-        document.getElementsByName("nodesList")[0].disabled = false;
-        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = false;
+         document.getElementsByName("fsTestType")[0].disabled = false;
+         document.getElementsByName("selectedElement")[0].disabled = false;
+         document.getElementsByName("selectedNode")[0].disabled = false;
 
     }else{
         document.getElementsByName("fsTestType")[0].disabled = true;
-        document.getElementsByName("nodesList")[0].disabled = true;
-        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = true;
+        document.getElementsByName("selectedElement")[0].disabled = true;
+        document.getElementsByName("selectedNode")[0].disabled = true;
     }
 
-    var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
-    var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
+
+    var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
+    var selectValue = document.getElementsByName("fsTestType")[0].options[selectIndex].text;
     if(selectValue === "Of any of the build's tests") {
         document.getElementById('testsTable').style.visibility = "hidden";
         document.getElementById('clearBtn').style.visibility = "hidden";
@@ -42,12 +43,12 @@ function useAuthentication(obj){
 function enableCombobox(object){
     if (object.checked){
         document.getElementsByName("fsTestType")[0].disabled = false;
-        document.getElementsByName("nodesList")[0].disabled = false;
-        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = false;
+        document.getElementsByName("selectedElement")[0].disabled = false;
+        document.getElementsByName("selectedNode")[0].disabled = false;
     } else {
         document.getElementsByName("fsTestType")[0].disabled = true;
-        document.getElementsByName("nodesList")[0].disabled = true;
-        document.getElementsByName("uftSettingsModel.selectedNode")[0].disabled = true;
+        document.getElementsByName("selectedElement")[0].disabled = true;
+        document.getElementsByName("selectedNode")[0].disabled = true;
     }
 }
 
@@ -134,7 +135,7 @@ function clearRerunSettings(){
 }
 
 function selectNode(selectedObject){
-    var selectedNode = document.getElementsByName('uftSettingsModel.selectedNode')[0];
+    var selectedNode = document.getElementsByName('selectedNode')[0];
     selectedNode.value = selectedObject.value;
 }
 

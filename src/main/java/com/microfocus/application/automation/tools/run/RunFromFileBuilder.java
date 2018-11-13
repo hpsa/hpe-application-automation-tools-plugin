@@ -606,9 +606,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             listener.error("Failed loading build environment " + e);
         }
 
-
-        // this is an unproper replacment to the build.getVariableResolver since workflow run won't support the
-        // getBuildEnviroment() as written here:
+        // this is an unproper replacement to the build.getVariableResolver since workflow run won't support the
+        // getBuildEnvironment() as written here:
         // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE
         // .md#variable-substitutions
 
@@ -673,6 +672,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         if (summaryDataLogModel != null) {
             summaryDataLogModel.addToProps(mergedProperties);
         }
+
         if (scriptRTSSetModel != null) {
             scriptRTSSetModel.addScriptsToProps(mergedProperties);
         }
@@ -680,6 +680,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         if(uftSettingsModel != null) {
             uftSettingsModel.addToProperties(mergedProperties, env);
         }
+
         mergedProperties.put("resultsFilename", ResultFilename);
 
         // parallel runner is enabled

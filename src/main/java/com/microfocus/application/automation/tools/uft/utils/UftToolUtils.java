@@ -23,6 +23,7 @@
 package com.microfocus.application.automation.tools.uft.utils;
 
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
@@ -33,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static groovy.util.ObjectGraphBuilder.NODE_NAME;
 
 public class UftToolUtils {
 
@@ -58,7 +61,7 @@ public class UftToolUtils {
         return rerunSettingsModels;
     }
 
-    /**
+    /**mvn cl
      * Retrieves the build tests
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
