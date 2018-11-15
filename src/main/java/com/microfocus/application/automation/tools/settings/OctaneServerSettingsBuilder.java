@@ -192,6 +192,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				OctaneServerSettingsModel newModel = req.bindJSON(OctaneServerSettingsModel.class, json);
 				String identity = "";
 				OctaneServerSettingsModel oldModel;
+
 				if (json.containsKey("showIdentity")) {
 					JSONObject showIdentity = (JSONObject) json.get("showIdentity");
 					identity = showIdentity.getString("identity");
@@ -199,6 +200,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				}
 
 				String internalId = json.getString("internalId");
+				validateConfiguration(doCheckUiLocation(json.getString("uiLocation"), internalId), "Location");
 				oldModel = getSettingsByInternalId(internalId);
 				if (oldModel != null) {
 					newModel.setIdentity(identity.isEmpty() ? oldModel.getIdentity() : identity);
@@ -462,6 +464,9 @@ public class OctaneServerSettingsBuilder extends Builder {
 				return ret;
 			}
 			MqmProject mqmProject = null;
+
+
+
 			try {
 				mqmProject = ConfigurationParser.parseUiLocation(value);
 
@@ -480,7 +485,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		private void validateConfiguration(FormValidation result, String formField) throws FormException {
 			if (!result.equals(FormValidation.ok())) {
-				throw new FormException("Validation of property in ALM Octane server Configuration failed: " + result.getMessage(), formField);
+				throw new FormException("Validation of property '" + formField +  "' in ALM Octane server Configuration failed: " + result.getMessage(), formField);
 			}
 		}
 	}
