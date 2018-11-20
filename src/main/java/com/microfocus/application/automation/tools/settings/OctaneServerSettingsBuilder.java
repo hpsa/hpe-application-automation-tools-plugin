@@ -124,21 +124,28 @@ public class OctaneServerSettingsBuilder extends Builder {
 				servers = new OctaneServerSettingsModel[0];
 			}
 
-			//  upgrade flow to add internal ID to configuration
 			boolean shouldSave = false;
+			// defense for non-octane users.Previously, before multi-configuration, octane had only one configuration,
+			// even empty. So after moving to multi-configuration, non-octane users have non-valid configuration and
+			// will fail to save jenkins configuration as missing valid octane configuration
+			if (servers.length == 1 && StringUtils.isEmpty(servers[0].getUiLocation())) {
+				servers = new OctaneServerSettingsModel[0];
+				shouldSave = true;
+			}
+
+			//  upgrade flow to add internal ID to configuration
 			for (OctaneServerSettingsModel server : servers) {
 				if (server.getInternalId() == null || server.getInternalId().isEmpty()) {
 					server.setInternalId(UUID.randomUUID().toString());
 					shouldSave = true;
 				}
 			}
-			if (shouldSave) save();
+			if (shouldSave) {
+				save();
+			}
 		}
 
 		public void initOctaneClients() {
-			if (!isInitialConfigValid(servers)) {
-				return;
-			}
 			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
 				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
 						innerServerConfiguration.getSharedSpace());
@@ -146,17 +153,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
 				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
 				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
-			}
-		}
-
-		private boolean isInitialConfigValid(OctaneServerSettingsModel[] servers) {
-			if (servers.length == 0) {
-				return false;
-			} else if (servers.length == 1) {
-				OctaneServerSettingsModel innerServerConfiguration = servers[0];
-				return innerServerConfiguration.getLocation() != null && !innerServerConfiguration.getLocation().isEmpty();
-			} else {
-				return true;
 			}
 		}
 
