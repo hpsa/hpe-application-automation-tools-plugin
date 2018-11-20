@@ -97,6 +97,7 @@ namespace HpToolsLauncher
         private readonly string _failOnUftTestFailed;
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
         private static string _dateFormat = "dd/MM/yyyy HH:mm:ss";
+        private static bool rerunFailedTests = false;
 
         public static string DateFormat
         {
@@ -254,6 +255,8 @@ namespace HpToolsLauncher
                 UniqueTimeStamp = resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
             }
 
+
+            //run the entire set of test once
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runtype, _ciParams);
 
@@ -264,7 +267,38 @@ namespace HpToolsLauncher
             }
 
             RunTests(runner, resultsFilename);
-                        
+
+
+            string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
+
+            if (string.IsNullOrEmpty(onCheckFailedTests))
+            {
+                rerunFailedTests = false;
+            }
+            else
+            {
+                rerunFailedTests = Convert.ToBoolean(onCheckFailedTests.ToLower());
+            }
+
+          
+            //the "On failure" option is selected and the run build contains failed tests
+            if (rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
+            {
+                ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
+                
+                //rerun the selected tests (either the entire set or just the selected ones)
+                //create the runner according to type
+                runner = CreateRunner(_runtype, _ciParams);
+
+                //runner instantiation failed (no tests to run or other problem)
+                if (runner == null)
+                {
+                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                }
+
+                RunTests(runner, resultsFilename);
+            }
+  
             //Console.WriteLine("Press any key to exit...");
             //Console.ReadKey();
             ConsoleQuickEdit.Enable();
@@ -345,26 +379,12 @@ namespace HpToolsLauncher
                                         
                     List<TestData> validBuildTests = getValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests);
 
-                    //check if reruns options should be available
-                    string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
-                    bool rerunFailedTests;
-                    if (string.IsNullOrEmpty(onCheckFailedTests))
-                    {
-                        rerunFailedTests = false;
-                    }
-                    else
-                    {
-                        rerunFailedTests = Convert.ToBoolean(onCheckFailedTests.ToLower());
-                    }
-
-                    ConsoleWriter.WriteLine("Rerun failed tests:  " + rerunFailedTests);
-
                     //add build tests and cleanup tests in correct order
                     List<TestData> validTests = new List<TestData>();
 
                     if (!rerunFailedTests)
                     {
-                        ConsoleWriter.WriteLine("Run only build tests");
+                        ConsoleWriter.WriteLine("Run build tests");
 
                         //run only the build tests
                         foreach (var item in validBuildTests)
@@ -377,9 +397,11 @@ namespace HpToolsLauncher
                         string fsTestType = (_ciParams.ContainsKey("testType") ? _ciParams["testType"] : "");
 
                         List<TestData> validFailedTests = getValidTests("FailedTest", Resources.LauncherNoFailedTestsFound, Resources.LauncherNoValidFailedTests);
-
-                        List<TestData> validCleanupTests = getValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests);
-
+                        List<TestData> validCleanupTests = new List<TestData>();
+                        if (getValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests).Count > 0)
+                        {
+                            validCleanupTests = getValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests);
+                        }
                         List<string> reruns = GetParamsWithPrefix("Reruns");
                         List<int> numberOfReruns = new List<int>();
                         foreach (var item in reruns)
@@ -387,35 +409,51 @@ namespace HpToolsLauncher
                             numberOfReruns.Add(int.Parse(item));
                         }
 
+                        bool noRerunsSet = checkReruns(numberOfReruns);
                         int currentRerun;
-                        
-                        for (int i = 0; i < numberOfReruns.Count; i++)
+
+                        if (noRerunsSet)
                         {
-                            currentRerun = numberOfReruns.ElementAt(i);
-
-                            if (fsTestType.Equals("Of any of the build's tests"))
+                            ConsoleWriter.WriteLine("In order to rerun the tests the number of reruns should be greater than zero.");
+                        } else
+                        {
+                            for (int i = 0; i < numberOfReruns.Count; i++)
                             {
-                                while (currentRerun > 0)
+                                currentRerun = numberOfReruns.ElementAt(i);
+
+                                if (fsTestType.Equals("Of any of the build's tests"))
                                 {
-                                    validTests.Add(validCleanupTests.ElementAt(i));
-                                    foreach (var item in validFailedTests)
+                                    ConsoleWriter.WriteLine("Rerun the entire test set");
+                                    while (currentRerun > 0)
                                     {
-                                        validTests.Add(item);
+                                        if (validCleanupTests.Count > 0)
+                                        {
+                                            validTests.Add(validCleanupTests.ElementAt(i));
+                                        }
+
+                                        foreach (var item in validFailedTests)
+                                        {
+                                            validTests.Add(item);
+                                        }
+
+                                        currentRerun--;
                                     }
-
-                                    currentRerun--;
-                                }
-                            }
-                            else
-                            {
-                                while (currentRerun > 0)
+                          
+                                } else
                                 {
-                                    validTests.Add(validCleanupTests.ElementAt(i));
+                                   
+                                    while (currentRerun > 0)
+                                    {
+                                        if (validCleanupTests.Count > 0)
+                                        {
+                                            validTests.Add(validCleanupTests.ElementAt(i));
+                                        }
 
-                                    validTests.Add(validFailedTests.ElementAt(i));
+                                        validTests.Add(validFailedTests.ElementAt(i));
 
-                                    currentRerun--;
-                                }
+                                        currentRerun--;
+                                    }
+                                 }
                             }
                         }
                     }
@@ -866,6 +904,10 @@ namespace HpToolsLauncher
         {
             List<TestData> tests = new List<TestData>();
             Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix(propertiesParameter);
+            if(propertiesParameter.Equals("CleanupTest") && testsKeyValue.Count == 0)
+            {
+                return tests;
+            }
 
             foreach (var item in testsKeyValue)
             {
@@ -886,6 +928,21 @@ namespace HpToolsLauncher
             }
 
             return validTests;
+        }
+
+        private bool checkReruns(List<int> numberOfReruns)
+        {
+            bool noRerunsSet = true;
+            for (int j = 0; j < numberOfReruns.Count; j++)
+            {
+                if (numberOfReruns.ElementAt(j) > 0)
+                {
+                    noRerunsSet = false;
+                    break;
+                }
+            }
+
+            return noRerunsSet;
         }
     }
     

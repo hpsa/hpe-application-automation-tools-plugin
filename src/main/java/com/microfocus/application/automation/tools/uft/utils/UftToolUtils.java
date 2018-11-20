@@ -23,9 +23,13 @@
 package com.microfocus.application.automation.tools.uft.utils;
 
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
+import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.QueryParameter;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static groovy.util.ObjectGraphBuilder.NODE_NAME;
 
 public class UftToolUtils {
 
@@ -174,5 +180,22 @@ public class UftToolUtils {
         }
 
         return rerunTests;
+    }
+
+    public static FormValidation doCheckNumberOfReruns(final String value) {
+
+        String errorMessage = "You must enter a positive integer number.";
+
+        try {
+            int number = Integer.parseInt(value);
+
+            if (StringUtils.isBlank(value.trim()) || number < 0) {
+                return FormValidation.error(errorMessage);
+            }
+        } catch (NumberFormatException e) {
+            return FormValidation.error(errorMessage);
+        }
+
+        return FormValidation.ok();
     }
 }

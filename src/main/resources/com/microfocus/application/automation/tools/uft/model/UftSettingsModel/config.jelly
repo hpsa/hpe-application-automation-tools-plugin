@@ -27,11 +27,10 @@
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
 
 
-    <f:entry>
+    <f:entry field="fsTestType">
         <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
 
-        <select id="testTypeSelect" field="fsTestType" name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}"
-            onchange="selectValueCombo(this)">
+        <select name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
             <j:forEach var="testType" items="${instance.fsTestTypes}">
                 <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
                     ${testType.description}
@@ -41,24 +40,20 @@
     </f:entry>
 
 
-    <f:entry title="Nodes" field="selectedElement">
-        <select name="selectedElement" onchange="selectNode(this)" style="width: 100px;">
+    <f:entry title="Nodes" field="selectedNode">
+        <select name="selectedNode" style="width: 100px;">
             <j:forEach var="node" items="${instance.getNodes()}">
-                <f:option selected="${node==instance.selectedElement}" value="${node}">
+                <f:option selected="${node==instance.selectedNode}" value="${node}">
                     ${node}
                 </f:option>
             </j:forEach>
         </select>
     </f:entry>
 
-    <f:entry field="selectedNode">
-        <label id="selectedNodeLabel" style="margin-left: -70px; margin-bottom: 30px;">Selected node: </label>
-        <f:textbox name="uftSettingsModel.selectedNode" value="${instance.selectedNode}" style="width: 350px;"/>
-    </f:entry>
-
     <f:entry>
          <label class="attach-previous" style="margin-left: -70px; margin-right: 5px;">Reruns:</label>
-         <f:number field="numberOfReruns" name="uftSettingsModel.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px"/>
+
+        <f:number field="numberOfReruns" name="numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px"/>
 
          <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" onclick="clearRerunSettings()"/>
 

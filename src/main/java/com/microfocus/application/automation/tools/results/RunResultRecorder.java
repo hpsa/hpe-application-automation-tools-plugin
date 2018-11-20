@@ -471,18 +471,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                             // we must consider the case when we run the same test
                             // in the same build
-                            if (isParallelRunnerReport) {
-                                Integer nameCount = 1;
+                            Integer nameCount = 1;
 
-                                if (fileNameCount.containsKey(testName)) {
-                                    nameCount = fileNameCount.get(testName) + 1;
-                                }
-
-                                // update the count for this file
-                                fileNameCount.put(testName, nameCount);
-
-                                testName += "[" + nameCount + "]";
+                            if (fileNameCount.containsKey(testName)) {
+                                nameCount = fileNameCount.get(testName) + 1;
                             }
+
+                            // update the count for this file
+                            fileNameCount.put(testName, nameCount);
+
+                            testName += "[" + nameCount + "]";
 
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
