@@ -124,21 +124,28 @@ public class OctaneServerSettingsBuilder extends Builder {
 				servers = new OctaneServerSettingsModel[0];
 			}
 
-			//  upgrade flow to add internal ID to configuration
 			boolean shouldSave = false;
+			// defense for non-octane users.Previously, before multi-configuration, octane had only one configuration,
+			// even empty. So after moving to multi-configuration, non-octane users have non-valid configuration and
+			// will fail to save jenkins configuration as missing valid octane configuration
+			if (servers.length == 1 && StringUtils.isEmpty(servers[0].getUiLocation())) {
+				servers = new OctaneServerSettingsModel[0];
+				shouldSave = true;
+			}
+
+			//  upgrade flow to add internal ID to configuration
 			for (OctaneServerSettingsModel server : servers) {
 				if (server.getInternalId() == null || server.getInternalId().isEmpty()) {
 					server.setInternalId(UUID.randomUUID().toString());
 					shouldSave = true;
 				}
 			}
-			if (shouldSave) save();
+			if (shouldSave) {
+				save();
+			}
 		}
 
 		public void initOctaneClients() {
-			if (!isInitialConfigValid(servers)) {
-				return;
-			}
 			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
 				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
 						innerServerConfiguration.getSharedSpace());
@@ -146,17 +153,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
 				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
 				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
-			}
-		}
-
-		private boolean isInitialConfigValid(OctaneServerSettingsModel[] servers) {
-			if (servers.length == 0) {
-				return false;
-			} else if (servers.length == 1) {
-				OctaneServerSettingsModel innerServerConfiguration = servers[0];
-				return innerServerConfiguration.getLocation() != null && !innerServerConfiguration.getLocation().isEmpty();
-			} else {
-				return true;
 			}
 		}
 
@@ -192,6 +188,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				OctaneServerSettingsModel newModel = req.bindJSON(OctaneServerSettingsModel.class, json);
 				String identity = "";
 				OctaneServerSettingsModel oldModel;
+
 				if (json.containsKey("showIdentity")) {
 					JSONObject showIdentity = (JSONObject) json.get("showIdentity");
 					identity = showIdentity.getString("identity");
@@ -199,6 +196,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				}
 
 				String internalId = json.getString("internalId");
+				validateConfiguration(doCheckUiLocation(json.getString("uiLocation"), internalId), "Location");
 				oldModel = getSettingsByInternalId(internalId);
 				if (oldModel != null) {
 					newModel.setIdentity(identity.isEmpty() ? oldModel.getIdentity() : identity);
@@ -462,6 +460,9 @@ public class OctaneServerSettingsBuilder extends Builder {
 				return ret;
 			}
 			MqmProject mqmProject = null;
+
+
+
 			try {
 				mqmProject = ConfigurationParser.parseUiLocation(value);
 
@@ -480,7 +481,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		private void validateConfiguration(FormValidation result, String formField) throws FormException {
 			if (!result.equals(FormValidation.ok())) {
-				throw new FormException("Validation of property in ALM Octane server Configuration failed: " + result.getMessage(), formField);
+				throw new FormException("Validation of property '" + formField +  "' in ALM Octane server Configuration failed: " + result.getMessage(), formField);
 			}
 		}
 	}

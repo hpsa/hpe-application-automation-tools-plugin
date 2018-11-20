@@ -395,7 +395,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
-		if (EntityConstants.TestRunner.ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
 			SecurityContext securityContext = startImpersonation();
 			try {
 				Job project = TestExecutionJobCreatorService.createExecutor(discoveryInfo);

@@ -95,8 +95,11 @@ public class BuildHandlerUtils {
 						}
 					}
 				}
+				logger.error("BuildHandlerUtils.getWorkspace - missing WorkspaceAction on WorkflowRun.");
 			}
 		}
+
+		logger.error("BuildHandlerUtils.getWorkspace - run is not handled. Run type : " + run.getClass());
 		return null;
 	}
 
