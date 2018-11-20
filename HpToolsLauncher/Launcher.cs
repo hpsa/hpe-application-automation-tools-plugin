@@ -441,7 +441,7 @@ namespace HpToolsLauncher
                           
                                 } else
                                 {
-                                    ConsoleWriter.WriteLine("Rerun the selected tests");
+                                   
                                     while (currentRerun > 0)
                                     {
                                         if (validCleanupTests.Count > 0)
