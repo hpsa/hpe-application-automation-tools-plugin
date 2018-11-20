@@ -64,7 +64,7 @@ public class UftToolUtils {
         return rerunSettingsModels;
     }
 
-    /**mvn cl
+    /**
      * Retrieves the build tests
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
