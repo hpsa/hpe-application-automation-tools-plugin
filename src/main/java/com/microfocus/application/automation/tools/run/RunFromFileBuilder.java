@@ -678,7 +678,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         if(uftSettingsModel != null) {
-            uftSettingsModel.addToProperties(mergedProperties, env);
+            uftSettingsModel.addToProperties(mergedProperties);
         }
 
         mergedProperties.put("resultsFilename", ResultFilename);

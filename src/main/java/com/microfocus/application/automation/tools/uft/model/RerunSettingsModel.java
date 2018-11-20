@@ -22,11 +22,14 @@
 
 package com.microfocus.application.automation.tools.uft.model;
 
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 
@@ -83,6 +86,13 @@ public class RerunSettingsModel extends AbstractDescribableImpl<RerunSettingsMod
     @Extension
     public static class DescriptorImpl extends Descriptor<RerunSettingsModel> {
         @Nonnull
-        public String getDisplayName() {return "Rerun settings model";}
+        @Override
+        public String getDisplayName() {
+            return "Rerun settings model";
+        }
+
+        public FormValidation doCheckNumberOfReruns(@QueryParameter String value) {
+            return UftToolUtils.doCheckNumberOfReruns(value);
+        }
     }
 }
