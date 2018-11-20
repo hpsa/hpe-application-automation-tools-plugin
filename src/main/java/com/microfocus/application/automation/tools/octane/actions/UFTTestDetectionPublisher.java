@@ -36,10 +36,7 @@ import com.microfocus.application.automation.tools.octane.executor.UFTTestDetect
 import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.FreeStyleProject;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -97,6 +94,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 				}
 			} else {
 				logger.error("No relevant ALM Octane configuration is found.");
+				build.setResult(Result.FAILURE);
 				throw new IllegalArgumentException("No relevant ALM Octane configuration is found.");
 			}
 		}

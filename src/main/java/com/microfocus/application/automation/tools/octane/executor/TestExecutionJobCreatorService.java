@@ -269,8 +269,8 @@ public class TestExecutionJobCreatorService {
 	}
 
 	private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
-		if (EntityConstants.TestRunner.ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
-			return getDiscoveryJobForTestRunner(discoveryInfo);
+		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+			return getDiscoveryJobForUftTestRunner(discoveryInfo);
 		} else {
 			return getDiscoveryJobForUftExecutor(discoveryInfo);
 		}
@@ -323,7 +323,7 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
-	private static FreeStyleProject getDiscoveryJobForTestRunner(DiscoveryInfo discoveryInfo) {
+	private static FreeStyleProject getDiscoveryJobForUftTestRunner(DiscoveryInfo discoveryInfo) {
 		try {
 			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
@@ -422,6 +422,14 @@ public class TestExecutionJobCreatorService {
 		if (parameters.getParameterDefinition(parameterName) == null) {
 			ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
 			parameters.getParameterDefinitions().add(param);
+		}
+	}
+
+	private static void removeParameter(FreeStyleProject proj, String parameterName) throws IOException {
+		ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
+		ParameterDefinition def = parameters.getParameterDefinition(parameterName);
+		if (def != null) {
+			parameters.getParameterDefinitions().remove(def);
 		}
 	}
 
@@ -546,7 +554,7 @@ public class TestExecutionJobCreatorService {
 	 * @param uftExecutorJobNameWithTestRunner
 	 * @return
 	 */
-	public static FreeStyleProject createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
+	public static FreeStyleProject createExecutorByJobName(String uftExecutorJobNameWithTestRunner) throws IOException {
 		if (StringUtils.isNotEmpty(uftExecutorJobNameWithTestRunner) && uftExecutorJobNameWithTestRunner.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
 			DTOFactory dtoFactory = DTOFactory.getInstance();
 			String[] parts = uftExecutorJobNameWithTestRunner.split("-");
@@ -562,13 +570,24 @@ public class TestExecutionJobCreatorService {
 					ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
 					ParameterDefinition parameterDefinition;
 
-					if (job.getName().contains(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+					boolean replaceParams = false;
+					if (parameters.getParameterDefinitionNames().contains(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME)) {
 						parameterDefinition = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME);
 					} else {
 						parameterDefinition = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
+						replaceParams = true;
 					}
 					if (parameterDefinition != null && testRunnerLogicalName.equals(parameterDefinition.getDefaultParameterValue().getValue().toString())) {
 						foundDiscoveryJob = job;
+
+						if(replaceParams){
+							addConstantParameter(job, UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, testRunnerId, "ALM Octane test runner ID");
+							addConstantParameter(job, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, testRunnerLogicalName, "ALM Octane test runner logical name");
+							removeParameter(job,UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
+							removeParameter(job,UftConstants.EXECUTOR_ID_PARAMETER_NAME);
+							job.save();
+						}
+
 						break;
 					}
 				}
