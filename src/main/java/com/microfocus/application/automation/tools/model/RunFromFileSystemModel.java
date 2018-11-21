@@ -64,6 +64,7 @@ public class RunFromFileSystemModel {
     private String fsUserName;
     private Secret fsPassword;
     private String mcTenantId;
+    private String fsReportPath;
 
     private String fsDeviceId;
     private String fsOs;
@@ -109,11 +110,12 @@ public class RunFromFileSystemModel {
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL){
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath){
 
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
+        this.fsReportPath = fsReportPath;
         this.fsUftRunMode = fsUftRunMode;
 
         this.perScenarioTimeOut = perScenarioTimeOut;
@@ -159,6 +161,7 @@ public class RunFromFileSystemModel {
         this.ignoreErrorStrings = "";
         this.displayController = "false";
         this.analysisTemplate = "";
+        this.fsReportPath = ""; // no custom report path by default
     }
 
     /**
@@ -402,6 +405,13 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Sets the report path for the given tests.
+     */
+    public void setFsReportPath(String fsReportPath) {
+        this.fsReportPath = fsReportPath;
+    }
+
+    /**
      * Gets fs device id.
      *
      * @return the fs device id
@@ -535,6 +545,13 @@ public class RunFromFileSystemModel {
      */
     public String getControllerPollingInterval() {
         return controllerPollingInterval;
+    }
+
+    /**
+     * Gets the test report path.
+     */
+    public String getFsReportPath() {
+        return fsReportPath;
     }
 
     /**
@@ -733,6 +750,10 @@ public class RunFromFileSystemModel {
         }
         if (StringUtils.isNotBlank(mcTenantId)){
             props.put("MobileTenantId", mcTenantId);
+        }
+
+        if(StringUtils.isNotBlank(fsReportPath)) {
+            props.put("fsReportPath", fsReportPath);
         }
 
         if(isUseProxy()){
