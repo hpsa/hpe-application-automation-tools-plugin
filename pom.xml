@@ -419,7 +419,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>4.20.0.49985</version>
+			<version>5.00.0.51808</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
