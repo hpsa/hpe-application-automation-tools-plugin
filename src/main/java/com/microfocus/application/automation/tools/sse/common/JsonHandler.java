@@ -22,52 +22,85 @@
 
 package com.microfocus.application.automation.tools.sse.common;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-
-import com.microfocus.application.automation.tools.common.SSEException;
-import com.microfocus.application.automation.tools.sse.sdk.Logger;
-import net.minidev.json.JSONArray;
-
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.microfocus.application.automation.tools.common.SSEException;
+import com.microfocus.application.automation.tools.sse.sdk.Logger;
+import hudson.FilePath;
+import hudson.model.Node;
 import hudson.util.IOUtils;
+import jenkins.model.Jenkins;
+import net.minidev.json.JSONArray;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by barush on 06/11/2014.
  */
 public class JsonHandler {
-    
+
     private Logger logger;
-    
+
     public JsonHandler(Logger logger) {
         this.logger = logger;
     }
-    
-    public Object load(String path) {
-        
+
+    public Object load(String selectedNode, String path) {
+
         logger.log(String.format("Loading JSON file from: [%s]", path));
         Object parsedJson;
         try {
-            InputStream is = new FileInputStream(path);
-            String jsonTxt;
-            jsonTxt = IOUtils.toString(is, "UTF-8");
+            String jsonTxt = "";
+            if (selectedNode.equals("master")) {
+                jsonTxt = getStream(new File(path));
+            } else {
+                Node node = Jenkins.getInstance().getNode(selectedNode);
+                FilePath filePath = new FilePath(node.getChannel(), path);
+                JsonHandlerMasterToSlave uftMasterToSlave = new JsonHandlerMasterToSlave();
+                try {
+                    jsonTxt = filePath.act(uftMasterToSlave);
+                } catch (IOException e) {
+                    logger.log(String.format("File path not found %s", e.getMessage()));
+                } catch (InterruptedException e) {
+                    logger.log(String.format("Remote operation failed %s", e.getMessage()));
+                }
+            }
             parsedJson =
                     Configuration.defaultConfiguration().addOptions(Option.ALWAYS_RETURN_LIST).jsonProvider().parse(
                             jsonTxt);
         } catch (Throwable e) {
             throw new SSEException(String.format("Failed to load JSON from: [%s]", path), e);
         }
-        
+
         return parsedJson;
     }
-    
+
+    public static String getStream(File path) {
+        InputStream is = null;
+        try {
+            is = new FileInputStream(String.valueOf(path));
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        String jsonText = "";
+        try {
+            jsonText = IOUtils.toString(is, String.valueOf(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return jsonText;
+    }
+
     public String getValueFromJsonAsString(
             Object jsonObject,
             String pathToRead,
             boolean shouldGetSingleValueOnly) {
-        
+
         String value = "";
         try {
             Object extractedObject = JsonPath.read(jsonObject, pathToRead);
@@ -82,6 +115,6 @@ public class JsonHandler {
                     e.getMessage()));
         }
         return value;
-        
+
     }
 }

@@ -23,13 +23,11 @@
 package com.microfocus.application.automation.tools.uft.utils;
 
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
-import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.QueryParameter;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,25 +36,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static groovy.util.ObjectGraphBuilder.NODE_NAME;
-
 public class UftToolUtils {
 
     private static final Logger logger = Logger.getLogger(UftToolUtils.class.getName());
 
-    private UftToolUtils(){}
+    private UftToolUtils() {
+    }
 
     /**
      * Update rerun settings list
      *
-     * @param fsTestPath the build tests path
+     * @param fsTestPath          the build tests path
      * @param rerunSettingsModels the rerun settings models to update
      * @return
      */
-    public static List<RerunSettingsModel> updateRerunSettings(String nodeName, String fsTestPath, List<RerunSettingsModel> rerunSettingsModels){
+    public static List<RerunSettingsModel> updateRerunSettings(String nodeName, String fsTestPath, List<RerunSettingsModel> rerunSettingsModels) {
         List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(nodeName, fsTestPath), rerunSettingsModels);
-        for(String testPath : testPaths){
-            if(!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+        for (String testPath : testPaths) {
+            if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
                 rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
             }
         }
@@ -70,12 +67,12 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
-        if(fsTestPath != null) {
+        if (fsTestPath != null) {
             List<String> buildTests;
             Node node = Jenkins.getInstance().getNode(nodeName);
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
-            if(Jenkins.getInstance().getNodes().isEmpty() || (node == null)){//run tests on master
+            if (Jenkins.getInstance().getNodes().isEmpty() || (node == null)) {//run tests on master
                 buildTests = listFilesForFolder(new File(directoryPath));
             } else {//run tests on selected node
                 buildTests = getTestsFromNode(nodeName, directoryPath);
@@ -86,7 +83,7 @@ public class UftToolUtils {
         return null;
     }
 
-    public static List<String> getTestsFromNode(String nodeName, String path){
+    public static List<String> getTestsFromNode(String nodeName, String path) {
         Node node = Jenkins.getInstance().getNode(nodeName);
         FilePath filePath = new FilePath(node.getChannel(), path);
         UftMasterToSlave uftMasterToSlave = new UftMasterToSlave();
@@ -110,14 +107,14 @@ public class UftToolUtils {
      */
     public static List<String> listFilesForFolder(final File folder) {
         List<String> buildTests = new ArrayList<>();
-        if(!folder.isDirectory() && folder.getName().contains("mtbx")) {
+        if (!folder.isDirectory() && folder.getName().contains("mtbx")) {
             buildTests.add(folder.getPath().trim());
             return buildTests;
         }
-        if(folder.isDirectory()) {
+        if (folder.isDirectory()) {
             for (final File fileEntry : folder.listFiles()) {
                 if (fileEntry.isDirectory()) {
-                    if(fileEntry.getName().contains("Action")){
+                    if (fileEntry.getName().contains("Action")) {
                         buildTests.add(folder.getPath().trim());//single test
                         break;
                     } else {
@@ -134,12 +131,12 @@ public class UftToolUtils {
      * Checks if a list of tests contains another test
      *
      * @param rerunSettingModels the list of tests
-     * @param test the verified test
+     * @param test               the verified test
      * @return true if the list already contains the test, false otherwise
      */
-    public static Boolean listContainsTest(List<RerunSettingsModel> rerunSettingModels, String test){
-        for(RerunSettingsModel settings : rerunSettingModels) {
-            if(settings.getTest().trim().equals(test.trim())){
+    public static Boolean listContainsTest(List<RerunSettingsModel> rerunSettingModels, String test) {
+        for (RerunSettingsModel settings : rerunSettingModels) {
+            if (settings.getTest().trim().equals(test.trim())) {
                 return true;
             }
         }
@@ -150,30 +147,29 @@ public class UftToolUtils {
     /**
      * Updates the list of current tests based on the updated list of build tests
      *
-     * @param buildTests the list of build tests setup in the configuration
+     * @param buildTests         the list of build tests setup in the configuration
      * @param rerunSettingModels the list of current tests
      * @return the updated list of tests to rerun
      */
-    public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels){
+    public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels) {
         List<String> rerunTests = new ArrayList<>();
-        if(buildTests == null || rerunSettingModels == null){
+        if (buildTests == null || rerunSettingModels == null) {
             return rerunTests;
         }
 
-        for(RerunSettingsModel rerun : rerunSettingModels){
+        for (RerunSettingsModel rerun : rerunSettingModels) {
             rerunTests.add(rerun.getTest().trim());
         }
 
-        for(String test :  buildTests){
-            if(!rerunTests.contains(test)){
+        for (String test : buildTests) {
+            if (!rerunTests.contains(test)) {
                 rerunTests.add(test.trim());
             }
         }
 
-        for (Iterator<RerunSettingsModel> it = rerunSettingModels.iterator(); it.hasNext();)
-        {
+        for (Iterator<RerunSettingsModel> it = rerunSettingModels.iterator(); it.hasNext(); ) {
             RerunSettingsModel rerunSettingsModel1 = it.next();
-            if(!buildTests.contains(rerunSettingsModel1.getTest().trim())){
+            if (!buildTests.contains(rerunSettingsModel1.getTest().trim())) {
                 rerunTests.remove(rerunSettingsModel1.getTest());
                 it.remove();
             }
@@ -198,4 +194,16 @@ public class UftToolUtils {
 
         return FormValidation.ok();
     }
+
+    public static List<String> getNodesList() {
+        List<Node> nodeList = Jenkins.getInstance().getNodes();
+        List<String> nodes = new ArrayList<>();
+        nodes.add("master");
+        for (Node node : nodeList) {
+            nodes.add(node.getDisplayName());
+        }
+
+        return nodes;
+    }
+
 }

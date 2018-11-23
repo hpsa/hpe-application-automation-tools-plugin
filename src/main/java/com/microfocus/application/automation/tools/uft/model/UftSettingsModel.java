@@ -27,16 +27,13 @@ import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.Node;
 import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -68,16 +65,8 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     }
 
     public List<String> getNodes() {
-        List<Node> nodeList = Jenkins.getInstance().getNodes();
-        List<String> nodes = new ArrayList<>();
-        nodes.add("master");
-        for (Node node : nodeList) {
-            nodes.add(node.getDisplayName());
-        }
-
-        return nodes;
+        return UftToolUtils.getNodesList();
     }
-
 
     public String getSelectedNode() {
         return selectedNode;
