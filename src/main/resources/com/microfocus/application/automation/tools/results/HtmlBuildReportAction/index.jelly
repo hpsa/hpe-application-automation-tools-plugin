@@ -92,7 +92,7 @@
                             <td class = "bodycell" align = "center">
                                 <img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/html_report.svg"
                                      alt="Html_report"
-                                     title="Html Report"
+                                     title="HTML Report"
                                      style="width:16px;height:16px;"
                                 />
                             </td>
