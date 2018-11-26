@@ -64,6 +64,8 @@ public class AUTEnvironmentBuilderPerformer {
                     model.getAlmServerUrl(),
                     model.getClientType(),
                     logger)) {
+                logger.log(String.format(
+                        "Alm server url: %s", model.getAlmServerUrl()));
                 performAutOperations(envVars);
             }
         } catch (Throwable cause) {
@@ -79,8 +81,8 @@ public class AUTEnvironmentBuilderPerformer {
     }
 
     private void performAutOperations(EnvVars envVars) {
-
         String autEnvironmentId = model.getAutEnvironmentId();
+
         AUTEnvironmentManager autEnvironmentManager =
                 new AUTEnvironmentManager(getClient(), logger);
         String parametersRootFolderId =
@@ -120,6 +122,7 @@ public class AUTEnvironmentBuilderPerformer {
         Collection<AUTEnvironmnentParameter> parametersToUpdate =
                 parametersManager.getParametersToUpdate();
         parametersManager.updateParametersValues(parametersToUpdate);
+        logger.log("assignValuesToAutParameters");
     }
 
     private String getAutEnvironmentConfigurationId(

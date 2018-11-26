@@ -77,7 +77,6 @@ public class AUTEnvironmentParametersManager {
     }
 
     public Collection<AUTEnvironmnentParameter> getParametersToUpdate() {
-
         parameters = getAllParametersByAutEnvConfId();
         Map<String, AUTEnvironmentFolder> parametersFolders = getAllRelevantParametersFolders();
 

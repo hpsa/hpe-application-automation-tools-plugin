@@ -389,14 +389,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         public FormValidation doCheckAlmTestSets(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
-                return FormValidation.error("Testsets are missing");
+                return FormValidation.error("Test sets are missing");
             }
             
             String[] testSetsArr = value.replaceAll("\r", "").split("\n");
 
 			for (int i=0; i < testSetsArr.length; i++) {
 				if (StringUtils.isBlank(testSetsArr[i])) {
-					return FormValidation.error("Testsets should not contains empty lines");
+					return FormValidation.error("Test sets should not contains empty lines");
 				}
 			}
             return FormValidation.ok();
