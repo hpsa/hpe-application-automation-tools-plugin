@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,18 +45,18 @@ import java.util.List;
  */
 public class TestsToRunConverterBuilder extends Builder {
 
-    private TestsToRunConverterModel framework;
+	private TestsToRunConverterModel framework;
 
-    private final String TESTS_TO_RUN_PARAMETER = "testsToRun";
-    private final String TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
+	private final String TESTS_TO_RUN_PARAMETER = "testsToRun";
+	private final String TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
 
-    private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
-    private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
+	private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
+	private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
-    @DataBoundConstructor
-    public TestsToRunConverterBuilder(String framework) {
-        this.framework = new TestsToRunConverterModel(framework);
-    }
+	@DataBoundConstructor
+	public TestsToRunConverterBuilder(String framework) {
+		this.framework = new TestsToRunConverterModel(framework);
+	}
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -72,11 +73,11 @@ public class TestsToRunConverterBuilder extends Builder {
                 printToConsole(listener, UftConstants.SUITE_RUN_ID_PARAMETER_NAME + " : " + suiteRunIdParameter.getValue());
             }
 
-            ParameterValue testsParameter = parameterAction.getParameter(TESTS_TO_RUN_PARAMETER);
-            if (testsParameter != null && testsParameter.getValue() instanceof String) {
-                rawTests = (String) testsParameter.getValue();
-                printToConsole(listener, TESTS_TO_RUN_PARAMETER + " found with value : " + rawTests);
-            }
+			ParameterValue testsParameter = parameterAction.getParameter(TESTS_TO_RUN_PARAMETER);
+			if (testsParameter != null && testsParameter.getValue() instanceof String) {
+				rawTests = (String) testsParameter.getValue();
+				printToConsole(listener, TESTS_TO_RUN_PARAMETER + " found with value : " + rawTests);
+			}
 
             ParameterValue checkoutDirParameter = parameterAction.getParameter(CHECKOUT_DIRECTORY_PARAMETER);
             if (checkoutDirParameter != null) {
@@ -109,9 +110,9 @@ public class TestsToRunConverterBuilder extends Builder {
     }
 
 
-    public TestsToRunConverterModel getTestsToRunConverterModel() {
-        return framework;
-    }
+	public TestsToRunConverterModel getTestsToRunConverterModel() {
+		return framework;
+	}
 
     private void printToConsole(BuildListener listener, String msg) {
         listener.getLogger().println(this.getClass().getSimpleName() + " : " + msg);
@@ -121,24 +122,24 @@ public class TestsToRunConverterBuilder extends Builder {
     @Extension
     public static class Descriptor extends BuildStepDescriptor<Builder> {
 
-        @Override
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return true;//FreeStyleProject.class.isAssignableFrom(jobType);
-        }
+		@Override
+		public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+			return true;//FreeStyleProject.class.isAssignableFrom(jobType);
+		}
 
-        @Override
-        public String getDisplayName() {
-            return "Micro Focus ALM Octane testing framework converter";
-        }
+		@Override
+		public String getDisplayName() {
+			return "Micro Focus ALM Octane testing framework converter";
+		}
 
-        /**
-         * Gets report archive modes.
-         *
-         * @return the report archive modes
-         */
-        public List<EnumDescription> getFrameworks() {
+		/**
+		 * Gets report archive modes.
+		 *
+		 * @return the report archive modes
+		 */
+		public List<EnumDescription> getFrameworks() {
 
-            return TestsToRunConverterModel.Frameworks;
-        }
-    }
+			return TestsToRunConverterModel.Frameworks;
+		}
+	}
 }
