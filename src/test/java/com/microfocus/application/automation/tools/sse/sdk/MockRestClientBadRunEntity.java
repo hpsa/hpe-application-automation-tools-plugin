@@ -61,7 +61,7 @@ public class MockRestClientBadRunEntity extends RestClient4Test {
         
         Response ret = new Response();
         if (url.contains("startrun")) {
-            ret.setData("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"StartRunTestSetResponse\"><Fields><Field Name=\"SuccessStaus\"><Value>0</Value></Field><Field Name=\"info\"><Value>com.hp.alm.platform.exception.CTdException: Failed to prepare timeslot for run. No entity of type test-set with id 5 exists.;</Value></Field></Fields></Entity>".getBytes());
+            ret.setData("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"StartRunTestSetResponse\"><Fields><Field Name=\"SuccessStaus\"><Value>0</Value></Field><Field Name=\"info\"><Value>Failed to prepare timeslot for run. No entity of type TEST_SET with id 5 exists.</Value></Field></Fields></Entity>".getBytes());
         }
         ret.setStatusCode(201);
         

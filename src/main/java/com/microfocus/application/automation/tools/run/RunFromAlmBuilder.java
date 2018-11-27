@@ -86,7 +86,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almRunResultsMode,
             String almTimeout,
             String almRunMode,
-            String almRunHost) {
+            String almRunHost,
+            Boolean filterTests,
+            String filterBy) {
         
         runFromAlmModel =
                 new RunFromAlmModel(
@@ -99,7 +101,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunResultsMode,
                         almTimeout,
                         almRunMode,
-                        almRunHost);
+                        almRunHost,
+                        filterTests,
+                        filterBy);
     }
 
     public String getAlmServerName(){
@@ -141,6 +145,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     public String getAlmRunHost(){
         return runFromAlmModel.getAlmRunHost();
     }
+
+    public Boolean getFilterTests() { return runFromAlmModel.getFilterTests(); }
+
+    public String getFilterBy() { return runFromAlmModel.getFilterBy(); }
     
     @Override
     public DescriptorImpl getDescriptor() {
@@ -404,6 +412,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         public List<EnumDescription> getAlmRunModes() {
             return RunFromAlmModel.runModes;
+        }
+
+        public List<EnumDescription> getAlmFilters() {
+            return RunFromAlmModel.filterTestsBy;
         }
     }
     

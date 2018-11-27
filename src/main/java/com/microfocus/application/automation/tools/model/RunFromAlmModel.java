@@ -25,165 +25,208 @@ package com.microfocus.application.automation.tools.model;
 import hudson.EnvVars;
 import hudson.Util;
 import hudson.util.VariableResolver;
+
 import java.util.Arrays;
 import java.util.List;
+
 import hudson.util.Secret;
+
 import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class RunFromAlmModel {
 
-	public final static EnumDescription runModeLocal = new EnumDescription(
-			"RUN_LOCAL", "Run locally");
-	public final static EnumDescription runModePlannedHost = new EnumDescription(
-			"RUN_PLANNED_HOST", "Run on planned host");
-	public final static EnumDescription runModeRemote = new EnumDescription(
-			"RUN_REMOTE", "Run remotely");
-	public final static List<EnumDescription> runModes = Arrays.asList(
-			runModeLocal, runModePlannedHost, runModeRemote);
-	public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
-	public final static String ALM_PASSWORD_KEY = "almPassword";
+    public final static EnumDescription runModeLocal = new EnumDescription(
+            "RUN_LOCAL", "Run locally");
+    public final static EnumDescription runModePlannedHost = new EnumDescription(
+            "RUN_PLANNED_HOST", "Run on planned host");
+    public final static EnumDescription runModeRemote = new EnumDescription(
+            "RUN_REMOTE", "Run remotely");
+    public final static List<EnumDescription> runModes = Arrays.asList(
+            runModeLocal, runModePlannedHost, runModeRemote);
 
-	private String almServerName;
-	private String almUserName;
-	private Secret almPassword;
-	private String almDomain;
-	private String almProject;
-	private String almTestSets;
-	private String almRunResultsMode;
-	private String almTimeout;
-	private String almRunMode;
-	private String almRunHost;
+    public final static EnumDescription setupName = new EnumDescription(
+            "SETUP", "Setup");
+    public final static EnumDescription failedTests = new EnumDescription(
+            "FAILED", "Failed status");
+    public final static EnumDescription passedTests = new EnumDescription(
+            "PASSED", "Passed status");
+    public final static List<EnumDescription> filterTestsBy = Arrays.asList(
+            setupName, failedTests, passedTests);
 
-	@DataBoundConstructor
-	public RunFromAlmModel(String almServerName, String almUserName,
-			String almPassword, String almDomain, String almProject,
-			String almTestSets, String almRunResultsMode, String almTimeout,
-			String almRunMode, String almRunHost) {
+    public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
+    public final static String ALM_PASSWORD_KEY = "almPassword";
 
-		this.almServerName = almServerName;
-		this.almUserName = almUserName;
-		this.almPassword = Secret.fromString(almPassword);
-		this.almDomain = almDomain;
-		this.almProject = almProject;
-		this.almTestSets = almTestSets;
+    private String almServerName;
+    private String almUserName;
+    private Secret almPassword;
+    private String almDomain;
+    private String almProject;
+    private String almTestSets;
+    private String almRunResultsMode;
+    private String almTimeout;
+    private String almRunMode;
+    private String almRunHost;
+    private Boolean filterTests;
+    private String filterBy;
 
-		if (!this.almTestSets.contains("\n")) {
-			this.almTestSets += "\n";
-		}
+    @DataBoundConstructor
+    public RunFromAlmModel(String almServerName, String almUserName,
+                           String almPassword, String almDomain, String almProject,
+                           String almTestSets, String almRunResultsMode, String almTimeout,
+                           String almRunMode, String almRunHost, Boolean filterTests, String filterBy) {
 
-		this.almRunResultsMode = almRunResultsMode;
-		
-		this.almTimeout = almTimeout;
-		this.almRunMode = almRunMode;
+        this.almServerName = almServerName;
+        this.almUserName = almUserName;
+        this.almPassword = Secret.fromString(almPassword);
+        this.almDomain = almDomain;
+        this.almProject = almProject;
+        this.almTestSets = almTestSets;
 
-		if (this.almRunMode.equals(runModeRemote.getValue())) {
-			this.almRunHost = almRunHost;
-		} else {
-			this.almRunHost = "";
-		}
+        if (!this.almTestSets.contains("\n")) {
+            this.almTestSets += "\n";
+        }
 
-		if (almRunHost == null) {
-			this.almRunHost = "";
-		}
-	}
+        this.almRunResultsMode = almRunResultsMode;
 
-	public String getAlmUserName() {
-		return almUserName;
-	}
+        this.almTimeout = almTimeout;
+        this.almRunMode = almRunMode;
 
-	public String getAlmDomain() {
-		return almDomain;
-	}
+        if (this.almRunMode.equals(runModeRemote.getValue())) {
+            this.almRunHost = almRunHost;
+        } else {
+            this.almRunHost = "";
+        }
 
-	public String getAlmPassword() {
-		return almPassword.getPlainText();
-	}
+        if (almRunHost == null) {
+            this.almRunHost = "";
+        }
 
-	public String getAlmProject() {
-		return almProject;
-	}
+        this.filterTests = filterTests;
+        this.filterBy = filterBy;
+    }
 
-	public String getAlmTestSets() {
-		return almTestSets;
-	}
+    public String getAlmUserName() {
+        return almUserName;
+    }
 
-	public String getAlmRunResultsMode() {
-		return almRunResultsMode;
-	}
+    public String getAlmDomain() {
+        return almDomain;
+    }
 
-	public String getAlmTimeout() {
-		return almTimeout;
-	}
+    public String getAlmPassword() {
+        return almPassword.getPlainText();
+    }
 
-	public String getAlmRunHost() {
-		return almRunHost;
-	}
+    public String getAlmProject() {
+        return almProject;
+    }
 
-	public String getAlmRunMode() {
-		return almRunMode;
-	}
+    public String getAlmTestSets() {
+        return almTestSets;
+    }
 
-	public String getAlmServerName() {
-		return almServerName;
-	}
+    public String getAlmRunResultsMode() {
+        return almRunResultsMode;
+    }
 
-	public Properties getProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		return CreateProperties(envVars, varResolver);
-	}
+    public String getAlmTimeout() {
+        return almTimeout;
+    }
 
-	public Properties getProperties() {
-		return CreateProperties(null, null);
-	}
+    public String getAlmRunHost() {
+        return almRunHost;
+    }
 
-	private Properties CreateProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		Properties props = new Properties();
+    public String getAlmRunMode() {
+        return almRunMode;
+    }
 
-		if (envVars == null) {
-			props.put("almUserName", almUserName);
-			props.put(ALM_PASSWORD_KEY, almPassword);
-			props.put("almDomain", almDomain);
-			props.put("almProject", almProject);
-		} else {
-			props.put("almUserName",
-					Util.replaceMacro(envVars.expand(almUserName), varResolver));
-			props.put(ALM_PASSWORD_KEY, almPassword);
-			props.put("almDomain",
-					Util.replaceMacro(envVars.expand(almDomain), varResolver));
-			props.put("almProject",
-					Util.replaceMacro(envVars.expand(almProject), varResolver));
-		}
+    public String getAlmServerName() {
+        return almServerName;
+    }
 
-		if (!StringUtils.isEmpty(this.almTestSets)) {
+    public Boolean getFilterTests() {
+        return filterTests;
+    }
 
-			String[] testSetsArr = this.almTestSets.replaceAll("\r", "").split(
-					"\n");
+    public void setFilterTests(Boolean filterTests) {
+        this.filterTests = filterTests;
+    }
 
-			int i = 1;
+    public String getFilterBy() {
+        return filterBy;
+    }
 
-			for (String testSet : testSetsArr) {
-				if (!StringUtils.isBlank(testSet)) {
-					props.put("TestSet" + i,
-						Util.replaceMacro(envVars.expand(testSet), varResolver));
-					i++;
-				}
-			}
-		} else {
-			props.put("almTestSets", "");
-		}
+    public void setFilterBy(String filterBy) {
+        this.filterBy = filterBy;
+    }
 
-		if (StringUtils.isEmpty(almTimeout)) {
-			props.put("almTimeout", "-1");
-		} else {
-			props.put("almTimeout", almTimeout);
-		}
+    public Properties getProperties(EnvVars envVars,
+                                    VariableResolver<String> varResolver) {
+        return CreateProperties(envVars, varResolver);
+    }
 
-		props.put("almRunMode", almRunMode);
-		props.put("almRunHost", almRunHost);
+    public Properties getProperties() {
+        return CreateProperties(null, null);
+    }
 
-		return props;
-	}
+    private Properties CreateProperties(EnvVars envVars,
+                                        VariableResolver<String> varResolver) {
+        Properties props = new Properties();
+
+        if (envVars == null) {
+            props.put("almUserName", almUserName);
+            props.put(ALM_PASSWORD_KEY, almPassword);
+            props.put("almDomain", almDomain);
+            props.put("almProject", almProject);
+        } else {
+            props.put("almUserName",
+                    Util.replaceMacro(envVars.expand(almUserName), varResolver));
+            props.put(ALM_PASSWORD_KEY, almPassword);
+            props.put("almDomain",
+                    Util.replaceMacro(envVars.expand(almDomain), varResolver));
+            props.put("almProject",
+                    Util.replaceMacro(envVars.expand(almProject), varResolver));
+        }
+
+        if (!StringUtils.isEmpty(this.almTestSets)) {
+
+            String[] testSetsArr = this.almTestSets.replaceAll("\r", "").split(
+                    "\n");
+
+            int i = 1;
+
+            for (String testSet : testSetsArr) {
+                if (!StringUtils.isBlank(testSet)) {
+                    props.put("TestSet" + i,
+                            Util.replaceMacro(envVars.expand(testSet), varResolver));
+                    i++;
+                }
+            }
+        } else {
+            props.put("almTestSets", "");
+        }
+
+        if (StringUtils.isEmpty(almTimeout)) {
+            props.put("almTimeout", "-1");
+        } else {
+            props.put("almTimeout", almTimeout);
+        }
+
+        props.put("almRunMode", almRunMode);
+        props.put("almRunHost", almRunHost);
+
+        props.put("filterTests", filterTests);
+
+        if (filterTests.equals(true)) {
+            props.put("filterBy", filterBy);
+        } else {
+            props.put("filterBy", "");
+        }
+
+        return props;
+    }
 }
