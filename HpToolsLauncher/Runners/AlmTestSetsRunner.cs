@@ -48,6 +48,8 @@ namespace HpToolsLauncher
         string m_qcUser = null;
         string m_qcProject = null;
         string m_qcDomain = null;
+        bool m_qcFilterSelected = false;
+        string m_qcFilterBy = null;
 
         public bool Connected
         {
@@ -112,7 +114,9 @@ namespace HpToolsLauncher
                                 double intQcTimeout,
                                 QcRunMode enmQcRunMode,
                                 string runHost,
-                                List<string> qcTestSets)
+                                List<string> qcTestSets,
+                                bool filterSelected,
+                                string filterBy)
         {
             Timeout = intQcTimeout;
             RunMode = enmQcRunMode;
@@ -122,6 +126,8 @@ namespace HpToolsLauncher
             m_qcUser = qcUser;
             m_qcProject = qcProject;
             m_qcDomain = qcDomain;
+            m_qcFilterSelected = filterSelected;
+            m_qcFilterBy = filterBy;
 
             Connected = ConnectToProject(qcServer, qcUser, qcPassword, qcDomain, qcProject);
             TestSets = qcTestSets;
@@ -175,7 +181,7 @@ namespace HpToolsLauncher
                     tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
                 }
 
-                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, Timeout, RunMode, RunHost);
+                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterBy);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
             }
@@ -389,7 +395,7 @@ namespace HpToolsLauncher
         /// <param name="runMode">run on LocalMachine or remote</param>
         /// <param name="runHost">if run on remote machine - remote machine name</param>
         /// <returns></returns>
-        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, double timeout, QcRunMode runMode, string runHost)
+        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, double timeout, QcRunMode runMode, string runHost, bool filterSelected, string filterBy)
         {
             string currentTestSetInstances = "";
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
@@ -415,8 +421,8 @@ namespace HpToolsLauncher
                 tsFolder = null;
             }
 
-			// test set not found, try to find specific test by path
-            if(tsFolder == null)
+            // test set not found, try to find specific test by path
+            if (tsFolder == null)
             {
                 // if test set path was not found, the path may points to specific test
                 // remove the test name and try find test set with parent path
@@ -458,7 +464,8 @@ namespace HpToolsLauncher
                 return null;
             }
             ITestSet targetTestSet = null;
-            foreach (ITestSet ts in tsList)
+
+           foreach (ITestSet ts in tsList) //foreach (ITestSet ts in targetTestList)
             {
                 string tempName = ts.Name;
                 if (tempName.Equals(testSuiteName, StringComparison.InvariantCultureIgnoreCase))
@@ -515,8 +522,45 @@ namespace HpToolsLauncher
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
             ITDFilter2 tdFilter = tsTestFactory.Filter;
             tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
-
             IList tList = tsTestFactory.NewList(tdFilter.Text);
+
+            Console.WriteLine("number of tests to run before applying the filter: " + tList.Count);
+            Console.WriteLine("Is filter selected: " + filterSelected);
+            Console.WriteLine("Filter is: " + filterBy);
+           
+            if (filterSelected.Equals(true) && !string.IsNullOrEmpty(filterBy))
+            {
+                if (filterBy.Equals("FAILED"))
+                {
+                    filterBy = "Failed";
+                }
+
+                if (filterBy.ToLower().Equals("failed"))
+                {
+                    tdFilter["TC_STATUS"] = filterBy;
+                    tList = tsTestFactory.NewList(tdFilter.Text);
+                }
+
+                if (filterBy.ToLower().Equals("setup"))
+                {
+                    int listCount = tList.Count;
+
+                    for (int index = listCount; index > 0; index--)
+                    {
+                        string tListIndexName = tList[index].Name;
+                        string tListIndexTestName = tList[index].TestName;
+                        
+                        if (!tListIndexName.ToLower().Contains("setup") && !tListIndexTestName.ToLower().Contains("setup"))
+                        {
+                            tList.Remove(index);
+                        }
+                    }
+
+                    Console.WriteLine("number of tests to run after applying the filter: " + tList.Count);
+                }
+            }
+
+            
 
             if (isTestPath)
             {
@@ -561,7 +605,7 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
             }
 
-            ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + tList.Count);
+            ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tList.Count);
 
             int i = 1;
 			

@@ -344,7 +344,7 @@ namespace HpToolsLauncher
                         enmQcRunMode = QcRunMode.RUN_LOCAL;
                     }
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayRunmode, enmQcRunMode.ToString()));
-
+                   
                     //go over testsets in the parameters, and collect them
                     List<string> sets = GetParamsWithPrefix("TestSet");
 
@@ -352,6 +352,25 @@ namespace HpToolsLauncher
                     {
                         ConsoleWriter.WriteLine(Resources.LauncherNoTests);
                         return null;
+                    }
+
+                    //check if filterTests flag is selected; if yes apply filters on the list
+                    bool filterSelected;
+                    string filter = (_ciParams.ContainsKey("filterTests") ? _ciParams["filterTests"] : "");
+
+                    if (string.IsNullOrEmpty(filter))
+                    {
+                        filterSelected = false;
+                    }
+                    else
+                    {
+                        filterSelected = Convert.ToBoolean(filter.ToLower());
+                    }
+
+                    string filterBy = "";
+                    if (filterSelected)
+                    {
+                        filterBy = (_ciParams.ContainsKey("filterBy") ? _ciParams["filterBy"] : "");
                     }
 
                     //create an Alm runner
@@ -363,7 +382,9 @@ namespace HpToolsLauncher
                                      dblQcTimeout,
                                      enmQcRunMode,
                                      _ciParams["almRunHost"],
-                                     sets);
+                                     sets,
+                                     filterSelected,
+                                     filterBy);
                     break;
                 case TestStorageType.FileSystem:
                     //Get displayController var

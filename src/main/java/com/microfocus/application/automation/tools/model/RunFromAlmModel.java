@@ -51,10 +51,8 @@ public class RunFromAlmModel {
             "SETUP", "Setup");
     public final static EnumDescription failedTests = new EnumDescription(
             "FAILED", "Failed status");
-    public final static EnumDescription passedTests = new EnumDescription(
-            "PASSED", "Passed status");
     public final static List<EnumDescription> filterTestsBy = Arrays.asList(
-            setupName, failedTests, passedTests);
+            setupName, failedTests);
 
     public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
     public final static String ALM_PASSWORD_KEY = "almPassword";
@@ -69,14 +67,14 @@ public class RunFromAlmModel {
     private String almTimeout;
     private String almRunMode;
     private String almRunHost;
-    private Boolean filterTests;
+    private String filterTests;
     private String filterBy;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName,
                            String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
-                           String almRunMode, String almRunHost, Boolean filterTests, String filterBy) {
+                           String almRunMode, String almRunHost, String filterTests, String filterBy) {
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -148,11 +146,11 @@ public class RunFromAlmModel {
         return almServerName;
     }
 
-    public Boolean getFilterTests() {
+    public String getFilterTests() {
         return filterTests;
     }
 
-    public void setFilterTests(Boolean filterTests) {
+    public void setFilterTests(String filterTests) {
         this.filterTests = filterTests;
     }
 
@@ -219,9 +217,13 @@ public class RunFromAlmModel {
         props.put("almRunMode", almRunMode);
         props.put("almRunHost", almRunHost);
 
-        props.put("filterTests", filterTests);
+        if(!StringUtils.isEmpty(filterTests)){
+            props.put("filterTests", filterTests);
+        } else {
+            props.put("filterTests", "");
+        }
 
-        if (filterTests.equals(true)) {
+        if (Boolean.valueOf(filterTests).equals(true)) {
             props.put("filterBy", filterBy);
         } else {
             props.put("filterBy", "");

@@ -87,7 +87,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almTimeout,
             String almRunMode,
             String almRunHost,
-            Boolean filterTests,
+            String filterTests,
             String filterBy) {
         
         runFromAlmModel =
@@ -146,7 +146,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return runFromAlmModel.getAlmRunHost();
     }
 
-    public Boolean getFilterTests() { return runFromAlmModel.getFilterTests(); }
+    public String getFilterTests() { return runFromAlmModel.getFilterTests(); }
 
     public String getFilterBy() { return runFromAlmModel.getFilterBy(); }
     
