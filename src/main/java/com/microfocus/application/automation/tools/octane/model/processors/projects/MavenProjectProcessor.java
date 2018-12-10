@@ -47,14 +47,4 @@ class MavenProjectProcessor extends AbstractProjectProcessor<MavenModuleSet> {
 		//
 		super.processPublishers(this.job, processedJobs);
 	}
-
-	@Override
-	public List<Builder> tryGetBuilders() {
-		return new ArrayList<>();
-	}
-
-	@Override
-	public void scheduleBuild(String parametersBody, String issuingDescription) {
-		throw new RuntimeException("non yet implemented");
-	}
 }
