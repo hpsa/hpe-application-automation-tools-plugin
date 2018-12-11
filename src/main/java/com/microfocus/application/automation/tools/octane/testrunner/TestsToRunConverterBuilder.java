@@ -110,10 +110,10 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 		printToConsole(listener, TESTS_TO_RUN_CONVERTED_PARAMETER + " = " + convertResult.getConvertedTestsString());
 
 		if (build instanceof WorkflowRun) {
-			List<ParameterValue> newParams = new ArrayList<>(parameterAction.getAllParameters());
-			newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
-			ParametersAction newParametersAction = new ParametersAction(newParams);
-			build.addOrReplaceAction(newParametersAction);
+            List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+            newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
+            ParametersAction newParametersAction = new ParametersAction(newParams);
+            build.addOrReplaceAction(newParametersAction);
 		} else {
 			VariableInjectionAction via = new VariableInjectionAction(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString());
 			build.addAction(via);
