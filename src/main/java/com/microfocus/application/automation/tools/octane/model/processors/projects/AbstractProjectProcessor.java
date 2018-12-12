@@ -20,14 +20,16 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.MultiJobBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.AbstractProject;
+import hudson.model.Cause;
 import hudson.model.Job;
+import hudson.model.ParametersAction;
 import hudson.tasks.BuildStep;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
@@ -65,15 +67,23 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 *
 	 * @return
 	 */
-	public abstract List<Builder> tryGetBuilders();
+	public List<Builder> tryGetBuilders(){
+		return new ArrayList<>();
+	}
 
 	/**
 	 * Enqueue Job's run with the specified parameters
 	 *
-	 * @param parametersBody     parameters for the Job execution in a RAW JSON format
-	 * @param issuingDescription description of issuing entity
 	 */
-	public abstract void scheduleBuild(String parametersBody, String issuingDescription);
+	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			int delay = project.getQuietPeriod();
+			project.scheduleBuild(delay, cause, parametersAction);
+		} else {
+			throw new IllegalStateException("unsupported job CAN NOT be run");
+		}
+	}
 
 	/**
 	 * Retrieve Job's CI ID
