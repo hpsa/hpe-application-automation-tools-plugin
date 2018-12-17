@@ -48,4 +48,9 @@ class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
 	}
+
+	@Override
+	public void scheduleBuild(String parametersBody, String issuingDescription) {
+		throw new RuntimeException("non yet implemented");
+	}
 }
