@@ -27,6 +27,7 @@ using System.IO;
 using System.Reflection;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
+using HpToolsLauncher.RTS;
 
 namespace HpToolsLauncher
 {
@@ -41,6 +42,8 @@ namespace HpToolsLauncher
         private bool _useUFTLicense;
         private bool _displayController;
         private string _analysisTemplate;
+        private SummaryDataLogger _summaryDataLogger;
+        private List<ScriptRTSModel> _scriptRTSSet;
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
@@ -85,9 +88,11 @@ namespace HpToolsLauncher
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
+                                    List<ScriptRTSModel> scriptRTSSet,
                                     bool useUFTLicense = false)
 
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, useUFTLicense)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -110,6 +115,8 @@ namespace HpToolsLauncher
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
+                                    List<ScriptRTSModel> scriptRTSSet,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -131,6 +138,8 @@ namespace HpToolsLauncher
             _useUFTLicense = useUFTLicense;
             _displayController = displayController;
             _analysisTemplate = analysisTemplate;
+            _summaryDataLogger = summaryDataLogger;
+            _scriptRTSSet = scriptRTSSet;
             _tests = new List<TestInfo>();
 
             _mcConnection = mcConnection;
@@ -257,6 +266,7 @@ namespace HpToolsLauncher
                         runResult.TestState = TestState.Error;
                         runResult.ErrorDesc = ex.Message;
                         runResult.TestName = test.TestName;
+                        runResult.TestPath = test.TestPath;
                     }
 
                     //get the original source for this test, for grouping tests under test classes
@@ -369,7 +379,7 @@ namespace HpToolsLauncher
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
                     break;
                 case TestType.ParallelRunner:
                     runner = new ParallelTestRunner(this, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests, _parallelRunnerEnvironments);

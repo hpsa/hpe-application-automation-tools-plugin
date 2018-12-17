@@ -110,19 +110,23 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MtbxManager.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Runners\RunnerBase.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="TestInfo.cs" />
     <Compile Include="TestParameterInfo.cs" />
     <Compile Include="TestRunners\ParallelTestRunner.cs" />
     <Compile Include="TestRunners\PerformanceTestRunner.cs" />
+    <Compile Include="SummaryDataLogger.cs" />
     <Compile Include="TestRunResults.cs" />
     <Compile Include="TestRunners\GuiTestRunner.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
+    <Compile Include="RTS\AdditionalAttributeModel.cs" />
+    <Compile Include="RTS\RTSHelper.cs" />
+    <Compile Include="RTS\ScriptRTSModel.cs" />
     <Compile Include="Runners\FileSystemTestsRunner.cs" />
     <Compile Include="TestRunners\ApiTestRunner.cs" />
     <Compile Include="Runners\AlmTestSetsRunner.cs" />
@@ -149,8 +153,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

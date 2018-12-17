@@ -23,15 +23,14 @@
 package com.microfocus.application.automation.tools.octane.executor;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.EntitiesService;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
+import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.model.*;
 import jenkins.model.Jenkins;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +82,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
 
         clearExecutionJobs(jobs);
-        clearDiscoveryJobs(jobs);
+        //clearDiscoveryJobs(jobs); temporary disabled
     }
 
     private void clearExecutionJobs(List<FreeStyleProject> jobs) {
@@ -118,21 +117,22 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
         Map<Long, Map<String, FreeStyleProject>> workspace2executorLogical2DiscoveryJobMap = new HashMap<>();
         for (FreeStyleProject job : jobs) {
-            if (UftJobRecognizer.isDiscoveryJobJob(job)) {
-                String executorLogicalName = getExecutorLogicalName(job);
+            if (UftJobRecognizer.isDiscoveryJob(job)) {
+                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(job);
                 Long workspaceId = getOctaneWorkspaceId(job);
                 if (executorLogicalName != null && workspaceId != null) {
                     if (!workspace2executorLogical2DiscoveryJobMap.containsKey(workspaceId)) {
-                        workspace2executorLogical2DiscoveryJobMap.put(workspaceId, new HashedMap());
+                        workspace2executorLogical2DiscoveryJobMap.put(workspaceId, new HashMap<>());
                     }
                     workspace2executorLogical2DiscoveryJobMap.get(workspaceId).put(executorLogicalName, job);
                 }
             }
         }
 
+        //TOO not working correctly
         if (!workspace2executorLogical2DiscoveryJobMap.isEmpty()) {
-            if (OctaneSDK.getInstance().getConfigurationService().isConfigurationValid()) {
-                EntitiesService entitiesService = OctaneSDK.getInstance().getEntitiesService();
+            if (OctaneSDK.getClients().get(0).getConfigurationService().isCurrentConfigurationValid()) {
+                EntitiesService entitiesService = OctaneSDK.getClients().get(0).getEntitiesService();
                 int deleteCounter = 0;
                 for (Long workspaceId : workspace2executorLogical2DiscoveryJobMap.keySet()) {
                     try {
@@ -174,23 +174,10 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         return octaneExecutorIds;
     }
 
-    private static Long getExecutorId(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_ID_PARAMETER_NAME);
-        String value = (String) pd.getDefaultParameterValue().getValue();
-        return Long.valueOf(value);
-    }
-
-    private static String getExecutorLogicalName(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
-        String value = (String) pd.getDefaultParameterValue().getValue();
-        return value;
-    }
 
     private Long getOctaneWorkspaceId(FreeStyleProject job) {
 
-        UFTTestDetectionPublisher uftTestDetectionPublisher = null;
+        UFTTestDetectionPublisher uftTestDetectionPublisher;
         List publishers = job.getPublishersList();
         for (Object publisher : publishers) {
             if (publisher instanceof UFTTestDetectionPublisher) {
@@ -206,15 +193,17 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     /**
      * Delete discovery job that related to specific executor in Octane
      *
-     * @param id
+     * @param executorToDelete
      */
-    public static void deleteExecutor(String id) {
-        long executorToDelete = Long.parseLong(id);
+    public static void deleteDiscoveryJobByExecutor(String executorToDelete) {
+
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isDiscoveryJobJob(proj)) {
-                Long executorId = getExecutorId(proj);
-                if (executorId != null && executorId == executorToDelete) {
+            if (UftJobRecognizer.isDiscoveryJob(proj)) {
+                String executorId = UftJobRecognizer.getExecutorId(proj);
+                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
+                if ((StringUtils.isNotEmpty(executorId) && executorId.equals(executorToDelete)) ||
+                        (StringUtils.isNotEmpty(executorLogicalName) && executorLogicalName.equals(executorToDelete))) {
                     boolean waitBeforeDelete = false;
 
                     if (proj.isBuilding()) {

@@ -46,8 +46,6 @@ public class TestResultIterable implements Iterable<JUnitTestResult> {
     public TestResultIterator iterator() {
         try {
             return new TestResultIterator(reader);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }

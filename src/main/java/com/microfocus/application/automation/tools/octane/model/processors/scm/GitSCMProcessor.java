@@ -149,12 +149,17 @@ class GitSCMProcessor implements SCMProcessor {
                 throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
                         MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
             }
-            if(base.getParents().length>1){
-                base = base.getParent(0);
+            //in order to return actual revision and not merge commit
+            while (base.getParents().length>1){
+                RevCommit base_1 = base.getParent(0);
+                RevCommit base_2 = base.getParent(1);
+                if(base_1.getParents().length==1){
+                    base = base_1;
+                }else{
+                    base = base_2;
+                }
             }
             return base.getId().getName();
-
-
         }
     }
 
@@ -182,15 +187,26 @@ class GitSCMProcessor implements SCMProcessor {
                 .setCommits(tmpCommits);
     }
 
-	private String getBranchName(Run r) {
+    private String getBranchName(Run r) {
         try {
             SCM scm = ((AbstractBuild) r).getProject().getScm();
-                GitSCM git = (GitSCM) scm;
-                List<BranchSpec> branches = git.getBranches();
-                String rawBranchName = branches.get(0).toString();
-			return rawBranchName.substring(2); //trunk the '*/' from the '*/<branch name>' in order to get clean branch name
+            GitSCM git = (GitSCM) scm;
+            List<BranchSpec> branches = git.getBranches();
+            String rawBranchName = branches.get(0).toString();
+            if (rawBranchName != null && rawBranchName.startsWith("${") && rawBranchName.endsWith("}")) {
+                String param = rawBranchName.substring(2, rawBranchName.length() - 1);
+                if (((AbstractBuild) r).getBuildVariables().get(param) != null) {
+                    return ((AbstractBuild) r).getBuildVariables().get(param).toString();
+                } else {
+                    return param;
+                }
+            }
+            if (rawBranchName != null && rawBranchName.startsWith("*/")) {
+                return rawBranchName.substring(2);
+            }
+            return rawBranchName; //trunk the '*/' from the '*/<branch name>' in order to get clean branch name
         } catch (Exception e) {
-			logger.error("failed to extract branch name", e);
+            logger.error("failed to extract branch name", e);
         }
         return null;
     }

@@ -741,9 +741,9 @@ namespace HpToolsLauncher
             else
             {
                 _blnRunCancelled = true;
-                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
+                //ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
-                ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
+                //ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
             }
 

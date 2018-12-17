@@ -261,5 +261,17 @@ body {
 
 .rpos {
 	position: absolute;
-	right: 20px;
+	right: 50px;
+}
+
+.config-label {
+	text-decoration: none;
+	font-size: 12px;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	line-height: 26px;
+	height: 26px;
+	vertical-align: middle;
+	display: inline-block;
+	padding: 0 10px;
 }

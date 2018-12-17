@@ -25,7 +25,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.octane.integrations.util.SdkConstants;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
@@ -43,10 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
@@ -191,14 +188,24 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
 					String cleanedTestName = cleanTestName(testName);
 					boolean testReportCreated = true;
-					if (additionalContext != null && additionalContext instanceof Set) {
-						Set createdTests = (Set) additionalContext;
-						testReportCreated = createdTests.contains(cleanedTestName);
+					if (additionalContext != null && additionalContext instanceof List) {
+						//test folders are appear in the following format GUITest1[1], while [1] number of test. It possible that tests with the same name executed in the same job
+						//by adding [1] or [2] we can differentiate between different instances.
+						//We assume that test folders are sorted so in this section, once we found the test folder, we remove it from collection , in order to find the second instance in next iteration
+						List<String> createdTests = (List<String>) additionalContext;
+						String searchFor = cleanedTestName + "[";
+						Optional<String> optional = createdTests.stream().filter(str -> str.startsWith(searchFor)).findFirst();
+						if (optional.isPresent()) {
+							cleanedTestName = optional.get();
+							createdTests.remove(cleanedTestName);
+
+						}
+						testReportCreated = optional.isPresent();
 					}
 
 					workspace.createTextTempFile("build" + buildId + "." + cleanTestName(testName) + ".", "", "Created  " + testReportCreated);
 					if (testReportCreated) {
-						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
+						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanedTestName + "/run_results.html";
 					} else {
 						//if UFT didn't created test results page - add reference to Jenkins test results page
 						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";

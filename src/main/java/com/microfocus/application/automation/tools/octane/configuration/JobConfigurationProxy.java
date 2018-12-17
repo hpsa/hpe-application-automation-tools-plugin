@@ -22,23 +22,27 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.model.*;
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
+import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.ListItem;
+import com.hp.octane.integrations.dto.general.Taxonomy;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.pipelines.PipelineContext;
+import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.services.entities.EntitiesService;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
-import com.microfocus.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.microfocus.application.automation.tools.octane.client.RetryModel;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import hudson.ExtensionList;
 import hudson.model.Job;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -46,10 +50,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This class is a proxy between JS UI code and server-side job configuration.
@@ -59,9 +63,7 @@ public class JobConfigurationProxy {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	final private Job job;
-	private RetryModel retryModel;
 
-	private static final String PRODUCT_NAME = Messages.ServerName();
 	private static final String NOT_SPECIFIED = "-- Not specified --";
 
 	JobConfigurationProxy(Job job) {
@@ -69,82 +71,81 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
+	public JSONObject createPipelineOnServer(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
-		CIServerInfo ciServerInfo = OctaneSDK.getInstance().getPluginServices().getServerInfo();
-		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
-
-		MqmRestClient client;
+		String instanceId = pipelineObject.getString("instanceId");
+		CIServerInfo ciServerInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
+		ciServerInfo.setInstanceId(instanceId);
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
 
-		try {
-			Pipeline createdPipeline = client.createPipeline(
-					ConfigurationService.getModel().getIdentity(),
-                    pipelineNode.getJobCiId(),
-					pipelineObject.getString("name"),
-					pipelineObject.getLong("workspaceId"),
-					releaseId,
-					dtoFactory.dtoToJson(pipelineNode),
-					dtoFactory.dtoToJson(ciServerInfo));
+
+			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
+					.setContextName(pipelineObject.getString("name"))
+					.setWorkspace(pipelineObject.getLong("workspaceId"))
+					.setReleaseId(pipelineObject.getLong("releaseId"))
+					.setStructure(pipelineNode)
+					.setServer(ciServerInfo);
+			PipelineContext createdPipelineContext = octaneClient.getPipelineContextService().createPipeline(octaneClient.getInstanceId(), pipelineNode.getJobCiId(), pipelineContext);
+
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Workspace> workspaces = client.getWorkspaces(Collections.singletonList(createdPipeline.getWorkspaceId()));
+			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(pipelineContext.getWorkspaceId()));
 			if (workspaces.size() != 1) {
-				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + createdPipeline.getWorkspaceId());
+				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipelineContext.getWorkspaceId());
 			}
 			//WORKAROUND END
 
-			JSONObject pipelineJSON = fromPipeline(createdPipeline, workspaces.get(0));
+			JSONObject pipelineJSON = fromPipeline(createdPipelineContext, workspaces.get(0));
+			enrichPipelineInstanceId(pipelineJSON, instanceId);
+
 			//WORKAROUND BEGIN
 			//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
-			enrichPipeline(pipelineJSON, client);
+			enrichPipelineInternal(pipelineJSON, octaneClient);
 			//WORKAROUND END
 			result.put("pipeline", pipelineJSON);
 
-			JSONArray fieldsMetadata = getFieldMetadata(createdPipeline.getWorkspaceId(), client);
+			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, createdPipelineContext.getWorkspaceId()));
 			result.put("fieldsMetadata", fieldsMetadata);
 
-		} catch (RequestException e) {
-			logger.warn("Failed to create pipeline", e);
-            String msg = e.getDescription() != null ? e.getDescription() : e.getMessage();
-            return error("Unable to create pipeline. " + msg);
 		} catch (ClientException e) {
 			logger.warn("Failed to create pipeline", e);
 			return error(e.getMessage(), e.getLink());
+		} catch (Exception e) {
+			logger.warn("Failed to create pipeline", e);
+			return error(e.getMessage());
 		}
 		return result;
 	}
 
 	@JavaScriptMethod
-	public JSONObject updatePipelineOnSever(JSONObject pipelineObject) throws IOException {
+	public JSONObject updatePipelineOnSever(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
 
-		MqmRestClient client;
-		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
+		String instanceId = pipelineObject.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
+
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 
+			//build taxonomies
 			LinkedList<Taxonomy> taxonomies = new LinkedList<>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
-				taxonomies.add(new Taxonomy(jsonObject.optLong("tagId"), jsonObject.getString("tagName"),
-						new Taxonomy(jsonObject.optLong("tagTypeId"), jsonObject.getString("tagTypeName"), null)));
+				taxonomies.add(dtoFactory.newDTO(Taxonomy.class)
+						.setId(jsonObject.optLong("tagId"))
+						.setName(jsonObject.getString("tagName"))
+						.setParent(dtoFactory.newDTO(Taxonomy.class)
+								.setId(jsonObject.optLong("tagTypeId"))
+								.setName(jsonObject.getString("tagTypeName")))
+				);
 			}
 
-			LinkedList<ListField> fields = new LinkedList<>();
+			//build list fields
+			Map<String, List<ListItem>> fields = new HashMap<>();
 			JSONArray fieldTags = pipelineObject.getJSONArray("fieldTags");
 			for (JSONObject jsonObject : toCollection(fieldTags)) {
 				List<ListItem> assignedValues = new LinkedList<>();
@@ -155,28 +156,39 @@ public class JobConfigurationProxy {
 					} else {
 						id = null;
 					}
-					assignedValues.add(new ListItem(id, null, value.getString("name"), null));
+					assignedValues.add(dtoFactory.newDTO(ListItem.class).setId(id).setName(value.getString("name")));
 				}
-				fields.add(new ListField(jsonObject.getString("name"), assignedValues));
+				fields.put(jsonObject.getString("name"), assignedValues);
 			}
 
-            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
+			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
 
-            Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), jobCiId,
-					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
+			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
+					.setContextEntityId(pipelineId)
+					.setContextName(pipelineObject.getString("name"))
+					.setWorkspace(pipelineObject.getLong("workspaceId"))
+					.setReleaseId(pipelineObject.getLong("releaseId"))
+					.setIgnoreTests(pipelineObject.getBoolean("ignoreTests"))
+					.setTaxonomies(taxonomies)
+					.setListFields(fields);
+
+			PipelineContext pipeline = octaneClient.getPipelineContextService().updatePipeline(octaneClient.getInstanceId(), jobCiId, pipelineContext);
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Workspace> workspaces = client.getWorkspaces(Collections.singletonList(pipeline.getWorkspaceId()));
+			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(pipeline.getWorkspaceId()));
 			if (workspaces.size() != 1) {
 				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipeline.getWorkspaceId());
 			}
 			//WORKAROUND END
 
+			//TODO uncomment after getting pipelineContext
 			JSONObject pipelineJSON = fromPipeline(pipeline, workspaces.get(0));
+			enrichPipelineInstanceId(pipelineJSON, instanceId);
+
 			//WORKAROUND BEGIN
 			//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
-			enrichPipeline(pipelineJSON, client);
+			enrichPipelineInternal(pipelineJSON, octaneClient);
 			//WORKAROUND END
 			result.put("pipeline", pipelineJSON);
 
@@ -191,36 +203,28 @@ public class JobConfigurationProxy {
 				errorObj.put("message", "Failed to update pipeline name. Make sure not to enter the name of an existing pipeline.");
 				result.put("error", errorObj);
 			}
-
-		} catch (RequestException e) {
-			logger.warn("Failed to update pipeline", e);
-			return error("Unable to update pipeline");
 		} catch (ClientException e) {
 			logger.warn("Failed to update pipeline", e);
 			return error(e.getMessage(), e.getLink());
+		} catch (Exception e) {
+			logger.warn("Failed to update pipeline", e);
+			return error("Unable to update pipeline");
 		}
 
 		return result;
 	}
 
-
 	@JavaScriptMethod
-	public JSONObject deleteTests(JSONObject pipelineObject) throws IOException, InterruptedException {
+	public JSONObject deleteTests(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
-
-		MqmRestClient client;
-		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
+		String instanceId = pipelineObject.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 			long workspaceId = pipelineObject.getLong("workspaceId");
-			client.deleteTestsFromPipelineNodes(job.getName(), pipelineId, workspaceId);
+			octaneClient.getPipelineContextService().deleteTestsFromPipelineNodes(job.getName(), pipelineId, workspaceId);
 			result.put("Test deletion was succeful", "");
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to delete tests", e);
 			return error("Unable to delete tests");
 		}
@@ -229,14 +233,8 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject loadJobConfigurationFromServer() throws IOException {
-		MqmRestClient client;
-		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
+	public JSONObject loadJobConfigurationFromServer(String instanceId) {
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		JSONObject ret = new JSONObject();
 		JSONObject workspaces = new JSONObject();
@@ -244,9 +242,9 @@ public class JobConfigurationProxy {
 		try {
 			boolean isUftJob = false;
 			List<CIParameter> parameters = ParameterProcessors.getConfigs(job);
-			if(parameters != null) {
-				for(CIParameter parameter : parameters) {
-					if(parameter != null && parameter.getName() != null && parameter.getName().equals("suiteId")) {
+			if (parameters != null) {
+				for (CIParameter parameter : parameters) {
+					if (parameter != null && parameter.getName() != null && parameter.getName().equals("suiteId")) {
 						isUftJob = true;
 						break;
 					}
@@ -254,41 +252,36 @@ public class JobConfigurationProxy {
 			}
 			ret.put("isUftJob", isUftJob);
 
-            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
-            JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), jobCiId);
+			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
+			PipelineContextList pipelineContextList = octaneClient.getPipelineContextService().getJobConfiguration(octaneClient.getInstanceId(), jobCiId);
 
-			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
-				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();
+			if (!pipelineContextList.getData().isEmpty()) {
+				Map<Long, List<PipelineContext>> workspacesMap = pipelineContextList.buildWorkspace2PipelinesMap();
 				//WORKAROUND BEGIN
 				//getting workspaceName - because the workspaceName is not returned from configuration API
 				Map<Long, String> relatedWorkspaces = new HashMap<>();
-				List<Workspace> workspaceList = client.getWorkspaces(new LinkedList<>(workspacesMap.keySet()));
-				for (Workspace workspace : workspaceList) {
-					relatedWorkspaces.put(workspace.getId(), workspace.getName());
+				List<Entity> workspaceList = getWorkspacesById(octaneClient, workspacesMap.keySet());
+				for (Entity workspace : workspaceList) {
+					relatedWorkspaces.put(Long.parseLong(workspace.getId()), workspace.getName());
 				}
 				//WORKAROUND END
 
-				Map<Workspace, List<Pipeline>> sortedWorkspacesMap = new TreeMap<>(new Comparator<Workspace>() {
-					@Override
-					public int compare(final Workspace w1, final Workspace w2) {
-						return w1.getName().compareTo(w2.getName());
-					}
-				});
-				Comparator<Pipeline> pipelineComparator = new Comparator<Pipeline>() {
-					@Override
-					public int compare(final Pipeline p1, final Pipeline p2) {
-						return p1.getName().compareTo(p2.getName());
-					}
-				};
+				Map<Entity, List<PipelineContext>> sortedWorkspacesMap = new TreeMap<>(Comparator.comparing(Entity::getName));
+				Comparator<PipelineContext> pipelineComparator = Comparator.comparing(PipelineContext::getContextEntityName);
 
 				//create workspaces JSON Object
-				for (Entry<Long, List<Pipeline>> workspacePipelines : workspacesMap.entrySet()) {
-					Workspace relatedWorkspace = new Workspace(workspacePipelines.getKey(), relatedWorkspaces.get(workspacePipelines.getKey()));
+				for (Entry<Long, List<PipelineContext>> workspacePipelines : workspacesMap.entrySet()) {
+					Entity relatedWorkspace = dtoFactory.newDTO(Entity.class);
+
+					relatedWorkspace.setId(workspacePipelines.getKey().toString());
+					relatedWorkspace.setName(relatedWorkspaces.get(workspacePipelines.getKey()));
+
 					JSONObject relatedPipelinesJSON = new JSONObject();
 
-					for (Pipeline relatedPipeline : workspacePipelines.getValue()) {
+					for (PipelineContext relatedPipeline : workspacePipelines.getValue()) {
 						JSONObject pipelineJSON = fromPipeline(relatedPipeline, relatedWorkspace);
-						relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getId()), pipelineJSON);
+						enrichPipelineInstanceId(pipelineJSON, instanceId);
+						relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getContextEntityId()), pipelineJSON);
 					}
 					JSONObject workspaceJSON = new JSONObject();
 					workspaceJSON.put("id", relatedWorkspace.getId());
@@ -297,31 +290,31 @@ public class JobConfigurationProxy {
 					workspaces.put(String.valueOf(relatedWorkspace.getId()), workspaceJSON);
 
 					//inserting this workspace into sortedMap (sorted by workspaceName and by pipelineName, so that we can pick first workspace and its first pipeline as preselected values
-					LinkedList<Pipeline> workspacePipelinesList = new LinkedList<Pipeline>(workspacePipelines.getValue());
-					Collections.sort(workspacePipelinesList, pipelineComparator);
+					LinkedList<PipelineContext> workspacePipelinesList = new LinkedList<>(workspacePipelines.getValue());
+					workspacePipelinesList.sort(pipelineComparator);
 					sortedWorkspacesMap.put(relatedWorkspace, workspacePipelinesList);
 				}
 
 				//create currentPipeline JSON Object
 				//currently the first pipeline in the first workspace is picked
-				Workspace preSelectedWorkspace = sortedWorkspacesMap.keySet().iterator().next();
-				Pipeline preSelectedPipeline = sortedWorkspacesMap.get(preSelectedWorkspace).get(0);
+				Entity preSelectedWorkspace = sortedWorkspacesMap.keySet().iterator().next();
+				PipelineContext preSelectedPipeline = sortedWorkspacesMap.get(preSelectedWorkspace).get(0);
 				JSONObject preSelectedPipelineJSON = fromPipeline(preSelectedPipeline, preSelectedWorkspace);
-
+				enrichPipelineInstanceId(preSelectedPipelineJSON, instanceId);
 				//WORKAROUND BEGIN
 				//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
-				enrichPipeline(preSelectedPipelineJSON, client);
+				enrichPipelineInternal(preSelectedPipelineJSON, octaneClient);
 				//WORKAROUND END
 				ret.put("currentPipeline", preSelectedPipelineJSON);
 
 				//retrieving metadata fields for preselected workspace
-				fieldsMetadata = getFieldMetadata(preSelectedWorkspace.getId(), client);
+				fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, Long.parseLong(preSelectedWorkspace.getId())));
 			}
 
 			ret.put("workspaces", workspaces);
 			ret.put("fieldsMetadata", fieldsMetadata);
 
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve job configuration", e);
 			return error("Unable to retrieve job configuration");
 		}
@@ -331,21 +324,16 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject loadWorkspaceConfiguration(JSONObject pipelineJSON) {
-		MqmRestClient client;
+		String instanceId = pipelineJSON.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
-		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
 
 		try {
-			JSONArray fieldsMetadata = getFieldMetadata(pipelineJSON.getLong("workspaceId"), client);
+			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, pipelineJSON.getLong("workspaceId")));
 			ret.put("fieldsMetadata", fieldsMetadata);
-			enrichPipeline(pipelineJSON, client);
+			enrichPipelineInternal(pipelineJSON, octaneClient);
 			ret.put("pipeline", pipelineJSON);
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve metadata for workspace", e);
 			return error("Unable to retrieve metadata for workspace");
 		}
@@ -353,12 +341,12 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private JSONObject fromPipeline(final Pipeline pipeline, Workspace relatedWorkspace) {
+	private static JSONObject fromPipeline(final PipelineContext pipeline, Entity relatedWorkspace) {
 		JSONObject pipelineJSON = new JSONObject();
-		pipelineJSON.put("id", pipeline.getId());
-		pipelineJSON.put("name", pipeline.getName());
+		pipelineJSON.put("id", pipeline.getContextEntityId());
+		pipelineJSON.put("name", pipeline.getContextEntityName());
 		pipelineJSON.put("releaseId", pipeline.getReleaseId() != null ? pipeline.getReleaseId() : -1);
-		pipelineJSON.put("isRoot", pipeline.isRoot());
+		pipelineJSON.put("isRoot", pipeline.isPipelineRoot());
 		pipelineJSON.put("workspaceId", relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
 		pipelineJSON.put("ignoreTests", pipeline.getIgnoreTests());
@@ -370,19 +358,13 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject enrichPipeline(JSONObject pipelineJSON) {
-		MqmRestClient client;
+		String instanceId = pipelineJSON.getString("instanceId");
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
 		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
-
-		try {
-			enrichPipeline(pipelineJSON, client);
+			enrichPipelineInternal(pipelineJSON, octaneClient);
 			ret.put("pipeline", pipelineJSON);
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve metadata for pipeline", e);
 			return error("Unable to retrieve metadata for pipeline");
 		}
@@ -390,22 +372,27 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private void enrichPipeline(JSONObject pipelineJSON, MqmRestClient client) {
-		enrichRelease(pipelineJSON, client);
-		enrichTaxonomies(pipelineJSON, client);
-		enrichFields(pipelineJSON, client);
+	private static void enrichPipelineInternal(JSONObject pipelineJSON, OctaneClient octaneClient) {
+		enrichRelease(pipelineJSON, octaneClient);
+		enrichTaxonomies(pipelineJSON, octaneClient);
+		enrichFields(pipelineJSON, octaneClient);
 	}
 
-	private void enrichRelease(JSONObject pipeline, MqmRestClient client) {
+	private static void enrichPipelineInstanceId(JSONObject pipelineJSON, String instanceId) {
+		pipelineJSON.put("instanceId", instanceId);
+		pipelineJSON.put("instanceCaption", ConfigurationService.getSettings(instanceId).getCaption());
+	}
+
+	private static void enrichRelease(JSONObject pipeline, OctaneClient octaneClient) {
 		long workspaceId = pipeline.getLong("workspaceId");
 		if (pipeline.containsKey("releaseId") && pipeline.getLong("releaseId") != -1) {
 			long releaseId = pipeline.getLong("releaseId");
-			String releaseName = client.getRelease(releaseId, workspaceId).getName();
+			String releaseName = getReleasesById(octaneClient, Arrays.asList(releaseId), workspaceId).get(0).getName();
 			pipeline.put("releaseName", releaseName);
 		}
 	}
 
-	private void enrichTaxonomies(JSONObject pipeline, MqmRestClient client) {
+	private static void enrichTaxonomies(JSONObject pipeline, OctaneClient octaneClient) {
 		JSONArray ret = new JSONArray();
 		if (pipeline.has("taxonomyTags")) {
 
@@ -417,7 +404,7 @@ public class JobConfigurationProxy {
 					taxonomyIdsList.add(taxonomy.getLong("tagId"));
 				}
 			}
-			List<Taxonomy> taxonomies = client.getTaxonomies(taxonomyIdsList, pipeline.getLong("workspaceId"));
+			List<Taxonomy> taxonomies = convertTaxonomies(getTaxonomiesById(octaneClient, taxonomyIdsList, pipeline.getLong("workspaceId")));
 			for (Taxonomy tax : taxonomies) {
 				ret.add(tag(tax));
 			}
@@ -425,7 +412,7 @@ public class JobConfigurationProxy {
 		pipeline.put("taxonomyTags", ret);
 	}
 
-	private void enrichFields(JSONObject pipeline, MqmRestClient client) {
+	private static void enrichFields(JSONObject pipeline, OctaneClient client) {
 		JSONObject ret = new JSONObject();
 
 		if (pipeline.has("fields")) {
@@ -443,9 +430,9 @@ public class JobConfigurationProxy {
 					}
 					//retrieving names of assigned items
 					if (fieldTagsIdsList.size() > 0) {
-						List<ListItem> enrichedFields = client.getListItems(fieldTagsIdsList, workspaceId);
+						List<Entity> enrichedFields = getListItemsById(client, fieldTagsIdsList, workspaceId);
 						JSONArray values = new JSONArray();
-						for (ListItem item : enrichedFields) {
+						for (Entity item : enrichedFields) {
 							JSONObject value = new JSONObject();
 							value.put("id", item.getId());
 							value.put("name", item.getName());
@@ -459,43 +446,14 @@ public class JobConfigurationProxy {
 		pipeline.put("fields", ret);
 	}
 
-	private JSONArray getFieldMetadata(final long workspaceId, MqmRestClient client) {
-		JSONArray fieldMetadataArray = new JSONArray();
-		List<FieldMetadata> metadataList = client.getFieldsMetadata(workspaceId);
-
-		for (FieldMetadata fieldMetadata : metadataList) {
-			fieldMetadataArray.add(fromFieldMetadata(fieldMetadata));
-		}
-		return fieldMetadataArray;
-	}
-
-	private JSONObject fromFieldMetadata(FieldMetadata fieldMetadata) {
-		JSONObject fieldMetadataJSON = new JSONObject();
-		fieldMetadataJSON.put("name", fieldMetadata.getName());
-		fieldMetadataJSON.put("listName", fieldMetadata.getListName());
-		fieldMetadataJSON.put("logicalListName", fieldMetadata.getLogicalListName());
-		fieldMetadataJSON.put("extensible", fieldMetadata.isExtensible());
-		fieldMetadataJSON.put("multiValue", fieldMetadata.isMultiValue());
-		fieldMetadataJSON.put("order", fieldMetadata.getOrder());
-		return fieldMetadataJSON;
-	}
-
 	@JavaScriptMethod
-	public JSONObject searchListItems(String logicalListName, String term, long workspaceId, boolean multiValue, boolean extensible) {
+	public JSONObject searchListItems(String logicalListName, String term, String instanceId, long workspaceId, boolean multiValue, boolean extensible) {
 		int defaultSize = 10;
 		JSONObject ret = new JSONObject();
-
-		MqmRestClient client;
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
-		try {
-
-			PagedList<ListItem> listItemPagedList = client.queryListItems(logicalListName, term, workspaceId, 0, defaultSize);
-			List<ListItem> listItems = listItemPagedList.getItems();
+			ResponseEntityList listItemPagedList = queryListItems(octaneClient, logicalListName, term, workspaceId, defaultSize);
+			List<Entity> listItems = listItemPagedList.getData();
 			boolean moreResults = listItemPagedList.getTotalCount() > listItems.size();
 
 			JSONArray retArray = new JSONArray();
@@ -513,7 +471,7 @@ public class JobConfigurationProxy {
 				}
 			}
 
-			for (ListItem item : listItems) {
+			for (Entity item : listItems) {
 				if (!toBeFiltered(item)) {
 					JSONObject itemJson = new JSONObject();
 					itemJson.put("id", item.getId());
@@ -532,7 +490,7 @@ public class JobConfigurationProxy {
 
 
 			ret.put("results", retArray);
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve list items", e);
 			return error("Unable to retrieve job configuration");
 		}
@@ -540,25 +498,20 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private boolean toBeFiltered(ListItem item) {
-		return (item.getLogicalName().equalsIgnoreCase("list_node.testing_tool_type.manual"));
+	private boolean toBeFiltered(Entity item) {
+		return (item.getStringValue(EntityConstants.Base.LOGICAL_NAME_FIELD).equalsIgnoreCase("list_node.testing_tool_type.manual"));
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchReleases(String term, long workspaceId) {
+	public JSONObject searchReleases(String term, String instanceId, long workspaceId) {
 		int defaultSize = 5;
 		JSONObject ret = new JSONObject();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
-		MqmRestClient client;
 		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
-		try {
-			PagedList<Release> releasePagedList = client.queryReleases(term, workspaceId, 0, defaultSize);
-			List<Release> releases = releasePagedList.getItems();
+
+			ResponseEntityList releasePagedList = queryReleasesByName(octaneClient, term, workspaceId, defaultSize);
+			List<Entity> releases = releasePagedList.getData();
 			boolean moreResults = releasePagedList.getTotalCount() > releases.size();
 
 			JSONArray retArray = new JSONArray();
@@ -574,7 +527,7 @@ public class JobConfigurationProxy {
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			for (Release release : releases) {
+			for (Entity release : releases) {
 				JSONObject relJson = new JSONObject();
 				relJson.put("id", release.getId());
 				relJson.put("text", release.getName());
@@ -582,7 +535,7 @@ public class JobConfigurationProxy {
 			}
 			ret.put("results", retArray);
 
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve releases", e);
 			return error("Unable to retrieve releases");
 		}
@@ -591,20 +544,14 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchWorkspaces(String term) {
+	public JSONObject searchWorkspaces(String term, String instanceId) {
 		int defaultSize = 5;
 		JSONObject ret = new JSONObject();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
-		MqmRestClient client;
 		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
-		try {
-			PagedList<Workspace> workspacePagedList = client.queryWorkspaces(term, 0, defaultSize);
-			List<Workspace> workspaces = workspacePagedList.getItems();
+			ResponseEntityList workspacePagedList = queryWorkspacesByName(octaneClient, term, defaultSize);
+			List<Entity> workspaces = workspacePagedList.getData();
 			boolean moreResults = workspacePagedList.getTotalCount() > workspaces.size();
 
 			JSONArray retArray = new JSONArray();
@@ -612,7 +559,7 @@ public class JobConfigurationProxy {
 				retArray.add(createMoreResultsJson());
 			}
 
-			for (Workspace workspace : workspaces) {
+			for (Entity workspace : workspaces) {
 				JSONObject relJson = new JSONObject();
 				relJson.put("id", workspace.getId());
 				relJson.put("text", workspace.getName());
@@ -620,7 +567,7 @@ public class JobConfigurationProxy {
 			}
 			ret.put("results", retArray);
 
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve workspaces", e);
 			return error("Unable to retrieve workspaces");
 		}
@@ -629,17 +576,29 @@ public class JobConfigurationProxy {
 	}
 
 	@JavaScriptMethod
-	public JSONObject searchTaxonomies(String term, long workspaceId, JSONArray pipelineTaxonomies) {
+	public JSONObject searchSharedSpaces(String term) {
+		JSONObject ret = new JSONObject();
+		JSONArray retArray = new JSONArray();
+
+		for (OctaneServerSettingsModel model : ConfigurationService.getAllSettings()) {
+			if (StringUtils.isNotEmpty(term) && !model.getCaption().toLowerCase().contains(term.toLowerCase())) {
+				continue;
+			}
+			JSONObject relJson = new JSONObject();
+			relJson.put("id", model.getIdentity());
+			relJson.put("text", model.getCaption());
+			retArray.add(relJson);
+		}
+		ret.put("results", retArray);
+
+		return ret;
+	}
+
+	@JavaScriptMethod
+	public JSONObject searchTaxonomies(String term, String instanceId, long workspaceId, JSONArray pipelineTaxonomies) {
 		int defaultSize = 20;
 		JSONObject ret = new JSONObject();
-
-		MqmRestClient client;
-		try {
-			client = createClient();
-		} catch (ClientException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			return error(e.getMessage(), e.getLink());
-		}
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 
 			//currently existing taxonomies on pipeline -> we need to show these options as disabled
@@ -651,21 +610,22 @@ public class JobConfigurationProxy {
 				}
 			}
 			//retrieving taxonomies from server
-			PagedList<Taxonomy> foundTaxonomies = client.queryTaxonomies(term, workspaceId, 0, defaultSize);
-			final List<Taxonomy> foundTaxonomiesList = foundTaxonomies.getItems();
+			ResponseEntityList foundTaxonomies = queryTaxonomiesByName(octaneClient, term, workspaceId, defaultSize);
+			final List<Entity> foundTaxonomiesList = foundTaxonomies.getData();
 			boolean moreResults = foundTaxonomies.getTotalCount() > foundTaxonomiesList.size();
 
 			//creating map <TaxonomyCategoryID : Set<Taxonomy>>
 			// for easier creating result JSON
-			Map<Long, Set<Taxonomy>> taxonomyMap = new HashMap<>();
-			Map<Long, String> taxonomyCategories = new HashMap<>();
-			for (Taxonomy taxonomy : foundTaxonomiesList) {
-				if (taxonomy.getRoot() != null) {
-					if (taxonomyMap.containsKey(taxonomy.getRoot().getId())) {
-						taxonomyMap.get(taxonomy.getRoot().getId()).add(taxonomy);
+			Map<String, Set<Entity>> taxonomyMap = new HashMap<>();
+			Map<String, String> taxonomyCategories = new HashMap<>();
+			for (Entity taxonomy : foundTaxonomiesList) {
+				Entity root = (Entity) taxonomy.getField(EntityConstants.Taxonomy.CATEGORY_NAME);
+				if (root != null) {
+					if (taxonomyMap.containsKey(root.getId())) {
+						taxonomyMap.get(root.getId()).add(taxonomy);
 					} else {
-						taxonomyMap.put(taxonomy.getRoot().getId(), new LinkedHashSet<>(Arrays.asList(taxonomy)));
-						taxonomyCategories.put(taxonomy.getRoot().getId(), taxonomy.getRoot().getName());
+						taxonomyMap.put(root.getId(), new LinkedHashSet<>(Collections.singletonList(taxonomy)));
+						taxonomyCategories.put(root.getId(), root.getName());
 					}
 				}
 			}
@@ -681,8 +641,8 @@ public class JobConfigurationProxy {
 				select2InputArray.add(createMoreResultsJson());
 			}
 
-			for (Entry<Long, Set<Taxonomy>> taxonomyType : taxonomyMap.entrySet()) {
-				Long tagTypeId = taxonomyType.getKey();
+			for (Entry<String, Set<Entity>> taxonomyType : taxonomyMap.entrySet()) {
+				String tagTypeId = taxonomyType.getKey();
 				String tagTypeName = taxonomyCategories.get(tagTypeId);
 				JSONArray childrenArray = new JSONArray();
 
@@ -695,7 +655,7 @@ public class JobConfigurationProxy {
 				tagTypeJson.put("tagTypeName", tagTypeName);
 				JSONArray tagTypeByNameValues = new JSONArray();
 
-				for (Taxonomy tax : taxonomyType.getValue()) {
+				for (Entity tax : taxonomyType.getValue()) {
 					//creating input format for select2, so that this structure does not have to be refactored in javascript
 					JSONObject taxonomyJson = new JSONObject();
 					taxonomyJson.put("id", tax.getId());
@@ -707,11 +667,12 @@ public class JobConfigurationProxy {
 					childrenArray.add(taxonomyJson);
 
 					//for allTags - adding tag into table of selected ones
+					Entity root = (Entity) tax.getField(EntityConstants.Taxonomy.CATEGORY_NAME);
 					JSONObject tagObject = new JSONObject();
 					tagObject.put("tagId", tax.getId());
 					tagObject.put("tagName", tax.getName());
-					tagObject.put("tagTypeId", tax.getRoot().getId());
-					tagObject.put("tagTypeName", tax.getRoot().getName());
+					tagObject.put("tagTypeId", root.getId());
+					tagObject.put("tagTypeName", root.getName());
 					allTags.put(String.valueOf(tax.getId()), tagObject);
 
 					//for tagTypesByName
@@ -721,14 +682,14 @@ public class JobConfigurationProxy {
 					tagTypeByNameValues.add(tagTypeByNameValue);
 				}
 				//New value.. for current type
-				JSONObject newValueJson = createNewValueJson(Long.toString(tagTypeValue(tagTypeId)));
+				JSONObject newValueJson = createNewValueJson(Long.toString(tagTypeValue(Long.parseLong(tagTypeId))));
 				childrenArray.add(newValueJson);
 
 				optgroup.put("children", childrenArray);
 				select2InputArray.add(optgroup);
 				tagTypeJson.put("values", tagTypeByNameValues);
 				tagTypesByName.put(tagTypeName, tagTypeJson);
-				tagTypes.put(Long.toString(tagTypeId), tagTypeJson);
+				tagTypes.put(tagTypeId, tagTypeJson);
 			}
 
 			// New type... New value...
@@ -746,7 +707,7 @@ public class JobConfigurationProxy {
 			ret.put("tagTypes", tagTypes);
 			ret.put("more", moreResults);
 
-		} catch (RequestException e) {
+		} catch (Exception e) {
 			logger.warn("Failed to retrieve environments", e);
 			return error("Unable to retrieve environments");
 		}
@@ -754,7 +715,7 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private JSONObject createMoreResultsJson() {
+	private static JSONObject createMoreResultsJson() {
 		JSONObject moreResultsJson = new JSONObject();
 		moreResultsJson.put("id", "moreResultsFound");
 		moreResultsJson.put("text", Messages.TooManyResults());
@@ -763,7 +724,7 @@ public class JobConfigurationProxy {
 		return moreResultsJson;
 	}
 
-	private JSONObject createNewValueJson(String id) {
+	private static JSONObject createNewValueJson(String id) {
 		JSONObject newValueJson = new JSONObject();
 		newValueJson.put("id", id);
 		newValueJson.put("text", "New value...");
@@ -771,12 +732,12 @@ public class JobConfigurationProxy {
 		return newValueJson;
 	}
 
-	private long tagTypeValue(long n) {
+	private static long tagTypeValue(long n) {
 		// mapping to ensure negative value (solve the "0" tag type ID)
 		return -(n + 1);
 	}
 
-	private void addTaxonomyTags(JSONObject result, Pipeline pipeline) {
+	private static void addTaxonomyTags(JSONObject result, PipelineContext pipeline) {
 		JSONArray pipelineTaxonomies = new JSONArray();
 		for (Taxonomy taxonomy : pipeline.getTaxonomies()) {
 			pipelineTaxonomies.add(tag(taxonomy));
@@ -784,20 +745,20 @@ public class JobConfigurationProxy {
 		result.put("taxonomyTags", pipelineTaxonomies);
 	}
 
-	private void addFields(JSONObject result, Pipeline pipeline) {
+	private static void addFields(JSONObject result, PipelineContext pipeline) {
 		JSONObject listFields = new JSONObject();
 
-		for (ListField field : pipeline.getFields()) {
-			JSONArray assignedValuesArray = listFieldValues(field);
-			listFields.put(field.getName(), assignedValuesArray);
+		for (Map.Entry<String, List<ListItem>> fieldEntry : pipeline.getListFields().entrySet()) {
+			JSONArray assignedValuesArray = listFieldValues(fieldEntry.getValue());
+			listFields.put(fieldEntry.getKey(), assignedValuesArray);
 		}
 		result.put("fields", listFields);
 	}
 
-	private JSONArray listFieldValues(ListField field) {
+	private static JSONArray listFieldValues(List<ListItem> listItems) {
 		JSONArray ret = new JSONArray();
 
-		for (ListItem item : field.getValues()) {
+		for (ListItem item : listItems) {
 			JSONObject value = new JSONObject();
 			value.put("id", item.getId());
 			if (item.getName() != null) {
@@ -812,27 +773,27 @@ public class JobConfigurationProxy {
 		return (Collection<JSONObject>) array.subList(0, array.size());
 	}
 
-	private JSONObject tag(Long tagId, String value) {
+	private static JSONObject tag(Long tagId, String value) {
 		JSONObject tag = new JSONObject();
 		tag.put("tagId", String.valueOf(tagId));
 		tag.put("tagName", value);
 		return tag;
 	}
 
-	private JSONObject tag(Taxonomy taxonomy) {
+	private static JSONObject tag(Taxonomy taxonomy) {
 		JSONObject tag = tag(taxonomy.getId(), taxonomy.getName());
-		if (taxonomy.getRoot() != null) {
-			tag.put("tagTypeId", String.valueOf(taxonomy.getRoot().getId()));
-			tag.put("tagTypeName", taxonomy.getRoot().getName());
+		if (taxonomy.getParent() != null) {
+			tag.put("tagTypeId", String.valueOf(taxonomy.getParent().getId()));
+			tag.put("tagTypeName", taxonomy.getParent().getName());
 		}
 		return tag;
 	}
 
-	private JSONObject error(String message) {
+	private static JSONObject error(String message) {
 		return error(message, null);
 	}
 
-	private JSONObject error(String message, ExceptionLink exceptionLink) {
+	private static JSONObject error(String message, ExceptionLink exceptionLink) {
 		JSONObject result = new JSONObject();
 		JSONArray errors = new JSONArray();
 		JSONObject error = new JSONObject();
@@ -844,51 +805,6 @@ public class JobConfigurationProxy {
 		errors.add(error);
 		result.put("errors", errors);
 		return result;
-	}
-
-	private MqmRestClient createClient() throws ClientException {
-		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-		if (StringUtils.isEmpty(configuration.location)) {
-			String label = "Please configure server here";
-			throw new ClientException(PRODUCT_NAME + " not configured", new ExceptionLink("/configure", label));
-		}
-
-		RetryModel retryModel = getRetryModel();
-
-		if (retryModel.isQuietPeriod()) {
-			String label = "Please validate your configuration settings here";
-			throw new ClientException(PRODUCT_NAME + " not connected", new ExceptionLink("/configure", label));
-		}
-
-		JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
-		MqmRestClient client = clientFactory.obtain(
-				configuration.location,
-				configuration.sharedSpace,
-				configuration.username,
-				configuration.password);
-		try {
-			client.validateConfigurationWithoutLogin();
-		} catch (RequestException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			retryModel.failure();
-			throw new ClientException("Connection to " + PRODUCT_NAME + " failed");
-		}
-
-		retryModel.success();
-		return client;
-	}
-
-	private RetryModel getRetryModel() {
-		if (retryModel == null) {
-			retryModel = getExtension(RetryModel.class);
-		}
-		return retryModel;
-	}
-
-	private static <T> T getExtension(Class<T> clazz) {
-		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
-		assert 1 == items.size() : "Expected to have one and only one extension of type " + clazz;
-		return items.get(0);
 	}
 
 	private static class ClientException extends Exception {
@@ -926,5 +842,138 @@ public class JobConfigurationProxy {
 		public String getLabel() {
 			return label;
 		}
+	}
+
+	private static ResponseEntityList queryWorkspacesByName(OctaneClient octaneClient, String name, int limit) {
+		return queryEntitiesByName(octaneClient, name, null, "workspaces", limit);
+	}
+
+	private static ResponseEntityList queryReleasesByName(OctaneClient octaneClient, String name, long workspaceId, int limit) {
+		return queryEntitiesByName(octaneClient, name, workspaceId, "releases", limit);
+	}
+
+	private static ResponseEntityList queryTaxonomiesByName(OctaneClient octaneClient, String name, long workspaceId, int limit) {
+
+		EntitiesService entityService = octaneClient.getEntitiesService();
+
+		List<String> conditions = new LinkedList();
+		conditions.add("!category={null}");
+		if (!StringUtils.isEmpty(name)) {
+			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+			conditions.add("(" + com.hp.octane.integrations.services.entities.QueryHelper.condition("name", "*" + name + "*") + "||" + com.hp.octane.integrations.services.entities.QueryHelper.conditionRef("category", "name", "*" + name + "*") + ")");
+		}
+
+		String url = entityService.buildEntityUrl(workspaceId, "taxonomy_nodes", conditions, Arrays.asList(EntityConstants.Base.NAME_FIELD, EntityConstants.Taxonomy.CATEGORY_NAME), 0, limit, EntityConstants.Base.NAME_FIELD);
+		ResponseEntityList result = entityService.getPagedEntities(url);
+		return result;
+	}
+
+	private static ResponseEntityList queryEntitiesByName(OctaneClient octaneClient, String name, Long workspaceId, String collectionName, int limit) {
+		EntitiesService entityService = octaneClient.getEntitiesService();
+
+		List<String> conditions = new LinkedList();
+		if (!StringUtils.isEmpty(name)) {
+			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+		}
+		String url = entityService.buildEntityUrl(workspaceId, collectionName, conditions, Arrays.asList(EntityConstants.Base.NAME_FIELD), 0, limit, EntityConstants.Base.NAME_FIELD);
+		ResponseEntityList result = entityService.getPagedEntities(url);
+		return result;
+	}
+
+	private static ResponseEntityList queryListItems(OctaneClient octaneClient, String logicalListName, String name, long workspaceId, int limit) {
+		int myLimit = limit;
+		EntitiesService entityService = octaneClient.getEntitiesService();
+		List<String> conditions = new LinkedList();
+		if (!StringUtils.isEmpty(name)) {
+			//list node are not filterable by name
+			//conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+			myLimit = 100;
+		}
+		if (!StringUtils.isEmpty(logicalListName)) {
+			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.conditionRef("list_root", EntityConstants.Base.LOGICAL_NAME_FIELD, logicalListName));
+		}
+
+		String url = entityService.buildEntityUrl(workspaceId, "list_nodes", conditions, null, 0, myLimit, null);
+		ResponseEntityList result = entityService.getPagedEntities(url);
+		ResponseEntityList myResult = result;
+		if (!StringUtils.isEmpty(name)) {
+			List<Entity> data = result.getData().stream().filter(l -> l.getName().toLowerCase().contains(name.toLowerCase())).limit(limit).collect(Collectors.toList());
+			myResult = (ResponseEntityList) dtoFactory.newDTO(ResponseEntityList.class).setData(data);
+		}
+		return myResult;
+	}
+
+	private static List<Entity> getWorkspacesById(OctaneClient client, Collection<?> itemIds) {
+		return getEntitiesById(client, null, "workspaces", itemIds);
+	}
+
+	private static List<Entity> getListItemsById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
+		return getEntitiesById(client, workspaceId, EntityConstants.Lists.COLLECTION_NAME, itemIds);
+	}
+
+	private static List<Entity> getReleasesById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
+		return getEntitiesById(client, workspaceId, EntityConstants.Release.COLLECTION_NAME, itemIds);
+	}
+
+	private static List<Entity> getTaxonomiesById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
+		return getEntitiesById(client, workspaceId, EntityConstants.Taxonomy.COLLECTION_NAME, itemIds);
+	}
+
+	private static List<Taxonomy> convertTaxonomies(List<Entity> entities) {
+		List<Taxonomy> taxonomies = new ArrayList<>();
+		for (Entity entity : entities) {
+			Taxonomy taxonomy = dtoFactory.newDTO(Taxonomy.class);
+			taxonomy.setId(Long.parseLong(entity.getId())).setName(entity.getName());
+			if (entity.containsField(EntityConstants.Taxonomy.CATEGORY_NAME)) {
+				Taxonomy parent = dtoFactory.newDTO(Taxonomy.class);
+				parent.setId(Long.parseLong(entity.getId())).setName(entity.getName());
+				taxonomy.setParent(parent);
+			}
+			taxonomies.add(taxonomy);
+		}
+		return taxonomies;
+	}
+
+	private static List<Entity> getEntitiesById(OctaneClient octaneClient, Long workspaceId, String collectionName, Collection<?> itemIds) {
+		return octaneClient.getEntitiesService().getEntitiesByIds(workspaceId, collectionName, itemIds);
+	}
+
+	private static List<Entity> getPipelineListNodeFieldsMetadata(OctaneClient octaneClient, long workspaceId) {
+		List<String> conditions = new LinkedList<>();
+		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition("entity_name", "pipeline_node"));
+		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.conditionIn("name", Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
+
+		EntitiesService entityService = octaneClient.getEntitiesService();
+		String url = entityService.buildEntityUrl(workspaceId, "metadata/fields", conditions, null, 0, null, null);
+		ResponseEntityList list = entityService.getPagedEntities(url);
+		return list.getData();
+	}
+
+	private static JSONArray convertToJsonMetadata(List<Entity> listNodeFieldMetadataList) {
+		JSONArray fieldMetadataArray = new JSONArray();
+		for (Entity entity : listNodeFieldMetadataList) {
+			Map<String, Object> fieldTypeData = (Map<String, Object>) entity.getField("field_type_data");
+			List targets = (List) fieldTypeData.get("targets");
+			Map<String, String> listNodeTarget = (Map<String, String>) targets.get(0);
+
+			//find pipeline_tagging feature
+			List<Map<String, Object>> fieldFeatures = (List<Map<String, Object>>) entity.getField("field_features");
+			Map<String, Object> pipelineTaggingFeature = null;
+			for (Map<String, Object> feature : fieldFeatures) {
+				if (feature.get("name").equals("pipeline_tagging")) {
+					pipelineTaggingFeature = feature;
+				}
+			}
+
+			JSONObject fieldMetadataJSON = new JSONObject();
+			fieldMetadataJSON.put("name", entity.getName());
+			fieldMetadataJSON.put("listName", entity.getStringValue("label"));
+			fieldMetadataJSON.put("logicalListName", listNodeTarget.get("logical_name"));
+			fieldMetadataJSON.put("extensible", pipelineTaggingFeature.get("extensibility"));
+			fieldMetadataJSON.put("multiValue", fieldTypeData.get("multiple"));
+			fieldMetadataJSON.put("order", pipelineTaggingFeature.get("order"));
+			fieldMetadataArray.add(fieldMetadataJSON);
+		}
+		return fieldMetadataArray;
 	}
 }

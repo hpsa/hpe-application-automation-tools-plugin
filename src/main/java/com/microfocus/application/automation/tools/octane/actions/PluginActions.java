@@ -22,15 +22,22 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.services.tasking.TasksProcessor;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
 import hudson.model.RootAction;
+import net.sf.json.JSONObject;
+import org.apache.http.entity.ContentType;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -49,6 +56,8 @@ import java.util.UUID;
 
 @Extension
 public class PluginActions implements RootAction {
+	private String STATUS_REQUEST = "/nga/api/v1/status";
+
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public String getIconFileName() {
@@ -68,37 +77,49 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException {
-		HttpMethod method = null;
-		if ("post".equals(req.getMethod().toLowerCase())) {
-			method = HttpMethod.POST;
-		} else if ("get".equals(req.getMethod().toLowerCase())) {
-			method = HttpMethod.GET;
-		} else if ("put".equals(req.getMethod().toLowerCase())) {
-			method = HttpMethod.PUT;
-		} else if ("delete".equals(req.getMethod().toLowerCase())) {
-			method = HttpMethod.DELETE;
-		}
-		if (method != null) {
-			OctaneTaskAbridged octaneTaskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class);
-			octaneTaskAbridged.setId(UUID.randomUUID().toString());
-			octaneTaskAbridged.setMethod(method);
-			octaneTaskAbridged.setUrl(req.getRequestURIWithQueryString());
-			octaneTaskAbridged.setBody(getBody(req.getReader()));
-			TasksProcessor taskProcessor = OctaneSDK.getInstance().getTasksProcessor();
-			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 
-			res.setStatus(result.getStatus());
-			if (result.getBody() != null) {
-				res.getWriter().write(result.getBody());
-			}
-			if (result.getHeaders() != null) {
-				for (Map.Entry<String, String> header : result.getHeaders().entrySet()) {
-					res.setHeader(header.getKey(), header.getValue());
-				}
-			}
+		if (req.getRequestURI().toLowerCase().contains(STATUS_REQUEST)) {
+			JSONObject result = getStatusResult();
+			res.setHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+			res.setStatus(200);
+			res.getWriter().write(result.toString());
+			return;
 		} else {
-			res.setStatus(501);
+			res.setStatus(404);
+			res.getWriter().write("");
+			return;
 		}
+	}
+
+	private JSONObject getStatusResult() {
+		JSONObject sdkJson = new JSONObject();
+		sdkJson.put("sdkVersion", OctaneSDK.SDK_VERSION);
+		JSONObject pluginJson = new JSONObject();
+		pluginJson.put("version", ConfigurationService.getPluginVersion());
+		JSONObject serverInfoJson = new JSONObject();
+		CIServerInfo serverInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
+		serverInfoJson.put("type", serverInfo.getType());
+		serverInfoJson.put("version", serverInfo.getVersion());
+		serverInfoJson.put("url", serverInfo.getUrl());
+		/*JSONArray configurationsJson = new JSONArray();
+		for (OctaneServerSettingsModel settings : ConfigurationService.getAllSettings()) {
+			if (settings.isValid()) {
+				JSONObject configJson = new JSONObject();
+				configJson.put("identity", settings.getIdentity());
+				configJson.put("location", settings.getLocation());
+				configJson.put("sharedSpace", settings.getSharedSpace());
+				//configJson.put("username", settings.getUsername());
+				//configJson.put("impersonatedUser", settings.getImpersonatedUser());
+				configurationsJson.add(configJson);
+			}
+		}*/
+
+		JSONObject result = new JSONObject();
+		result.put("sdk", sdkJson);
+		result.put("plugin", pluginJson);
+		result.put("server", serverInfoJson);
+		//result.put("configurations", configurationsJson);
+		return result;
 	}
 
 	private static String getBody(BufferedReader reader) throws IOException {

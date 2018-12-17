@@ -23,33 +23,25 @@
 package com.microfocus.application.automation.tools.octane.actions.plugin;
 
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
 import com.microfocus.application.automation.tools.octane.actions.PluginActions;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import hudson.model.BooleanParameterDefinition;
-import hudson.model.FileParameterDefinition;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.StringParameterDefinition;
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
+import hudson.model.*;
 import jenkins.model.Jenkins;
-import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -60,12 +52,7 @@ import static org.junit.Assert.assertNull;
  */
 
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2701", "squid:S3578", "squid:S2698"})
-public class PluginActionsTest {
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
-	private final JenkinsRule.WebClient client = rule.createWebClient();
+public class PluginActionsTest extends OctanePluginTestBase {
 
 	@Test
 	public void testPluginActionsMethods() {
@@ -87,8 +74,6 @@ public class PluginActionsTest {
 		assertEquals(CIServerTypes.JENKINS.value(), status.getServer().getType());
 		assertEquals(Jenkins.VERSION, status.getServer().getVersion());
 		assertEquals(rule.getInstance().getRootUrl(), status.getServer().getUrl() + "/");
-		assertEquals(ConfigurationService.getModel().getIdentity(), status.getServer().getInstanceId());
-		assertEquals(ConfigurationService.getModel().getIdentityFrom(), status.getServer().getInstanceIdFrom());
 		assertNotNull(status.getServer().getSendingTime());
 
 		assertNotNull(status.getPlugin());
@@ -98,17 +83,16 @@ public class PluginActionsTest {
 	@Test
 	public void testPluginActions_REST_Jobs_NoParams() throws IOException, SAXException {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
-		Page page = client.goTo("nga/api/v1/jobs", "application/json");
-		System.out.println(page.getWebResponse().getContentAsString());
-		CIJobsList response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+
+		String taskUrl = "nga/api/v1/jobs";
+		CIJobsList response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
 		assertEquals(rule.getInstance().getTopLevelItemNames().size(), response.getJobs().length);
 
 		rule.createFreeStyleProject(projectName);
-		page = client.goTo("nga/api/v1/jobs", "application/json");
-		response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+		response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
@@ -124,9 +108,9 @@ public class PluginActionsTest {
 	public void testPluginActions_REST_Jobs_WithParams() throws IOException, SAXException {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject fsp;
-		Page page = client.goTo("nga/api/v1/jobs", "application/json");
-		System.out.println(page.getWebResponse().getContentAsString());
-		CIJobsList response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+
+		String taskUrl = "nga/api/v1/jobs";
+		CIJobsList response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());
@@ -139,9 +123,7 @@ public class PluginActionsTest {
 				(ParameterDefinition) new FileParameterDefinition("ParamC", "file param")
 		));
 		fsp.addProperty(params);
-
-		page = client.goTo("nga/api/v1/jobs", "application/json");
-		response = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), CIJobsList.class);
+		response = TestUtils.sendTask(taskUrl, CIJobsList.class);
 
 		assertNotNull(response);
 		assertNotNull(response.getJobs());

@@ -263,7 +263,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test run was cancelled</value>
   </data>
   <data name="GeneralTimedOut" xml:space="preserve">
-    <value>Job timed out!</value>
+    <value>==============\nJob timed out!\n==============</value>
   </data>
   <data name="GeneralTimeoutExpired" xml:space="preserve">
     <value>Timeout has expired</value>
@@ -285,6 +285,18 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="LauncherNoValidTests" xml:space="preserve">
     <value>No valid tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoCleanupTestsFound" xml:space="preserve">
+    <value>No cleanup tests were found. Add some cleanup tests.</value>
+  </data>
+  <data name="LauncherNoValidCleanupTests" xml:space="preserve">
+    <value>No valid cleanup tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoFailedTestsFound" xml:space="preserve">
+    <value>No failed tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoValidFailedTests" xml:space="preserve">
+    <value>No valid failed tests to rerun were found. Fix the test paths.</value>
   </data>
   <data name="LauncherParamRequired" xml:space="preserve">
     <value>The parameter '{0}' is required to run a test from QC.</value>
@@ -368,7 +380,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Errors occurred during scenario execution. Stopping the scenario run.</value>
   </data>
   <data name="LrScenarioTimeOut" xml:space="preserve">
-    <value>Scenario Execution timeout ({0} seconds) passed.</value>
+    <value>Scenario Execution timeout {0} (d:h:m:s) passed.</value>
   </data>
   <data name="LrScenarioValidationCannotConnectLG" xml:space="preserve">
     <value>Cannot connect to Load Generator {0}.</value>
@@ -445,7 +457,13 @@ Save the test in QuickTest and then run it again.</value>
   <data name="InvalidReportPath" xml:space="preserve">
     <value>Invalid report path provided: '{0}'</value>
   </data>
+  <data name="LrSummaryDataLoggingError" xml:space="preserve">
+    <value>An error occured during summary data logging: {0}</value>
+  </data>
+  <data name="LrRTSError" xml:space="preserve">
+    <value>An error occured during RTS in script {0}: {1}</value>
+  </data>
   <data name="SmallDoubleSeparator" xml:space="preserve">
-    <value>==============</value>
+    <value>===========================</value>
   </data>
 </root>

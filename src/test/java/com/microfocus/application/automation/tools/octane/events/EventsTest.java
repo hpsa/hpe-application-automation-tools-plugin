@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.events;
@@ -64,6 +62,8 @@ public class EventsTest {
 	private static final String password = "pass";
 	private static final EventsTestHandler eventsTestHandler = new EventsTestHandler();
 
+	private static String instanceId;
+
 	@ClassRule
 	public static final JenkinsRule rule = new JenkinsRule();
 
@@ -79,8 +79,9 @@ public class EventsTest {
 				"http://127.0.0.1:" + serverMock.getPort() + "/ui?p=" + sharedSpaceId,
 				username,
 				Secret.fromString(password),
-				"");
+				"", null);
 		ConfigurationService.configurePlugin(model);
+		instanceId = model.getIdentity();
 	}
 
 	@Test
@@ -103,7 +104,7 @@ public class EventsTest {
 		assertNotNull(eventsLists.getServer());
 		assertTrue(rule.getInstance().getRootUrl() != null && rule.getInstance().getRootUrl().startsWith(eventsLists.getServer().getUrl()));
 		assertEquals("jenkins", eventsLists.getServer().getType());
-		assertEquals(ConfigurationService.getModel().getIdentity(), eventsLists.getServer().getInstanceId());
+		assertEquals(instanceId, eventsLists.getServer().getInstanceId());
 
 		assertNotNull(eventsLists.getEvents());
 		assertFalse(eventsLists.getEvents().isEmpty());

@@ -29,7 +29,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.5.3-beta-SNAPSHOT</version>
+	<version>5.6.1-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -73,7 +73,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
-		<tag>HEAD</tag>
+		<tag>micro-focus-application-automation-tools-plugin-5.5.4-beta</tag>
 	</scm>
 
 	<issueManagement>
@@ -304,13 +304,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.19.1</version>
-				<configuration>
-					<excludes>
-						<exclude>**/GherkinResultsTest.java</exclude>
-						<exclude>**/JUnitResultsTest.java</exclude>
-
-					</excludes>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -426,7 +419,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>4.20.0.49985</version>
+			<version>5.00.0.51808</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -450,14 +443,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.5.33</version>
-		</dependency>
-
-		<!-- Obsolete TO BE REMOVED -->
-		<dependency>
-			<artifactId>mqm-rest-client</artifactId>
-			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.25</version>
+			<version>2.0.22</version>
 		</dependency>
 
 		<!--BUILDER providers integration-->
@@ -549,10 +535,10 @@
 
 		<!--sonar plugin for compile phase only-->
 		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>sonar</artifactId>
+			<groupId>org.jenkins-ci.plugins</groupId>
 			<version>2.6.1</version>
-			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>

@@ -1,5 +1,4 @@
 /*
- *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,7 +16,6 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
@@ -49,10 +47,5 @@ class FreeStyleProjectProcessor extends AbstractProjectProcessor<FreeStyleProjec
 	@Override
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
-	}
-
-	@Override
-	public void scheduleBuild(String parametersBody) {
-		throw new RuntimeException("non yet implemented");
 	}
 }

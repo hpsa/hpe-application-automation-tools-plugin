@@ -58,6 +58,16 @@
             <f:entry title="Display Controller" field="displayController">
                 <f:checkbox name="runPipeline.displayController"/>
             </f:entry>
+            <f:section title="${%SummaryDataLog}">
+                <f:entry name="Summary Data Log Model" field="summaryDataLogModel">
+                    <f:property field="summaryDataLogModel" />
+                </f:entry>
+            </f:section>
+            <f:section title="${%RuntimeSettings}">
+                <f:entry name="Runtime Settings" field="scriptRTSSetModel">
+                    <f:property field="scriptRTSSetModel"/>
+                </f:entry>
+            </f:section>
         </f:advanced>
     </f:section>
 </j:jelly>

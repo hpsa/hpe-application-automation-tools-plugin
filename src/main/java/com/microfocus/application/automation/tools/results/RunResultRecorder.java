@@ -25,14 +25,7 @@ package com.microfocus.application.automation.tools.results;
 import com.microfocus.application.automation.tools.common.RuntimeUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
-import com.microfocus.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
-import com.microfocus.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
-import com.microfocus.application.automation.tools.results.projectparser.performance.LrJobResults;
-import com.microfocus.application.automation.tools.results.projectparser.performance.LrTest;
-import com.microfocus.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
-import com.microfocus.application.automation.tools.results.projectparser.performance.TimeRange;
-import com.microfocus.application.automation.tools.results.projectparser.performance.TimeRangeResult;
-import com.microfocus.application.automation.tools.results.projectparser.performance.WholeRunResult;
+import com.microfocus.application.automation.tools.results.projectparser.performance.*;
 import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
@@ -43,21 +36,9 @@ import hudson.Launcher;
 import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Project;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import hudson.tasks.junit.CaseResult;
-import hudson.tasks.junit.JUnitResultArchiver;
-import hudson.tasks.junit.SuiteResult;
-import hudson.tasks.junit.TestResult;
-import hudson.tasks.junit.TestResultAction;
+import hudson.model.*;
+import hudson.tasks.*;
+import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
@@ -79,17 +60,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 import static com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
@@ -106,6 +77,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public static final int SECS_IN_DAY = 86400;
     public static final int SECS_IN_HOUR = 3600;
     public static final int SECS_IN_MINUTE = 60;
+    public static final String SLA_ULL_NAME = "FullName";
+    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
+            "Archiving test reports failed due to xml parsing error: ";
     private static final long serialVersionUID = 1L;
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
     private static final String IE_REPORT_FOLDER = "IE";
@@ -119,15 +93,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
     private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
     private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
-    public static final String SLA_ULL_NAME = "FullName";
-    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
-            "Archiving test reports failed due to xml parsing error: ";
     private static final String NO_RICH_REPORTS_ERROR = "Template contains no rich reports.";
-    private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary report.";
+    private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
+            "report.";
     private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
 
     private final ResultsPublisherModel _resultsPublisherModel;
     private List<FilePath> runReportList;
+
     /**
      * Instantiates a new Run result recorder.
      *
@@ -138,6 +111,33 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
 
+    }
+
+    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
+        Node timeRangeNode;
+        Element timeRangeElement;
+        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+        if (timeRanges == null || timeRanges.getLength() == 0) {
+            return;
+        }
+        //Taking the goal per transaction -
+        double generalGoalValue = Double.parseDouble(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
+        transactionTimeRange.setGoalValue(generalGoalValue);
+
+        for (int k = 0; k < timeRanges.getLength(); k++) {
+            timeRangeNode = timeRanges.item(k);
+            timeRangeElement = (Element) timeRangeNode;
+            double actualValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_ACTUAL_VALUE_LABEL));
+            double goalValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_GOAL_VALUE_LABEL));
+            int loadValue = Integer.parseInt(timeRangeElement.getAttribute("LoadValue"));
+            double startTime = Double.parseDouble(timeRangeElement.getAttribute("StartTime"));
+            double endTIme = Double.parseDouble(timeRangeElement.getAttribute("EndTime"));
+            transactionTimeRange.incActualValue(actualValue);
+            LrTest.SLA_STATUS slaStatus =
+                    LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
+            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
+            transactionTimeRange.getTimeRanges().add(timeRange);
+        }
     }
 
     @Override
@@ -228,7 +228,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
 
             if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-                PerformanceJobReportAction performanceJobReportAction = build.getAction(PerformanceJobReportAction.class);
+                PerformanceJobReportAction performanceJobReportAction =
+                        build.getAction(PerformanceJobReportAction.class);
                 if (performanceJobReportAction != null) {
                     performanceJobReportAction.mergeResults(jobDataSet);
                 } else {
@@ -279,7 +280,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      * @throws InterruptedException
      */
     private boolean isParallelRunnerReportPath(FilePath reportPath) throws IOException, InterruptedException {
-        FilePath parallelRunnerResultsFile = new FilePath(reportPath,PARALLEL_RESULT_FILE);
+        FilePath parallelRunnerResultsFile = new FilePath(reportPath, PARALLEL_RESULT_FILE);
         return parallelRunnerResultsFile.exists();
     }
 
@@ -328,18 +329,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         artifactsDir.mkdirs();
 
         // read each result.xml
-    /*
-     * The structure of the result file is: <testsuites> <testsuite>
-     * <testcase.........report="path-to-report"/>
-     * <testcase.........report="path-to-report"/>
-     * <testcase.........report="path-to-report"/>
-     * <testcase.........report="path-to-report"/> </testsuite>
-     * </testsuites>
-     */
+        /*
+         * The structure of the result file is: <testsuites> <testsuite>
+         * <testcase.........report="path-to-report"/>
+         * <testcase.........report="path-to-report"/>
+         * <testcase.........report="path-to-report"/>
+         * <testcase.........report="path-to-report"/> </testsuite>
+         * </testsuites>
+         */
 
         // add previous report names for aggregation when using pipelines.
         PerformanceJobReportAction performanceJobReportAction = build.getAction(PerformanceJobReportAction.class);
-        if (performanceJobReportAction != null){
+        if (performanceJobReportAction != null) {
             reportNames.addAll(performanceJobReportAction.getLrResultBuildDataset().getLrScenarioResults().keySet());
         }
 
@@ -396,13 +397,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             zipFileNames.add(zipFileName);
                         }
 
-                        createRichReports(reportFolder, testFolderPath, artifactsDir, reportNames, testResult, listener);
+                        createRichReports(reportFolder, testFolderPath, artifactsDir, reportNames, testResult,
+                                listener);
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         try {
                             FilePath testSla = copyRunReport(reportFolder, build.getRootDir(),
                                     testFolder.getName());
-                            if(testSla == null){
+                            if (testSla == null) {
                                 listener.getLogger().println("no RunReport.xml file was created");
                             } else {
                                 runReportList.add(testSla);
@@ -415,7 +417,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             } else { // UFT Test
                 boolean reportIsHtml = false;
                 NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
-                Map<String,Integer> fileNameCount = new HashMap<>();
+                Map<String, Integer> fileNameCount = new HashMap<>();
 
                 for (int i = 0; i < testCasesNodes.getLength(); i++) {
 
@@ -462,24 +464,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             reportMetaData.setIsHtmlReport(true);
                             reportMetaData.setDateTime(testDateTime);
                             reportMetaData.setStatus(testStatus);
-                            reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle the type for this report
+                            reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
+                            // the type for this report
                             File testFileFullName = new File(testFolderPath);
                             String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
 
                             // we must consider the case when we run the same test
                             // in the same build
-                            if(isParallelRunnerReport) {
-                                Integer nameCount = 1;
+                            Integer nameCount = 1;
 
-                                if(fileNameCount.containsKey(testName)) {
-                                    nameCount = fileNameCount.get(testName) + 1;
-                                }
-
-                                // update the count for this file
-                                fileNameCount.put(testName,nameCount);
-
-                                testName+="[" + nameCount + "]";
+                            if (fileNameCount.containsKey(testName)) {
+                                nameCount = fileNameCount.get(testName) + 1;
                             }
+
+                            // update the count for this file
+                            fileNameCount.put(testName, nameCount);
+
+                            testName += "[" + nameCount + "]";
 
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
@@ -511,14 +512,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 reportFolder.zip(outstr);
 
-								/*
+                                /*
                                  * I did't use copyRecursiveTo or copyFrom due to
-								 * bug in
-								 * jekins:https://issues.jenkins-ci.org/browse
-								 * /JENKINS-9189 //(which is cleaimed to have been
-								 * fixed, but not. So I zip the folder to stream and
-								 * copy it to the master.
-								 */
+                                 * bug in
+                                 * jekins:https://issues.jenkins-ci.org/browse
+                                 * /JENKINS-9189 //(which is cleaimed to have been
+                                 * fixed, but not. So I zip the folder to stream and
+                                 * copy it to the master.
+                                 */
 
                                 ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
 
@@ -532,6 +533,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 // add to Report list
                                 ReportMetaData reportMetaData = new ReportMetaData();
                                 reportMetaData.setIsHtmlReport(false);
+                                reportMetaData.setIsParallelRunnerReport(false);
                                 // reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
                                 File testFileFullName = new File(testFolderPath);
                                 String testName = testFileFullName.getName();
@@ -571,7 +573,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
                         build.addAction(reportAction);
 
-                    } catch (IOException | SAXException | ParserConfigurationException ex ) {
+                    } catch (IOException | SAXException | ParserConfigurationException ex) {
                         listener.getLogger().println("a problem adding action: " + ex);
                     }
                 }
@@ -608,7 +610,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             elmReport.setAttribute("dateTime", dateTime);
             elmReport.setAttribute("status", status);
             elmReport.setAttribute("isHtmlreport", isHtmlReport);
-            elmReport.setAttribute("isParallelRunnerReport",isParallelRunnerReport);
+            elmReport.setAttribute("isParallelRunnerReport", isParallelRunnerReport);
             root.appendChild(elmReport);
 
         }
@@ -711,7 +713,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 String resFileName = isParallelRunner ? "/parallelrun_results.html" : "/run_results.html";
 
                 String urlName = resourceUrl + resFileName; // like artifact/UFTReport/GuiTest1/run_results.html
-                                                            // or for Parallel runner /GuiTest1[1]/parallelrun_results.html
+                // or for Parallel runner /GuiTest1[1]/parallelrun_results.html
 
                 listener.getLogger().println("set the report urlName to " + urlName);
                 htmlReportInfo.setUrlName(urlName);
@@ -726,6 +728,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
     /**
      * Copies the run report from the executing node to the Jenkins master for processing.
+     *
      * @param reportFolder
      * @param buildDir
      * @param scenarioName
@@ -781,14 +784,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 ByteArrayOutputStream outstr = new ByteArrayOutputStream();
                 reportFolder.zip(outstr);
 
-        /*
-         * I did't use copyRecursiveTo or copyFrom due to
-         * bug in
-         * jekins:https://issues.jenkins-ci.org/browse
-         * /JENKINS-9189 //(which is cleaimed to have been
-         * fixed, but not. So I zip the folder to stream and
-         * copy it to the master.
-         */
+                /*
+                 * I did't use copyRecursiveTo or copyFrom due to
+                 * bug in
+                 * jekins:https://issues.jenkins-ci.org/browse
+                 * /JENKINS-9189 //(which is cleaimed to have been
+                 * fixed, but not. So I zip the folder to stream and
+                 * copy it to the master.
+                 */
 
                 ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
 
@@ -864,7 +867,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER),
                             new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
-                    outputReportFiles(reportNames, reportDirectory, testResult, "Performance Report", HTML_REPORT_FOLDER);
+                    outputReportFiles(reportNames, reportDirectory, testResult, "Performance Report",
+                            HTML_REPORT_FOLDER);
                 }
             }
         }
@@ -906,38 +910,39 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 outputReportFiles(reportNames, reportDirectory, testResult, "Rich Reports", INDEX_HTML_NAME);
                 createRichReportHtml(testDirectory, richReportNames);
             }
-        } catch (IOException|InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             listener.getLogger().println("Exception caught while creating rich reports: " + ex);
         }
     }
 
     private void createErrorHtml(File htmlDirectory, String error) throws IOException {
         String htmlFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
-                                  "<HTML><HEAD>" +
-                                  "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
-                                  "<TITLE>Rich Report</TITLE>" +
-                                  "</HEAD>" + "<BODY>" + error + "</BODY>";
+                "<HTML><HEAD>" +
+                "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
+                "<TITLE>Rich Report</TITLE>" +
+                "</HEAD>" + "<BODY>" + error + "</BODY>";
 
         writeToFile(htmlDirectory, htmlFileContents);
     }
 
     private void createRichReportHtml(File reportDirectory, List<String> richReportNames) throws IOException {
         String htmlFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
-                                  "<HTML><HEAD>" +
-                                  "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
-                                  "<TITLE>Rich Report</TITLE>" + "</HEAD>" + "<BODY>";
+                "<HTML><HEAD>" +
+                "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
+                "<TITLE>Rich Report</TITLE>" + "</HEAD>" + "<BODY>";
 
         if (richReportNames.size() == 0) {
             htmlFileContents += NO_RICH_REPORTS_ERROR;
         } else {
             for (String richReportName : richReportNames) {
-                htmlFileContents += "<iframe src=\"./" + richReportName + "\" width=\"100%%\" height=\"800px\" frameBorder=\"0\"></iframe>";
+                htmlFileContents += "<iframe src=\"./" + richReportName + "\" width=\"100%%\" height=\"800px\" " +
+                        "frameBorder=\"0\"></iframe>";
             }
         }
 
         htmlFileContents += "</BODY>";
 
-        File richReportsHtml = new File(reportDirectory, HTML_REPORT_FOLDER +".html");
+        File richReportsHtml = new File(reportDirectory, HTML_REPORT_FOLDER + ".html");
         writeToFile(richReportsHtml, htmlFileContents);
     }
 
@@ -1090,13 +1095,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             FilePath dstReportPath = new FilePath(testDirectory);
             FilePath transSummaryReport,
-		     transSummaryReportExcel;
+                    transSummaryReportExcel;
             if ((transSummaryReport = getTransactionSummaryReport(htmlReportPath)) != null) {
                 FilePath dstFilePath = new FilePath(dstReportPath, TRANSACTION_REPORT_NAME + ".html");
                 transSummaryReport.copyTo(dstFilePath);
 
                 //Copy the .xls which is being referenced by the report
-                if ((transSummaryReportExcel = getTransactionSummaryReportExcel(htmlReportPath, transSummaryReport.getName())) != null) {
+                if ((transSummaryReportExcel = getTransactionSummaryReportExcel(htmlReportPath,
+                        transSummaryReport.getName())) != null) {
                     dstFilePath = new FilePath(dstReportPath, transSummaryReportExcel.getName());
                     transSummaryReportExcel.copyTo(dstFilePath);
                 }
@@ -1124,25 +1130,26 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 fileToCopy.copyTo(dstFilePath);
             }
 
-            outputReportFiles(reportNames, reportDirectory, testResult, "Transaction Summary", TRANSACTION_REPORT_NAME + ".html");
+            outputReportFiles(reportNames, reportDirectory, testResult, "Transaction Summary",
+                    TRANSACTION_REPORT_NAME + ".html");
         }
     }
 
     /**
      * Scan the LRA folder from slave to find the report containting Transaction Summary
-     * as title (or title variants based on language packs) 
+     * as title (or title variants based on language packs)
      */
     private FilePath getTransactionSummaryReport(FilePath htmlReportPath) throws IOException, InterruptedException {
         String[] transactionSummaryNames = {
-            "Transaction Summary", //eng
-            "トランザクション サマリ", //jpn
-            "트랜잭션 요약", //kor
-            "事务摘要", //chs
-            "Transaktionsübersicht", //deu
-            "Resumen de transacciones", //spn
-            "Riepilogo transazioni", //ita
-            "Récapitulatif des transactions", //fr
-            "Сводка транзакций", //rus
+                "Transaction Summary", //eng
+                "トランザクション サマリ", //jpn
+                "트랜잭션 요약", //kor
+                "事务摘要", //chs
+                "Transaktionsübersicht", //deu
+                "Resumen de transacciones", //spn
+                "Riepilogo transazioni", //ita
+                "Récapitulatif des transactions", //fr
+                "Сводка транзакций", //rus
         };
 
         FileFilter reportFileFilter = new WildcardFileFilter("Report*.html");
@@ -1152,8 +1159,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                for (String transactionSummaryName: transactionSummaryNames) {
-                    if (line.contains(transactionSummaryName)){
+                for (String transactionSummaryName : transactionSummaryNames) {
+                    if (line.contains(transactionSummaryName)) {
                         return fileToCopy;
                     }
                 }
@@ -1163,12 +1170,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return null;
     }
 
-    private FilePath getTransactionSummaryReportExcel(FilePath htmlReportPath, String reportName) throws IOException, InterruptedException {
+    private FilePath getTransactionSummaryReportExcel(FilePath htmlReportPath, String reportName) throws IOException,
+            InterruptedException {
         FileFilter reportFileFilter = new WildcardFileFilter(reportName.replace("html", "xls"));
         List<FilePath> reportFiles = htmlReportPath.list(reportFileFilter);
 
         if (!reportFiles.isEmpty()) {
-            return reportFiles.get(0);            
+            return reportFiles.get(0);
         }
 
         return null;
@@ -1190,7 +1198,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return result;
     }
-
 
     private LrJobResults buildJobDataset(TaskListener listener)
             throws ParserConfigurationException, SAXException,
@@ -1386,33 +1393,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 break;
             case Bad:
                 break;
-        }
-    }
-
-    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
-        Node timeRangeNode;
-        Element timeRangeElement;
-        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
-        if(timeRanges == null || timeRanges.getLength() == 0){
-            return;
-        }
-        //Taking the goal per transaction -
-        double generalGoalValue = Double.parseDouble(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
-        transactionTimeRange.setGoalValue(generalGoalValue);
-
-        for (int k = 0; k < timeRanges.getLength(); k++) {
-            timeRangeNode = timeRanges.item(k);
-            timeRangeElement = (Element) timeRangeNode;
-            double actualValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_ACTUAL_VALUE_LABEL));
-            double goalValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_GOAL_VALUE_LABEL));
-            int loadValue = Integer.parseInt(timeRangeElement.getAttribute("LoadValue"));
-            double startTime = Double.parseDouble(timeRangeElement.getAttribute("StartTime"));
-            double endTIme = Double.parseDouble(timeRangeElement.getAttribute("EndTime"));
-            transactionTimeRange.incActualValue(actualValue);
-            LrTest.SLA_STATUS slaStatus =
-                    LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
-            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
-            transactionTimeRange.getTimeRanges().add(timeRange);
         }
     }
 

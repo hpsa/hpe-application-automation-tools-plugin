@@ -24,8 +24,8 @@ package com.microfocus.application.automation.tools.octane.executor;
 
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkConstants;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.ExtensionList;
@@ -52,7 +52,7 @@ public class UFTTestDetectionService {
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private static final String DETECTION_RESULT_FILE = "detection_result.xml";
 
-    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
+    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
         ChangeLogSet<? extends ChangeLogSet.Entry> changeSet = build.getChangeSet();
         Object[] changeSetItems = changeSet.getItems();
         UftTestDiscoveryResult result = null;
@@ -118,8 +118,19 @@ public class UFTTestDetectionService {
             }
 
             result.setScmRepositoryId(scmRepositoryId);
+            result.setConfigurationId(configurationId);
             result.setWorkspaceId(workspaceId);
             result.setFullScan(fullScan);
+
+            //we add test runner only for discovery jobs that were created for test runners
+            ParametersAction parameterAction = build.getAction(ParametersAction.class);
+            if (parameterAction != null) {
+                ParameterValue testRunnerParameter = parameterAction.getParameter(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME);
+                if (testRunnerParameter != null && testRunnerParameter.getValue() instanceof String) {
+                    result.setTestRunnerId((String) testRunnerParameter.getValue());
+                }
+            }
+
             result.sortItems();
             publishDetectionResults(getReportXmlFile(build), buildListener, result);
 

@@ -22,20 +22,19 @@
 
 package com.microfocus.application.automation.tools.octane.actions.build;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
 import com.microfocus.application.automation.tools.octane.actions.Utils;
+import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,11 +51,8 @@ import static org.junit.Assert.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class BuildActionsFreeStyleTest {
+public class BuildActionsFreeStyleTest extends OctanePluginTestBase {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-	@ClassRule
-	public static final JenkinsRule rule = new JenkinsRule();
 
 	//  Snapshot: free-style, no params, no children
 	//
@@ -66,10 +62,6 @@ public class BuildActionsFreeStyleTest {
 		int retries = 0;
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
-		JenkinsRule.WebClient client = rule.createWebClient();
-		Page page;
-		SnapshotNode snapshot;
-
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProject(client, p);
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 40) {
@@ -77,8 +69,9 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
-		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		String taskUrl = "nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber();
+		SnapshotNode snapshot = TestUtils.sendTask(taskUrl, SnapshotNode.class);
+
 		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(0, snapshot.getParameters().size());
@@ -111,9 +104,6 @@ public class BuildActionsFreeStyleTest {
 		));
 		p.addProperty(params);
 
-		JenkinsRule.WebClient client = rule.createWebClient();
-		Page page;
-		SnapshotNode snapshot;
 		CIParameter tmpParam;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
@@ -123,8 +113,9 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
-		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		String taskUrl = "nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber();
+		SnapshotNode snapshot = TestUtils.sendTask(taskUrl, SnapshotNode.class);
+
 		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(5, snapshot.getParameters().size());
@@ -195,10 +186,6 @@ public class BuildActionsFreeStyleTest {
 		));
 		p.addProperty(params);
 
-		JenkinsRule.WebClient client = rule.createWebClient();
-		Page page;
-		SnapshotNode snapshot;
-
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamC=not_exists");
 		while ((lastToBeBuilt.getLastBuild() == null ||
@@ -208,8 +195,9 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
-		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		String taskUrl = "nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber();
+		SnapshotNode snapshot = TestUtils.sendTask(taskUrl, SnapshotNode.class);
+
 		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(2, snapshot.getParameters().size());

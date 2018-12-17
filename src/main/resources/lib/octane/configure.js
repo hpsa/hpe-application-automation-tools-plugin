@@ -41,17 +41,50 @@ function octane_job_configuration(target, progress, proxy) {
         return left.toLowerCase() === right.toLowerCase();
     }
 
-    function configure() {
+    function loadJobConfigurationFromServer(sharedspace) {
         progressFunc("Retrieving configuration from server");
-        proxy.loadJobConfigurationFromServer(function (t) {
+
+        proxy.loadJobConfigurationFromServer(sharedspace.id, function (t) {
             progressFunc();
             var response = t.responseObject();
             if (response.errors) {
                 response.errors.forEach(renderError);
             } else {
-                renderConfiguration(response);
+                renderConfiguration(response, undefined, sharedspace.id);
             }
         });
+    }
+
+    function configure() {
+        proxy.searchSharedSpaces("", (function (sharedspaces) {
+            if(sharedspaces.responseJSON.results.length===1){
+                loadJobConfigurationFromServer(sharedspaces.responseJSON.results[0]);
+            }else{
+                var sharedspaceDiv = $("<div class='mqm'><label><h3>Select ALM Octane server configuration</h3></label><select id='sharedspaceSelect'></select></div>");
+                $(target).append(sharedspaceDiv);
+                $("#sharedspaceSelect").select2({
+                    placeholder: 'Select a configuration',
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchSharedSpaces(term, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+                $("#sharedspaceSelect").on("select2:select", function(e) {
+                    loadJobConfigurationFromServer(e.params.data);
+                });
+            }
+        }));
+
+
     }
 
     function renderError(error) {
@@ -77,7 +110,7 @@ function octane_job_configuration(target, progress, proxy) {
         }
     }
 
-    function renderConfiguration(jobConfiguration, pipelineId) {
+    function renderConfiguration(jobConfiguration, pipelineId, instanceId) {
         var result = $(target);
         result.empty();
 
@@ -542,7 +575,7 @@ function octane_job_configuration(target, progress, proxy) {
             var tagTypeInput = $("<input type='text' class='setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
-            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.instanceId, pipeline.workspaceId, function(error) {
                 doValidateTag(error, validationAreaTagType);
             }));
             var tagTypeSpan = $("<span>");
@@ -670,10 +703,11 @@ function octane_job_configuration(target, progress, proxy) {
                     id: null,
                     isRoot: true,
                     fieldTags: [],
-                    taxonomyTags: []
+                    taxonomyTags: [],
+                    instanceId: instanceId
                 };
-                jobConfiguration.currentPipeline = pipeline;
 
+                jobConfiguration.currentPipeline = pipeline;
                 result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
                 covertSelectorsToSelect2(pipeline);
@@ -682,7 +716,10 @@ function octane_job_configuration(target, progress, proxy) {
             selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
 
-            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/></div>");
+            var selectWorkspaceDiv = $("<div class='mutton rpos'>" +
+                "<div id='configuration-div' class='config-label'>ALM Octane : " + jobConfiguration.currentPipeline.instanceCaption + "</div>" +
+                "<div id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/>" +
+                "</div></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
             //sort workspaces by name to show in UI
@@ -909,7 +946,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function newTagTypeValidation(tagTypeInput, workspaceId, callback) {
+        function newTagTypeValidation(tagTypeInput, instanceId, workspaceId, callback) {
             return function () {
                 var error = undefined;
 
@@ -944,7 +981,7 @@ function octane_job_configuration(target, progress, proxy) {
                 if (!tagTypeInput.val()) {
                     return "Environment type must be specified";
                 }
-                proxy.searchTaxonomies(tagTypeInput.val(), workspaceId, [], searchTaxCallback);
+                proxy.searchTaxonomies(tagTypeInput.val(), instanceId, workspaceId, [], searchTaxCallback);
 
             };
         }
@@ -1029,7 +1066,7 @@ function octane_job_configuration(target, progress, proxy) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
                             var listId = 0;
-                            proxy.searchListItems(selector.logicalListName, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
+                            proxy.searchListItems(selector.logicalListName, term, pipeline.instanceId, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1047,7 +1084,7 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchTaxonomies(term, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
+                            proxy.searchTaxonomies(term, pipeline.instanceId, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1079,7 +1116,7 @@ function octane_job_configuration(target, progress, proxy) {
                             } else {
                                 tmpWorkspaceId = pipeline.workspaceId;
                             }
-                            proxy.searchReleases(term, tmpWorkspaceId, (function (data) {
+                            proxy.searchReleases(term, pipeline.instanceId, tmpWorkspaceId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1096,7 +1133,8 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchWorkspaces(term, (function (data) {
+                            var instanceId = jobConfiguration.currentPipeline.instanceId;
+                            proxy.searchWorkspaces(term, instanceId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1104,7 +1142,6 @@ function octane_job_configuration(target, progress, proxy) {
                     },
                     templateResult: formatSelect2Option
                 });
-
                 fieldSelectors.forEach(createFieldsSelect2);
             });
         }

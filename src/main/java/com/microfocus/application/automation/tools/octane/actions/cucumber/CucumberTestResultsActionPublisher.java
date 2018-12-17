@@ -26,25 +26,29 @@ import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
  * Created by franksha on 07/12/2016.
  */
-public class CucumberTestResultsActionPublisher extends Recorder {
+public class CucumberTestResultsActionPublisher extends Recorder implements SimpleBuildStep {
 
     private final String glob;
 
@@ -63,11 +67,13 @@ public class CucumberTestResultsActionPublisher extends Recorder {
     }
 
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        CucumberTestResultsAction action = new CucumberTestResultsAction(build, glob, listener);
-        build.addAction(action);
-        boolean resultsFound = action.copyResultsToBuildFolder();
-        return resultsFound;
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
+        CucumberTestResultsAction action = new CucumberTestResultsAction(run, workspace, glob, taskListener);
+        run.addAction(action);
+        boolean isSuccessful = action.copyResultsToBuildFolder();
+        if (!isSuccessful) {
+            run.setResult(Result.FAILURE);
+        }
     }
 
     @Override
@@ -75,6 +81,8 @@ public class CucumberTestResultsActionPublisher extends Recorder {
         return (CucumberTestResultsActionPublisher.Descriptor) super.getDescriptor();
     }
 
+
+    @Symbol("publishGherkinResults")
     @Extension
     public static final class Descriptor extends BuildStepDescriptor<Publisher> {
 

@@ -103,13 +103,20 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 		queue.add(new QueueItem(projectName, type, buildNumber));
 	}
 
-	public int size() {
-		return queue.size();
-	}
-
 	@Override
 	public synchronized void add(String projectName, int buildNumber, String workspace) {
 		queue.add(new QueueItem(projectName, buildNumber, workspace));
+	}
+
+	@Override
+	public synchronized void add(String instanceId, String projectName, int buildNumber, String workspace) {
+		QueueItem item = new QueueItem(projectName, buildNumber, workspace);
+		item.setInstanceId(instanceId);
+		queue.add(item);
+	}
+
+	public int size() {
+		return queue.size();
 	}
 
 	@Override
@@ -118,6 +125,13 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			queue.remove();
 		}
 		currentItem = null;
+	}
+
+	@Override
+	public void close() {
+		if (queue != null) {
+			queue.close();
+		}
 	}
 
 	private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {

@@ -23,6 +23,7 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
@@ -32,9 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.util.*;
 
 /**
  * Holds the data for RunFromFile build type.
@@ -48,7 +48,9 @@ public class RunFromFileSystemModel {
 
     public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
+
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
+
 
     private String fsTests;
     private String fsTimeout;
@@ -107,7 +109,7 @@ public class RunFromFileSystemModel {
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL){
 
         this.setFsTests(fsTests);
 
@@ -138,9 +140,7 @@ public class RunFromFileSystemModel {
         this.fsJobId = fsJobId;
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
-
     }
-
 
     /**
      * Instantiates a new file system model.
@@ -153,7 +153,7 @@ public class RunFromFileSystemModel {
 
         //Init default vals
         this.fsTimeout = "";
-        this.fsUftRunMode = "Fast";
+        this.fsUftRunMode = fsUftRunModes.get(0).getValue();
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
         this.ignoreErrorStrings = "";
@@ -620,8 +620,7 @@ public class RunFromFileSystemModel {
         this.perScenarioTimeOut = perScenarioTimeOut;
     }
 
-
-	/**
+    /**
 	 * Gets properties.
 	 *
 	 * @param envVars     the env vars
@@ -659,6 +658,8 @@ public class RunFromFileSystemModel {
         return createProperties(null);
     }
 
+
+
     private Properties createProperties(EnvVars envVars) {
         Properties props = new Properties();
 
@@ -681,7 +682,6 @@ public class RunFromFileSystemModel {
         } else {
             props.put("fsTests", "");
         }
-
 
         if (StringUtils.isEmpty(fsTimeout)){
             props.put("fsTimeout", "-1");
