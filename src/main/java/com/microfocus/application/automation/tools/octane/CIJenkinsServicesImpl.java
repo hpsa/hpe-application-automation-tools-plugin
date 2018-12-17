@@ -546,20 +546,29 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
 	private void doRunImpl(Job job, String originalBody) {
-		ParametersAction parametersAction = new ParametersAction();
-		if (originalBody != null && !originalBody.isEmpty() && originalBody.contains("parameters")) {
-			CIParameters ciParameters = DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class);
-			parametersAction = new ParametersAction(createParameters(job, ciParameters));
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			int delay = project.getQuietPeriod();
+			ParametersAction parametersAction = new ParametersAction();
+
+			if (originalBody != null && !originalBody.isEmpty() && originalBody.contains("parameters")) {
+				CIParameters ciParameters = DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class);
+				parametersAction = new ParametersAction(createParameters(project, ciParameters));
+			}
+
+			project.scheduleBuild(delay, new Cause.RemoteCause(
+					ConfigurationService.getSettings(getInstanceId()) == null ?
+							"non available URL" :
+							ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven execution"), parametersAction);
+		} else if (job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+			AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
+			workFlowJobProcessor.scheduleBuild(
+					originalBody,
+					ConfigurationService.getSettings(getInstanceId()) == null ? "non available URL" : ConfigurationService.getSettings(getInstanceId()).getLocation());
 		}
-
-		Cause cause = new Cause.RemoteCause(ConfigurationService.getSettings(getInstanceId()) == null ? "non available URL" :
-									ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven execution");
-
-		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-		jobProcessor.scheduleBuild(cause, parametersAction);
 	}
 
-	private List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
+	private List<ParameterValue> createParameters(AbstractProject project, CIParameters ciParameters) {
 		List<ParameterValue> result = new ArrayList<>();
 		boolean parameterHandled;
 		ParameterValue tmpValue;

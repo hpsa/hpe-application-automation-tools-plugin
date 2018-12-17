@@ -48,4 +48,9 @@ class FreeStyleProjectProcessor extends AbstractProjectProcessor<FreeStyleProjec
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
 	}
+
+	@Override
+	public void scheduleBuild(String parametersBody, String issuingDescription) {
+		throw new RuntimeException("non yet implemented");
+	}
 }
