@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,17 +22,16 @@
 
 package com.microfocus.application.automation.tools.pc;
 
+import com.microfocus.application.automation.tools.run.PcBuilder;
 import hudson.FilePath;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.microfocus.application.automation.tools.run.PcBuilder;
-
 import com.microfocus.adm.performancecenter.plugins.common.rest.PcRestProxy;
 
-import com.microfocus.adm.performancecenter.plugins.common.pcEntities.*;
+import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 
 @SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestPcClient {
@@ -49,12 +48,6 @@ public class TestPcClient {
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
-    }
-    
-    @Test
-    public void testLogin(){
-        System.out.println("Testing Login to PC server");
-        Assert.assertTrue("Failed to login with pcClient", pcClient.login());  
     }
 
     @Test

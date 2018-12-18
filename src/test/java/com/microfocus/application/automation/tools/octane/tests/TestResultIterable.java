@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -46,8 +46,6 @@ public class TestResultIterable implements Iterable<JUnitTestResult> {
     public TestResultIterator iterator() {
         try {
             return new TestResultIterator(reader);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }

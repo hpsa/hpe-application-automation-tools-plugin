@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -29,13 +29,14 @@ import hudson.model.Run;
 
 abstract class BuildHandlerExtension implements ExtensionPoint {
 
-    public abstract boolean supports(Run<?, ?> build);
+	public abstract boolean supports(Run<?, ?> build);
 
-    public abstract BuildDescriptor getBuildType(Run<?, ?> build);
+	public abstract BuildDescriptor getBuildType(Run<?, ?> build);
 
-    public abstract String getProjectFullName(Run<?, ?> build);
+	@Deprecated
+	public abstract String getProjectFullName(Run<?, ?> build);
 
-    public static ExtensionList<BuildHandlerExtension> all() {
-        return Hudson.getInstance().getExtensionList(BuildHandlerExtension.class);
-    }
+	public static ExtensionList<BuildHandlerExtension> all() {
+		return Hudson.getInstance().getExtensionList(BuildHandlerExtension.class);
+	}
 }

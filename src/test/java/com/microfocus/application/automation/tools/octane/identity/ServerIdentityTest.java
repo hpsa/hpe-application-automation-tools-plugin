@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,24 +22,18 @@
 
 package com.microfocus.application.automation.tools.octane.identity;
 
+import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 
-public class ServerIdentityTest {
+public class ServerIdentityTest extends OctanePluginTestBase {
 
-    @ClassRule
-    public static final JenkinsRule rule = new JenkinsRule();
-
-    @Test
-    public void testIdentity() throws Exception {
-        String identity = ConfigurationService.getModel().getIdentity();
-        Assert.assertNotNull(identity);
-        Assert.assertFalse(identity.isEmpty());
-
-        String identity2 = ConfigurationService.getModel().getIdentity();
-        Assert.assertEquals(identity2, identity);
-    }
+	@Test
+	public void testIdentity() {
+		ConfigurationService.getAllSettings().forEach(settings -> {
+			Assert.assertNotNull(settings.getIdentity());
+			Assert.assertFalse(settings.getIdentity().isEmpty());
+		});
+	}
 }

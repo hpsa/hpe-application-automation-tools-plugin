@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -23,6 +23,7 @@
 package com.microfocus.application.automation.tools.octane.executor;
 
 import hudson.model.FreeStyleProject;
+import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 
 
@@ -32,7 +33,7 @@ import hudson.model.ParametersDefinitionProperty;
 public class UftJobRecognizer {
 
     /**
-     * Check if current jos is EXECUTOR
+     * Check if current job is EXECUTOR job
      * @param job
      * @return
      */
@@ -46,15 +47,45 @@ public class UftJobRecognizer {
     }
 
     /**
-     *
+     * Check if current job is discovery job
      * @param job
      * @return
      */
-    public static boolean isDiscoveryJobJob(FreeStyleProject job) {
-        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        boolean isDiscoveryJob = job.getName().contains(UftConstants.DISCOVERY_JOB_MIDDLE_NAME) &&
-                parameters != null &&
-                parameters.getParameterDefinition(UftConstants.EXECUTOR_ID_PARAMETER_NAME) != null;
+    public static boolean isDiscoveryJob(FreeStyleProject job) {
+        boolean isDiscoveryJob = (job.getName().contains(UftConstants.DISCOVERY_JOB_MIDDLE_NAME) ||
+                job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
         return isDiscoveryJob;
+    }
+
+    /**
+     * Extract executor id from the job
+     * @param job
+     * @return
+     */
+    public static String getExecutorId(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        String parameterName = UftConstants.TEST_RUNNER_ID_PARAMETER_NAME;
+        if (!parameters.getParameterDefinitionNames().contains(parameterName)) {
+            parameterName = UftConstants.EXECUTOR_ID_PARAMETER_NAME;
+        }
+        ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
+        String value = (String) pd.getDefaultParameterValue().getValue();
+        return value;
+    }
+
+    /**
+     * Extract executor logical name from the job
+     * @param job
+     * @return
+     */
+    public static String getExecutorLogicalName(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        String parameterName = UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME;
+        if (!parameters.getParameterDefinitionNames().contains(parameterName)) {
+            parameterName = UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME;
+        }
+        ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
+        String value = (String) pd.getDefaultParameterValue().getValue();
+        return value;
     }
 }

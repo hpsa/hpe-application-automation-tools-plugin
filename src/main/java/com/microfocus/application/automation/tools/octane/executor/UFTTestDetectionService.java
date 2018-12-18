@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -24,8 +24,8 @@ package com.microfocus.application.automation.tools.octane.executor;
 
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkConstants;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.ExtensionList;
@@ -52,7 +52,7 @@ public class UFTTestDetectionService {
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private static final String DETECTION_RESULT_FILE = "detection_result.xml";
 
-    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
+    public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
         ChangeLogSet<? extends ChangeLogSet.Entry> changeSet = build.getChangeSet();
         Object[] changeSetItems = changeSet.getItems();
         UftTestDiscoveryResult result = null;
@@ -118,8 +118,19 @@ public class UFTTestDetectionService {
             }
 
             result.setScmRepositoryId(scmRepositoryId);
+            result.setConfigurationId(configurationId);
             result.setWorkspaceId(workspaceId);
             result.setFullScan(fullScan);
+
+            //we add test runner only for discovery jobs that were created for test runners
+            ParametersAction parameterAction = build.getAction(ParametersAction.class);
+            if (parameterAction != null) {
+                ParameterValue testRunnerParameter = parameterAction.getParameter(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME);
+                if (testRunnerParameter != null && testRunnerParameter.getValue() instanceof String) {
+                    result.setTestRunnerId((String) testRunnerParameter.getValue());
+                }
+            }
+
             result.sortItems();
             publishDetectionResults(getReportXmlFile(build), buildListener, result);
 
@@ -324,6 +335,7 @@ public class UFTTestDetectionService {
         try {
             File rootFile = new File(workspace.toURI());
             File file = new File(rootFile, INITIAL_DETECTION_FILE);
+            logger.info("Initial detection file path : " + file.getPath());
             file.createNewFile();
         } catch (IOException | InterruptedException e) {
             logger.error("Failed to createInitialDetectionFile : " + e.getMessage());
@@ -342,10 +354,11 @@ public class UFTTestDetectionService {
         try {
             detectionResult.writeToFile(fileToWriteTo);
         } catch (JAXBException e) {
+            String msg = "Failed to persist detection results because of JAXBException : " + e.getMessage();
             if (taskListenerLog != null) {
-                taskListenerLog.error("Failed to persist detection results: " + e.getMessage());
+                taskListenerLog.error(msg);
             }
-            logger.error("Failed to persist detection results: " + e.getMessage());
+            logger.error(msg);
         }
     }
 

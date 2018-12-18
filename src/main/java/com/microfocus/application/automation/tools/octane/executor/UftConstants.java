@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -32,6 +32,15 @@ public class UftConstants {
     public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
     public static final String FULL_SCAN_PARAMETER_NAME = "Full sync";
 
-    public static final String EXECUTION_JOB_MIDDLE_NAME = "test run job - Suite ID";
-    public static final String DISCOVERY_JOB_MIDDLE_NAME = "test discovery job - Connection ID";
+    public static final String TESTS_TO_RUN_PARAMETER_NAME = "testsToRun";
+    public static final String CHEKOUT_DIR_PARAMETER_NAME = "testsToRunCheckoutDirectory";
+    public static final String TEST_RUNNER_ID_PARAMETER_NAME = "Test Runner ID";
+    public static final String TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME = "Test Runner logical name";
+
+
+
+    public static final String EXECUTION_JOB_MIDDLE_NAME = "UFT test run job - Suite ID";
+    public static final String DISCOVERY_JOB_MIDDLE_NAME = "UFT test discovery job - Connection ID";
+    public static final String DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS = "UFT-test-discovery-job-Test-Runner-ID";
+    public static final String EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS = "UFT-test-execution-job-Test-Runner-ID";
 }

@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -103,13 +103,20 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 		queue.add(new QueueItem(projectName, type, buildNumber));
 	}
 
-	public int size() {
-		return queue.size();
-	}
-
 	@Override
 	public synchronized void add(String projectName, int buildNumber, String workspace) {
 		queue.add(new QueueItem(projectName, buildNumber, workspace));
+	}
+
+	@Override
+	public synchronized void add(String instanceId, String projectName, int buildNumber, String workspace) {
+		QueueItem item = new QueueItem(projectName, buildNumber, workspace);
+		item.setInstanceId(instanceId);
+		queue.add(item);
+	}
+
+	public int size() {
+		return queue.size();
 	}
 
 	@Override
@@ -118,6 +125,13 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			queue.remove();
 		}
 		currentItem = null;
+	}
+
+	@Override
+	public void close() {
+		if (queue != null) {
+			queue.close();
+		}
 	}
 
 	private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {

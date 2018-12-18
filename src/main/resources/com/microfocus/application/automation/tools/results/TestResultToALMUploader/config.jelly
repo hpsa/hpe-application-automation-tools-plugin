@@ -1,5 +1,5 @@
 <!--
-  ~ © Copyright 2013 EntIT Software LLC
+  ~
   ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
   ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
   ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -49,12 +49,15 @@
     <f:entry title="Domain" field="almDomain">
         <f:textbox name="uploadtest.almDomain" value="${instance.uploadTestResultToAlmModel.almDomain}"/>
     </f:entry>
+
+    <f:entry title="Project" field="almProject">
+        <f:textbox name="uploadtest.almProject" value="${instance.uploadTestResultToAlmModel.almProject}"/>
+    </f:entry>
+
     <f:entry title="Client type" field="clientType">
         <f:textbox name="uploadtest.clientType" value="${instance.uploadTestResultToAlmModel.clientType}"/>
     </f:entry>
-    <f:entry title="Project" field="almProject">
-        <f:textbox name="uploadtest.almProject" value="${instance.uploadTestResultToAlmModel.almProject}"/>
-    </f:entry>      
+
     <f:entry title="Testing Framework" field="testingFramework">
         <select name="uploadtest.testingFramework" >
             <j:forEach var="testingFramework" items="${descriptor.testingFrameworks}">

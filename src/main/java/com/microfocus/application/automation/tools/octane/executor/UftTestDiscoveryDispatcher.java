@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -23,15 +23,16 @@
 package com.microfocus.application.automation.tools.octane.executor;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.EntitiesService;
 import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
+import com.hp.octane.integrations.exceptions.OctaneRestException;
+import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.UftTestDispatchUtils;
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.ResultQueue;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
-import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.FilePath;
@@ -41,6 +42,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,15 +60,15 @@ import java.util.*;
  * Actually list of discovered tests are persisted in job run directory. Queue contains only reference to that job run.
  */
 @Extension
-public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork implements ConfigurationListener {
+public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	private final static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
 
 	private final static int MAX_DISPATCH_TRIALS = 5;
 	private static final String OCTANE_VERSION_SUPPORTING_TEST_RENAME = "12.60.3";
-	private static String OCTANE_VERSION = null;
 
 	private UftTestDiscoveryQueue queue;
+	private volatile boolean stopped = false;
 
 	public UftTestDiscoveryDispatcher() {
 		super("Uft Test Discovery Dispatcher");
@@ -74,18 +77,21 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
 	@Override
 	protected void doExecute(TaskListener listener) {
+		if (stopped) {
+			return;
+		}
+
 		if (queue.peekFirst() == null) {
 			return;
 		}
 
 		logger.warn("Queue size  " + queue.size());
 
-		if (!OctaneSDK.getInstance().getConfigurationService().isConfigurationValid()) {
-			logger.warn("There are pending discovered UFT tests, but MQM server configuration is not valid, results can't be submitted");
+		if (OctaneSDK.getClients().isEmpty()) {
+			logger.warn("There are pending discovered UFT tests, but no Octane configuration is found, results can't be submitted");
 			return;
 		}
 
-		EntitiesService entitiesService = OctaneSDK.getInstance().getEntitiesService();
 		ResultQueue.QueueItem item = null;
 		try {
 			while ((item = queue.peekFirst()) != null) {
@@ -111,19 +117,42 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 					continue;
 				}
 
+				OctaneClient client = null;
+				try {
+					client = OctaneSDK.getClientByInstanceId(result.getConfigurationId());
+				} catch (Exception e) {
+					logger.error("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] does not have valid configuration " + result.getConfigurationId() + " : " + e.getMessage());
+					queue.remove();
+					continue;
+				}
+
 				logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-				dispatchDetectionResults(item, entitiesService, result);
+				dispatchDetectionResults(item, client.getEntitiesService(), result);
 				queue.remove();
 			}
+		} catch (OctaneRestException e) {
+			String reasonDesc = StringUtils.isNotEmpty(e.getData().getDescriptionTranslated()) ? e.getData().getDescriptionTranslated() : e.getData().getDescription();
+			if (e.getResponseStatus() == HttpStatus.SC_FORBIDDEN) {
+				logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  because of lacking Octane permission : " + reasonDesc);
+			} else {
+				logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  : " + reasonDesc);
+			}
+			queue.remove();
 		} catch (Exception e) {
 			if (item != null) {
 				item.incrementFailCount();
 				if (item.incrementFailCount() > MAX_DISPATCH_TRIALS) {
 					queue.remove();
-					logger.warn("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  after " + MAX_DISPATCH_TRIALS + " trials");
+					logger.error("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  after " + MAX_DISPATCH_TRIALS + " trials");
 				}
 			}
 		}
+	}
+
+	public void close() {
+		logger.info("stopping the UFT dispatcher and closing its queue");
+		stopped = true;
+		queue.close();
 	}
 
 	private static void dispatchDetectionResults(ResultQueue.QueueItem item, EntitiesService entitiesService, UftTestDiscoveryResult result) {
@@ -241,7 +270,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		}
 
 		//GET TESTS FROM OCTANE
-		Map<String, Entity> octaneTestsMapByKey = UftTestDispatchUtils.getTestsFromServer(entitiesService, Long.parseLong(result.getWorkspaceId()), Long.parseLong(result.getScmRepositoryId()), allTestNames);
+		Collection<String> additionalFields = SdkStringUtils.isNotEmpty(result.getTestRunnerId()) ? Arrays.asList(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) : null;
+		Map<String, Entity> octaneTestsMapByKey = UftTestDispatchUtils.getTestsFromServer(entitiesService, Long.parseLong(result.getWorkspaceId()), Long.parseLong(result.getScmRepositoryId()), true, allTestNames, additionalFields);
 
 
 		//MATCHING
@@ -268,7 +298,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 						hasDiff = true;
 						discoveredTest.setOctaneStatus(OctaneStatus.NEW);
 					} else {
-						boolean testsEqual = UftTestDispatchUtils.checkTestEquals(discoveredTest, octaneTest);
+						boolean testsEqual = UftTestDispatchUtils.checkTestEquals(discoveredTest, octaneTest, result.getTestRunnerId());
 						if (testsEqual) { //if equal - skip
 							discoveredTest.setOctaneStatus(OctaneStatus.NONE);
 						}
@@ -377,38 +407,32 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		}
 	}
 
-    private static boolean isOctaneSupportTestRename(EntitiesService entitiesService) {
-        try {
-            String octane_version = getOctaneVersion(entitiesService);
-            boolean supportTestRename = (octane_version != null && versionCompare(OCTANE_VERSION_SUPPORTING_TEST_RENAME, octane_version) <= 0);
-            logger.warn("Support test rename = " + supportTestRename);
-            return supportTestRename;
-        } catch (Exception e) {//can occur if user doesnot have permission to get octane version
-            logger.warn("Failed to check isOctaneSupportTestRename : " + e.getMessage());
-            return false;
-        }
-    }
-
-	private static String getOctaneVersion(EntitiesService entitiesService) {
-
-		if (OCTANE_VERSION == null) {
-			List<Entity> entities = entitiesService.getEntities(null, "server_version", null, null);
-			if (entities.size() == 1) {
-				Entity entity = entities.get(0);
-				OCTANE_VERSION = entity.getStringValue("version");
-				logger.warn("Received Octane version - " + OCTANE_VERSION);
-
-			} else {
-				logger.error(String.format("Request for Octane version returned %s items. return version is not defined.", entities.size()));
-			}
+	private static boolean isOctaneSupportTestRename(EntitiesService entitiesService) {
+		try {
+			String octane_version = getOctaneVersion(entitiesService);
+			boolean supportTestRename = (octane_version != null && versionCompare(OCTANE_VERSION_SUPPORTING_TEST_RENAME, octane_version) <= 0);
+			logger.warn("Support test rename = " + supportTestRename);
+			return supportTestRename;
+		} catch (Exception e) {//can occur if user doesnot have permission to get octane version
+			logger.warn("Failed to check isOctaneSupportTestRename : " + e.getMessage());
+			return false;
 		}
-
-		return OCTANE_VERSION;
 	}
 
-	@Override
-	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
-		OCTANE_VERSION = null;
+	private static String getOctaneVersion(EntitiesService entitiesService) {
+		String octaneVersion = null;
+
+		List<Entity> entities = entitiesService.getEntities(null, "server_version", null, null);
+		if (entities.size() == 1) {
+			Entity entity = entities.get(0);
+			octaneVersion = entity.getStringValue("version");
+			logger.debug("Received Octane version - " + octaneVersion);
+
+		} else {
+			logger.error(String.format("Request for Octane version returned %s items. return version is not defined.", entities.size()));
+		}
+
+		return octaneVersion;
 	}
 
 	/**

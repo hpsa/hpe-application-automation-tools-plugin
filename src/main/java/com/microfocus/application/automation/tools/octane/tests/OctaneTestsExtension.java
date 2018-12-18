@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -41,10 +41,6 @@ public abstract class OctaneTestsExtension implements ExtensionPoint {
 	public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
 
 	public static ExtensionList<OctaneTestsExtension> all() {
-		if (Jenkins.getInstance() != null) {
-			return Jenkins.getInstance().getExtensionList(OctaneTestsExtension.class);
-		} else {
-			throw new IllegalStateException("failed to obtain Jenkins' instance");
-		}
+		return Jenkins.getInstance().getExtensionList(OctaneTestsExtension.class);
 	}
 }

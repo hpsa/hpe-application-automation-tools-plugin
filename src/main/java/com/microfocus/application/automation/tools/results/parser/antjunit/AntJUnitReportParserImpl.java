@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.results.parser.antjunit;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +51,18 @@ public class AntJUnitReportParserImpl implements ReportParser {
 		
 		try {
 			return parseTestSetsFromAntJUnitReport(reportInputStream, testingFramework, testingTool);
+
 		} catch (Exception e) {
-		
-			e.printStackTrace();
-			throw new ReportParseException();
+			throw new ReportParseException(e);
+
+		} finally {
+			try {
+				if (reportInputStream != null) {
+					reportInputStream.close();
+				}
+			} catch (IOException e) {
+				throw new ReportParseException(e);
+			}
 		}
 	}	
 	

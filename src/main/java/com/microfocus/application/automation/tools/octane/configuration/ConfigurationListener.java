@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,10 +22,11 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import hudson.ExtensionPoint;
 
 public interface ConfigurationListener extends ExtensionPoint {
 
-    void onChanged(ServerConfiguration conf, ServerConfiguration oldConf);
+    void onChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf);
 
 }

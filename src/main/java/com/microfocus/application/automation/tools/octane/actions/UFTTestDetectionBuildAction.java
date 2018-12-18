@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -25,6 +25,7 @@ package com.microfocus.application.automation.tools.octane.actions;
 import com.hp.octane.integrations.uft.items.OctaneStatus;
 import com.hp.octane.integrations.uft.items.SupportsOctaneStatus;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
+import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.executor.UFTTestDetectionService;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
@@ -48,7 +49,7 @@ public class UFTTestDetectionBuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-        return "ALM Octane UFT Tests Discovery Report";
+        return Messages.UFTTestDetectionBuildActionConfigurationLabel();
     }
 
     @Override

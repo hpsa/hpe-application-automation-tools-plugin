@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -23,6 +23,7 @@
 package com.microfocus.application.automation.tools.octane.buildLogs;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
@@ -33,7 +34,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Created by benmeior on 11/16/2016
- * Jenkins events listener to dispatch build logs to BDI server via Octane server as its proxy
+ * Jenkins events listener to dispatch build logs to Octane server
  */
 
 @Extension
@@ -42,17 +43,19 @@ public class RunListenerForLogs extends RunListener<Run> {
 
 	@Override
 	public void onFinalized(Run run) {
-		if (ConfigurationService.getModel().isSuspend()) {
-			return;
-		}
-
-		if (ConfigurationService.getServerConfiguration() != null && ConfigurationService.getServerConfiguration().isValid()) {
+		try {
 			String jobCiId = BuildHandlerUtils.getJobCiId(run);
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
-			OctaneSDK.getInstance().getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
-		} else {
-			logger.warn("Octane configuration is not valid");
+			OctaneSDK.getClients().forEach(octaneClient -> {
+				String instanceId = octaneClient.getInstanceId();
+				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
+				if (settings != null && !settings.isSuspend()) {
+					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
+				}
+			});
+		} catch (Throwable t) {
+			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
 		}
 	}
 }

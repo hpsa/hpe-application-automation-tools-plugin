@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -70,6 +70,9 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
+
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+import static com.microfocus.application.automation.tools.Messages.SseBuilderStepName;
 
 /***
  * This Jenkins plugin contains an unofficial implementation of some of the elements of the HPE ALM
@@ -379,8 +382,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            
-            return "Execute tests using ALM Lab Management";
+            return SseBuilderStepName(CompanyName());
         }
         
         public boolean hasAlmServers() {

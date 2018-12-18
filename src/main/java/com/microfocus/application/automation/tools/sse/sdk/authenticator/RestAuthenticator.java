@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -51,10 +51,11 @@ public class RestAuthenticator implements Authenticator {
     public static final String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
-        logger.log("Start login to ALM server.");
+        logger.log("Start login to ALM server...");
         boolean ret = true;
         String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
+            logger.log("Got authenticate point:" + authenticationPoint);
             Response response = login(client, authenticationPoint, username, password);
             if (response.isOk()) {
                 logLoggedInSuccessfully(username, client.getServerUrl(), logger);

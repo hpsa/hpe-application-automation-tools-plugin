@@ -1,0 +1,82 @@
+<!--
+  ~
+  ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+  ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~  marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  ~
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
+
+
+    <f:entry field="fsTestType">
+        <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
+
+        <select name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
+            <j:forEach var="testType" items="${instance.fsTestTypes}">
+                <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
+                    ${testType.description}
+                </f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
+
+
+    <f:entry title="Nodes" field="selectedNode">
+        <select name="selectedNode" style="width: 100px;">
+            <j:forEach var="node" items="${instance.getNodes()}">
+                <f:option selected="${node==instance.selectedNode}" value="${node}">
+                    ${node}
+                </f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
+
+    <f:entry>
+         <label class="attach-previous" style="margin-left: -70px; margin-right: 5px;">Reruns:</label>
+
+        <f:number field="numberOfReruns" name="numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px"/>
+
+         <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" onclick="clearRerunSettings()"/>
+
+         <label id="clear" style="margin-right: 5px; margin-left: 5px; visibility: hidden;">Clear |</label>
+
+         <input type="button" id="copyPasteBtn" title="Copy the rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
+    </f:entry>
+
+    <f:entry field="cleanupTest">
+        <label id="cleanupTestLabel" style="margin-left: -70px;">Cleanup test: </label>
+        <f:textbox name="uftSettingsModel.cleanupTest" value="${instance.cleanupTest}" style="width: 350px;"/>
+    </f:entry>
+
+    <f:entry>
+        <div id="infoMessage" style="margin-left: -70px; margin-top: 20px; visibility: hidden;">Select one test or more from the list bellow in order to apply the relevant options</div>
+    </f:entry>
+
+    <f:section>
+        <f:entry field="rerunSettingsModels">
+            <div id="testsTable" style="margin-left: -70px; visibility: hidden;">
+                 <f:repeatableProperty field="rerunSettingsModels"  minimum="1" header="Test" noAddButton="true" />
+            </div>
+        </f:entry>
+    </f:section>
+
+</j:jelly>

@@ -1,5 +1,4 @@
 /*
- * © Copyright 2013 EntIT Software LLC
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -17,15 +16,17 @@
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
+import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -35,31 +36,31 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
-import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
 import hudson.security.ACL;
 import jenkins.branch.OrganizationFolder;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.acegisecurity.AccessDeniedException;
 import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
@@ -70,54 +71,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
  */
 
-public class CIJenkinsServicesImpl extends CIPluginServicesBase {
+public class CIJenkinsServicesImpl extends CIPluginServices {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
 	public CIServerInfo getServerInfo() {
-		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
-		String serverUrl = getJenkins().getRootUrl();
-		if (serverUrl != null && serverUrl.endsWith("/")) {
-			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-		}
-		OctaneServerSettingsModel model = ConfigurationService.getModel();
-		result.setType(CIServerTypes.JENKINS.value())
-				.setVersion(Jenkins.VERSION)
-				.setUrl(serverUrl)
-				.setInstanceId(model.getIdentity())
-				.setInstanceIdFrom(model.getIdentityFrom())
-				.setSendingTime(System.currentTimeMillis())
-				.setImpersonatedUser(model.getImpersonatedUser())
-				.setSuspended(model.isSuspend());
-
-		return result;
-	}
-
-	@Override
-	public void suspendCIEvents(boolean suspend) {
-		OctaneServerSettingsModel model = ConfigurationService.getModel();
-		model.setSuspend(suspend);
-		ConfigurationService.configurePlugin(model);
-		logger.info("suspend ci event: " + suspend);
+		return getJenkinsServerInfo();
 	}
 
 	@Override
@@ -128,29 +100,22 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	}
 
 	@Override
-	public File getAllowedOctaneStorage() {
-		return new File(getJenkins().getRootDir(), "userContent");
+	public void suspendCIEvents(boolean suspend) {
+		OctaneServerSettingsModel model = ConfigurationService.getSettings(getInstanceId());
+		model.setSuspend(suspend);
+		ConfigurationService.configurePlugin(model);
+		logger.info("suspend ci event: " + suspend);
 	}
 
 	@Override
-	public OctaneConfiguration getOctaneConfiguration() {
-		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-		if (serverConfiguration != null && serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
-				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
-			result = dtoFactory.newDTO(OctaneConfiguration.class)
-					.setUrl(serverConfiguration.location)
-					.setSharedSpace(serverConfiguration.sharedSpace)
-					.setApiKey(serverConfiguration.username)
-					.setSecret(serverConfiguration.password.getPlainText());
-		}
-		return result;
+	public File getAllowedOctaneStorage() {
+		return new File(Jenkins.getInstance().getRootDir(), "userContent");
 	}
 
 	@Override
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		CIProxyConfiguration result = null;
-		ProxyConfiguration proxy = getJenkins().proxy;
+		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
 		if (proxy != null) {
 			boolean noProxyHost = false;
 			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
@@ -178,14 +143,14 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		TopLevelItem tmpItem;
 		List<PipelineNode> list = new ArrayList<>();
 		try {
-			boolean hasReadPermission = getJenkins().hasPermission(Item.READ);
+			boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
 			if (!hasReadPermission) {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			List<String> itemNames = (List<String>) getJenkins().getTopLevelItemNames();
+			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 			for (String name : itemNames) {
-				tmpItem = getJenkins().getItem(name);
+				tmpItem = Jenkins.getInstance().getItem(name);
 
 				if (tmpItem == null) {
 					continue;
@@ -225,43 +190,20 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 			}
 			result.setJobs(list.toArray(new PipelineNode[0]));
-			stopImpersonation(securityContext);
 		} catch (AccessDeniedException e) {
-			stopImpersonation(securityContext);
 			throw new PermissionException(403);
+		} finally {
+			stopImpersonation(securityContext);
 		}
 		return result;
 	}
-
-	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
-		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
-				.setName(name);
-		if (includeParameters) {
-			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
-		}
-		return tmpConfig;
-	}
-
-	private PipelineNode createPipelineNodeFromJobName(String name) {
-		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(name)
-				.setName(name);
-	}
-
-	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
-		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(folderName + "/" + name)
-				.setName(folderName + "/" + name);
-	}
-
 
 	@Override
 	public PipelineNode getPipeline(String rootJobCiId) {
 		SecurityContext securityContext = startImpersonation();
 		try {
 			PipelineNode result;
-			boolean hasRead = getJenkins().hasPermission(Item.READ);
+			boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
 			if (!hasRead) {
 				throw new PermissionException(403);
 			}
@@ -292,10 +234,243 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		}
 	}
 
+	@Override
+	public void runPipeline(String jobCiId, String originalBody) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			Job job = getJobByRefId(jobCiId);
+			//create UFT test runner job on the fly if missing
+			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+				job = createExecutorByJobName(jobCiId);
+			}
+			if (job != null) {
+				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
+				if (!hasBuildPermission) {
+					stopImpersonation(securityContext);
+					throw new PermissionException(403);
+				}
+				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+					doRunImpl(job, originalBody);
+				}
+			} else {
+				throw new ConfigurationException(404);
+			}
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			SnapshotNode result = null;
+			Job job = getJobByRefId(jobCiId);
+			if (job != null) {
+				Run run = job.getLastBuild();
+				if (run != null) {
+					result = ModelFactory.createSnapshotItem(run, subTree);
+				}
+			}
+			return result;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			SnapshotNode result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				result = ModelFactory.createSnapshotItem(run, subTree);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public InputStream getTestsResult(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
+		try {
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				try {
+					result = new FileInputStream(run.getRootDir() + File.separator + TestListener.TEST_RESULT_FILE);
+				} catch (Exception fnfe) {
+					logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + jobId + " #" + buildId + "' won't be pushed to Octane", fnfe);
+				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
+
+	@Override
+	public InputStream getBuildLog(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
+		try {
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				result = getOctaneLogFile(run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
+
+	@Override
+	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
+		SecurityContext originalContext = startImpersonation();
+		try {
+			InputStream result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				File coverageReport = new File(run.getRootDir(), reportFileName);
+				if (coverageReport.exists()) {
+					try {
+						result = new FileInputStream(coverageReport);
+					} catch (FileNotFoundException fnfe) {
+						logger.warn("file not found for '" + reportFileName + "' although just verified its existence, concurrency?");
+					}
+				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
+
+	@Override
+	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
+		SecurityContext originalContext = startImpersonation();
+		try {
+			SSCProjectConfiguration result = null;
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run instanceof AbstractBuild) {
+				String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+				String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
+				SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild((AbstractBuild) run);
+				if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
+					result = dtoFactory.newDTO(SSCProjectConfiguration.class)
+							.setSSCUrl(sscServerUrl)
+							.setSSCBaseAuthToken(sscAuthToken)
+							.setProjectName(projectVersionPair.project)
+							.setProjectVersion(projectVersionPair.version);
+				}
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
+			}
+			return result;
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
+
+	@Override
+	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
+		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
+			SecurityContext securityContext = startImpersonation();
+			try {
+				Job project = TestExecutionJobCreatorService.createExecutor(discoveryInfo);
+				PipelineNode result = ModelFactory.createStructureItem(project);
+				return result;
+			} finally {
+				stopImpersonation(securityContext);
+			}
+		} else {
+			return null;
+		}
+	}
+
+
+	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			Job project = TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
+			return project;
+		} catch (Exception e) {
+			logger.warn("Failed to create createExecutor by name : " + e.getMessage());
+			return null;
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public void deleteExecutor(String id) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
+		SecurityContext securityContext = startImpersonation();
+		try {
+			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
 	private SecurityContext startImpersonation() {
-		String user = ConfigurationService.getModel().getImpersonatedUser();
+		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
+		if (settings == null) {
+			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
+		}
+		String user = settings.getImpersonatedUser();
 		SecurityContext originalContext = null;
-		if (user != null && !user.equalsIgnoreCase("")) {
+		if (user != null && !user.isEmpty()) {
 			User jenkinsUser = User.get(user, false, Collections.emptyMap());
 			if (jenkinsUser != null) {
 				originalContext = ACL.impersonate(jenkinsUser.impersonate());
@@ -310,85 +485,32 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	private void stopImpersonation(SecurityContext originalContext) {
 		if (originalContext != null) {
-			ACL.impersonate(originalContext.getAuthentication());
+			ACL.as(originalContext.getAuthentication());
 		} else {
 			logger.warn("Could not roll back impersonation, originalContext is null ");
 		}
 	}
 
-	@Override
-	public void runPipeline(String jobCiId, String originalBody) {
-		SecurityContext securityContext = startImpersonation();
-		Job job = getJobByRefId(jobCiId);
-		if (job != null) {
-			boolean hasBuildPermission = job.hasPermission(Item.BUILD);
-			if (!hasBuildPermission) {
-				stopImpersonation(securityContext);
-				throw new PermissionException(403);
-			}
-			if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-				doRunImpl(job, originalBody);
-			}
-			stopImpersonation(securityContext);
-		} else {
-			stopImpersonation(securityContext);
-			throw new ConfigurationException(404);
+	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
+		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslateJobName())
+				.setName(name);
+		if (includeParameters) {
+			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
 		}
+		return tmpConfig;
 	}
 
-	@Override
-	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-		SecurityContext securityContext = startImpersonation();
-		SnapshotNode result = null;
-		Job job = getJobByRefId(jobCiId);
-		if (job != null) {
-			Run run = job.getLastBuild();
-			if (run != null) {
-				result = ModelFactory.createSnapshotItem(run, subTree);
-			}
-		}
-		stopImpersonation(securityContext);
-		return result;
+	private PipelineNode createPipelineNodeFromJobName(String name) {
+		return dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(name)
+				.setName(name);
 	}
 
-	@Override
-	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
-		SecurityContext securityContext = startImpersonation();
-
-		SnapshotNode result = null;
-		Job job = getJobByRefId(jobCiId);
-
-		Integer buildNumber = null;
-		try {
-			buildNumber = Integer.parseInt(buildCiId);
-		} catch (NumberFormatException nfe) {
-			logger.error("failed to parse build CI ID to build number, " + nfe.getMessage(), nfe);
-		}
-		if (job != null && buildNumber != null) {
-			Run build = job.getBuildByNumber(buildNumber);
-			if (build != null) {
-				result = ModelFactory.createSnapshotItem(build, subTree);
-			}
-		}
-
-		stopImpersonation(securityContext);
-		return result;
-	}
-
-	//  TODO: implement
-	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
-		return null;
-	}
-
-	@Override
-	public InputStream getBuildLog(String jobCiId, String buildCiId) {
-		Run build = getBuildFromQueueItem(jobCiId, buildCiId);
-		if (build != null) {
-			return getOctaneLogFile(build);
-		} else {
-			return null;
-		}
+	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
+		return dtoFactory.newDTO(PipelineNode.class)
+				.setJobCiId(folderName + "/" + name)
+				.setName(folderName + "/" + name);
 	}
 
 	private InputStream getOctaneLogFile(Run run) {
@@ -413,12 +535,8 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return result;
 	}
 
-	private Run getBuildFromQueueItem(String jobId, String buildId) {
+	private Run getRunByRefNames(String jobId, String buildId) {
 		Run result = null;
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins == null) {
-			throw new IllegalStateException("failed to obtain Jenkins' instance");
-		}
 		Job project = getJobByRefId(jobId);
 		if (project != null) {
 			result = project.getBuildByNumber(Integer.parseInt(buildId));
@@ -428,76 +546,60 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
 	private void doRunImpl(Job job, String originalBody) {
-		if (job instanceof AbstractProject) {
-			AbstractProject project = (AbstractProject) job;
-			int delay = project.getQuietPeriod();
-			ParametersAction parametersAction = new ParametersAction();
-
-			if (originalBody != null && !originalBody.isEmpty()) {
-				JSONObject bodyJSON = JSONObject.fromObject(originalBody);
-
-				//  delay
-				if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
-					delay = bodyJSON.getInt("delay");
-				}
-
-				//  parameters
-				if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
-					JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
-					parametersAction = new ParametersAction(createParameters(project, paramsJSON));
-				}
-			}
-
-			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
-		} else if (job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-			AbstractProjectProcessor workFlowJobProcessor = JobProcessorFactory.getFlowProcessor(job);
-			workFlowJobProcessor.scheduleBuild(originalBody);
+		ParametersAction parametersAction = new ParametersAction();
+		if (originalBody != null && !originalBody.isEmpty() && originalBody.contains("parameters")) {
+			CIParameters ciParameters = DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class);
+			parametersAction = new ParametersAction(createParameters(job, ciParameters));
 		}
+
+		Cause cause = new Cause.RemoteCause(ConfigurationService.getSettings(getInstanceId()) == null ? "non available URL" :
+									ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven execution");
+
+		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
+		jobProcessor.scheduleBuild(cause, parametersAction);
 	}
 
-	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
+	private List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
 		List<ParameterValue> result = new ArrayList<>();
 		boolean parameterHandled;
 		ParameterValue tmpValue;
 		ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
 		if (paramsDefProperty != null) {
+			Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
 			for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
 				parameterHandled = false;
-				for (int i = 0; i < paramsJSON.size(); i++) {
-					JSONObject paramJSON = paramsJSON.getJSONObject(i);
-					if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
-						tmpValue = null;
-						switch (CIParameterType.fromValue(paramJSON.getString("type"))) {
-							case FILE:
-								try {
-									FileItemFactory fif = new DiskFileItemFactory();
-									FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
-									fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(paramJSON.getString("value")));
-									tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
-								} catch (IOException ioe) {
-									logger.warn("failed to process file parameter", ioe);
-								}
-								break;
-							case NUMBER:
-								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.get("value").toString());
-								break;
-							case STRING:
-								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-								break;
-							case BOOLEAN:
-								tmpValue = new BooleanParameterValue(paramJSON.getString("name"), paramJSON.getBoolean("value"));
-								break;
-							case PASSWORD:
-								tmpValue = new PasswordParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-								break;
-							default:
-								break;
-						}
-						if (tmpValue != null) {
-							result.add(tmpValue);
-							parameterHandled = true;
-						}
-						break;
+				CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
+				if (ciParameter != null) {
+					tmpValue = null;
+					switch (ciParameter.getType()) {
+						case FILE:
+							try {
+								FileItemFactory fif = new DiskFileItemFactory();
+								FileItem fi = fif.createItem(ciParameter.getName(), "text/plain", false, UUID.randomUUID().toString());
+								fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(ciParameter.getValue().toString()));
+								tmpValue = new FileParameterValue(ciParameter.getName(), fi);
+							} catch (IOException ioe) {
+								logger.warn("failed to process file parameter", ioe);
+							}
+							break;
+						case NUMBER:
+							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+							break;
+						case STRING:
+							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+							break;
+						case BOOLEAN:
+							tmpValue = new BooleanParameterValue(ciParameter.getName(), Boolean.parseBoolean(ciParameter.getValue().toString()));
+							break;
+						case PASSWORD:
+							tmpValue = new PasswordParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+							break;
+						default:
+							break;
+					}
+					if (tmpValue != null) {
+						result.add(tmpValue);
+						parameterHandled = true;
 					}
 				}
 				if (!parameterHandled) {
@@ -515,6 +617,12 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 						result.add(paramDef.getDefaultParameterValue());
 					}
 				}
+			}
+
+			//add parameters that are not defined in job
+			for (CIParameter notDefinedParameter : ciParametersMap.values()) {
+				tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
+				result.add(tmpValue);
 			}
 		}
 		return result;
@@ -576,9 +684,9 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	private TopLevelItem getTopLevelItem(String jobRefId) {
 		TopLevelItem item;
 		try {
-			item = getJenkins().getItem(jobRefId);
+			item = Jenkins.getInstance().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
-			String user = ConfigurationService.getModel().getImpersonatedUser();
+			String user = ConfigurationService.getSettings(getInstanceId()).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
 				throw new PermissionException(403);
 			} else {
@@ -588,63 +696,26 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return item;
 	}
 
-	@Override
-	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
-		} finally {
-			stopImpersonation(securityContext);
+	public static CIServerInfo getJenkinsServerInfo() {
+		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
+		String serverUrl = Jenkins.getInstance().getRootUrl();
+		if (serverUrl != null && serverUrl.endsWith("/")) {
+			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
-	}
-
-	@Override
-	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public void deleteExecutor(String id) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			UftJobCleaner.deleteExecutor(id);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-
-	}
-
-	@Override
-	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-		SecurityContext securityContext = startImpersonation();
-		try {
-			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	private Jenkins getJenkins() {
-		Jenkins result = Jenkins.getInstance();
-		if (result == null) {
-			throw new IllegalStateException("Jenkins instance is not available");
-		}
+		result.setType(CIServerTypes.JENKINS.value())
+				.setVersion(Jenkins.VERSION)
+				.setUrl(serverUrl)
+				.setSendingTime(System.currentTimeMillis());
 		return result;
 	}
 
+	public static void publishEventToRelevantClients(CIEvent event) {
+		OctaneSDK.getClients().forEach(octaneClient -> {
+			String instanceId = octaneClient.getInstanceId();
+			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
+			if (settings != null && !settings.isSuspend()) {
+				octaneClient.getEventsService().publishEvent(event);
+			}
+		});
+	}
 }

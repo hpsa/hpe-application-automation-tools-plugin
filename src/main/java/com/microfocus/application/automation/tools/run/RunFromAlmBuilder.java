@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -63,6 +63,9 @@ import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.RunFromAlmModel;
 import com.microfocus.application.automation.tools.run.AlmRunTypes.RunType;
+
+import static com.microfocus.application.automation.tools.Messages.CompanyName;
+import static com.microfocus.application.automation.tools.Messages.RunFromAlmBuilderStepName;
 
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
@@ -322,7 +325,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            return "Execute functional tests from Micro Focus ALM";
+            return RunFromAlmBuilderStepName(CompanyName());
         }
         
         public boolean hasAlmServers() {

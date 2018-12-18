@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -22,7 +22,6 @@
 
 package com.microfocus.application.automation.tools.octane.tests.xml;
 
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildDescriptor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
@@ -93,11 +92,9 @@ public class TestResultXmlWriter {
 
 			writer.writeStartElement("test_result");
 			writer.writeStartElement("build");
-			writer.writeAttribute("server_id", ConfigurationService.getModel().getIdentity());
+			writer.writeAttribute("server_id", "to-be-filled-in-SDK");
 			writer.writeAttribute("job_id", buildDescriptor.getJobId());
-			writer.writeAttribute("job_name", buildDescriptor.getJobName());
 			writer.writeAttribute("build_id", buildDescriptor.getBuildId());
-			writer.writeAttribute("build_name", buildDescriptor.getBuildName());
 			if (!StringUtils.isEmpty(buildDescriptor.getSubType())) {
 				writer.writeAttribute("sub_type", buildDescriptor.getSubType());
 			}

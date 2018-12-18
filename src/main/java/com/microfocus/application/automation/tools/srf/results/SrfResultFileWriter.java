@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -192,8 +192,9 @@ public class SrfResultFileWriter {
             String testRunYac = test.getString("yac");
             testSuite.setAttribute("yac", testRunYac);
             String name = test.getString("name");
-            testSuite.setAttribute("id", String.format("%s_%s", name, testRunYac));
-            testSuite.setAttribute("name", SrfScriptRunModel.normalizeName(name));
+            String uniqueName = String.format("%s_%s", name, testRunYac);
+            testSuite.setAttribute("id", uniqueName);
+            testSuite.setAttribute("name", SrfScriptRunModel.normalizeName(uniqueName));
 
             JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
             int scriptCnt = scriptRuns.size();

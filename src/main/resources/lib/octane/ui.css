@@ -1,5 +1,5 @@
 /*
- * © Copyright 2013 EntIT Software LLC
+ *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -261,5 +261,17 @@ body {
 
 .rpos {
 	position: absolute;
-	right: 20px;
+	right: 50px;
+}
+
+.config-label {
+	text-decoration: none;
+	font-size: 12px;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	line-height: 26px;
+	height: 26px;
+	vertical-align: middle;
+	display: inline-block;
+	padding: 0 10px;
 }
