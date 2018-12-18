@@ -194,7 +194,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 				//extract folder names for created tests
 				String reportFolder = buildRootDir + "/archive/UFTReport";
-				Set<String> testFolderNames = new HashSet<>();
+				List<String> testFolderNames = new ArrayList<>();
 				File reportFolderFile = new File(reportFolder);
 				if (reportFolderFile.exists()) {
 					File[] children = reportFolderFile.listFiles();

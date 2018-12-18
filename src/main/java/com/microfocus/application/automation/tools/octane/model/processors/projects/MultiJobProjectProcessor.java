@@ -47,9 +47,4 @@ class MultiJobProjectProcessor extends AbstractProjectProcessor<MultiJobProject>
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
 	}
-
-	@Override
-	public void scheduleBuild(String parametersBody, String issuingDescription) {
-		throw new RuntimeException("non yet implemented");
-	}
 }
