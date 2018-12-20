@@ -22,13 +22,10 @@ package com.microfocus.application.automation.tools.octane.model.processors.proj
 
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Cause;
+import hudson.model.CauseAction;
 import hudson.model.Job;
-import hudson.tasks.Builder;
-import net.sf.json.JSONObject;
+import hudson.model.ParametersAction;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,24 +40,10 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 		super((WorkflowJob) job);
 	}
 
-	public List<Builder> tryGetBuilders() {
-		return new ArrayList<>();
-	}
-
-	public void scheduleBuild(String parametersBody, String issuingDescription) {
+	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
 		int delay = this.job.getQuietPeriod();
-
-		if (parametersBody != null && !parametersBody.isEmpty()) {
-			JSONObject bodyJSON = JSONObject.fromObject(parametersBody);
-
-			//  delay
-			if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
-				delay = bodyJSON.getInt("delay");
-			}
-
-			//  TODO: support parameters
-		}
-		this.job.scheduleBuild(delay, new Cause.RemoteCause(issuingDescription, "octane driven execution"));
+		CauseAction causeAction = new CauseAction(cause);
+		this.job.scheduleBuild2(delay, parametersAction, causeAction);
 	}
 
 	@Override

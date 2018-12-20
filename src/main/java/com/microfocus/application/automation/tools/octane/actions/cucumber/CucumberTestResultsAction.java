@@ -23,10 +23,8 @@
 package com.microfocus.application.automation.tools.octane.actions.cucumber;
 
 import com.microfocus.application.automation.tools.octane.Messages;
-import hudson.model.AbstractBuild;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
+import hudson.FilePath;
+import hudson.model.*;
 
 import java.io.File;
 
@@ -35,23 +33,25 @@ import java.io.File;
  */
 public class CucumberTestResultsAction implements Action {
     private final String glob;
-    private final AbstractBuild build;
+    private final Run<?, ?> build;
+    private final FilePath workspace;
 
-    CucumberTestResultsAction(AbstractBuild build, String glob, BuildListener listener) {
-        this.build = build;
+    CucumberTestResultsAction(Run<?, ?> run, FilePath workspace , String glob, TaskListener listener) {
+        this.build = run;
         this.glob = glob;
+        this.workspace = workspace;
         CucumberResultsService.setListener(listener);
     }
 
     public boolean copyResultsToBuildFolder() {
         try {
             CucumberResultsService.log(Messages.CucumberResultsActionCollecting());
-            String[] files = CucumberResultsService.getCucumberResultFiles(build.getWorkspace(), glob);
+            String[] files = CucumberResultsService.getCucumberResultFiles(workspace, glob);
             boolean found = files.length > 0;
 
             for (String fileName : files) {
-                File resultFile = new File(build.getWorkspace().child(fileName).toURI());
-                CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), build.getWorkspace());
+                File resultFile = new File(workspace.child(fileName).toURI());
+                CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
             }
 
             if (!found && build.getResult() != Result.FAILURE) {
