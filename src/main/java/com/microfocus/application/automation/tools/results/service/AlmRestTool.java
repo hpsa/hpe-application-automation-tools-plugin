@@ -36,15 +36,20 @@ import com.microfocus.application.automation.tools.results.service.rest.GetAlmEn
 import com.microfocus.application.automation.tools.results.service.rest.UpdateAlmEntityRequest;
 import com.microfocus.application.automation.tools.sse.common.XPathUtils;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
+import com.microfocus.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.microfocus.application.automation.tools.sse.sdk.Response;
 import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
+import com.microfocus.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 
 public class AlmRestTool {
 	
 	private Logger _logger ;
 	private RestClient restClient;
 	private AlmRestInfo almLoginInfo;
-	
+
+	private final String USERNAMEPRETAG = "<Username>";
+	private final String USERNAMESUBTAG = "</Username>";
+
 	public AlmRestTool (AlmRestInfo almLoginInfo, Logger logger) {
 		this.restClient = new RestClient(
         							almLoginInfo.getServerUrl(),
@@ -75,6 +80,35 @@ public class AlmRestTool {
             throw new AlmRestException (cause);
         }
         return ret;
+	}
+
+	/**
+	 * If logged in with API key, should get the user name again for creating entity to ALM.
+	 * @return Actual user name
+	 */
+	public String getActualUsername() {
+		Response response =
+				restClient.httpGet(
+						restClient.build(RestAuthenticator.IS_AUTHENTICATED),
+						null,
+						null,
+						ResourceAccessLevel.PUBLIC);
+
+		if (!response.isOk()) {
+			_logger.log("ERR: Cannot get actual login username: " + response.getFailure());
+            return null;
+		}
+
+        String responseData = new String(response.getData());
+        if (!responseData.contains(USERNAMEPRETAG) || !responseData.contains(USERNAMESUBTAG)) {
+            _logger.log("ERR: Response is not as expected: " + responseData);
+            return null;
+        }
+
+        return responseData.substring(
+                responseData.indexOf(USERNAMEPRETAG) + USERNAMEPRETAG.length(),
+                responseData.indexOf(USERNAMESUBTAG)
+        );
 	}
 
     /**
