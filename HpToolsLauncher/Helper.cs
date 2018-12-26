@@ -582,23 +582,11 @@ namespace HpToolsLauncher
             return true;
         }
 
-        public static string GetUFTDirectory()
-        {
-            try
-            {
-                return Environment.GetEnvironmentVariable("ST_INSTALL_PATH");
-            }
-            catch (SecurityException)
-            {
-                return null;
-            }
-        }
-
         public static string GetParallelRunnerDirectory(string parallelRunnerExecutable)
         {
             if (parallelRunnerExecutable == null) return null;
 
-            var uftFolder = GetUFTDirectory();
+            var uftFolder = GetSTInstallPath();
 
             if (uftFolder == null) return null;
 
