@@ -338,7 +338,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		private void fireOnChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf) {
-			OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getConfigurationService().notifyChange());
 			ExtensionList<ConfigurationListener> listeners = ExtensionList.lookup(ConfigurationListener.class);
 			for (ConfigurationListener listener : listeners) {
 				try {
