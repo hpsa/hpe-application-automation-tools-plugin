@@ -50,6 +50,10 @@
         <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
     </f:entry>
 
+    <f:entry title="Results directory" field="fsReportPath">
+        <f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
+    </f:entry>
+
     <cv:customOptionalBlock title="UFT parallel running mode." name="runfromfs.isParallelRunnerEnabled"
                             field="isParallelRunnerEnabled" inline="true">
         <f:entry field="fileSystemTestSetModel">

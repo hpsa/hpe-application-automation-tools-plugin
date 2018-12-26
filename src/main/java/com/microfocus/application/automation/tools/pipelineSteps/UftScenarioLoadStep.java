@@ -89,6 +89,11 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         runFromFileBuilder.setFsTimeout(fsTimeout);
     }
 
+    @DataBoundSetter
+    public void setFsReportPath(String fsReportPath) {
+        runFromFileBuilder.setFsReportPath(fsReportPath);
+    }
+
     /**
      * Gets fsUftRunMode
      *
@@ -124,6 +129,14 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
      */
     public String getTestPaths() {
         return runFromFileBuilder.getRunFromFileModel().getFsTests();
+    }
+
+    /**
+     * Get the report path.
+     * @return the report path
+     */
+    public String getFsReportPath() {
+        return runFromFileBuilder.getRunFromFileModel().getFsReportPath();
     }
 
     /**
