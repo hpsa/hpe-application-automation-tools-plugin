@@ -26,16 +26,13 @@ import com.microfocus.application.automation.tools.model.OctaneServerSettingsMod
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationParser;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
 import com.microfocus.application.automation.tools.octane.configuration.MqmProject;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
-import hudson.model.Item;
-import hudson.model.User;
-import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -43,7 +40,6 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -262,7 +258,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 			//infer uiLocation
 			MqmProject mqmProject;
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(newModel.getUiLocation());
+				mqmProject = ConfigurationValidator.parseUiLocation(newModel.getUiLocation());
 				newModel.setSharedSpace(mqmProject.getSharedSpace());
 				newModel.setLocation(mqmProject.getLocation());
 			} catch (FormValidation fv) {
@@ -352,35 +348,29 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		@SuppressWarnings("unused")
 		public FormValidation doTestConnection(@QueryParameter("uiLocation") String uiLocation,
-		                                       @QueryParameter("username") String username,
-		                                       @QueryParameter("password") String password,
-		                                       @QueryParameter("impersonatedUser") String impersonatedUser) {
+											   @QueryParameter("username") String username,
+											   @QueryParameter("password") String password,
+											   @QueryParameter("impersonatedUser") String impersonatedUser) {
 			MqmProject mqmProject;
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(uiLocation);
+				mqmProject = ConfigurationValidator.parseUiLocation(uiLocation);
 			} catch (FormValidation fv) {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 				return fv;
 			}
 
+
 			//  if parse is good, check authentication/authorization
-			ConfigurationParser parser = Jenkins.getInstance().getExtensionList(ConfigurationParser.class).iterator().next();
-			FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
+			List<String> fails = new ArrayList<>();
+			ConfigurationValidator.checkConfiguration(fails, mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
+			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 
-			//  if still good, check Jenkins user permissions
-			try {
-				SecurityContext preserveContext = impersonate(impersonatedUser);
-				if (!Jenkins.getInstance().hasPermission(Item.READ)) {
-					logger.warn("tested configuration failed on insufficient Jenkins' user permissions");
-					validation = FormValidation.errorWithMarkup(ConfigurationParser.markup("red", Messages.JenkinsUserPermissionsFailure()));
-				}
-				depersonate(preserveContext);
-			} catch (FormValidation fv) {
-				logger.warn("tested configuration failed on impersonating Jenkins' user, most likely non existent user provided", fv);
-				return fv;
+			if (fails.isEmpty()) {
+				return ConfigurationValidator.wrapWithFormValidation(true, Messages.ConnectionSuccess());
+			} else {
+				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
+				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
 			}
-
-			return validation;
 		}
 
 		public OctaneServerSettingsModel[] getServers() {
@@ -421,24 +411,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 			return result;
 		}
 
-		private SecurityContext impersonate(String user) throws FormValidation {
-			SecurityContext originalContext = null;
-			if (user != null && !user.equalsIgnoreCase("")) {
-				User jenkinsUser = User.get(user, false, Collections.emptyMap());
-				if (jenkinsUser != null) {
-					originalContext = ACL.impersonate(jenkinsUser.impersonate());
-				} else {
-					throw FormValidation.errorWithMarkup(ConfigurationParser.markup("red", Messages.JenkinsUserPermissionsFailure()));
-				}
-			}
-			return originalContext;
-		}
-
-		private void depersonate(SecurityContext originalContext) {
-			if (originalContext != null) {
-				ACL.impersonate(originalContext.getAuthentication());
-			}
-		}
 
 		public FormValidation doCheckInstanceId(@QueryParameter String value) {
 			if (value == null || value.isEmpty()) {
@@ -463,7 +435,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(value);
+				mqmProject = ConfigurationValidator.parseUiLocation(value);
 
 			} catch (Exception e) {
 				ret = FormValidation.error("Failed to parse location.");

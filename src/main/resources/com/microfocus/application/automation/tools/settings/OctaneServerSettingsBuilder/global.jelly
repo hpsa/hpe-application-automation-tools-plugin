@@ -59,7 +59,7 @@
                     </f:entry>
 
                     <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                            method="testConnection" with="uiLocation,username,password, impersonatedUser"/>
+                            method="testConnection" with="uiLocation,username,password,impersonatedUser"/>
 
                     <f:advanced>
                         <f:optionalBlock name="showIdentity" field="showIdentity" title="${%global.config.dynamic.instanceId.title}" >
