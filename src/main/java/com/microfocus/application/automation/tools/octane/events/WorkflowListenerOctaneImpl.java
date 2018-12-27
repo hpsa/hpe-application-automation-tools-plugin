@@ -21,14 +21,15 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
+import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
@@ -81,6 +82,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 	}
 
 	private void sendPipelineStartedEvent(FlowNode flowNode) {
+		boolean isMultibranch = false;
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
@@ -93,13 +95,32 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setCauses(CIEventCausesFactory.processCauses(parentRun));
 
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			isMultibranch = true;
 			event
 					.setParentCiId(parentRun.getParent().getParent().getFullName())
 					.setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
 					.setProjectDisplayName(parentRun.getParent().getFullName());
 		}
 
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+
+		if (isMultibranch) {
+			resendScmEvent(parentRun);
+		}
+	}
+
+	/**
+	 * resend scm event because in multibranch job, scm event is handled before start event and it is ignored in octane because there is no appropriate context
+	 * @param run
+	 */
+	private void resendScmEvent(WorkflowRun run) {
+		run.getParent().getSCMs().forEach(scm -> {
+					CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
+					if (scmEvent != null) {
+						CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
+					}
+				}
+		);
 	}
 
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
@@ -118,7 +139,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
 				.setCauses(CIEventCausesFactory.processCauses(parentRun))
 				.setTestResultExpected(hasTests);
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private void sendStageStartedEvent(StepStartNode stepStartNode) {
@@ -133,7 +154,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setNumber(String.valueOf(parentRun.getNumber()))
 				.setStartTime(TimingAction.getStartTime(stepStartNode))
 				.setCauses(CIEventCausesFactory.processCauses(stepStartNode));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
@@ -150,7 +171,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
 				.setResult(extractFlowNodeResult(stepEndNode))
 				.setCauses(CIEventCausesFactory.processCauses(stepEndNode));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private CIBuildResult extractFlowNodeResult(FlowNode node) {

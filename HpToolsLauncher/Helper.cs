@@ -582,23 +582,11 @@ namespace HpToolsLauncher
             return true;
         }
 
-        public static string GetUFTDirectory()
-        {
-            try
-            {
-                return Environment.GetEnvironmentVariable("ST_INSTALL_PATH");
-            }
-            catch (SecurityException)
-            {
-                return null;
-            }
-        }
-
         public static string GetParallelRunnerDirectory(string parallelRunnerExecutable)
         {
             if (parallelRunnerExecutable == null) return null;
 
-            var uftFolder = GetUFTDirectory();
+            var uftFolder = GetSTInstallPath();
 
             if (uftFolder == null) return null;
 
@@ -654,13 +642,12 @@ namespace HpToolsLauncher
         /// <returns>
         /// the path to the results folder 
         /// </returns>
-        public static string GetNextResFolder(string reportPath)
+        public static string GetNextResFolder(string reportPath, string resultFolderName)
         {
             // since ParallelRunner will store the report as "Res1...ResN"
             // we need to know before parallel runner creates the result folder
             // what the folder name will be
             // so we know which result is ours(or if there was any result)
-            string resultFolderName = "Res";
             int resultFolderIndex = 1;
 
             while (Directory.Exists(Path.Combine(reportPath, resultFolderName + resultFolderIndex)))
@@ -707,14 +694,11 @@ namespace HpToolsLauncher
         /// <returns> True if the report path was set, false otherwise </returns>
         public static bool TrySetTestReportPath(TestRunResults runResults, TestInfo testInfo, ref string errorReason)
         {
-            // set the report location for the run results
-            runResults.ReportLocation = testInfo.ReportPath;
+            string testName = testInfo.TestName.Substring(testInfo.TestName.LastIndexOf('\\') + 1) + "_";
+            string reportLocation = Helper.GetNextResFolder(testInfo.ReportPath, testName);
 
-            // no need to create it
-            if (Directory.Exists(runResults.ReportLocation))
-            {
-                return true;
-            }
+            // set the report location for the run results
+            runResults.ReportLocation = reportLocation;
 
             try
             {

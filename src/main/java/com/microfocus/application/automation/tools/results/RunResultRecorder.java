@@ -469,17 +469,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             File testFileFullName = new File(testFolderPath);
                             String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
 
-                            // we must consider the case when we run the same test
-                            // in the same build
-                            Integer nameCount = 1;
-
+                            // we must consider the case when we run the same test in the same build
+                            int nameCount = 1;
                             if (fileNameCount.containsKey(testName)) {
                                 nameCount = fileNameCount.get(testName) + 1;
                             }
 
                             // update the count for this file
                             fileNameCount.put(testName, nameCount);
-
                             testName += "[" + nameCount + "]";
 
                             String resourceUrl = "artifact/UFTReport/" + testName;
@@ -959,7 +956,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      * @param reportNames
      * @param reportDirectory
      * @param testResult
-     * @param tranSummary
      * @throws IOException
      */
     private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult,

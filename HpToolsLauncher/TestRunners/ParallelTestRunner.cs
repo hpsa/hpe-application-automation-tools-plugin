@@ -140,7 +140,7 @@ namespace HpToolsLauncher.TestRunners
 
             // this is to make sure that we do not overwrite the report
             // when we run the same test multiple times on the same build
-            string resFolder = Helper.GetNextResFolder(testInfo.ReportPath);
+            string resFolder = Helper.GetNextResFolder(testInfo.ReportPath, "Res");
 
             var runResults = new TestRunResults
             {

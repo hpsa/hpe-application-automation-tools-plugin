@@ -50,6 +50,10 @@
         <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
     </f:entry>
 
+    <f:entry title="Results directory" field="fsReportPath">
+        <f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
+    </f:entry>
+
     <cv:customOptionalBlock title="UFT parallel running mode." name="runfromfs.isParallelRunnerEnabled"
                             field="isParallelRunnerEnabled" inline="true">
         <f:entry field="fileSystemTestSetModel">
@@ -183,15 +187,19 @@
                 <f:entry title="Device metrics" field="fsDevicesMetrics">
                         <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
                 </f:entry>
+                <f:entry title="Job Id">
+                        <f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
+                </f:entry>
+                <f:entry>
+                        <f:checkbox title="Recreate Mobile Center job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+                </f:entry>
                 <f:entry>
                         <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
                 </f:entry>
                 <f:entry>
                         <div id="errorMessage" style="color:red;display:none">MC login information or proxy is incorrect.</div>
                 </f:entry>
-                <f:invisibleEntry>
-                		<f:textbox name="runfromfs.fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
-                </f:invisibleEntry>
+
             </f:section>
         </f:advanced>
     <!-- end -->

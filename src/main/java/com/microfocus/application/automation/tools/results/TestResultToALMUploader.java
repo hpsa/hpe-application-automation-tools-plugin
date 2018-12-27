@@ -44,7 +44,6 @@ import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.Action;
 import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.Item;
@@ -320,7 +319,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
                     );
 	    			logger.log("INFO: Uploaded "+fullpath + ".");
     			} catch (Exception e) {
-    				logger.log("WARN: there's exception while uploading "+fullpath + ".");
+    				logger.log("ERR: There's exception while uploading " + fullpath + ". " + e.getMessage());
     				build.setResult(Result.UNSTABLE);
     			}
         	}
