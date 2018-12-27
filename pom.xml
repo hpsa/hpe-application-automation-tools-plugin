@@ -98,9 +98,9 @@
 			</roles>
 		</developer>
 		<developer>
-			<id>mseldin</id>
-			<name>Michael Seldin</name>
-			<email>michael.seldin@microfocus.com</email>
+			<id>radislavB</id>
+			<name>Radislav Berkovich</name>
+			<email>radislav.berkovich@microfocus.com</email>
 			<roles>
 				<role>ALM Octane</role>
 			</roles>
