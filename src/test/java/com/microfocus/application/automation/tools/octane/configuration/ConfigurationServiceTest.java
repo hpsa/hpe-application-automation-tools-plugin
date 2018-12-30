@@ -46,13 +46,11 @@ import static org.junit.Assert.*;
 public class ConfigurationServiceTest extends OctanePluginTestBase {
 	private static final Logger logger = Logger.getLogger(ConfigurationServiceTest.class.getName());
 
-	private ConfigurationValidator configurationValidator;
 	private Secret password;
 
 	@Before
 	public void initBefore() {
 		logger.log(Level.FINE, "initializing configuration for test");
-		configurationValidator = ExtensionUtil.getInstance(rule, ConfigurationValidator.class);
 		password = Secret.fromString("password");
 	}
 
@@ -138,25 +136,25 @@ public class ConfigurationServiceTest extends OctanePluginTestBase {
 
 		// valid configuration
 		testHandler.desiredStatus = HttpServletResponse.SC_OK;
-		FormValidation validation = configurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
+		FormValidation validation = ConfigurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
 		assertEquals(FormValidation.Kind.OK, validation.kind);
 		assertTrue(validation.getMessage().contains("Connection successful"));
 
 		// authentication failed
 		testHandler.desiredStatus = HttpServletResponse.SC_UNAUTHORIZED;
-		validation = configurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
+		validation = ConfigurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
 		assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		assertTrue(validation.getMessage().contains(Messages.AuthenticationFailure()));
 
 		// authorization failed
 		testHandler.desiredStatus = HttpServletResponse.SC_FORBIDDEN;
-		validation = configurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
+		validation = ConfigurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
 		assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		assertTrue(validation.getMessage().contains(Messages.AuthorizationFailure()));
 
 		// domain project does not exists
 		testHandler.desiredStatus = HttpServletResponse.SC_NOT_FOUND;
-		validation = configurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
+		validation = ConfigurationValidator.checkConfigurationAndWrapWithFormValidation("http://localhost:" + serverMock.getPort(), "1001", "username1", password);
 		assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		assertTrue(validation.getMessage().contains(Messages.ConnectionSharedSpaceInvalid()));
 

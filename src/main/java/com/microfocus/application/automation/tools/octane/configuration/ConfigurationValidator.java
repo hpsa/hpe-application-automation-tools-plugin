@@ -83,10 +83,18 @@ public class ConfigurationValidator {
         }
     }
 
+    /**
+     * Used by tests only
+     * @param location
+     * @param sharedSpace
+     * @param username
+     * @param password
+     * @return
+     */
     public static FormValidation checkConfigurationAndWrapWithFormValidation(String location, String sharedSpace, String username, Secret password) {
         List<String> errors = new ArrayList<>();
         checkConfiguration(errors, location, sharedSpace, username, password);
-        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? null : errors.get(0));
+        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0));
     }
 
     public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
