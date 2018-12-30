@@ -364,6 +364,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 			List<String> fails = new ArrayList<>();
 			ConfigurationValidator.checkConfiguration(fails, mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
+			ConfigurationValidator.checkHoProxySettins(fails);
 
 			if (fails.isEmpty()) {
 				return ConfigurationValidator.wrapWithFormValidation(true, Messages.ConnectionSuccess());

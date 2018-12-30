@@ -26,6 +26,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
+import hudson.ProxyConfiguration;
 import hudson.model.Item;
 import hudson.model.User;
 import hudson.security.ACL;
@@ -144,6 +145,15 @@ public class ConfigurationValidator {
             return FormValidation.okWithMarkup(msg);
         } else {
             return FormValidation.errorWithMarkup(msg);
+        }
+    }
+
+    public static void checkHoProxySettins(List<String> errorMessages) {
+        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+        boolean containsHttp = proxy.getNoProxyHostPatterns().stream().anyMatch(p->p.pattern().toLowerCase().startsWith("http"));
+        if(containsHttp){
+            errorMessages.add("'No Proxy Host' in 'Proxy Configuration' contains value that starts with 'http' that is not part of host name.");
+
         }
     }
 }
