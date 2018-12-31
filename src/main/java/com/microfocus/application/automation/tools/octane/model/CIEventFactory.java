@@ -45,6 +45,10 @@ public final class CIEventFactory {
     private static final Logger logger = LogManager.getLogger(CIEventFactory.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+    private CIEventFactory(){
+        //hiding public constructor
+    }
+
     /**
      * Create scm event if exist scm data.
      * Might return null
