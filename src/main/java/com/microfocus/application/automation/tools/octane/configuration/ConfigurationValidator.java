@@ -53,6 +53,11 @@ public class ConfigurationValidator {
 
     private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
+    private ConfigurationValidator(){
+        //hiding public constructor
+    }
+
+
     public static MqmProject parseUiLocation(String uiLocation) throws FormValidation {
         try {
             URL url = new URL(uiLocation);
