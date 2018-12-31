@@ -196,7 +196,7 @@
 
         <br/><br/><br/>
 
-        This report contains items that were discovered in SCM repository. Final list of  dispatched items can be found <a href="../../ws/_Final_Detection_Results/final_detection_result_build_${it.build.id}.xml">here</a> after dispatching.
+        This report contains items that were discovered in SCM repository. Final list of  dispatched items can be found <a href="../../ws/_Final_Detection_Results/final_detection_result_build_${it.build.id}.json">here</a> after dispatching.
 
 
     </l:main-panel>
