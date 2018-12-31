@@ -160,8 +160,7 @@ public class ConfigurationValidator {
         ProxyConfiguration proxy = Jenkins.getInstance().proxy;
         boolean containsHttp = proxy.getNoProxyHostPatterns().stream().anyMatch(p->p.pattern().toLowerCase().startsWith("http"));
         if(containsHttp){
-            errorMessages.add("'No Proxy Host' in 'Proxy Configuration' contains value that starts with 'http' that is not part of host name.");
-
+            errorMessages.add("In the HTTP Proxy Configuration area, the No Proxy Host field must contain a host name only. Remove the http:// prefix before the host name.");
         }
     }
 }
