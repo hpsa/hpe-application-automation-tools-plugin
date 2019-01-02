@@ -59,10 +59,10 @@ import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
 import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.branch.OrganizationFolder;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
-import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -137,7 +137,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public CIJobsList getJobsList(boolean includeParameters) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		PipelineNode tmpConfig;
 		TopLevelItem tmpItem;
@@ -200,7 +200,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public PipelineNode getPipeline(String rootJobCiId) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			PipelineNode result;
 			boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
@@ -236,7 +236,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public void runPipeline(String jobCiId, String originalBody) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
 			//create UFT test runner job on the fly if missing
@@ -262,7 +262,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			SnapshotNode result = null;
 			Job job = getJobByRefId(jobCiId);
@@ -280,7 +280,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			SnapshotNode result = null;
 			Run run = getRunByRefNames(jobId, buildId);
@@ -297,7 +297,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public InputStream getTestsResult(String jobId, String buildId) {
-		SecurityContext originalContext = startImpersonation();
+		ACLContext originalContext = startImpersonation();
 		try {
 			InputStream result = null;
 			Run run = getRunByRefNames(jobId, buildId);
@@ -318,7 +318,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public InputStream getBuildLog(String jobId, String buildId) {
-		SecurityContext originalContext = startImpersonation();
+		ACLContext originalContext = startImpersonation();
 		try {
 			InputStream result = null;
 			Run run = getRunByRefNames(jobId, buildId);
@@ -335,7 +335,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
-		SecurityContext originalContext = startImpersonation();
+		ACLContext originalContext = startImpersonation();
 		try {
 			InputStream result = null;
 			Run run = getRunByRefNames(jobId, buildId);
@@ -359,7 +359,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
-		SecurityContext originalContext = startImpersonation();
+		ACLContext originalContext = startImpersonation();
 		try {
 			SSCProjectConfiguration result = null;
 			Run run = getRunByRefNames(jobId, buildId);
@@ -385,7 +385,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
 		} finally {
@@ -396,7 +396,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	@Override
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
 		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
-			SecurityContext securityContext = startImpersonation();
+			ACLContext securityContext = startImpersonation();
 			try {
 				Job project = TestExecutionJobCreatorService.createExecutor(discoveryInfo);
 				PipelineNode result = ModelFactory.createStructureItem(project);
@@ -411,7 +411,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 
 	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			Job project = TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
 			return project;
@@ -425,7 +425,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
 		} finally {
@@ -435,7 +435,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
 		} finally {
@@ -445,7 +445,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public void deleteExecutor(String id) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
 		} finally {
@@ -455,7 +455,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-		SecurityContext securityContext = startImpersonation();
+		ACLContext securityContext = startImpersonation();
 		try {
 			return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
 		} finally {
@@ -463,32 +463,28 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 
-	private SecurityContext startImpersonation() {
+	private ACLContext startImpersonation() {
 		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
 		if (settings == null) {
 			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
 		}
 		String user = settings.getImpersonatedUser();
-		SecurityContext originalContext = null;
+		User jenkinsUser = null;
 		if (user != null && !user.isEmpty()) {
-			User jenkinsUser = User.get(user, false, Collections.emptyMap());
-			if (jenkinsUser != null) {
-				originalContext = ACL.impersonate(jenkinsUser.impersonate());
-			} else {
+			jenkinsUser = User.get(user, false, Collections.emptyMap());
+			if (jenkinsUser == null) {
 				throw new PermissionException(401);
 			}
 		} else {
 			logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
 		}
-		return originalContext;
+
+		ACLContext impersonatedContext = ACL.as(jenkinsUser);
+		return impersonatedContext;
 	}
 
-	private void stopImpersonation(SecurityContext originalContext) {
-		if (originalContext != null) {
-			ACL.as(originalContext.getAuthentication());
-		} else {
-			logger.warn("Could not roll back impersonation, originalContext is null ");
-		}
+	private void stopImpersonation(ACLContext impersonatedContext) {
+		impersonatedContext.close();
 	}
 
 	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
