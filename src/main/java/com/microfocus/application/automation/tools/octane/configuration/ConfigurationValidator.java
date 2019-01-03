@@ -163,8 +163,8 @@ public class ConfigurationValidator {
 
     public static void checkHoProxySettins(List<String> errorMessages) {
         ProxyConfiguration proxy = Jenkins.getInstance().proxy;
-        boolean containsHttp = proxy.getNoProxyHostPatterns().stream().anyMatch(p->p.pattern().toLowerCase().startsWith("http"));
-        if(containsHttp){
+        boolean containsHttp = (proxy != null && proxy.getNoProxyHostPatterns().stream().anyMatch(p -> p.pattern().toLowerCase().startsWith("http")));
+        if (containsHttp) {
             errorMessages.add("In the HTTP Proxy Configuration area, the No Proxy Host field must contain a host name only. Remove the http:// prefix before the host name.");
         }
     }

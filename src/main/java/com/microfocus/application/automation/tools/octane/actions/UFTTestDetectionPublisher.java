@@ -169,7 +169,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 			}
 		}
 
-		public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String configurationId) {
+		public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String configurationId, @QueryParameter(value = "workspaceName") String workspaceName) {
 			ListBoxModel m = new ListBoxModel();
 			if (StringUtils.isNotEmpty(configurationId)) {
 				try {
@@ -180,6 +180,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 					}
 				} catch (Exception e) {
 					//octane configuration not found
+					m.add(workspaceName, workspaceName);
 					return m;
 				}
 			}
