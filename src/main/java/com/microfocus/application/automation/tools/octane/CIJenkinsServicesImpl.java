@@ -448,6 +448,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		try {
 			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
+			UftJobCleaner.deleteExecutionJobByExecutorIfNeverExecuted(id);
 		} finally {
 			stopImpersonation(securityContext);
 		}
