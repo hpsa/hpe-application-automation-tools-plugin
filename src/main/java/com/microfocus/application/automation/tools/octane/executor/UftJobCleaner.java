@@ -137,7 +137,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
                         }
                     }
                 } catch (Exception e) {
-                    //do nothing
+                    logger.warn(String.format("Failed to clearDiscoveryJobs %s : %s", proj.getName(), e.getMessage()));
                 }
             }
         }
