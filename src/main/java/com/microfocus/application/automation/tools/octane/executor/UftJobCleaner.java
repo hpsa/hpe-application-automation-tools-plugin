@@ -22,14 +22,18 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.services.entities.EntitiesService;
+import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.FreeStyleProject;
+import hudson.model.PeriodicWork;
+import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -64,7 +68,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     }
 
     private long getOutdateThreshold() {
-        int DEFAULT_OUTDATE_THRESHOLD = 7;
+        int DEFAULT_OUTDATE_THRESHOLD = 30;
         int threshold = DEFAULT_OUTDATE_THRESHOLD;
         String paramValue = System.getProperty("octane.plugin.UftJobCleaner.outdateThreshold");
         if (StringUtils.isNotEmpty(paramValue)) {
@@ -82,7 +86,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
 
         clearExecutionJobs(jobs);
-        //clearDiscoveryJobs(jobs); temporary disabled
+        clearDiscoveryJobs(jobs);
     }
 
     private void clearExecutionJobs(List<FreeStyleProject> jobs) {
@@ -109,74 +113,37 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     private void clearDiscoveryJobs(List<FreeStyleProject> jobs) {
 
         //Generally, after deleting executor in Octane, relevant job in Jenkins is also deleted. But if jenkins was down during delete of executor, job remains
-        //This method handle orphan job that doesn't hava matching executors in Octane
-        //1. build map of discovery jobs per workspace
-        //2. Loop by workspace
-        //2.1 Get from octane executors in workspace
-        //2.2 If some discovery job exist that doesn't have matching executor - remove it from Jenkins
-
-        Map<Long, Map<String, FreeStyleProject>> workspace2executorLogical2DiscoveryJobMap = new HashMap<>();
-        for (FreeStyleProject job : jobs) {
-            if (UftJobRecognizer.isDiscoveryJob(job)) {
-                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(job);
-                Long workspaceId = getOctaneWorkspaceId(job);
-                if (executorLogicalName != null && workspaceId != null) {
-                    if (!workspace2executorLogical2DiscoveryJobMap.containsKey(workspaceId)) {
-                        workspace2executorLogical2DiscoveryJobMap.put(workspaceId, new HashMap<>());
-                    }
-                    workspace2executorLogical2DiscoveryJobMap.get(workspaceId).put(executorLogicalName, job);
-                }
-            }
-        }
-
-        //TOO not working correctly
-        if (!workspace2executorLogical2DiscoveryJobMap.isEmpty()) {
-            if (OctaneSDK.getClients().get(0).getConfigurationService().isCurrentConfigurationValid()) {
-                EntitiesService entitiesService = OctaneSDK.getClients().get(0).getEntitiesService();
-                int deleteCounter = 0;
-                for (Long workspaceId : workspace2executorLogical2DiscoveryJobMap.keySet()) {
-                    try {
-                        Map<String, FreeStyleProject> discoveryJobs = workspace2executorLogical2DiscoveryJobMap.get(workspaceId);
-                        Set<String> octaneExecutorsLogicalNames = getOctaneExecutorsLogicalNames(entitiesService, workspaceId);
-                        for (String jobExecutorLogical : discoveryJobs.keySet()) {
-                            boolean isExistInOctane = octaneExecutorsLogicalNames.contains(jobExecutorLogical);
-                            if (!isExistInOctane) {
-                                //found discovery job that is not related to any executor in Octane
-                                FreeStyleProject job = discoveryJobs.get(jobExecutorLogical);
-                                try {
-                                    logger.warn(String.format("Job %s is going to be deleted as is doesn't have matching executor in Octane in workspace %s", job.getName(), workspaceId));
-                                    deleteCounter++;
-                                    job.delete();
-                                } catch (Exception e) {
-                                    logger.warn(String.format("Failed to delete job %s : %s", job.getName(), e.getMessage()));
-                                }
-
+        //This method handle orphan job that doesn't have matching executors in Octane
+        for (FreeStyleProject proj : jobs) {
+            if (UftJobRecognizer.isDiscoveryJob(proj)) {
+                try {
+                    String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
+                    if (StringUtils.isNotEmpty(executorLogicalName)) {
+                        Long workspaceId = getOctaneWorkspaceIdInDiscoveryJob(proj);
+                        String configurationId = getConfigurationIdInDiscoveryJob(proj);
+                        OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
+                        EntitiesService entitiesService = octaneClient.getEntitiesService();
+                        List<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
+                        List<Entity> executors = entitiesService.getEntities(workspaceId, EntityConstants.Executors.COLLECTION_NAME, conditions, null);
+                        if (executors.isEmpty()) {
+                            try {
+                                logger.warn(String.format("Job %s is going to be deleted as is doesn't have matching executor in Octane in workspace %s", proj.getName(), workspaceId));
+                                proj.delete();
+                            } catch (Exception e) {
+                                logger.warn(String.format("Failed to delete job %s : %s", proj.getName(), e.getMessage()));
                             }
+
+                            deleteExecutionJobByExecutorIfNeverExecuted(executorLogicalName);
                         }
-                    } catch (Exception e) {
-                        //on exception - do nothing and skip to next workspace
-                        logger.warn(String.format("Failed to get executors from workspace %s : %s", workspaceId, e.getMessage()));
-                        continue;
                     }
+                } catch (Exception e) {
+                    //do nothing
                 }
-                logger.warn(String.format("Cleaner found %s not-related discovery job", deleteCounter));
             }
         }
     }
 
-    private Set<String> getOctaneExecutorsLogicalNames( EntitiesService entitiesService, Long workspaceId) {
-        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.Executors.COLLECTION_NAME, null,
-                Arrays.asList(EntityConstants.Executors.ID_FIELD, EntityConstants.Executors.LOGICAL_NAME_FIELD));
-        Set<String> octaneExecutorIds = new HashSet<>();
-        for (Entity executor : entities) {
-            octaneExecutorIds.add(executor.getStringValue(EntityConstants.Executors.LOGICAL_NAME_FIELD));
-        }
-        return octaneExecutorIds;
-    }
-
-
-    private Long getOctaneWorkspaceId(FreeStyleProject job) {
-
+    private Long getOctaneWorkspaceIdInDiscoveryJob(FreeStyleProject job) {
         UFTTestDetectionPublisher uftTestDetectionPublisher;
         List publishers = job.getPublishersList();
         for (Object publisher : publishers) {
@@ -186,8 +153,41 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
                 return Long.valueOf(workspaceId);
             }
         }
-
         return null;
+    }
+
+    private String getConfigurationIdInDiscoveryJob(FreeStyleProject job) {
+        UFTTestDetectionPublisher uftTestDetectionPublisher;
+        List publishers = job.getPublishersList();
+        for (Object publisher : publishers) {
+            if (publisher instanceof UFTTestDetectionPublisher) {
+                uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+                String configurationId = uftTestDetectionPublisher.getConfigurationId();
+                return configurationId;
+            }
+        }
+        return null;
+    }
+
+    public static void deleteExecutionJobByExecutorIfNeverExecuted(String executorToDelete) {
+        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        for (FreeStyleProject proj : jobs) {
+            if (UftJobRecognizer.isExecutorJob(proj)) {
+                String executorId = UftJobRecognizer.getExecutorId(proj);
+                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
+                if ((StringUtils.isNotEmpty(executorId) && executorId.equals(executorToDelete)) ||
+                        (StringUtils.isNotEmpty(executorLogicalName) && executorLogicalName.equals(executorToDelete))) {
+                    if (proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
+                        try {
+                            logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
+                            proj.delete();
+                        } catch (IOException | InterruptedException e) {
+                            logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

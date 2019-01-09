@@ -182,9 +182,9 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 			if (!subWorkspace.exists()) {
 				subWorkspace.mkdirs();
 			}
-			File reportXmlFile = new File(subWorkspace.getRemote(), "final_detection_result_build_" + item.getBuildNumber() + ".xml");
+			File reportXmlFile = new File(subWorkspace.getRemote(), "final_detection_result_build_" + item.getBuildNumber() + ".json");
 			result.writeToFile(reportXmlFile);
-		} catch (IOException | InterruptedException | JAXBException e) {
+		} catch (IOException | InterruptedException e) {
 			logger.error("Failed to write final_detection_result file :" + e.getMessage());
 		}
 

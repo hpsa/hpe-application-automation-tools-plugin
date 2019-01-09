@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
-import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
+import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvChangeModeModel extends AbstractSvRunModel {

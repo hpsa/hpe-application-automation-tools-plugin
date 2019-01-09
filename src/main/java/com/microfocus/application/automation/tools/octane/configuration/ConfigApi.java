@@ -69,7 +69,7 @@ public class ConfigApi {
 		}
 		try {
 			// validate location format
-			ConfigurationParser.parseUiLocation(uiLocation);
+			ConfigurationValidator.parseUiLocation(uiLocation);
 		} catch (FormValidation ex) {
 			res.sendError(400, ex.getMessage());
 			return;

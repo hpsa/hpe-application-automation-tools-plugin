@@ -24,6 +24,7 @@ function load(a,path){
     var buttonStatus = false;
     if(buttonStatus) return;
     buttonStatus = true;
+    var recreatJob = document.getElementsByName("runfromfs.recreateJob")[0].checked;
     var mcUserName = document.getElementsByName("runfromfs.fsUserName")[0].value;
     var mcPassword = document.getElementsByName("runfromfs.fsPassword")[0].value;
     var mcTenantId = document.getElementsByName("runfromfs.mcTenantId")[0].value;
@@ -40,6 +41,10 @@ function load(a,path){
         return;
     }
     var previousJobId = document.getElementsByName("runfromfs.fsJobId")[0].value;
+    //recreate job if checked
+    if (recreatJob){
+        previousJobId = "";
+    }
     a.getMcServerUrl(mcUrl, function(r){
         baseUrl = r.responseObject();
         a.getJobId(baseUrl,mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {

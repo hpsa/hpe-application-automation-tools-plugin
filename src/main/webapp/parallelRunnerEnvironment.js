@@ -597,13 +597,14 @@ ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,v
 function RunFromFileSystemEnvironment() {}
 
 /**
- * Sets the fsTests visibility based on the parallel runner checkBox state.
- * @param index - the current build index
+ * Sets the visibility of a given multi line text box.
+ * @param index the textbox build index
+ * @param name the textbox name
  */
-RunFromFileSystemEnvironment.setFsTestsVisibility = function(index) {
-    var fsTests = document.getElementsByName("runfromfs.fsTests")[index];
-    var parentElement = fsTests.parentElement;
-    var parent = Utils.findAncestorByTag(fsTests,"tr");
+RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, name) {
+    var textBox = document.getElementsByName(name)[index];
+    var parentElement = textBox.parentElement;
+    var parent = Utils.findAncestorByTag(textBox,"tr");
 
     // when the text box is not expanded
     if(!parentElement.classList.contains("setting-main")) {
@@ -621,14 +622,39 @@ RunFromFileSystemEnvironment.setFsTestsVisibility = function(index) {
 };
 
 /**
+ * Sets the visibility of a given text box.
+ * @param index the textbox build index
+ * @param name the textbox name
+ */
+RunFromFileSystemEnvironment.setTextBoxVisibility = function(index, name) {
+    var check = document.getElementsByName("runfromfs.isParallelRunnerEnabled")[index];
+    var textBox = document.getElementsByName(name)[index];
+
+    Utils.setJenkinsElementVisibility(textBox,!check.checked);
+};
+
+/**
+ * Sets the fsTests visibility based on the parallel runner checkBox state.
+ * @param index - the current build index
+ */
+RunFromFileSystemEnvironment.setFsTestsVisibility = function(index) {
+    this.setMultiLineTextBoxVisibility(index, "runfromfs.fsTests");
+};
+
+/**
+ * Sets the fsReportPath visibility based on the parallel runner checkBox state.
+ * @param index - the current build index
+ */
+RunFromFileSystemEnvironment.setFsReportPathVisibility = function(index) {
+    this.setTextBoxVisibility(index, "runfromfs.fsReportPath");
+};
+
+/**
  * Sets the fsTimeout visibility based on the parallel runner checkbox state.
  * @param index the current build index.
  */
 RunFromFileSystemEnvironment.setTimeoutVisibility = function (index) {
-    var check = document.getElementsByName("runfromfs.isParallelRunnerEnabled")[index];
-    var fsTimeout = document.getElementsByName("runfromfs.fsTimeout")[index];
-
-    Utils.setJenkinsElementVisibility(fsTimeout,!check.checked);
+    this.setTextBoxVisibility(index, "runfromfs.fsTimeout");
 };
 
 /**
@@ -642,6 +668,7 @@ function setViewVisibility() {
     for(var i = 0; i < parallelRuns.length; i++) {
         RunFromFileSystemEnvironment.setFsTestsVisibility(i);
         RunFromFileSystemEnvironment.setTimeoutVisibility(i);
+        RunFromFileSystemEnvironment.setFsReportPathVisibility(i);
         ParallelRunnerEnvironment.setEnvironmentsVisibility(i);
     }
 }

@@ -25,7 +25,7 @@ package com.microfocus.application.automation.tools.octane.actions.cucumber;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.tools.ant.DirectoryScanner;
@@ -45,7 +45,7 @@ public class CucumberResultsService {
     public static final String GHERKIN_NGA_RESULTS = "OctaneGherkinResults";
     public static final String DEFAULT_GLOB = "**/*" + GHERKIN_NGA_RESULTS_XML;
 
-    private static BuildListener listener;
+    private static TaskListener listener;
 
     public static String getGherkinResultFileName(int index) {
         return GHERKIN_NGA_RESULTS + index + ".xml";
@@ -99,7 +99,7 @@ public class CucumberResultsService {
         }
     }
 
-    public static void setListener(BuildListener l) {
+    public static void setListener(TaskListener l) {
         listener = l;
     }
 

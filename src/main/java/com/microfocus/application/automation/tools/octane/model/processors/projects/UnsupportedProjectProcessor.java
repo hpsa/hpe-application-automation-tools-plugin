@@ -38,14 +38,4 @@ class UnsupportedProjectProcessor extends AbstractProjectProcessor<Job> {
 	UnsupportedProjectProcessor(Job job) {
 		super(job);
 	}
-
-	@Override
-	public List<Builder> tryGetBuilders() {
-		return new ArrayList<>();
-	}
-
-	@Override
-	public void scheduleBuild(String parametersBody, String issuingDescription) {
-		throw new IllegalStateException("unsupported job MAY NOT be run");
-	}
 }
