@@ -417,9 +417,9 @@
 			<version>2.1.8</version>
 		</dependency>
 		<dependency>
-			<groupId>com.hp.sv</groupId>
+			<groupId>com.microfocus.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>5.00.0.51808</version>
+			<version>5.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
