@@ -40,7 +40,6 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
@@ -51,6 +50,7 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is responsible to send discovered uft tests to Octane.
@@ -321,11 +321,11 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
 	@Override
 	public long getRecurrencePeriod() {
-		String value = System.getProperty("UftTestDiscoveryDispatcher.Period"); // let's us config the recurrence period. default is 60 seconds.
+		String value = System.getProperty("UftTestDiscoveryDispatcher.Period"); // let's us config the recurrence period. default is 30 seconds.
 		if (!SdkStringUtils.isEmpty(value)) {
 			return Long.valueOf(value);
 		}
-		return TimeUnit2.SECONDS.toMillis(30);
+		return TimeUnit.SECONDS.toMillis(30);
 	}
 
 	@Inject

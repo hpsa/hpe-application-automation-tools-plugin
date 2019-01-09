@@ -26,7 +26,7 @@ import com.microfocus.application.automation.tools.model.SvDataModelSelection;
 import com.microfocus.application.automation.tools.model.SvPerformanceModelSelection;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.run.SvChangeModeBuilder;
-import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
+import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;

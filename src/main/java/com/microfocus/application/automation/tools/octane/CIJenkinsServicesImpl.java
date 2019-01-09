@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.hp.octane.integrations.CIPluginServices;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -177,7 +178,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 						tmpConfig = createPipelineNodeFromJobName(name);
 						list.add(tmpConfig);
 					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-						for (Item item : ((OrganizationFolder) tmpItem).getItems()) {
+						Collection<? extends Item> items = ((AbstractFolder) tmpItem).getItems();
+						for (Item item : items) {
 							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
 							list.add(tmpConfig);
 						}
@@ -662,7 +664,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
 					Item item = getTopLevelItem(newItemRefId);
 					if (item != null && item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-						Collection<? extends Item> allItems = ((OrganizationFolder) item).getItems();
+						Collection<? extends Item> allItems = ((AbstractFolder) item).getItems();
 						for (Item multibranchItem : allItems) {
 							if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
 								result = multibranchItem;

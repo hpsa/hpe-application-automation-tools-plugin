@@ -25,11 +25,11 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>2.14</version>
+        <version>3.6</version>
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.6.4-beta-SNAPSHOT</version>
+	<version>5.6.5-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -50,7 +50,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.60.3</jenkins.version>
+		<jenkins.version>2.89.4</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -417,9 +417,9 @@
 			<version>2.1.8</version>
 		</dependency>
 		<dependency>
-			<groupId>com.hp.sv</groupId>
+			<groupId>com.microfocus.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>5.00.0.51808</version>
+			<version>5.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -582,7 +582,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.2.6.v20141205</version>
+			<version>9.4.5.v20170502</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
