@@ -27,10 +27,10 @@ import java.io.PrintStream;
 
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.model.SvUndeployModel;
-import com.hp.sv.jsvconfigurator.processor.IUndeployProcessor;
-import com.hp.sv.jsvconfigurator.processor.UndeployProcessor;
-import com.hp.sv.jsvconfigurator.processor.UndeployProcessorInput;
-import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
+import com.microfocus.sv.svconfigurator.processor.IUndeployProcessor;
+import com.microfocus.sv.svconfigurator.processor.UndeployProcessor;
+import com.microfocus.sv.svconfigurator.processor.UndeployProcessorInput;
+import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
