@@ -398,17 +398,17 @@
 		<dependency>
 			<artifactId>workflow-cps</artifactId>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<version>2.45</version>
+			<version>2.50</version>
 			<exclusions>
 				<exclusion>
-					<!--  workflow-support 2.18 requires 2.2.6, while org.jenkins-ci.plugins.workflow 2.45 requires 2.0.8-->
+					<!--  workflow-support 2.18 requires 2.2.6, while org.jenkins-ci.plugins.workflow 2.50 requires 2.0.8-->
 					<groupId>org.jenkins-ci.plugins</groupId>
 					<artifactId>scm-api</artifactId>
 				</exclusion>
 
 			</exclusions>
 		</dependency>
-		<!-- sonar 2.7.1 requires 2.18 required, while org.jenkins-ci.plugins.workflow 2.45 requires 2.17-->
+		<!-- sonar 2.7.1 requires 2.18 required, while org.jenkins-ci.plugins.workflow 2.50 requires 2.17-->
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-support</artifactId>
