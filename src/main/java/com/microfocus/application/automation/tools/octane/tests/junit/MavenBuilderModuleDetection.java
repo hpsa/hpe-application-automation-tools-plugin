@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
@@ -29,6 +30,7 @@ import hudson.model.Project;
 import hudson.model.Run;
 import hudson.tasks.Builder;
 import hudson.tasks.Maven;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.File;
 
@@ -42,7 +44,7 @@ public class MavenBuilderModuleDetection extends AbstractMavenModuleDetection {
         if (build instanceof AbstractBuild) {
 
             if (((AbstractBuild)build).getProject() instanceof FreeStyleProject ||
-                    "hudson.matrix.MatrixConfiguration".equals(((AbstractBuild)build).getProject().getClass().getName())) {
+                    JobProcessorFactory.MATRIX_CONFIGURATION_NAME.equals(((AbstractBuild)build).getProject().getClass().getName())) {
                 boolean unknownBuilder = false;
                 for (Builder builder : ((Project<?, ?>) ((AbstractBuild)build).getProject()).getBuilders()) {
                     if (builder instanceof Maven) {
@@ -64,12 +66,14 @@ public class MavenBuilderModuleDetection extends AbstractMavenModuleDetection {
                         unknownBuilder = true;
                     }
                 }
-                if (unknownBuilder && !pomDirs.contains(rootDir)) {
+                if (unknownBuilder && rootDir != null && !pomDirs.contains(rootDir)) {
                     // attempt to support shell and batch executions too
                     // simply assume there is top-level pom file for any non-maven builder
                     addPomDirectory(rootDir);
                 }
             }
+        } else if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(WorkflowRun.class.getName()) && rootDir != null) {
+            addPomDirectory(rootDir);
         }
     }
 }

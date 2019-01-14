@@ -28,6 +28,7 @@ import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -37,7 +38,6 @@ import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -109,7 +109,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 		printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
 		printToConsole(listener, TESTS_TO_RUN_CONVERTED_PARAMETER + " = " + convertResult.getConvertedTestsString());
 
-		if (build instanceof WorkflowRun) {
+		if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(build.getClass().getName())) {
             List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
             newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
             ParametersAction newParametersAction = new ParametersAction(newParams);

@@ -36,18 +36,20 @@ import java.util.Set;
 public class JobProcessorFactory {
 
 	public static String WORKFLOW_JOB_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowJob";
+	public static String WORKFLOW_RUN_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowRun";
 
 	public static String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
 
 	public static String WORKFLOW_MULTI_BRANCH_JOB_NAME = "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject";
 
-	private static String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
+	public static String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
 
-	private static String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+	public static String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
 
-	private static String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
+	public static String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
+	public static String MATRIX_CONFIGURATION_NAME = "hudson.matrix.MatrixConfiguration";
 
-	private static String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
+	public static String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
 
 	public static String GITHUB_ORGANIZATION_FOLDER = "jenkins.branch.OrganizationFolder";
 
