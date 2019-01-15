@@ -5,3 +5,5 @@ java.text.SimpleDateFormat
 java.text.DecimalFormat
 java.text.DateFormatSymbols
 java.text.DecimalFormatSymbols
+# UftTestDiscoveryResult is safe to be used is taken from Octane sdk for ci servers.
+com.hp.octane.integrations.uft.items.UftTestDiscoveryResult
