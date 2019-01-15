@@ -82,7 +82,6 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 	}
 
 	private void sendPipelineStartedEvent(FlowNode flowNode) {
-		boolean isMultibranch = false;
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
@@ -95,7 +94,6 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setCauses(CIEventCausesFactory.processCauses(parentRun));
 
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-			isMultibranch = true;
 			event
 					.setParentCiId(parentRun.getParent().getParent().getFullName())
 					.setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
@@ -103,24 +101,6 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		}
 
 		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
-
-		if (isMultibranch) {
-			resendScmEvent(parentRun);
-		}
-	}
-
-	/**
-	 * resend scm event because in multibranch job, scm event is handled before start event and it is ignored in octane because there is no appropriate context
-	 * @param run
-	 */
-	private void resendScmEvent(WorkflowRun run) {
-		run.getParent().getSCMs().forEach(scm -> {
-					CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-					if (scmEvent != null) {
-						CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
-					}
-				}
-		);
 	}
 
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {

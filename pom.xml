@@ -393,12 +393,22 @@
 					<artifactId>*</artifactId>
 					<groupId>com.fasterxml.jackson.datatype</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+					<artifactId>workflow-multibranch</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+					<artifactId>workflow-job</artifactId>
+				</exclusion>
+
+
 			</exclusions>
 		</dependency>
 		<dependency>
 			<artifactId>workflow-cps</artifactId>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<version>2.50</version>
+			<version>2.53</version>
 			<exclusions>
 				<exclusion>
 					<!--  workflow-support 2.18 requires 2.2.6, while org.jenkins-ci.plugins.workflow 2.50 requires 2.0.8-->
@@ -415,6 +425,18 @@
 			<version>2.18</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-multibranch</artifactId>
+			<version>2.20</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-job</artifactId>
+			<version>2.21</version>
+			<optional>true</optional>
+		</dependency>
 
 		<dependency>
 			<groupId>org.jenkins-ci</groupId>
@@ -429,7 +451,7 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>credentials</artifactId>
-			<version>2.1.8</version>
+			<version>2.1.11</version>
 		</dependency>
 		<dependency>
 			<groupId>com.microfocus.sv</groupId>
