@@ -25,7 +25,7 @@ package com.microfocus.application.automation.tools.model;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.hp.sv.jsvconfigurator.core.impl.processor.Credentials;
+import com.microfocus.sv.svconfigurator.core.impl.processor.Credentials;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;

@@ -27,10 +27,10 @@ import java.net.URL;
 import java.util.List;
 
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
-import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServerInfo;
-import com.hp.sv.jsvconfigurator.core.impl.processor.Credentials;
-import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
-import com.hp.sv.jsvconfigurator.serverclient.impl.CommandExecutorFactory;
+import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServerInfo;
+import com.microfocus.sv.svconfigurator.core.impl.processor.Credentials;
+import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
+import com.microfocus.sv.svconfigurator.serverclient.impl.CommandExecutorFactory;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.model.AbstractProject;
