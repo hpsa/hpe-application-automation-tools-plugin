@@ -24,7 +24,7 @@ package com.microfocus.application.automation.tools.run;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
-import com.microfocus.application.automation.tools.octane.actions.WebhookExpectationAction;
+import com.microfocus.application.automation.tools.octane.actions.WebhookAction;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.actions.Webhooks;
 import hudson.Extension;
@@ -47,6 +47,8 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 
@@ -54,13 +56,28 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 	private String sonarProjectKey;
 	private String sonarToken;
 	private String sonarServerUrl;
+	boolean pushVulnerabilities;
+	boolean pushCoverage;
+
+	private List<SonarHelper.DataType> dataTypeList = new ArrayList();
+
 
 	// inject variables from job configuration if exist
 	@DataBoundConstructor
-	public SonarOctaneListener(String sonarProjectKey, String sonarToken, String sonarServerUrl) {
+	public SonarOctaneListener(boolean pushVulnerabilities, boolean pushCoverage) {
 		this.sonarProjectKey = sonarProjectKey == null ? "" : sonarProjectKey;
 		this.sonarToken = sonarToken == null ? "" : sonarToken;
 		this.sonarServerUrl = sonarServerUrl == null ? "" : sonarServerUrl;
+		this.pushCoverage = pushCoverage;
+		this.pushVulnerabilities = pushVulnerabilities;
+
+		if (pushVulnerabilities){
+			dataTypeList.add(SonarHelper.DataType.VULNERABILITIES);
+		}
+		if(pushCoverage){
+			dataTypeList.add(SonarHelper.DataType.COVERAGE);
+		}
+
 	}
 
 	/**
@@ -88,6 +105,15 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 	 */
 	public String getSonarServerUrl() {
 		return sonarServerUrl;
+	}
+
+
+	public boolean isPushVulnerabilities() {
+		return pushVulnerabilities;
+	}
+
+	public boolean isPushCoverage() {
+		return pushCoverage;
 	}
 
 	/**
@@ -151,7 +177,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 					logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
 				}
 			});
-			run.addAction(new WebhookExpectationAction(true, serverDetails[0]));
+			run.addAction(new WebhookAction(true, serverDetails[0],dataTypeList));
 
 		}
 	}
@@ -171,7 +197,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 
 		@Override
 		public String getDisplayName() {
-			return "ALM Octane SonarQube coverage listener";
+			return "ALM Octane SonarQube listener";
 		}
 
 		/**

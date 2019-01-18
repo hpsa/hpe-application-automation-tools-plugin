@@ -43,6 +43,9 @@ import java.util.Optional;
  */
 
 public class SonarHelper {
+
+	public enum DataType {VULNERABILITIES,COVERAGE}
+
 	public static final String SONAR_GLOBAL_CONFIG = "hudson.plugins.sonar.SonarGlobalConfiguration";
 	private static final String SONAR_ACTION_ID = "hudson.plugins.sonar.SonarRunnerBuilder";
 	private static final String SONAR_SERVER_HOST_VARIABLE = "SONAR_HOST_URL";
