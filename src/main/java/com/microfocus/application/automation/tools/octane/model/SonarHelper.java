@@ -29,6 +29,7 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarRunnerBuilder;
 import hudson.tasks.Builder;
 import hudson.util.DescribableList;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 
 import java.io.IOException;
@@ -42,6 +43,9 @@ import java.util.Optional;
  */
 
 public class SonarHelper {
+
+	public enum DataType {VULNERABILITIES,COVERAGE}
+
 	public static final String SONAR_GLOBAL_CONFIG = "hudson.plugins.sonar.SonarGlobalConfiguration";
 	private static final String SONAR_ACTION_ID = "hudson.plugins.sonar.SonarRunnerBuilder";
 	private static final String SONAR_SERVER_HOST_VARIABLE = "SONAR_HOST_URL";
@@ -88,7 +92,7 @@ public class SonarHelper {
 					.filter(sonarInstallation -> sonarInstallation.getServerUrl().equals(sonarUrl))
 					.findFirst();
 			if (installation.isPresent()) {
-				return installation.get().getServerAuthenticationToken();
+				return Secret.toString(installation.get().getServerAuthenticationToken());
 			}
 		}
 		return "";
@@ -131,6 +135,6 @@ public class SonarHelper {
 	 * @return Sonar's auth token
 	 */
 	private String extractSonarToken(SonarRunnerBuilder builder) {
-		return builder != null ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
+		return builder != null ? Secret.toString(builder.getSonarInstallation().getServerAuthenticationToken()) : "";
 	}
 }

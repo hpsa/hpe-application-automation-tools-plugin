@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
@@ -70,8 +71,10 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
 				octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
 						jobCiId,
 						buildCiId,
+						ToolType.SSC,
 						build.getStartTimeInMillis(),
-						settings.getMaxTimeoutHours());
+						settings.getMaxTimeoutHours(),
+						null);
 			}
 		});
 	}

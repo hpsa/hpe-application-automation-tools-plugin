@@ -1,5 +1,6 @@
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import hudson.model.Action;
 
 /*
@@ -25,43 +26,53 @@ import hudson.model.Action;
  */
 
 import javax.annotation.CheckForNull;
+import java.util.List;
 
 /*
     Class for handling webhook exception
  */
 
-public class WebhookExpectationAction implements Action {
-	private Boolean isExpectingToGetWebhookCall;
-	private String serverUrl;
+public class WebhookAction implements Action {
+    private Boolean isExpectingToGetWebhookCall;
+    private String serverUrl;
+    private List<SonarHelper.DataType> dataTypeList;
 
-	public String getServerUrl() {
-		return serverUrl;
-	}
 
-	public Boolean getExpectingToGetWebhookCall() {
-		return isExpectingToGetWebhookCall;
-	}
+    public WebhookAction(Boolean isExpectingToGetWebhookCall, String serverUrl, List<SonarHelper.DataType> dataTypeList) {
+        this.isExpectingToGetWebhookCall = isExpectingToGetWebhookCall;
+        this.serverUrl = serverUrl;
+        this.dataTypeList = dataTypeList;
+    }
 
-	public WebhookExpectationAction(Boolean isExpectingToGetWebhookCall, String serverUrl) {
-		this.isExpectingToGetWebhookCall = isExpectingToGetWebhookCall;
-		this.serverUrl = serverUrl;
-	}
 
-	@CheckForNull
-	@Override
-	public String getIconFileName() {
-		return null;
-	}
+    public String getServerUrl() {
 
-	@CheckForNull
-	@Override
-	public String getDisplayName() {
-		return null;
-	}
+        return serverUrl;
+    }
 
-	@CheckForNull
-	@Override
-	public String getUrlName() {
-		return null;
-	}
+    public Boolean getExpectingToGetWebhookCall() {
+        return isExpectingToGetWebhookCall;
+    }
+
+    public List<SonarHelper.DataType> getDataTypeList() {
+        return dataTypeList;
+    }
+
+    @CheckForNull
+    @Override
+    public String getIconFileName() {
+        return null;
+    }
+
+    @CheckForNull
+    @Override
+    public String getDisplayName() {
+        return null;
+    }
+
+    @CheckForNull
+    @Override
+    public String getUrlName() {
+        return null;
+    }
 }

@@ -5,3 +5,7 @@ java.text.SimpleDateFormat
 java.text.DecimalFormat
 java.text.DateFormatSymbols
 java.text.DecimalFormatSymbols
+# com.hp.octane.integrations.uft.items.* are safe to be used , The items are taken from Octane sdk for ci servers.
+com.hp.octane.integrations.uft.items.UftTestDiscoveryResult
+com.hp.octane.integrations.uft.items.AutomatedTest
+com.hp.octane.integrations.uft.items.ScmResourceFile

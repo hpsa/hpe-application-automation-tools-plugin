@@ -23,7 +23,6 @@ package com.microfocus.application.automation.tools.octane.events;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
-import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -42,18 +41,9 @@ public class SCMListenerOctaneImpl extends SCMListener {
     @Override
     public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
         super.onChangeLogParsed(run, scm, listener, changelog);
-
-        if (!skipScmEvent(run)) {
-            CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-            if (scmEvent != null) {
-                CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
-            }
+        CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
+        if (scmEvent != null) {
+            CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
         }
-    }
-
-    private static boolean skipScmEvent(Run<?, ?> run) {
-        boolean isMultibranchJob = run.getParent().getParent() != null &&
-                run.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME);
-        return isMultibranchJob;
     }
 }

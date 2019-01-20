@@ -96,7 +96,13 @@ public class JUnitExtension extends OctaneTestsExtension {
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
 			ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
-			FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, hpRunnerType, jenkinsRootUrl));
+			FilePath workspace = BuildHandlerUtils.getWorkspace(run);
+			if (workspace == null) {
+				logger.error("Received null workspace : " + run);
+				return null;
+			}
+
+			FilePath filePath = workspace.act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, hpRunnerType, jenkinsRootUrl));
 			return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
