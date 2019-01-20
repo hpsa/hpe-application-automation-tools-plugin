@@ -115,21 +115,6 @@ public class BuildHandlerUtils {
 		logger.warn("Node getNode = " + action.getNode());
 		FilePath workspace = null;
 
-		//check if computer can be found - only for diagnostic purpose
-		if (action.getNode() != null) {
-			try {
-				Jenkins j = Jenkins.getInstance();
-				Computer c = j.getComputer(action.getNode());
-				if (c != null) {
-					logger.warn("Computer is found : " + c.getDisplayName());
-				} else {
-					logger.warn("Computer is not found");
-				}
-			} catch (Exception e) {
-				logger.warn("Failed to find computer : " + e.getMessage() + ", error type : " + e.getClass().getName());
-			}
-		}
-
 		if (StringUtils.isNotEmpty(action.getPath())) {
 			logger.warn("Node getPath is not empty, return getPath as workspace");
 			workspace = new FilePath(new File(action.getPath()));
