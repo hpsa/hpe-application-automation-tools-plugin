@@ -47,11 +47,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -62,6 +58,7 @@ public class ExecutorConnectivityService {
 	private static final Logger logger = LogManager.getLogger(ExecutorConnectivityService.class);
 	private static final Map<Permission, String> requirePremissions = initRequirePremissions();
 	private static final Map<Permission, String> credentialsPremissions = initCredentialsPremissions();
+	private static final String PLUGIN_NAME = "Application Automation Tools";
 
 	/**
 	 * Validate that scm repository is valid
@@ -81,7 +78,7 @@ public class ExecutorConnectivityService {
 			}
 
 
-			Jenkins jenkins = Jenkins.getActiveInstance();
+			Jenkins jenkins = Jenkins.getInstance();
 
 			List<String> permissionResult = checkCIPermissions(jenkins, credentials != null);
 
@@ -120,39 +117,41 @@ public class ExecutorConnectivityService {
 
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
 		result.setStatus(HttpStatus.SC_CREATED);
+		BaseStandardCredentials jenkinsCredentials = null;
 
 		if (StringUtils.isNotEmpty(credentialsInfo.getCredentialsId())) {
-			BaseStandardCredentials cred = getCredentialsById(credentialsInfo.getCredentialsId());
-			if (cred != null) {
+			jenkinsCredentials = getCredentialsById(credentialsInfo.getCredentialsId());
+			if (jenkinsCredentials != null) {
 				BaseStandardCredentials newCred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(),
 						null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
 				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
 				try {
-					store.updateCredentials(Domain.global(), cred, newCred);
-					result.setStatus(HttpStatus.SC_CREATED);
-					result.setBody(newCred.getId());
+					store.updateCredentials(Domain.global(), jenkinsCredentials, newCred);
 				} catch (IOException e) {
 					logger.error("Failed to update credentials " + e.getMessage());
 					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 					result.setBody("Failed to update credentials " + e.getMessage());
 				}
-				return result;
+			}
+		} else if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
+			jenkinsCredentials = tryGetCredentialsByUsernamePassword(credentialsInfo.getUsername(), credentialsInfo.getPassword());
+			if (jenkinsCredentials == null) {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				String desc = String.format("Created by the Microfocus %s plugin on %s", PLUGIN_NAME, formatter.format(new Date()));
+				BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
+				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
+				try {
+					store.addCredentials(Domain.global(), c);
+				} catch (IOException e) {
+					logger.error("Failed to add credentials " + e.getMessage());
+					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+					result.setBody("Failed to add credentials " + e.getMessage());
+				}
 			}
 		}
-		if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-			String desc = "Created by the Microfocus Application Automation Tools plugin on " + formatter.format(new Date());
-			BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
-			CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
-			try {
-				store.addCredentials(Domain.global(), c);
-				result.setStatus(HttpStatus.SC_CREATED);
-				result.setBody(c.getId());
-			} catch (IOException e) {
-				logger.error("Failed to add credentials " + e.getMessage());
-				result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-				result.setBody("Failed to add credentials " + e.getMessage());
-			}
+
+		if (jenkinsCredentials != null) {
+			result.setBody(jenkinsCredentials.getId());
 		}
 
 		return result;
@@ -163,6 +162,18 @@ public class ExecutorConnectivityService {
 		for (BaseStandardCredentials cred : list) {
 			if (cred.getId().equals(credentialsId))
 				return cred;
+		}
+		return null;
+	}
+
+	private static UsernamePasswordCredentialsImpl tryGetCredentialsByUsernamePassword(String username, String password) {
+		List<UsernamePasswordCredentialsImpl> list = CredentialsProvider.lookupCredentials(UsernamePasswordCredentialsImpl.class, (Item) null, null, (DomainRequirement) null);
+		for (UsernamePasswordCredentialsImpl cred : list) {
+			if (StringUtils.equalsIgnoreCase(cred.getUsername(), username)
+					&& StringUtils.equals(cred.getPassword().getPlainText(), password)
+					&& cred.getDescription() != null && cred.getDescription().contains(PLUGIN_NAME)) {
+				return cred;
+			}
 		}
 		return null;
 	}
