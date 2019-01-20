@@ -47,13 +47,6 @@ public class RunFromAlmModel {
     public final static List<EnumDescription> runModes = Arrays.asList(
             runModeLocal, runModePlannedHost, runModeRemote);
 
-    public final static EnumDescription setupName = new EnumDescription(
-            "SETUP", "Setup");
-    public final static EnumDescription failedTests = new EnumDescription(
-            "FAILED", "Failed status");
-    public final static List<EnumDescription> filterTestsBy = Arrays.asList(
-            setupName, failedTests);
-
     public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
     public final static String ALM_PASSWORD_KEY = "almPassword";
 
@@ -67,14 +60,15 @@ public class RunFromAlmModel {
     private String almTimeout;
     private String almRunMode;
     private String almRunHost;
-    private String filterTests;
-    private String filterBy;
+    //private String testName;
+    //private List<String> selectedStatuses;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName,
                            String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
-                           String almRunMode, String almRunHost, String filterTests, String filterBy) {
+                           String almRunMode, String almRunHost){
+                           //String testName, List<String> selectedStatuses) {
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -102,8 +96,9 @@ public class RunFromAlmModel {
             this.almRunHost = "";
         }
 
-        this.filterTests = filterTests;
-        this.filterBy = filterBy;
+        //this.filterTestsModel = filterTestsModel;
+        /*this.testName = testName;
+        this.selectedStatuses = selectedStatuses;*/
     }
 
     public String getAlmUserName() {
@@ -146,21 +141,21 @@ public class RunFromAlmModel {
         return almServerName;
     }
 
-    public String getFilterTests() {
-        return filterTests;
+    /*public String getTestName() {
+        return testName;
     }
 
-    public void setFilterTests(String filterTests) {
-        this.filterTests = filterTests;
+    public void setTestName(String testName) {
+        this.testName = testName;
     }
 
-    public String getFilterBy() {
-        return filterBy;
+    public List<String> getSelectedStatuses() {
+        return selectedStatuses;
     }
 
-    public void setFilterBy(String filterBy) {
-        this.filterBy = filterBy;
-    }
+    public void setSelectedStatuses(List<String> selectedStatuses) {
+        this.selectedStatuses = selectedStatuses;
+    }*/
 
     public Properties getProperties(EnvVars envVars,
                                     VariableResolver<String> varResolver) {
@@ -217,17 +212,25 @@ public class RunFromAlmModel {
         props.put("almRunMode", almRunMode);
         props.put("almRunHost", almRunHost);
 
-        if(!StringUtils.isEmpty(filterTests)){
-            props.put("filterTests", filterTests);
+       /* if(!StringUtils.isEmpty(String.valueOf(isFilterTestsEnabled))){
+            props.put("filterTests", "true");
         } else {
-            props.put("filterTests", "");
+            props.put("filterTests", "false");
         }
+*/
+      /*  if (Boolean.valueOf(isFilterTestsEnabled).equals(true)) {
+            //props.put("filterBy", filterBy);*/
+        /*if(!selectedStatuses.isEmpty())
+        {
+            int index = 0;
+            for(String status : selectedStatuses){
+                props.put("FilterStatus" + index++, status);
+            }
+        }*/
+        //}
 
-        if (Boolean.valueOf(filterTests).equals(true)) {
-            props.put("filterBy", filterBy);
-        } else {
-            props.put("filterBy", "");
-        }
+
+        //props.put("testName", testName);
 
         return props;
     }

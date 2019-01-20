@@ -23,6 +23,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/almUtils.js"/>
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
 
 	<j:if test="${empty(descriptor.almServers)}">
 		<tr>
@@ -71,24 +72,16 @@
             <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
         </f:entry>
 
-        <f:entry field="filterTests">
-            <f:checkbox id="filterTests" name="runfromalm.filterTests" title="Filter ALM test sets" value="${instance.runFromAlmModel.filterTests}"
-                checked="${instance.runFromAlmModel.filterTests}" onclick="enableFilterBy(this)"/>
-        </f:entry>
-
-        <f:entry title="Filter tests by:" field="filterBy">
-            <select name="runfromalm.filterBy" >
-                <j:forEach var="filter" items="${descriptor.almFilters}">
-                    <f:option selected="${filter.value == instance.runFromAlmModel.filterBy}" value="${filter.value}">
-                      ${filter.description}
-                    </f:option>
-                </j:forEach>
-            </select>
-        </f:entry>
-
         <f:entry title="Timeout" field="almTimeout">
             <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
         </f:entry>
+
+        <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
+            <f:entry field="filterTestsModel">
+                <f:property field="filterTestsModel" />
+            </f:entry>
+        </f:optionalBlock>
+
         <f:advanced>
             <f:entry title="Run mode" field="almRunMode">
                 <select name="runfromalm.almRunMode" >

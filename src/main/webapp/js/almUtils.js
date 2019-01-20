@@ -19,14 +19,30 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    var checkbox = document.getElementById('filterTests');
-    enableFilterBy(checkbox);
+    /*var checkbox = document.getElementById('checkBox1');
+    if(checkbox.checked){
+        document.getElementsByName("fsTestType")[0].disabled = false;
+        document.getElementsByName("selectedNode")[0].disabled = false;
+
+    }else{
+        document.getElementsByName("fsTestType")[0].disabled = true;
+        document.getElementsByName("selectedNode")[0].disabled = true;
+    }*/
 }, false);
 
-function enableFilterBy(object) {
+function enableFilters(object) {
+    alert("enable filters");
+    /*var inputField = document.getElementsByName("runfromalm.testName");
+   // var list = document.getElementsByName("runfromalm.filterBy");
     if (object.checked){
-        document.getElementsByName("runfromalm.filterBy")[0].disabled = false;
+        for (i = 0; i < inputField.length; i++) {
+            inputField[i].removeAttribute("disabled");
+            //list[i].removeAttribute("disabled");
+        }
     } else {
-        document.getElementsByName("runfromalm.filterBy")[0].disabled = true;
-    }
+        for (i = 0; i < inputField.length; i++) {
+            inputField[i].setAttribute("disabled", "true");
+            //list[i].setAttribute("disabled", "true");
+        }
+    }*/
 }

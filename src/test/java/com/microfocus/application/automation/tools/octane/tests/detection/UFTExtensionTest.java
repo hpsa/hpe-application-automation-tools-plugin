@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.detection;
 
+import com.microfocus.application.automation.tools.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestAttributes;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestResultContainer;
@@ -39,6 +40,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,9 +74,10 @@ public class UFTExtensionTest {
 	public void testMockMoreBuilders() throws Exception {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
+		FilterTestsModel filterTestsModel = new FilterTestsModel("testName", new ArrayList<>());
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test -Dmaven.repo.local=%s\\m2-temp",
 				TestUtils.getMavenHome(),System.getenv("TEMP")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", "", "false", ""));
+		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", "", false, filterTestsModel));
 
 		AbstractBuild buildMock = Mockito.mock(AbstractBuild.class);
 		Mockito.when(buildMock.getProject()).thenReturn(project);

@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.run;
 
+import com.microfocus.application.automation.tools.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -55,6 +56,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import com.microfocus.application.automation.tools.AlmToolsUtils;
@@ -70,11 +72,12 @@ import static com.microfocus.application.automation.tools.Messages.RunFromAlmBui
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
     private final RunFromAlmModel runFromAlmModel;
+    private boolean isFilterTestsEnabled;
+    private FilterTestsModel filterTestsModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
-    //private String KillFileName = "";
-    
+
     @DataBoundConstructor
     public RunFromAlmBuilder(
             String almServerName,
@@ -87,9 +90,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almTimeout,
             String almRunMode,
             String almRunHost,
-            String filterTests,
-            String filterBy) {
-        
+            boolean isFilterTestsEnabled,
+            FilterTestsModel filterTestsModel){
+            /*String testName,
+            List<String> selectedStatuses) {*/
+
+        this.isFilterTestsEnabled = isFilterTestsEnabled;
+        this.filterTestsModel = filterTestsModel;
+
         runFromAlmModel =
                 new RunFromAlmModel(
                         almServerName,
@@ -101,9 +109,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunResultsMode,
                         almTimeout,
                         almRunMode,
-                        almRunHost,
-                        filterTests,
-                        filterBy);
+                        almRunHost);
+                        //testName,
+                        //selectedStatuses);
     }
 
     public String getAlmServerName(){
@@ -146,9 +154,27 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return runFromAlmModel.getAlmRunHost();
     }
 
-    public String getFilterTests() { return runFromAlmModel.getFilterTests(); }
+    public boolean getIsFilterTestsEnabled() {
+        return isFilterTestsEnabled;
+    }
 
-    public String getFilterBy() { return runFromAlmModel.getFilterBy(); }
+    @DataBoundSetter
+    public void setIsFilterTestsEnabled(boolean isFilterTestsEnabled) {
+        this.isFilterTestsEnabled = isFilterTestsEnabled;
+    }
+
+    public FilterTestsModel getFilterTestsModel() {
+        return filterTestsModel;
+    }
+
+    @DataBoundSetter
+    public void setFilterTestsModel(FilterTestsModel filterTestsModel) {
+        this.filterTestsModel = filterTestsModel;
+    }
+
+    /*public String getTestName() { return runFromAlmModel.getTestName(); }
+
+    public List<String> getSelectedStatuses() { return runFromAlmModel.getSelectedStatuses(); }*/
     
     @Override
     public DescriptorImpl getDescriptor() {
@@ -200,6 +226,12 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("problem in qcPassword encription");
+        }
+
+        if(isFilterTestsEnabled){
+            filterTestsModel.addProperties(mergedProperties, env);
+        } else {
+            mergedProperties.put("FilterTests", "false");
         }
         
         Date now = new Date();
@@ -414,9 +446,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return RunFromAlmModel.runModes;
         }
 
-        public List<EnumDescription> getAlmFilters() {
-            return RunFromAlmModel.filterTestsBy;
-        }
+
     }
     
     public String getRunResultsFileName() {

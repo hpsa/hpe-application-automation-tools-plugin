@@ -49,7 +49,9 @@ namespace HpToolsLauncher
         string m_qcProject = null;
         string m_qcDomain = null;
         bool m_qcFilterSelected = false;
-        string m_qcFilterBy = null;
+        string m_qcFilterByName = null;
+        List<string> m_qcFilterByStatuses = new List<string>();
+        bool m_qcInitialTestRun = true;
 
         public bool Connected
         {
@@ -115,8 +117,10 @@ namespace HpToolsLauncher
                                 QcRunMode enmQcRunMode,
                                 string runHost,
                                 List<string> qcTestSets,
-                                bool filterSelected,
-                                string filterBy)
+                                bool isFilterSelected,
+                                string filterByName,
+                                List<string> filterByStatuses,
+                                bool initialTestRun)
         {
             Timeout = intQcTimeout;
             RunMode = enmQcRunMode;
@@ -126,9 +130,11 @@ namespace HpToolsLauncher
             m_qcUser = qcUser;
             m_qcProject = qcProject;
             m_qcDomain = qcDomain;
-            m_qcFilterSelected = filterSelected;
-            m_qcFilterBy = filterBy;
-
+            m_qcFilterSelected = isFilterSelected;
+            m_qcFilterByName = filterByName;
+            m_qcFilterByStatuses = filterByStatuses;
+            m_qcInitialTestRun = initialTestRun;
+         
             Connected = ConnectToProject(qcServer, qcUser, qcPassword, qcDomain, qcProject);
             TestSets = qcTestSets;
             if (!Connected)
@@ -152,6 +158,7 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public override TestSuiteRunResults Run()
         {
+            Console.WriteLine("Run method");
             if (!Connected)
                 return null;
             TestSuiteRunResults activeRunDesc = new TestSuiteRunResults();
@@ -173,15 +180,28 @@ namespace HpToolsLauncher
                 string testset1 = testset.TrimEnd("\\".ToCharArray());
 
                 int pos = testset1.LastIndexOf('\\');
+                int posSpace = testset1.IndexOf(" ");
                 string tsDir = "";
                 string tsName = testset1;
+                string tsParams = "";
+                //Console.WriteLine("pos has value: " + pos);
                 if (pos != -1)
                 {
+                    Console.WriteLine("pos: " + pos);
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
                     tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
+                    //tsName = testset1.Substring(pos + 1, posSpace - pos).Trim(" ".ToCharArray());
+                    //tsParams = testset1.Substring(posSpace, testset1.Length - posSpace).Trim(" ".ToCharArray());
                 }
+                //tsName = testset1.Substring(pos + 1, posSpace - pos).Trim(" ".ToCharArray());
+                //tsParams = testset1.Substring(posSpace, testset1.Length - posSpace).Trim(" ".ToCharArray());
 
-                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterBy);
+                ConsoleWriter.WriteLine("tsDir: " + tsDir);
+                ConsoleWriter.WriteLine("tsName: " + tsName);
+                ConsoleWriter.WriteLine("tsParams: " + tsParams);
+
+                //TestSuiteRunResults desc = RunTestSet(tsDir, tsName, tsParams, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterBy);
+                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, tsParams, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
             }
@@ -222,6 +242,7 @@ namespace HpToolsLauncher
         /// </summary>
         private void FindAllTestSetsUnderFolders()
         {
+            Console.WriteLine("FindAllTestSetsUnderFolders");
             List<string> extraSetsList = new List<string>();
             List<string> removeSetsList = new List<string>();
             var tsTreeManager = (ITestSetTreeManager)tdConnection.TestSetTreeManager;
@@ -395,7 +416,9 @@ namespace HpToolsLauncher
         /// <param name="runMode">run on LocalMachine or remote</param>
         /// <param name="runHost">if run on remote machine - remote machine name</param>
         /// <returns></returns>
-        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, double timeout, QcRunMode runMode, string runHost, bool filterSelected, string filterBy)
+        //public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string tsParams, double timeout, QcRunMode runMode, string runHost, bool filterSelected, string filterBy)
+        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string tsParams, double timeout, QcRunMode runMode, string runHost,
+                                              bool isFilterSelected, string filterByName, List<string> filterByStatuses)
         {
             string currentTestSetInstances = "";
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
@@ -408,7 +431,8 @@ namespace HpToolsLauncher
             ITestSetFolder tsFolder = null;
             bool isTestPath = false;
             string testName = "";
-            string testSuiteName = tsName;
+            string testSuiteName = tsName.TrimEnd();
+            string tsParameters = tsParams;
 
             try
             {
@@ -432,7 +456,6 @@ namespace HpToolsLauncher
                     testName = testSuiteName;
                     testSuiteName = tsPath.Substring(pos, tsPath.Length - pos);
                     tsPath = tsPath.Substring(0, pos - 1);
-
                     tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
                     isTestPath = true;
                 }
@@ -441,6 +464,10 @@ namespace HpToolsLauncher
                     tsFolder = null;
                 }
             }
+
+            Console.WriteLine("tsPath is: " + tsPath);
+            Console.WriteLine("testSuiteName is: " + testSuiteName);
+            Console.WriteLine("tsParameters are: " + tsParameters);
 
             if (tsFolder == null)
             {
@@ -465,7 +492,7 @@ namespace HpToolsLauncher
             }
             ITestSet targetTestSet = null;
 
-           foreach (ITestSet ts in tsList) //foreach (ITestSet ts in targetTestList)
+            foreach (ITestSet ts in tsList)
             {
                 string tempName = ts.Name;
                 if (tempName.Equals(testSuiteName, StringComparison.InvariantCultureIgnoreCase))
@@ -484,7 +511,6 @@ namespace HpToolsLauncher
                 return null;
             }
 
-
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, testSuiteName, targetTestSet.ID));
@@ -495,8 +521,6 @@ namespace HpToolsLauncher
                 //need to run this to install everything needed http://AlmServer:8080/qcbin/start_a.jsp?common=true
                 //start the scheduler
                 Scheduler = targetTestSet.StartExecution("");
-
-
             }
             catch (Exception ex)
             {
@@ -504,7 +528,6 @@ namespace HpToolsLauncher
             }
             try
             {
-
                 currentTestSetInstances = GetTestInstancesString(targetTestSet);
             }
             catch (Exception ex)
@@ -519,66 +542,132 @@ namespace HpToolsLauncher
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
+            string xmlParameters = "";
+            if (!(tsParams.Equals("")) && !(tsParams == null))
+            {
+                xmlParameters = getTestParameters(tsParams);
+            }
+            Console.WriteLine("xmlParameters: " + xmlParameters);
+
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
+
             ITDFilter2 tdFilter = tsTestFactory.Filter;
+            List fields = tsTestFactory.Fields;
+
             tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
             IList tList = tsTestFactory.NewList(tdFilter.Text);
 
             Console.WriteLine("number of tests to run before applying the filter: " + tList.Count);
-            Console.WriteLine("Is filter selected: " + filterSelected);
-            Console.WriteLine("Filter is: " + filterBy);
-           
-            if (filterSelected.Equals(true) && !string.IsNullOrEmpty(filterBy))
+            Console.WriteLine("Is filter selected: " + isFilterSelected);
+            Console.WriteLine("Tests names contain: " + filterByName);
+            Console.WriteLine("Filter by statuses: " + filterByStatuses);
+
+            List<ITSTest> testsFilteredByName = new List<ITSTest>();
+            IList nameList = tsTestFactory.NewList("");
+
+            m_qcInitialTestRun = false;//TODO - to be removed; added just for testing                                                                                       
+            IList filteredList = tsTestFactory.NewList("");
+            if (isFilterSelected.Equals(true) && !m_qcInitialTestRun)
             {
-                if (filterBy.Equals("FAILED"))
+                //filter by status
+                IList statusList= tsTestFactory.NewList("");
+                foreach (string status in filterByStatuses)
                 {
-                    filterBy = "Failed";
-                }
-
-                if (filterBy.ToLower().Equals("failed"))
-                {
-                    tdFilter["TC_STATUS"] = filterBy;
-                    tList = tsTestFactory.NewList(tdFilter.Text);
-                }
-
-                if (filterBy.ToLower().Equals("setup"))
-                {
-                    int listCount = tList.Count;
-
-                    for (int index = listCount; index > 0; index--)
+                    tdFilter["TC_STATUS"] = targetTestSet.ID.ToString();
+                    IList statusList1 = tsTestFactory.NewList(tdFilter.Text);
+                    for (int index = statusList1.Count; index > 0; index--)
                     {
-                        string tListIndexName = tList[index].Name;
-                        string tListIndexTestName = tList[index].TestName;
-                        
-                        if (!tListIndexName.ToLower().Contains("setup") && !tListIndexTestName.ToLower().Contains("setup"))
-                        {
-                            tList.Remove(index);
-                        }
+                        statusList.Add(statusList1[index]);
                     }
-
-                    Console.WriteLine("number of tests to run after applying the filter: " + tList.Count);
                 }
+
+
+                //filter by name
+                Console.WriteLine("Number of tests in set: " + tList.Count);
+                for (int index = tList.Count; index > 0; index--)
+                {
+                    string tListIndexName = tList[index].Name;
+                    string tListIndexTestName = tList[index].TestName;
+                    Console.WriteLine("tListIndexName:" + tListIndexName);
+                    Console.WriteLine("tListIndexTestName:" + tListIndexTestName);
+                    Console.WriteLine("filterByName:" + filterByName);
+
+                    if (!(filterByName.Equals("") || filterByName == null))
+                    {
+                        if ((tListIndexName.ToLower().Contains(filterByName.ToLower()) || tListIndexTestName.ToLower().Contains(filterByName.ToLower())))
+                        {
+                            //testsFilteredByName.Add(tList[index]);
+                            nameList.Add(tList[index]);
+                            //tList.Remove(index);
+                        }
+                    } 
+                }
+               
+                //Console.WriteLine("Set final list of tests");
+                /*for (int index = tList.Count; index > 0; index--)
+                {
+                    if (!listContainsTest(testsFilteredByName, tList[index].Name))
+                    {
+                        Console.WriteLine("Remove element from tList");
+                        tList.Remove(index);
+                    }
+                }*/
+                
+                foreach (ITSTest test in nameList)
+                {
+                    filteredList.Add(test);
+                }
+                foreach (ITSTest test in statusList)
+                {
+                    if(!listContainsTest(filteredList, test))
+                    {
+                        filteredList.Add(test);
+                    }
+                }
+                Console.WriteLine("Filtered tests: " + filteredList.Count);
             }
 
-            
 
+
+            Console.WriteLine("isTestPath:" + isTestPath);
             if (isTestPath)
             {
                 // index starts from 1 !!!
                 int tListCount = 0;
                 tListCount = tList.Count;
-
-				// must loop from end to begin
+            
+                // must loop from end to begin
                 for (int index = tListCount; index > 0; index--)
                 {
                     string tListIndexName = tList[index].Name;
                     string tListIndexTestName = tList[index].TestName;
-                    if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexName))
+                    if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexTestName))
                     {
-                        tList.Remove(index);
+                       tList.Remove(index);
                     }
+
+                    if(isFilterSelected.Equals(true) && !m_qcInitialTestRun)
+                    {
+                        if (!listContainsTest(filteredList, tList[index]))
+                        {
+                            Console.WriteLine("Remove element from tList");
+                            tList.Remove(index);
+                        }
+                    }
+
+                    /*Console.WriteLine("Set final list of tests");
+                    if (testsFilteredByName.Count() > 0)
+                    {
+                        if (!listContainsTest(testsFilteredByName, tList[index].Name))
+                        {
+                            Console.WriteLine("Remove element from tList");
+                            tList.Remove(index);
+                        }
+                    }*/
                 }
             }
+
+            Console.WriteLine("number of tests to run after applying the filter: " + tList.Count);
 
             try
             {
@@ -608,9 +697,15 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tList.Count);
 
             int i = 1;
-			
+
             foreach (ITSTest3 test in tList)
             {
+                if(xmlParameters != "")
+                {
+                    test["TC_EPARAMS"] = xmlParameters;
+                    test.Post();
+                }
+                
                 string runOnHost = runHost;
                 if (runMode == QcRunMode.RUN_PLANNED_HOST)
                     runOnHost = test.HostName;
@@ -632,6 +727,7 @@ namespace HpToolsLauncher
                 i = i + 1;
             }
 
+         
             if (tList.Count == 0)
             {
                 ConsoleWriter.WriteErrLine("Specified test not found on ALM, please check your test path.");
@@ -641,7 +737,7 @@ namespace HpToolsLauncher
             }
 
             Stopwatch sw = Stopwatch.StartNew();
-            
+
             try
             {
                 //tests are actually run
@@ -773,7 +869,7 @@ namespace HpToolsLauncher
 
             string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
             SetTestResults(currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
-            
+
             //update the total runtime
             runDesc.TotalRunTime = sw.Elapsed;
 
@@ -860,9 +956,9 @@ namespace HpToolsLauncher
             bool useSSL = (m_qcServer.Contains("https://"));
 
             ITestSet set = prevTest.TestSet;
-            string testRunLink = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestLabModule-000000003649890581?EntityType=IRun&EntityID=" + runid) 
+            string testRunLink = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestLabModule-000000003649890581?EntityType=IRun&EntityID=" + runid)
                 : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/TestLabModule-000000003649890581?EntityType=IRun&EntityID=" + runid);
-            string testRunLinkQc10 = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid) 
+            string testRunLinkQc10 = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid)
                 : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid);
             string linkStr = (oldQc ? testRunLinkQc10 : testRunLink);
             return linkStr;
@@ -1233,7 +1329,86 @@ namespace HpToolsLauncher
 
         #endregion
 
+        private string getTestParameters(string paramsString)
+        {
+            String xmlParameters = "";
+            List<string> parameterNames = new List<string>();
+            List<string> parameterValues = new List<string>();
 
+            if (paramsString != null && paramsString != "")
+            {
+                string[] parameters = paramsString.Split(',');
+                foreach (string parameterPair in parameters)
+                {
+                    if (parameterPair != null && parameterPair != "")
+                    {
+                        string[] pair = parameterPair.Split(':');
+
+                        Console.WriteLine("pair[0]: " + pair[0]);
+                        Console.WriteLine("pair[1]: " + pair[1]);
+                        
+                        bool isValidParameter = validateParameters(pair[0], parameterNames, true);
+
+                        if (!isValidParameter)
+                        {
+                            Console.WriteLine("Parameter name missing. Please specify the parameter name.");
+                            return "";
+                        }
+
+                        isValidParameter = validateParameters(pair[1], parameterValues, false);
+                        if (!isValidParameter)
+                        {
+                            Console.WriteLine("Parameter value is unspecified. Please provide a value or an empty string.");
+                            return "";
+                        }
+                    }
+                }
+
+                xmlParameters = "<?xml version=\"1.0\"?><Parameters>";
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    xmlParameters = xmlParameters + "<Parameter><Name><![CDATA[" + parameterNames.ElementAt(i) + "]]></Name>"
+                                    + "<Value><![CDATA[" + parameterValues.ElementAt(i) + "]]>"
+                                    + "</Value></Parameter>";
+                }
+
+                xmlParameters = xmlParameters + "</Parameters>";
+            }
+
+            return xmlParameters;
+        }
+
+        public bool validateParameters(String param, List<string> parameterList, bool isParameter) 
+        {
+            if (param != null && param != "" && param != " ")
+            {
+                param = param.Trim();
+                int length = param.Count();
+                param = param.Remove(length - 1, 1);
+                param = param.Remove(0, 1);
+                parameterList.Add(param);
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+         }        
+
+
+        public bool listContainsTest(IList testList, ITSTest test)
+        {
+            Console.WriteLine("testList.Count: " + testList.Count);
+            for (int index = testList.Count; index > 0; index--)
+            {
+                if (testList[index].Equals(test))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public class QCFailure
