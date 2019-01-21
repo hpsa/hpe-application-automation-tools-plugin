@@ -63,20 +63,23 @@ public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> 
         this.statuses = statuses;
     }
 
-    public void addProperties(Properties props, EnvVars envVars) {
+    public void addProperties(Properties props) {
         props.put("FilterTests", "true");
-        props.put("TestName", this.testName);
+        props.put("FilterByName", this.testName);
         if(this.statuses.size() > 0){
             int index = 0;
             StringBuilder statusList = new StringBuilder();
             for (Boolean status: statuses) {
                 if(status) {
+                   statusList.append(filterTestsBy.get(index).getDescription());
                    statusList.append(", ");
-                   statusList.append(filterTestsBy.get(index));
                 }
                 index++;
             }
-            props.put("FilterTests", statusList);
+            if(statusList.length() > 0){
+                statusList.replace(statusList.lastIndexOf(","), statusList.lastIndexOf(" "),"");
+            }
+            props.put("FilterByStatus", statusList.toString());
         }
     }
 

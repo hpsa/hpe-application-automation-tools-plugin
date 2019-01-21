@@ -158,7 +158,7 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public override TestSuiteRunResults Run()
         {
-            Console.WriteLine("Run method");
+          
             if (!Connected)
                 return null;
             TestSuiteRunResults activeRunDesc = new TestSuiteRunResults();
@@ -184,23 +184,16 @@ namespace HpToolsLauncher
                 string tsDir = "";
                 string tsName = testset1;
                 string tsParams = "";
-                //Console.WriteLine("pos has value: " + pos);
+                
                 if (pos != -1)
                 {
-                    Console.WriteLine("pos: " + pos);
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
                     tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
-                    //tsName = testset1.Substring(pos + 1, posSpace - pos).Trim(" ".ToCharArray());
-                    //tsParams = testset1.Substring(posSpace, testset1.Length - posSpace).Trim(" ".ToCharArray());
                 }
-                //tsName = testset1.Substring(pos + 1, posSpace - pos).Trim(" ".ToCharArray());
-                //tsParams = testset1.Substring(posSpace, testset1.Length - posSpace).Trim(" ".ToCharArray());
-
-                ConsoleWriter.WriteLine("tsDir: " + tsDir);
+                /*ConsoleWriter.WriteLine("tsDir: " + tsDir);
                 ConsoleWriter.WriteLine("tsName: " + tsName);
-                ConsoleWriter.WriteLine("tsParams: " + tsParams);
+                ConsoleWriter.WriteLine("tsParams: " + tsParams);*/
 
-                //TestSuiteRunResults desc = RunTestSet(tsDir, tsName, tsParams, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterBy);
                 TestSuiteRunResults desc = RunTestSet(tsDir, tsName, tsParams, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
@@ -242,7 +235,6 @@ namespace HpToolsLauncher
         /// </summary>
         private void FindAllTestSetsUnderFolders()
         {
-            Console.WriteLine("FindAllTestSetsUnderFolders");
             List<string> extraSetsList = new List<string>();
             List<string> removeSetsList = new List<string>();
             var tsTreeManager = (ITestSetTreeManager)tdConnection.TestSetTreeManager;
@@ -465,10 +457,6 @@ namespace HpToolsLauncher
                 }
             }
 
-            Console.WriteLine("tsPath is: " + tsPath);
-            Console.WriteLine("testSuiteName is: " + testSuiteName);
-            Console.WriteLine("tsParameters are: " + tsParameters);
-
             if (tsFolder == null)
             {
                 //node wasn't found, folder = null
@@ -547,7 +535,7 @@ namespace HpToolsLauncher
             {
                 xmlParameters = getTestParameters(tsParams);
             }
-            Console.WriteLine("xmlParameters: " + xmlParameters);
+            //Console.WriteLine("xmlParameters: " + xmlParameters);
 
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
 
@@ -560,76 +548,58 @@ namespace HpToolsLauncher
             Console.WriteLine("number of tests to run before applying the filter: " + tList.Count);
             Console.WriteLine("Is filter selected: " + isFilterSelected);
             Console.WriteLine("Tests names contain: " + filterByName);
-            Console.WriteLine("Filter by statuses: " + filterByStatuses);
+            Console.WriteLine("Filter by statuses: " + filterByStatuses.ToString());
 
-            List<ITSTest> testsFilteredByName = new List<ITSTest>();
-            IList nameList = tsTestFactory.NewList("");
-
+            List<ITSTest> testsFilteredByStatus = new List<ITSTest>();
             m_qcInitialTestRun = false;//TODO - to be removed; added just for testing                                                                                       
-            IList filteredList = tsTestFactory.NewList("");
             if (isFilterSelected.Equals(true) && !m_qcInitialTestRun)
             {
                 //filter by status
-                IList statusList= tsTestFactory.NewList("");
                 foreach (string status in filterByStatuses)
                 {
-                    tdFilter["TC_STATUS"] = targetTestSet.ID.ToString();
+                   // Console.WriteLine("status: " + status);
+                    tdFilter["TC_STATUS"] = status;
                     IList statusList1 = tsTestFactory.NewList(tdFilter.Text);
                     for (int index = statusList1.Count; index > 0; index--)
                     {
-                        statusList.Add(statusList1[index]);
+                        //Console.WriteLine("Add test to status list: " + statusList1[index].TestName); 
+                        testsFilteredByStatus.Add(statusList1[index]);
                     }
                 }
 
+                Console.WriteLine("status list has: " + testsFilteredByStatus.Count + " tests");
 
                 //filter by name
-                Console.WriteLine("Number of tests in set: " + tList.Count);
                 for (int index = tList.Count; index > 0; index--)
                 {
                     string tListIndexName = tList[index].Name;
                     string tListIndexTestName = tList[index].TestName;
-                    Console.WriteLine("tListIndexName:" + tListIndexName);
-                    Console.WriteLine("tListIndexTestName:" + tListIndexTestName);
-                    Console.WriteLine("filterByName:" + filterByName);
 
                     if (!(filterByName.Equals("") || filterByName == null))
                     {
-                        if ((tListIndexName.ToLower().Contains(filterByName.ToLower()) || tListIndexTestName.ToLower().Contains(filterByName.ToLower())))
+                        //Console.WriteLine("current test from tList:" + tListIndexTestName);
+                       
+                        if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
+                            !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
+                            !listContainsTest(testsFilteredByStatus, tList[index]))
                         {
-                            //testsFilteredByName.Add(tList[index]);
-                            nameList.Add(tList[index]);
-                            //tList.Remove(index);
+                           // Console.WriteLine("remove test " + tListIndexTestName + " from list");
+                            tList.Remove(index);
+                        } 
+                    } else
+                    {
+                        if (!listContainsTest(testsFilteredByStatus, tList[index]))
+                        {
+                            Console.WriteLine("not filter by status: " + tList[index].TestName);
+                            tList.Remove(index);
                         }
                     } 
                 }
-               
-                //Console.WriteLine("Set final list of tests");
-                /*for (int index = tList.Count; index > 0; index--)
-                {
-                    if (!listContainsTest(testsFilteredByName, tList[index].Name))
-                    {
-                        Console.WriteLine("Remove element from tList");
-                        tList.Remove(index);
-                    }
-                }*/
-                
-                foreach (ITSTest test in nameList)
-                {
-                    filteredList.Add(test);
-                }
-                foreach (ITSTest test in statusList)
-                {
-                    if(!listContainsTest(filteredList, test))
-                    {
-                        filteredList.Add(test);
-                    }
-                }
-                Console.WriteLine("Filtered tests: " + filteredList.Count);
             }
 
+            //Console.WriteLine("tList has lenght: "  + tList.Count);
+           
 
-
-            Console.WriteLine("isTestPath:" + isTestPath);
             if (isTestPath)
             {
                 // index starts from 1 !!!
@@ -645,25 +615,6 @@ namespace HpToolsLauncher
                     {
                        tList.Remove(index);
                     }
-
-                    if(isFilterSelected.Equals(true) && !m_qcInitialTestRun)
-                    {
-                        if (!listContainsTest(filteredList, tList[index]))
-                        {
-                            Console.WriteLine("Remove element from tList");
-                            tList.Remove(index);
-                        }
-                    }
-
-                    /*Console.WriteLine("Set final list of tests");
-                    if (testsFilteredByName.Count() > 0)
-                    {
-                        if (!listContainsTest(testsFilteredByName, tList[index].Name))
-                        {
-                            Console.WriteLine("Remove element from tList");
-                            tList.Remove(index);
-                        }
-                    }*/
                 }
             }
 
@@ -1396,17 +1347,18 @@ namespace HpToolsLauncher
          }        
 
 
-        public bool listContainsTest(IList testList, ITSTest test)
+        public bool listContainsTest(List<ITSTest> testList, ITSTest test)
         {
-            Console.WriteLine("testList.Count: " + testList.Count);
-            for (int index = testList.Count; index > 0; index--)
+            //Console.WriteLine("testList.Count: " + testList.Count);
+            for (int index = testList.Count - 1; index >= 0; index--)
             {
-                if (testList[index].Equals(test))
+                if (testList[index].TestName.Equals(test.TestName))
                 {
+                   // Console.WriteLine("list contains test");
                     return true;
                 }
             }
-
+            //Console.WriteLine("list does not contain test");
             return false;
         }
     }

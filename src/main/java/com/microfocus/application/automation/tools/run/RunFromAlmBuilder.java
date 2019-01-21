@@ -229,7 +229,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
 
         if(isFilterTestsEnabled){
-            filterTestsModel.addProperties(mergedProperties, env);
+            filterTestsModel.addProperties(mergedProperties);
         } else {
             mergedProperties.put("FilterTests", "false");
         }

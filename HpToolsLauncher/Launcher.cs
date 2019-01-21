@@ -401,12 +401,13 @@ namespace HpToolsLauncher
                     }
                     else
                     {
+                        Console.WriteLine("isFilterSelected: " + filter);
                         isFilterSelected = Convert.ToBoolean(filter.ToLower());
                     }
                     
-                    string filterByName = (_ciParams.ContainsKey("TestName") ? _ciParams["TestName"] : "");
+                    string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
 
-                    string statuses = (_ciParams.ContainsKey("FilterStatus") ? _ciParams["FilterStatus"] : "");
+                    string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
 
                     List<string> filterByStatuses = statuses.Split(',').ToList();
 

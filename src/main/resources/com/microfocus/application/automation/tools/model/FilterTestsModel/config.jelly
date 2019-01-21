@@ -39,7 +39,6 @@
     <j:forEach var="status" items="${descriptor.almFilters}">
         <f:entry field="statuses">
             <f:checkbox id="checkboxStatus" field="statuses" checked="${instance.filterTestsModel.statuses}" title="${status.description}"/>
-            <!--f:textbox field="statusName" value="${status.description}" /-->
         </f:entry>
     </j:forEach>
 </j:jelly>
