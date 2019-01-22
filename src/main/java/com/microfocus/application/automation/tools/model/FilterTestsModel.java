@@ -7,8 +7,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> {
@@ -18,20 +16,6 @@ public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> 
     private Boolean notCompletedCheckbox;
     private Boolean noRunCheckbox;
     private Boolean passedCheckbox;
-
-
-    public final static EnumDescription passedTests = new EnumDescription(
-            "Passed", "Passed");
-    public final static EnumDescription failedTests = new EnumDescription(
-            "Failed", "Failed");
-    public final static EnumDescription noRunTests = new EnumDescription(
-            "NoRun", "No Run");
-    public final static EnumDescription notCompleteTests = new EnumDescription(
-            "NotCompleted", "Not Completed");
-    public final static EnumDescription blockedTests = new EnumDescription(
-            "Blocked", "Blocked");
-    public final static List<EnumDescription> filterTestsBy = Arrays.asList(
-            blockedTests, failedTests, noRunTests, notCompleteTests, passedTests);
 
     @DataBoundConstructor
     public FilterTestsModel(String testName, Boolean blockedCheckbox, Boolean failedCheckbox,
@@ -129,9 +113,5 @@ public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> 
     public static class DescriptorImpl extends Descriptor<FilterTestsModel> {
         @Nonnull
         public String getDisplayName() {return "Filter tests model";}
-
-        public List<EnumDescription> getAlmFilters() {
-            return filterTestsBy;
-        }
     }
 }

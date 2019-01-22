@@ -60,15 +60,12 @@ public class RunFromAlmModel {
     private String almTimeout;
     private String almRunMode;
     private String almRunHost;
-    //private String testName;
-    //private List<String> selectedStatuses;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName,
                            String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
                            String almRunMode, String almRunHost){
-                           //String testName, List<String> selectedStatuses) {
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -95,10 +92,6 @@ public class RunFromAlmModel {
         if (almRunHost == null) {
             this.almRunHost = "";
         }
-
-        //this.filterTestsModel = filterTestsModel;
-        /*this.testName = testName;
-        this.selectedStatuses = selectedStatuses;*/
     }
 
     public String getAlmUserName() {
@@ -140,22 +133,6 @@ public class RunFromAlmModel {
     public String getAlmServerName() {
         return almServerName;
     }
-
-    /*public String getTestName() {
-        return testName;
-    }
-
-    public void setTestName(String testName) {
-        this.testName = testName;
-    }
-
-    public List<String> getSelectedStatuses() {
-        return selectedStatuses;
-    }
-
-    public void setSelectedStatuses(List<String> selectedStatuses) {
-        this.selectedStatuses = selectedStatuses;
-    }*/
 
     public Properties getProperties(EnvVars envVars,
                                     VariableResolver<String> varResolver) {
@@ -211,26 +188,6 @@ public class RunFromAlmModel {
 
         props.put("almRunMode", almRunMode);
         props.put("almRunHost", almRunHost);
-
-       /* if(!StringUtils.isEmpty(String.valueOf(isFilterTestsEnabled))){
-            props.put("filterTests", "true");
-        } else {
-            props.put("filterTests", "false");
-        }
-*/
-      /*  if (Boolean.valueOf(isFilterTestsEnabled).equals(true)) {
-            //props.put("filterBy", filterBy);*/
-        /*if(!selectedStatuses.isEmpty())
-        {
-            int index = 0;
-            for(String status : selectedStatuses){
-                props.put("FilterStatus" + index++, status);
-            }
-        }*/
-        //}
-
-
-        //props.put("testName", testName);
 
         return props;
     }
