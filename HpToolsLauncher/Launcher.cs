@@ -269,10 +269,11 @@ namespace HpToolsLauncher
 
             RunTests(runner, resultsFilename);
 
+       
             if (_runtype.Equals(TestStorageType.Alm))
             {
                 bool filterSelected;
-                string filter = (_ciParams.ContainsKey("filterTests") ? _ciParams["filterTests"] : "");
+                string filter = (_ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "");
 
                 if (string.IsNullOrEmpty(filter))
                 {

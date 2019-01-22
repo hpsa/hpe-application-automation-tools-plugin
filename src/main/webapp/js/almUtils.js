@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }, false);
 
 function enableFilters(object) {
-    alert("enable filters");
+    //alert("enable filters");
     /*var inputField = document.getElementsByName("runfromalm.testName");
    // var list = document.getElementsByName("runfromalm.filterBy");
     if (object.checked){

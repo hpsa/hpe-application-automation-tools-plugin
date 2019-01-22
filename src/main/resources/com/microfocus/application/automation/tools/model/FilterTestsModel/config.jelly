@@ -36,9 +36,24 @@
         <div style="margin-left: -75px; margin-bottom: 5px;">Run tests with status: </div>
     </f:entry>
 
-    <j:forEach var="status" items="${descriptor.almFilters}">
-        <f:entry field="statuses">
-            <f:checkbox id="checkboxStatus" field="statuses" checked="${instance.filterTestsModel.statuses}" title="${status.description}"/>
-        </f:entry>
-    </j:forEach>
+    <f:entry field="blockedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.blockedCheckbox}" title="Blocked"/>
+    </f:entry>
+
+    <f:entry field="failedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.failedCheckbox}" title="Failed"/>
+    </f:entry>
+
+    <f:entry field="notCompletedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.notCompletedCheckbox}" title="Not Completed"/>
+    </f:entry>
+
+    <f:entry field="noRunCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.noRunCheckbox}" title="No Run"/>
+    </f:entry>
+
+    <f:entry field="passedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.blockedCheckbox}" title="Passed"/>
+    </f:entry>
+
 </j:jelly>

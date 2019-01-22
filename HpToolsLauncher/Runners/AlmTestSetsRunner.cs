@@ -545,29 +545,20 @@ namespace HpToolsLauncher
             tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
             IList tList = tsTestFactory.NewList(tdFilter.Text);
 
-            Console.WriteLine("number of tests to run before applying the filter: " + tList.Count);
-            Console.WriteLine("Is filter selected: " + isFilterSelected);
-            Console.WriteLine("Tests names contain: " + filterByName);
-            Console.WriteLine("Filter by statuses: " + filterByStatuses.ToString());
-
             List<ITSTest> testsFilteredByStatus = new List<ITSTest>();
-            m_qcInitialTestRun = false;//TODO - to be removed; added just for testing                                                                                       
+                                                                        
             if (isFilterSelected.Equals(true) && !m_qcInitialTestRun)
             {
                 //filter by status
                 foreach (string status in filterByStatuses)
                 {
-                   // Console.WriteLine("status: " + status);
                     tdFilter["TC_STATUS"] = status;
                     IList statusList1 = tsTestFactory.NewList(tdFilter.Text);
                     for (int index = statusList1.Count; index > 0; index--)
                     {
-                        //Console.WriteLine("Add test to status list: " + statusList1[index].TestName); 
-                        testsFilteredByStatus.Add(statusList1[index]);
+                      testsFilteredByStatus.Add(statusList1[index]);
                     }
                 }
-
-                Console.WriteLine("status list has: " + testsFilteredByStatus.Count + " tests");
 
                 //filter by name
                 for (int index = tList.Count; index > 0; index--)
@@ -577,28 +568,22 @@ namespace HpToolsLauncher
 
                     if (!(filterByName.Equals("") || filterByName == null))
                     {
-                        //Console.WriteLine("current test from tList:" + tListIndexTestName);
                        
                         if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
                             !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
                             !listContainsTest(testsFilteredByStatus, tList[index]))
                         {
-                           // Console.WriteLine("remove test " + tListIndexTestName + " from list");
                             tList.Remove(index);
                         } 
                     } else
                     {
                         if (!listContainsTest(testsFilteredByStatus, tList[index]))
                         {
-                            Console.WriteLine("not filter by status: " + tList[index].TestName);
                             tList.Remove(index);
                         }
                     } 
                 }
             }
-
-            //Console.WriteLine("tList has lenght: "  + tList.Count);
-           
 
             if (isTestPath)
             {
@@ -617,9 +602,7 @@ namespace HpToolsLauncher
                     }
                 }
             }
-
-            Console.WriteLine("number of tests to run after applying the filter: " + tList.Count);
-
+     
             try
             {
                 //set up for the run depending on where the test instances are to execute

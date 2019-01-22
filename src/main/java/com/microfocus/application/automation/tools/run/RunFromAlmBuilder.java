@@ -92,8 +92,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almRunHost,
             boolean isFilterTestsEnabled,
             FilterTestsModel filterTestsModel){
-            /*String testName,
-            List<String> selectedStatuses) {*/
 
         this.isFilterTestsEnabled = isFilterTestsEnabled;
         this.filterTestsModel = filterTestsModel;
@@ -110,8 +108,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almTimeout,
                         almRunMode,
                         almRunHost);
-                        //testName,
-                        //selectedStatuses);
     }
 
     public String getAlmServerName(){
@@ -172,10 +168,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         this.filterTestsModel = filterTestsModel;
     }
 
-    /*public String getTestName() { return runFromAlmModel.getTestName(); }
-
-    public List<String> getSelectedStatuses() { return runFromAlmModel.getSelectedStatuses(); }*/
-    
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();

@@ -74,7 +74,7 @@ public class UFTExtensionTest {
 	public void testMockMoreBuilders() throws Exception {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
-		FilterTestsModel filterTestsModel = new FilterTestsModel("testName", new ArrayList<>());
+		FilterTestsModel filterTestsModel = new FilterTestsModel("testName", false, false, false, false, false);
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test -Dmaven.repo.local=%s\\m2-temp",
 				TestUtils.getMavenHome(),System.getenv("TEMP")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", "", false, filterTestsModel));
