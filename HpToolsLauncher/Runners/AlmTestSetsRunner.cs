@@ -183,18 +183,22 @@ namespace HpToolsLauncher
                 int posSpace = testset1.IndexOf(" ");
                 string tsDir = "";
                 string tsName = testset1;
-                string tsParams = "";
-                
+                string testParameters = "";
+
                 if (pos != -1)
                 {
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
-                    tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
+                    if(posSpace != -1)
+                    {
+                        tsName = testset1.Substring(pos, posSpace - pos - 1).Trim("\\".ToCharArray());
+                        testParameters = testset1.Substring(posSpace, testset1.Length - posSpace).Trim("\\".ToCharArray());
+                    } else
+                    {
+                        tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
+                    }
                 }
-                /*ConsoleWriter.WriteLine("tsDir: " + tsDir);
-                ConsoleWriter.WriteLine("tsName: " + tsName);
-                ConsoleWriter.WriteLine("tsParams: " + tsParams);*/
 
-                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, tsParams, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
+                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
             }
@@ -408,8 +412,7 @@ namespace HpToolsLauncher
         /// <param name="runMode">run on LocalMachine or remote</param>
         /// <param name="runHost">if run on remote machine - remote machine name</param>
         /// <returns></returns>
-        //public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string tsParams, double timeout, QcRunMode runMode, string runHost, bool filterSelected, string filterBy)
-        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string tsParams, double timeout, QcRunMode runMode, string runHost,
+        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string testParameters, double timeout, QcRunMode runMode, string runHost,
                                               bool isFilterSelected, string filterByName, List<string> filterByStatuses)
         {
             string currentTestSetInstances = "";
@@ -424,7 +427,6 @@ namespace HpToolsLauncher
             bool isTestPath = false;
             string testName = "";
             string testSuiteName = tsName.TrimEnd();
-            string tsParameters = tsParams;
 
             try
             {
@@ -530,13 +532,7 @@ namespace HpToolsLauncher
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
-            string xmlParameters = "";
-            if (!(tsParams.Equals("")) && !(tsParams == null))
-            {
-                xmlParameters = getTestParameters(tsParams);
-            }
-            //Console.WriteLine("xmlParameters: " + xmlParameters);
-
+                    
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
 
             ITDFilter2 tdFilter = tsTestFactory.Filter;
@@ -629,6 +625,13 @@ namespace HpToolsLauncher
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tList.Count);
+
+            //set test parameters in xml format to be sent to ALM
+            string xmlParameters = "";
+            if (!(testParameters.Equals("")) && !(testParameters == null))
+            {
+                xmlParameters = getTestParameters(testParameters);
+            }
 
             int i = 1;
 
@@ -1265,7 +1268,7 @@ namespace HpToolsLauncher
 
         private string getTestParameters(string paramsString)
         {
-            String xmlParameters = "";
+            string xmlParameters = "";
             List<string> parameterNames = new List<string>();
             List<string> parameterValues = new List<string>();
 
@@ -1279,7 +1282,7 @@ namespace HpToolsLauncher
                         string[] pair = parameterPair.Split(':');
 
                         Console.WriteLine("pair[0]: " + pair[0]);
-                        Console.WriteLine("pair[1]: " + pair[1]);
+                        Console.WriteLine("pair[1]: " +  pair[1]);
                         
                         bool isValidParameter = validateParameters(pair[0], parameterNames, true);
 
@@ -1309,6 +1312,7 @@ namespace HpToolsLauncher
                 xmlParameters = xmlParameters + "</Parameters>";
             }
 
+            Console.WriteLine("xml params: " + xmlParameters);
             return xmlParameters;
         }
 
@@ -1332,16 +1336,14 @@ namespace HpToolsLauncher
 
         public bool listContainsTest(List<ITSTest> testList, ITSTest test)
         {
-            //Console.WriteLine("testList.Count: " + testList.Count);
             for (int index = testList.Count - 1; index >= 0; index--)
             {
                 if (testList[index].TestName.Equals(test.TestName))
                 {
-                   // Console.WriteLine("list contains test");
-                    return true;
+                   return true;
                 }
             }
-            //Console.WriteLine("list does not contain test");
+
             return false;
         }
     }

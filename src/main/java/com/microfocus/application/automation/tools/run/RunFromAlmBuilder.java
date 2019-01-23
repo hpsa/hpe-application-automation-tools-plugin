@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.run;
 
-import com.microfocus.application.automation.tools.model.FilterTestsModel;
+import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;

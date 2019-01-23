@@ -1,4 +1,26 @@
-package com.microfocus.application.automation.tools.model;
+/*
+ *
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ *
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ *
+ */
+
+package com.microfocus.application.automation.tools.uft.model;
 
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -9,6 +31,9 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.annotation.Nonnull;
 import java.util.Properties;
 
+/**
+ * Contains the model for the filtering options in case of a failed build, when running the tests through ALM
+ */
 public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> {
     private String testName;
     private Boolean blockedCheckbox;
@@ -82,31 +107,24 @@ public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> 
         props.put("FilterByName", this.testName);
 
         StringBuilder statusList = new StringBuilder();
-        if(blockedCheckbox){
-           statusList.append("Blocked");
-           statusList.append(", ");
-        }
-        if(failedCheckbox){
-            statusList.append("Failed");
-            statusList.append(", ");
-        }
-        if(notCompletedCheckbox){
-            statusList.append("Not Completed");
-            statusList.append(", ");
-        }
-        if(noRunCheckbox){
-            statusList.append("No Run");
-            statusList.append(", ");
-        }
-        if(passedCheckbox){
-            statusList.append("Passed");
-            statusList.append(", ");
-        }
+        addStatus(blockedCheckbox,"Blocked", statusList);
+        addStatus(failedCheckbox,"Failed", statusList);
+        addStatus(notCompletedCheckbox,"Not Completed", statusList);
+        addStatus(noRunCheckbox,"No Run", statusList);
+        addStatus(passedCheckbox,"Passed", statusList);
 
         if(statusList.length() > 0){
             statusList.replace(statusList.lastIndexOf(","), statusList.lastIndexOf(" "),"");
         }
+
         props.put("FilterByStatus", statusList.toString());
+    }
+
+    public void addStatus(boolean status,  String statusName, StringBuilder statusList){
+        if(status){
+            statusList.append(statusName);
+            statusList.append(", ");
+        }
     }
 
     @Extension

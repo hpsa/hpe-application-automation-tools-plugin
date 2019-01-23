@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class JsonHandler {
 
-    private Logger logger;
+    private static Logger logger;
 
     public JsonHandler(Logger logger) {
         this.logger = logger;
@@ -83,14 +83,14 @@ public class JsonHandler {
             is = new FileInputStream(String.valueOf(path));
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.log(String.format("File path not found %s", e.getMessage()));
         }
 
         String jsonText = "";
         try {
             jsonText = IOUtils.toString(is, String.valueOf(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(String.format("Failed to create the json object %s", e.getMessage()));
         }
 
         return jsonText;

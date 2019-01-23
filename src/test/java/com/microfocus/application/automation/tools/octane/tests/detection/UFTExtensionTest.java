@@ -22,7 +22,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.detection;
 
-import com.microfocus.application.automation.tools.model.FilterTestsModel;
+import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestAttributes;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestResultContainer;
@@ -40,7 +40,6 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 

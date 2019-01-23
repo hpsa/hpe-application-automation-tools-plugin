@@ -159,14 +159,6 @@ public class RunManager {
                             + "\nNote: You can run only functional test sets and build verification suites using this plugin. "
                             + "Check to make sure that the configured ID is valid "
                             + "(and that it is not a performance test ID)."));
-            /*_logger.log(String.format(
-                    "Failed to start %s ID:%s, run id: %s "
-                            + "\nNote: You can run only functional test sets and build verification suites using this plugin. "
-                            + "Check to make sure that the configured ID is valid "
-                            + "(and that it is not a performance test ID).",
-                    args.getRunType(),
-                    args.getEntityId(),
-                    _runHandler.getRunId()));*/
         }
     }
 
