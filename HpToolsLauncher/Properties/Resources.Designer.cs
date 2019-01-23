@@ -151,7 +151,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Number of tests in set: &quot;.
+        ///   Looks up a localized string similar to Number of tests in set:.
         /// </summary>
         internal static string AlmRunnerNumTests {
             get {

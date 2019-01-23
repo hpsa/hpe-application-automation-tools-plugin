@@ -104,7 +104,7 @@ namespace HpToolsLauncher
             get { return Launcher._dateFormat; }
             set { Launcher._dateFormat = value; }
         }
-
+        
         /// <summary>
         /// if running an alm job theses strings are mandatory:
         /// </summary>
@@ -255,10 +255,11 @@ namespace HpToolsLauncher
                 UniqueTimeStamp = resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
             }
 
+            bool initialTestRun = true;
 
             //run the entire set of test once
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(_runtype, _ciParams);
+            IAssetRunner runner = CreateRunner(_runtype, _ciParams, initialTestRun);
 
             //runner instantiation failed (no tests to run or other problem)
             if (runner == null)
@@ -268,35 +269,72 @@ namespace HpToolsLauncher
 
             RunTests(runner, resultsFilename);
 
-
-            string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
-
-            if (string.IsNullOrEmpty(onCheckFailedTests))
+       
+            if (_runtype.Equals(TestStorageType.Alm))
             {
-                rerunFailedTests = false;
-            }
-            else
-            {
-                rerunFailedTests = Convert.ToBoolean(onCheckFailedTests.ToLower());
-            }
+                bool filterSelected;
+                string filter = (_ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "");
 
-          
-            //the "On failure" option is selected and the run build contains failed tests
-            if (rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
-            {
-                ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
-                
-                //rerun the selected tests (either the entire set or just the selected ones)
-                //create the runner according to type
-                runner = CreateRunner(_runtype, _ciParams);
-
-                //runner instantiation failed (no tests to run or other problem)
-                if (runner == null)
+                if (string.IsNullOrEmpty(filter))
                 {
-                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                    filterSelected = false;
+                }
+                else
+                {
+                    filterSelected = Convert.ToBoolean(filter.ToLower());
                 }
 
-                RunTests(runner, resultsFilename);
+                if(filterSelected.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
+                {
+                    //rerun selected tests
+                    initialTestRun = false;
+
+                    runner = CreateRunner(_runtype, _ciParams, initialTestRun);
+
+                    //runner instantiation failed (no tests to run or other problem)
+                    if (runner == null)
+                    {
+                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                    }
+
+                    RunTests(runner, resultsFilename);
+                }
+
+            }
+
+            if (_runtype.Equals(TestStorageType.FileSystem))
+            {
+                string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
+
+                if (string.IsNullOrEmpty(onCheckFailedTests))
+                {
+                    rerunFailedTests = false;
+                }
+                else
+                {
+                    rerunFailedTests = Convert.ToBoolean(onCheckFailedTests.ToLower());
+                }
+
+
+                //the "On failure" option is selected and the run build contains failed tests
+                if (rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
+                {
+                    ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
+
+                    initialTestRun = false;
+
+                    //rerun the selected tests (either the entire set or just the selected ones)
+                    //create the runner according to type
+                    runner = CreateRunner(_runtype, _ciParams, initialTestRun);
+
+                    //runner instantiation failed (no tests to run or other problem)
+                    if (runner == null)
+                    {
+                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                    }
+
+                    RunTests(runner, resultsFilename);
+                }
             }
   
             //Console.WriteLine("Press any key to exit...");
@@ -311,7 +349,7 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="runType"></param>
         /// <param name="ciParams"></param>
-        IAssetRunner CreateRunner(TestStorageType runType, JavaProperties ciParams)
+        IAssetRunner CreateRunner(TestStorageType runType, JavaProperties ciParams, bool initialTestRun)
         {
             IAssetRunner runner = null;
             switch (runType)
@@ -344,7 +382,7 @@ namespace HpToolsLauncher
                         enmQcRunMode = QcRunMode.RUN_LOCAL;
                     }
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayRunmode, enmQcRunMode.ToString()));
-
+                   
                     //go over testsets in the parameters, and collect them
                     List<string> sets = GetParamsWithPrefix("TestSet");
 
@@ -353,6 +391,26 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(Resources.LauncherNoTests);
                         return null;
                     }
+
+                    //check if filterTests flag is selected; if yes apply filters on the list
+                    bool isFilterSelected;
+                    string filter = (_ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "");
+
+                    if (string.IsNullOrEmpty(filter))
+                    {
+                        isFilterSelected = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("isFilterSelected: " + filter);
+                        isFilterSelected = Convert.ToBoolean(filter.ToLower());
+                    }
+                    
+                    string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
+
+                    string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
+
+                    List<string> filterByStatuses = statuses.Split(',').ToList();
 
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
@@ -363,7 +421,11 @@ namespace HpToolsLauncher
                                      dblQcTimeout,
                                      enmQcRunMode,
                                      _ciParams["almRunHost"],
-                                     sets);
+                                     sets,
+                                     isFilterSelected,
+                                     filterByName,
+                                     filterByStatuses,
+                                     initialTestRun);
                     break;
                 case TestStorageType.FileSystem:
                     //Get displayController var

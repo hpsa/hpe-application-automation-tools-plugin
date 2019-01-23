@@ -65,6 +65,7 @@
       <HintPath>externals\Interop.Wlrun.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="QTObjectModelLib">
       <HintPath>externals\QTObjectModelLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>

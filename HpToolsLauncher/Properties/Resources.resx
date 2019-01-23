@@ -188,7 +188,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>folder {0} cannot be found in ALM</value>
   </data>
   <data name="AlmRunnerNumTests" xml:space="preserve">
-    <value>"Number of tests in set: "</value>
+    <value>Number of tests in set:</value>
   </data>
   <data name="AlmRunnerProblemWithHost" xml:space="preserve">
     <value>Problem while setting remote host: {0}</value>

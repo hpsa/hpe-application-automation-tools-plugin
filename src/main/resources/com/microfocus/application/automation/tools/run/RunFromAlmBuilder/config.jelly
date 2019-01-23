@@ -22,6 +22,8 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
+
 	<j:if test="${empty(descriptor.almServers)}">
 		<tr>
       <td/>
@@ -63,13 +65,22 @@
         </f:entry>
         <f:entry title="Project" field="almProject">
             <f:textbox name="runfromalm.almProject" value="${instance.runFromAlmModel.almProject}"/>
-        </f:entry>      
+        </f:entry>
+
         <f:entry title="Test sets" field="almTestSets">
             <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
         </f:entry>
+
         <f:entry title="Timeout" field="almTimeout">
             <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
         </f:entry>
+
+        <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
+            <f:entry field="filterTestsModel">
+                <f:property field="filterTestsModel" />
+            </f:entry>
+        </f:optionalBlock>
+
         <f:advanced>
             <f:entry title="Run mode" field="almRunMode">
                 <select name="runfromalm.almRunMode" >

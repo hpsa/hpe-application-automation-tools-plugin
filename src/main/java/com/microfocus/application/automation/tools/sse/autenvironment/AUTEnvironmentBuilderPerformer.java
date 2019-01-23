@@ -22,44 +22,41 @@
 
 package com.microfocus.application.automation.tools.sse.autenvironment;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.microfocus.application.automation.tools.common.SSEException;
 import com.microfocus.application.automation.tools.model.AUTEnvironmentResolvedModel;
 import com.microfocus.application.automation.tools.model.AutEnvironmentParameterModel;
 import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
-import com.microfocus.application.automation.tools.sse.sdk.Response;
-import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
-import com.microfocus.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
-import com.microfocus.application.automation.tools.sse.sdk.Client;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
-import com.microfocus.application.automation.tools.sse.sdk.ResourceAccessLevel;
+import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
+import hudson.EnvVars;
 import hudson.util.VariableResolver;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by barush on 29/10/2014.
  */
 public class AUTEnvironmentBuilderPerformer {
-    
+
     private Logger logger;
     private AUTEnvironmentResolvedModel model;
     private RestClient restClient;
     private VariableResolver<String> buildVariableResolver;
     private String autEnvironmentConfigurationIdToReturn;
-    
+
     public AUTEnvironmentBuilderPerformer(
             AUTEnvironmentResolvedModel model,
             VariableResolver<String> buildVariableResolver,
             Logger logger) {
-        
+
         this.model = model;
         this.logger = logger;
         this.buildVariableResolver = buildVariableResolver;
     }
-    
-    public void start() {
+
+    public void start(EnvVars envVars) {
         try {
             if (AuthenticationTool.getInstance().authenticate(getClient(),
                     model.getAlmUserName(),
@@ -67,7 +64,9 @@ public class AUTEnvironmentBuilderPerformer {
                     model.getAlmServerUrl(),
                     model.getClientType(),
                     logger)) {
-                performAutOperations();
+                logger.log(String.format(
+                        "Alm server url: %s", model.getAlmServerUrl()));
+                performAutOperations(envVars);
             }
         } catch (Throwable cause) {
             logger.log(String.format(
@@ -76,37 +75,39 @@ public class AUTEnvironmentBuilderPerformer {
             throw cause;
         }
     }
-    
+
     public String getAutEnvironmentConfigurationIdToReturn() {
         return autEnvironmentConfigurationIdToReturn;
     }
-    
-    private void performAutOperations() {
-        
+
+    private void performAutOperations(EnvVars envVars) {
         String autEnvironmentId = model.getAutEnvironmentId();
+
         AUTEnvironmentManager autEnvironmentManager =
                 new AUTEnvironmentManager(getClient(), logger);
         String parametersRootFolderId =
                 autEnvironmentManager.getParametersRootFolderIdByAutEnvId(autEnvironmentId);
         String autEnvironmentConfigurationId =
                 getAutEnvironmentConfigurationId(autEnvironmentManager, autEnvironmentId);
-        
-        assignValuesToAutParameters(autEnvironmentConfigurationId, parametersRootFolderId);
+
+        assignValuesToAutParameters(autEnvironmentConfigurationId, parametersRootFolderId, envVars);
         autEnvironmentConfigurationIdToReturn = autEnvironmentConfigurationId;
-        
+
     }
-    
+
     private void assignValuesToAutParameters(
             String autEnvironmentConfigurationId,
-            String parametersRootFolderId) {
-        
+            String parametersRootFolderId,
+            EnvVars envVars) {
+
         List<AutEnvironmentParameterModel> autEnvironmentParameters =
                 model.getAutEnvironmentParameters();
         if (autEnvironmentParameters == null || autEnvironmentParameters.size() == 0) {
             logger.log("There's no AUT Environment parameters to assign for this build...");
             return;
         }
-        
+
+        String selectedNode = envVars.get("NODE_NAME");
         AUTEnvironmentParametersManager parametersManager =
                 new AUTEnvironmentParametersManager(
                         getClient(),
@@ -115,31 +116,33 @@ public class AUTEnvironmentBuilderPerformer {
                         autEnvironmentConfigurationId,
                         buildVariableResolver,
                         model.getPathToJsonFile(),
-                        logger);
-        
+                        logger,
+                        selectedNode);
+
         Collection<AUTEnvironmnentParameter> parametersToUpdate =
                 parametersManager.getParametersToUpdate();
         parametersManager.updateParametersValues(parametersToUpdate);
+        logger.log("assignValuesToAutParameters");
     }
-    
+
     private String getAutEnvironmentConfigurationId(
             AUTEnvironmentManager autEnvironmentManager,
             String autEnvironmentId) {
-        
+
         String autEnvironmentConfigurationId =
                 autEnvironmentManager.shouldUseExistingConfiguration(model)
                         ? model.getExistingAutEnvConfId()
                         : autEnvironmentManager.createNewAutEnvironmentConfiguration(
-                                autEnvironmentId,
-                                model);
-        
+                        autEnvironmentId,
+                        model);
+
         if (StringUtils.isNullOrEmpty(autEnvironmentConfigurationId)) {
             throw new SSEException("There's no AUT Environment Configuration in order to proceed");
         }
         return autEnvironmentConfigurationId;
-        
+
     }
-    
+
     private RestClient getClient() {
         if (restClient == null) {
             restClient =
@@ -149,7 +152,7 @@ public class AUTEnvironmentBuilderPerformer {
                             model.getAlmProject(),
                             model.getAlmUserName());
         }
-        
+
         return restClient;
     }
 }

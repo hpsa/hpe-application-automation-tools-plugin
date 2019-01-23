@@ -42,6 +42,7 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.Testca
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
@@ -435,12 +436,12 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         }
         
         public FormValidation doCheckAlmEntityId(@QueryParameter String value) {
-            
+
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error("Entity ID must be set.");
+                ret = FormValidation.error("Entity must be set.");
             }
-            
+
             return ret;
         }
         
@@ -523,5 +524,10 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 			// no credentials available, can't check
 			return FormValidation.warning("Cannot find any credentials with id " + value);
 		}
+
+        public FormValidation doCheckEnvironmentConfigurationId(@QueryParameter String value) {
+            return UftToolUtils.doCheckNumberOfReruns(value);
+        }
+
     }
 }
