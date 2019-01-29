@@ -66,7 +66,7 @@
 		    <f:entry title="Run Mode" field="fsUftRunMode">
 				<select name="runPipeline.fsUftRunMode">
 					<j:forEach var="runMode" items="${instance.runFromFileModel.fsUftRunModes}">
-						<f:option selected="${runMode.value == instance.RunFromFileSystemModel.fsUftRunMode}" value="${runMode.value}">
+						<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
 							${runMode.description}
 						</f:option>
 					</j:forEach>
