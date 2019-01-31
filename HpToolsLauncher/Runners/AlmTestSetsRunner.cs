@@ -548,10 +548,13 @@ namespace HpToolsLauncher
                 //filter by status
                 foreach (string status in filterByStatuses)
                 {
+                    Console.WriteLine("current status is: " + status);
                     tdFilter["TC_STATUS"] = status;
+                    Console.WriteLine("tdFilter: " + tdFilter.Text);
                     IList statusList1 = tsTestFactory.NewList(tdFilter.Text);
                     for (int index = statusList1.Count; index > 0; index--)
                     {
+                      Console.WriteLine("statusList1[" + index + "]: " + statusList1[index]);
                       testsFilteredByStatus.Add(statusList1[index]);
                     }
                 }
@@ -564,15 +567,26 @@ namespace HpToolsLauncher
 
                     if (!(filterByName.Equals("") || filterByName == null))
                     {
-                       
-                        if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
-                            !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
-                            !listContainsTest(testsFilteredByStatus, tList[index]))
+                        if (filterByStatuses.Count == 0)
                         {
-                            tList.Remove(index);
-                        } 
+                            //only by name
+                            if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
+                            !tListIndexTestName.ToLower().Contains(filterByName.ToLower()))
+                            {
+                                tList.Remove(index);
+                            }
+                        }
+                        else //by name and statuses
+                        {
+                            if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
+                                !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
+                                !listContainsTest(testsFilteredByStatus, tList[index]))
+                            {
+                                tList.Remove(index);
+                            }
+                        }
                     } else
-                    {
+                    {   //only by statuses
                         if (!listContainsTest(testsFilteredByStatus, tList[index]))
                         {
                             tList.Remove(index);
