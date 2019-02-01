@@ -402,7 +402,6 @@ namespace HpToolsLauncher
                     }
                     else
                     {
-                        Console.WriteLine("isFilterSelected: " + filter);
                         isFilterSelected = Convert.ToBoolean(filter.ToLower());
                     }
                     
