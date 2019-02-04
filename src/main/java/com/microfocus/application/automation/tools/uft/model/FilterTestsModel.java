@@ -109,8 +109,8 @@ public class FilterTestsModel extends AbstractDescribableImpl<FilterTestsModel> 
         StringBuilder statusList = new StringBuilder();
         addStatus(blockedCheckbox,"Blocked", statusList);
         addStatus(failedCheckbox,"Failed", statusList);
-        addStatus(notCompletedCheckbox,"Not Completed", statusList);
-        addStatus(noRunCheckbox,"No Run", statusList);
+        addStatus(notCompletedCheckbox,"\"Not Completed\"", statusList);
+        addStatus(noRunCheckbox,"\"No Run\"", statusList);
         addStatus(passedCheckbox,"Passed", statusList);
 
         if(statusList.length() > 0){

@@ -190,7 +190,7 @@ namespace HpToolsLauncher
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
                     if(posSpace != -1)
                     {
-                        tsName = testset1.Substring(pos, posSpace - pos - 1).Trim("\\".ToCharArray());
+                        tsName = testset1.Substring(pos, posSpace - pos).Trim("\\".ToCharArray());
                         testParameters = testset1.Substring(posSpace, testset1.Length - posSpace).Trim("\\".ToCharArray());
                     } else
                     {
@@ -452,6 +452,10 @@ namespace HpToolsLauncher
                     tsPath = tsPath.Substring(0, pos - 1);
                     tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
                     isTestPath = true;
+
+                    Console.WriteLine("testName: " + testName);
+                    Console.WriteLine("testSuiteName: " +  testSuiteName);
+                    Console.WriteLine("tsPath: " + tsPath);
                 }
                 catch (COMException ex)
                 {
@@ -564,15 +568,26 @@ namespace HpToolsLauncher
 
                     if (!(filterByName.Equals("") || filterByName == null))
                     {
-                       
-                        if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
-                            !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
-                            !listContainsTest(testsFilteredByStatus, tList[index]))
+                        if (filterByStatuses.Count == 0)
                         {
-                            tList.Remove(index);
-                        } 
+                            //only by name
+                            if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
+                            !tListIndexTestName.ToLower().Contains(filterByName.ToLower()))
+                            {
+                                tList.Remove(index);
+                            }
+                        }
+                        else //by name and statuses
+                        {
+                            if (!tListIndexName.ToLower().Contains(filterByName.ToLower()) &&
+                                !tListIndexTestName.ToLower().Contains(filterByName.ToLower()) &&
+                                !listContainsTest(testsFilteredByStatus, tList[index]))
+                            {
+                                tList.Remove(index);
+                            }
+                        }
                     } else
-                    {
+                    {   //only by statuses
                         if (!listContainsTest(testsFilteredByStatus, tList[index]))
                         {
                             tList.Remove(index);
@@ -626,23 +641,27 @@ namespace HpToolsLauncher
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tList.Count);
 
+        
+
             //set test parameters in xml format to be sent to ALM
-            string xmlParameters = "";
-            if (!(testParameters.Equals("")) && !(testParameters == null))
-            {
-                xmlParameters = getTestParameters(testParameters);
-            }
+             string xmlParameters = "";
+            
+             if (!(testParameters.Equals("")) && !(testParameters == null))
+             {
+                 xmlParameters = getTestParameters(testParameters);
+             }
 
-            int i = 1;
+             int i = 1;
 
+           
             foreach (ITSTest3 test in tList)
             {
-                if(xmlParameters != "")
+                if (xmlParameters != "")
                 {
                     test["TC_EPARAMS"] = xmlParameters;
                     test.Post();
                 }
-                
+
                 string runOnHost = runHost;
                 if (runMode == QcRunMode.RUN_PLANNED_HOST)
                     runOnHost = test.HostName;
@@ -658,6 +677,7 @@ namespace HpToolsLauncher
                 Scheduler.RunOnHost[test.ID] = runOnHost;
 
                 var testResults = new TestRunResults();
+
                 testResults.TestName = test.Name;
                 runDesc.TestRuns.Add(testResults);
 
@@ -708,6 +728,7 @@ namespace HpToolsLauncher
                     TestExecStatus testExecStatusObj = executionStatus[j];
 
                     currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+                   
                     if (currentTest == null)
                     {
                         ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} during execution", j));
@@ -741,7 +762,7 @@ namespace HpToolsLauncher
                             ConsoleWriter.ActiveTestRun = runDesc.TestRuns[testIndex];
 
                             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + currentTest.Name);
-
+                            activeTestDesc.TestName = currentTest.Name;
                             //tell user that the test is running
                             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running test: " + activeTestDesc.TestName + ", Test id: " + testExecStatusObj.TestId + ", Test instance id: " + testExecStatusObj.TSTestId);
 
@@ -804,7 +825,7 @@ namespace HpToolsLauncher
             //done with all tests, stop collecting output in the testRun object.
             ConsoleWriter.ActiveTestRun = null;
 
-            string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
+            string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\"; 
             SetTestResults(currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
 
             //update the total runtime
@@ -829,6 +850,7 @@ namespace HpToolsLauncher
 
         private void SetTestResults(ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
         {
+            
             // write the status for each test
             for (int k = 1; k <= executionStatus.Count; ++k)
             {
@@ -839,7 +861,7 @@ namespace HpToolsLauncher
 
                 TestExecStatus testExecStatusObj = executionStatus[k];
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
-
+                
                 if (currentTest == null)
                 {
                     ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} after whole execution", k));
@@ -849,7 +871,7 @@ namespace HpToolsLauncher
                 activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
                 UpdateCounters(activeTestDesc, runDesc);
 
-                activeTestDesc.TestPath = testPath;
+                activeTestDesc.TestPath = testPath + currentTest.TestName;
             }
         }
 
@@ -1019,7 +1041,6 @@ namespace HpToolsLauncher
                 //find the test in our list
                 int testIndex = GetIdxByTestName(currentTest.Name, runResults);
                 qTest = runResults.TestRuns[testIndex];
-
                 if (qTest.TestType == null)
                 {
                     qTest.TestType = GetTestType(currentTest);
@@ -1280,9 +1301,6 @@ namespace HpToolsLauncher
                     if (parameterPair != null && parameterPair != "")
                     {
                         string[] pair = parameterPair.Split(':');
-
-                        Console.WriteLine("pair[0]: " + pair[0]);
-                        Console.WriteLine("pair[1]: " +  pair[1]);
                         
                         bool isValidParameter = validateParameters(pair[0], parameterNames, true);
 
@@ -1312,7 +1330,6 @@ namespace HpToolsLauncher
                 xmlParameters = xmlParameters + "</Parameters>";
             }
 
-            Console.WriteLine("xml params: " + xmlParameters);
             return xmlParameters;
         }
 

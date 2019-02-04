@@ -402,7 +402,6 @@ namespace HpToolsLauncher
                     }
                     else
                     {
-                        Console.WriteLine("isFilterSelected: " + filter);
                         isFilterSelected = Convert.ToBoolean(filter.ToLower());
                     }
                     
@@ -410,8 +409,19 @@ namespace HpToolsLauncher
 
                     string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
 
-                    List<string> filterByStatuses = statuses.Split(',').ToList();
+                    List<string> filterByStatuses = new List<string>();
 
+                    if (statuses != "")
+                    {
+                        if (statuses.Contains(","))
+                        {
+                            filterByStatuses = statuses.Split(',').ToList();
+                        } else
+                        {
+                            filterByStatuses.Add(statuses);
+                        }
+                    }
+                   
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
                                      _ciParams["almUserName"],
