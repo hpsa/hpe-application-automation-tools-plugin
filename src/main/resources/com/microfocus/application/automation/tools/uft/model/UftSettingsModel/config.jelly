@@ -28,10 +28,10 @@
 
 
     <f:entry field="fsTestType">
-        <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
+        <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest" class="checbox-align" checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
 
         <select name="fsTestType" style="margin-left: 10px" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
-            <j:forEach var="testType" items="${instance.fsTestTypes}">
+            <j:forEach var="testType" items="${descriptor.fsTestTypes}">
                 <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
                     ${testType.description}
                 </f:option>
@@ -42,7 +42,7 @@
 
     <f:entry title="Nodes" field="selectedNode">
         <select name="selectedNode" style="width: 100px;">
-            <j:forEach var="node" items="${instance.getNodes()}">
+            <j:forEach var="node" items="${descriptor.nodes}">
                 <f:option selected="${node==instance.selectedNode}" value="${node}">
                     ${node}
                 </f:option>

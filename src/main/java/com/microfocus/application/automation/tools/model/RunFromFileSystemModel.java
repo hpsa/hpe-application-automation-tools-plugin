@@ -23,15 +23,20 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
+import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
+import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
@@ -39,7 +44,7 @@ import java.util.*;
 /**
  * Holds the data for RunFromFile build type.
  */
-public class RunFromFileSystemModel {
+public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileSystemModel> {
 
     public static final String MOBILE_PROXY_SETTING_PASSWORD_FIELD = "MobileProxySetting_Password";
     public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
@@ -795,5 +800,19 @@ public class RunFromFileSystemModel {
         }
         return JobConfigurationProxy
                 .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
+    }
+
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<RunFromFileSystemModel> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Run from file system model";
+        }
+
+        public List<EnumDescription> getFsUftRunModes() {
+            return fsUftRunModes;
+        }
     }
 }

@@ -23,7 +23,10 @@
 package com.microfocus.application.automation.tools.model;
 
 import hudson.EnvVars;
+import hudson.Extension;
 import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import hudson.util.VariableResolver;
 
 import java.util.Arrays;
@@ -36,7 +39,9 @@ import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class RunFromAlmModel {
+import javax.annotation.Nonnull;
+
+public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public final static EnumDescription runModeLocal = new EnumDescription(
             "RUN_LOCAL", "Run locally");
@@ -190,5 +195,18 @@ public class RunFromAlmModel {
         props.put("almRunHost", almRunHost);
 
         return props;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<RunFromAlmModel> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Run from model";
+        }
+
+        public List<EnumDescription> getAlmRunModes() {
+            return runModes;
+        }
     }
 }
