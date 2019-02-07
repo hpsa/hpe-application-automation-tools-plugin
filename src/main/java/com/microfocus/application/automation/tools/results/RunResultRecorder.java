@@ -41,7 +41,6 @@ import hudson.tasks.test.TestResultAggregator;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1467,7 +1466,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return _resultsPublisherModel.getArchiveTestResultsMode();
     }
 
-    @Symbol("publishMicroFocusTestResults")
     /**
      * The type Descriptor.
      */
@@ -1485,7 +1483,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         @Override
         public String getDisplayName() {
 
-            return "Publish Micro Focus test results";
+            return "Publish Micro Focus tests result";
         }
 
         @Override
