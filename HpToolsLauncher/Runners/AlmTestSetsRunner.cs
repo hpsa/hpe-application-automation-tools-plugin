@@ -452,10 +452,6 @@ namespace HpToolsLauncher
                     tsPath = tsPath.Substring(0, pos - 1);
                     tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
                     isTestPath = true;
-
-                    Console.WriteLine("testName: " + testName);
-                    Console.WriteLine("testSuiteName: " +  testSuiteName);
-                    Console.WriteLine("tsPath: " + tsPath);
                 }
                 catch (COMException ex)
                 {
@@ -613,7 +609,8 @@ namespace HpToolsLauncher
                     }
                 }
             }
-     
+
+            
             try
             {
                 //set up for the run depending on where the test instances are to execute
@@ -641,7 +638,6 @@ namespace HpToolsLauncher
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tList.Count);
 
-        
 
             //set test parameters in xml format to be sent to ALM
              string xmlParameters = "";
@@ -653,7 +649,7 @@ namespace HpToolsLauncher
 
              int i = 1;
 
-           
+
             foreach (ITSTest3 test in tList)
             {
                 if (xmlParameters != "")
@@ -664,8 +660,11 @@ namespace HpToolsLauncher
 
                 string runOnHost = runHost;
                 if (runMode == QcRunMode.RUN_PLANNED_HOST)
-                    runOnHost = test.HostName;
+                {
+                   runOnHost = runHost;// test.HostName; 
+                }
 
+              
                 //if host isn't taken from QC (PLANNED) and not from the test definition (REMOTE), take it from LOCAL (machineName)
                 string hostName = runOnHost;
                 if (runMode == QcRunMode.RUN_LOCAL)

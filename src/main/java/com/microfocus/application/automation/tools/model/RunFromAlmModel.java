@@ -84,19 +84,9 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         }
 
         this.almRunResultsMode = almRunResultsMode;
-
         this.almTimeout = almTimeout;
         this.almRunMode = almRunMode;
-
-        if (this.almRunMode.equals(runModeRemote.getValue())) {
-            this.almRunHost = almRunHost;
-        } else {
-            this.almRunHost = "";
-        }
-
-        if (almRunHost == null) {
-            this.almRunHost = "";
-        }
+        this.almRunHost = almRunHost;
     }
 
     public String getAlmUserName() {
