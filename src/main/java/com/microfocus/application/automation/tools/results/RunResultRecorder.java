@@ -30,6 +30,8 @@ import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.run.SseBuilder;
+import com.sun.jna.Native;
+import com.sun.jna.platform.win32.Kernel32;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -436,6 +438,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                         String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
                         String testStatus = eElement.getAttribute("status"); // e.g. "pass"
+
 
                         Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
                         String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
@@ -959,7 +962,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      * @param reportNames
      * @param reportDirectory
      * @param testResult
-     * @param tranSummary
      * @throws IOException
      */
     private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult,

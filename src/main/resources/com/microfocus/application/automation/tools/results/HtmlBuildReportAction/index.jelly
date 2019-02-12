@@ -113,6 +113,9 @@
                 <j:when test="${status=='pass'}">
                     <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed"/></td>
                 </j:when>
+                <j:when test="${status=='warning'}">
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/warning.png" alt="Warning"/></td>
+                </j:when>
                 <j:otherwise>
                     <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed"/></td>
                 </j:otherwise>
