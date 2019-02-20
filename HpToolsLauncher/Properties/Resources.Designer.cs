@@ -493,7 +493,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}.
+        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}, warnings: {5}.
         /// </summary>
         internal static string LauncherDisplayStatistics {
             get {

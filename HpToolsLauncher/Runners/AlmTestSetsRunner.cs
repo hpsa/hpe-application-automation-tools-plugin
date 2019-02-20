@@ -184,19 +184,34 @@ namespace HpToolsLauncher
                 string tsDir = "";
                 string tsName = testset1;
                 string testParameters = "";
+                int nrOfSpaces = testset1.Count(x => x == ' ');
+                bool testHasColumn = testset1.Contains(':');
 
                 if (pos != -1)
                 {
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
                     if(posSpace != -1)
                     {
-                        tsName = testset1.Substring(pos, posSpace - pos).Trim("\\".ToCharArray());
-                        testParameters = testset1.Substring(posSpace, testset1.Length - posSpace).Trim("\\".ToCharArray());
+                        if (nrOfSpaces >= 1)
+                        {
+                            if (!testHasColumn)//test has no parameters
+                            {
+                                tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
+                            } else
+                            {
+                                int paramSpace = testset1.LastIndexOf(' ');
+                                tsName = testset1.Substring(pos, testset1.Length - paramSpace).Trim("\\".ToCharArray());
+                                testParameters = testset1.Substring(paramSpace, testset1.Length - paramSpace).Trim("\\".ToCharArray());
+                            }
+
+                        }  
+                        
                     } else
                     {
                         tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
                     }
                 }
+
 
                 TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
@@ -543,7 +558,7 @@ namespace HpToolsLauncher
 
             List<ITSTest> testsFilteredByStatus = new List<ITSTest>();
                                                                         
-            if (isFilterSelected.Equals(true) && !m_qcInitialTestRun)
+            if (isFilterSelected.Equals(true)) 
             {
                 //filter by status
                 foreach (string status in filterByStatuses)

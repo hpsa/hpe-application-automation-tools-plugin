@@ -329,14 +329,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         // folder
         File artifactsDir = new File(build.getRootDir(), "archive");
         artifactsDir.mkdirs();
-
+        listener.getLogger().println("artifactsDir: " + artifactsDir.getName() + " " + artifactsDir.getAbsolutePath());
         // read each result.xml
         /*
-         * The structure of the result file is: <testsuites> <testsuite>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/> </testsuite>
+         * The structure of the result file is:
+         * <testsuites>
+         *     <testsuite>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *     </testsuite>
          * </testsuites>
          */
 
@@ -439,10 +442,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
                         String testStatus = eElement.getAttribute("status"); // e.g. "pass"
 
-
                         Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
-                        String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
-                        String testDateTime = sysinfo.substring(0, 19);
+                        String sysInfo = nodeSystemInfo.getFirstChild().getNodeValue();
+                        String testDateTime = sysInfo.substring(0, 19);
 
                         FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
                         boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
@@ -476,15 +478,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             // in the same build
                             Integer nameCount = 1;
 
+                            listener.getLogger().println("nameCount is: " + nameCount);
                             if (fileNameCount.containsKey(testName)) {
                                 nameCount = fileNameCount.get(testName) + 1;
+                                listener.getLogger().println("nameCount(2): " + nameCount);
                             }
 
                             // update the count for this file
                             fileNameCount.put(testName, nameCount);
 
                             testName += "[" + nameCount + "]";
-
+                            listener.getLogger().println("testName:" + testName);
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
@@ -559,8 +563,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 }
 
                 if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
-
-                    listener.getLogger().println("begin to collectAndPrepareHtmlReports");
                     collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
                 }
 
@@ -1205,7 +1207,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
-                "Parsing test run dataset for perfomrance report");
+                "Parsing test run dataset for performance report");
         LrJobResults jobResults = new LrJobResults();
 
         // read each RunReport.xml
