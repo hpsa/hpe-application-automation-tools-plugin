@@ -43,6 +43,13 @@ function load(a,path){
     if (recreatJob){
         previousJobId = "";
     }
+
+    if (!useProxy){
+        proxyAddress = "";
+        proxyUserName = "";
+        proxyPassword = "";
+    }
+
     a.getMcServerUrl(mcUrl, function(r){
         baseUrl = r.responseObject();
         a.getJobId(baseUrl,mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
