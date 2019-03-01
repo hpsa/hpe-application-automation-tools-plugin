@@ -478,17 +478,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             // in the same build
                             Integer nameCount = 1;
 
-                            listener.getLogger().println("nameCount is: " + nameCount);
                             if (fileNameCount.containsKey(testName)) {
                                 nameCount = fileNameCount.get(testName) + 1;
-                                listener.getLogger().println("nameCount(2): " + nameCount);
                             }
 
                             // update the count for this file
                             fileNameCount.put(testName, nameCount);
 
                             testName += "[" + nameCount + "]";
-                            listener.getLogger().println("testName:" + testName);
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
@@ -501,7 +498,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         }
 
                         archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
-
                         if (archiveTestResult && rrvReport.exists()) {
 
                             if (reportFolder.exists()) {
@@ -587,7 +583,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile, TaskListener _logger) {
-
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
         try {
@@ -599,8 +594,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         Document doc = builder.newDocument();
         Element root = doc.createElement("reports_data");
         doc.appendChild(root);
-
+        int currentReport = 1;
         for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+            _logger.getLogger().println(" current report is: " + currentReport);
             String disPlayName = htmlReportInfo.getDisPlayName();
             String urlName = htmlReportInfo.getUrlName();
             String resourceURL = htmlReportInfo.getResourceURL();
@@ -617,19 +613,22 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             elmReport.setAttribute("isHtmlreport", isHtmlReport);
             elmReport.setAttribute("isParallelRunnerReport", isParallelRunnerReport);
             root.appendChild(elmReport);
-
+            currentReport++;
         }
 
         try {
-            write2XML(doc, xmlFile);
+            write2XML(doc, xmlFile, _logger);
         } catch (TransformerException e) {
             _logger.error("Failed transforming xml file: " + e);
+            _logger.getLogger().println("Failed transforming xml file: " + e);
         } catch (FileNotFoundException e) {
             _logger.error("Failed to find " + xmlFile + ": " + e);
+            _logger.getLogger().println("Failed to find " + xmlFile + ": " + e);
         }
     }
 
-    private void write2XML(Document document, String filename) throws TransformerException, FileNotFoundException {
+    private void write2XML(Document document, String filename, TaskListener _logger) throws TransformerException, FileNotFoundException {
+        _logger.getLogger().println("create xml file from report meta data");
         document.normalize();
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -674,6 +673,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 listener.getLogger().println("source: " + source);
                 String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
                 String dest = testName;
+                String testDateTime = htmlReportInfo.getDateTime();
+                listener.getLogger().println("collectAndPrepareHtmlReports: " + testDateTime);
                 FilePath targetPath = new FilePath(rootTarget, dest); // target path is something like "C:\Program Files
                 // (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
 

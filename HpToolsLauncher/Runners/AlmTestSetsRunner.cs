@@ -199,9 +199,12 @@ namespace HpToolsLauncher
                                 tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
                             } else
                             {
-                                int paramSpace = testset1.LastIndexOf(' ');
-                                tsName = testset1.Substring(pos, testset1.Length - paramSpace).Trim("\\".ToCharArray());
-                                testParameters = testset1.Substring(paramSpace, testset1.Length - paramSpace).Trim("\\".ToCharArray());
+                                int qmIndex = testset1.IndexOf("\"");
+                                if (qmIndex > pos)
+                                {
+                                    tsName = testset1.Substring(pos, qmIndex - pos).Trim("\\".ToCharArray()).TrimEnd(' ');
+                                    testParameters = testset1.Substring(qmIndex, testset1.Length - qmIndex).Trim("\\".ToCharArray());
+                                }
                             }
 
                         }  
@@ -211,7 +214,6 @@ namespace HpToolsLauncher
                         tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
                     }
                 }
-
 
                 TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
