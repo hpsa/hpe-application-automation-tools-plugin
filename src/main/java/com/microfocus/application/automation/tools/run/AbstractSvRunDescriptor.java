@@ -52,18 +52,18 @@ public abstract class AbstractSvRunDescriptor extends BuildStepDescriptor<Builde
 
     public SvServerSettingsModel[] getServers() {
         Jenkins jenkins = Jenkins.getInstance();
-        if (jenkins == null) {
-            throw new IllegalStateException("Cannot get Jenkins instance, probably not running inside Jenkins");
-        }
         return jenkins.getDescriptorByType(SvServerSettingsBuilder.DescriptorImpl.class).getServers();
     }
 
     @SuppressWarnings("unused")
     public ListBoxModel doFillServerNameItems() {
         ListBoxModel items = new ListBoxModel();
-        for (SvServerSettingsModel server : getServers()) {
-            if (StringUtils.isNotBlank(server.getName())) {
-                items.add(server.getName(), server.getName());
+        SvServerSettingsModel[] servers = getServers();
+        if (servers != null) {
+            for (SvServerSettingsModel server : servers) {
+                if (StringUtils.isNotBlank(server.getName())) {
+                    items.add(server.getName(), server.getName());
+                }
             }
         }
 
