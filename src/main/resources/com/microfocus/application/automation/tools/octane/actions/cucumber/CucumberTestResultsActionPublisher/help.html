@@ -25,5 +25,5 @@
     <p>
     To use the feature, ensure that you have added a Publish JUnit test results post-build action to your build.
     Then, specify the path to the Cucumber report XML files in the <a href="http://ant.apache.org/manual/Types/fileset.html">Ant glob syntax</a>.
-    Be sure not to include any non-Cucumber-report files in this path. You can specify multiple patterns by separating them with commas.
+    Note that this path should only contain Cucumber report files. Other test types will not be reported. You can specify multiple patterns by separating them with commas.
 </div>
