@@ -108,53 +108,63 @@ public class Webhooks implements UnprotectedRootAction {
                 String buildId = (String) (sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME));
                 String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
                 for (OctaneClient octaneClient : OctaneSDK.getClients()) {
-                    String octaneInstanceId = octaneClient.getInstanceId();
-                    ACLContext aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
+                    ACLContext aclContext = null;
+                    try{
+                        String octaneInstanceId = octaneClient.getInstanceId();
+                        aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
 
-                    TopLevelItem topLevelItem = Jenkins.getInstance().getItem(jobName);
-                    if (isValidJenkinsJob(topLevelItem)) {
-                        Job jenkinsJob = ((Job) topLevelItem);
-                        Integer buildNumber = Integer.valueOf(buildId, 10);
-                        if (isValidJenkinsBuildNumber(jenkinsJob, buildNumber)) {
-                            Run run = getRun(jenkinsJob, buildNumber);
-                            if (run != null && isRunExpectingToGetWebhookCall(run) && !isRunAlreadyGotWebhookCall(run)) {
-                                WebhookAction action = run.getAction(WebhookAction.class);
-                                ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
-                                GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
-                                if (sonarConfiguration != null) {
-                                    String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl());
-                                    HashMap project = (HashMap) inputNotification.get(PROJECT);
-                                    String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+                        TopLevelItem topLevelItem = Jenkins.getInstance().getItem(jobName);
+                        if (isValidJenkinsJob(topLevelItem)) {
+                            Job jenkinsJob = ((Job) topLevelItem);
+                            Integer buildNumber = Integer.valueOf(buildId, 10);
+                            if (isValidJenkinsBuildNumber(jenkinsJob, buildNumber)) {
+                                Run run = getRun(jenkinsJob, buildNumber);
+                                if (run != null && isRunExpectingToGetWebhookCall(run) && !isRunAlreadyGotWebhookCall(run)) {
+                                    WebhookAction action = run.getAction(WebhookAction.class);
+                                    ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
+                                    GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
+                                    if (sonarConfiguration != null) {
+                                        String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl());
+                                        HashMap project = (HashMap) inputNotification.get(PROJECT);
+                                        String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 
-                                    if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
-                                        // use SDK to fetch and push data
-                                        octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(jobName, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
+                                        if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
+                                            // use SDK to fetch and push data
+                                            octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(jobName, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
+                                        }
+                                        if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
+                                            Map<String, String> additionalProperties = new HashMap<>();
+                                            additionalProperties.put(PROJECT_KEY_KEY, sonarProjectKey);
+                                            additionalProperties.put(SONAR_URL_KEY, action.getServerUrl());
+                                            additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
+                                            additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
+                                            OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneInstanceId);
+                                            octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(jobName, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
+
+                                        }
+
+                                        markBuildAsRecievedWebhookCall(run);
+                                        res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
                                     }
-                                    if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
-                                        Map<String, String> additionalProperties = new HashMap<>();
-                                        additionalProperties.put(PROJECT_KEY_KEY, sonarProjectKey);
-                                        additionalProperties.put(SONAR_URL_KEY, action.getServerUrl());
-                                        additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
-                                        additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
-                                        OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneInstanceId);
-                                        octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(jobName, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
-
-                                    }
-
-                                    markBuildAsRecievedWebhookCall(run);
-                                    res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
+                                } else {
+                                    logger.warn("Got request from sonarqube webhook listener for build ," + buildId + " which is not expecting to get sonarqube data");
+                                    res.setStatus(HttpStatus.SC_EXPECTATION_FAILED);
                                 }
                             } else {
-                                logger.warn("Got request from sonarqube webhook listener for build ," + buildId + " which is not expecting to get sonarqube data");
-                                res.setStatus(HttpStatus.SC_EXPECTATION_FAILED);
+                                logger.warn("Got request from sonarqube webhook listener, but build " + buildId + " context could not be resolved");
+                                res.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
                             }
-                        } else {
-                            logger.warn("Got request from sonarqube webhook listener, but build " + buildId + " context could not be resolved");
-                            res.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
+                        }
+                    }catch (Exception e ){
+                        logger.error("exception occurred while trying to enqueue fetchAndPush task to octane, for build: " + buildId , e);
+                    }finally {
+                        if (aclContext != null ){
+                            ImpersonationUtil.stopImpersonation(aclContext);
+
                         }
 
                     }
-                    ImpersonationUtil.stopImpersonation(aclContext);
+
                 }
             }
         }

@@ -24,6 +24,7 @@ import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.octane.actions.WebhookAction;
 import com.microfocus.application.automation.tools.octane.actions.Webhooks;
+import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.FilePath;
@@ -49,168 +50,167 @@ import java.util.Set;
 
 public class SonarOctaneListener extends Builder implements SimpleBuildStep {
 
-	// these properties will be used for sonar communication
-	public String sonarToken;
-	public String sonarServerUrl;
-	boolean pushVulnerabilities;
-	boolean pushCoverage;
+    // these properties will be used for sonar communication
+    public String sonarToken;
+    public String sonarServerUrl;
+    boolean pushVulnerabilities;
+    boolean pushCoverage;
 
-	private Set<SonarHelper.DataType> dataTypeSet = new HashSet<>();
-
-
-	@DataBoundConstructor
-	public SonarOctaneListener(){
-		this.sonarToken = sonarToken == null ? "" : sonarToken;
-		this.sonarServerUrl = sonarServerUrl == null ? "" : sonarServerUrl;
-	}
-
-	@DataBoundSetter
-	public void setSonarToken(String sonarToken) {
-		this.sonarToken = sonarToken;
-	}
-
-	@DataBoundSetter
-	public void setSonarServerUrl(String sonarServerUrl) {
-		this.sonarServerUrl = sonarServerUrl;
-	}
-
-	@DataBoundSetter
-	public void setPushVulnerabilities(boolean pushVulnerabilities) {
-		this.pushVulnerabilities = pushVulnerabilities;
-		if (pushVulnerabilities){
-			dataTypeSet.add(SonarHelper.DataType.VULNERABILITIES);
-		}else {
-			dataTypeSet.remove(SonarHelper.DataType.VULNERABILITIES);
-		}
-
-	}
-
-	@DataBoundSetter
-	public void setPushCoverage(boolean pushCoverage) {
-		this.pushCoverage = pushCoverage;
-		if(pushCoverage){
-			dataTypeSet.add(SonarHelper.DataType.COVERAGE);
-		}else {
-			dataTypeSet.remove(SonarHelper.DataType.COVERAGE);
-		}
-	}
-
-	/**
-	 * get server token
-	 *
-	 * @return
-	 */
-	public String getSonarToken() {
-		return sonarToken;
-	}
-
-	/**
-	 * get server url
-	 *
-	 * @return
-	 */
-	public String getSonarServerUrl() {
-		return sonarServerUrl;
-	}
-
-	/**
-	 * is Push Vulnerabilities to octane
-	 * @return
-	 */
-	public boolean isPushVulnerabilities() {
-		return pushVulnerabilities;
-	}
-
-	/**
-	 * is Push Coverage to octane
-	 * @return
-	 */
-	public boolean isPushCoverage() {
-		return pushCoverage;
-	}
-
-	/**
-	 * this method is initializing sonar server details from listener configuration or
-	 * sonar plugin data
-	 *
-	 * @param run               current run
-	 * @throws InterruptedException
-	 */
-	private void initializeSonarDetails(@Nonnull Run<?, ?> run, TaskListener listener) throws InterruptedException {
-		// if one of the properties is empty, need to query sonar plugin from jenkins to get the data
-		ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
-		if (sonarToken.isEmpty() || sonarServerUrl.isEmpty()) {
-			try {
-				if (allConfigurations != null) {
-					SonarHelper adapter = new SonarHelper(run, listener);
-					setSonarServerUrl(sonarServerUrl.isEmpty() ? adapter.getServerUrl() : sonarServerUrl);
-					setSonarToken(sonarToken.isEmpty() ? adapter.getServerToken() : sonarToken);
-
-				}
-			} catch (Exception e) {
-				throw new InterruptedException("exception occurred while init sonar tracker for job " + run.getDisplayName() + " error message: " + e.getMessage());
-			}
-		}
-	}
-
-	private String getBuildNumber(Run<?, ?> run) {
-		if (run instanceof AbstractBuild) {
-			AbstractBuild abstractBuild = (AbstractBuild) run;
-			return String.valueOf(abstractBuild.getNumber());
-		}
-		return "";
-	}
-
-	/**
-	 * Run this step.
-	 *
-	 * @param run       a build this is running as a part of
-	 * @param workspace a workspace to use for any file operations
-	 * @param launcher  a way to start processes
-	 * @param listener  a place to send output
-	 * @throws InterruptedException if the step is interrupted
-	 */
-	@Override
-	public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-	                    @Nonnull TaskListener listener) throws InterruptedException, IOException {
-		PrintStream logger = listener.getLogger();
-		initializeSonarDetails(run,listener);
-
-		String jenkinsRoot = Jenkins.getInstance().getRootUrl();
-		String callbackWebHooksURL = jenkinsRoot + Webhooks.WEBHOOK_PATH + Webhooks.NOTIFY_METHOD;
-			logger.println("callback URL for jenkins resource will be set to: " + callbackWebHooksURL);
-			OctaneSDK.getClients().forEach(octaneClient -> {
-				try {
-					octaneClient.getSonarService().ensureSonarWebhookExist(callbackWebHooksURL, getSonarServerUrl(), getSonarToken());
-				} catch (SonarIntegrationException e) {
-					logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
-				}
-			});
-		run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
-	}
-
-	@Override
-	public SonarDescriptor getDescriptor() {
-		return (SonarDescriptor) super.getDescriptor();
-	}
-
-	@Symbol("addSonarQubeListener")
-	@Extension
-	public static class SonarDescriptor extends BuildStepDescriptor<Builder> {
-
-		public SonarDescriptor() {
-			load();
-		}
-
-		@Override
-		public String getDisplayName() {
-			return "ALM Octane SonarQube listener";
-		}
+    private Set<SonarHelper.DataType> dataTypeSet = new HashSet<>();
 
 
-		@Override
-		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-			return true;
-		}
-	}
+    @DataBoundConstructor
+    public SonarOctaneListener() {
+    }
+
+    @DataBoundSetter
+    public void setSonarToken(String sonarToken) {
+        this.sonarToken = sonarToken;
+    }
+
+    @DataBoundSetter
+    public void setSonarServerUrl(String sonarServerUrl) {
+        this.sonarServerUrl = sonarServerUrl;
+    }
+
+    @DataBoundSetter
+    public void setPushVulnerabilities(boolean pushVulnerabilities) {
+        this.pushVulnerabilities = pushVulnerabilities;
+        if (pushVulnerabilities) {
+            dataTypeSet.add(SonarHelper.DataType.VULNERABILITIES);
+        } else {
+            dataTypeSet.remove(SonarHelper.DataType.VULNERABILITIES);
+        }
+
+    }
+
+    @DataBoundSetter
+    public void setPushCoverage(boolean pushCoverage) {
+        this.pushCoverage = pushCoverage;
+        if (pushCoverage) {
+            dataTypeSet.add(SonarHelper.DataType.COVERAGE);
+        } else {
+            dataTypeSet.remove(SonarHelper.DataType.COVERAGE);
+        }
+    }
+
+    /**
+     * get server token
+     *
+     * @return
+     */
+    public String getSonarToken() {
+        return sonarToken;
+    }
+
+    /**
+     * get server url
+     *
+     * @return
+     */
+    public String getSonarServerUrl() {
+        return sonarServerUrl;
+    }
+
+    /**
+     * is Push Vulnerabilities to octane
+     *
+     * @return
+     */
+    public boolean isPushVulnerabilities() {
+        return pushVulnerabilities;
+    }
+
+    /**
+     * is Push Coverage to octane
+     *
+     * @return
+     */
+    public boolean isPushCoverage() {
+        return pushCoverage;
+    }
+
+    /**
+     * this method is initializing sonar server details from listener configuration or
+     * sonar plugin data
+     *
+     * @param run current run
+     * @throws InterruptedException
+     */
+    private void initializeSonarDetails(@Nonnull Run<?, ?> run, TaskListener listener) throws InterruptedException {
+        // if one of the properties is empty, need to query sonar plugin from jenkins to get the data
+        ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
+        if (allConfigurations != null) {
+            SonarHelper adapter = new SonarHelper(run, listener);
+            // get the most recent sonar server details from  environments variables, and only if there is no details there take the details from the class properties.
+            setSonarServerUrl(StringUtils.isNullOrEmpty(adapter.getServerUrl()) ? sonarServerUrl : adapter.getServerUrl());
+            setSonarToken(StringUtils.isNullOrEmpty(adapter.getServerToken()) ? sonarToken : adapter.getServerToken());
+        }
+    }
+
+
+    private String getBuildNumber(Run<?, ?> run) {
+        if (run instanceof AbstractBuild) {
+            AbstractBuild abstractBuild = (AbstractBuild) run;
+            return String.valueOf(abstractBuild.getNumber());
+        }
+        return "";
+    }
+
+    /**
+     * Run this step.
+     *
+     * @param run       a build this is running as a part of
+     * @param workspace a workspace to use for any file operations
+     * @param launcher  a way to start processes
+     * @param listener  a place to send output
+     * @throws InterruptedException if the step is interrupted
+     */
+    @Override
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        PrintStream logger = listener.getLogger();
+        initializeSonarDetails(run, listener);
+
+        String jenkinsRoot = Jenkins.getInstance().getRootUrl();
+        String callbackWebHooksURL = jenkinsRoot + Webhooks.WEBHOOK_PATH + Webhooks.NOTIFY_METHOD;
+        if (StringUtils.isNullOrEmpty(this.sonarServerUrl) || StringUtils.isNullOrEmpty(this.sonarToken)) {
+            logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed, missing sonarQube server url or sonarQube authentication token");
+        } else {
+            logger.println("callback URL for jenkins resource will be set to: " + callbackWebHooksURL + " in sonarQube server with URL: " + this.sonarServerUrl);
+            OctaneSDK.getClients().forEach(octaneClient -> {
+                try {
+                    octaneClient.getSonarService().ensureSonarWebhookExist(callbackWebHooksURL, getSonarServerUrl(), getSonarToken());
+                } catch (SonarIntegrationException e) {
+                    logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
+                }
+            });
+            run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
+        }
+    }
+
+    @Override
+    public SonarDescriptor getDescriptor() {
+        return (SonarDescriptor) super.getDescriptor();
+    }
+
+    @Symbol("addALMOctaneSonarQubeListener")
+    @Extension
+    public static class SonarDescriptor extends BuildStepDescriptor<Builder> {
+
+        public SonarDescriptor() {
+            load();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "ALM Octane SonarQube listener";
+        }
+
+
+        @Override
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            return true;
+        }
+    }
 }

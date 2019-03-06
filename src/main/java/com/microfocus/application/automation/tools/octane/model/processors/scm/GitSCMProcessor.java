@@ -165,10 +165,10 @@ class GitSCMProcessor implements SCMProcessor {
     private List<SCMFileBlame> getBlameData(Repository repo, Set<String> files) {
         BlameCommand blamer = new BlameCommand(repo);
         List<SCMFileBlame> fileBlameList = new ArrayList<>();
-        ObjectId commitID = null;
+        ObjectId commitID;
         try {
+            commitID = repo.resolve(Constants.HEAD);
             for (String filePath : files) {
-                commitID = repo.resolve(Constants.HEAD);
                 blamer.setStartCommit(commitID);
                 blamer.setFilePath(filePath);
                 BlameResult blameResult = blamer.call();
@@ -191,14 +191,15 @@ class GitSCMProcessor implements SCMProcessor {
                     }
                 }
                 fileBlameList.add(new SCMFileBlameImpl(filePath, revisionsMap));
-
             }
-
-            return fileBlameList;
-
-        } catch (IOException | GitAPIException e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            logger.error("failed to resolve repo head", e);
         }
+         catch (GitAPIException e) {
+             logger.error("failed to get blame result from git", e);
+         }
+        return fileBlameList;
+
     }
 
 
