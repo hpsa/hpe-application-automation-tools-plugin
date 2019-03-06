@@ -26,64 +26,59 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class ObjectStreamIterator<E> implements Iterator<E> {
-	private static Logger logger = LogManager.getLogger(ObjectStreamIterator.class);
+    private static Logger logger = LogManager.getLogger(ObjectStreamIterator.class);
 
-	private MyObjectInputStream ois;
-	private E next;
+    private ObjectInputStream ois;
+    private FilePath filePath;
+    private E next;
 
-	public ObjectStreamIterator(FilePath filePath) throws IOException, InterruptedException {
-		ois = new MyObjectInputStream(new BufferedInputStream(filePath.read()));
-	}
+    public ObjectStreamIterator(FilePath filePath) throws IOException, InterruptedException {
+        this.filePath = filePath;
+        this.ois = new ObjectInputStream(new BufferedInputStream(filePath.read()));
+    }
 
-	@Override
-	public boolean hasNext() {
-		if (next != null) {
-			return true;
-		}
-		try {
-			next = (E) ois.readObject();
-			return true;
-		} catch (Exception e) {
-			ois.close();
-			return false;
-		}
-	}
+    @Override
+    public boolean hasNext() {
+        if (next != null) {
+            return true;
+        }
+        try {
+            next = (E) ois.readObject();
+            return true;
+        } catch (Throwable e) {
+            try {
+                ois.close();
+            } catch (IOException ioe) {
+                logger.error("Failed to close the stream", ioe); // NON-NLS
+            }
 
-	@Override
-	public E next() {
-		if (hasNext()) {
-			E value = next;
-			next = null;
-			return value;
-		} else {
-			throw new NoSuchElementException();
-		}
-	}
+            try {
+                filePath.delete();
+            } catch (Exception ex) {
+                logger.error("Failed to delete the filePath " + filePath.getRemote(), ex); // NON-NLS
+            }
+            return false;
+        }
+    }
 
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public E next() {
+        if (hasNext()) {
+            E value = next;
+            next = null;
+            return value;
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
 
-	private class MyObjectInputStream extends ObjectInputStream {
-
-		private MyObjectInputStream(InputStream in) throws IOException {
-			super(in);
-		}
-
-		@Override
-		public void close() {
-			try {
-				super.close();
-			} catch (IOException ioe) {
-				logger.error("Failed to close the stream", ioe); // NON-NLS
-			}
-		}
-	}
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
 }
