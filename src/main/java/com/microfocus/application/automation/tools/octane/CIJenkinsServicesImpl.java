@@ -59,9 +59,7 @@ import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
-import hudson.security.ACL;
 import hudson.security.ACLContext;
-import jenkins.branch.OrganizationFolder;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.apache.commons.fileupload.FileItem;
@@ -467,27 +465,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	private ACLContext startImpersonation() {
-		OctaneServerSettingsModel settings = ConfigurationService.getSettings(getInstanceId());
-		if (settings == null) {
-			throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + getInstanceId());
-		}
-		String user = settings.getImpersonatedUser();
-		User jenkinsUser = null;
-		if (user != null && !user.isEmpty()) {
-			jenkinsUser = User.get(user, false, Collections.emptyMap());
-			if (jenkinsUser == null) {
-				throw new PermissionException(401);
-			}
-		} else {
-			logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
-		}
-
-		ACLContext impersonatedContext = ACL.as(jenkinsUser);
-		return impersonatedContext;
+		return ImpersonationUtil.startImpersonation(getInstanceId());
 	}
 
 	private void stopImpersonation(ACLContext impersonatedContext) {
-		impersonatedContext.close();
+		ImpersonationUtil.stopImpersonation(impersonatedContext);
 	}
 
 	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {

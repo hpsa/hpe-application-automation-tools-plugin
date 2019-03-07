@@ -24,7 +24,7 @@ import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import hudson.model.Action;
 
 import javax.annotation.CheckForNull;
-import java.util.List;
+import java.util.Set;
 
 /*
     Class for handling webhook exception
@@ -33,15 +33,13 @@ import java.util.List;
 public class WebhookAction implements Action {
     private Boolean isExpectingToGetWebhookCall;
     private String serverUrl;
-    private List<SonarHelper.DataType> dataTypeList;
+    private Set<SonarHelper.DataType> dataTypeSet;
 
-
-    public WebhookAction(Boolean isExpectingToGetWebhookCall, String serverUrl, List<SonarHelper.DataType> dataTypeList) {
+    public WebhookAction(Boolean isExpectingToGetWebhookCall, String serverUrl, Set<SonarHelper.DataType> dataTypeSet) {
         this.isExpectingToGetWebhookCall = isExpectingToGetWebhookCall;
         this.serverUrl = serverUrl;
-        this.dataTypeList = dataTypeList;
+        this.dataTypeSet = dataTypeSet;
     }
-
 
     public String getServerUrl() {
 
@@ -52,8 +50,8 @@ public class WebhookAction implements Action {
         return isExpectingToGetWebhookCall;
     }
 
-    public List<SonarHelper.DataType> getDataTypeList() {
-        return dataTypeList;
+    public Set<SonarHelper.DataType> getDataTypeSet() {
+        return dataTypeSet;
     }
 
     @CheckForNull
