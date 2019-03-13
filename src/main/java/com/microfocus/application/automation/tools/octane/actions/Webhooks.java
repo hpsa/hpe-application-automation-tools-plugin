@@ -107,18 +107,18 @@ public class Webhooks implements UnprotectedRootAction {
             if (sonarAttachedProperties.containsKey(BUILD_NUMBER_PARAM_NAME) && sonarAttachedProperties.containsKey(JOB_NAME_PARAM_NAME)) {
                 String buildId = (String) (sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME));
                 String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
+                Run run = null;
                 for (OctaneClient octaneClient : OctaneSDK.getClients()) {
                     ACLContext aclContext = null;
                     try{
                         String octaneInstanceId = octaneClient.getInstanceId();
                         aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
-
                         TopLevelItem topLevelItem = Jenkins.getInstance().getItem(jobName);
                         if (isValidJenkinsJob(topLevelItem)) {
                             Job jenkinsJob = ((Job) topLevelItem);
                             Integer buildNumber = Integer.valueOf(buildId, 10);
                             if (isValidJenkinsBuildNumber(jenkinsJob, buildNumber)) {
-                                Run run = getRun(jenkinsJob, buildNumber);
+                                run = getRun(jenkinsJob, buildNumber);
                                 if (run != null && isRunExpectingToGetWebhookCall(run) && !isRunAlreadyGotWebhookCall(run)) {
                                     WebhookAction action = run.getAction(WebhookAction.class);
                                     ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
@@ -142,8 +142,6 @@ public class Webhooks implements UnprotectedRootAction {
                                             octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(jobName, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
 
                                         }
-
-                                        markBuildAsRecievedWebhookCall(run);
                                         res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
                                     }
                                 } else {
@@ -160,17 +158,15 @@ public class Webhooks implements UnprotectedRootAction {
                     }finally {
                         if (aclContext != null ){
                             ImpersonationUtil.stopImpersonation(aclContext);
-
                         }
-
                     }
-
+                }
+                if (run != null){
+                    markBuildAsRecievedWebhookCall(run);
                 }
             }
         }
     }
-
-
     /**
      * this method checks if run already got webhook call.
      * we are only handling the first call, laters call for the same run
