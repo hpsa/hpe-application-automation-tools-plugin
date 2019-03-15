@@ -208,7 +208,7 @@ namespace HpToolsLauncher
                 //--handle single test dir, add it with no group
                 if (testGroup.Count == 1)
                 {
-                    testGroup[0].TestGroup = "<None>";
+                    testGroup[0].TestGroup = "Test group";
                 }
 
                 _tests.AddRange(testGroup);

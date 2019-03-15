@@ -167,10 +167,10 @@ namespace HpToolsLauncher
                     }
 
                     XAttribute xname = GetAttribute(test, "name");
-
-                    string name = "<None>";
-                    if (xname != null)
+                    string name = "Unnamed Test";
+                    if (xname != null && xname.Value != ""){
                         name = xname.Value;
+                    }
                     
                     // optional report path attribute
                     XAttribute xReportPath = GetAttribute(test, "reportPath");
