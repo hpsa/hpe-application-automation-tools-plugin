@@ -33,7 +33,12 @@
              </ul>
          </li>
         <br/>
-        <li> To use in the <i>pipeline script (workflow job)</i>, use the following syntax : <b>${params.testsToRunConverted}</b>. For example: mvn clean -Dtest=${params.testsToRunConverted} test</li>
+        <li> To use in the <i>pipeline script (workflow job)</i>, use the following syntax :  <b>"${params.testsToRunConverted}"</b>. For example
+            <ul>
+                <li>(Protractor) <i>bat(/protractor conf.js --grep="${params.testsToRunConverted}"/)</i> </li>
+                <li>(Surefire)   <i>bat 'mvn clean -Dtest=${params.testsToRunConverted} test'</i></li>
+            </ul>
+
     </ul>
     </br>
     </br>
