@@ -157,6 +157,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
+				if (testName != null && testName.endsWith("()")) {//clear ending () for gradle tests
+					testName = testName.substring(0, testName.length() - 2);
+				}
 
                 if (hpRunnerType.equals(HPRunnerType.UFT)) {
                     String myPackageName = packageName;
