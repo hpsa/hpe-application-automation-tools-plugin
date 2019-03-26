@@ -28,6 +28,7 @@
         <br/>
         <li> To use in the <i>scripts (shell, batch command)</i>, use the following syntax: (Windows) <b>%testsToRunConverted%</b>, and (Linux) <b>$testsToRunConverted</b>. For example
              <ul>
+                 <li>(Gradle,   Windows) <i>gradle test %testsToRunConverted%</i></li>
                  <li>(Surefire, Windows) <i>mvn clean -Dtest=%testsToRunConverted% test </i> </li>
                  <li>(Failsafe,   Linux) <i>mvn clean -Dit.test=$testsToRunConverted verify</i></li>
              </ul>
