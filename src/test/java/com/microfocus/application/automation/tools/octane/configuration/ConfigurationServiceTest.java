@@ -165,7 +165,7 @@ public class ConfigurationServiceTest extends OctanePluginTestBase {
 
 	private HtmlElement findButton(HtmlElement form, String buttonText) {
 		List<HtmlElement> list = new LinkedList<>();
-		for (HtmlElement htmlElement : form.getHtmlElementsByTagName("button")) {
+		for (HtmlElement htmlElement : form.getElementsByTagName("button")) {
 			if (buttonText.equals(htmlElement.getFirstChild().asText())) {
 				list.add(htmlElement);
 			}
