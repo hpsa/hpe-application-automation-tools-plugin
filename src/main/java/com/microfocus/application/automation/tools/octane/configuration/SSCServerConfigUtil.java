@@ -68,6 +68,20 @@ public class SSCServerConfigUtil {
 		if (projectName != null && !projectName.isEmpty() && projectVersion != null && !projectVersion.isEmpty()) {
 			return new SSCProjectVersionPair(projectName, projectVersion);
 		}
+		logger.warn("Version seems to be 18.20.1071 or higher");
+		//18.20.1071 version.
+		Object uploadSSC = getFieldValueAsObj(fprPublisher, "uploadSSC");
+		if(uploadSSC == null){
+			logger.warn("uploadSSC section was not found");
+		}else {
+			logger.warn("uploadSSC was found ");
+			projectName = getFieldValue(uploadSSC, "projectName");
+			projectVersion = getFieldValue(uploadSSC, "projectVersion");
+			logger.warn("projectName" + projectName + " , ProjectVersion" + projectVersion);
+		}
+		if (projectName != null && !projectName.isEmpty() && projectVersion != null && !projectVersion.isEmpty()) {
+			return new SSCProjectVersionPair(projectName, projectVersion);
+		}
 		return null;
 	}
 
@@ -88,9 +102,32 @@ public class SSCServerConfigUtil {
 		}
 		return null;
 	}
+	private static Object getFieldValueAsObj(Object someObject, String fieldName) {
+		for (Field field : someObject.getClass().getDeclaredFields()) {
+			field.setAccessible(true);
+			if (field.getName().equals(fieldName)) {
+				try {
+					return field.get(someObject);
+				} catch (IllegalAccessException e) {
+					logger.error("Failed to getFieldValue", e);
+				}
+			}
+		}
+		return null;
+	}
 
 	private static Descriptor getSSCDescriptor() {
-		return Jenkins.getInstance().getDescriptorByName("com.fortify.plugin.jenkins.FPRPublisher");
+		Descriptor publisher = Jenkins.getInstance().getDescriptorByName("com.fortify.plugin.jenkins.FPRPublisher");
+		if(publisher == null){
+			//18.20 version and above.
+			logger.debug("didn't find Old SSC FPRPublisher");
+			Descriptor plugin = Jenkins.getInstance().getDescriptorByName("com.fortify.plugin.jenkins.FortifyPlugin");
+			if(plugin == null){
+				logger.debug("didn't find Fortify Plugin of 18.20 version and above");
+			}
+			return plugin;
+		}
+		return publisher;
 	}
 
 	public static final class SSCProjectVersionPair {

@@ -28,12 +28,18 @@
         <br/>
         <li> To use in the <i>scripts (shell, batch command)</i>, use the following syntax: (Windows) <b>%testsToRunConverted%</b>, and (Linux) <b>$testsToRunConverted</b>. For example
              <ul>
+                 <li>(Gradle,   Windows) <i>gradle test %testsToRunConverted%</i></li>
                  <li>(Surefire, Windows) <i>mvn clean -Dtest=%testsToRunConverted% test </i> </li>
                  <li>(Failsafe,   Linux) <i>mvn clean -Dit.test=$testsToRunConverted verify</i></li>
              </ul>
          </li>
         <br/>
-        <li> To use in the <i>pipeline script (workflow job)</i>, use the following syntax : <b>${params.testsToRunConverted}</b>. For example: mvn clean -Dtest=${params.testsToRunConverted} test</li>
+        <li> To use in the <i>pipeline script (workflow job)</i>, use the following syntax :  <b>"${params.testsToRunConverted}"</b>. For example
+            <ul>
+                <li>(Protractor) <i>bat(/protractor conf.js --grep="${params.testsToRunConverted}"/)</i> </li>
+                <li>(Surefire)   <i>bat 'mvn clean -Dtest=${params.testsToRunConverted} test'</i></li>
+            </ul>
+
     </ul>
     </br>
     </br>

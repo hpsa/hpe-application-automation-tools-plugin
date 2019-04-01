@@ -45,9 +45,11 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
 	public void onFinalized(AbstractBuild build) {
 		String sscServerUrl = SSCServerConfigUtil.getSSCServer();
 		if (sscServerUrl == null || sscServerUrl.isEmpty()) {
+			logger.warn("sscServerUrl=" + sscServerUrl);
 			logger.debug("SSC configuration not found in the whole CI Server");
 			return;
 		}
+		logger.error("Retrieving the project config.");
 		SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild(build);
 		if (projectVersionPair == null) {
 			logger.warn("SSC configuration not found in " + build);

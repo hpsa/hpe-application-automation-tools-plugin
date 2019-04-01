@@ -155,6 +155,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					continue;
 				}
 
+				String jobName = tmpItem.getName();
 				String jobClassName = tmpItem.getClass().getName();
 				try {
 					if (tmpItem instanceof AbstractProject) {
@@ -169,6 +170,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 						list.add(tmpConfig);
 					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
 						for (Job tmpJob : tmpItem.getAllJobs()) {
+							jobName = tmpJob.getFullName();
 							tmpConfig = createPipelineNode(tmpJob.getName(), tmpJob, includeParameters);
 							list.add(tmpConfig);
 						}
@@ -178,14 +180,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
 						Collection<? extends Item> items = ((AbstractFolder) tmpItem).getItems();
 						for (Item item : items) {
+							jobName = item.getFullName();
 							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
 							list.add(tmpConfig);
 						}
 					} else {
-						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", name, jobClassName));
+						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", jobName, jobClassName));
 					}
 				} catch (Throwable e) {
-					logger.error("getJobsList : Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+					logger.error("getJobsList : Failed to add job '" + jobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
 				}
 
 			}
