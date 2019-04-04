@@ -388,13 +388,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 	@Override
-	public Long getFodRelease(String jobId, String buildId){
-		Run run = getRunByRefNames(jobId, buildId);
-		if (run != null && run instanceof AbstractBuild) {
-			return FodConfigUtil.getFODReleaseFromBuild((AbstractBuild) run);
-		} else {
-			logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
-			return null;
+	public Long getFodRelease(String jobId, String buildId) {
+		ACLContext originalContext = startImpersonation();
+		try {
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null && run instanceof AbstractBuild) {
+				return FodConfigUtil.getFODReleaseFromBuild((AbstractBuild) run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
+				return null;
+			}
+		} finally {
+			stopImpersonation(originalContext);
 		}
 	}
 

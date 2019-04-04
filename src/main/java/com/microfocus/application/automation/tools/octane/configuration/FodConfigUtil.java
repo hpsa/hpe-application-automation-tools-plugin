@@ -36,7 +36,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.microfocus.application.automation.tools.octane.configuration.ReflectionUtils.getFieldValue;
-
+/***
+ * A utility class to help retrieving the configuration of the FOD
+ * in Jenkins: URL, connection params, releaseId etc.
+ */
 public class FodConfigUtil {
     private final static Logger logger = LogManager.getLogger(FodConfigUtil.class);
 

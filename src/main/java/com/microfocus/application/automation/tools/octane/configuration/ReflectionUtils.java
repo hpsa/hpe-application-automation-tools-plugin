@@ -24,8 +24,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
-//A utility class to help retrieving data from objects,
-// on whom we have no type data.
+
+/***
+ * A utility class to help retrieving data from objects,
+ * on whom we have no type data.
+ */
 public class ReflectionUtils {
     private static final Logger logger = LogManager.getLogger(ReflectionUtils.class);
     public static <T>  T getFieldValue(Object someObject, String fieldName) {
