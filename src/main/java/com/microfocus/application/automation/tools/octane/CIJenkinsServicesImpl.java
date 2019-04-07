@@ -249,6 +249,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				job = createExecutorByJobName(jobCiId);
 			}
 			if (job != null) {
+				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
+					//disabled job is not runnable and in this context we will handle it as 404
+					throw new ConfigurationException(404);
+				}
 				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 				if (!hasBuildPermission) {
 					stopImpersonation(securityContext);
