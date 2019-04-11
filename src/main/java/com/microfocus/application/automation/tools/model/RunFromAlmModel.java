@@ -36,6 +36,7 @@ import hudson.util.Secret;
 
 import java.util.Properties;
 
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -148,6 +149,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
             props.put("almDomain", almDomain);
             props.put("almProject", almProject);
         } else {
+
             props.put("almUserName",
                     Util.replaceMacro(envVars.expand(almUserName), varResolver));
             props.put(ALM_PASSWORD_KEY, almPassword);

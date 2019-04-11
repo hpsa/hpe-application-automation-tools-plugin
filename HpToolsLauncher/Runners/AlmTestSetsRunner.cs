@@ -32,6 +32,7 @@ using System.Threading;
 using HpToolsLauncher.Properties;
 using Mercury.TD.Client.Ota.QC9;
 
+
 //using Mercury.TD.Client.Ota.Api;
 
 namespace HpToolsLauncher
@@ -135,6 +136,7 @@ namespace HpToolsLauncher
             m_qcFilterByStatuses = filterByStatuses;
             m_qcInitialTestRun = initialTestRun;
          
+            //if sso enable use the Jenkins credentials
             Connected = ConnectToProject(qcServer, qcUser, qcPassword, qcDomain, qcProject);
             TestSets = qcTestSets;
             if (!Connected)
@@ -230,7 +232,7 @@ namespace HpToolsLauncher
         {
 
             Type type = Type.GetTypeFromProgID("TDApiOle80.TDConnection");
-
+            
             if (type == null)
             {
                 ConsoleWriter.WriteLine(GetAlmNotInstalledError());
@@ -241,6 +243,8 @@ namespace HpToolsLauncher
             {
                 object conn = Activator.CreateInstance(type);
                 this.tdConnection = conn as ITDConnection2;
+               // set credentials
+
 
             }
             catch (FileNotFoundException ex)
@@ -911,8 +915,14 @@ namespace HpToolsLauncher
                     ConsoleWriter.WriteLine(stepsString);
 
                 string linkStr = GetTestRunLink(prevTest, runid);
-
-                ConsoleWriter.WriteLine("\n" + string.Format(Resources.AlmRunnerDisplayLink, linkStr));
+                if(linkStr.Equals(""))
+                {
+                    Console.WriteLine("You are using an old version of QC. Please update ALM QC.");
+                }
+                else
+                {
+                    ConsoleWriter.WriteLine("\n" + string.Format(Resources.AlmRunnerDisplayLink, "\n" + linkStr + "\n"));
+                }
             }
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " " + Resources.AlmRunnerTestCompleteCaption + " " + prevTest.Name +
                 ((runid > prevRunId) ? ", " + Resources.AlmRunnerRunIdCaption + " " + runid : "")
@@ -931,11 +941,18 @@ namespace HpToolsLauncher
             bool useSSL = (m_qcServer.Contains("https://"));
 
             ITestSet set = prevTest.TestSet;
-            string testRunLink = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestLabModule-000000003649890581?EntityType=IRun&EntityID=" + runid)
-                : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/TestLabModule-000000003649890581?EntityType=IRun&EntityID=" + runid);
-            string testRunLinkQc10 = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid)
-                : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid);
-            string linkStr = (oldQc ? testRunLinkQc10 : testRunLink);
+            //string testRunLink = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid)
+              //  : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid);
+            //string testRunLinkQc10 = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid)
+            //  : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid);
+            //string linkStr = (oldQc ? testRunLinkQc10 : testRunLink);
+            string linkStr = "";
+            if(!oldQc)
+            {
+                linkStr = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid)
+                : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid); ;
+            }
+          
             return linkStr;
         }
 
@@ -1244,6 +1261,7 @@ namespace HpToolsLauncher
 
             if (!TdConnection.Connected)
             {
+                ConsoleWriter.WriteErrLine("Alm not connected : " + QCServerURL);
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, QCServerURL));
                 return false;
             }

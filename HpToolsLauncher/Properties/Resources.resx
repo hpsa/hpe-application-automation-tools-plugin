@@ -164,7 +164,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>One or more of the required connection parameters is empty.</value>
   </data>
   <data name="AlmRunnerDisplayLink" xml:space="preserve">
-    <value>Link: {0}</value>
+    <value>Copy the following report link inside an IE browser to view the test run results: {0}</value>
   </data>
   <data name="AlmRunnerDisplayTest" xml:space="preserve">
     <value>Test set name: {0}, Test set id: {1}</value>
@@ -221,7 +221,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test set: {0}, finished at {1}</value>
   </data>
   <data name="AlmRunnerTestStat" xml:space="preserve">
-    <value>Test: {0}, Status: {1}, Message: {2} \nLink: {3}\n</value>
+    <value>Test: {0}, Status: {1}, Message: {2}, Link: {3}</value>
   </data>
   <data name="FsRunnerNoValidTests" xml:space="preserve">
     <value>===============================\nThere are no valid tests to run!\n===============================</value>

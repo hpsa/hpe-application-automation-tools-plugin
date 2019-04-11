@@ -30,11 +30,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 
-import hudson.model.Result;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -52,7 +48,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -176,7 +176,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
                         TaskListener listener) throws InterruptedException, IOException {
-        
+
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
         
@@ -200,7 +200,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         // now merge them into one list
         Properties mergedProperties = new Properties();
-        
+
         mergedProperties.putAll(almServerSettingsModel.getProperties());
         mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
         
