@@ -275,10 +275,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
-			//create UFT test runner job on the fly if missing
-			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
-				job = createExecutorByJobName(jobCiId);
-			}
 			if (job != null) {
 				boolean hasAbortPermissions = job.hasPermission(Item.CANCEL);
 				if (!hasAbortPermissions) {
