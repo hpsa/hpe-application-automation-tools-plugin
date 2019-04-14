@@ -74,6 +74,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -262,6 +263,33 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			stopImpersonation(securityContext);
 		}
 	}
+
+	@Override
+	public void stopPipelineRun(String jobCiId, String originalBody) {
+		ACLContext securityContext = startImpersonation();
+		try {
+			Job job = getJobByRefId(jobCiId);
+			//create UFT test runner job on the fly if missing
+			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
+				job = createExecutorByJobName(jobCiId);
+			}
+			if (job != null) {
+				boolean hasAbortPermissions = job.hasPermission(Item.CANCEL);
+				if (!hasAbortPermissions) {
+					stopImpersonation(securityContext);
+					throw new PermissionException(403);
+				}
+				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+					doStopImpl(job, originalBody);
+				}
+			} else {
+				throw new ConfigurationException(404);
+			}
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
@@ -503,8 +531,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
 			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-			     InputStream logStream = run.getLogInputStream();
-			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+				 InputStream logStream = run.getLogInputStream();
+				 PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
 				IOUtils.copy(logStream, out);
 				out.flush();
 			} catch (IOException ioe) {
@@ -528,8 +556,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
 	private void doRunImpl(Job job, String originalBody) {
+		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
+		doRunStopImpl(jobProcessor::scheduleBuild, "execution", job, originalBody);
+	}
+
+	private void doStopImpl(Job job, String originalBody) {
+		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
+		doRunStopImpl(jobProcessor::cancelBuild, "stop", job, originalBody);
+	}
+
+	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
+	private void doRunStopImpl(BiConsumer<Cause, ParametersAction> method, String methodName, Job job, String originalBody) {
 		ParametersAction parametersAction = new ParametersAction();
 		if (originalBody != null && !originalBody.isEmpty() && originalBody.contains("parameters")) {
 			CIParameters ciParameters = DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class);
@@ -537,10 +575,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 
 		Cause cause = new Cause.RemoteCause(ConfigurationService.getSettings(getInstanceId()) == null ? "non available URL" :
-									ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven execution");
-
-		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-		jobProcessor.scheduleBuild(cause, parametersAction);
+				ConfigurationService.getSettings(getInstanceId()).getLocation(), "octane driven " + methodName);
+		method.accept(cause, parametersAction);
 	}
 
 	private List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
