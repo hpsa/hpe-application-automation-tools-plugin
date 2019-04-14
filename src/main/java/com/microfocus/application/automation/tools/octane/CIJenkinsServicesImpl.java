@@ -173,7 +173,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
 						for (Job tmpJob : tmpItem.getAllJobs()) {
 							jobName = tmpJob.getFullName();
-							tmpConfig = createPipelineNode(tmpJob.getName(), tmpJob, includeParameters);
+							tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
 							list.add(tmpConfig);
 						}
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
