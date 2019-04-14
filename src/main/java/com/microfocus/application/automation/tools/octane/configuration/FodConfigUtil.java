@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.microfocus.application.automation.tools.octane.configuration.ReflectionUtils.getFieldValue;
+
 /***
  * A utility class to help retrieving the configuration of the FOD
  * in Jenkins: URL, connection params, releaseId etc.
@@ -53,10 +54,11 @@ public class FodConfigUtil {
         public String clientSecret;
 
     }
+
     public static ServerConnectConfig getFODServerConfig() {
         Descriptor fodDescriptor = getFODDescriptor();
         ServerConnectConfig serverConnectConfig = null;
-        if(fodDescriptor != null){
+        if (fodDescriptor != null) {
             serverConnectConfig = new ServerConnectConfig();
             serverConnectConfig.apiUrl = getFieldValue(fodDescriptor, "apiUrl");
             serverConnectConfig.baseUrl = getFieldValue(fodDescriptor, "baseUrl");
@@ -65,6 +67,7 @@ public class FodConfigUtil {
         }
         return serverConnectConfig;
     }
+
     private static Descriptor getFODDescriptor() {
         return Jenkins.getInstance().getDescriptorByName(FOD_DESCRIPTOR);
 
@@ -73,6 +76,7 @@ public class FodConfigUtil {
     public static Long getFODReleaseFromBuild(AbstractBuild build) {
         return build != null ? getRelease(build.getProject()) : null;
     }
+
     private static Long getRelease(AbstractProject project) {
         for (Object publisher : project.getPublishersList()) {
             if (publisher instanceof Publisher &&
@@ -86,7 +90,7 @@ public class FodConfigUtil {
     private static Long getReleaseByReflection(Object fodPublisher) {
 
         Object modelObj = getFieldValue(fodPublisher, "model");
-        if(modelObj == null){
+        if (modelObj == null) {
             return null;
         }
         String bsiToken = getFieldValue(modelObj, "bsiTokenOriginal");
@@ -96,12 +100,12 @@ public class FodConfigUtil {
     private static Long parseBSITokenAndGetReleaseId(String bsiToken) {
         try {
             return handleURLFormat(bsiToken);
-        }catch (Exception e){
+        } catch (Exception e) {
             return handleBase64Format(bsiToken);
         }
     }
 
-    private static Long handleBase64Format(String bsiToken)  {
+    private static Long handleBase64Format(String bsiToken) {
 
         String bsi64 = StringUtils.newStringUtf8(Base64.decodeBase64(bsiToken));
         try {
@@ -118,12 +122,12 @@ public class FodConfigUtil {
 
     private static Long handleURLFormat(String bsiToken) {
         //https://api.sandbox.fortify.com/bsi2.aspx?tid=159&tc=Octane&pv=3059&payloadType=ANALYSIS_PAYLOAD&astid=25&ts=JS%2fXML%2fHTML
-        if(bsiToken == null){
+        if (bsiToken == null) {
             return null;
         }
-        String releaseString = bsiToken.substring(bsiToken.indexOf("=",bsiToken.indexOf("pv"))+1,
-                bsiToken.indexOf("&",
-                        bsiToken.indexOf("pv")));
+
+        int pvIndex = bsiToken.indexOf("pv");
+        String releaseString = bsiToken.substring(bsiToken.indexOf('=', pvIndex) + 1, bsiToken.indexOf('&', pvIndex));
         return Long.valueOf(releaseString);
     }
 }
