@@ -26,10 +26,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.build
 import com.microfocus.application.automation.tools.octane.model.processors.builders.MultiJobBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.AbstractProject;
-import hudson.model.Cause;
-import hudson.model.Job;
-import hudson.model.ParametersAction;
+import hudson.model.*;
 import hudson.tasks.BuildStep;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
@@ -84,6 +81,30 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			throw new IllegalStateException("unsupported job CAN NOT be run");
 		}
 	}
+
+	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			project.getBuilds().stream().forEach(build -> {
+				if (build instanceof AbstractBuild) {
+					AbstractBuild abuild = (AbstractBuild) build;
+					abuild.getActions(ParametersAction.class).stream().forEach(action -> {
+						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
+								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+							try {
+								abuild.doStop();
+							} catch (Exception e) {
+								logger.warn(e);
+							}
+						}
+					});
+				}
+			});
+		} else {
+			throw new IllegalStateException("unsupported job CAN NOT be stop");
+		}
+	}
+
 
 	/**
 	 * Retrieve Job's CI ID
