@@ -40,12 +40,14 @@ import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
@@ -172,7 +174,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
 						for (Job tmpJob : tmpItem.getAllJobs()) {
 							jobName = tmpJob.getFullName();
-							tmpConfig = createPipelineNode(tmpJob.getName(), tmpJob, includeParameters);
+							tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
 							list.add(tmpConfig);
 						}
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
@@ -248,6 +250,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				job = createExecutorByJobName(jobCiId);
 			}
 			if (job != null) {
+				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
+					//disabled job is not runnable and in this context we will handle it as 404
+					throw new ConfigurationException(404);
+				}
 				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 				if (!hasBuildPermission) {
 					stopImpersonation(securityContext);
@@ -413,7 +419,41 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			stopImpersonation(originalContext);
 		}
 	}
+	@Override
+	public Long getFodRelease(String jobId, String buildId) {
+		ACLContext originalContext = startImpersonation();
+		try {
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null && run instanceof AbstractBuild) {
+				return FodConfigUtil.getFODReleaseFromBuild((AbstractBuild) run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
+				return null;
+			}
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
 
+    @Override
+	public FodServerConfiguration getFodServerConfiguration() {
+
+		ACLContext originalContext = startImpersonation();
+		try {
+
+			FodConfigUtil.ServerConnectConfig fodServerConfig = FodConfigUtil.getFODServerConfig();
+			if (fodServerConfig != null) {
+				return dtoFactory.newDTO(FodServerConfiguration.class)
+						.setClientId(fodServerConfig.clientId)
+						.setClientSecret(fodServerConfig.clientSecret)
+						.setApiUrl(fodServerConfig.apiUrl)
+						.setBaseUrl(fodServerConfig.baseUrl);
+			}
+			return null;
+		} finally {
+			stopImpersonation(originalContext);
+		}
+	}
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 		ACLContext securityContext = startImpersonation();
