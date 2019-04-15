@@ -75,6 +75,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -111,13 +112,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return new File(Jenkins.getInstance().getRootDir(), "userContent");
+		return new File(Jenkins.get().getRootDir(), "userContent");
 	}
 
 	@Override
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		CIProxyConfiguration result = null;
-		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+		ProxyConfiguration proxy = Jenkins.get().proxy;
 		if (proxy != null) {
 			boolean noProxyHost = false;
 			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
@@ -143,16 +144,16 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		PipelineNode tmpConfig;
 		TopLevelItem tmpItem;
-		List<PipelineNode> list = new ArrayList<>();
+		Map<String, PipelineNode> list = new HashMap<>();
 		try {
-			boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
+			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
+			List<String> itemNames = (List<String>) Jenkins.get().getTopLevelItemNames();
 			for (String name : itemNames) {
-				tmpItem = Jenkins.getInstance().getItem(name);
+				tmpItem = Jenkins.get().getItem(name);
 
 				if (tmpItem == null) {
 					continue;
@@ -167,25 +168,35 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 							continue;
 						}
 						tmpConfig = createPipelineNode(name, abstractProject, includeParameters);
-						list.add(tmpConfig);
+						list.put(name, tmpConfig);
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 						tmpConfig = createPipelineNode(name, (Job) tmpItem, includeParameters);
-						list.add(tmpConfig);
+						list.put(name, tmpConfig);
 					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
 						for (Job tmpJob : tmpItem.getAllJobs()) {
-							jobName = tmpJob.getFullName();
-							tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
-							list.add(tmpConfig);
+							if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+								tmpConfig = createPipelineNodeFromJobName(tmpJob.getParent().getFullName());
+								list.put(tmpJob.getParent().getFullName(), tmpConfig);
+							} else {
+								jobName = tmpJob.getFullName();
+								tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
+								list.put(jobName, tmpConfig);
+							}
 						}
 					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 						tmpConfig = createPipelineNodeFromJobName(name);
-						list.add(tmpConfig);
+						list.put(name, tmpConfig);
 					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
 						Collection<? extends Item> items = ((AbstractFolder) tmpItem).getItems();
 						for (Item item : items) {
-							jobName = item.getFullName();
-							tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
-							list.add(tmpConfig);
+							if (item.getParent() != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getParent().getClass().getName())) {
+								tmpConfig = createPipelineNodeFromJobName(item.getParent().getFullName());
+								list.put(item.getParent().getFullName(), tmpConfig);
+							} else {
+								jobName = item.getFullName();
+								tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
+								list.put(jobName, tmpConfig);
+							}
 						}
 					} else {
 						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", jobName, jobClassName));
@@ -195,7 +206,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				}
 
 			}
-			result.setJobs(list.toArray(new PipelineNode[0]));
+			result.setJobs(list.values().toArray(new PipelineNode[0]));
 		} catch (AccessDeniedException e) {
 			throw new PermissionException(403);
 		} finally {
@@ -209,7 +220,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		try {
 			PipelineNode result;
-			boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
+			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
 			if (!hasRead) {
 				throw new PermissionException(403);
 			}
@@ -415,12 +426,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			stopImpersonation(originalContext);
 		}
 	}
+
 	@Override
 	public Long getFodRelease(String jobId, String buildId) {
 		ACLContext originalContext = startImpersonation();
 		try {
 			Run run = getRunByRefNames(jobId, buildId);
-			if (run != null && run instanceof AbstractBuild) {
+			if (run instanceof AbstractBuild) {
 				return FodConfigUtil.getFODReleaseFromBuild((AbstractBuild) run);
 			} else {
 				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
@@ -431,7 +443,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 
-    @Override
+	@Override
 	public FodServerConfiguration getFodServerConfiguration() {
 
 		ACLContext originalContext = startImpersonation();
@@ -450,6 +462,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			stopImpersonation(originalContext);
 		}
 	}
+
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 		ACLContext securityContext = startImpersonation();
@@ -466,8 +479,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			ACLContext securityContext = startImpersonation();
 			try {
 				Job project = TestExecutionJobCreatorService.createExecutor(discoveryInfo);
-				PipelineNode result = ModelFactory.createStructureItem(project);
-				return result;
+				return ModelFactory.createStructureItem(project);
 			} finally {
 				stopImpersonation(securityContext);
 			}
@@ -480,8 +492,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			Job project = TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
-			return project;
+			return TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
 		} catch (Exception e) {
 			logger.warn("Failed to create createExecutor by name : " + e.getMessage());
 			return null;
@@ -567,8 +578,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
 			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-				 InputStream logStream = run.getLogInputStream();
-				 PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+			     InputStream logStream = run.getLogInputStream();
+			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
 				IOUtils.copy(logStream, out);
 				out.flush();
 			} catch (IOException ioe) {
@@ -688,7 +699,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		Job result = null;
 		if (jobRefId != null) {
 			try {
-				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
+				jobRefId = URLDecoder.decode(jobRefId, StandardCharsets.UTF_8.name());
 				TopLevelItem item = getTopLevelItem(jobRefId);
 				if (item instanceof Job) {
 					result = (Job) item;
@@ -716,16 +727,34 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		Item result = null;
 		if (itemRefId != null) {
 			try {
-				String itemRefIdUncoded = URLDecoder.decode(itemRefId, "UTF-8");
+				String itemRefIdUncoded = URLDecoder.decode(itemRefId, StandardCharsets.UTF_8.name());
 				if (itemRefIdUncoded.contains("/")) {
 					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
 					Item item = getTopLevelItem(newItemRefId);
-					if (item != null && item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-						Collection<? extends Item> allItems = ((AbstractFolder) item).getItems();
-						for (Item multibranchItem : allItems) {
-							if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
-								result = multibranchItem;
-								break;
+					if (item != null) {
+						if (item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
+							Collection<? extends Item> allItems = ((AbstractFolder) item).getItems();
+							for (Item multibranchItem : allItems) {
+								if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
+									result = multibranchItem;
+									break;
+								}
+							}
+						} else {
+							Collection<? extends Job> allJobs = item.getAllJobs();
+							for (Job job : allJobs) {
+								if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName()) &&
+										itemRefId.endsWith(job.getParent().getFullName())
+								) {
+									result = (Item) job.getParent();
+								} else {
+									if (itemRefId.endsWith(job.getName())) {
+										result = job;
+									}
+								}
+								if (result != null) {
+									break;
+								}
 							}
 						}
 					}
@@ -740,7 +769,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	private TopLevelItem getTopLevelItem(String jobRefId) {
 		TopLevelItem item;
 		try {
-			item = Jenkins.getInstance().getItem(jobRefId);
+			item = Jenkins.get().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
 			String user = ConfigurationService.getSettings(getInstanceId()).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
@@ -754,7 +783,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	public static CIServerInfo getJenkinsServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
-		String serverUrl = Jenkins.getInstance().getRootUrl();
+		String serverUrl = Jenkins.get().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
