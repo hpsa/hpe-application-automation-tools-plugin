@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.run;
 import javax.annotation.Nonnull;
 import java.io.PrintStream;
 
+import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.model.SvUndeployModel;
 import com.microfocus.sv.svconfigurator.processor.IUndeployProcessor;
@@ -31,8 +32,6 @@ import com.microfocus.sv.svconfigurator.processor.UndeployProcessorInput;
 import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -52,21 +51,31 @@ public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
     }
 
     @Override
-    protected void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
-
-        PrintStream logger = listener.getLogger();
-
-        IUndeployProcessor processor = new UndeployProcessor(null);
-
-        ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger, workspace)) {
-            logger.printf("  Undeploying service '%s' [%s] %n", service.getName(), service.getId());
-            UndeployProcessorInput undeployProcessorInput = new UndeployProcessorInput(model.isForce(), null, service.getId());
-            processor.process(undeployProcessorInput, exec);
-
-        }
+    protected RemoteRunner getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+        return new RemoteRunner(model, workspace, listener, server);
     }
 
+    private static class RemoteRunner extends AbstractRemoteRunner<SvUndeployModel> {
+
+        private RemoteRunner(SvUndeployModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+            super(listener, model, workspace, server);
+        }
+
+        @Override
+        public String call() throws Exception {
+            PrintStream logger = listener.getLogger();
+
+            IUndeployProcessor processor = new UndeployProcessor(null);
+            ICommandExecutor exec = createCommandExecutor();
+            for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger, workspace)) {
+                logger.printf("  Undeploying service '%s' [%s] %n", service.getName(), service.getId());
+                UndeployProcessorInput undeployProcessorInput = new UndeployProcessorInput(model.isForce(), null, service.getId());
+                processor.process(undeployProcessorInput, exec);
+            }
+
+            return null;
+        }
+    }
     @Override
     protected void logConfig(PrintStream logger, String prefix) {
         super.logConfig(logger, prefix);

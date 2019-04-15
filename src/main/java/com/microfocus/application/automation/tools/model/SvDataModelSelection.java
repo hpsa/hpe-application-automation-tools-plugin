@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.model;
 
 import javax.annotation.Nonnull;
 
+import java.io.Serializable;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -31,7 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSelection> {
+public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSelection> implements Serializable {
 
     protected final SelectionType selectionType;
     protected final String dataModel;
@@ -86,15 +88,14 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
     public String getSelectedModelName() {
         switch (selectionType) {
             case BY_NAME:
-                DescriptorImpl descriptor = (DescriptorImpl) getDescriptor();
-                validateField(descriptor.doCheckDataModel(dataModel));
+                validateField(DescriptorImpl.doCheckDataModelImpl(dataModel));
                 return dataModel;
             default:
                 return null;
         }
     }
 
-    public enum SelectionType {
+    public enum SelectionType implements Serializable {
         BY_NAME,
         NONE,
         /**
@@ -113,6 +114,10 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
 
         @SuppressWarnings("unused")
         public FormValidation doCheckDataModel(@QueryParameter String dataModel) {
+            return doCheckDataModelImpl(dataModel);
+        }
+
+        private static FormValidation doCheckDataModelImpl(@QueryParameter String dataModel) {
             if (StringUtils.isBlank(dataModel)) {
                 return FormValidation.error("Data model cannot be empty if 'Specific' model is selected");
             }

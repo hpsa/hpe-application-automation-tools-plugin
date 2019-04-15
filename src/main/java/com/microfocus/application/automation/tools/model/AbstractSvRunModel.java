@@ -20,9 +20,11 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang.StringUtils;
 
-public class AbstractSvRunModel {
+public class AbstractSvRunModel implements Serializable {
     /**
      * Name of SvServerSettingsModel instance
      */
