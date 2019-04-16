@@ -28,7 +28,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.boon.Str;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,7 +35,6 @@ import org.jvnet.hudson.test.ToolInstallations;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -81,7 +79,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -96,7 +93,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, subFolderHelloWorldTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -111,7 +107,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -128,7 +123,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	//temporary disable as it failed in CI
@@ -145,7 +139,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -163,7 +156,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, subFolderHelloWorldTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -178,7 +170,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, uftTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -194,7 +185,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
