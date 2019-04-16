@@ -147,7 +147,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		Map<String, PipelineNode> jobsMap = new HashMap<>();
 		PipelineNode tmpConfig;
-
+		String tmpJobName = null;
 		try {
 			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
@@ -156,7 +156,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 			Collection<String> jobNames = Jenkins.get().getJobNames();
 			for (String jobName : jobNames) {
-				Job tmpJob = (Job) Jenkins.get().getItemByFullName(jobName);
+				tmpJobName = jobName;
+				Job tmpJob = (Job) Jenkins.get().getItemByFullName(tmpJobName);
 
 				if (tmpJob == null) {
 					continue;
@@ -169,19 +170,20 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				}
 
 				if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
-					jobName = tmpJob.getParent().getFullName();
-					tmpConfig = createPipelineNodeFromJobName(jobName);
+					tmpJobName = tmpJob.getParent().getFullName();
+					tmpConfig = createPipelineNodeFromJobName(tmpJobName);
 				} else {
-					tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
+					tmpConfig = createPipelineNode(tmpJobName, tmpJob, includeParameters);
 				}
 
-				jobsMap.put(jobName, tmpConfig);
+				jobsMap.put(tmpJobName, tmpConfig);
 			}
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
-		} catch (AccessDeniedException ade) {
-			throw new PermissionException(403);
-		} finally {
+		} catch (Throwable e) {
+			logger.error("getJobsList : Failed to add job '" + tmpJobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+		}
+		finally {
 			stopImpersonation(securityContext);
 		}
 
