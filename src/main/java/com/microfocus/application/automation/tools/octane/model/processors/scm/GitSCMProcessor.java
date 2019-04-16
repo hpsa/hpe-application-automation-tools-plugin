@@ -96,8 +96,7 @@ class GitSCMProcessor implements SCMProcessor {
             FilePath workspace = build.getWorkspace();
             if (workspace != null) {
                 File repoDir = new File(getRemoteString(build) + File.separator + ".git");
-                String scmDataJson = workspace.act(new LineEnricherCallable(repoDir, scmData));
-                scmData = dtoFactory.dtoFromJson(scmDataJson,SCMData.class);
+                scmData = workspace.act(new LineEnricherCallable(repoDir, scmData));
             }
         } catch (Exception e1) {
             logger.error("Line enricher: FAILED. could not enrich lines on SCM Data " + e1);
@@ -326,7 +325,7 @@ class GitSCMProcessor implements SCMProcessor {
     }
 
     /*line enricher running on the same jenkins node that the job is running in it*/
-    private static final class LineEnricherCallable extends MasterToSlaveFileCallable<String> {
+    private static final class LineEnricherCallable extends MasterToSlaveFileCallable<SCMData> {
         private final File repoDir;
         private final SCMData scmData;
 
@@ -336,7 +335,7 @@ class GitSCMProcessor implements SCMProcessor {
         }
 
         @Override
-        public String invoke(File rootDir, VirtualChannel channel) throws IOException {
+        public SCMData invoke(File rootDir, VirtualChannel channel) throws IOException {
 
             Git git = Git.open(repoDir);
             Repository repo = git.getRepository();
@@ -393,8 +392,7 @@ class GitSCMProcessor implements SCMProcessor {
                     }
                 }
             }
-            DTOFactory dtoFactory = DTOFactory.getInstance();
-            return dtoFactory.dtoToJson(scmData);
+            return scmData;
         }
     }
 
