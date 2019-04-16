@@ -78,7 +78,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
         return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private static class RemoteRunner extends AbstractRemoteRunner<SvExportModel> {
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvExportModel> {
 
         private RemoteRunner(SvExportModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
             super(listener, model, workspace, server);

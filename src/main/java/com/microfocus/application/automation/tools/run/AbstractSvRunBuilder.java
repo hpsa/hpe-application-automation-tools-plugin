@@ -98,7 +98,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         throw new ConfigurationException("Selected server configuration '" + model.getServerName() + "' does not exist.");
     }
 
-    protected abstract AbstractRemoteRunner<T> getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server);
+    protected abstract AbstractSvRemoteRunner<T> getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server);
 
         @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
@@ -113,7 +113,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
             validateServiceSelection();
 
             SvServerSettingsModel server = getSelectedServerSettings();
-            AbstractRemoteRunner<T> runner = getRemoteRunner(workspace, listener, server);
+            AbstractSvRemoteRunner<T> runner = getRemoteRunner(workspace, listener, server);
             launcher.getChannel().call(runner);
 
         } catch (Exception e) {

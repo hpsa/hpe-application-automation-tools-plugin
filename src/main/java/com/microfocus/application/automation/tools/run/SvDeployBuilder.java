@@ -61,7 +61,7 @@ public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
         return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private static class RemoteRunner extends AbstractRemoteRunner<SvDeployModel> {
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvDeployModel> {
 
         private RemoteRunner(SvDeployModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
             super(listener, model, workspace, server);

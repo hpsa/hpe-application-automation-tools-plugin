@@ -1,3 +1,23 @@
+/*
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
+ *
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ */
+
 package com.microfocus.application.automation.tools.run;
 
 import java.io.File;
@@ -21,13 +41,13 @@ import hudson.FilePath;
 import hudson.model.TaskListener;
 import jenkins.security.MasterToSlaveCallable;
 
-public abstract class AbstractRemoteRunner<T extends AbstractSvRunModel> extends MasterToSlaveCallable<String, Exception> {
+public abstract class AbstractSvRemoteRunner<T extends AbstractSvRunModel> extends MasterToSlaveCallable<String, Exception> {
     protected T model;
     protected FilePath workspace;
     protected TaskListener listener;
     protected SvServerSettingsModel server;
 
-    public AbstractRemoteRunner(TaskListener listener, T model, FilePath workspace, SvServerSettingsModel server) {
+    public AbstractSvRemoteRunner(TaskListener listener, T model, FilePath workspace, SvServerSettingsModel server) {
         this.listener = listener;
         this.model = model;
         this.workspace = workspace;
@@ -57,6 +77,8 @@ public abstract class AbstractRemoteRunner<T extends AbstractSvRunModel> extends
                 break;
             case DEPLOY:
                 break;
+            default:
+                throw new IllegalArgumentException();
         }
         return res;
     }

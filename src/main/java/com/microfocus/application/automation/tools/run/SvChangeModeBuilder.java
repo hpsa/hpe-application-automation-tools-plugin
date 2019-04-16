@@ -79,7 +79,7 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
         return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private static class RemoteRunner extends AbstractRemoteRunner<SvChangeModeModel> {
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvChangeModeModel> {
 
         private RemoteRunner(SvChangeModeModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
             super(listener, model, workspace, server);
