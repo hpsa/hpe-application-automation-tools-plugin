@@ -734,6 +734,8 @@ namespace HpToolsLauncher
             //wait for the tests to end ("normally" or because of the timeout)
             while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))
             {
+                System.Diagnostics.Trace.WriteLine("CTRACE: timeout did not expire and test did not finish.");
+                //Console.WriteLine("timeout did not expire and test did not finish.");
                 executionStatus.RefreshExecStatusInfo("all", true);
                 tsExecutionFinished = executionStatus.Finished;
 
@@ -741,10 +743,10 @@ namespace HpToolsLauncher
                 {
                     break;
                 }
-
+                //Console.WriteLine("execution status count: " + executionStatus.Count);
                 for (int j = 1; j <= executionStatus.Count; ++j)
                 {
-                    TestExecStatus testExecStatusObj = executionStatus[j];
+                   TestExecStatus testExecStatusObj = executionStatus[j];
 
                     currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
@@ -832,12 +834,14 @@ namespace HpToolsLauncher
 
                     //stop working 
                     Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
+                    cleanupProcesses();
                 }
             }
 
             //close last test
             if (prevTest != null)
             {
+                Console.WriteLine("Close last test");
                 WriteTestRunSummary(prevTest);
             }
 
@@ -862,10 +866,12 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
                 //ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
+                cleanupProcesses();
             }
 
             return runDesc;
         }
+
 
         private void SetTestResults(ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
         {
@@ -1440,6 +1446,29 @@ namespace HpToolsLauncher
             }
 
             return false;
+        }
+
+        private void cleanupProcesses()
+        {
+            var dllHostProcesses = Process.GetProcessesByName("dllhost");
+            foreach (var dllhostProcess in dllHostProcesses)
+            {
+                KillProcess(dllhostProcess);
+            }
+        }
+
+        private static void KillProcess(Process process)
+        {
+            try
+            {
+                Console.Out.Write(string.Format("Trying to terminate {0}", process.ProcessName));
+                process.Kill();
+                Console.Out.WriteLine("...Terminated");
+            }
+            catch (Exception ex)
+            {
+                Console.Out.Write(string.Format("...Failed to terminate {0}.Reason: {1} ", process.ProcessName, ex.Message));
+            }
         }
     }
 
