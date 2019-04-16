@@ -78,6 +78,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -336,15 +337,17 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	private void tryRemoveTempTestResultFile(Run run) {
 		try {
 			File[] matches = run.getRootDir().listFiles((dir, name) -> name.startsWith(JUnitExtension.TEMP_TEST_RESULTS_FILE_NAME_PREFIX));
-			for (File f : matches) {
-				try {
-					f.delete();
-				} catch (Exception e) {
-					logger.error("Failed to delete the temp test result file : " + e.getMessage(), e);
+			if (matches != null) {
+				for (File f : matches) {
+					try {
+						Files.delete(f.toPath());
+					} catch (Exception e) {
+						logger.error("Failed to delete the temp test result file at '" + f.getPath() + "'", e);
+					}
 				}
 			}
-		} catch (Exception generalE) {
-			logger.error("Fail to tryRemoveTempTestResultFile : " + generalE.getMessage());
+		} catch (Exception e) {
+			logger.error("Fail to tryRemoveTempTestResultFile : " + e.getMessage());
 		}
 	}
 
@@ -704,46 +707,53 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	private Item getItemByRefId(String itemRefId) {
-		Item result = null;
-		if (itemRefId != null) {
-			try {
-				String itemRefIdUncoded = URLDecoder.decode(itemRefId, StandardCharsets.UTF_8.name());
-				if (itemRefIdUncoded.contains("/")) {
-					String newItemRefId = itemRefIdUncoded.substring(0, itemRefIdUncoded.indexOf("/"));
-					Item item = getTopLevelItem(newItemRefId);
-					if (item != null) {
-						if (item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-							Collection<? extends Item> allItems = ((AbstractFolder) item).getItems();
-							for (Item multibranchItem : allItems) {
-								if (itemRefIdUncoded.endsWith(multibranchItem.getName())) {
-									result = multibranchItem;
-									break;
-								}
-							}
-						} else {
-							Collection<? extends Job> allJobs = item.getAllJobs();
-							for (Job job : allJobs) {
-								if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName()) &&
-										itemRefId.endsWith(job.getParent().getFullName())
-								) {
-									result = (Item) job.getParent();
-								} else {
-									if (itemRefId.endsWith(job.getName())) {
-										result = job;
-									}
-								}
-								if (result != null) {
-									break;
-								}
-							}
-						}
+		if (itemRefId == null) {
+			return null;
+		}
+
+		try {
+			String itemRefIdDecoded = URLDecoder.decode(itemRefId, StandardCharsets.UTF_8.name());
+			if (!itemRefIdDecoded.contains("/")) {
+				return null;
+			}
+
+			String newItemRefId = itemRefIdDecoded.substring(0, itemRefIdDecoded.indexOf("/"));
+			Item item = getTopLevelItem(newItemRefId);
+			if (item == null) {
+				return null;
+			}
+
+			Item result = null;
+			if (item.getClass().getName().equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
+				Collection<? extends Item> allItems = ((AbstractFolder) item).getItems();
+				for (Item multiBranchItem : allItems) {
+					if (itemRefIdDecoded.endsWith(multiBranchItem.getName())) {
+						result = multiBranchItem;
+						break;
 					}
 				}
-			} catch (UnsupportedEncodingException uee) {
-				logger.error("failed to decode job ref ID '" + itemRefId + "'", uee);
+			} else {
+				Collection<? extends Job> allJobs = item.getAllJobs();
+				for (Job job : allJobs) {
+					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName()) &&
+							itemRefId.endsWith(job.getParent().getFullName())
+					) {
+						result = (Item) job.getParent();
+					} else {
+						if (itemRefId.endsWith(job.getName())) {
+							result = job;
+						}
+					}
+					if (result != null) {
+						break;
+					}
+				}
 			}
+			return result;
+		} catch (UnsupportedEncodingException uee) {
+			logger.error("failed to decode job ref ID '" + itemRefId + "'", uee);
+			return null;
 		}
-		return result;
 	}
 
 	private TopLevelItem getTopLevelItem(String jobRefId) {

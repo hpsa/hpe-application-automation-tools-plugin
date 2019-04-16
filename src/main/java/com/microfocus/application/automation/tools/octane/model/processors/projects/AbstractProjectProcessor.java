@@ -113,7 +113,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 * @return Job's CI ID
 	 */
 	public String getTranslatedJobName() {
-		if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+		if (JobProcessorFactory.FOLDER_JOB_NAME.equals(job.getParent().getClass().getName())) {
 			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
 			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
 		} else {

@@ -49,14 +49,4 @@ class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
 	}
-
-	@Override
-	public String getTranslatedJobName() {
-		if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
-			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
-			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
-		} else {
-			return job.getName();
-		}
-	}
 }

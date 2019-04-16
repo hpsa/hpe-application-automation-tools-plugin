@@ -60,7 +60,7 @@ public class BuildHandlerUtilsTest {
 
 		for (MatrixRun run : build.getExactRuns()) {
 			descriptor = BuildHandlerUtils.getBuildType(run);
-			Assert.assertEquals("matrix-project", descriptor.getJobId());
+			Assert.assertTrue("matrix-project/OS=Linux".equals(descriptor.getJobId()) || "matrix-project/OS=Windows".equals(descriptor.getJobId()));
 			String fullName = expectedType.remove(descriptor.getSubType());
 			Assert.assertEquals(fullName, BuildHandlerUtils.getProjectFullName(run));
 		}
