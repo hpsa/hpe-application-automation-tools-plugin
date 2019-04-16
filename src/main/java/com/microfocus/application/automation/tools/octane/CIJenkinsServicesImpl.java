@@ -719,7 +719,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				return null;
 			}
 
-			String newItemRefId = itemRefIdDecoded.substring(0, itemRefIdDecoded.indexOf("/"));
+			String newItemRefId = itemRefIdDecoded.substring(0, itemRefIdDecoded.indexOf('/'));
 			Item item = getTopLevelItem(newItemRefId);
 			if (item == null) {
 				return null;
