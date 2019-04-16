@@ -53,13 +53,12 @@ import java.util.List;
 
 @SuppressWarnings({"squid:S2698", "squid:S2699"})
 public class TestResultXmlWriterTest extends OctanePluginTestBase {
-
 	private static TestResultContainer container;
 
 	@BeforeClass
 	public static void initialize() {
 		List<TestResult> testResults = new ArrayList<>();
-		testResults.add(new JUnitTestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null));
+		testResults.add(new JUnitTestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1, 2, null, null));
 		container = new TestResultContainer(testResults.iterator(), new ResultFields());
 		OctaneServerMock serverMock = OctaneServerMock.getInstance();
 		OctaneServerSettingsModel model = new OctaneServerSettingsModel(
@@ -87,6 +86,8 @@ public class TestResultXmlWriterTest extends OctanePluginTestBase {
 	}
 
 	private void assertBuildType(AbstractBuild build, String jobName, String matrixExtendedName) throws IOException, XMLStreamException, InterruptedException {
+		Assert.assertNotNull(build);
+		Assert.assertNotNull(build.getWorkspace());
 		FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
 		TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
 		xmlWriter.writeResults(container);
