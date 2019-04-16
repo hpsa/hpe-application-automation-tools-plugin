@@ -58,6 +58,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.param
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
+import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.*;
@@ -336,12 +337,28 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				} catch (Exception fnfe) {
 					logger.error("'" + TestListener.TEST_RESULT_FILE + "' file no longer exists, test results of '" + jobId + " #" + buildId + "' won't be pushed to Octane", fnfe);
 				}
+				tryRemoveTempTestResultFile(run);
 			} else {
 				logger.error("build '" + jobId + " #" + buildId + "' not found");
 			}
 			return result;
 		} finally {
 			stopImpersonation(originalContext);
+		}
+	}
+
+	private void tryRemoveTempTestResultFile(Run run) {
+		try {
+			File[] matches = run.getRootDir().listFiles((dir, name) -> name.startsWith(JUnitExtension.TEMP_TEST_RESULTS_FILE_NAME_PREFIX));
+			for (File f : matches) {
+				try {
+					f.delete();
+				} catch (Exception e) {
+					logger.error("Failed to delete the temp test result file : " + e.getMessage(), e);
+				}
+			}
+		} catch (Exception generalE) {
+			logger.error("Fail to tryRemoveTempTestResultFile : " + generalE.getMessage());
 		}
 	}
 

@@ -69,6 +69,8 @@ public class JUnitExtension extends OctaneTestsExtension {
 	private static final String PERFORMANCE_REPORT = "PerformanceReport";
 	private static final String TRANSACTION_SUMMARY = "TransactionSummary";
 
+	public static final String TEMP_TEST_RESULTS_FILE_NAME_PREFIX = "GetJUnitTestResults";
+
 	@Inject
 	private ResultFieldsDetectionService resultFieldsDetectionService;
 
@@ -177,7 +179,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 		public GetJUnitTestResults(Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
-			this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
+			this.filePath = new FilePath(build.getRootDir()).createTempFile(TEMP_TEST_RESULTS_FILE_NAME_PREFIX, null);
 			this.buildStarted = build.getStartTimeInMillis();
 			this.workspace = BuildHandlerUtils.getWorkspace(build);
 			this.stripPackageAndClass = stripPackageAndClass;
