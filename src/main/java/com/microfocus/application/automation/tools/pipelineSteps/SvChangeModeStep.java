@@ -24,6 +24,8 @@ import com.microfocus.application.automation.tools.model.SvDataModelSelection;
 import com.microfocus.application.automation.tools.model.SvPerformanceModelSelection;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.run.SvChangeModeBuilder;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStep;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStepDescriptor;
 import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -65,7 +67,7 @@ public class SvChangeModeStep extends AbstractSvStep {
     }
 
     @Override
-    protected SimpleBuildStep getBuilder() {
+    public SimpleBuildStep getBuilder() {
         return new SvChangeModeBuilder(serverName, force, mode, dataModel, performanceModel, serviceSelection);
     }
 

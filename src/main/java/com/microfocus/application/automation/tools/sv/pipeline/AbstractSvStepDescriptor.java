@@ -18,55 +18,49 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.run;
+package com.microfocus.application.automation.tools.sv.pipeline;
 
 import javax.annotation.Nonnull;
 
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
-import com.microfocus.application.automation.tools.settings.SvServerSettingsBuilder;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunDescriptor;
 import hudson.util.ListBoxModel;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 
-public abstract class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
-    private final String displayName;
+public abstract class AbstractSvStepDescriptor<T extends AbstractSvRunDescriptor> extends AbstractStepDescriptorImpl {
 
-    protected AbstractSvRunDescriptor(String displayName) {
-        this.displayName = displayName;
-        load();
+    final protected T builderDescriptor;
+    final private String functionName;
+
+    protected AbstractSvStepDescriptor(Class<? extends StepExecution> executionType, String functionName, T builderDescriptor) {
+        super(executionType);
+        this.functionName = functionName;
+        this.builderDescriptor = builderDescriptor;
     }
 
     @Override
-    public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-        return true;
+    public String getFunctionName() {
+        return functionName;
     }
 
     @Nonnull
     @Override
     public String getDisplayName() {
-        return displayName;
+        return builderDescriptor.getDisplayName();
+    }
+
+    @Override
+    public String getConfigPage() {
+        return builderDescriptor.getConfigPage();
     }
 
     public SvServerSettingsModel[] getServers() {
-        Jenkins jenkins = Jenkins.getInstance();
-        return jenkins.getDescriptorByType(SvServerSettingsBuilder.DescriptorImpl.class).getServers();
+        return builderDescriptor.getServers();
     }
 
     @SuppressWarnings("unused")
     public ListBoxModel doFillServerNameItems() {
-        ListBoxModel items = new ListBoxModel();
-        SvServerSettingsModel[] servers = getServers();
-        if (servers != null) {
-            for (SvServerSettingsModel server : servers) {
-                if (StringUtils.isNotBlank(server.getName())) {
-                    items.add(server.getName(), server.getName());
-                }
-            }
-        }
-
-        return items;
+        return builderDescriptor.doFillServerNameItems();
     }
 }

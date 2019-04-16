@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.pipelineSteps;
 
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.run.SvUndeployBuilder;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStep;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStepDescriptor;
 import hudson.Extension;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -47,7 +49,7 @@ public class SvUndeployStep extends AbstractSvStep {
     }
 
     @Override
-    protected SimpleBuildStep getBuilder() {
+    public SimpleBuildStep getBuilder() {
         return new SvUndeployBuilder(serverName, continueIfNotDeployed, force, serviceSelection);
     }
 

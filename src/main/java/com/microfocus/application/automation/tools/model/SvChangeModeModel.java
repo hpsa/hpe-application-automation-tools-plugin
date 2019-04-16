@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 

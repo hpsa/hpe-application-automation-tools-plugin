@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.model;
 
 import javax.annotation.Nonnull;
 
+import java.io.Serializable;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -30,7 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerformanceModelSelection> {
+public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerformanceModelSelection> implements Serializable {
 
     protected final SelectionType selectionType;
     protected final String performanceModel;
@@ -81,8 +83,7 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
     public String getSelectedModelName() {
         switch (selectionType) {
             case BY_NAME:
-                DescriptorImpl descriptor = (DescriptorImpl) getDescriptor();
-                SvDataModelSelection.validateField(descriptor.doCheckPerformanceModel(performanceModel));
+                SvDataModelSelection.validateField(DescriptorImpl.doCheckPerformanceModelImpl(performanceModel));
                 return performanceModel;
             case OFFLINE:
                 return "Offline";
@@ -111,6 +112,10 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
 
         @SuppressWarnings("unused")
         public FormValidation doCheckPerformanceModel(@QueryParameter String performanceModel) {
+            return doCheckPerformanceModelImpl(performanceModel);
+        }
+
+        private static FormValidation doCheckPerformanceModelImpl(@QueryParameter String performanceModel) {
             if (StringUtils.isBlank(performanceModel)) {
                 return FormValidation.error("Performance model cannot be empty if 'Specific' model is selected");
             }

@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.pipelineSteps;
 
 import javax.inject.Inject;
 
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStep;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
