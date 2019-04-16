@@ -159,7 +159,7 @@ public class JobConfigurationProxy {
 				fields.put(jsonObject.getString("name"), assignedValues);
 			}
 
-			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
+			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
 
 			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
 					.setContextEntityId(pipelineId)
@@ -250,7 +250,7 @@ public class JobConfigurationProxy {
 			}
 			ret.put("isUftJob", isUftJob);
 
-			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslateJobName();
+			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
 			PipelineContextList pipelineContextList = octaneClient.getPipelineContextService().getJobConfiguration(octaneClient.getInstanceId(), jobCiId);
 
 			if (!pipelineContextList.getData().isEmpty()) {

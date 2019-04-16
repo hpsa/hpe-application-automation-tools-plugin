@@ -59,7 +59,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 			if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.DELETED)
-						.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslateJobName());
+						.setProject(JobProcessorFactory.getFlowProcessor((WorkflowJob) item).getTranslatedJobName());
 
 				OctaneSDK.getClients().forEach(client -> client.getEventsService().publishEvent(event));
 			}

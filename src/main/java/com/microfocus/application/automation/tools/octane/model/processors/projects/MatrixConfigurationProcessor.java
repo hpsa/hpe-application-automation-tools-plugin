@@ -21,37 +21,42 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
+import hudson.matrix.MatrixConfiguration;
 import hudson.model.Job;
-import hudson.model.ParametersAction;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import hudson.tasks.Builder;
+
+import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:40
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific MatrixConfiguration Job in context of Matrix Plugin
  */
+class MatrixConfigurationProcessor extends AbstractProjectProcessor<MatrixConfiguration> {
 
-public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
-	WorkFlowJobProcessor(Job job) {
-		super((WorkflowJob) job);
+	MatrixConfigurationProcessor(Job project, Set<Job> processedJobs) {
+		super((MatrixConfiguration) project);
+
+		//  Internal phases
+		//
+		super.processBuilders(this.job.getBuilders(), this.job, processedJobs);
+
+		//  Post build phases
+		//
+		super.processPublishers(this.job, processedJobs);
 	}
 
-	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
-		int delay = this.job.getQuietPeriod();
-		CauseAction causeAction = new CauseAction(cause);
-		this.job.scheduleBuild2(delay, parametersAction, causeAction);
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return job.getBuilders();
 	}
 
 	@Override
 	public String getTranslatedJobName() {
-		if (this.job.getParent() != null && this.job.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
+		if (job.getParent().getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+			String parentJobName = job.getParent().getFullName();    // e.g: myFolder/myJob
+			return BuildHandlerUtils.translateFolderJobName(parentJobName) + "/" + job.getName();
 		} else {
-			return super.getTranslatedJobName();
+			return job.getFullName();
 		}
 	}
 }

@@ -122,7 +122,7 @@ public class ModelFactory {
 	private static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
 		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(projectProcessor.getTranslateJobName());
+		pipelineNode.setJobCiId(projectProcessor.getTranslatedJobName());
 		pipelineNode.setName(job.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
@@ -134,7 +134,7 @@ public class ModelFactory {
 	private static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 		AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(project);
-		snapshotNode.setJobCiId(flowProcessor.getTranslateJobName());
+		snapshotNode.setJobCiId(flowProcessor.getTranslatedJobName());
 		snapshotNode.setName(project.getName());
 
 		if (!metaOnly) {

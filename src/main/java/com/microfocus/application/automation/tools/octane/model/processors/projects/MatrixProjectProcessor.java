@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.matrix.MatrixProject;
 import hudson.model.Job;
 import hudson.tasks.Builder;
@@ -47,5 +48,15 @@ class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 	@Override
 	public List<Builder> tryGetBuilders() {
 		return job.getBuilders();
+	}
+
+	@Override
+	public String getTranslatedJobName() {
+		if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
+			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
+		} else {
+			return job.getName();
+		}
 	}
 }
