@@ -18,38 +18,27 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.model;
+package com.microfocus.application.automation.tools.sv.pipeline;
 
-import java.io.Serializable;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 
-import org.apache.commons.lang.StringUtils;
-
-public class AbstractSvRunModel implements Serializable {
-    /**
-     * Name of SvServerSettingsModel instance
-     */
-    protected final String serverName;
-    /**
-     * Force operation regardless virtual service is locked
-     */
+public abstract class AbstractSvStep extends AbstractStepImpl {
     protected final boolean force;
-    protected final SvServiceSelectionModel serviceSelection;
+    protected final String serverName;
 
-    public AbstractSvRunModel(String serverName, boolean force, SvServiceSelectionModel serviceSelection) {
+    public AbstractSvStep(String serverName, boolean force) {
         this.serverName = serverName;
         this.force = force;
-        this.serviceSelection = serviceSelection;
     }
 
+    public abstract SimpleBuildStep getBuilder();
+
     public String getServerName() {
-        return (StringUtils.isNotBlank(serverName)) ? serverName : null;
+        return serverName;
     }
 
     public boolean isForce() {
         return force;
-    }
-
-    public SvServiceSelectionModel getServiceSelection() {
-        return serviceSelection;
     }
 }

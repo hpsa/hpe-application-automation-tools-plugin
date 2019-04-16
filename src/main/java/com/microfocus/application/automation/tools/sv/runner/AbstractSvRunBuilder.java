@@ -18,7 +18,7 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.run;
+package com.microfocus.application.automation.tools.sv.runner;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.microfocus.application.automation.tools.model.AbstractSvRunModel;
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import hudson.AbortException;
@@ -39,30 +39,6 @@ import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 
-class ServiceInfo {
-    private final String id;
-    private final String name;
-
-    public ServiceInfo(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-}
-
-class ConfigurationException extends Exception {
-    public ConfigurationException(String message) {
-        super(message);
-    }
-}
-
 public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends Builder implements SimpleBuildStep {
     private static final Logger LOG = Logger.getLogger(AbstractSvRunBuilder.class.getName());
 
@@ -72,9 +48,9 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         this.model = model;
     }
 
-    protected static void verifyNotNull(Object value, String errorMessage) throws ConfigurationException {
+    protected static void verifyNotNull(Object value, String errorMessage) throws IllegalArgumentException {
         if (value == null) {
-            throw new ConfigurationException(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 
@@ -86,7 +62,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         return model.getServiceSelection();
     }
 
-    protected SvServerSettingsModel getSelectedServerSettings() throws ConfigurationException {
+    protected SvServerSettingsModel getSelectedServerSettings() throws IllegalArgumentException {
         SvServerSettingsModel[] servers = ((AbstractSvRunDescriptor) getDescriptor()).getServers();
         if (servers != null) {
             for (SvServerSettingsModel serverSettings : servers) {
@@ -95,7 +71,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                 }
             }
         }
-        throw new ConfigurationException("Selected server configuration '" + model.getServerName() + "' does not exist.");
+        throw new IllegalArgumentException("Selected server configuration '" + model.getServerName() + "' does not exist.");
     }
 
     protected abstract AbstractSvRemoteRunner<T> getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server);
@@ -147,7 +123,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected void validateServiceSelection() throws ConfigurationException {
+    protected void validateServiceSelection() throws IllegalArgumentException {
         SvServiceSelectionModel s = getServiceSelection();
         switch (s.getSelectionType()) {
             case SERVICE:

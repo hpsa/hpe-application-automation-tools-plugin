@@ -21,6 +21,8 @@
 package com.microfocus.application.automation.tools.pipelineSteps;
 
 import com.microfocus.application.automation.tools.run.SvDeployBuilder;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStep;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStepDescriptor;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
@@ -59,7 +61,7 @@ public class SvDeployStep extends AbstractSvStep {
     }
 
     @Override
-    protected SimpleBuildStep getBuilder() {
+    public SimpleBuildStep getBuilder() {
         return new SvDeployBuilder(serverName, force, service, projectPath, projectPassword, firstAgentFallback);
     }
 

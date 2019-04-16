@@ -18,14 +18,14 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.run;
+package com.microfocus.application.automation.tools.sv.runner;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.microfocus.application.automation.tools.model.AbstractSvRunModel;
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.sv.svconfigurator.build.ProjectBuilder;
