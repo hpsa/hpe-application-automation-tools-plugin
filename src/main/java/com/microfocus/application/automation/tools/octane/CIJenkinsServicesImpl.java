@@ -162,39 +162,24 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				String jobName = tmpItem.getName();
 				String jobClassName = tmpItem.getClass().getName();
 				try {
-					if (tmpItem instanceof AbstractProject) {
-						AbstractProject abstractProject = (AbstractProject) tmpItem;
-						if (abstractProject.isDisabled()) {
+					if (tmpItem instanceof Job) {
+						if (tmpItem instanceof AbstractProject && ((AbstractProject) tmpItem).isDisabled()) {
 							continue;
 						}
-						tmpConfig = createPipelineNode(name, abstractProject, includeParameters);
-						list.put(name, tmpConfig);
-					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 						tmpConfig = createPipelineNode(name, (Job) tmpItem, includeParameters);
 						list.put(name, tmpConfig);
-					} else if (jobClassName.equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+					} else if (tmpItem instanceof AbstractFolder) {
 						for (Job tmpJob : tmpItem.getAllJobs()) {
 							if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
-								tmpConfig = createPipelineNodeFromJobName(tmpJob.getParent().getFullName());
-								list.put(tmpJob.getParent().getFullName(), tmpConfig);
+								jobName = tmpJob.getParent().getFullName();
+								tmpConfig = createPipelineNodeFromJobName(jobName);
+								list.put(jobName, tmpConfig);
 							} else {
+								if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
+									continue;
+								}
 								jobName = tmpJob.getFullName();
 								tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
-								list.put(jobName, tmpConfig);
-							}
-						}
-					} else if (jobClassName.equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-						tmpConfig = createPipelineNodeFromJobName(name);
-						list.put(name, tmpConfig);
-					} else if (jobClassName.equals(JobProcessorFactory.GITHUB_ORGANIZATION_FOLDER)) {
-						Collection<? extends Item> items = ((AbstractFolder) tmpItem).getItems();
-						for (Item item : items) {
-							if (item.getParent() != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getParent().getClass().getName())) {
-								tmpConfig = createPipelineNodeFromJobName(item.getParent().getFullName());
-								list.put(item.getParent().getFullName(), tmpConfig);
-							} else {
-								jobName = item.getFullName();
-								tmpConfig = createPipelineNodeFromJobNameAndFolder(item.getDisplayName(), name);
 								list.put(jobName, tmpConfig);
 							}
 						}
