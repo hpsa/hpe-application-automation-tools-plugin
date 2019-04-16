@@ -60,6 +60,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.proje
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
+import hudson.matrix.MatrixConfiguration;
 import hudson.model.*;
 import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
@@ -142,61 +143,46 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public CIJobsList getJobsList(boolean includeParameters) {
 		ACLContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
+		Map<String, PipelineNode> jobsMap = new HashMap<>();
 		PipelineNode tmpConfig;
-		TopLevelItem tmpItem;
-		Map<String, PipelineNode> list = new HashMap<>();
+
 		try {
 			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
-				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			List<String> itemNames = (List<String>) Jenkins.get().getTopLevelItemNames();
-			for (String name : itemNames) {
-				tmpItem = Jenkins.get().getItem(name);
 
-				if (tmpItem == null) {
+			Collection<String> jobNames = Jenkins.get().getJobNames();
+			for (String jobName : jobNames) {
+				Job tmpJob = (Job) Jenkins.get().getItemByFullName(jobName);
+
+				if (tmpJob == null) {
+					continue;
+				}
+				if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
+					continue;
+				}
+				if (tmpJob instanceof MatrixConfiguration) {
 					continue;
 				}
 
-				String jobName = tmpItem.getName();
-				String jobClassName = tmpItem.getClass().getName();
-				try {
-					if (tmpItem instanceof Job) {
-						if (tmpItem instanceof AbstractProject && ((AbstractProject) tmpItem).isDisabled()) {
-							continue;
-						}
-						tmpConfig = createPipelineNode(name, (Job) tmpItem, includeParameters);
-						list.put(name, tmpConfig);
-					} else if (tmpItem instanceof AbstractFolder) {
-						for (Job tmpJob : tmpItem.getAllJobs()) {
-							if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
-								jobName = tmpJob.getParent().getFullName();
-								tmpConfig = createPipelineNodeFromJobName(jobName);
-								list.put(jobName, tmpConfig);
-							} else {
-								if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
-									continue;
-								}
-								jobName = tmpJob.getFullName();
-								tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
-								list.put(jobName, tmpConfig);
-							}
-						}
-					} else {
-						logger.info(String.format("getJobsList : Item '%s' of type '%s' is not supported", jobName, jobClassName));
-					}
-				} catch (Throwable e) {
-					logger.error("getJobsList : Failed to add job '" + jobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+				if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+					jobName = tmpJob.getParent().getFullName();
+					tmpConfig = createPipelineNodeFromJobName(jobName);
+				} else {
+					tmpConfig = createPipelineNode(jobName, tmpJob, includeParameters);
 				}
 
+				jobsMap.put(jobName, tmpConfig);
 			}
-			result.setJobs(list.values().toArray(new PipelineNode[0]));
-		} catch (AccessDeniedException e) {
+
+			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
+		} catch (AccessDeniedException ade) {
 			throw new PermissionException(403);
 		} finally {
 			stopImpersonation(securityContext);
 		}
+
 		return result;
 	}
 
@@ -551,12 +537,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				.setName(name);
 	}
 
-	private PipelineNode createPipelineNodeFromJobNameAndFolder(String name, String folderName) {
-		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(folderName + "/" + name)
-				.setName(folderName + "/" + name);
-	}
-
 	private InputStream getOctaneLogFile(Run run) {
 		InputStream result = null;
 		String octaneLogFilePath = run.getLogFile().getParent() + File.separator + "octane_log";
@@ -635,8 +615,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 							}
 							break;
 						case NUMBER:
-							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
-							break;
 						case STRING:
 							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
 							break;
