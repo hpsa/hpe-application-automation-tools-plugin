@@ -52,7 +52,7 @@ public class JobProcessorFactory {
 	}
 
 	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
-		AbstractProjectProcessor flowProcessor = new UnsupportedProjectProcessor(job);
+		AbstractProjectProcessor flowProcessor;
 		processedJobs.add(job);
 
 		switch (job.getClass().getName()) {
@@ -73,6 +73,9 @@ public class JobProcessorFactory {
 				break;
 			case WORKFLOW_JOB_NAME:
 				flowProcessor = new WorkFlowJobProcessor(job);
+				break;
+			default:
+				flowProcessor = new UnsupportedProjectProcessor(job);
 				break;
 		}
 

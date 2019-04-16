@@ -48,7 +48,7 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 
 	@Override
 	public String getTranslatedJobName() {
-		if (this.job.getParent() != null && this.job.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+		if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName())) {
 			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
 		} else {
 			return super.getTranslatedJobName();

@@ -71,30 +71,29 @@ public class TestResultXmlWriterTest extends OctanePluginTestBase {
 	}
 
 	@Test
-	public void testNonEmptySubType() throws Exception {
-		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "matrix-project");
+	public void testFreestyleProject() throws Exception {
+		FreeStyleProject project = rule.createFreeStyleProject("freestyle-project");
+		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
+		assertBuildType(build, "freestyle-project", null);
+	}
 
+	@Test
+	public void testMatrixProject() throws Exception {
+		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "matrix-project");
 		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux")));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 		Assert.assertEquals(1, build.getExactRuns().size());
 		assertBuildType(build.getExactRuns().get(0), "matrix-project", "OS=Linux");
 	}
 
-	@Test
-	public void testEmptySubType() throws Exception {
-		FreeStyleProject project = rule.createFreeStyleProject("freestyle-project");
-		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
-		assertBuildType(build, "freestyle-project", null);
-	}
-
-	private void assertBuildType(AbstractBuild build, String buildType, String subType) throws IOException, XMLStreamException, InterruptedException {
+	private void assertBuildType(AbstractBuild build, String jobName, String matrixExtendedName) throws IOException, XMLStreamException, InterruptedException {
 		FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
 		TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
 		xmlWriter.writeResults(container);
 		xmlWriter.close();
 
 		TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();
-		Assert.assertEquals(buildType, iterator.getJobId());
-		Assert.assertEquals(subType, iterator.getSubType());
+		Assert.assertEquals(jobName + (matrixExtendedName == null ? "" : "/" + matrixExtendedName), iterator.getJobId());
+		Assert.assertEquals(matrixExtendedName, iterator.getSubType());
 	}
 }
