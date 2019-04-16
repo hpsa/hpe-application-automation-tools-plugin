@@ -26,10 +26,8 @@ import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import hudson.model.Computer;
 import hudson.model.Result;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,7 +93,7 @@ public class BuildHandlerUtils {
 					if (action != null) {
 						FilePath workspace = action.getWorkspace();
 						if (workspace == null) {
-							workspace = handleWorkspaceActionWithoutWorkspace(n, action);
+							workspace = handleWorkspaceActionWithoutWorkspace(action);
 						}
 						return workspace;
 					}
@@ -107,7 +105,7 @@ public class BuildHandlerUtils {
 		return null;
 	}
 
-	private static FilePath handleWorkspaceActionWithoutWorkspace(FlowNode n, WorkspaceAction action) {
+	private static FilePath handleWorkspaceActionWithoutWorkspace(WorkspaceAction action) {
 		logger.error("Found WorkspaceAction without workspace");
 		logger.warn("Node getPath = " + action.getPath());
 		logger.warn("Node getNode = " + action.getNode());
@@ -130,12 +128,12 @@ public class BuildHandlerUtils {
 
 	public static String getJobCiId(Run run) {
 		if (run.getParent() instanceof MatrixConfiguration) {
-			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getParentBuild().getParent()).getTranslateJobName();
+			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getProject()).getTranslatedJobName();
 		}
 		if (run.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslateJobName();
+			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslatedJobName();
 		}
-		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslateJobName();
+		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslatedJobName();
 	}
 
 	public static String translateFolderJobName(String jobPlainName) {

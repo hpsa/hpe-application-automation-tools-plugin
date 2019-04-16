@@ -62,15 +62,14 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	/**
 	 * Attempt to retrieve an [internal] build phases of the Job
 	 *
-	 * @return
+	 * @return list of builders
 	 */
-	public List<Builder> tryGetBuilders(){
+	public List<Builder> tryGetBuilders() {
 		return new ArrayList<>();
 	}
 
 	/**
 	 * Enqueue Job's run with the specified parameters
-	 *
 	 */
 	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
 		if (job instanceof AbstractProject) {
@@ -85,10 +84,10 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
-			project.getBuilds().stream().forEach(build -> {
+			project.getBuilds().forEach(build -> {
 				if (build instanceof AbstractBuild) {
 					AbstractBuild abuild = (AbstractBuild) build;
-					abuild.getActions(ParametersAction.class).stream().forEach(action -> {
+					abuild.getActions(ParametersAction.class).forEach(action -> {
 						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
 								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
 							try {
@@ -113,7 +112,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 *
 	 * @return Job's CI ID
 	 */
-	public String getTranslateJobName() {
+	public String getTranslatedJobName() {
 		if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
 			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
 			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
