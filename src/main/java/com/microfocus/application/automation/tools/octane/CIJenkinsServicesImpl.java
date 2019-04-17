@@ -344,7 +344,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if (matches != null) {
 				for (File f : matches) {
 					try {
-						Files.delete(f.toPath());
+						Files.deleteIfExists(f.toPath());
 					} catch (Exception e) {
 						logger.error("Failed to delete the temp test result file at '" + f.getPath() + "'", e);
 					}
