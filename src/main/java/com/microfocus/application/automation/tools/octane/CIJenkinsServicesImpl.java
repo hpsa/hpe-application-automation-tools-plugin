@@ -146,8 +146,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		Map<String, PipelineNode> jobsMap = new HashMap<>();
-		PipelineNode tmpConfig;
-		String tmpJobName = null;
+
 		try {
 			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
@@ -156,32 +155,36 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 			Collection<String> jobNames = Jenkins.get().getJobNames();
 			for (String jobName : jobNames) {
-				tmpJobName = jobName;
-				Job tmpJob = (Job) Jenkins.get().getItemByFullName(tmpJobName);
+				String tempJobName = jobName;
+				try {
+					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-				if (tmpJob == null) {
-					continue;
-				}
-				if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
-					continue;
-				}
-				if (tmpJob instanceof MatrixConfiguration) {
-					continue;
-				}
+					if (tmpJob == null) {
+						continue;
+					}
+					if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
+						continue;
+					}
+					if (tmpJob instanceof MatrixConfiguration) {
+						continue;
+					}
 
-				if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
-					tmpJobName = tmpJob.getParent().getFullName();
-					tmpConfig = createPipelineNodeFromJobName(tmpJobName);
-				} else {
-					tmpConfig = createPipelineNode(tmpJobName, tmpJob, includeParameters);
+					PipelineNode tmpConfig;
+					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+						tempJobName = tmpJob.getParent().getFullName();
+						tmpConfig = createPipelineNodeFromJobName(tempJobName);
+					} else {
+						tmpConfig = createPipelineNode(tempJobName, tmpJob, includeParameters);
+					}
+					jobsMap.put(tempJobName, tmpConfig);
+				} catch (Throwable e) {
+					logger.error("getJobsList : Failed to add job '" + tempJobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
 				}
-
-				jobsMap.put(tmpJobName, tmpConfig);
 			}
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
-		} catch (Throwable e) {
-			logger.error("getJobsList : Failed to add job '" + tmpJobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+		} catch  (AccessDeniedException ade) {
+			throw new PermissionException(403);
 		}
 		finally {
 			stopImpersonation(securityContext);
