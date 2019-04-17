@@ -40,7 +40,7 @@ import java.util.Set;
 class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 
-	MultiJobBuilderProcessor(Builder builder, Set<Job> processedJobs) {
+	MultiJobBuilderProcessor(Builder builder, Job job, Set<Job> processedJobs) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = new ArrayList<>();
@@ -48,10 +48,10 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
 			tmpProject = (AbstractProject) Jenkins.get().getItem(config.getJobName());
 			if (tmpProject == null) {
-				logger.warn("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
-			} else if (processedJobs.contains(tmpProject)) {
-				logger.warn("project named '" + config.getJobName() + "' is duplicated");
-			} else {
+                logger.warn("Job '"+ job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
+            } else if (processedJobs.contains(tmpProject)) {
+                logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() +"'");
+            } else {
 				items.add(tmpProject);
 			}
 		}

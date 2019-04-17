@@ -61,7 +61,7 @@ public abstract class AbstractBuilderProcessor {
 				builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
 				break;
 			case JobProcessorFactory.MULTIJOB_BUILDER:
-				builderProcessor = new MultiJobBuilderProcessor(builder, processedJobs);
+				builderProcessor = new MultiJobBuilderProcessor(builder, job, processedJobs);
 				break;
 			default:
 				logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
