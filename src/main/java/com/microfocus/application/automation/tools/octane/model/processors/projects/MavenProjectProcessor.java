@@ -22,10 +22,7 @@ package com.microfocus.application.automation.tools.octane.model.processors.proj
 
 import hudson.maven.MavenModuleSet;
 import hudson.model.Job;
-import hudson.tasks.Builder;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**

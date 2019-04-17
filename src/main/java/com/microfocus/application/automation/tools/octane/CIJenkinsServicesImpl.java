@@ -178,15 +178,14 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					}
 					jobsMap.put(tempJobName, tmpConfig);
 				} catch (Throwable e) {
-					logger.error("getJobsList : Failed to add job '" + tempJobName + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+					logger.error("failed to add job '" + tempJobName + "' to JobList", e);
 				}
 			}
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
-		} catch  (AccessDeniedException ade) {
+		} catch (AccessDeniedException ade) {
 			throw new PermissionException(403);
-		}
-		finally {
+		} finally {
 			stopImpersonation(securityContext);
 		}
 

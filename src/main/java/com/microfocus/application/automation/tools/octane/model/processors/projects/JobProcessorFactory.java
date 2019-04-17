@@ -32,15 +32,34 @@ import java.util.Set;
  */
 
 public class JobProcessorFactory {
+	//  native
+	public static final String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
+	public static final String SIMPLE_BUILD_TRIGGER = "hudson.tasks.BuildTrigger";
+	public static final String PARAMETRIZED_BUILD_TRIGGER = "hudson.plugins.parameterizedtrigger.BuildTrigger";
+	public static final String PARAMETRIZED_TRIGGER_BUILDER = "hudson.plugins.parameterizedtrigger.TriggerBuilder";
+
+	//  workflow
 	public static final String WORKFLOW_JOB_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowJob";
 	public static final String WORKFLOW_RUN_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowRun";
-	public static final String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
 	public static final String WORKFLOW_MULTI_BRANCH_JOB_NAME = "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject";
+
+	//  multijob
 	public static final String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
-	public static final String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+	public static final String MULTIJOB_BUILDER = "com.tikal.jenkins.plugins.multijob.MultiJobBuilder";
+
+	//  matrix
 	public static final String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
 	public static final String MATRIX_CONFIGURATION_NAME = "hudson.matrix.MatrixConfiguration";
-	public static final String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
+
+	//  conditional
+	public static final String CONDITIONAL_BUILDER_NAME = "org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder";
+	public static final String SINGLE_CONDITIONAL_BUILDER_NAME = "org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder";
+
+	//  maven
+	public static final String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+
+	//  folders
+	public static final String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
 	public static final String GITHUB_ORGANIZATION_FOLDER = "jenkins.branch.OrganizationFolder";
 
 	private JobProcessorFactory() {

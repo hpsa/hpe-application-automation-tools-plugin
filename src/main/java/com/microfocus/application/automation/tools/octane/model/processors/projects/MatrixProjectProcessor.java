@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.matrix.MatrixProject;
 import hudson.model.Job;
 import hudson.tasks.Builder;
