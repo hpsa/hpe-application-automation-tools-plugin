@@ -38,23 +38,23 @@ import java.util.Set;
  * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
 class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
-	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
+    private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 
-	MultiJobBuilderProcessor(Builder builder, Job job, Set<Job> processedJobs) {
-		MultiJobBuilder b = (MultiJobBuilder) builder;
-		super.phases = new ArrayList<>();
-		List<AbstractProject> items = new ArrayList<>();
-		AbstractProject tmpProject;
-		for (PhaseJobsConfig config : b.getPhaseJobs()) {
-			tmpProject = (AbstractProject) Jenkins.get().getItem(config.getJobName());
-			if (tmpProject == null) {
-                logger.warn("Job '"+ job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
+    MultiJobBuilderProcessor(Builder builder, Job job, Set<Job> processedJobs) {
+        MultiJobBuilder b = (MultiJobBuilder) builder;
+        super.phases = new ArrayList<>();
+        List<AbstractProject> items = new ArrayList<>();
+        AbstractProject tmpProject;
+        for (PhaseJobsConfig config : b.getPhaseJobs()) {
+            tmpProject = (AbstractProject) Jenkins.get().getItem(config.getJobName());
+            if (tmpProject == null) {
+                logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
             } else if (processedJobs.contains(tmpProject)) {
-                logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() +"'");
+                logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
             } else {
-				items.add(tmpProject);
-			}
-		}
-		super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items, processedJobs));
-	}
+                items.add(tmpProject);
+            }
+        }
+        super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items, processedJobs));
+    }
 }
