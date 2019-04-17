@@ -18,20 +18,23 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.model.processors.projects;
+package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import hudson.model.Job;
+import hudson.tasks.Builder;
+import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
+
+import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:47
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of Conditional Plugin (internal step)
  */
+class SingleConditionalBuilderProcessor extends AbstractBuilderProcessor {
 
-class UnsupportedProjectProcessor extends AbstractProjectProcessor<Job> {
-	UnsupportedProjectProcessor(Job job) {
-		super(job);
+	SingleConditionalBuilderProcessor(Builder builder, Job job, String phasesName, List<PipelinePhase> internalPhases, Set<Job> processedJobs) {
+		SingleConditionalBuilder singleConditionalBuilder = (SingleConditionalBuilder) builder;
+		processInternalBuilders((Builder) singleConditionalBuilder.getBuildStep(), job, phasesName, internalPhases, processedJobs);
 	}
 }

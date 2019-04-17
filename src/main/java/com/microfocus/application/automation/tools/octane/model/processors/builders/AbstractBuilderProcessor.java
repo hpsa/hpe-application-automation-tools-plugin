@@ -20,24 +20,57 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
-
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import hudson.model.Job;
+import hudson.tasks.Builder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for discovery/provisioning of an internal phases/steps of the specific Job
  */
 public abstract class AbstractBuilderProcessor {
-    protected ArrayList<PipelinePhase> phases = new ArrayList<>();
+	private static final Logger logger = LogManager.getLogger(AbstractBuilderProcessor.class);
+	protected ArrayList<PipelinePhase> phases = new ArrayList<>();
 
-    /**
-     * Retrieves previously processed and prepared phases of the specific Builder (Jenkins' internal Job invoker)
-     *
-     * @return list of phases
-     */
-    public List<PipelinePhase> getPhases() {
-        return phases;
-    }
+	/**
+	 * Retrieves previously processed and prepared phases of the specific Builder (Jenkins' internal Job invoker)
+	 *
+	 * @return list of phases
+	 */
+	public List<PipelinePhase> getPhases() {
+		return phases;
+	}
+
+	public static void processInternalBuilders(Builder builder, Job job, String phasesName, List<PipelinePhase> internalPhases, Set<Job> processedJobs) {
+		processedJobs.add(job);
+		AbstractBuilderProcessor builderProcessor = null;
+		switch (builder.getClass().getName()) {
+			case JobProcessorFactory.CONDITIONAL_BUILDER_NAME:
+				builderProcessor = new ConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
+				break;
+			case JobProcessorFactory.SINGLE_CONDITIONAL_BUILDER_NAME:
+				builderProcessor = new SingleConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
+				break;
+			case JobProcessorFactory.PARAMETRIZED_TRIGGER_BUILDER:
+				builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
+				break;
+			case JobProcessorFactory.MULTIJOB_BUILDER:
+				builderProcessor = new MultiJobBuilderProcessor(builder, processedJobs);
+				break;
+			default:
+				logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
+				break;
+		}
+
+		if (builderProcessor != null) {
+			internalPhases.addAll(builderProcessor.getPhases());
+		}
+		processedJobs.remove(job);
+	}
 }

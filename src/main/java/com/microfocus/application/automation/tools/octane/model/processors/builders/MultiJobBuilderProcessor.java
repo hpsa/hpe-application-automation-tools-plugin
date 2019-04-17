@@ -37,16 +37,16 @@ import java.util.Set;
 /**
  * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
-public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
+class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 
-	public MultiJobBuilderProcessor(Builder builder, Set<Job> processedJobs) {
+	MultiJobBuilderProcessor(Builder builder, Set<Job> processedJobs) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = new ArrayList<>();
 		AbstractProject tmpProject;
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
-			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(config.getJobName());
+			tmpProject = (AbstractProject) Jenkins.get().getItem(config.getJobName());
 			if (tmpProject == null) {
 				logger.warn("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
 			} else if (processedJobs.contains(tmpProject)) {
