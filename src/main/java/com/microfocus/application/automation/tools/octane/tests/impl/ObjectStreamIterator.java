@@ -56,12 +56,6 @@ public class ObjectStreamIterator<E> implements Iterator<E> {
             } catch (IOException ioe) {
                 logger.error("Failed to close the stream", ioe); // NON-NLS
             }
-
-            try {
-                filePath.delete();
-            } catch (Exception ex) {
-                logger.error("Failed to delete the filePath " + filePath.getRemote(), ex); // NON-NLS
-            }
             return false;
         }
     }

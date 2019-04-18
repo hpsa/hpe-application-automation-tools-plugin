@@ -18,40 +18,26 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.model.processors.projects;
+package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import hudson.model.Job;
-import hudson.model.ParametersAction;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import hudson.tasks.BuildStep;
+import hudson.tasks.Builder;
+import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
+
+import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:40
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of Conditional Plugin (parent definitions)
  */
+class ConditionalBuilderProcessor extends AbstractBuilderProcessor {
 
-public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
-	WorkFlowJobProcessor(Job job) {
-		super((WorkflowJob) job);
-	}
-
-	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
-		int delay = this.job.getQuietPeriod();
-		CauseAction causeAction = new CauseAction(cause);
-		this.job.scheduleBuild2(delay, parametersAction, causeAction);
-	}
-
-	@Override
-	public String getTranslatedJobName() {
-		if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName())) {
-			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
-		} else {
-			return super.getTranslatedJobName();
+	ConditionalBuilderProcessor(Builder builder, Job job, String phasesName, List<PipelinePhase> internalPhases, Set<Job> processedJobs) {
+		ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
+		for (BuildStep currentBuildStep : conditionalBuilder.getConditionalbuilders()) {
+			processInternalBuilders((Builder) currentBuildStep, job, phasesName, internalPhases, processedJobs);
 		}
 	}
 }
