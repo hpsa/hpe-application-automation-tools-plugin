@@ -812,6 +812,7 @@ namespace HpToolsLauncher
                         }
                         if (System.IO.File.Exists(abortFilename))
                         {
+                            cleanupProcesses();
                             break;
                         }
                     }
@@ -1469,6 +1470,11 @@ namespace HpToolsLauncher
             {
                 Console.Out.Write(string.Format("...Failed to terminate {0}.Reason: {1} ", process.ProcessName, ex.Message));
             }
+            finally
+            {
+                process.Close();
+            }
+          
         }
     }
 

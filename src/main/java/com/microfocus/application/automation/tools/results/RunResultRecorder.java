@@ -30,8 +30,6 @@ import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.run.SseBuilder;
-import com.sun.jna.Native;
-import com.sun.jna.platform.win32.Kernel32;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -494,7 +492,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             ReportInfoToCollect.add(reportMetaData);
 
                             listener.getLogger()
-                                    .println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
+                                    .println("add html report info to ReportInfoToCollect: " + testDateTime);
                         }
 
                         archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
@@ -596,7 +594,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         doc.appendChild(root);
         int currentReport = 1;
         for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
-            _logger.getLogger().println(" current report is: " + currentReport);
             String disPlayName = htmlReportInfo.getDisPlayName();
             String urlName = htmlReportInfo.getUrlName();
             String resourceURL = htmlReportInfo.getResourceURL();

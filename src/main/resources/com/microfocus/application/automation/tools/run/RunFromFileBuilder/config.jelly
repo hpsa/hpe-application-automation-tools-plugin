@@ -29,7 +29,7 @@
 
     <tr>
       <td/>
-      <td colspan="2">
+      <td colspan="2" class="help-text">
         <div class="help" style="display:block;">
           ${%DontForgetThePublisher}
         </div>
@@ -46,35 +46,48 @@
 
     <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/PARALLEL_RUNNER_UI.css"/>
 
-    <f:entry title="Tests" field="fsTests">
-        <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
-    </f:entry>
-
-    <cv:customOptionalBlock title="UFT parallel running mode." name="runfromfs.isParallelRunnerEnabled"
-                            field="isParallelRunnerEnabled" inline="true">
-        <f:entry field="fileSystemTestSetModel">
-            <f:property field="fileSystemTestSetModel"/>
+     <f:entry>
+        <label>Tests</label>
+        <f:entry field="fsTests">
+            <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
         </f:entry>
-    </cv:customOptionalBlock>
+     </f:entry>
 
-    <f:entry title="Timeout" field="fsTimeout">
-        <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+
+     <f:entry style="margin-left:35px;">
+            <cv:customOptionalBlock style="margin-left:35px;" title="UFT parallel running mode." name="runfromfs.isParallelRunnerEnabled"
+                                    field="isParallelRunnerEnabled" inline="true">
+                <f:entry field="fileSystemTestSetModel">
+                    <f:property field="fileSystemTestSetModel"/>
+                </f:entry>
+            </cv:customOptionalBlock>
+     </f:entry>
+
+
+     <f:entry>
+        <label>Timeout</label>
+        <f:entry field="fsTimeout">
+            <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+        </f:entry>
     </f:entry>
 
     <f:advanced title="UFT-Specific Settings">
     	<f:section title="UFT Settings">
-		    <f:entry title="Run Mode" field="fsUftRunMode">
-				<select name="runPipeline.fsUftRunMode">
-					<j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
-						<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
-							${runMode.description}
-						</f:option>
-					</j:forEach>
-				</select>
+		    <f:entry field="fsUftRunMode">
+		        <label>Run Mode</label>
+		        <f:entry>
+                    <select name="runPipeline.fsUftRunMode">
+                        <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
+                            <f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
+                                ${runMode.description}
+                            </f:option>
+                        </j:forEach>
+                    </select>
+                </f:entry>
 			</f:entry>
-        </f:section>
+        <!--/f:section>
 
-        <f:section>
+        <f:section-->
             <f:entry field="uftSettingsModel">
                 <f:property field="uftSettingsModel"/>
             </f:entry>

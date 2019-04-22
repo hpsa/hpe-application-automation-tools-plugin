@@ -228,7 +228,7 @@ namespace HpToolsAborter
             }
         }
 
-        private static void KillServiceTestFromAlm()
+        public static void KillServiceTestFromAlm()
         {
             var dllHostProcesses = Process.GetProcessesByName("dllhost");
             foreach (var dllhostProcess in dllHostProcesses)
