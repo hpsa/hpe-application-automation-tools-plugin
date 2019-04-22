@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.model;
@@ -25,9 +23,8 @@ package com.microfocus.application.automation.tools.octane.model;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
@@ -61,13 +58,13 @@ public final class CIEventCausesFactory {
 	private CIEventCausesFactory() {
 	}
 
-	public static List<CIEventCause> processCauses(Run run) {
+	public static List<CIEventCause> processCauses(Run<?, ?> run) {
 		if (run == null) {
 			throw new IllegalArgumentException("run MUST NOT be null");
 		}
 
 		List<CIEventCause> result = new LinkedList<>();
-		List<Cause> causes = extractCausesFromRun(run);
+		List<Cause> causes = run.getCauses();
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
@@ -85,12 +82,16 @@ public final class CIEventCausesFactory {
 				tmpResultCause.setType(CIEventCauseType.USER);
 				tmpResultCause.setUser(tmpUserCause.getUserId());
 				result.add(tmpResultCause);
+			} else if (cause instanceof Cause.RemoteCause) {
+				//  TODO: add support to remove cause execution in SDK/DTOs
+				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
+				result.add(tmpResultCause);
 			} else if (cause instanceof Cause.UpstreamCause) {
 				tmpUpstreamCause = (Cause.UpstreamCause) cause;
 
 				boolean succeededToBuildFlowCauses = false;
 				Run upstreamRun = tmpUpstreamCause.getUpstreamRun();
-				if (upstreamRun != null && "WorkflowRun".equals(upstreamRun.getClass().getSimpleName())) {
+				if (upstreamRun != null && JobProcessorFactory.WORKFLOW_RUN_NAME.equals(upstreamRun.getClass().getSimpleName())) {
 
 					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
 					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
@@ -173,14 +174,6 @@ public final class CIEventCausesFactory {
 		return jobPlainName;
 	}
 
-	private static List<Cause> extractCausesFromRun(Run<?, ?> run) {
-		if (run.getParent() instanceof MatrixConfiguration) {
-			return ((MatrixRun) run).getParentBuild().getCauses();
-		} else {
-			return run.getCauses();
-		}
-	}
-
 	private static FlowNode lookupJobEnclosingNode(Run targetRun, WorkflowRun parentRun) {
 		if (parentRun.getExecution() == null) {
 			return null;
@@ -204,7 +197,8 @@ public final class CIEventCausesFactory {
 				for (FlowNode head : potentialAncestors) {
 					if (head instanceof StepAtomNode && head.getAction(LabelAction.class) != null) {
 						StepDescriptor descriptor = ((StepAtomNode) head).getDescriptor();
-						String label = head.getAction(LabelAction.class).getDisplayName();
+						LabelAction labelAction = head.getAction(LabelAction.class);
+						String label = labelAction != null ? labelAction.getDisplayName() : null;
 						if (descriptor != null && descriptor.getId().endsWith("BuildTriggerStep") &&
 								label != null && label.endsWith(targetRun.getParent().getFullDisplayName())) {
 							result = head;

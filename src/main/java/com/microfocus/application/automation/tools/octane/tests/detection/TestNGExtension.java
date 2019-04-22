@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests.detection;
@@ -49,16 +47,12 @@ import java.util.Set;
 
 @Extension(optional = true)
 public class TestNGExtension extends ResultFieldsDetectionExtension {
-
-	private static String TESTNG = "TestNG";
-
-	private static String TESTNG_RESULT_FILE = "testng-results.xml";
-
+	private static final String TESTNG = "TestNG";
+	private static final String TESTNG_RESULT_FILE = "testng-results.xml";
 	private static final List<String> supportedReportFileLocations = Arrays.asList(
 			"target/surefire-reports/" + TESTNG_RESULT_FILE,
 			"target/failsafe-reports/" + TESTNG_RESULT_FILE
 	);
-
 
 	@Override
 	public ResultFields detect(final Run build) throws IOException, InterruptedException {
@@ -98,10 +92,7 @@ public class TestNGExtension extends ResultFieldsDetectionExtension {
 	boolean findTestNgResultsFile(MavenBuild mavenBuild) throws IOException, InterruptedException {
 		AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
 		//try finding only if the maven build includes tests
-		if (action != null && mavenBuild.getWorkspace().act(new TestNgResultsFileMavenFinder())) {
-			return true;
-		}
-		return false;
+		return action != null && mavenBuild.getWorkspace().act(new TestNgResultsFileMavenFinder());
 	}
 
 	public static class TestNgResultsFileFinder implements FilePath.FileCallable<Boolean> {
@@ -133,7 +124,7 @@ public class TestNGExtension extends ResultFieldsDetectionExtension {
 		}
 
 		boolean findTestNgResultsFile(File baseDir, String[] includedFiles) throws IOException, InterruptedException {
-			Set<FilePath> directoryCache = new LinkedHashSet<FilePath>();
+			Set<FilePath> directoryCache = new LinkedHashSet<>();
 
 			for (String path : includedFiles) {
 				FilePath file = new FilePath(baseDir).child(path);
@@ -152,7 +143,7 @@ public class TestNGExtension extends ResultFieldsDetectionExtension {
 	public static class TestNgResultsFileMavenFinder implements FilePath.FileCallable<Boolean> {
 
 		@Override
-		public Boolean invoke(File workspace, VirtualChannel virtualChannel) throws IOException, InterruptedException {
+		public Boolean invoke(File workspace, VirtualChannel virtualChannel) {
 			for (String locationInWorkspace : supportedReportFileLocations) {
 				File reportFile = new File(workspace, locationInWorkspace);
 				if (reportFile.exists()) {

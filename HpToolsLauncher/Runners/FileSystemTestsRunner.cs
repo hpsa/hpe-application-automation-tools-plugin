@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -90,9 +90,10 @@ namespace HpToolsLauncher
                                     string analysisTemplate,
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRTSSet,
+                                    string reportPath,
                                     bool useUFTLicense = false)
 
-            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, useUFTLicense)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet,reportPath, useUFTLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -117,6 +118,7 @@ namespace HpToolsLauncher
                                     string analysisTemplate,
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRTSSet,
+                                    string reportPath,
                                     bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -148,6 +150,11 @@ namespace HpToolsLauncher
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
 
             ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
+
+            if (reportPath != null)
+            {
+                ConsoleWriter.WriteLine("Results directory is: " + reportPath);
+            }
 
             //go over all sources, and create a list of all tests
             foreach (TestData source in sources)
@@ -218,6 +225,12 @@ namespace HpToolsLauncher
             {
                 ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+
+            // if a custom path was provided,set the custom report path for all the valid tests(this will overwrite the default location)
+            if (reportPath != null)
+            {
+                _tests.ForEach(test => test.ReportPath = reportPath);
             }
 
             ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));

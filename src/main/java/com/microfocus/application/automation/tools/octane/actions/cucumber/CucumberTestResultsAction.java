@@ -1,32 +1,28 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.actions.cucumber;
 
 import com.microfocus.application.automation.tools.octane.Messages;
-import hudson.model.AbstractBuild;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
+import hudson.FilePath;
+import hudson.model.*;
 
 import java.io.File;
 
@@ -35,23 +31,25 @@ import java.io.File;
  */
 public class CucumberTestResultsAction implements Action {
     private final String glob;
-    private final AbstractBuild build;
+    private final Run<?, ?> build;
+    private final FilePath workspace;
 
-    CucumberTestResultsAction(AbstractBuild build, String glob, BuildListener listener) {
-        this.build = build;
+    CucumberTestResultsAction(Run<?, ?> run, FilePath workspace , String glob, TaskListener listener) {
+        this.build = run;
         this.glob = glob;
+        this.workspace = workspace;
         CucumberResultsService.setListener(listener);
     }
 
     public boolean copyResultsToBuildFolder() {
         try {
             CucumberResultsService.log(Messages.CucumberResultsActionCollecting());
-            String[] files = CucumberResultsService.getCucumberResultFiles(build.getWorkspace(), glob);
+            String[] files = CucumberResultsService.getCucumberResultFiles(workspace, glob);
             boolean found = files.length > 0;
 
             for (String fileName : files) {
-                File resultFile = new File(build.getWorkspace().child(fileName).toURI());
-                CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), build.getWorkspace());
+                File resultFile = new File(workspace.child(fileName).toURI());
+                CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
             }
 
             if (!found && build.getResult() != Result.FAILURE) {

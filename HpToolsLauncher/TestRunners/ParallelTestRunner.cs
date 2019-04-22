@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -140,7 +140,7 @@ namespace HpToolsLauncher.TestRunners
 
             // this is to make sure that we do not overwrite the report
             // when we run the same test multiple times on the same build
-            string resFolder = Helper.GetNextResFolder(testInfo.ReportPath);
+            string resFolder = Helper.GetNextResFolder(testInfo.ReportPath, "Res");
 
             var runResults = new TestRunResults
             {

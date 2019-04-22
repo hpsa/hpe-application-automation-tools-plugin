@@ -1,16 +1,16 @@
 /*
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
@@ -21,13 +21,13 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -45,6 +45,9 @@ import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Octane's listener for WorkflowRun events
  * - this listener should handle Pipeline's STARTED and FINISHED events
@@ -60,6 +63,10 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 	private static final Logger logger = LogManager.getLogger(WorkflowListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	//After upgrading Pipeline:Groovy plugin to Version 2.64: receive two start events, therefore
+	// pipeline job shows 2 bars for a single pipeline run.
+	// Here we add job key during start event and remove key in finished event
+	private static Set<String> workflowJobStarted = new HashSet<>();
 	@Inject
 	private TestListener testListener;
 
@@ -82,6 +89,15 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 	private void sendPipelineStartedEvent(FlowNode flowNode) {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
+
+		//Avoid duplicate start events
+		String buildKey = getBuildKey(parentRun);
+		if (workflowJobStarted.contains(buildKey)) {
+			return;
+		} else {
+			workflowJobStarted.add(buildKey);
+		}
+
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
 				.setProject(BuildHandlerUtils.getJobCiId(parentRun))
@@ -99,11 +115,16 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 					.setProjectDisplayName(parentRun.getParent().getFullName());
 		}
 
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+	}
+
+	private String getBuildKey(WorkflowRun run){
+		return run.getFullDisplayName();
 	}
 
 	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
+		workflowJobStarted.remove(getBuildKey(parentRun));
 		boolean hasTests = testListener.processBuild(parentRun);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
@@ -118,7 +139,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
 				.setCauses(CIEventCausesFactory.processCauses(parentRun))
 				.setTestResultExpected(hasTests);
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private void sendStageStartedEvent(StepStartNode stepStartNode) {
@@ -133,7 +154,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setNumber(String.valueOf(parentRun.getNumber()))
 				.setStartTime(TimingAction.getStartTime(stepStartNode))
 				.setCauses(CIEventCausesFactory.processCauses(stepStartNode));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
@@ -150,7 +171,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
 				.setResult(extractFlowNodeResult(stepEndNode))
 				.setCauses(CIEventCausesFactory.processCauses(stepEndNode));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getEventsService().publishEvent(event));
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private CIBuildResult extractFlowNodeResult(FlowNode node) {

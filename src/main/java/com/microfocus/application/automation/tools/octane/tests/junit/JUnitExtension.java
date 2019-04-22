@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
@@ -71,6 +69,8 @@ public class JUnitExtension extends OctaneTestsExtension {
 	private static final String PERFORMANCE_REPORT = "PerformanceReport";
 	private static final String TRANSACTION_SUMMARY = "TransactionSummary";
 
+	public static final String TEMP_TEST_RESULTS_FILE_NAME_PREFIX = "GetJUnitTestResults";
+
 	@Inject
 	private ResultFieldsDetectionService resultFieldsDetectionService;
 
@@ -96,7 +96,13 @@ public class JUnitExtension extends OctaneTestsExtension {
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
 			ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
-			FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, hpRunnerType, jenkinsRootUrl));
+			FilePath workspace = BuildHandlerUtils.getWorkspace(run);
+			if (workspace == null) {
+				logger.error("Received null workspace : " + run);
+				return null;
+			}
+
+			FilePath filePath = workspace.act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, hpRunnerType, jenkinsRootUrl));
 			return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
@@ -173,7 +179,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 		public GetJUnitTestResults(Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
-			this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
+			this.filePath = new FilePath(build.getRootDir()).createTempFile(TEMP_TEST_RESULTS_FILE_NAME_PREFIX, null);
 			this.buildStarted = build.getStartTimeInMillis();
 			this.workspace = BuildHandlerUtils.getWorkspace(build);
 			this.stripPackageAndClass = stripPackageAndClass;
@@ -194,7 +200,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 				//extract folder names for created tests
 				String reportFolder = buildRootDir + "/archive/UFTReport";
-				Set<String> testFolderNames = new HashSet<>();
+				List<String> testFolderNames = new ArrayList<>();
 				File reportFolderFile = new File(reportFolder);
 				if (reportFolderFile.exists()) {
 					File[] children = reportFolderFile.listFiles();

@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.results.service;
@@ -370,39 +368,48 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		List<AlmTestSet> testsets = reportParserManager.parseTestSets(reportFilePath, testingFramework,  testingTool);
 
 		if(testsets == null) {
-			logger.log("Failed to parse file: " + reportFilePath);
 			throw new ExternalEntityUploadException("Failed to parse file: " + reportFilePath);
 		} else  {
 			logger.log("INFO: parse resut file succeed.");
 		}
-		
-		if(testsets != null && testsets.size() >0 ) {
-			logger.log("INFO: Start to login to ALM Server.");
-			try {
-				if( restTool.login() ) {
-				
-					logger.log("INFO: Checking test folder...");
-					AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
-					logger.log("INFO: Checking testset folder...");
-					AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
-					if(testFolder != null && testsetFolder != null){
-						logger.log("INFO: Uploading ALM Entities...");
-						importExternalTestSet(
-								testsets, 
-								loginInfo.getUserName(), 
-								Integer.valueOf(testsetFolder.getId()), 
-								Integer.valueOf(testFolder.getId()), 
-								testingTool, 
-								subversion, 
-								jobName, 
-								buildUrl);
-					}
-				} else {
-					throw new ExternalEntityUploadException("Failed to login to ALM Server.");
-				}
-			} catch (Exception e) {
-				throw new ExternalEntityUploadException(e);
+
+		if (testsets.size() <= 0) {
+			logger.log("INFO: No testset to upload.");
+			return;
+		}
+		logger.log("INFO: Start to login to ALM Server.");
+
+		try {
+			if(!restTool.login()) {
+				throw new ExternalEntityUploadException("Failed to login to ALM Server.");
 			}
+
+			// Get the username again if logged in with API key.
+			String actualUser = restTool.getActualUsername();
+			if (actualUser == null || actualUser.length() == 0) {
+				throw new ExternalEntityUploadException("Failed to get actual login user.");
+			}
+
+			logger.log("INFO: Checking test folder...");
+			AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
+
+			logger.log("INFO: Checking testset folder...");
+			AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
+
+			if(testFolder != null && testsetFolder != null) {
+				logger.log("INFO: Uploading ALM Entities...");
+				importExternalTestSet(
+						testsets,
+						actualUser,
+						Integer.valueOf(testsetFolder.getId()),
+						Integer.valueOf(testFolder.getId()),
+						testingTool,
+						subversion,
+						jobName,
+						buildUrl);
+			}
+		} catch (Exception e) {
+			throw new ExternalEntityUploadException(e);
 		}
 	}
 	

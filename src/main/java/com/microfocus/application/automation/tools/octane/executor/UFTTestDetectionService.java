@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.executor;
@@ -38,9 +36,7 @@ import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -50,7 +46,7 @@ import java.util.*;
 public class UFTTestDetectionService {
     private static final Logger logger = LogManager.getLogger(UFTTestDetectionService.class);
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
-    private static final String DETECTION_RESULT_FILE = "detection_result.xml";
+    private static final String DETECTION_RESULT_FILE = "detection_result.json";
 
     public static UftTestDiscoveryResult startScanning(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
         ChangeLogSet<? extends ChangeLogSet.Entry> changeSet = build.getChangeSet();
@@ -132,7 +128,7 @@ public class UFTTestDetectionService {
             }
 
             result.sortItems();
-            publishDetectionResults(getReportXmlFile(build), buildListener, result);
+            publishDetectionResults(getDetectionResultFile(build), buildListener, result);
 
             if (result.hasChanges()) {
                 UftTestDiscoveryDispatcher dispatcher = getExtension(UftTestDiscoveryDispatcher.class);
@@ -353,8 +349,8 @@ public class UFTTestDetectionService {
 
         try {
             detectionResult.writeToFile(fileToWriteTo);
-        } catch (JAXBException e) {
-            String msg = "Failed to persist detection results because of JAXBException : " + e.getMessage();
+        } catch (Exception e) {
+            String msg = "Failed to persist detection results : " + e.getMessage();
             if (taskListenerLog != null) {
                 taskListenerLog.error(msg);
             }
@@ -364,16 +360,17 @@ public class UFTTestDetectionService {
 
     public static UftTestDiscoveryResult readDetectionResults(Run run) {
 
-        File file = getReportXmlFile(run);
+        File file = getDetectionResultFile(run);
 
         try {
             return UftTestDiscoveryResult.readFromFile(file);
-        } catch (JAXBException | FileNotFoundException e) {
+        } catch (IOException e) {
+            logger.error("Failed to read detection results : " + e.getMessage());
             return null;
         }
     }
 
-    public static File getReportXmlFile(Run run) {
+    public static File getDetectionResultFile(Run run) {
         return new File(run.getRootDir(), DETECTION_RESULT_FILE);
     }
 }

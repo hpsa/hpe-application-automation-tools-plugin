@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.model;
@@ -69,6 +67,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private String fsUserName;
     private Secret fsPassword;
     private String mcTenantId;
+    private String fsReportPath;
 
     private String fsDeviceId;
     private String fsOs;
@@ -114,11 +113,12 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL){
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath){
 
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
+        this.fsReportPath = fsReportPath;
         this.fsUftRunMode = fsUftRunMode;
 
         this.perScenarioTimeOut = perScenarioTimeOut;
@@ -164,6 +164,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.ignoreErrorStrings = "";
         this.displayController = "false";
         this.analysisTemplate = "";
+        this.fsReportPath = ""; // no custom report path by default
     }
 
     /**
@@ -407,6 +408,13 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     }
 
     /**
+     * Sets the report path for the given tests.
+     */
+    public void setFsReportPath(String fsReportPath) {
+        this.fsReportPath = fsReportPath;
+    }
+
+    /**
      * Gets fs device id.
      *
      * @return the fs device id
@@ -540,6 +548,13 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      */
     public String getControllerPollingInterval() {
         return controllerPollingInterval;
+    }
+
+    /**
+     * Gets the test report path.
+     */
+    public String getFsReportPath() {
+        return fsReportPath;
     }
 
     /**
@@ -738,6 +753,10 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         }
         if (StringUtils.isNotBlank(mcTenantId)){
             props.put("MobileTenantId", mcTenantId);
+        }
+
+        if(StringUtils.isNotBlank(fsReportPath)) {
+            props.put("fsReportPath", fsReportPath);
         }
 
         if(isUseProxy()){

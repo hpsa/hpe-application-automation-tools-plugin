@@ -1,29 +1,30 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.model.processors.scm;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.scm.*;
+import com.hp.octane.integrations.dto.scm.impl.LineRange;
+import com.hp.octane.integrations.dto.scm.impl.RevisionsMap;
+import com.hp.octane.integrations.dto.scm.impl.SCMFileBlameImpl;
 import hudson.FilePath;
 import hudson.model.*;
 import hudson.plugins.git.Branch;
@@ -42,7 +43,11 @@ import hudson.util.DescribableList;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.blame.BlameResult;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.internal.JGitText;
 import org.eclipse.jgit.lib.Constants;
@@ -51,14 +56,13 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by gullery on 31/03/2015.
@@ -73,8 +77,34 @@ class GitSCMProcessor implements SCMProcessor {
     public SCMData getSCMData(AbstractBuild build, SCM scm) {
         List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes = new ArrayList<>();
         changes.add(build.getChangeSet());
-        return extractSCMData(build, scm, changes);
+        SCMData scmData = extractSCMData(build, scm, changes);
+        scmData = enrichLinesOnSCMData(scmData, build);
+        return scmData;
     }
+
+    /**
+     * this method go over each of the changed files and enrich line changes
+     * into existing scm events, so that the new enriched events will have line ranges.
+     * in addition, for each renamed file, we enrich inside delete event the 'renamed to' file
+     *
+     * @param scmData
+     * @param build
+     */
+    private SCMData enrichLinesOnSCMData(SCMData scmData, AbstractBuild build) {
+        long startTime = System.currentTimeMillis();
+        try {
+            FilePath workspace = build.getWorkspace();
+            if (workspace != null) {
+                File repoDir = new File(getRemoteString(build) + File.separator + ".git");
+                scmData = workspace.act(new LineEnricherCallable(repoDir, scmData));
+            }
+        } catch (Exception e1) {
+            logger.error("Line enricher: FAILED. could not enrich lines on SCM Data " + e1);
+        }
+        logger.info("Line enricher: process took: " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+        return scmData;
+    }
+
 
     @Override
     public SCMData getSCMData(WorkflowRun run, SCM scm) {
@@ -102,65 +132,6 @@ class GitSCMProcessor implements SCMProcessor {
             return commonOriginRevision;
         }
         return commonOriginRevision;
-    }
-
-    private static final class FileContentCallable extends MasterToSlaveFileCallable<String> {
-        private final File repoDir;
-
-        private FileContentCallable(File file) {
-            this.repoDir = file;
-        }
-
-        @Override
-        public String invoke(File rootDir, VirtualChannel channel) throws IOException {
-
-            Git git = Git.open(repoDir);
-            Repository repo = git.getRepository();
-            if(repo==null){
-                return "";
-            }
-            final RevWalk walk = new RevWalk(repo);
-            if(walk==null){
-                return "";
-            }
-            ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
-            if(resolveForCurrentBranch==null){
-                return "";
-            }
-            RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
-            if(currentBranchCommit==null){
-                return "";
-            }
-            ObjectId resolveForMaster = repo.resolve(MASTER);
-            if(resolveForMaster==null){
-                return "";
-            }
-            RevCommit masterCommit = walk.parseCommit(resolveForMaster);
-
-            walk.reset();
-            walk.setRevFilter(RevFilter.MERGE_BASE);
-            walk.markStart(currentBranchCommit);
-            walk.markStart(masterCommit);
-            RevCommit base = walk.next();
-            if (base == null)
-                return "";
-            final RevCommit base2 = walk.next();
-            if (base2 != null) {
-                throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
-                        MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
-            }
-            //in order to return actual revision and not merge commit
-            while (base.getParents().length>1){
-                RevCommit base_1 = base.getParent(0);
-                RevCommit base_2 = base.getParent(1);
-                if(base_1.getParents().length==1){
-                    base = base_1;
-                }else{
-                    base = base_2;
-                }
-            }
-            return base.getId().getName();
-        }
     }
 
     private SCMData extractSCMData(Run run, SCM scm, List<ChangeLogSet<? extends ChangeLogSet.Entry>> changes) {
@@ -293,4 +264,222 @@ class GitSCMProcessor implements SCMProcessor {
         }
         return commits;
     }
+
+    private static final class FileContentCallable extends MasterToSlaveFileCallable<String> {
+        private final File repoDir;
+
+        private FileContentCallable(File file) {
+            this.repoDir = file;
+        }
+
+        @Override
+        public String invoke(File rootDir, VirtualChannel channel) throws IOException {
+
+            Git git = Git.open(repoDir);
+            Repository repo = git.getRepository();
+            if (repo == null) {
+                return "";
+            }
+            final RevWalk walk = new RevWalk(repo);
+            if (walk == null) {
+                return "";
+            }
+            ObjectId resolveForCurrentBranch = repo.resolve(Constants.HEAD);
+            if (resolveForCurrentBranch == null) {
+                return "";
+            }
+            RevCommit currentBranchCommit = walk.parseCommit(resolveForCurrentBranch);
+            if (currentBranchCommit == null) {
+                return "";
+            }
+            ObjectId resolveForMaster = repo.resolve(MASTER);
+            if (resolveForMaster == null) {
+                return "";
+            }
+            RevCommit masterCommit = walk.parseCommit(resolveForMaster);
+
+            walk.reset();
+            walk.setRevFilter(RevFilter.MERGE_BASE);
+            walk.markStart(currentBranchCommit);
+            walk.markStart(masterCommit);
+            RevCommit base = walk.next();
+            if (base == null)
+                return "";
+            final RevCommit base2 = walk.next();
+            if (base2 != null) {
+                throw new NoMergeBaseException(NoMergeBaseException.MergeBaseFailureReason.MULTIPLE_MERGE_BASES_NOT_SUPPORTED,
+                        MessageFormat.format(JGitText.get().multipleMergeBasesFor, currentBranchCommit.name(), masterCommit.name(), base.name(), base2.name()));
+            }
+            //in order to return actual revision and not merge commit
+            while (base.getParents().length > 1) {
+                RevCommit base_1 = base.getParent(0);
+                RevCommit base_2 = base.getParent(1);
+                if (base_1.getParents().length == 1) {
+                    base = base_1;
+                } else {
+                    base = base_2;
+                }
+            }
+            return base.getId().getName();
+        }
+    }
+
+    /*line enricher running on the same jenkins node that the job is running in it*/
+    private static final class LineEnricherCallable extends MasterToSlaveFileCallable<SCMData> {
+        private final File repoDir;
+        private final SCMData scmData;
+
+        private LineEnricherCallable(File file, SCMData scmData) {
+            this.repoDir = file;
+            this.scmData = scmData;
+        }
+
+        @Override
+        public SCMData invoke(File rootDir, VirtualChannel channel) throws IOException {
+
+            Git git = Git.open(repoDir);
+            Repository repo = git.getRepository();
+            if (repo == null) {
+                return null;
+            }
+            RevWalk rw = new RevWalk(repo);
+            DiffFormatter df = new DiffFormatter(DisabledOutputStream.INSTANCE);
+            df.setDiffComparator(RawTextComparator.DEFAULT);
+            df.setRepository(repo);
+            df.setDetectRenames(true);
+
+            //add blame data to scm data
+            Set<String> committedFiles = getCommittedFiles(scmData);
+            List<SCMFileBlame> fileBlameList = getBlameData(repo, committedFiles);
+            scmData.setFileBlameList(fileBlameList);
+
+            for (SCMCommit curCommit : scmData.getCommits()) {
+                Map<String, SCMChange> fileChanges = new HashMap<>();
+                curCommit.getChanges().forEach(change -> fileChanges.put(change.getFile(), change));
+                RevCommit commit = rw.parseCommit(repo.resolve(curCommit.getRevId())); // Any ref will work here (HEAD, a sha1, tag, branch)
+                RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+
+                List<DiffEntry> diffs = df.scan(parent.getTree(), commit.getTree());
+                // FOR EACH FILE
+                for (DiffEntry diff : diffs) { // each file change will be in seperate diff
+                    EditList fileEdits = df.toFileHeader(diff).toEditList();
+                    switch (diff.getChangeType()) {
+                        case ADD:
+                            // old path == null, need to use new path
+                            handleAddLinesDiff(fileEdits, fileChanges.get(diff.getNewPath()));
+                            break;
+                        case COPY:
+                            // need to validate this type
+                            handleModifyDiff(fileEdits, fileChanges.get(diff.getNewPath()));
+                            break;
+                        case DELETE:
+                            // new path == null, need to use old path
+                            handleDeleteLinesDiff(fileEdits, fileChanges.get(diff.getOldPath()));
+                            break;
+                        case MODIFY:
+                            handleModifyDiff(fileEdits, fileChanges.get(diff.getNewPath()));
+                            break;
+                        case RENAME:
+                            // enrich delete event with 'rename to' data
+                            SCMChange deletedChange = fileChanges.get(diff.getOldPath());
+                            SCMChange newRenamedFile = fileChanges.get(diff.getNewPath());
+                            deletedChange.setRenamedToFile(newRenamedFile.getFile());
+                            // handle changes
+                            handleModifyDiff(fileEdits, fileChanges.get(diff.getNewPath()));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            return scmData;
+        }
+    }
+
+    private static Set<String> getCommittedFiles(SCMData scmData) {
+        Set<String> filesCommittedInPPR = new HashSet<>();
+        for (SCMCommit curCommit : scmData.getCommits()) {
+            curCommit.getChanges().forEach(change -> filesCommittedInPPR.add(change.getFile()));
+        }
+        return filesCommittedInPPR;
+    }
+
+
+    private static List<SCMFileBlame> getBlameData(Repository repo, Set<String> files) {
+        BlameCommand blamer = new BlameCommand(repo);
+        List<SCMFileBlame> fileBlameList = new ArrayList<>();
+        ObjectId commitID;
+        try {
+            commitID = repo.resolve(Constants.HEAD);
+            for (String filePath : files) {
+                blamer.setStartCommit(commitID);
+                blamer.setFilePath(filePath);
+                BlameResult blameResult = blamer.call();
+                RawText rawText = blameResult.getResultContents();
+                Integer fileSize = rawText.size();
+
+                RevisionsMap revisionsMap = new RevisionsMap();
+
+                if (fileSize > 0) {
+                    String startRangeRevision = blameResult.getSourceCommit(0).getName();
+                    Integer startRange = 1;
+                    for (int i = 1; i < fileSize; i++) {
+                        String currentRevision = blameResult.getSourceCommit(i).getName();
+                        if (!currentRevision.equals(startRangeRevision)) {
+                            LineRange range = new LineRange(startRange, i);//line numbers starting from 1 not from 0.
+                            revisionsMap.addRangeToRevision(startRangeRevision, range);
+                            startRange = i + 1;
+                            startRangeRevision = currentRevision;
+                        }
+                    }
+                }
+                fileBlameList.add(new SCMFileBlameImpl(filePath, revisionsMap));
+            }
+        } catch (IOException e) {
+            logger.error("failed to resolve repo head", e);
+        } catch (GitAPIException e) {
+            logger.error("failed to get blame result from git", e);
+        }
+        return fileBlameList;
+    }
+
+    private static void handleModifyDiff(EditList fileEdits, SCMChange scmChange) {
+        if (scmChange != null) {
+            for (Edit edit : fileEdits) {
+                switch (edit.getType()) {
+                    case INSERT:
+                        scmChange.insertAddedLines(new LineRange(edit.getBeginB() + 1, edit.getEndB()));
+                        break;
+                    case DELETE:
+                        scmChange.insertDeletedLines(new LineRange(edit.getBeginA() + 1, edit.getEndA()));
+                        break;
+                    case REPLACE:
+                        scmChange.insertDeletedLines(new LineRange(edit.getBeginA() + 1, edit.getEndA()));
+                        scmChange.insertAddedLines(new LineRange(edit.getBeginB() + 1, edit.getEndB()));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    // probably it's useless to track deleted lines (inside scm change), consider removing it later.
+    private static void handleDeleteLinesDiff(EditList fileEdits, SCMChange scmChange) {
+        if (scmChange != null) {
+            for (Edit edit : fileEdits) {
+                scmChange.insertDeletedLines(new LineRange(edit.getBeginA() + 1, edit.getEndA()));
+            }
+        }
+    }
+
+    private static void handleAddLinesDiff(EditList fileEdits, SCMChange scmChange) {
+        if (scmChange != null) {
+            for (Edit edit : fileEdits) {
+                scmChange.insertAddedLines(new LineRange(edit.getBeginB() + 1, edit.getEndB()));
+            }
+        }
+    }
+
+
 }

@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.run;
@@ -152,13 +150,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled){
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath){
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL);
+                proxySettings, useSSL, fsReportPath);
     }
 
     /**
@@ -343,6 +341,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setDisplayController(String displayController) {
         runFromFileModel.setDisplayController(displayController);
+    }
+
+    /**
+     * Sets the report path
+     * @param fsReportPath the report path
+     */
+    @DataBoundSetter
+    public void setFsReportPath(String fsReportPath) {
+        runFromFileModel.setFsReportPath(fsReportPath);
     }
 
     public String getFsAutActions() {
@@ -580,6 +587,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     public boolean getUseSSL() {
         return runFromFileModel.isUseSSL();
+    }
+
+    /**
+     * Get the fs report path.
+     * @return the filesystem report path
+     */
+    public String getFsReportPath() {
+        return runFromFileModel.getFsReportPath();
     }
 
     /**

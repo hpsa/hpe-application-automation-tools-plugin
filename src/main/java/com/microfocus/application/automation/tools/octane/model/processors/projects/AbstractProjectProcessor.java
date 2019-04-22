@@ -1,16 +1,16 @@
 /*
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
@@ -20,21 +20,14 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
-import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
-import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
-import com.microfocus.application.automation.tools.octane.model.processors.builders.MultiJobBuilderProcessor;
-import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.microfocus.application.automation.tools.octane.model.processors.builders.*;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.AbstractProject;
-import hudson.model.Job;
-import hudson.tasks.BuildStep;
+import hudson.model.*;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
-import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,17 +56,47 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	/**
 	 * Attempt to retrieve an [internal] build phases of the Job
 	 *
-	 * @return
+	 * @return list of builders
 	 */
-	public abstract List<Builder> tryGetBuilders();
+	public List<Builder> tryGetBuilders() {
+		return new ArrayList<>();
+	}
 
 	/**
 	 * Enqueue Job's run with the specified parameters
-	 *
-	 * @param parametersBody     parameters for the Job execution in a RAW JSON format
-	 * @param issuingDescription description of issuing entity
 	 */
-	public abstract void scheduleBuild(String parametersBody, String issuingDescription);
+	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			int delay = project.getQuietPeriod();
+			project.scheduleBuild(delay, cause, parametersAction);
+		} else {
+			throw new IllegalStateException("unsupported job CAN NOT be run");
+		}
+	}
+
+	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			project.getBuilds().forEach(build -> {
+				if (build instanceof AbstractBuild) {
+					AbstractBuild abuild = (AbstractBuild) build;
+					abuild.getActions(ParametersAction.class).forEach(action -> {
+						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
+								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+							try {
+								abuild.doStop();
+							} catch (Exception e) {
+								logger.warn(e);
+							}
+						}
+					});
+				}
+			});
+		} else {
+			throw new IllegalStateException("unsupported job CAN NOT be stop");
+		}
+	}
 
 	/**
 	 * Retrieve Job's CI ID
@@ -82,8 +105,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 *
 	 * @return Job's CI ID
 	 */
-	public String getTranslateJobName() {
-		if (job.getParent().getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME)) {
+	public String getTranslatedJobName() {
+		if (JobProcessorFactory.FOLDER_JOB_NAME.equals(job.getParent().getClass().getName())) {
 			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
 			return BuildHandlerUtils.translateFolderJobName(jobPlainName);
 		} else {
@@ -132,7 +155,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 */
 	void processBuilders(List<Builder> builders, Job job, String phasesName, Set<Job> processedJobs) {
 		for (Builder builder : builders) {
-			builderClassValidator(builder, job, phasesName, processedJobs);
+			AbstractBuilderProcessor.processInternalBuilders(builder, job, phasesName, internals, processedJobs);
 		}
 	}
 
@@ -152,9 +175,9 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			List<Publisher> publishers = project.getPublishersList();
 			for (Publisher publisher : publishers) {
 				builderProcessor = null;
-				if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
+				if (publisher.getClass().getName().equals(JobProcessorFactory.SIMPLE_BUILD_TRIGGER)) {
 					builderProcessor = new BuildTriggerProcessor(publisher, project, processedJobs);
-				} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
+				} else if (publisher.getClass().getName().equals(JobProcessorFactory.PARAMETRIZED_BUILD_TRIGGER)) {
 					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "", processedJobs);
 				}
 				if (builderProcessor != null) {
@@ -165,30 +188,5 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			}
 			processedJobs.remove(job);
 		}
-	}
-
-	private void builderClassValidator(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
-		processedJobs.add(job);
-		AbstractBuilderProcessor builderProcessor = null;
-		if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder")) {
-			ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
-			for (BuildStep currentBuildStep : conditionalBuilder.getConditionalbuilders()) {
-				builderClassValidator((Builder) currentBuildStep, job, phasesName, processedJobs);
-			}
-		} else if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder")) {
-			SingleConditionalBuilder singleConditionalBuilder = (SingleConditionalBuilder) builder;
-			builderClassValidator((Builder) singleConditionalBuilder.getBuildStep(), job, phasesName, processedJobs);
-		} else if (builder.getClass().getName().equals("hudson.plugins.parameterizedtrigger.TriggerBuilder")) {
-			builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
-		} else if (builder.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobBuilder")) {
-			builderProcessor = new MultiJobBuilderProcessor(builder, processedJobs);
-		}
-
-		if (builderProcessor != null) {
-			internals.addAll(builderProcessor.getPhases());
-		} else {
-			logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
-		}
-		processedJobs.remove(job);
 	}
 }

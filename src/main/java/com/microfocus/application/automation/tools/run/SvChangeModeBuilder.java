@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.run;
@@ -31,18 +29,21 @@ import java.util.logging.Logger;
 import com.microfocus.application.automation.tools.model.SvChangeModeModel;
 import com.microfocus.application.automation.tools.model.SvDataModelSelection;
 import com.microfocus.application.automation.tools.model.SvPerformanceModelSelection;
+import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
-import com.hp.sv.jsvconfigurator.core.IProjectElement;
-import com.hp.sv.jsvconfigurator.core.IService;
-import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
-import com.hp.sv.jsvconfigurator.processor.ChmodeProcessor;
-import com.hp.sv.jsvconfigurator.processor.ChmodeProcessorInput;
-import com.hp.sv.jsvconfigurator.processor.IChmodeProcessor;
-import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRemoteRunner;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunBuilder;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunDescriptor;
+import com.microfocus.application.automation.tools.sv.runner.ServiceInfo;
+import com.microfocus.sv.svconfigurator.core.IProjectElement;
+import com.microfocus.sv.svconfigurator.core.IService;
+import com.microfocus.sv.svconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
+import com.microfocus.sv.svconfigurator.processor.ChmodeProcessor;
+import com.microfocus.sv.svconfigurator.processor.ChmodeProcessorInput;
+import com.microfocus.sv.svconfigurator.processor.IChmodeProcessor;
+import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -78,84 +79,98 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
     }
 
     @Override
-    protected void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
-        PrintStream logger = listener.getLogger();
-
-        ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList(false, logger, workspace)) {
-            changeServiceMode(service, logger, exec);
-        }
+    protected RemoteRunner getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+        return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private void changeServiceMode(ServiceInfo serviceInfo, PrintStream logger, ICommandExecutor commandExecutor) throws Exception {
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvChangeModeModel> {
 
-        String dataModel = model.getDataModel().getSelectedModelName();
-        String performanceModel = model.getPerformanceModel().getSelectedModelName();
-        boolean useDefaultDataModel = model.getDataModel().isDefaultSelected();
-        boolean useDefaultPerformanceModel = model.getPerformanceModel().isDefaultSelected();
-        ServiceRuntimeConfiguration.RuntimeMode targetMode = getTargetMode();
-
-        ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceInfo.getId(),
-                dataModel, performanceModel, targetMode, useDefaultDataModel, useDefaultPerformanceModel);
-
-        logger.printf("    Changing mode of service '%s' [%s] to %s mode%n", serviceInfo.getName(), serviceInfo.getId(), model.getMode());
-
-        IChmodeProcessor processor = new ChmodeProcessor(null);
-
-        try {
-            processor.process(chmodeInput, commandExecutor);
-        } finally {
-            printServiceStatus(logger, serviceInfo, commandExecutor);
-        }
-    }
-
-    private ServiceRuntimeConfiguration.RuntimeMode getTargetMode() {
-        // Set STAND_BY with PM in case of simulation without data model to be in accord with designer & SVM
-        if (model.getMode() == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
-                && !model.getPerformanceModel().isNoneSelected()
-                && model.getDataModel().isNoneSelected()) {
-            return ServiceRuntimeConfiguration.RuntimeMode.STAND_BY;
+        private RemoteRunner(SvChangeModeModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+            super(listener, model, workspace, server);
         }
 
-        return model.getMode();
-    }
+        @Override
+        public String call() throws Exception {
+            PrintStream logger = listener.getLogger();
 
-    private void printServiceStatus(PrintStream logger, ServiceInfo serviceInfo, ICommandExecutor commandExecutor) {
-        try {
-            IService service = commandExecutor.findService(serviceInfo.getId(), null);
-            ServiceRuntimeConfiguration info = commandExecutor.getServiceRuntimeInfo(service);
-            ServiceRuntimeConfiguration.RuntimeMode mode = getDisplayRuntimeMode(info);
-
-            logger.printf("    Service '%s' [%s] is in %s mode%n", service.getName(), service.getId(), mode);
-            if (mode == ServiceRuntimeConfiguration.RuntimeMode.LEARNING || mode == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING) {
-                logger.println("      Data model: " + getModelName(service.getDataModels(), info.getDataModelId()));
-                logger.println("      Performance model: " + getModelName(service.getPerfModels(), info.getPerfModelId()));
+            ICommandExecutor exec = createCommandExecutor();
+            for (ServiceInfo service : getServiceList(false, logger, workspace)) {
+                changeServiceMode(service, logger, exec);
             }
 
-            if (info.getDeploymentErrorMessage() != null) {
-                logger.println("      Error message: " + info.getDeploymentErrorMessage());
-            }
-        } catch (Exception e) {
-            String msg = String.format("Failed to get detail of service '%s' [%s]", serviceInfo.getName(), serviceInfo.getId());
-            logger.printf("      %s: %s%n", msg, e.getMessage());
-            LOG.log(Level.SEVERE, msg, e);
+            return null;
         }
-    }
 
-    private ServiceRuntimeConfiguration.RuntimeMode getDisplayRuntimeMode(ServiceRuntimeConfiguration info) {
-        // display SIMULATING in case of STAND_BY mode with PM set (as it is done in designer and SVM)
-        return (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.STAND_BY && info.getPerfModelId() != null)
-                ? ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
-                : info.getRuntimeMode();
-    }
+        private void changeServiceMode(ServiceInfo serviceInfo, PrintStream logger, ICommandExecutor commandExecutor) throws Exception {
 
-    private String getModelName(Collection<? extends IProjectElement> models, String modelId) {
-        for (IProjectElement model : models) {
-            if (model.getId().equals(modelId)) {
-                return String.format("'%s' [%s]", model.getName(), modelId);
+            String dataModel = model.getDataModel().getSelectedModelName();
+            String performanceModel = model.getPerformanceModel().getSelectedModelName();
+            boolean useDefaultDataModel = model.getDataModel().isDefaultSelected();
+            boolean useDefaultPerformanceModel = model.getPerformanceModel().isDefaultSelected();
+            ServiceRuntimeConfiguration.RuntimeMode targetMode = getTargetMode();
+
+            ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceInfo.getId(),
+                    dataModel, performanceModel, targetMode, useDefaultDataModel, useDefaultPerformanceModel);
+
+            logger.printf("    Changing mode of service '%s' [%s] to %s mode%n", serviceInfo.getName(), serviceInfo.getId(), model.getMode());
+
+            IChmodeProcessor processor = new ChmodeProcessor(null);
+
+            try {
+                processor.process(chmodeInput, commandExecutor);
+            } finally {
+                printServiceStatus(logger, serviceInfo, commandExecutor);
             }
         }
-        return null;
+
+        private ServiceRuntimeConfiguration.RuntimeMode getTargetMode() {
+            // Set STAND_BY with PM in case of simulation without data model to be in accord with designer & SVM
+            if (model.getMode() == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
+                    && !model.getPerformanceModel().isNoneSelected()
+                    && model.getDataModel().isNoneSelected()) {
+                return ServiceRuntimeConfiguration.RuntimeMode.STAND_BY;
+            }
+
+            return model.getMode();
+        }
+
+        private void printServiceStatus(PrintStream logger, ServiceInfo serviceInfo, ICommandExecutor commandExecutor) {
+            try {
+                IService service = commandExecutor.findService(serviceInfo.getId(), null);
+                ServiceRuntimeConfiguration info = commandExecutor.getServiceRuntimeInfo(service);
+                ServiceRuntimeConfiguration.RuntimeMode mode = getDisplayRuntimeMode(info);
+
+                logger.printf("    Service '%s' [%s] is in %s mode%n", service.getName(), service.getId(), mode);
+                if (mode == ServiceRuntimeConfiguration.RuntimeMode.LEARNING || mode == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING) {
+                    logger.println("      Data model: " + getModelName(service.getDataModels(), info.getDataModelId()));
+                    logger.println("      Performance model: " + getModelName(service.getPerfModels(), info.getPerfModelId()));
+                }
+
+                if (info.getDeploymentErrorMessage() != null) {
+                    logger.println("      Error message: " + info.getDeploymentErrorMessage());
+                }
+            } catch (Exception e) {
+                String msg = String.format("Failed to get detail of service '%s' [%s]", serviceInfo.getName(), serviceInfo.getId());
+                logger.printf("      %s: %s%n", msg, e.getMessage());
+                LOG.log(Level.SEVERE, msg, e);
+            }
+        }
+
+        private ServiceRuntimeConfiguration.RuntimeMode getDisplayRuntimeMode(ServiceRuntimeConfiguration info) {
+            // display SIMULATING in case of STAND_BY mode with PM set (as it is done in designer and SVM)
+            return (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.STAND_BY && info.getPerfModelId() != null)
+                    ? ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
+                    : info.getRuntimeMode();
+        }
+
+        private String getModelName(Collection<? extends IProjectElement> models, String modelId) {
+            for (IProjectElement model : models) {
+                if (model.getId().equals(modelId)) {
+                    return String.format("'%s' [%s]", model.getName(), modelId);
+                }
+            }
+            return null;
+        }
     }
 
     @Override

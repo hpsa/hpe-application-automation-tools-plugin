@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.results.service;
@@ -36,15 +34,20 @@ import com.microfocus.application.automation.tools.results.service.rest.GetAlmEn
 import com.microfocus.application.automation.tools.results.service.rest.UpdateAlmEntityRequest;
 import com.microfocus.application.automation.tools.sse.common.XPathUtils;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
+import com.microfocus.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.microfocus.application.automation.tools.sse.sdk.Response;
 import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
+import com.microfocus.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 
 public class AlmRestTool {
 	
 	private Logger _logger ;
 	private RestClient restClient;
 	private AlmRestInfo almLoginInfo;
-	
+
+	private final String USERNAMEPRETAG = "<Username>";
+	private final String USERNAMESUBTAG = "</Username>";
+
 	public AlmRestTool (AlmRestInfo almLoginInfo, Logger logger) {
 		this.restClient = new RestClient(
         							almLoginInfo.getServerUrl(),
@@ -68,13 +71,42 @@ public class AlmRestTool {
 	public boolean login() throws Exception {
 		boolean ret;
         try {
-			ret = AuthenticationTool.authenticate(restClient, almLoginInfo.getUserName(),
+			ret = AuthenticationTool.getInstance().authenticate(restClient, almLoginInfo.getUserName(),
 					almLoginInfo.getPassword(), almLoginInfo.getServerUrl(), almLoginInfo.getClientType(), _logger);
         } catch (Exception cause) {
             ret = false;
             throw new AlmRestException (cause);
         }
         return ret;
+	}
+
+	/**
+	 * If logged in with API key, should get the user name again for creating entity to ALM.
+	 * @return Actual user name
+	 */
+	public String getActualUsername() {
+		Response response =
+				restClient.httpGet(
+						restClient.build(RestAuthenticator.IS_AUTHENTICATED),
+						null,
+						null,
+						ResourceAccessLevel.PUBLIC);
+
+		if (!response.isOk()) {
+			_logger.log("ERR: Cannot get actual login username: " + response.getFailure());
+            return null;
+		}
+
+        String responseData = new String(response.getData());
+        if (!responseData.contains(USERNAMEPRETAG) || !responseData.contains(USERNAMESUBTAG)) {
+            _logger.log("ERR: Response is not as expected: " + responseData);
+            return null;
+        }
+
+        return responseData.substring(
+                responseData.indexOf(USERNAMEPRETAG) + USERNAMEPRETAG.length(),
+                responseData.indexOf(USERNAMESUBTAG)
+        );
 	}
 
     /**
