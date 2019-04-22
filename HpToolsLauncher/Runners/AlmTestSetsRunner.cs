@@ -192,23 +192,19 @@ namespace HpToolsLauncher
                 if (pos != -1)
                 {
                     tsDir = testset1.Substring(0, pos).Trim("\\".ToCharArray());
-                    if (posSpace != -1)
+                    if (posSpace != -1 && nrOfSpaces >= 1)
                     {
-                        if (nrOfSpaces >= 1)
+                        if (!testHasColumn)//test has no parameters
                         {
-                            if (!testHasColumn)//test has no parameters
+                            tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
+                        } else
+                        {
+                            int qmIndex = testset1.IndexOf("\"");
+                            if (qmIndex > pos)
                             {
-                                tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
-                            } else
-                            {
-                                int qmIndex = testset1.IndexOf("\"");
-                                if (qmIndex > pos)
-                                {
-                                    tsName = testset1.Substring(pos, qmIndex - pos).Trim("\\".ToCharArray()).TrimEnd(' ');
-                                    testParameters = testset1.Substring(qmIndex, testset1.Length - qmIndex).Trim("\\".ToCharArray());
-                                }
+                                tsName = testset1.Substring(pos, qmIndex - pos).Trim("\\".ToCharArray()).TrimEnd(' ');
+                                testParameters = testset1.Substring(qmIndex, testset1.Length - qmIndex).Trim("\\".ToCharArray());
                             }
-
                         }
 
                     } else
