@@ -70,7 +70,7 @@
      </f:entry>
 
 
-     <f:entry>
+    <f:entry>
         <label>Timeout</label>
         <f:entry field="fsTimeout">
             <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
@@ -91,9 +91,7 @@
                     </select>
                 </f:entry>
 			</f:entry>
-        <!--/f:section>
 
-        <f:section-->
             <f:entry field="uftSettingsModel">
                 <f:property field="uftSettingsModel"/>
             </f:entry>
