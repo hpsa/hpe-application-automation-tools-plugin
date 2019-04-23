@@ -161,7 +161,7 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 	@Test
 	public void testJUnitResultsWorkspaceStripping() throws Exception {
 		Set<String> uftTests = new HashSet<>();
-		uftTests.add(TestUtils.testSignature("", "All-Tests", "Test group", "subfolder" + File.separator + "CalculatorPlusNextGen", TestResultStatus.FAILED));
+		uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder" + File.separator + "CalculatorPlusNextGen", TestResultStatus.FAILED));
 
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
