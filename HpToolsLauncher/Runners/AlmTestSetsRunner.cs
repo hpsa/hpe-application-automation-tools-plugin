@@ -808,7 +808,8 @@ namespace HpToolsLauncher
                         }
                         if (System.IO.File.Exists(abortFilename))
                         {
-                            cleanupProcesses();
+                           
+                            Scheduler.Stop(currentTestSetInstances);
                             break;
                         }
                     }
@@ -831,7 +832,6 @@ namespace HpToolsLauncher
 
                     //stop working 
                     Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
-                    cleanupProcesses();
                 }
             }
 
@@ -861,9 +861,11 @@ namespace HpToolsLauncher
                 _blnRunCancelled = true;
                 //ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
+
+                Scheduler.Stop(currentTestSetInstances);
+
                 //ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-                cleanupProcesses();
             }
 
             return runDesc;
@@ -1445,33 +1447,6 @@ namespace HpToolsLauncher
             return false;
         }
 
-        private void cleanupProcesses()
-        {
-            var dllHostProcesses = Process.GetProcessesByName("dllhost");
-            foreach (var dllhostProcess in dllHostProcesses)
-            {
-                KillProcess(dllhostProcess);
-            }
-        }
-
-        private static void KillProcess(Process process)
-        {
-            try
-            {
-                Console.Out.Write(string.Format("Trying to terminate {0}", process.ProcessName));
-                process.Kill();
-                Console.Out.WriteLine("...Terminated");
-            }
-            catch (Exception ex)
-            {
-                Console.Out.Write(string.Format("...Failed to terminate {0}.Reason: {1} ", process.ProcessName, ex.Message));
-            }
-            finally
-            {
-                process.Close();
-            }
-          
-        }
     }
 
     public class QCFailure
