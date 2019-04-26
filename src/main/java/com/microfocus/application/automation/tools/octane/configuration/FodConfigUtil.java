@@ -78,6 +78,29 @@ public class FodConfigUtil {
     }
 
     private static Long getRelease(AbstractProject project) {
+        Long release = getReleaseVersionBefore12(project);
+        if(release != null){
+            logger.debug("A Version before 12 is detected.");
+            return release;
+        }
+
+        release = getReleaseVersion12(project);
+        if(release != null) {
+            logger.debug("A Version 12 or higher is detected.");
+        }
+        logger.debug("No release was set to this job");
+        return release;
+    }
+    private static Long getReleaseVersion12(AbstractProject project){
+        for (Object publisher : project.getPublishersList()) {
+            if (publisher instanceof Publisher &&
+                    FOD_STATIC_ASSESSMENT_STEP.equals(publisher.getClass().getName())) {
+                return getReleaseByReflectionV12(publisher);
+            }
+        }
+        return null;
+    }
+    private static Long getReleaseVersionBefore12(AbstractProject project){
         for (Object publisher : project.getPublishersList()) {
             if (publisher instanceof Publisher &&
                     FOD_STATIC_ASSESSMENT_STEP.equals(publisher.getClass().getName())) {
@@ -86,7 +109,14 @@ public class FodConfigUtil {
         }
         return null;
     }
+    private static Long getReleaseByReflectionV12(Object fodPublisher) {
 
+        Object sharedBuildStep = getFieldValue(fodPublisher, "sharedBuildStep");
+        if(sharedBuildStep == null){
+            return null;
+        }
+        return getReleaseByReflection(sharedBuildStep);
+    }
     private static Long getReleaseByReflection(Object fodPublisher) {
 
         Object modelObj = getFieldValue(fodPublisher, "model");
