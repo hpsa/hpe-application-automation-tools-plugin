@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.*;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
@@ -82,8 +83,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			Queue queue = Jenkins.get().getQueue();
 			queue.getItems(project).forEach(item -> {
 				item.getActions(ParametersAction.class).forEach(action -> {
-					if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
-							&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+					if (action.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue().equals(parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue())
+							&& action.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue().equals(parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue())) {
 						try {
 							queue.cancel(item);
 						} catch (Exception e) {
@@ -97,8 +98,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				if (build instanceof AbstractBuild) {
 					AbstractBuild abuild = (AbstractBuild) build;
 					abuild.getActions(ParametersAction.class).forEach(action -> {
-						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
-								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+						if (action.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue().equals(parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue())
+								&& action.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue().equals(parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue())) {
 							try {
 								abuild.doStop();
 							} catch (Exception e) {
