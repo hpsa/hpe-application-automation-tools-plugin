@@ -80,8 +80,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
 			Queue queue = Jenkins.get().getQueue();
-			queue.getItems(project).stream().forEach(item -> {
-				item.getActions(ParametersAction.class).stream().forEach(action -> {
+			queue.getItems(project).forEach(item -> {
+				item.getActions(ParametersAction.class).forEach(action -> {
 					if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
 							&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
 						try {
@@ -93,10 +93,10 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				});
 			});
 
-			project.getBuilds().stream().forEach(build -> {
+			project.getBuilds().forEach(build -> {
 				if (build instanceof AbstractBuild) {
 					AbstractBuild abuild = (AbstractBuild) build;
-					abuild.getActions(ParametersAction.class).stream().forEach(action -> {
+					abuild.getActions(ParametersAction.class).forEach(action -> {
 						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
 								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
 							try {
