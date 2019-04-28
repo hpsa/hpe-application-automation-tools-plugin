@@ -21,10 +21,6 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import hudson.model.Job;
-import hudson.tasks.Builder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.

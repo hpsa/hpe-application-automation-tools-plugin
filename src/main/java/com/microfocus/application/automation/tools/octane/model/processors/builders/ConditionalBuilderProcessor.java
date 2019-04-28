@@ -18,36 +18,26 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.model;
+package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
-import org.apache.commons.lang.StringUtils;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import hudson.model.Job;
+import hudson.tasks.BuildStep;
+import hudson.tasks.Builder;
+import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
 
-public class AbstractSvRunModel {
-    /**
-     * Name of SvServerSettingsModel instance
-     */
-    protected final String serverName;
-    /**
-     * Force operation regardless virtual service is locked
-     */
-    protected final boolean force;
-    protected final SvServiceSelectionModel serviceSelection;
+import java.util.List;
+import java.util.Set;
 
-    public AbstractSvRunModel(String serverName, boolean force, SvServiceSelectionModel serviceSelection) {
-        this.serverName = serverName;
-        this.force = force;
-        this.serviceSelection = serviceSelection;
-    }
+/**
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of Conditional Plugin (parent definitions)
+ */
+class ConditionalBuilderProcessor extends AbstractBuilderProcessor {
 
-    public String getServerName() {
-        return (StringUtils.isNotBlank(serverName)) ? serverName : null;
-    }
-
-    public boolean isForce() {
-        return force;
-    }
-
-    public SvServiceSelectionModel getServiceSelection() {
-        return serviceSelection;
-    }
+	ConditionalBuilderProcessor(Builder builder, Job job, String phasesName, List<PipelinePhase> internalPhases, Set<Job> processedJobs) {
+		ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
+		for (BuildStep currentBuildStep : conditionalBuilder.getConditionalbuilders()) {
+			processInternalBuilders((Builder) currentBuildStep, job, phasesName, internalPhases, processedJobs);
+		}
+	}
 }

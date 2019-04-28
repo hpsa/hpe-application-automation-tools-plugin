@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvUndeployModel extends AbstractSvRunModel {

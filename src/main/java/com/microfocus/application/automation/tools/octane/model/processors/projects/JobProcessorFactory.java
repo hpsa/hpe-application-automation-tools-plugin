@@ -27,35 +27,45 @@ import java.util.Set;
 
 /**
  * Created by gadiel on 30/11/2016.
- *
+ * <p>
  * Job processors factory - should be used as a 'static' class, no instantiation, only static method/s
  */
 
 public class JobProcessorFactory {
+	//  native
+	public static final String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
+	public static final String SIMPLE_BUILD_TRIGGER = "hudson.tasks.BuildTrigger";
+	public static final String PARAMETRIZED_BUILD_TRIGGER = "hudson.plugins.parameterizedtrigger.BuildTrigger";
+	public static final String PARAMETRIZED_TRIGGER_BUILDER = "hudson.plugins.parameterizedtrigger.TriggerBuilder";
 
-	public static String WORKFLOW_JOB_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowJob";
-	public static String WORKFLOW_RUN_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowRun";
+	//  workflow
+	public static final String WORKFLOW_JOB_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowJob";
+	public static final String WORKFLOW_RUN_NAME = "org.jenkinsci.plugins.workflow.job.WorkflowRun";
+	public static final String WORKFLOW_MULTI_BRANCH_JOB_NAME = "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject";
 
-	public static String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
+	//  multijob
+	public static final String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
+	public static final String MULTIJOB_BUILDER = "com.tikal.jenkins.plugins.multijob.MultiJobBuilder";
 
-	public static String WORKFLOW_MULTI_BRANCH_JOB_NAME = "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject";
+	//  matrix
+	public static final String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
+	public static final String MATRIX_CONFIGURATION_NAME = "hudson.matrix.MatrixConfiguration";
 
-	public static String MULTIJOB_JOB_NAME = "com.tikal.jenkins.plugins.multijob.MultiJobProject";
+	//  conditional
+	public static final String CONDITIONAL_BUILDER_NAME = "org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder";
+	public static final String SINGLE_CONDITIONAL_BUILDER_NAME = "org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder";
 
-	public static String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+	//  maven
+	public static final String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
 
-	public static String MATRIX_JOB_NAME = "hudson.matrix.MatrixProject";
-	public static String MATRIX_CONFIGURATION_NAME = "hudson.matrix.MatrixConfiguration";
-
-	public static String FREE_STYLE_JOB_NAME = "hudson.model.FreeStyleProject";
-
-	public static String GITHUB_ORGANIZATION_FOLDER = "jenkins.branch.OrganizationFolder";
-
+	//  folders
+	public static final String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
+	public static final String GITHUB_ORGANIZATION_FOLDER = "jenkins.branch.OrganizationFolder";
 
 	private JobProcessorFactory() {
 	}
 
-	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job){
+	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job) {
 		Set<Job> processedJobs = new HashSet<>();
 		return getFlowProcessor(job, processedJobs);
 	}
@@ -64,19 +74,30 @@ public class JobProcessorFactory {
 		AbstractProjectProcessor flowProcessor;
 		processedJobs.add(job);
 
-		if (job.getClass().getName().equals(FREE_STYLE_JOB_NAME)) {
-			flowProcessor = new FreeStyleProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals(MATRIX_JOB_NAME)) {
-			flowProcessor = new MatrixProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals(MAVEN_JOB_NAME)) {
-			flowProcessor = new MavenProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals(MULTIJOB_JOB_NAME)) {
-			flowProcessor = new MultiJobProjectProcessor(job, processedJobs);
-		} else if (job.getClass().getName().equals(WORKFLOW_JOB_NAME)) {
-			flowProcessor = new WorkFlowJobProcessor(job);
-		} else {
-			flowProcessor = new UnsupportedProjectProcessor(job);
+		switch (job.getClass().getName()) {
+			case FREE_STYLE_JOB_NAME:
+				flowProcessor = new FreeStyleProjectProcessor(job, processedJobs);
+				break;
+			case MATRIX_JOB_NAME:
+				flowProcessor = new MatrixProjectProcessor(job, processedJobs);
+				break;
+			case MATRIX_CONFIGURATION_NAME:
+				flowProcessor = new MatrixConfigurationProcessor(job, processedJobs);
+				break;
+			case MAVEN_JOB_NAME:
+				flowProcessor = new MavenProjectProcessor(job, processedJobs);
+				break;
+			case MULTIJOB_JOB_NAME:
+				flowProcessor = new MultiJobProjectProcessor(job, processedJobs);
+				break;
+			case WORKFLOW_JOB_NAME:
+				flowProcessor = new WorkFlowJobProcessor(job);
+				break;
+			default:
+				flowProcessor = new UnsupportedProjectProcessor(job);
+				break;
 		}
+
 		processedJobs.remove(job);
 		return flowProcessor;
 	}

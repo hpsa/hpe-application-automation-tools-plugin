@@ -18,30 +18,18 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.run;
+package com.microfocus.application.automation.tools.sv.runner;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.microfocus.application.automation.tools.model.AbstractSvRunModel;
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
-import com.microfocus.sv.svconfigurator.build.ProjectBuilder;
-import com.microfocus.sv.svconfigurator.core.IProject;
-import com.microfocus.sv.svconfigurator.core.IService;
-import com.microfocus.sv.svconfigurator.core.impl.exception.CommandExecutorException;
-import com.microfocus.sv.svconfigurator.core.impl.exception.CommunicatorException;
-import com.microfocus.sv.svconfigurator.core.impl.exception.ProjectBuilderException;
-import com.microfocus.sv.svconfigurator.core.impl.jaxb.atom.ServiceListAtom;
-import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
-import com.microfocus.sv.svconfigurator.serverclient.impl.CommandExecutorFactory;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -50,30 +38,6 @@ import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
-
-class ServiceInfo {
-    private final String id;
-    private final String name;
-
-    public ServiceInfo(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-}
-
-class ConfigurationException extends Exception {
-    public ConfigurationException(String message) {
-        super(message);
-    }
-}
 
 public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends Builder implements SimpleBuildStep {
     private static final Logger LOG = Logger.getLogger(AbstractSvRunBuilder.class.getName());
@@ -84,9 +48,9 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         this.model = model;
     }
 
-    protected static void verifyNotNull(Object value, String errorMessage) throws ConfigurationException {
+    protected static void verifyNotNull(Object value, String errorMessage) throws IllegalArgumentException {
         if (value == null) {
-            throw new ConfigurationException(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 
@@ -98,7 +62,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         return model.getServiceSelection();
     }
 
-    protected SvServerSettingsModel getSelectedServerSettings() throws ConfigurationException {
+    protected SvServerSettingsModel getSelectedServerSettings() throws IllegalArgumentException {
         SvServerSettingsModel[] servers = ((AbstractSvRunDescriptor) getDescriptor()).getServers();
         if (servers != null) {
             for (SvServerSettingsModel serverSettings : servers) {
@@ -107,17 +71,12 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                 }
             }
         }
-        throw new ConfigurationException("Selected server configuration '" + model.getServerName() + "' does not exist.");
+        throw new IllegalArgumentException("Selected server configuration '" + model.getServerName() + "' does not exist.");
     }
 
-    protected abstract void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception;
+    protected abstract AbstractSvRemoteRunner<T> getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server);
 
-    protected ICommandExecutor createCommandExecutor() throws Exception {
-        SvServerSettingsModel serverModel = getSelectedServerSettings();
-        return new CommandExecutorFactory().createCommandExecutor(serverModel.getUrlObject(), serverModel.getCredentials());
-    }
-
-    @Override
+        @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         PrintStream logger = listener.getLogger();
         Date startDate = new Date();
@@ -128,7 +87,11 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                     serverModel.getName(), serverModel.getUrlObject(), serverModel.getUsername(), startDate);
             logConfig(logger, "    ");
             validateServiceSelection();
-            performImpl(run, workspace, launcher, listener);
+
+            SvServerSettingsModel server = getSelectedServerSettings();
+            AbstractSvRemoteRunner<T> runner = getRemoteRunner(workspace, listener, server);
+            launcher.getChannel().call(runner);
+
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Build failed: " + e.getMessage(), e);
             throw new AbortException(e.getMessage());
@@ -160,53 +123,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected List<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, FilePath workspace) throws Exception {
-        SvServiceSelectionModel s = getServiceSelection();
-        ICommandExecutor exec = createCommandExecutor();
-
-        ArrayList<ServiceInfo> res = new ArrayList<>();
-
-        switch (s.getSelectionType()) {
-            case SERVICE:
-                addServiceIfDeployed(s.getService(), res, ignoreMissingServices, exec, logger);
-                break;
-            case PROJECT:
-                IProject project = loadProject(workspace);
-                for (IService svc : project.getServices()) {
-                    addServiceIfDeployed(svc.getId(), res, ignoreMissingServices, exec, logger);
-                }
-                break;
-            case ALL_DEPLOYED:
-                for (ServiceListAtom.ServiceEntry entry : exec.getServiceList(null).getEntries()) {
-                    res.add(new ServiceInfo(entry.getId(), entry.getTitle()));
-                }
-                break;
-            case DEPLOY:
-                break;
-        }
-        return res;
-    }
-
-    private void addServiceIfDeployed(String service, ArrayList<ServiceInfo> results, boolean ignoreMissingServices,
-                                      ICommandExecutor exec, PrintStream logger) throws CommunicatorException, CommandExecutorException {
-        try {
-            IService svc = exec.findService(service, null);
-            results.add(new ServiceInfo(svc.getId(), svc.getName()));
-        } catch (CommandExecutorException e) {
-            if (!ignoreMissingServices) {
-                throw e;
-            }
-            logger.printf("Service '%s' is not deployed, ignoring%n", service);
-        }
-    }
-
-    protected IProject loadProject(FilePath workspace) throws ProjectBuilderException {
-        SvServiceSelectionModel s = getServiceSelection();
-        FilePath projectPath = workspace.child(s.getProjectPath());
-        return new ProjectBuilder().buildProject(new File(projectPath.getRemote()), s.getProjectPassword());
-    }
-
-    protected void validateServiceSelection() throws ConfigurationException {
+    protected void validateServiceSelection() throws IllegalArgumentException {
         SvServiceSelectionModel s = getServiceSelection();
         switch (s.getSelectionType()) {
             case SERVICE:

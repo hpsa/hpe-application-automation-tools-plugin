@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.pipelineSteps;
 
 import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.application.automation.tools.run.SvExportBuilder;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStep;
+import com.microfocus.application.automation.tools.sv.pipeline.AbstractSvStepDescriptor;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
@@ -67,7 +69,7 @@ public class SvExportStep extends AbstractSvStep {
     }
 
     @Override
-    protected SimpleBuildStep getBuilder() {
+    public SimpleBuildStep getBuilder() {
         return new SvExportBuilder(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst, archive);
     }
 

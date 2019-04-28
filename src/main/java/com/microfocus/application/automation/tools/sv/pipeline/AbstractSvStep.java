@@ -18,7 +18,7 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.pipelineSteps;
+package com.microfocus.application.automation.tools.sv.pipeline;
 
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
@@ -32,7 +32,7 @@ public abstract class AbstractSvStep extends AbstractStepImpl {
         this.force = force;
     }
 
-    protected abstract SimpleBuildStep getBuilder();
+    public abstract SimpleBuildStep getBuilder();
 
     public String getServerName() {
         return serverName;

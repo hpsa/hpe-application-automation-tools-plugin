@@ -18,40 +18,39 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.model.processors.projects;
+package com.microfocus.application.automation.tools.sv.model;
 
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Job;
-import hudson.model.ParametersAction;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import java.io.Serializable;
 
-/**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:40
- * To change this template use File | Settings | File Templates.
- */
+import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
+import org.apache.commons.lang.StringUtils;
 
-public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
-	WorkFlowJobProcessor(Job job) {
-		super((WorkflowJob) job);
-	}
+public class AbstractSvRunModel implements Serializable {
+    /**
+     * Name of SvServerSettingsModel instance
+     */
+    protected final String serverName;
+    /**
+     * Force operation regardless virtual service is locked
+     */
+    protected final boolean force;
+    protected final SvServiceSelectionModel serviceSelection;
 
-	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
-		int delay = this.job.getQuietPeriod();
-		CauseAction causeAction = new CauseAction(cause);
-		this.job.scheduleBuild2(delay, parametersAction, causeAction);
-	}
+    public AbstractSvRunModel(String serverName, boolean force, SvServiceSelectionModel serviceSelection) {
+        this.serverName = serverName;
+        this.force = force;
+        this.serviceSelection = serviceSelection;
+    }
 
-	@Override
-	public String getTranslatedJobName() {
-		if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName())) {
-			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
-		} else {
-			return super.getTranslatedJobName();
-		}
-	}
+    public String getServerName() {
+        return (StringUtils.isNotBlank(serverName)) ? serverName : null;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public SvServiceSelectionModel getServiceSelection() {
+        return serviceSelection;
+    }
 }

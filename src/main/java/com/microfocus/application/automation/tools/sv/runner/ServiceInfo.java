@@ -18,40 +18,22 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.model.processors.projects;
+package com.microfocus.application.automation.tools.sv.runner;
 
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Job;
-import hudson.model.ParametersAction;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+public class ServiceInfo {
+    private final String id;
+    private final String name;
 
-/**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:40
- * To change this template use File | Settings | File Templates.
- */
+    public ServiceInfo(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
-public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
-	WorkFlowJobProcessor(Job job) {
-		super((WorkflowJob) job);
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
-		int delay = this.job.getQuietPeriod();
-		CauseAction causeAction = new CauseAction(cause);
-		this.job.scheduleBuild2(delay, parametersAction, causeAction);
-	}
-
-	@Override
-	public String getTranslatedJobName() {
-		if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName())) {
-			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
-		} else {
-			return super.getTranslatedJobName();
-		}
-	}
+    public String getName() {
+        return name;
+    }
 }

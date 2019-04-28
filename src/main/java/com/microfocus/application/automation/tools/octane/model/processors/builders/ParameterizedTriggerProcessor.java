@@ -43,7 +43,7 @@ import java.util.Set;
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
 
-	public ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
+	ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
 		TriggerBuilder b = (TriggerBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items;

@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -28,7 +29,7 @@ import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class SvServerSettingsModel {
+public class SvServerSettingsModel implements Serializable{
 
     private final String name;
     private final String url;

@@ -18,12 +18,12 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.pipelineSteps;
+package com.microfocus.application.automation.tools.sv.pipeline;
 
 import javax.annotation.Nonnull;
 
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
-import com.microfocus.application.automation.tools.run.AbstractSvRunDescriptor;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunDescriptor;
 import hudson.util.ListBoxModel;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
