@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 

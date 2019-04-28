@@ -22,14 +22,19 @@ package com.microfocus.application.automation.tools.run;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
+import com.microfocus.application.automation.tools.model.SvExportModel;
+import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
+import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRemoteRunner;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunBuilder;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunDescriptor;
+import com.microfocus.application.automation.tools.sv.runner.ServiceInfo;
 import com.microfocus.sv.svconfigurator.build.ProjectBuilder;
 import com.microfocus.sv.svconfigurator.core.IProject;
-import com.microfocus.application.automation.tools.model.SvExportModel;
-import com.microfocus.application.automation.tools.model.SvServiceSelectionModel;
 import com.microfocus.sv.svconfigurator.core.IService;
 import com.microfocus.sv.svconfigurator.core.impl.exception.CommandExecutorException;
 import com.microfocus.sv.svconfigurator.core.impl.exception.CommunicatorException;
@@ -42,12 +47,8 @@ import com.microfocus.sv.svconfigurator.processor.IChmodeProcessor;
 import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -77,87 +78,96 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
     }
 
     @Override
-    protected void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
-        PrintStream logger = listener.getLogger();
-
-        ExportProcessor exportProcessor = new ExportProcessor(null);
-        IChmodeProcessor chmodeProcessor = new ChmodeProcessor(null);
-
-        ICommandExecutor exec = createCommandExecutor();
-        IProject project = null;
-
-        verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
-
-        String targetDirectory = workspace.child(model.getTargetDirectory()).getRemote();
-
-        if (model.isCleanTargetDirectory()) {
-            cleanTargetDirectory(logger, targetDirectory);
-        }
-
-        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
-            project = new ProjectBuilder().buildProject(new File(model.getServiceSelection().getProjectPath()), model.getServiceSelection().getProjectPassword());
-        }
-
-        for (ServiceInfo serviceInfo : getServiceList(false, logger, workspace)) {
-            if (model.isSwitchToStandByFirst()) {
-                switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
-            }
-
-            logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
-            verifyNotLearningBeforeExport(logger, exec, serviceInfo);
-            if (!model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
-                exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), project, false, model.isArchive());
-            }
-        }
-        if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
-            exportProcessor.process(exec, targetDirectory, null, project, false, model.isArchive());
-        }
+    protected RemoteRunner getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+        return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private void verifyNotLearningBeforeExport(PrintStream logger, ICommandExecutor exec, ServiceInfo serviceInfo)
-            throws CommunicatorException, CommandExecutorException {
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvExportModel> {
 
-        IService service = exec.findService(serviceInfo.getId(), null);
-        ServiceRuntimeConfiguration info = exec.getServiceRuntimeInfo(service);
-        if (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.LEARNING) {
-            logger.printf("    WARNING: Service '%s' [%s] is in Learning mode. Exported model need not be complete!",
-                    serviceInfo.getName(), serviceInfo.getId());
+        private RemoteRunner(SvExportModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+            super(listener, model, workspace, server);
         }
-    }
 
-    private void switchToStandBy(ServiceInfo service, IChmodeProcessor chmodeProcessor, ICommandExecutor exec, PrintStream logger)
-            throws CommandExecutorException, SVCParseException, CommunicatorException {
+        @Override
+        public String call() throws Exception {
+            PrintStream logger = listener.getLogger();
 
-        logger.printf("  Switching service '%s' [%s] to Stand-By mode before export%n", service.getName(), service.getId());
-        ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, service.getId(), null, null,
-                ServiceRuntimeConfiguration.RuntimeMode.STAND_BY, false, false);
-        chmodeProcessor.process(chmodeInput, exec);
-    }
+            verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
 
-    /**
-     * Cleans all sub-folders containing *.vproj file.
-     */
-    private void cleanTargetDirectory(PrintStream logger, String targetDirectory) throws IOException {
-        File target = new File(targetDirectory);
-        if (target.exists()) {
-            File[] subfolders = target.listFiles((FilenameFilter) DirectoryFileFilter.INSTANCE);
-            File[] files = target.listFiles((FilenameFilter) new SuffixFileFilter(".vproja"));
-            if (subfolders.length > 0 || files.length > 0) {
-                logger.println("  Cleaning target directory...");
+            ExportProcessor exportProcessor = new ExportProcessor(null);
+            IChmodeProcessor chmodeProcessor = new ChmodeProcessor(null);
+            IProject project = null;
+            String targetDirectory = workspace.child(model.getTargetDirectory()).getRemote();
+
+            ICommandExecutor exec = createCommandExecutor();
+
+            if (model.isCleanTargetDirectory()) {
+                cleanTargetDirectory(logger, new FilePath(new File(targetDirectory)));
             }
-            for(File file : files) {
-                FileUtils.forceDelete(file);
+
+            if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+                project = new ProjectBuilder().buildProject(new File(model.getServiceSelection().getProjectPath()), model.getServiceSelection().getProjectPassword());
             }
-            for (File subfolder : subfolders) {
-                if (subfolder.listFiles((FilenameFilter) new SuffixFileFilter(".vproj")).length > 0) {
-                    logger.println("    Deleting subfolder of target directory: " + subfolder.getAbsolutePath());
-                    FileUtils.deleteDirectory(subfolder);
-                } else {
-                    logger.println("    Skipping delete of directory '" + subfolder.getAbsolutePath() + "' because it does not contain any *.vproj file.");
+
+            for (ServiceInfo serviceInfo : getServiceList(false, logger, workspace)) {
+                if (model.isSwitchToStandByFirst()) {
+                    switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
+                }
+
+                logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
+                verifyNotLearningBeforeExport(logger, exec, serviceInfo);
+                if (!model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+                    exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), project, false, model.isArchive());
+                }
+            }
+            if (model.getServiceSelection().getSelectionType().equals(SvServiceSelectionModel.SelectionType.PROJECT)) {
+                exportProcessor.process(exec, targetDirectory, null, project, false, model.isArchive());
+            }
+            return null;
+        }
+
+        private void switchToStandBy(ServiceInfo service, IChmodeProcessor chmodeProcessor, ICommandExecutor exec, PrintStream logger)
+                throws CommandExecutorException, SVCParseException, CommunicatorException {
+
+            logger.printf("  Switching service '%s' [%s] to Stand-By mode before export%n", service.getName(), service.getId());
+            ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, service.getId(), null, null,
+                    ServiceRuntimeConfiguration.RuntimeMode.STAND_BY, false, false);
+            chmodeProcessor.process(chmodeInput, exec);
+        }
+
+        private void cleanTargetDirectory(PrintStream logger, FilePath targetDirectory) throws IOException, InterruptedException {
+            if (targetDirectory.exists()) {
+                List<FilePath> subfolders = targetDirectory.listDirectories();
+                List<FilePath> files = targetDirectory.list(new SuffixFileFilter(".vproj"));
+                if (subfolders.size() > 0 || files.size() > 0) {
+                    logger.println("  Cleaning target directory...");
+                }
+                for (FilePath file : files) {
+                    file.delete();
+                }
+                for (FilePath subfolder : subfolders) {
+                    if (subfolder.list(new SuffixFileFilter(".vproj")).size() > 0) {
+                        logger.println("    Deleting subfolder of target directory: " + subfolder.absolutize());
+                        subfolder.deleteRecursive();
+                    } else {
+                        logger.println("    Skipping delete of directory '" + subfolder.absolutize() + "' because it does not contain any *.vproj file.");
+                    }
                 }
             }
         }
+
+        private void verifyNotLearningBeforeExport(PrintStream logger, ICommandExecutor exec, ServiceInfo serviceInfo)
+                throws CommunicatorException, CommandExecutorException {
+
+            IService service = exec.findService(serviceInfo.getId(), null);
+            ServiceRuntimeConfiguration info = exec.getServiceRuntimeInfo(service);
+            if (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.LEARNING) {
+                logger.printf("    WARNING: Service '%s' [%s] is in Learning mode. Exported model need not be complete!",
+                        serviceInfo.getName(), serviceInfo.getId());
+            }
+        }
     }
+
 
     @Extension
     public static final class DescriptorImpl extends AbstractSvRunDescriptor {

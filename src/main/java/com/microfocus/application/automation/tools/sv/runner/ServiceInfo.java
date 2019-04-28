@@ -18,22 +18,22 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.model;
+package com.microfocus.application.automation.tools.sv.runner;
 
-import com.microfocus.application.automation.tools.sv.model.AbstractSvRunModel;
-import org.kohsuke.stapler.DataBoundConstructor;
+public class ServiceInfo {
+    private final String id;
+    private final String name;
 
-public class SvUndeployModel extends AbstractSvRunModel {
-
-    protected final boolean continueIfNotDeployed;
-
-    @DataBoundConstructor
-    public SvUndeployModel(String serverName, boolean continueIfNotDeployed, boolean force, SvServiceSelectionModel serviceSelection) {
-        super(serverName, force, serviceSelection);
-        this.continueIfNotDeployed = continueIfNotDeployed;
+    public ServiceInfo(String id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public boolean isContinueIfNotDeployed() {
-        return continueIfNotDeployed;
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
     }
 }

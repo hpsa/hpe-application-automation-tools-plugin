@@ -25,6 +25,10 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 import com.microfocus.application.automation.tools.model.SvDeployModel;
+import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRemoteRunner;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunBuilder;
+import com.microfocus.application.automation.tools.sv.runner.AbstractSvRunDescriptor;
 import com.microfocus.sv.svconfigurator.core.IDataModel;
 import com.microfocus.sv.svconfigurator.core.IPerfModel;
 import com.microfocus.sv.svconfigurator.core.IProject;
@@ -36,8 +40,6 @@ import com.microfocus.sv.svconfigurator.serverclient.ICommandExecutor;
 import com.microfocus.sv.svconfigurator.util.ProjectUtils;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
@@ -58,45 +60,59 @@ public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
     }
 
     @Override
-    public void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
-        PrintStream logger = listener.getLogger();
-
-        IProject project = loadProject(workspace);
-        printProjectContent(project, logger);
-        deployServiceFromProject(project, logger);
+    protected RemoteRunner getRemoteRunner(@Nonnull FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+        return new RemoteRunner(model, workspace, listener, server);
     }
 
-    private Iterable<IService> getServiceList(IProject project) {
-        if (model.getService() == null) {
-            return project.getServices();
-        } else {
-            ArrayList<IService> list = new ArrayList<>();
-            list.add(ProjectUtils.findProjElem(project.getServices(), model.getService()));
-            return list;
+    private static class RemoteRunner extends AbstractSvRemoteRunner<SvDeployModel> {
+
+        private RemoteRunner(SvDeployModel model, FilePath workspace, TaskListener listener, SvServerSettingsModel server) {
+            super(listener, model, workspace, server);
         }
-    }
 
-    private void deployServiceFromProject(IProject project, PrintStream logger) throws Exception {
-        IDeployProcessor processor = new DeployProcessor(null);
-        ICommandExecutor commandExecutor = createCommandExecutor();
+        @Override
+        public String call() throws Exception {
+            PrintStream logger = listener.getLogger();
 
-        for (IService service : getServiceList(project)) {
-            logger.printf("  Deploying service '%s' [%s] %n", service.getName(), service.getId());
-            DeployProcessorInput deployInput = new DeployProcessorInput(model.isForce(), false, project, model.getService(), null);
-            deployInput.setFirstAgentFailover(model.isFirstAgentFallback());
-            processor.process(deployInput, commandExecutor);
+            IProject project = loadProject(workspace);
+            printProjectContent(project, logger);
+            deployServiceFromProject(project, logger);
+
+            return null;
         }
-    }
 
-    private void printProjectContent(IProject project, PrintStream logger) {
-        logger.println("  Project content:");
-        for (IService service : project.getServices()) {
-            logger.println("    Service: " + service.getName() + " [" + service.getId() + "]");
-            for (IDataModel dataModel : service.getDataModels()) {
-                logger.println("      DM: " + dataModel.getName() + " [" + dataModel.getId() + "]");
+        private void printProjectContent(IProject project, PrintStream logger) {
+            logger.println("  Project content:");
+            for (IService service : project.getServices()) {
+                logger.println("    Service: " + service.getName() + " [" + service.getId() + "]");
+                for (IDataModel dataModel : service.getDataModels()) {
+                    logger.println("      DM: " + dataModel.getName() + " [" + dataModel.getId() + "]");
+                }
+                for (IPerfModel perfModel : service.getPerfModels()) {
+                    logger.println("      PM: " + perfModel.getName() + " [" + perfModel.getId() + "]");
+                }
             }
-            for (IPerfModel perfModel : service.getPerfModels()) {
-                logger.println("      PM: " + perfModel.getName() + " [" + perfModel.getId() + "]");
+        }
+
+        private Iterable<IService> getServiceList(IProject project) {
+            if (model.getService() == null) {
+                return project.getServices();
+            } else {
+                ArrayList<IService> list = new ArrayList<>();
+                list.add(ProjectUtils.findProjElem(project.getServices(), model.getService()));
+                return list;
+            }
+        }
+
+        private void deployServiceFromProject(IProject project, PrintStream logger) throws Exception {
+            IDeployProcessor processor = new DeployProcessor(null);
+            ICommandExecutor commandExecutor = createCommandExecutor();
+
+            for (IService service : getServiceList(project)) {
+                logger.printf("  Deploying service '%s' [%s] %n", service.getName(), service.getId());
+                DeployProcessorInput deployInput = new DeployProcessorInput(model.isForce(), false, project, model.getService(), null);
+                deployInput.setFirstAgentFailover(model.isFirstAgentFallback());
+                processor.process(deployInput, commandExecutor);
             }
         }
     }

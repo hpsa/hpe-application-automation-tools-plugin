@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.model;
 
 import javax.annotation.Nonnull;
 
+import java.io.Serializable;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -32,7 +34,7 @@ import org.apache.commons.lang.Validate;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSelectionModel> {
+public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSelectionModel> implements Serializable {
 
     protected final SelectionType selectionType;
     protected final String service;
