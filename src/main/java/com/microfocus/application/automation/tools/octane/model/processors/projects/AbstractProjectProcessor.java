@@ -30,6 +30,7 @@ import hudson.model.*;
 import hudson.tasks.BuildStep;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
+import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
@@ -64,13 +65,12 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	 *
 	 * @return
 	 */
-	public List<Builder> tryGetBuilders(){
+	public List<Builder> tryGetBuilders() {
 		return new ArrayList<>();
 	}
 
 	/**
 	 * Enqueue Job's run with the specified parameters
-	 *
 	 */
 	public void scheduleBuild(Cause cause, ParametersAction parametersAction) {
 		if (job instanceof AbstractProject) {
@@ -85,6 +85,20 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
+			Queue queue = Jenkins.get().getQueue();
+			queue.getItems(project).stream().forEach(item -> {
+				item.getActions(ParametersAction.class).stream().forEach(action -> {
+					if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
+							&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+						try {
+							queue.cancel(item);
+						} catch (Exception e) {
+							logger.warn(e);
+						}
+					}
+				});
+			});
+
 			project.getBuilds().stream().forEach(build -> {
 				if (build instanceof AbstractBuild) {
 					AbstractBuild abuild = (AbstractBuild) build;
