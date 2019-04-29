@@ -102,17 +102,15 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			project.getBuilds().forEach(build -> {
 				if (build instanceof AbstractBuild) {
 					AbstractBuild aBuild = (AbstractBuild) build;
-					if(aBuild.isBuilding()) {
-						aBuild.getActions(ParametersAction.class).forEach(action -> {
-							if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
-								try {
-									aBuild.doStop();
-								} catch (Exception e) {
-									logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
-								}
+					aBuild.getActions(ParametersAction.class).forEach(action -> {
+						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+							try {
+								aBuild.doStop();
+							} catch (Exception e) {
+								logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 							}
-						});
-					}
+						}
+					});
 				}
 			});
 		} else {
