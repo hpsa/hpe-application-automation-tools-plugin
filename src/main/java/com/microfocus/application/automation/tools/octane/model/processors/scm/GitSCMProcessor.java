@@ -97,11 +97,14 @@ class GitSCMProcessor implements SCMProcessor {
             if (workspace != null) {
                 File repoDir = new File(getRemoteString(build) + File.separator + ".git");
                 scmData = workspace.act(new LineEnricherCallable(repoDir, scmData));
+                logger.info("Line enricher: process took: " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+            }
+            else {
+                logger.warn("Line enricher: workspace is null");
             }
         } catch (Exception e1) {
-            logger.error("Line enricher: FAILED. could not enrich lines on SCM Data " + e1);
+            logger.error("Line enricher: FAILED. could not enrich lines on SCM Data ", e1);
         }
-        logger.info("Line enricher: process took: " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
         return scmData;
     }
 
@@ -349,7 +352,7 @@ class GitSCMProcessor implements SCMProcessor {
             df.setDetectRenames(true);
 
             //add blame data to scm data
-            Set<String> committedFiles = getCommittedFiles(scmData);
+            Set<String> committedFiles = getAddedOrEditedFiles(scmData);
             List<SCMFileBlame> fileBlameList = getBlameData(repo, committedFiles);
             scmData.setFileBlameList(fileBlameList);
 
@@ -396,10 +399,10 @@ class GitSCMProcessor implements SCMProcessor {
         }
     }
 
-    private static Set<String> getCommittedFiles(SCMData scmData) {
+    private static Set<String> getAddedOrEditedFiles(SCMData scmData) {
         Set<String> filesCommittedInPPR = new HashSet<>();
         for (SCMCommit curCommit : scmData.getCommits()) {
-            curCommit.getChanges().forEach(change -> filesCommittedInPPR.add(change.getFile()));
+            curCommit.getChanges().stream().filter(change -> !change.getType().equals("delete")).forEach(change -> filesCommittedInPPR.add(change.getFile()));
         }
         return filesCommittedInPPR;
     }
