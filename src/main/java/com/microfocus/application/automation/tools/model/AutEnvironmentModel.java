@@ -173,7 +173,7 @@ public class AutEnvironmentModel extends AbstractDescribableImpl<AutEnvironmentM
     public static class DescriptorImpl extends Descriptor<AutEnvironmentModel> {
 
         public String getDisplayName() {
-            return "UFT ALM AUT ENVIRONMENT PREPARATION MODEL";
+            return "UFT ALM AUT Environment Preparation Model";
         }
 
         public AlmServerSettingsModel[] getAlmServers() {
