@@ -23,26 +23,35 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <f:entry title="Parameter type" field="paramType">
-        <select name="autEnv.paramType" class="autEnv" onchange="checkCorrespondingCheckbox(this)">
-            <j:forEach var="pt" items="${descriptor.parametersTypes}">
-                <f:option selected="${pt ==instance.paramType}" value="${pt}">
-                    ${pt}
-                </f:option>
-            </j:forEach>
-        </select>
+    <f:entry>
+        <label>Parameter type</label>
+        <f:entry field="paramType">
+            <select name="autEnv.paramType" class="autEnv" onchange="checkCorrespondingCheckbox(this)">
+                <j:forEach var="pt" items="${descriptor.parametersTypes}">
+                    <f:option selected="${pt ==instance.paramType}" value="${pt}">
+                        ${pt}
+                    </f:option>
+                </j:forEach>
+            </select>
+        </f:entry>
     </f:entry>
 
-    <f:entry title="Parameter name" field="name">
-        <f:textbox/>
-    </f:entry>
+     <f:entry>
+        <label>Parameter name</label>
+        <f:entry field="name">
+            <f:textbox/>
+        </f:entry>
+     </f:entry>
 
-    <f:entry title="Parameter value" field="value">
-        <f:textbox/>
-        <label class="autEnvParameterCheckbox" style="display: none">
-            <f:checkbox field="shouldGetOnlyFirstValueFromJson"/>
-            Get only the first value in case an array will be returned
-        </label>
+    <f:entry>
+        <label>Parameter value</label>
+        <f:entry field="value">
+            <f:textbox/>
+            <label class="autEnvParameterCheckbox" style="display: none">
+                <f:checkbox field="shouldGetOnlyFirstValueFromJson"/>
+                Get only the first value in case an array will be returned
+            </label>
+        </f:entry>
     </f:entry>
 
     <f:entry>

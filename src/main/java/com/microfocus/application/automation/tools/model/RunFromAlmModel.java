@@ -21,7 +21,10 @@
 package com.microfocus.application.automation.tools.model;
 
 import hudson.EnvVars;
+import hudson.Extension;
 import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import hudson.util.VariableResolver;
 
 import java.util.Arrays;
@@ -31,10 +34,13 @@ import hudson.util.Secret;
 
 import java.util.Properties;
 
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class RunFromAlmModel {
+import javax.annotation.Nonnull;
+
+public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public final static EnumDescription runModeLocal = new EnumDescription(
             "RUN_LOCAL", "Run locally");
@@ -77,19 +83,9 @@ public class RunFromAlmModel {
         }
 
         this.almRunResultsMode = almRunResultsMode;
-
         this.almTimeout = almTimeout;
         this.almRunMode = almRunMode;
-
-        if (this.almRunMode.equals(runModeRemote.getValue())) {
-            this.almRunHost = almRunHost;
-        } else {
-            this.almRunHost = "";
-        }
-
-        if (almRunHost == null) {
-            this.almRunHost = "";
-        }
+        this.almRunHost = almRunHost;
     }
 
     public String getAlmUserName() {
@@ -151,6 +147,7 @@ public class RunFromAlmModel {
             props.put("almDomain", almDomain);
             props.put("almProject", almProject);
         } else {
+
             props.put("almUserName",
                     Util.replaceMacro(envVars.expand(almUserName), varResolver));
             props.put(ALM_PASSWORD_KEY, almPassword);
@@ -188,5 +185,18 @@ public class RunFromAlmModel {
         props.put("almRunHost", almRunHost);
 
         return props;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<RunFromAlmModel> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "UFT ALM Model";
+        }
+
+        public List<EnumDescription> getAlmRunModes() {
+            return runModes;
+        }
     }
 }

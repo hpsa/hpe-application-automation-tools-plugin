@@ -28,9 +28,12 @@ using System.Text;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace HpToolsLauncher
 {
+  
     public enum CIName
     {
         Hudson,
@@ -98,6 +101,12 @@ namespace HpToolsLauncher
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
         private static string _dateFormat = "dd/MM/yyyy HH:mm:ss";
         private static bool rerunFailedTests = false;
+        XmlSerializer _serializer = new XmlSerializer(typeof(testsuites));
+
+        testsuites _testSuites = new testsuites();
+
+        public const string ClassName = "HPToolsFileSystemRunner";
+
 
         public static string DateFormat
         {
@@ -267,7 +276,9 @@ namespace HpToolsLauncher
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
-            RunTests(runner, resultsFilename);
+            TestSuiteRunResults results = runner.Run();
+
+            RunTests(runner, resultsFilename, results);
 
        
             if (_runtype.Equals(TestStorageType.Alm))
@@ -282,22 +293,6 @@ namespace HpToolsLauncher
                 else
                 {
                     filterSelected = Convert.ToBoolean(filter.ToLower());
-                }
-
-                if(filterSelected.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
-                {
-                    //rerun selected tests
-                    initialTestRun = false;
-
-                    runner = CreateRunner(_runtype, _ciParams, initialTestRun);
-
-                    //runner instantiation failed (no tests to run or other problem)
-                    if (runner == null)
-                    {
-                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-                    }
-
-                    RunTests(runner, resultsFilename);
                 }
 
             }
@@ -333,7 +328,9 @@ namespace HpToolsLauncher
                         Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
                     }
 
-                    RunTests(runner, resultsFilename);
+                    TestSuiteRunResults rerunResults = runner.Run();
+                    results.AppendResults(rerunResults);
+                    RunTests(runner, resultsFilename, results);
                 }
             }
   
@@ -815,8 +812,9 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="runner"></param>
         /// <param name="resultsFile"></param>
-        private void RunTests(IAssetRunner runner, string resultsFile)
+        private void RunTests(IAssetRunner runner, string resultsFile, TestSuiteRunResults results)
         {
+
             try
             {
                 if (_ciRun)
@@ -825,12 +823,11 @@ namespace HpToolsLauncher
                     _xmlBuilder.XmlName = resultsFile;
                 }
 
-                TestSuiteRunResults results = runner.Run();
-
                 if (results == null)
                     Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-
+               
                 _xmlBuilder.CreateXmlFromRunResults(results);
+
 
                 //if there is an error
                 if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))
@@ -841,6 +838,7 @@ namespace HpToolsLauncher
                 int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
+                int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
 
                 //TODO: Temporery fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
                 if ((numErrors <= 0) && (numFailures > 0))
@@ -880,7 +878,7 @@ namespace HpToolsLauncher
                 }
 
                 ConsoleWriter.WriteLine(Resources.LauncherDoubleSeperator);
-                ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, results.TestRuns.Count, numSuccess, numFailures, numErrors));
+                ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, results.TestRuns.Count, numSuccess, numFailures, numErrors, numWarnings));
 
                 if (!runner.RunWasCancelled)
                 {

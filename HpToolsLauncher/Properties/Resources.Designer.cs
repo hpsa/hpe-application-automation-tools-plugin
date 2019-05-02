@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -79,7 +79,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Link: {0}.
+        ///   Looks up a localized string similar to Copy the following report link inside an IE browser to view the test run results: {0}.
         /// </summary>
         internal static string AlmRunnerDisplayLink {
             get {
@@ -250,7 +250,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test: {0}, Status: {1}, Message: {2} \nLink: {3}\n.
+        ///   Looks up a localized string similar to Test: {0}, Status: {1}, Message: {2}, Link: {3}.
         /// </summary>
         internal static string AlmRunnerTestStat {
             get {
@@ -493,7 +493,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}.
+        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}, warnings: {5}.
         /// </summary>
         internal static string LauncherDisplayStatistics {
             get {
