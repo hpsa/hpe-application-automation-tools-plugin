@@ -727,11 +727,10 @@ namespace HpToolsLauncher
             ITSTest prevTest = null;
             ITSTest currentTest = null;
             string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
+           
             //wait for the tests to end ("normally" or because of the timeout)
             while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))
             {
-                System.Diagnostics.Trace.WriteLine("CTRACE: timeout did not expire and test did not finish.");
-                //Console.WriteLine("timeout did not expire and test did not finish.");
                 executionStatus.RefreshExecStatusInfo("all", true);
                 tsExecutionFinished = executionStatus.Finished;
 
@@ -739,7 +738,6 @@ namespace HpToolsLauncher
                 {
                     break;
                 }
-                //Console.WriteLine("execution status count: " + executionStatus.Count);
                 for (int j = 1; j <= executionStatus.Count; ++j)
                 {
                    TestExecStatus testExecStatusObj = executionStatus[j];
@@ -810,6 +808,8 @@ namespace HpToolsLauncher
                         {
                            
                             Scheduler.Stop(currentTestSetInstances);
+                            //stop working 
+                            Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
                             break;
                         }
                     }
@@ -945,11 +945,7 @@ namespace HpToolsLauncher
             bool useSSL = (m_qcServer.Contains("https://"));
 
             ITestSet set = prevTest.TestSet;
-            //string testRunLink = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid)
-            //  : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/TestRunsModule-00000000090859589?EntityType=IRun&EntityID=" + runid);
-            //string testRunLinkQc10 = useSSL ? ("tds://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("https://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid)
-            //  : ("td://" + m_qcProject + "." + m_qcDomain + "." + m_qcServer.Replace("http://", "") + "/Test%20Lab?Action=FindRun&TestSetID=" + set.ID + "&TestInstanceID=" + prevTest.ID + "&RunID=" + runid);
-            //string linkStr = (oldQc ? testRunLinkQc10 : testRunLink);
+            
             string linkStr = "";
             if (!oldQc)
             {

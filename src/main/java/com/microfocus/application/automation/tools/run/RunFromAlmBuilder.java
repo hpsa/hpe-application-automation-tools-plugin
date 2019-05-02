@@ -46,11 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;

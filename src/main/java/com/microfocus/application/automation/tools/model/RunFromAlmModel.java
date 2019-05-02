@@ -192,7 +192,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Run from model";
+            return "UFT ALM MODEL";
         }
 
         public List<EnumDescription> getAlmRunModes() {

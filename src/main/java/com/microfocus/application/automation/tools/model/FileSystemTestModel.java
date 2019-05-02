@@ -114,6 +114,6 @@ public class FileSystemTestModel extends AbstractDescribableImpl<FileSystemTestM
     @Extension
     public static class DescriptorImpl extends Descriptor<FileSystemTestModel> {
         @Nonnull
-        public String getDisplayName() {return "File System test model";}
+        public String getDisplayName() {return "File system test model";}
     }
 }

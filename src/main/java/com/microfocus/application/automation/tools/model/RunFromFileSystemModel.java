@@ -827,7 +827,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Run from file system model";
+            return "UFT FILE SYSTEM MODEL";
         }
 
         public List<EnumDescription> getFsUftRunModes() {
