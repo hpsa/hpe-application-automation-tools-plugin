@@ -67,7 +67,7 @@
                 <f:property field="fileSystemTestSetModel"/>
             </f:entry>
         </cv:customOptionalBlock>
-     </f:entry>
+    </f:entry>
 
 
     <f:entry>
@@ -82,7 +82,7 @@
 		    <f:entry field="fsUftRunMode">
 		        <label>Run Mode</label>
 		        <f:entry>
-                    <select name="runPipeline.fsUftRunMode">
+                    <select name="runPipeline.fsUftRunMode" style="margin-bottom: -20px;">
                         <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
                             <f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
                                 ${runMode.description}
@@ -91,13 +91,12 @@
                     </select>
                 </f:entry>
 			</f:entry>
-
-            <f:entry field="uftSettingsModel">
+             <f:entry>
                 <f:property field="uftSettingsModel"/>
-            </f:entry>
+             </f:entry>
         </f:section>
     </f:advanced>
-	
+
     <f:advanced title="LoadRunner-Specific Settings">
     	<f:section title="LoadRunner Settings">
 			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">

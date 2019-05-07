@@ -212,7 +212,8 @@ namespace HpToolsLauncher
                         tsName = testset1.Substring(pos, testset1.Length - pos).Trim("\\".ToCharArray());
                     }
                 }
-
+                 
+                Console.WriteLine("Run on host: "+ RunHost);
                 TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
@@ -239,6 +240,7 @@ namespace HpToolsLauncher
             {
                 object conn = Activator.CreateInstance(type);
                 this.tdConnection = conn as ITDConnection2;
+                this.tdConnection.KeepConnection = true;
                 // set credentials
 
 

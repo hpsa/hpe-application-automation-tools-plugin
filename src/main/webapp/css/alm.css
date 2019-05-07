@@ -25,8 +25,22 @@
 
 div.help {
     margin-left: 12px;
+    background: none !important;
 }
 
 #cb20 {
     margin-left: 35px;
+}
+.help {
+    border: none;
+    background: none !important;
+    background-color: transparent;
+}
+
+table td .help {
+    background: none !important;
+}
+
+table tr[nameref^="rowSetStart"] {
+    background: none !important;
 }
