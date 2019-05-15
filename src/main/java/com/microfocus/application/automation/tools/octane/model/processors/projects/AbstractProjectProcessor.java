@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
@@ -30,7 +31,6 @@ import hudson.model.*;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ import java.util.Set;
 
 @SuppressWarnings({"squid:S1132", "squid:S1872"})
 public abstract class AbstractProjectProcessor<T extends Job> {
-	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(AbstractProjectProcessor.class);
 	private final List<PipelinePhase> internals = new ArrayList<>();
 	private final List<PipelinePhase> postBuilds = new ArrayList<>();
 

@@ -28,13 +28,13 @@ import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.actions.TimingAction;
@@ -60,7 +60,7 @@ import java.util.Set;
 
 @Extension
 public class WorkflowListenerOctaneImpl implements GraphListener {
-	private static final Logger logger = LogManager.getLogger(WorkflowListenerOctaneImpl.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(WorkflowListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	//After upgrading Pipeline:Groovy plugin to Version 2.64: receive two start events, therefore

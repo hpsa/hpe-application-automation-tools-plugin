@@ -30,6 +30,7 @@ import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UFTTestDetectionService;
 import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import hudson.Extension;
@@ -42,7 +43,6 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -57,11 +57,10 @@ import java.util.List;
  */
 
 public class UFTTestDetectionPublisher extends Recorder {
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(UFTTestDetectionPublisher.class);
 	private String configurationId;
 	private String workspaceName;
 	private String scmRepositoryId;
-
-	private static final Logger logger = LogManager.getLogger(UFTTestDetectionPublisher.class);
 
 	public String getWorkspaceName() {
 		return workspaceName;

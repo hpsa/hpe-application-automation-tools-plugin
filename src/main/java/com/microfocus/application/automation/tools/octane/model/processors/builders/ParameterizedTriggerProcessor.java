@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
@@ -29,7 +30,6 @@ import hudson.plugins.parameterizedtrigger.BuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.TriggerBuilder;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import java.util.Set;
  * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of ParameterizedTrigger Plugin
  */
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
-	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ParameterizedTriggerProcessor.class);
 
 	ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
 		TriggerBuilder b = (TriggerBuilder) builder;

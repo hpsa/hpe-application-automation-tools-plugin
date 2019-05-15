@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
@@ -27,7 +28,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.Set;
  * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
 class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
-    private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(MultiJobBuilderProcessor.class);
 
     MultiJobBuilderProcessor(Builder builder, Job job, Set<Job> processedJobs) {
         MultiJobBuilder b = (MultiJobBuilder) builder;

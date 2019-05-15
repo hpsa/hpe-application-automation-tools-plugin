@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.UFTExtension;
@@ -30,7 +31,6 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -42,7 +42,7 @@ import java.util.List;
 @Extension
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872"})
 public class TestListener {
-	private static Logger logger = LogManager.getLogger(TestListener.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(TestListener.class);
 
 	private static final String STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "StormTestRunner";
 	private static final String STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "RunFromSrfBuilder";
@@ -54,7 +54,7 @@ public class TestListener {
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, run);
 		boolean success = true;
 		boolean hasTests = false;
-		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
+		String jenkinsRootUrl = Jenkins.get().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(run.getParent()).tryGetBuilders();
 		if (builders != null) {
