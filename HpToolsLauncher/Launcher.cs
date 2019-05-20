@@ -39,7 +39,7 @@ namespace HpToolsLauncher
         Hudson,
         Jenkins,
         TFS,
-        CCNET,
+        CCNET
     }
 
     public class McConnectionInfo
@@ -349,9 +349,48 @@ namespace HpToolsLauncher
         IAssetRunner CreateRunner(TestStorageType runType, JavaProperties ciParams, bool initialTestRun)
         {
             IAssetRunner runner = null;
+            
             switch (runType)
             {
+                case TestStorageType.AlmLabManagement:
+                    List<string> testSetsList = GetParamsWithPrefix("almEntityId");
+                   
+                    string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
+
+                    string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
+
+                    List<string> filterByStatuses = new List<string>();
+
+                    if (statuses != "")
+                    {
+                        if (statuses.Contains(","))
+                        {
+                            filterByStatuses = statuses.Split(',').ToList();
+                        }
+                        else
+                        {
+                            filterByStatuses.Add(statuses);
+                        }
+                    }
+                    //create an Alm runner
+                    runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
+                                     _ciParams["almUserName"],
+                                     Decrypt(_ciParams["almPassword"], secretkey),
+                                     _ciParams["almDomain"],
+                                     _ciParams["almProject"],
+                                     Convert.ToDouble(_ciParams["almTimeout"]),
+                                     QcRunMode.RUN_LOCAL,
+                                     "",
+                                     testSetsList,
+                                     false,
+                                     filterByName,
+                                     filterByStatuses,   
+                                     initialTestRun,
+                                     TestStorageType.AlmLabManagement);
+                    break;
+
                 case TestStorageType.Alm:
+                    Console.WriteLine("runtype is alm");
                     //check that all required parameters exist
                     foreach (string param1 in requiredParamsForQcRun)
                     {
@@ -402,11 +441,11 @@ namespace HpToolsLauncher
                         isFilterSelected = Convert.ToBoolean(filter.ToLower());
                     }
                     
-                    string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
+                     filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
 
-                    string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
+                     statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
 
-                    List<string> filterByStatuses = new List<string>();
+                     filterByStatuses = new List<string>();
 
                     if (statuses != "")
                     {
@@ -432,7 +471,8 @@ namespace HpToolsLauncher
                                      isFilterSelected,
                                      filterByName,
                                      filterByStatuses,
-                                     initialTestRun);
+                                     initialTestRun,
+                                     TestStorageType.Alm);
                     break;
                 case TestStorageType.FileSystem:
                     //Get displayController var

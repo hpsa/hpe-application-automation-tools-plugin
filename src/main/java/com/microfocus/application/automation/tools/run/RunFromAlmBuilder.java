@@ -249,20 +249,21 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
+
         URL cmdExeUrl =
                 Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
             return;
         }
-        
+
         FilePath propsFileName = projectWS.child(ParamFileName);
         FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
-        
+
         try {
             // create a file for the properties file, and save the properties
             propsFileName.copyFrom(propsStream);
-            
+
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
         } catch (IOException e1) {
@@ -270,7 +271,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        
         try {
             // Run the HpToolsLauncher.exe
             AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);

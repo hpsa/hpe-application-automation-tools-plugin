@@ -43,6 +43,7 @@ namespace HpToolsLauncher
         double m_timeout = -1;
         bool m_blnConnected = false;
         ITDConnection2 tdConnection = null;
+        TestStorageType storage = TestStorageType.Unknown;
         List<string> colTestSets = new List<string>();
         string m_runHost = null;
         string m_qcServer = null;
@@ -84,6 +85,12 @@ namespace HpToolsLauncher
             set { m_runHost = value; }
         }
 
+        public TestStorageType StorageType
+        {
+            get { return storage; }
+            set { storage = value; }
+        }
+
         public ITDConnection2 TdConnection
         {
             get
@@ -121,7 +128,8 @@ namespace HpToolsLauncher
                                 bool isFilterSelected,
                                 string filterByName,
                                 List<string> filterByStatuses,
-                                bool initialTestRun)
+                                bool initialTestRun,
+                                TestStorageType testStorageType)
         {
             Timeout = intQcTimeout;
             RunMode = enmQcRunMode;
@@ -139,6 +147,7 @@ namespace HpToolsLauncher
             //if sso enable use the Jenkins credentials
             Connected = ConnectToProject(qcServer, qcUser, qcPassword, qcDomain, qcProject);
             TestSets = qcTestSets;
+            StorageType = testStorageType;
             if (!Connected)
             {
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
@@ -160,7 +169,7 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public override TestSuiteRunResults Run()
         {
-
+            
             if (!Connected)
                 return null;
             TestSuiteRunResults activeRunDesc = new TestSuiteRunResults();
@@ -213,8 +222,8 @@ namespace HpToolsLauncher
                     }
                 }
                  
-                Console.WriteLine("Run on host: "+ RunHost);
-                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses);
+               
+                TestSuiteRunResults desc = RunTestSet(tsDir, tsName, testParameters, Timeout, RunMode, RunHost, m_qcFilterSelected, m_qcFilterByName, m_qcFilterByStatuses, StorageType);
                 if (desc != null)
                     activeRunDesc.AppendResults(desc);
             }
@@ -240,7 +249,7 @@ namespace HpToolsLauncher
             {
                 object conn = Activator.CreateInstance(type);
                 this.tdConnection = conn as ITDConnection2;
-                this.tdConnection.KeepConnection = true;
+                //this.tdConnection.KeepConnection = true;
                 // set credentials
 
 
@@ -314,6 +323,36 @@ namespace HpToolsLauncher
                 }
             }
             return retVal;
+        }
+
+        private string GetTestSetByID(ITestSetFolder tsFolder, int testSetID, ref string testSuiteName)
+        {
+            List children = tsFolder.FindChildren("");
+            List testSets = tsFolder.FindTestSets("");
+
+            if (testSets != null)
+            {
+                foreach (ITestSet childSet in testSets)
+                {
+                    if (childSet.ID == testSetID)
+                    {
+                        string tsPath = childSet.TestSetFolder.Path;
+                        tsPath = tsPath.Substring(5).Trim("\\".ToCharArray());
+                        string tsFullPath = tsPath + "\\" + childSet.Name;
+                        testSuiteName = childSet.Name;
+                        return tsFullPath.TrimEnd();
+                    }
+                }
+            }
+
+            if (children != null)
+            {
+                foreach (ITestSetFolder childFolder in children)
+                {
+                    GetAllTestSetsFromDirTree(childFolder);
+                }
+            }
+            return "";
         }
 
 
@@ -432,8 +471,9 @@ namespace HpToolsLauncher
         /// <param name="runHost">if run on remote machine - remote machine name</param>
         /// <returns></returns>
         public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string testParameters, double timeout, QcRunMode runMode, string runHost,
-                                              bool isFilterSelected, string filterByName, List<string> filterByStatuses)
+                                              bool isFilterSelected, string filterByName, List<string> filterByStatuses, TestStorageType testStorageType)
         {
+           
             string currentTestSetInstances = "";
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
             TestRunResults activeTestDesc = null;
@@ -446,10 +486,20 @@ namespace HpToolsLauncher
             bool isTestPath = false;
             string testName = "";
             string testSuiteName = tsName.TrimEnd();
+            string testSet = "";
 
             try
             {
-                tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
+                if (testStorageType.Equals(TestStorageType.AlmLabManagement))
+                {
+                    tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath("Root");
+                    testSet = GetTestSetByID(tsFolder, Convert.ToInt32(tsName), ref testSuiteName);
+                }
+                else
+                {
+                    tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
+                }
+
                 isTestPath = false;
             }
             catch (COMException ex)
@@ -489,8 +539,14 @@ namespace HpToolsLauncher
             }
             else
             {
-                tsList = tsFolder.FindTestSets(testSuiteName);
+               
+                if ((testStorageType.Equals(TestStorageType.AlmLabManagement) && !testSet.Equals(""))
+                     || testStorageType.Equals(TestStorageType.Alm))
+                {
+                    tsList = tsFolder.FindTestSets(testSuiteName);
+                }
             }
+
             if (tsList == null)
             {
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, testSuiteName));
@@ -840,7 +896,6 @@ namespace HpToolsLauncher
             //close last test
             if (prevTest != null)
             {
-                Console.WriteLine("Close last test");
                 WriteTestRunSummary(prevTest);
             }
 
