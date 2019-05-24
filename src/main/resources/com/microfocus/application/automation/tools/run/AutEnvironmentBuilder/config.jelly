@@ -23,6 +23,40 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
+    <style>
+         #testName {
+               width: 300px;
+               margin-bottom: 10px;
+           }
+
+           table tr td div.help {
+               margin-left: 12px;
+               background: none !important;
+               border: none !important;
+           }
+
+           .help {
+               border: none;
+               background: none !important;
+               background-color: transparent !important;
+           }
+
+           table td .help {
+               background: none !important;
+           }
+
+           table tr[nameref^="rowSetStart"] {
+               background: none !important;
+           }
+
+           table tr[nameref^="cb31"] {
+              background-color: transparent !important;
+           }
+
+           textarea.setting-input{
+               resize: vertical;
+           }
+    </style>
     <f:entry field="autEnvironmentModel">
         <f:property field="autEnvironmentModel"/>
     </f:entry>

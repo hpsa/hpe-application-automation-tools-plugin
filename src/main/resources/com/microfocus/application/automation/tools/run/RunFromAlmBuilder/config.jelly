@@ -22,7 +22,44 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
+    <style>
+        #testName {
+            width: 300px;
+            margin-bottom: 10px;
+        }
+
+        table tr td div.help {
+            margin-left: 12px;
+            background: none !important;
+            border: none !important;
+        }
+
+        input[name="runfromAlm.isFilterTestsEnabled"]{
+            margin-left: 35px;
+        }
+
+        .help {
+            border: none;
+            background: none !important;
+            background-color: transparent !important;
+        }
+
+        table td .help {
+            background: none !important;
+        }
+
+        table tr[nameref^="rowSetStart"] {
+            background: none !important;
+        }
+
+        table tr[nameref^="cb20"] {
+           background-color: transparent !important;
+        }
+
+        textarea.setting-input{
+            resize: vertical;
+        }
+    </style>
 
 	<j:if test="${empty(descriptor.almServers)}">
 		<tr>

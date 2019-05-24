@@ -23,9 +23,10 @@
     margin-bottom: 10px;
 }
 
-div.help {
+table tr td div.help {
     margin-left: 12px;
     background: none !important;
+    border: none !important;
 }
 
 #cb20 {
@@ -34,7 +35,7 @@ div.help {
 .help {
     border: none;
     background: none !important;
-    background-color: transparent;
+    background-color: transparent !important;
 }
 
 table td .help {
@@ -43,4 +44,8 @@ table td .help {
 
 table tr[nameref^="rowSetStart"] {
     background: none !important;
+}
+
+table tr[nameref^="cb20"] {
+   background-color: transparent !important;
 }
