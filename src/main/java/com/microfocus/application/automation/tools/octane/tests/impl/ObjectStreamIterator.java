@@ -20,8 +20,8 @@
 
 package com.microfocus.application.automation.tools.octane.tests.impl;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.FilePath;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class ObjectStreamIterator<E> implements Iterator<E> {
-    private static Logger logger = LogManager.getLogger(ObjectStreamIterator.class);
+    private static Logger logger = SDKBasedLoggerProvider.getLogger(ObjectStreamIterator.class);
 
     private ObjectInputStream ois;
     private FilePath filePath;

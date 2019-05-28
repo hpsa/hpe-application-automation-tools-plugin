@@ -29,7 +29,6 @@ import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ import static com.microfocus.application.automation.tools.octane.configuration.R
  * in Jenkins: URL, connection params, releaseId etc.
  */
 public class FodConfigUtil {
-    private final static Logger logger = LogManager.getLogger(FodConfigUtil.class);
+    private final static Logger logger = SDKBasedLoggerProvider.getLogger(FodConfigUtil.class);
 
     public final static String FOD_DESCRIPTOR = "org.jenkinsci.plugins.fodupload.FodGlobalDescriptor";
     public final static String FOD_STATIC_ASSESSMENT_STEP = "org.jenkinsci.plugins.fodupload.StaticAssessmentBuildStep";

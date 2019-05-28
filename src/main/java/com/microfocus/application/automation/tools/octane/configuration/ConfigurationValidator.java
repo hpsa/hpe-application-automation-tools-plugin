@@ -36,7 +36,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConfigurationValidator {
-    private final static Logger logger = LogManager.getLogger(ConfigurationValidator.class);
+    private final static Logger logger = SDKBasedLoggerProvider.getLogger(ConfigurationValidator.class);
 
     private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 

@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.octane.model;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Cause;
@@ -30,7 +31,6 @@ import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
@@ -52,7 +52,7 @@ import java.util.Set;
  */
 
 public final class CIEventCausesFactory {
-	private static final Logger logger = LogManager.getLogger(CIEventCausesFactory.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIEventCausesFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private CIEventCausesFactory() {

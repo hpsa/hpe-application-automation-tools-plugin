@@ -31,6 +31,7 @@ import com.hp.octane.integrations.uft.UftTestDispatchUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.ResultQueue;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.FilePath;
@@ -41,10 +42,8 @@ import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -59,8 +58,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Extension
 public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
-
-	private final static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
+	private final static Logger logger = SDKBasedLoggerProvider.getLogger(UftTestDiscoveryDispatcher.class);
 
 	private final static int MAX_DISPATCH_TRIALS = 5;
 	private static final String OCTANE_VERSION_SUPPORTING_TEST_RENAME = "12.60.3";
@@ -94,7 +92,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		try {
 			while ((item = queue.peekFirst()) != null) {
 
-				Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+				Job project = (Job) Jenkins.get().getItemByFullName(item.getProjectName());
 				if (project == null) {
 					logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending discovered tests can't be submitted");
 					queue.remove();
@@ -174,7 +172,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 		}
 
 		//publish final results
-		FreeStyleProject project = (FreeStyleProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+		FreeStyleProject project = (FreeStyleProject) Jenkins.get().getItemByFullName(item.getProjectName());
 		FilePath subWorkspace = project.getWorkspace().child("_Final_Detection_Results");
 		try {
 			if (!subWorkspace.exists()) {

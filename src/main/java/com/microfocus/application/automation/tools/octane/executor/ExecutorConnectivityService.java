@@ -32,6 +32,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.model.Item;
@@ -40,20 +41,17 @@ import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 /**
  * Utility for handling connectivity with scm repositories
  */
 public class ExecutorConnectivityService {
-
-	private static final Logger logger = LogManager.getLogger(ExecutorConnectivityService.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ExecutorConnectivityService.class);
 	private static final Map<Permission, String> requirePremissions = initRequirePremissions();
 	private static final Map<Permission, String> credentialsPremissions = initCredentialsPremissions();
 	private static final String PLUGIN_NAME = "Application Automation Tools";

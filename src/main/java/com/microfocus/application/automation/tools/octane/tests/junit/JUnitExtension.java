@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 
 import com.google.inject.Inject;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
@@ -38,7 +39,6 @@ import hudson.maven.MavenModuleSetBuild;
 import hudson.model.Run;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.test.AbstractTestResultAction;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.remoting.Role;
 import org.jenkinsci.remoting.RoleChecker;
@@ -56,7 +56,7 @@ import java.util.*;
  */
 @Extension
 public class JUnitExtension extends OctaneTestsExtension {
-	private static Logger logger = LogManager.getLogger(JUnitExtension.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(JUnitExtension.class);
 
 	private static final String STORMRUNNER_LOAD = "StormRunner Load";
 	private static final String STORMRUNNER_FUNCTIONAL = "StormRunner Functional";
