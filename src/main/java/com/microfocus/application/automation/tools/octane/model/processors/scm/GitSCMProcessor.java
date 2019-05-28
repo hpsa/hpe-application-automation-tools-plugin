@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.scm.*;
 import com.hp.octane.integrations.dto.scm.impl.LineRange;
 import com.hp.octane.integrations.dto.scm.impl.RevisionsMap;
 import com.hp.octane.integrations.dto.scm.impl.SCMFileBlameImpl;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.FilePath;
 import hudson.model.*;
 import hudson.plugins.git.Branch;
@@ -41,7 +42,6 @@ import hudson.scm.SCM;
 import hudson.tasks.Mailer;
 import hudson.util.DescribableList;
 import jenkins.MasterToSlaveFileCallable;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
@@ -69,7 +69,7 @@ import java.util.*;
  */
 
 class GitSCMProcessor implements SCMProcessor {
-	private static final Logger logger = LogManager.getLogger(GitSCMProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GitSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String MASTER = "refs/remotes/origin/master";
 
@@ -106,7 +106,6 @@ class GitSCMProcessor implements SCMProcessor {
 		}
 		return scmData;
 	}
-
 
 	@Override
 	public SCMData getSCMData(WorkflowRun run, SCM scm) {

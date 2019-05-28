@@ -27,7 +27,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -42,7 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ConfigApi {
-	private static final Logger logger = LogManager.getLogger(ConfigApi.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ConfigApi.class);
 
 	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
 		checkPermission();

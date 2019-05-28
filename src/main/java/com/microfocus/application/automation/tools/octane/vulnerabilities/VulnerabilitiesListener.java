@@ -25,12 +25,12 @@ import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.listeners.RunListener;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ import java.util.Map;
 @Extension
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872"})
 public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
-	private static Logger logger = LogManager.getLogger(VulnerabilitiesListener.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(VulnerabilitiesListener.class);
 
 	@Override
 	public void onFinalized(AbstractBuild build) {

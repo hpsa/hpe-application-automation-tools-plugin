@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.scm.SCMData;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
@@ -31,7 +32,6 @@ import hudson.matrix.MatrixConfiguration;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.scm.SCM;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
@@ -39,8 +39,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
  * Factory for creating ci event
  */
 public final class CIEventFactory {
-
-    private static final Logger logger = LogManager.getLogger(CIEventFactory.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIEventFactory.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private CIEventFactory(){

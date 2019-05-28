@@ -23,11 +23,11 @@ package com.microfocus.application.automation.tools.octane.buildLogs;
 import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.listeners.RunListener;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
 
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
-	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(RunListenerForLogs.class);
 
 	@Override
 	public void onFinalized(Run run) {

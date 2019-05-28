@@ -24,6 +24,7 @@ import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.ExtensionList;
@@ -33,7 +34,6 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.reflect.FieldUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
@@ -44,7 +44,7 @@ import java.util.*;
  * Service is responsible to detect changes according to SCM change and to put it to queue of UftTestDiscoveryDispatcher
  */
 public class UFTTestDetectionService {
-    private static final Logger logger = LogManager.getLogger(UFTTestDetectionService.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(UFTTestDetectionService.class);
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private static final String DETECTION_RESULT_FILE = "detection_result.json";
 
