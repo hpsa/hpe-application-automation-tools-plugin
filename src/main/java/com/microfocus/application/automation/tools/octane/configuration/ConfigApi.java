@@ -41,7 +41,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ConfigApi {
-	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ConfigApi.class);
 
 	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
 		checkPermission();

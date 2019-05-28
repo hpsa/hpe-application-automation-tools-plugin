@@ -34,6 +34,9 @@ import java.io.File;
 public final class SDKBasedLoggerProvider {
 	private static volatile boolean sysParamConfigured = false;
 
+	private SDKBasedLoggerProvider(){
+		//CodeClimate  : Add a private constructor to hide the implicit public one.
+	}
 	public static Logger getLogger(Class<?> type) {
 		if (!sysParamConfigured) {
 			System.setProperty("octaneAllowedStorage", new File(Jenkins.get().getRootDir(), "userContent").getAbsolutePath() + File.separator);
