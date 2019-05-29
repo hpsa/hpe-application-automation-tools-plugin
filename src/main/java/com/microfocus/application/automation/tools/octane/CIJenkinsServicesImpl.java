@@ -115,7 +115,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return new File(Jenkins.get().getRootDir(), "userContent");
+		return getAllowedStorageFile();
 	}
 
 	@Override
@@ -773,6 +773,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			}
 		}
 		return item;
+	}
+
+	public static File getAllowedStorageFile(){
+		return new File(Jenkins.get().getRootDir(), "userContent");
 	}
 
 	public static CIServerInfo getJenkinsServerInfo() {
