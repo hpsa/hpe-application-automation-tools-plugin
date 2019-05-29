@@ -103,12 +103,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 			return;
 		}
 
-		TestsFramework framework = getTestsToRunConverterModel().getFramework();
-		String frameworkName = framework.getValue();
-		if (StringUtils.isEmpty(frameworkName)) {
+		if (getTestsToRunConverterModel() == null) {
 			printToConsole(listener, "No frameworkModel is selected. Skipping.");
 			return;
 		}
+		TestsFramework framework = getTestsToRunConverterModel().getFramework();
+		String frameworkName = framework.getValue();
 
 		String frameworkFormat = framework.getFormat();
 		String frameworkDelimiter = framework.getDelimiter();
