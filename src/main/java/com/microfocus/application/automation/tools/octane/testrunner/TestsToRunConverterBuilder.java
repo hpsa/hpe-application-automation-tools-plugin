@@ -49,7 +49,7 @@ import java.util.List;
  */
 public class TestsToRunConverterBuilder extends Builder implements SimpleBuildStep {
 
-	private TestsToRunConverterModel frameworkModel;
+	private TestsToRunConverterModel framework;
 
 	private final String TESTS_TO_RUN_PARAMETER = "testsToRun";
 	private final String TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
@@ -57,19 +57,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
 	private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
-	public TestsToRunConverterBuilder(String value) {
-		TestsFramework testFramework = new TestsFramework(value);
-		this.frameworkModel = new TestsToRunConverterModel(testFramework);
-	}
-
-	public TestsToRunConverterBuilder(TestsFramework framework) {
-		this.frameworkModel = new TestsToRunConverterModel(framework);
+	public TestsToRunConverterBuilder(String framework) {
+		this.framework = new TestsToRunConverterModel(framework, "", "");
 	}
 
 	@DataBoundConstructor
 	public TestsToRunConverterBuilder(String framework, String format, String delimiter) {
-		TestsFramework testFramework = new TestsFramework(framework, "", format, delimiter);
-		this.frameworkModel = new TestsToRunConverterModel(testFramework);
+		this.framework = new TestsToRunConverterModel(framework, format, delimiter);
 	}
 
 	@Override
@@ -144,7 +138,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
 
 	public TestsToRunConverterModel getTestsToRunConverterModel() {
-		return frameworkModel;
+		return framework;
 	}
 
 	private void printToConsole(TaskListener listener, String msg) {

@@ -26,20 +26,15 @@
         <li> <b>$testName</b> - to use the test name in format</li>
     </ul>
 
-    For different frameworks:
+    <br/>For example:<br/><br/>
+    <i>testsToRun</i> parameter received 2 tests semicolon separated: <b>v1:MF.simple.tests|AppTest|testAlwaysFail<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
+    The defined <i>format</i> is: <b>$package.$class#$testName</b><br/>
+    The defined <i>delimiter</i> is: <b> , </b>
     <ul>
-        <li>Gradle format: <i> --tests $package.$class.$testName</i></li>
-        <li>Maven format: <i>$package.$class#$testName</i></li>
-        <li>Protractor format: <i>$class $testName</i></li>
+        <li><b>$package</b> variable will get a value: <i>MF.simple.tests</i></li>
+        <li><b>$class</b> variable will get a value: <i>AppTest</i></li>
+        <li><b>$testName</b> variable will get a value: <i>testAlwaysFail</i></li>
     </ul>
-
-    For example:<br/><br/>
-        <b>testsToRun</b> parameter has value <i>v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet</i><br/>
-        <b>$package</b> is <i>MF.simple.test</i>s<br/>
-        <b>$class</b> is <i>AppTest</i><br/>
-        <b>$testName</b> is <i>testAlwaysFail</i><br/>
-
-    The defined format is <b> --tests $package.$class.$testName</b><br/><br/>
-    The <b>testsToRunConverted</b> will get the value <i>--tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet</i>
+    <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet</b>
 
 </div>

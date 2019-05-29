@@ -39,7 +39,9 @@ public class TestsToRunConverterModel implements Serializable {
 
     public final static List<TestsFramework> Frameworks;
 
-    private TestsFramework framework;
+    private String framework;
+    private String format;
+    private String delimiter;
 
     static {
         List<TestsFramework> temp = new ArrayList<>();
@@ -51,12 +53,14 @@ public class TestsToRunConverterModel implements Serializable {
     }
 
     @DataBoundConstructor
-    public TestsToRunConverterModel(TestsFramework framework) {
+    public TestsToRunConverterModel(String framework, String format, String delimiter) {
         this.framework = framework;
+        this.format = format;
+        this.delimiter = delimiter;
     }
 
     public TestsFramework getFramework() {
-        return framework;
+        return new TestsFramework(framework, "", format, delimiter);
     }
 
 }
