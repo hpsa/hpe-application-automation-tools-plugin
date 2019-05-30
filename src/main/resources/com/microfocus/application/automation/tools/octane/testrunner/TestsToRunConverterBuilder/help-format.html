@@ -18,7 +18,7 @@
   ~ ___________________________________________________________________
   -->
 <div>
-    The format used to convert the data received in "testsToRun" parameter to the format of the Custom testing framework, and inject it to the "testsToRunConverted" parameter<br/>
+    The format used to convert single test received in "testsToRun" parameter to the format of the Custom testing framework, and inject it to the "testsToRunConverted" parameter<br/>
     The format syntax is:
     <ul>
         <li> <b>$package</b> - to use the test package name in format</li>
@@ -27,14 +27,14 @@
     </ul>
 
     <br/>For example:<br/><br/>
-    <i>testsToRun</i> parameter received 2 tests semicolon separated: <b>v1:MF.simple.tests|AppTest|testAlwaysFail<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
+    <i>testsToRun</i> parameter received 2 tests semicolon separated: <b>v1:MF.simple.tests|AppTest|testA<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
     The defined <i>format</i> is: <b>$package.$class#$testName</b><br/>
     The defined <i>delimiter</i> is: <b> , </b>
     <ul>
         <li><b>$package</b> variable will get a value: <i>MF.simple.tests</i></li>
         <li><b>$class</b> variable will get a value: <i>AppTest</i></li>
-        <li><b>$testName</b> variable will get a value: <i>testAlwaysFail</i></li>
+        <li><b>$testName</b> variable will get a value: <i>testAl</i></li>
     </ul>
-    <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet</b>
+    <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testA,MF.simple.tests.App2Test#testSendGet</b>
 
 </div>

@@ -21,7 +21,9 @@
 package com.microfocus.application.automation.tools.octane.testrunner;
 
 import com.hp.octane.integrations.executor.TestsToRunFramework;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.model.TestsFramework;
+import org.apache.http.annotation.Obsolete;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
@@ -39,7 +41,9 @@ public class TestsToRunConverterModel implements Serializable {
 
     public final static List<TestsFramework> Frameworks;
 
-    private String framework;
+    @Obsolete
+    private String model;//remainders from version 5.7
+    private String name;
     private String format;
     private String delimiter;
 
@@ -53,16 +57,27 @@ public class TestsToRunConverterModel implements Serializable {
     }
 
     @DataBoundConstructor
-    public TestsToRunConverterModel(String framework, String format, String delimiter) {
-        this.framework = framework;
+    public TestsToRunConverterModel(String name, String format, String delimiter) {
+        this.name = name;
         this.format = format;
         this.delimiter = delimiter;
     }
 
     public TestsFramework getFramework() {
-        return new TestsFramework(framework, "", format, delimiter);
+        return new TestsFramework(getName(), "", format, delimiter);
     }
 
+    public String getName() {
+        return SdkStringUtils.isEmpty(name) ? model : name;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getDelimiter() {
+        return delimiter;
+    }
 }
 
 

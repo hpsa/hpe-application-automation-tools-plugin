@@ -21,6 +21,7 @@
 
 package com.microfocus.application.automation.tools.octane.testrunner;
 
+import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
@@ -42,14 +43,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builder for available frameworks for converting
  */
 public class TestsToRunConverterBuilder extends Builder implements SimpleBuildStep {
 
-	private TestsToRunConverterModel framework;
+	private TestsToRunConverterModel model;
 
 	private final String TESTS_TO_RUN_PARAMETER = "testsToRun";
 	private final String TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
@@ -57,13 +60,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
 	private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
-	public TestsToRunConverterBuilder(String framework) {
-		this.framework = new TestsToRunConverterModel(framework, "", "");
+	public TestsToRunConverterBuilder(String model) {
+		this.model = new TestsToRunConverterModel(model, "", "");
 	}
 
 	@DataBoundConstructor
 	public TestsToRunConverterBuilder(String framework, String format, String delimiter) {
-		this.framework = new TestsToRunConverterModel(framework, format, delimiter);
+		this.model = new TestsToRunConverterModel(framework, format, delimiter);
 	}
 
 	@Override
@@ -103,15 +106,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 			return;
 		}
 
-		if (getTestsToRunConverterModel() == null) {
+		if (model == null || SdkStringUtils.isEmpty(model.getName())) {
 			printToConsole(listener, "No frameworkModel is selected. Skipping.");
 			return;
 		}
-		TestsFramework framework = getTestsToRunConverterModel().getFramework();
-		String frameworkName = framework.getValue();
-
-		String frameworkFormat = framework.getFormat();
-		String frameworkDelimiter = framework.getDelimiter();
+		String frameworkName = model.getName();
+		String frameworkFormat = model.getFormat();
+		String frameworkDelimiter = model.getDelimiter();
 		printToConsole(listener, "Selected framework = " + frameworkName);
 		if (SdkStringUtils.isNotEmpty(frameworkFormat)) {
 			printToConsole(listener, "Using format = " + frameworkFormat);
@@ -120,7 +121,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
 		TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
 		TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
-				.setProperties(framework.getProperties())
+				.setProperties(this.getProperties())
 				.convert(rawTests, executingDirectory);
 		printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
 		printToConsole(listener, TESTS_TO_RUN_CONVERTED_PARAMETER + " = " + convertResult.getConvertedTestsString());
@@ -136,9 +137,21 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 		}
 	}
 
+	public Map<String, String> getProperties() {
+		Map<String, String> properties = new HashMap();
 
+		properties.put(TestsToRunConverter.CONVERTER_FORMAT, model.getFormat());
+		properties.put(TestsToRunConverter.CONVERTER_DELIMITER, model.getDelimiter());
+
+		return properties;
+	}
+
+	/***
+	 * Used in UI
+	 * @return
+	 */
 	public TestsToRunConverterModel getTestsToRunConverterModel() {
-		return framework;
+		return model;
 	}
 
 	private void printToConsole(TaskListener listener, String msg) {

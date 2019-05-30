@@ -20,62 +20,41 @@
 
 package com.microfocus.application.automation.tools.model;
 
-import com.hp.octane.integrations.executor.TestsToRunConverter;
-import org.apache.commons.collections.map.HashedMap;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 public class TestsFramework {
 
-	private String description;
-	private String value;
-	private String format;
-	private String delimiter;
+    private String description;
+    private String name;
+    private String format;
+    private String delimiter;
 
-	public TestsFramework(String value) {
-		this.value = value;
-		this.description = "";
-		this.format = "";
-		this.delimiter = "";
-	}
+    public TestsFramework() {
+        this.name = "";
+        this.description = "";
+        this.format = "";
+        this.delimiter = "";
+    }
 
-	public TestsFramework(String value, String description, String format, String delimiter) {
-		this.value = value;
-		this.description = description;
-		this.format = format;
-		this.delimiter = delimiter;
-	}
+    public TestsFramework(String name, String description, String format, String delimiter) {
+        this.name = name;
+        this.description = description;
+        this.format = format;
+        this.delimiter = delimiter;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getFormat() { return format; }
+    public String getFormat() {
+        return format;
+    }
 
-	public String getDelimiter() { return delimiter; }
+    public String getDelimiter() {
+        return delimiter;
+    }
 
-	public Map<String, String> getProperties() {
-		Map<String, String> properties = new HashMap();
-
-		setProperty(properties, TestsToRunConverter.CONVERTER_FORMAT, this.format);
-		setProperty(properties, TestsToRunConverter.CONVERTER_DELIMITER, this.delimiter);
-
-		return properties;
-	}
-
-	private void setProperty(Map<String, String> map, String key, String value) {
-		if (map.containsKey(key)) {
-			map.replace(key, value);
-		}
-		else {
-			map.put(key, value);
-		}
-	}
 }
