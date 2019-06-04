@@ -52,7 +52,7 @@ import java.util.Map;
  */
 public class TestsToRunConverterBuilder extends Builder implements SimpleBuildStep {
 
-	private TestsToRunConverterModel model;
+	private TestsToRunConverterModel framework;
 
 	private final String TESTS_TO_RUN_PARAMETER = "testsToRun";
 	private final String TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
@@ -60,13 +60,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
 	private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
-	public TestsToRunConverterBuilder(String model) {
-		this.model = new TestsToRunConverterModel(model, "", "");
+	public TestsToRunConverterBuilder(String framework) {
+		this.framework = new TestsToRunConverterModel(framework, "", "");
 	}
 
 	@DataBoundConstructor
 	public TestsToRunConverterBuilder(String framework, String format, String delimiter) {
-		this.model = new TestsToRunConverterModel(framework, format, delimiter);
+		this.framework = new TestsToRunConverterModel(framework, format, delimiter);
 	}
 
 	@Override
@@ -106,13 +106,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 			return;
 		}
 
-		if (model == null || SdkStringUtils.isEmpty(model.getName())) {
+		if (framework == null || SdkStringUtils.isEmpty(getFramework())) {
 			printToConsole(listener, "No frameworkModel is selected. Skipping.");
 			return;
 		}
-		String frameworkName = model.getName();
-		String frameworkFormat = model.getFormat();
-		String frameworkDelimiter = model.getDelimiter();
+		String frameworkName = getFramework();
+		String frameworkFormat = getFormat();
+		String frameworkDelimiter = getDelimiter();
 		printToConsole(listener, "Selected framework = " + frameworkName);
 		if (SdkStringUtils.isNotEmpty(frameworkFormat)) {
 			printToConsole(listener, "Using format = " + frameworkFormat);
@@ -127,10 +127,10 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 		printToConsole(listener, TESTS_TO_RUN_CONVERTED_PARAMETER + " = " + convertResult.getConvertedTestsString());
 
 		if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(build.getClass().getName())) {
-            List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
-            newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
-            ParametersAction newParametersAction = new ParametersAction(newParams);
-            build.addOrReplaceAction(newParametersAction);
+			List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+			newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
+			ParametersAction newParametersAction = new ParametersAction(newParams);
+			build.addOrReplaceAction(newParametersAction);
 		} else {
 			VariableInjectionAction via = new VariableInjectionAction(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString());
 			build.addAction(via);
@@ -140,8 +140,8 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	public Map<String, String> getProperties() {
 		Map<String, String> properties = new HashMap();
 
-		properties.put(TestsToRunConverter.CONVERTER_FORMAT, model.getFormat());
-		properties.put(TestsToRunConverter.CONVERTER_DELIMITER, model.getDelimiter());
+		properties.put(TestsToRunConverter.CONVERTER_FORMAT, getFormat());
+		properties.put(TestsToRunConverter.CONVERTER_DELIMITER, getDelimiter());
 
 		return properties;
 	}
@@ -151,7 +151,23 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	 * @return
 	 */
 	public TestsToRunConverterModel getTestsToRunConverterModel() {
-		return model;
+		return framework;
+	}
+
+	/***
+	 * Used in Pipeline
+	 * @return
+	 */
+	public String getFramework() {
+		return framework.getFramework().getName();
+	}
+
+	public String getDelimiter() {
+		return framework.getFramework().getDelimiter();
+	}
+
+	public String getFormat() {
+		return framework.getFramework().getFormat();
 	}
 
 	private void printToConsole(TaskListener listener, String msg) {
