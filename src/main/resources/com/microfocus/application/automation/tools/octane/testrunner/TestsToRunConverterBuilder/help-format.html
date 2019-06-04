@@ -18,22 +18,22 @@
   ~ ___________________________________________________________________
   -->
 <div>
-    The format used to convert single test received in "testsToRun" parameter to the format of the Custom testing framework, and inject it to the "testsToRunConverted" parameter<br/>
+    The format used for converting the data that is received in the "testsToRun" parameter, to the format of the custom testing framework. This is then injected to the "testsToRunConverted" parameter.<br/>
     The format syntax is:
     <ul>
-        <li> <b>$package</b> - to use the test package name in format</li>
-        <li> <b>$class</b> - to use the test class name in format</li>
-        <li> <b>$testName</b> - to use the test name in format</li>
+        <li> <b>$package</b> - uses the test package name in the conversion</li>
+        <li> <b>$class</b> - uses the test class name in the conversion</li>
+        <li> <b>$testName</b> - uses the test  name in the conversion</li>
     </ul>
 
     <br/>For example:<br/><br/>
-    <i>testsToRun</i> parameter received 2 tests semicolon separated: <b>v1:MF.simple.tests|AppTest|testA<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
+    The <i>testsToRun</i> parameter received 2 tests separated by a semicolon: <b>v1:MF.simple.tests|AppTest|testA<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
     The defined <i>format</i> is: <b>$package.$class#$testName</b><br/>
     The defined <i>delimiter</i> is: <b> , </b>
     <ul>
         <li><b>$package</b> variable will get a value: <i>MF.simple.tests</i></li>
         <li><b>$class</b> variable will get a value: <i>AppTest</i></li>
-        <li><b>$testName</b> variable will get a value: <i>testAl</i></li>
+        <li><b>$testName</b> variable will get a value: <i>testA</i></li>
     </ul>
     <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testA,MF.simple.tests.App2Test#testSendGet</b>
 
