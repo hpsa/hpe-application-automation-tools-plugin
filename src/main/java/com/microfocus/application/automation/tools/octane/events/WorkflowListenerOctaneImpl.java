@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -72,6 +73,9 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 	@Override
 	public void onNewHead(FlowNode flowNode) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
 				sendPipelineStartedEvent(flowNode);
