@@ -24,6 +24,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftTestDiscoveryDispatcher;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -49,11 +50,20 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 
 	@Override
 	public void onLoaded() {
+		logger.info("**********************************************************************");
+		logger.info("********************STARTING JENKINS *********************************");
+		logger.info("**********************************************************************");
+		logger.info("Jenkins version " + Jenkins.getVersion());
+		logger.info("Plugin version " + ConfigurationService.getPluginVersion());
+
 		OctaneServerSettingsBuilder.getOctaneSettingsManager().initOctaneClients();
 	}
 
 	@Override
 	public void onDeleted(Item item) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			CIEvent event;
 			if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
