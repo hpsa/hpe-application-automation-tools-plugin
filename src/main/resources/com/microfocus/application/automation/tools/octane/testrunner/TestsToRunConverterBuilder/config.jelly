@@ -75,8 +75,8 @@
             var optionFormat = document.getElementById('format+' + y[x].value);
             var optionDelimiter = document.getElementById('delimiter+' + y[x].value);
 
-            txtFormat.value = optionFormat.value;
-            txtDelimiter.value = optionDelimiter.value;
+            txtFormat.value = optionFormat ? optionFormat.value : "";
+            txtDelimiter.value = optionDelimiter ? optionDelimiter.value : "";
         }
 
     </script>
