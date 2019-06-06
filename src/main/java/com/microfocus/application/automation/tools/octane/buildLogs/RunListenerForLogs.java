@@ -41,6 +41,9 @@ public class RunListenerForLogs extends RunListener<Run> {
 
 	@Override
 	public void onFinalized(Run run) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			String jobCiId = BuildHandlerUtils.getJobCiId(run);
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);

@@ -79,7 +79,10 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     @Override
     protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        if(!OctaneSDK.hasClients()){
+            return;
+        }
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
 
         clearExecutionJobs(jobs);
         clearDiscoveryJobs(jobs);
@@ -166,7 +169,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     }
 
     public static void deleteExecutionJobByExecutorIfNeverExecuted(String executorToDelete) {
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
             if (UftJobRecognizer.isExecutorJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
@@ -193,7 +196,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
      */
     public static void deleteDiscoveryJobByExecutor(String executorToDelete) {
 
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
             if (UftJobRecognizer.isDiscoveryJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
@@ -206,7 +209,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
                         proj.getLastBuild().getExecutor().interrupt();
                         waitBeforeDelete = true;
                     } else if (proj.isInQueue()) {
-                        Jenkins.getInstance().getQueue().cancel(proj);
+                        Jenkins.getInstanceOrNull().getQueue().cancel(proj);
                         waitBeforeDelete = true;
                     }
 

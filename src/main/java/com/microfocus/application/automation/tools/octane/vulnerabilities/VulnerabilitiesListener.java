@@ -47,6 +47,10 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
 
 	@Override
 	public void onFinalized(AbstractBuild build) {
+        if(!OctaneSDK.hasClients()){
+            return;
+        }
+
         SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild(build);
         if (projectVersionPair != null) {
             logger.warn("SSC configuration was found in " + build);

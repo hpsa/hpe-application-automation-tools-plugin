@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -65,6 +66,9 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onStarted(AbstractBuild build, TaskListener listener) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
@@ -89,6 +93,9 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onFinalized(AbstractBuild build) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			boolean hasTests = testListener.processBuild(build);
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
