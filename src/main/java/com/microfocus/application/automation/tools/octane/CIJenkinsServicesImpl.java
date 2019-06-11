@@ -775,9 +775,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return item;
 	}
 
-	public static File getAllowedStorageFile(){
-		return new File(Jenkins.get().getRootDir(), "userContent");
-	}
+    public static File getAllowedStorageFile() {
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        return (jenkins == null /*is slave*/) ? new File("octanePluginContent") : new File(jenkins.getRootDir(), "userContent") ;
+    }
 
 	public static CIServerInfo getJenkinsServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
