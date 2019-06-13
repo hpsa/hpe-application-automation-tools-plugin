@@ -18,36 +18,43 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.events;
+package com.microfocus.application.automation.tools.model;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.events.CIEvent;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
-import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
-import hudson.Extension;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.model.listeners.SCMListener;
-import hudson.scm.ChangeLogSet;
-import hudson.scm.SCM;
+public class TestsFramework {
 
-/**
- * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
- * Created by gullery on 10/07/2016.
- */
+    private String description;
+    private String name;
+    private String format;
+    private String delimiter;
 
-@Extension
-public class SCMListenerOctaneImpl extends SCMListener {
-
-    @Override
-    public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-        if(!OctaneSDK.hasClients()){
-            return;
-        }
-        super.onChangeLogParsed(run, scm, listener, changelog);
-        CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-        if (scmEvent != null) {
-            CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
-        }
+    public TestsFramework() {
+        this.name = "";
+        this.description = "";
+        this.format = "";
+        this.delimiter = "";
     }
+
+    public TestsFramework(String name, String description, String format, String delimiter) {
+        this.name = name;
+        this.description = description;
+        this.format = format;
+        this.delimiter = delimiter;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getDelimiter() {
+        return delimiter;
+    }
+
 }

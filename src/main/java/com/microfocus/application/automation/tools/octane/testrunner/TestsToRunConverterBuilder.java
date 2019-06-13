@@ -21,10 +21,12 @@
 
 package com.microfocus.application.automation.tools.octane.testrunner;
 
+import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
-import com.microfocus.application.automation.tools.model.EnumDescription;
+import com.hp.octane.integrations.utils.SdkStringUtils;
+import com.microfocus.application.automation.tools.model.TestsFramework;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.Extension;
@@ -41,7 +43,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builder for available frameworks for converting
@@ -56,9 +60,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	private final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
 	private final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
-	@DataBoundConstructor
 	public TestsToRunConverterBuilder(String framework) {
-		this.framework = new TestsToRunConverterModel(framework);
+		this.framework = new TestsToRunConverterModel(framework, "", "");
+	}
+
+	@DataBoundConstructor
+	public TestsToRunConverterBuilder(String framework, String format, String delimiter) {
+		this.framework = new TestsToRunConverterModel(framework, format, delimiter);
 	}
 
 	@Override
@@ -97,38 +105,73 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 			printToConsole(listener, TESTS_TO_RUN_PARAMETER + " is not found or has empty value. Skipping.");
 			return;
 		}
-		if (StringUtils.isEmpty(getFramework())) {
-			printToConsole(listener, "No framework is selected. Skipping.");
+
+		if (framework == null || SdkStringUtils.isEmpty(getFramework())) {
+			printToConsole(listener, "No frameworkModel is selected. Skipping.");
 			return;
 		}
+		String frameworkName = getFramework();
+		String frameworkFormat = getFormat();
+		String frameworkDelimiter = getDelimiter();
+		printToConsole(listener, "Selected framework = " + frameworkName);
+		if (SdkStringUtils.isNotEmpty(frameworkFormat)) {
+			printToConsole(listener, "Using format = " + frameworkFormat);
+			printToConsole(listener, "Using delimiter = " + frameworkDelimiter);
+		}
 
-		TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(getFramework());
-		TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework).convert(rawTests, executingDirectory);
+		TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
+		TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
+				.setProperties(this.getProperties())
+				.convert(rawTests, executingDirectory);
 		printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
 		printToConsole(listener, TESTS_TO_RUN_CONVERTED_PARAMETER + " = " + convertResult.getConvertedTestsString());
 
 		if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(build.getClass().getName())) {
-            List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
-            newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
-            ParametersAction newParametersAction = new ParametersAction(newParams);
-            build.addOrReplaceAction(newParametersAction);
+			List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+			newParams.add(new StringParameterValue(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString()));
+			ParametersAction newParametersAction = new ParametersAction(newParams);
+			build.addOrReplaceAction(newParametersAction);
 		} else {
 			VariableInjectionAction via = new VariableInjectionAction(TESTS_TO_RUN_CONVERTED_PARAMETER, convertResult.getConvertedTestsString());
 			build.addAction(via);
 		}
 	}
 
+	public Map<String, String> getProperties() {
+		Map<String, String> properties = new HashMap();
 
+		properties.put(TestsToRunConverter.CONVERTER_FORMAT, getFormat());
+		properties.put(TestsToRunConverter.CONVERTER_DELIMITER, getDelimiter());
+
+		return properties;
+	}
+
+	/***
+	 * Used in UI
+	 * @return
+	 */
 	public TestsToRunConverterModel getTestsToRunConverterModel() {
 		return framework;
 	}
 
-	private void printToConsole(TaskListener listener, String msg) {
-		listener.getLogger().println(this.getClass().getSimpleName() + " : " + msg);
+	/***
+	 * Used in Pipeline
+	 * @return
+	 */
+	public String getFramework() {
+		return framework.getFramework().getName();
 	}
 
-	public String getFramework() {
-		return framework.getFramework();
+	public String getDelimiter() {
+		return framework.getFramework().getDelimiter();
+	}
+
+	public String getFormat() {
+		return framework.getFramework().getFormat();
+	}
+
+	private void printToConsole(TaskListener listener, String msg) {
+		listener.getLogger().println(this.getClass().getSimpleName() + " : " + msg);
 	}
 
 	@Symbol("convertTestsToRun")
@@ -150,7 +193,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 		 *
 		 * @return the report archive modes
 		 */
-		public List<EnumDescription> getFrameworks() {
+		public List<TestsFramework> getFrameworks() {
 
 			return TestsToRunConverterModel.Frameworks;
 		}

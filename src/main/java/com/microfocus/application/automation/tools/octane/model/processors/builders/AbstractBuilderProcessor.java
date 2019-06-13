@@ -21,10 +21,10 @@
 package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.model.Job;
 import hudson.tasks.Builder;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import java.util.Set;
  * Base class for discovery/provisioning of an internal phases/steps of the specific Job
  */
 public abstract class AbstractBuilderProcessor {
-	private static final Logger logger = LogManager.getLogger(AbstractBuilderProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(AbstractBuilderProcessor.class);
 	protected ArrayList<PipelinePhase> phases = new ArrayList<>();
 
 	/**

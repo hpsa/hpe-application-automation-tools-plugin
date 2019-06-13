@@ -22,7 +22,6 @@ package com.microfocus.application.automation.tools.octane.configuration;
 
 import hudson.Extension;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -33,7 +32,7 @@ import java.util.List;
 
 @Extension
 public final class PredefinedConfigurationUnmarshaller {
-	private final static Logger logger = LogManager.getLogger(PredefinedConfigurationUnmarshaller.class);
+	private final static Logger logger = SDKBasedLoggerProvider.getLogger(PredefinedConfigurationUnmarshaller.class);
 
 	private static PredefinedConfigurationUnmarshaller extensionInstance;
 	private static Unmarshaller jaxbUnmarshaller;
@@ -41,7 +40,7 @@ public final class PredefinedConfigurationUnmarshaller {
 	public static synchronized PredefinedConfigurationUnmarshaller getExtensionInstance() {
 		List<PredefinedConfigurationUnmarshaller> extensions;
 		if (extensionInstance == null) {
-			extensions = Jenkins.getInstance().getExtensionList(PredefinedConfigurationUnmarshaller.class);
+			extensions = Jenkins.get().getExtensionList(PredefinedConfigurationUnmarshaller.class);
 			if (extensions.isEmpty()) {
 				logger.warn("PredefinedConfigurationUnmarshaller was not initialized properly");
 				return null;

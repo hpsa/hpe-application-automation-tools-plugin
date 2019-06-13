@@ -25,22 +25,18 @@ import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
-
-import static com.microfocus.application.automation.tools.octane.configuration.ReflectionUtils.getFieldValue;
 
 /*
     Utility to help retrieving the configuration of the SSC Server URL and SSC project/version pair
  */
 
 public class SSCServerConfigUtil {
-
-	private static final Logger logger = LogManager.getLogger(SSCServerConfigUtil.class);
-    public static final String PUBLISHER_NEW_NAME = "com.fortify.plugin.jenkins.FortifyPlugin";
-	public static final String PUBLISHER_OLD_VERSION = "com.fortify.plugin.jenkins.FPRPublisher";
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(SSCServerConfigUtil.class);
+	private static final String PUBLISHER_NEW_NAME = "com.fortify.plugin.jenkins.FortifyPlugin";
+	private static final String PUBLISHER_OLD_VERSION = "com.fortify.plugin.jenkins.FPRPublisher";
 
 	public static String getSSCServer() {
 		Descriptor sscDescriptor = getSSCDescriptor();
@@ -81,9 +77,9 @@ public class SSCServerConfigUtil {
 		logger.warn("Version seems to be 18.20.1071 or higher");
 		//18.20.1071 version.
 		Object uploadSSC = getFieldValueAsObj(fprPublisher, "uploadSSC");
-		if(uploadSSC == null){
+		if (uploadSSC == null) {
 			logger.warn("uploadSSC section was not found");
-		}else {
+		} else {
 			logger.warn("uploadSSC was found ");
 			projectName = getFieldValue(uploadSSC, "projectName");
 			projectVersion = getFieldValue(uploadSSC, "projectVersion");
@@ -112,6 +108,7 @@ public class SSCServerConfigUtil {
 		}
 		return null;
 	}
+
 	private static Object getFieldValueAsObj(Object someObject, String fieldName) {
 		for (Field field : someObject.getClass().getDeclaredFields()) {
 			field.setAccessible(true);
@@ -127,12 +124,12 @@ public class SSCServerConfigUtil {
 	}
 
 	private static Descriptor getSSCDescriptor() {
-		Descriptor publisher = Jenkins.getInstance().getDescriptorByName(PUBLISHER_OLD_VERSION);
-		if(publisher == null){
+		Descriptor publisher = Jenkins.get().getDescriptorByName(PUBLISHER_OLD_VERSION);
+		if (publisher == null) {
 			//18.20 version and above.
 			logger.debug("didn't find Old SSC FPRPublisher");
-			Descriptor plugin = Jenkins.getInstance().getDescriptorByName(PUBLISHER_NEW_NAME);
-			if(plugin == null){
+			Descriptor plugin = Jenkins.get().getDescriptorByName(PUBLISHER_NEW_NAME);
+			if (plugin == null) {
 				logger.debug("didn't find Fortify Plugin of 18.20 version and above");
 			}
 			return plugin;

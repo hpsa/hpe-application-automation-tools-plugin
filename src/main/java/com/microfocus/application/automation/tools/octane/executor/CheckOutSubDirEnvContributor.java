@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
@@ -45,6 +46,9 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
 
     @Override
     public void buildEnvironmentFor(Job j, EnvVars envs, TaskListener listener) {
+        if(!OctaneSDK.hasClients()){
+            return;
+        }
         String dir = getSharedCheckOutDirectory(j);
         if (dir != null) {
             envs.put(CHECKOUT_SUBDIR_ENV_NAME, dir);

@@ -22,13 +22,63 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-   <f:entry title="Testing framework" field="framework">
-             <select name="teststorunconverter.framework" >
-                 <j:forEach var="myFramework" items="${descriptor.Frameworks}">
-                      <f:option selected="${myFramework.value == instance.testsToRunConverterModel.framework}" value="${myFramework.value}">
+    <f:entry title="Testing framework" field="framework">
+        <select name="teststorunconverter.framework" onchange="selectionChanged(this)">
+             <j:forEach var="myFramework" items="${descriptor.Frameworks}">
+                  <f:option selected="${myFramework.name == instance.testsToRunConverterModel.framework.name}" value="${myFramework.name}">
                         ${myFramework.description}
-                      </f:option>
-                 </j:forEach>
-              </select>
-     </f:entry>
+                  </f:option>
+             </j:forEach>
+        </select>
+    </f:entry>
+
+    <j:forEach var="myFramework" items="${descriptor.Frameworks}">
+        <f:textbox id="format+${myFramework.name}" value="${myFramework.format}" hidden="hidden"/>
+        <f:textbox id="delimiter+${myFramework.name}" value="${myFramework.delimiter}" hidden="hidden"/>
+    </j:forEach>
+
+
+    <j:if test="${instance.testsToRunConverterModel.framework.name == 'custom'}">
+        <f:entry title="Test format" field="format" >
+            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" />
+        </f:entry>
+
+        <f:entry title="Tests delimiter" field="delimiter" >
+            <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" />
+        </f:entry>
+    </j:if>
+    <j:if test="${instance.testsToRunConverterModel.framework.name != 'custom'}">
+        <f:entry title="Format" field="format" >
+            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" disabled="true"/>
+        </f:entry>
+
+        <f:entry title="Delimiter" field="delimiter" >
+            <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" disabled="true"/>
+        </f:entry>
+    </j:if>
+
+    <script>
+
+
+        function selectionChanged(sender) {
+
+            var x = sender.selectedIndex;
+            var y = sender.options;
+            var txtFormat = document.getElementById('format');
+            var txtDelimiter = document.getElementById('delimiter');
+
+            var bCustom = y[x].value === 'custom' ? true : false;
+
+            txtFormat.disabled = !bCustom;
+            txtDelimiter.disabled = !bCustom;
+
+            var optionFormat = document.getElementById('format+' + y[x].value);
+            var optionDelimiter = document.getElementById('delimiter+' + y[x].value);
+
+            txtFormat.value = optionFormat ? optionFormat.value : "";
+            txtDelimiter.value = optionDelimiter ? optionDelimiter.value : "";
+        }
+
+    </script>
+
 </j:jelly>

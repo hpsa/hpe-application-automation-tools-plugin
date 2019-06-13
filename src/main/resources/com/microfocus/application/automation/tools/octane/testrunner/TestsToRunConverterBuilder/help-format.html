@@ -1,0 +1,40 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+<div>
+    The format used for converting the single test data that is received in the "testsToRun" parameter, to the format of the custom testing framework. This is then injected to the "testsToRunConverted" parameter.<br/>
+    The format syntax is:
+    <ul>
+        <li> <b>$package</b> - uses the test package name in the conversion</li>
+        <li> <b>$class</b> - uses the test class name in the conversion</li>
+        <li> <b>$testName</b> - uses the test  name in the conversion</li>
+    </ul>
+
+    <br/>For example:<br/><br/>
+    The <i>testsToRun</i> parameter received 2 tests separated by a semicolon: <b>v1:MF.simple.tests|AppTest|testA<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
+    The defined <i>format</i> is: <b>$package.$class#$testName</b><br/>
+    The defined <i>delimiter</i> is: <b> , </b>
+    <ul>
+        <li><b>$package</b> variable will get a value: <i>MF.simple.tests</i></li>
+        <li><b>$class</b> variable will get a value: <i>AppTest</i></li>
+        <li><b>$testName</b> variable will get a value: <i>testA</i></li>
+    </ul>
+    <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testA,MF.simple.tests.App2Test#testSendGet</b>
+
+</div>

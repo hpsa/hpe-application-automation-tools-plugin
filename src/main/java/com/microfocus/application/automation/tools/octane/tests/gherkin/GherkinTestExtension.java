@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.tests.gherkin;
 
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
 import com.microfocus.application.automation.tools.octane.tests.TestProcessingException;
@@ -28,7 +29,6 @@ import com.microfocus.application.automation.tools.octane.tests.TestResultContai
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.Extension;
 import hudson.model.Run;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.List;
 
 @Extension
 public class GherkinTestExtension extends OctaneTestsExtension {
-	private static Logger logger = LogManager.getLogger(GherkinTestExtension.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(GherkinTestExtension.class);
 
 	@Override
 	public boolean supports(Run<?, ?> build) {

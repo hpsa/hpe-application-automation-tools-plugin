@@ -20,15 +20,15 @@
 
 package com.microfocus.application.automation.tools.octane.tests.detection;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.model.Run;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
  * Service used for auto detection of test results global parameters like test-framework, testing-tool, etc.
  */
 public class ResultFieldsDetectionService {
-	private static Logger logger = LogManager.getLogger(ResultFieldsDetectionService.class);
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(ResultFieldsDetectionService.class);
 
 	public ResultFields getDetectedFields(Run<?,?> build) throws InterruptedException {
 		for (ResultFieldsDetectionExtension ext : ResultFieldsDetectionExtension.all()) {

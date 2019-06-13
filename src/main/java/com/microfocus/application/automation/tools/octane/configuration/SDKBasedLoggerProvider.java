@@ -18,36 +18,30 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.events;
+package com.microfocus.application.automation.tools.octane.configuration;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.events.CIEvent;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
-import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
-import hudson.Extension;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.model.listeners.SCMListener;
-import hudson.scm.ChangeLogSet;
-import hudson.scm.SCM;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 /**
- * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
- * Created by gullery on 10/07/2016.
+ * SDK based (log4j brought by SDK) logger provider
+ * Main purpose of this custom logger provider is to ensure correct logs location configuration at the earliest point of the plugin initialization
+ * TODO: this method might become a part of an SPI interface of SDK's plugin services
  */
+public final class SDKBasedLoggerProvider {
+	private static volatile boolean sysParamConfigured = false;
 
-@Extension
-public class SCMListenerOctaneImpl extends SCMListener {
-
-    @Override
-    public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-        if(!OctaneSDK.hasClients()){
-            return;
-        }
-        super.onChangeLogParsed(run, scm, listener, changelog);
-        CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-        if (scmEvent != null) {
-            CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
-        }
-    }
+	private SDKBasedLoggerProvider(){
+		//CodeClimate  : Add a private constructor to hide the implicit public one.
+	}
+	public static Logger getLogger(Class<?> type) {
+		if (!sysParamConfigured) {
+			System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
+			sysParamConfigured = true;
+		}
+		return LogManager.getLogger(type);
+	}
 }
