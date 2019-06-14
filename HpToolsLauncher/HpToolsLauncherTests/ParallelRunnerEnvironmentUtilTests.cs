@@ -341,20 +341,20 @@ namespace HpToolsLauncherTests
         public void GetMCProxySettingsTest_ValidMCSettings_ReturnsExpectedProxySettings()
         {
             McConnectionInfo mcConnectionInfo = new McConnectionInfo();
-            mcConnectionInfo.MobileProxySetting_Address = "192.168.1.1";
-            mcConnectionInfo.MobileProxySetting_Port = 8080;
-            mcConnectionInfo.MobileProxySetting_Authentication = 1;
-            mcConnectionInfo.MobileProxySetting_UserName = "test";
-            mcConnectionInfo.MobileProxySetting_Password = "test";
+            mcConnectionInfo.MobileProxySettingAddress = "192.168.1.1";
+            mcConnectionInfo.MobileProxySettingPort = 8080;
+            mcConnectionInfo.MobileProxySettingAuthentication = 1;
+            mcConnectionInfo.MobileProxySettingUserName = "test";
+            mcConnectionInfo.MobileProxySettingPassword = "test";
 
             ProxySettings settings = ParallelRunnerEnvironmentUtil.GetMCProxySettings(mcConnectionInfo);
 
             Assert.IsNotNull(settings);
             Assert.IsNotNull(settings.authentication);
 
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_UserName, settings.authentication.username);
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_Address, settings.hostname);
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_Port, settings.port);
+            Assert.AreEqual(mcConnectionInfo.MobileProxySettingUserName, settings.authentication.username);
+            Assert.AreEqual(mcConnectionInfo.MobileProxySettingAddress, settings.hostname);
+            Assert.AreEqual(mcConnectionInfo.MobileProxySettingPort, settings.port);
         }
 
         [TestMethod]
@@ -375,7 +375,7 @@ namespace HpToolsLauncherTests
             mcConnectionInfo.MobileHostPort = "8080";
             mcConnectionInfo.MobileUserName = "test";
             mcConnectionInfo.MobilePassword = "test";
-            mcConnectionInfo.MobileUseSSL = 1;
+            mcConnectionInfo.MobileUseSsl = 1;
 
             UFTSettings settings = ParallelRunnerEnvironmentUtil.ParseMCSettings(mcConnectionInfo);
 
