@@ -94,13 +94,13 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 
 	private String getRunStatus(Testcase testcase) {		
 		if(testcase.getError().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
 		if(testcase.getFailure().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
 		if(testcase.getStatus() == null) {
-			return IAlmConsts.IStatuses.PASSED;
+			return IAlmConsts.IStatuses.PASSED.value();
 		}
 		
 		String status = testcase.getStatus();
@@ -109,10 +109,10 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 			if (status.length()>0){
 				return status;
 			} else {
-				return IAlmConsts.IStatuses.PASSED;
+				return IAlmConsts.IStatuses.PASSED.value();
 			}
 		} else {
-			return IAlmConsts.IStatuses.PASSED;
+			return IAlmConsts.IStatuses.PASSED.value();
 		}
 	}
 	

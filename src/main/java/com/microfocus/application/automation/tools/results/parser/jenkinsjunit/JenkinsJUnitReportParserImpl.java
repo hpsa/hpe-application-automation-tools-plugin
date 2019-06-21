@@ -106,21 +106,21 @@ public class JenkinsJUnitReportParserImpl implements ReportParser {
 	
 	private String getRunStatus(Result.Suites.Suite.Cases.Case c) {
 		if (c.getSkipped() != null && c.getSkipped().equals("true")) {
-			return IAlmConsts.IStatuses.NO_RUN;
+			return IAlmConsts.IStatuses.NO_RUN.value();
 		}
 		
 		if(c.getErrorStackTrace() != null && c.getErrorStackTrace().length() >0) {
-			return IAlmConsts.IStatuses.FAILED;
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
 		
 		if(c.getErrorDetails() != null && c.getErrorDetails().length() >0) {
-			return IAlmConsts.IStatuses.FAILED;
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
 		
 		if (c.getFailedSince() != null && c.getFailedSince().equals("0")) {
-			return IAlmConsts.IStatuses.PASSED;
+			return IAlmConsts.IStatuses.PASSED.value();
 		}
 		
-		return IAlmConsts.IStatuses.FAILED;
+		return IAlmConsts.IStatuses.FAILED.value();
 	}
 }

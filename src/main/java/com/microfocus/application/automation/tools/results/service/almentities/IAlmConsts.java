@@ -21,12 +21,24 @@
 package com.microfocus.application.automation.tools.results.service.almentities;
 
 public interface IAlmConsts {
-	
-	public interface IStatuses {
-		public final String NO_RUN = "No Run";
-		public final String PASSED = "Passed";
-		public final String FAILED = "Failed";
-		
+
+	public enum IStatuses {
+		NO_RUN("No Run"),
+		PASSED("Passed"),
+		FAILED("Failed"),
+		BLOCKED("Blocked"),
+		NOT_COMPLETED("Not Completed");
+
+		private String value;
+
+		IStatuses(String value) {
+			this.value = value;
+		}
+
+		public String value() {
+			return value;
+		}
 	}
+
 	public final String IMPORT_RUN_NAME_TEMPLATE = "Import_Run_%d-%d_%d-%d-%d";
 }

@@ -111,30 +111,29 @@ public class AntJUnitReportParserImpl implements ReportParser {
 		return testSets;
 	}
 	
-	private String getRunStatus(Testcase testcase){
-		
-		
-		if(testcase.getError().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+	private String getRunStatus(Testcase testcase) {
+		if (testcase.getError().size() > 0) {
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getFailure().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+		if (testcase.getFailure().size() > 0) {
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getStatus() == null) {
-			return IAlmConsts.IStatuses.PASSED;
-		}
-		
-		String status = testcase.getStatus();
-		if(status != null ){
-			status = status.trim();
-			if (status.length()>0){
-				return status;
-			} else {
-				return IAlmConsts.IStatuses.PASSED;
-			}
+
+        String status = testcase.getStatus();
+		if (status == null) {
+			return IAlmConsts.IStatuses.PASSED.value();
 		} else {
-			return IAlmConsts.IStatuses.PASSED;
+			status = status.trim();
+			if (status.length() > 0) {
+				try {
+					return IAlmConsts.IStatuses.valueOf(status.toUpperCase()).value();
+				} catch (IllegalArgumentException e) {
+					return status;
+				}
+            } else {
+				return IAlmConsts.IStatuses.PASSED.value();
+			}
 		}
-		
 	}
+
 }
