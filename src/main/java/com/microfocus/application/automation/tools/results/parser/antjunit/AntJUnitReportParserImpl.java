@@ -119,21 +119,23 @@ public class AntJUnitReportParserImpl implements ReportParser {
 			return IAlmConsts.IStatuses.FAILED.value();
 		}
 
+		String result = null;
         String status = testcase.getStatus();
 		if (status == null) {
-			return IAlmConsts.IStatuses.PASSED.value();
+			result = IAlmConsts.IStatuses.PASSED.value();
 		} else {
 			status = status.trim();
 			if (status.length() > 0) {
 				try {
-					return IAlmConsts.IStatuses.valueOf(status.toUpperCase()).value();
+					result = IAlmConsts.IStatuses.valueOf(status.toUpperCase()).value();
 				} catch (IllegalArgumentException e) {
-					return status;
+					result = status;
 				}
             } else {
-				return IAlmConsts.IStatuses.PASSED.value();
+				result = IAlmConsts.IStatuses.PASSED.value();
 			}
 		}
+		return result;
 	}
 
 }

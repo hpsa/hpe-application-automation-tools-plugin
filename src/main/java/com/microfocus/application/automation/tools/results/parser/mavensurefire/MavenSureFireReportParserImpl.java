@@ -102,18 +102,20 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 		if(testcase.getStatus() == null) {
 			return IAlmConsts.IStatuses.PASSED.value();
 		}
-		
+
+		String result;
 		String status = testcase.getStatus();
 		if(status != null ){
 			status = status.trim();
 			if (status.length()>0){
-				return status;
+				result = status;
 			} else {
-				return IAlmConsts.IStatuses.PASSED.value();
+				result = IAlmConsts.IStatuses.PASSED.value();
 			}
 		} else {
-			return IAlmConsts.IStatuses.PASSED.value();
+			result = IAlmConsts.IStatuses.PASSED.value();
 		}
+		return result;
 	}
 	
 	private String getRunDetail(Testcase testcase){
