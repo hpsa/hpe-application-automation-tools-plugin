@@ -92,23 +92,27 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 		return testSets;
 	}
 
-	private String getRunStatus(Testcase testcase) {		
-		if(testcase.getError().size()>0) {
+	private String getRunStatus(Testcase testcase) {
+		if (testcase.getError().size() > 0) {
 			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getFailure().size()>0) {
+		if (testcase.getFailure().size() > 0) {
 			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getStatus() == null) {
+		if (testcase.getStatus() == null) {
 			return IAlmConsts.IStatuses.PASSED.value();
 		}
 
 		String result;
 		String status = testcase.getStatus();
-		if(status != null ){
+		if (status != null) {
 			status = status.trim();
-			if (status.length()>0){
-				result = status;
+			if (status.length() > 0) {
+				try {
+					result = IAlmConsts.IStatuses.valueOf(status.toUpperCase()).value();
+				} catch (IllegalArgumentException e) {
+					result = status;
+				}
 			} else {
 				result = IAlmConsts.IStatuses.PASSED.value();
 			}
@@ -118,7 +122,7 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 		return result;
 	}
 	
-	private String getRunDetail(Testcase testcase){
+	private String getRunDetail(Testcase testcase) {
 		String detail = ParserUtil.marshallerObject(Testcase.class, testcase);		
 		return Base64Encoder.encode(detail.getBytes());
 	}
