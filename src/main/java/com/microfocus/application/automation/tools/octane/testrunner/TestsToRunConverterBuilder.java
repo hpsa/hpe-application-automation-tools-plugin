@@ -140,9 +140,10 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 	public Map<String, String> getProperties() {
 		Map<String, String> properties = new HashMap();
 
-		properties.put(TestsToRunConverter.CONVERTER_FORMAT, getFormat());
-		properties.put(TestsToRunConverter.CONVERTER_DELIMITER, getDelimiter());
-
+		if(TestsToRunFramework.Custom.value().equals(getFramework())) {
+			properties.put(TestsToRunConverter.CONVERTER_FORMAT, getFormat());
+			properties.put(TestsToRunConverter.CONVERTER_DELIMITER, getDelimiter());
+		}
 		return properties;
 	}
 
