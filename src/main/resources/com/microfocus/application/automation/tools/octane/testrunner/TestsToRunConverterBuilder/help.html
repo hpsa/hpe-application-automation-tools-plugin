@@ -28,15 +28,15 @@
     <ul>
         <li> To use in parameter <i>textboxes</i>, use the following syntax: <b>${testsToRunConverted}</b></li>
         <br/>
-        <li> To use in the <i>scripts </i>, use the following syntax:
+        <li> To use in the <i>scripts</i>, use the following syntax:
             <ul>
-                <li>Linux shell  : $testsToRunConverted</li>
-                <li>Windows batch command : %testsToRunConverted%</li>
-                <li>Pipeline script (workflow job) : "${params.testsToRunConverted}"</li>
+                <li>Linux shell: $testsToRunConverted</li>
+                <li>Windows batch command: %testsToRunConverted%</li>
+                <li>Pipeline script (workflow job): "${params.testsToRunConverted}"</li>
             </ul>
 
             <br/>
-            See examples in the tables below :
+            See examples in the tables below:
             <table border="1" width="100%" style="border-collapse: collapse;border: 1px solid black;">
                 <thead style="background-color: lightgray; font-weight: bold">
                 <tr>
@@ -141,7 +141,7 @@
         <li> <b>UFT</b>: In order to build a UFT MTBX file, this builder needs to know the test check-out directory. By
             default this is the job workspace directory. If tests are checked out in another directory, define in the job a String parameter "testsToRunCheckoutDirectory"
             with the correct directory.</li>
-        <li> <b>JUnit/TestNG</b>: supported for JUnit 4.7+, Surefire Plugin 2.19+, Failsafe Plugin 2.12.1+.</li>
-        <li><b>Cucumber</b>: execution is done by scenario name only. If there are several scenarios with the same name in different features, they all will be executed.</li>
+        <li> <b>JUnit/TestNG</b>: Supported for JUnit 4.7+, Surefire Plugin 2.19+, Failsafe Plugin 2.12.1+.</li>
+        <li><b>Cucumber</b>: Execution is done by scenario name only. If there are several scenarios with the same name in different features, they all will be executed.</li>
     </ul>
 </div>
