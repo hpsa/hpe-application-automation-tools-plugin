@@ -24,6 +24,7 @@ import com.google.inject.Inject;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
@@ -188,7 +189,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.buildRootDir = build.getRootDir().getCanonicalPath();
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
 
-			this.jobName = build.getParent().getName();
+			this.jobName = JobProcessorFactory.getFlowProcessor(build.getParent()).getTranslatedJobName();
 			this.buildId = build.getId();
 			moduleDetection = Arrays.asList(
 					new MavenBuilderModuleDetection(build),
