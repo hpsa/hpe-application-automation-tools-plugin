@@ -379,6 +379,7 @@ namespace HpToolsLauncher
         private TestRunResults RunHpToolsTest(TestInfo testInfo, ref string errorReason)
         {
             var testPath = testInfo.TestPath;
+         
             var type = Helper.GetTestType(testPath);
 
             // if we have at least one environment for parallel runner,

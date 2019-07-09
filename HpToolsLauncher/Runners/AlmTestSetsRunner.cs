@@ -38,6 +38,7 @@ namespace HpToolsLauncher
 {
     public class AlmTestSetsRunner : RunnerBase, IDisposable
     {
+
         private ITDConnection2 _tdConnection;
 
         public ITDConnection2 TdConnection
@@ -79,6 +80,8 @@ namespace HpToolsLauncher
 
         public double Timeout { get; set; }
 
+        public bool SSOEnabled { get; set; }
+
 
         /// <summary>
         /// constructor
@@ -97,6 +100,7 @@ namespace HpToolsLauncher
         /// <param name="filterByStatuses"></param>
         /// <param name="initialTestRun"></param>
         /// <param name="testStorageType"></param>
+        /// <param name="isSSOEnabled"></param>
         public AlmTestSetsRunner(string qcServer,
                                 string qcUser,
                                 string qcPassword,
@@ -110,8 +114,10 @@ namespace HpToolsLauncher
                                 string filterByName,
                                 List<string> filterByStatuses,
                                 bool initialTestRun,
-                                TestStorageType testStorageType)
+                                TestStorageType testStorageType, 
+                                bool isSSOEnabled)
         {
+            
             Timeout = intQcTimeout;
             RunMode = enmQcRunMode;
             RunHost = runHost;
@@ -125,8 +131,9 @@ namespace HpToolsLauncher
             FilterByName = filterByName;
             FilterByStatuses = filterByStatuses;
             InitialTestRun = initialTestRun;
+            SSOEnabled = isSSOEnabled;
 
-            Connected = ConnectToProject(MQcServer, MQcUser, qcPassword, MQcDomain, MQcProject);
+            Connected = ConnectToProject(MQcServer, MQcUser, qcPassword, MQcDomain, MQcProject, SSOEnabled);
             TestSets = qcTestSets;
             Storage = testStorageType;
             if (!Connected)
@@ -216,11 +223,12 @@ namespace HpToolsLauncher
         /// <param name="qcPass"></param>
         /// <param name="qcDomain"></param>
         /// <param name="qcProject"></param>
+        /// <param name="SSOEnabled"></param>
         /// <returns></returns>
-        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject)
+        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject, bool SSOEnabled)
         {
             if (string.IsNullOrWhiteSpace(qcServerUrl)
-                || string.IsNullOrWhiteSpace(qcLogin)
+                || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
                 || string.IsNullOrWhiteSpace(qcDomain)
                 || string.IsNullOrWhiteSpace(qcProject))
             {
@@ -244,7 +252,14 @@ namespace HpToolsLauncher
             }
             try
             {
-                TdConnection.Login(qcLogin, qcPass);
+                if (!SSOEnabled)
+                {
+                    TdConnection.Login(qcLogin, qcPass);
+                }
+                else
+                {
+                    //TODO - connect through SSO
+                }
             }
             catch (Exception ex)
             {
@@ -512,12 +527,12 @@ namespace HpToolsLauncher
 
             if (tsFolder != null)
             {
-
+                
                 if ((testStorageType.Equals(TestStorageType.AlmLabManagement) && !testSet.Equals(""))
                     || testStorageType.Equals(TestStorageType.Alm))
                 {
                     List testList = tsFolder.FindTestSets(testSuiteName);
-
+                  
                     return testList;
                 }
 
@@ -1019,7 +1034,20 @@ namespace HpToolsLauncher
             }
 
             //get target test set
-            ITestSet targetTestSet = GetTargetTestSet(testSetList, testSuiteName);
+            if (testSetList == null)
+            {
+                Console.WriteLine("Null test set list");
+            }
+
+            ITestSet targetTestSet = null;
+            try
+            {
+                targetTestSet = GetTargetTestSet(testSetList, testSuiteName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Null test set list");
+            }
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);

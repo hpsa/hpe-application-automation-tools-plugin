@@ -232,7 +232,7 @@ public class SseModel {
         props.put("almProject", getAlmProject());
         props.put("clientType", getClientType());
         props.put("almRunType", getRunType());
-        props.put("almEntityId1", getAlmEntityId());
+        props.put("TestSet1", getAlmEntityId());
         props.put("almTimeout", getTimeslotDuration());
         props.put("description", getDescription());
         props.put("environmentConfigurationId", getEnvironmentConfigurationId());

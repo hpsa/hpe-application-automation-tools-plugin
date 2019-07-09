@@ -328,7 +328,7 @@ namespace HpToolsLauncher
             switch (runType)
             {
                 case TestStorageType.AlmLabManagement:
-                    List<string> testSetsList = GetParamsWithPrefix("almEntityId");
+                    List<string> testSetsList = GetParamsWithPrefix("TestSet");
                    
                     string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
 
@@ -347,6 +347,9 @@ namespace HpToolsLauncher
                             filterByStatuses.Add(statuses);
                         }
                     }
+
+                    bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") && Convert.ToBoolean(_ciParams["SSOEnabled"]);
+
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
                                      _ciParams["almUserName"],
@@ -361,11 +364,11 @@ namespace HpToolsLauncher
                                      filterByName,
                                      filterByStatuses,   
                                      initialTestRun,
-                                     TestStorageType.AlmLabManagement);
+                                     TestStorageType.AlmLabManagement,
+                                     isSSOEnabled);
                     break;
 
                 case TestStorageType.Alm:
-                    Console.WriteLine("runType is alm");
                     //check that all required parameters exist
                     foreach (string param1 in requiredParamsForQcRun)
                     {
@@ -404,14 +407,15 @@ namespace HpToolsLauncher
                     }
 
                     //check if filterTests flag is selected; if yes apply filters on the list
+                    
                     bool isFilterSelected;
-                    string filter = (_ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "");
+                    string filter = _ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "";
 
                     isFilterSelected = !string.IsNullOrEmpty(filter) && Convert.ToBoolean(filter.ToLower());
                     
-                    filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
+                    filterByName = _ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "";
 
-                    statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
+                    statuses = _ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "";
 
                     filterByStatuses = new List<string>();
 
@@ -425,6 +429,8 @@ namespace HpToolsLauncher
                             filterByStatuses.Add(statuses);
                         }
                     }
+
+                    isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") && Convert.ToBoolean(_ciParams["SSOEnabled"]);
                    
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
@@ -440,7 +446,8 @@ namespace HpToolsLauncher
                                      filterByName,
                                      filterByStatuses,
                                      initialTestRun,
-                                     TestStorageType.Alm);
+                                     TestStorageType.Alm,
+                                     isSSOEnabled);
                     break;
                 case TestStorageType.FileSystem:
                     bool displayController = false;
@@ -833,6 +840,10 @@ namespace HpToolsLauncher
                
                 _xmlBuilder.CreateXmlFromRunResults(results);
 
+                if (results.TestRuns.Count == 0)
+                {
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                }
 
                 //if there is an error
                 if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))

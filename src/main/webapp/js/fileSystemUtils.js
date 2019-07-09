@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+
     var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
     var selectValue = document.getElementsByName("fsTestType")[0].options[selectIndex].text;
     if(selectValue === "Of any of the build's tests") {
@@ -150,4 +151,6 @@ function clearRerunSettings(){
         element.value = "";
     });
 }
+
+
 

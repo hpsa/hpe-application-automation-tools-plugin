@@ -84,6 +84,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almTimeout,
             String almRunMode,
             String almRunHost,
+            boolean isSSOEnabled,
             boolean isFilterTestsEnabled,
             FilterTestsModel filterTestsModel){
 
@@ -101,12 +102,15 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunResultsMode,
                         almTimeout,
                         almRunMode,
-                        almRunHost);
+                        almRunHost,
+                        isSSOEnabled);
     }
 
     public String getAlmServerName(){
         return runFromAlmModel.getAlmServerName();
     }
+
+    public boolean getIsSSOEnabled() { return runFromAlmModel.isSSOEnabled(); }
 
     public String getAlmUserName(){
         return runFromAlmModel.getAlmUserName();
@@ -148,7 +152,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return isFilterTestsEnabled;
     }
 
-    @DataBoundSetter
+   @DataBoundSetter
     public void setIsFilterTestsEnabled(boolean isFilterTestsEnabled) {
         this.isFilterTestsEnabled = isFilterTestsEnabled;
     }

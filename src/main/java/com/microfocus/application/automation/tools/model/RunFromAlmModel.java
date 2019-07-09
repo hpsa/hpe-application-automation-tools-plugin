@@ -34,7 +34,6 @@ import hudson.util.Secret;
 
 import java.util.Properties;
 
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -64,12 +63,13 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private String almTimeout;
     private String almRunMode;
     private String almRunHost;
+    private Boolean isSSOEnabled;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName,
                            String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
-                           String almRunMode, String almRunHost){
+                           String almRunMode, String almRunHost, Boolean isSSOEnabled){
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -86,6 +86,8 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.almTimeout = almTimeout;
         this.almRunMode = almRunMode;
         this.almRunHost = almRunHost;
+
+        this.isSSOEnabled = isSSOEnabled;
     }
 
     public String getAlmUserName() {
@@ -128,6 +130,10 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         return almServerName;
     }
 
+    public Boolean isSSOEnabled() {
+        return isSSOEnabled;
+    }
+
     public Properties getProperties(EnvVars envVars,
                                     VariableResolver<String> varResolver) {
         return CreateProperties(envVars, varResolver);
@@ -140,6 +146,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private Properties CreateProperties(EnvVars envVars,
                                         VariableResolver<String> varResolver) {
         Properties props = new Properties();
+        props.put("SSOEnabled", Boolean.toString(isSSOEnabled));
 
         if (envVars == null) {
             props.put("almUserName", almUserName);
