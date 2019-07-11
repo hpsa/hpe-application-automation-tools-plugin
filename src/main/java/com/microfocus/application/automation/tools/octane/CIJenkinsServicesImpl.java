@@ -689,7 +689,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if (item instanceof Job) {
 				result = (Job) item;
 			} else if (jobRefId.contains("/") && item == null) {
-				String parentJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
+				String parentJobRefId = jobRefId.substring(0, jobRefId.indexOf('/'));
 				item = getTopLevelItem(parentJobRefId);
 				if (item != null) {
 					Collection<? extends Job> allJobs = item.getAllJobs();
