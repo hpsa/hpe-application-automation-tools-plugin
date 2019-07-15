@@ -231,7 +231,6 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                         .convert(rawTests, TestsToRunConverterBuilder.DEFAULT_EXECUTING_DIRECTORY);
                 return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + convertResult.getConvertedTestsString() + "</div>");
             } catch (Exception e) {
-                //String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
                 return ConfigurationValidator.wrapWithFormValidation(false, "Failed to convert : " + e.getMessage());
             }
         }
