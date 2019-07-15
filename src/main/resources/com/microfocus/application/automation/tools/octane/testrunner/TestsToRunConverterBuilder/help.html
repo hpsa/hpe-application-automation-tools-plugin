@@ -54,10 +54,6 @@
                     <td>mvn clean -Dit.test=$testsToRunConverted verify</td>
                 </tr>
                 <tr>
-                    <td>Cucumber</td>
-                    <td>mvn clean test -Dcucumber.options="--name $testsToRunConverted"</td>
-                </tr>
-                <tr>
                     <td>Gradle</td>
                     <td>gradle test $testsToRunConverted</td>
                 </tr>
@@ -79,10 +75,6 @@
                 <tr>
                     <td>Maven Surefire</td>
                     <td>mvn clean -Dtest=%testsToRunConverted% test</td>
-                </tr>
-                <tr>
-                    <td>Cucumber</td>
-                    <td>mvn clean test -Dcucumber.options="--name %testsToRunConverted%"</td>
                 </tr>
                 <tr>
                     <td>Maven Failsafe</td>
@@ -116,10 +108,6 @@
                     <td>bat 'mvn clean -Dit.test=${params.testsToRunConverted} verify'</td>
                 </tr>
                 <tr>
-                    <td>Cucumber</td>
-                    <td>bat(/mvn clean test -Dcucumber.options="--name ${params.testsToRunConverted}"/)</td>
-                </tr>
-                <tr>
                     <td>Gradle</td>
                     <td>bat 'gradle test ${params.testsToRunConverted}'</td>
                 </tr>
@@ -142,6 +130,5 @@
             default this is the job workspace directory. If tests are checked out in another directory, define in the job a String parameter "testsToRunCheckoutDirectory"
             with the correct directory.</li>
         <li> <b>JUnit/TestNG</b>: Supported for JUnit 4.7+, Surefire Plugin 2.19+, Failsafe Plugin 2.12.1+.</li>
-        <li><b>Cucumber</b>: Execution is done by scenario name only. If there are several scenarios with the same name in different features, they all will be executed.</li>
     </ul>
 </div>

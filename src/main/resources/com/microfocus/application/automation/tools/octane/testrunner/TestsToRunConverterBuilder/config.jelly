@@ -39,23 +39,35 @@
 
 
     <j:if test="${instance.testsToRunConverterModel.framework.name == 'custom'}">
-        <f:entry title="Test format" field="format" >
-            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" />
+        <f:entry title="Format" field="format" >
+            <textarea id="format" name="teststorunconverter.format" type="text" class="setting-input" style="resize: vertical; min-height:30px;">
+                ${instance.testsToRunConverterModel.framework.format}
+            </textarea>
         </f:entry>
 
-        <f:entry title="Tests delimiter" field="delimiter" >
+        <f:entry title="Delimiter" field="delimiter" >
             <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" />
         </f:entry>
     </j:if>
     <j:if test="${instance.testsToRunConverterModel.framework.name != 'custom'}">
-        <f:entry title="Format" field="format" >
-            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" disabled="true"/>
+        <f:entry title="Format" field="format">
+            <textarea id="format" name="teststorunconverter.format" type="text" class="setting-input" disabled="true" style="resize: vertical; min-height:30px;">
+                ${instance.testsToRunConverterModel.framework.format}
+            </textarea>
         </f:entry>
 
         <f:entry title="Delimiter" field="delimiter" >
             <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" disabled="true"/>
         </f:entry>
     </j:if>
+    <f:advanced>
+    <f:section title="Test conversion"/>
+    <f:entry title="Tests to run" description="Tests to run in raw format, for example : v1:package1|className1|testName1;package2|className2|testName2">
+      <f:textbox field="testsToRun" />
+    </f:entry>
+            <f:validateButton title="Convert" progress="Evaluating..."
+                    method="testConvert" with="framework,teststorunconverter.framework,teststorunconverter.format,teststorunconverter.delimiter,testsToRun"/>
+    </f:advanced>
 
     <script>
 
