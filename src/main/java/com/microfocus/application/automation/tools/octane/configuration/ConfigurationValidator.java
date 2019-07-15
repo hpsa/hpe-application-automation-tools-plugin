@@ -21,7 +21,7 @@
 package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.ProxyConfiguration;
@@ -100,20 +100,14 @@ public class ConfigurationValidator {
     }
 
     public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
-        OctaneResponse checkResponse;
-        try {
-            checkResponse = OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
 
-            if (checkResponse.getStatus() == 401) {
-                errorMessages.add(Messages.AuthenticationFailure());
-            } else if (checkResponse.getStatus() == 403) {
-                errorMessages.add(Messages.AuthorizationFailure());
-            } else if (checkResponse.getStatus() == 404) {
-                errorMessages.add(Messages.ConnectionSharedSpaceInvalid());
-            } else if (checkResponse.getStatus() != 200) {
-                errorMessages.add(Messages.UnexpectedFailure() + ": " + checkResponse.getStatus());
-            }
-        } catch (IOException ioe) {
+        try {
+            OctaneSDK.testAndValidateOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
+
+        } catch (OctaneConnectivityException octaneException) {
+            errorMessages.add(octaneException.getErrorMessageVal());
+
+        }catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
