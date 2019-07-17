@@ -35,32 +35,30 @@ public class TestsToRunConverterModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public final static TestsFramework none = new TestsFramework("", "", "", "");
+    public final static TestsFramework none = new TestsFramework("", "", "");
 
     public final static List<TestsFramework> Frameworks;
 
     private String framework;
     private String format;
-    private String delimiter;
 
     static {
         List<TestsFramework> temp = new ArrayList<>();
         temp.add(none);
         for (TestsToRunFramework fr : TestsToRunFramework.values()) {
-            temp.add(new TestsFramework(fr.value(), fr.getDesc(), fr.getFormat(), fr.getDelimiter()));
+            temp.add(new TestsFramework(fr.value(), fr.getDesc(), fr.getFormat()));
         }
         Frameworks = temp;
     }
 
     @DataBoundConstructor
-    public TestsToRunConverterModel(String framework, String format, String delimiter) {
+    public TestsToRunConverterModel(String framework, String format) {
         this.framework = framework;
         this.format = format;
-        this.delimiter = delimiter;
     }
 
     public TestsFramework getFramework() {
-        return new TestsFramework(framework, "", format, delimiter);
+        return new TestsFramework(framework, "", format);
     }
 
 }

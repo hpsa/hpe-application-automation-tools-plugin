@@ -21,7 +21,6 @@
 
 package com.microfocus.application.automation.tools.octane.testrunner;
 
-import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
@@ -46,9 +45,7 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Builder for available frameworks for converting
@@ -63,12 +60,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
     private static final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";
 
     public TestsToRunConverterBuilder(String framework) {
-        this.framework = new TestsToRunConverterModel(framework, "", "");
+        this.framework = new TestsToRunConverterModel(framework, "");
     }
 
     @DataBoundConstructor
-    public TestsToRunConverterBuilder(String framework, String format, String delimiter) {
-        this.framework = new TestsToRunConverterModel(framework, format, delimiter);
+    public TestsToRunConverterBuilder(String framework, String format) {
+        this.framework = new TestsToRunConverterModel(framework, format);
     }
 
     @Override
@@ -115,16 +112,14 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             }
             String frameworkName = getFramework();
             String frameworkFormat = getFormat();
-            String frameworkDelimiter = getDelimiter();
             printToConsole(listener, "Selected framework = " + frameworkName);
             if (SdkStringUtils.isNotEmpty(frameworkFormat)) {
                 printToConsole(listener, "Using format = " + frameworkFormat);
-                printToConsole(listener, "Using delimiter = " + frameworkDelimiter);
             }
 
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
             TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
-                    .setProperties(this.getProperties())
+                    .setFormat(frameworkFormat)
                     .convert(rawTests, executingDirectory);
             printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
             printToConsole(listener, "Set to parameter : " + convertResult.getTestsToRunConvertedParameterName() + " = " + convertResult.getConvertedTestsString());
@@ -146,16 +141,6 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         }
     }
 
-    public Map<String, String> getProperties() {
-        Map<String, String> properties = new HashMap();
-
-        if (TestsToRunFramework.Custom.value().equals(getFramework())) {
-            properties.put(TestsToRunConverter.CONVERTER_FORMAT, getFormat());
-            properties.put(TestsToRunConverter.CONVERTER_DELIMITER, getDelimiter());
-        }
-        return properties;
-    }
-
     /***
      * Used in UI
      * @return
@@ -172,12 +157,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         return framework.getFramework().getName();
     }
 
-    public String getDelimiter() {
-        return framework.getFramework().getDelimiter();
-    }
-
     public String getFormat() {
         return framework.getFramework().getFormat();
+    }
+
+    public boolean getIsCustom(){
+        return TestsToRunFramework.Custom.value().equals(framework.getFramework().getName());
     }
 
     private void printToConsole(TaskListener listener, String msg) {
@@ -201,8 +186,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         public FormValidation doTestConvert(
                 @QueryParameter("testsToRun") String rawTests,
                 @QueryParameter("teststorunconverter.framework") String framework,
-                @QueryParameter("teststorunconverter.format") String format,
-                @QueryParameter("teststorunconverter.delimiter") String delimiter) {
+                @QueryParameter("teststorunconverter.format") String format) {
 
             try {
 
@@ -214,20 +198,13 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                     throw new IllegalArgumentException("'Framework' parameter is missing");
                 }
 
-                if (StringUtils.isEmpty(format)) {
+                TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(framework);
+                if (TestsToRunFramework.Custom.equals(testsToRunFramework) && StringUtils.isEmpty(format)) {
                     throw new IllegalArgumentException("'Format' parameter is missing");
                 }
 
-                Map<String, String> properties = new HashMap();
-
-                TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(framework);
-                if (TestsToRunFramework.Custom.equals(testsToRunFramework)) {
-                    properties.put(TestsToRunConverter.CONVERTER_FORMAT, format);
-                    properties.put(TestsToRunConverter.CONVERTER_DELIMITER, delimiter);
-                }
-
                 TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
-                        .setProperties(properties)
+                        .setFormat(format)
                         .convert(rawTests, TestsToRunConverterBuilder.DEFAULT_EXECUTING_DIRECTORY);
                 return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + convertResult.getConvertedTestsString() + "</div>");
             } catch (Exception e) {
@@ -244,5 +221,6 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
             return TestsToRunConverterModel.Frameworks;
         }
+
     }
 }

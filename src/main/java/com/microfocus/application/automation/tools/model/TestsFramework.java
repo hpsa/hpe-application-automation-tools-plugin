@@ -25,20 +25,17 @@ public class TestsFramework {
     private String description;
     private String name;
     private String format;
-    private String delimiter;
 
     public TestsFramework() {
         this.name = "";
         this.description = "";
         this.format = "";
-        this.delimiter = "";
     }
 
-    public TestsFramework(String name, String description, String format, String delimiter) {
+    public TestsFramework(String name, String description, String format) {
         this.name = name;
         this.description = description;
         this.format = format;
-        this.delimiter = delimiter;
     }
 
     public String getDescription() {
@@ -51,10 +48,6 @@ public class TestsFramework {
 
     public String getFormat() {
         return format;
-    }
-
-    public String getDelimiter() {
-        return delimiter;
     }
 
 }
