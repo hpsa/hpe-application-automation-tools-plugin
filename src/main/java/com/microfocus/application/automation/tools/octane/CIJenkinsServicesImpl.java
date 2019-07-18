@@ -685,26 +685,21 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	private Job getJobByRefId(String jobRefId) {
 		Job result = null;
 		if (jobRefId != null) {
-			try {
-				jobRefId = URLDecoder.decode(jobRefId, StandardCharsets.UTF_8.name());
-				TopLevelItem item = getTopLevelItem(jobRefId);
-				if (item instanceof Job) {
-					result = (Job) item;
-				} else if (jobRefId.contains("/") && item == null) {
-					String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
-					item = getTopLevelItem(newJobRefId);
-					if (item != null) {
-						Collection<? extends Job> allJobs = item.getAllJobs();
-						for (Job job : allJobs) {
-							if (jobRefId.endsWith(job.getName())) {
-								result = job;
-								break;
-							}
+			TopLevelItem item = getTopLevelItem(jobRefId);
+			if (item instanceof Job) {
+				result = (Job) item;
+			} else if (jobRefId.contains("/") && item == null) {
+				String parentJobRefId = jobRefId.substring(0, jobRefId.indexOf('/'));
+				item = getTopLevelItem(parentJobRefId);
+				if (item != null) {
+					Collection<? extends Job> allJobs = item.getAllJobs();
+					for (Job job : allJobs) {
+						if (jobRefId.endsWith(job.getName())) {
+							result = job;
+							break;
 						}
 					}
 				}
-			} catch (UnsupportedEncodingException uee) {
-				logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
 			}
 		}
 		return result;

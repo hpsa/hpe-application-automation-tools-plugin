@@ -18,23 +18,91 @@
   ~ ___________________________________________________________________
   -->
 <div>
-    The format used for converting the single test data that is received in the "testsToRun" parameter, to the format of the custom testing framework. This is then injected to the "testsToRunConverted" parameter.<br/>
-    The format syntax is:
-    <ul>
-        <li> <b>$package</b> - uses the test package name in the conversion</li>
-        <li> <b>$class</b> - uses the test class name in the conversion</li>
-        <li> <b>$testName</b> - uses the test  name in the conversion</li>
+    Custom configuration is json that describes how to convert tests in raw format to the format of your testing framework.
+    After conversion, result is injected to the "testsToRunConverted" parameter.
+
+    <br/><br/>
+    <i><b>Note</b> : In "Advanced" section you can validate correctness of the inserted configuration.</i>
+    <br/><br/>
+
+
+    Here are properties of the custom configuration
+    <ul style="padding-left: 15px;">
+        <li><b>testPattern</b> - describes pattern for converting single test. It uses reserved words (<b>$package</b>,<b>$class</b>,<b>$testName</b>) that will be
+    replaced by real test data. All other characters  in pattern will appear as is in final result</li>
+        <li><b>testDelimiter</b> - the delimiter used to separate different tests</li>
+        <li><b>prefix</b>  - the prefix for whole conversion result</li>
+        <li><b>suffix</b>  - the suffix for whole conversion result</li>
+        <li><b>testsToRunConvertedParameter</b>  - the parameter name to set conversion result to. Default value is “testsToRunConverted”</li>
+        <li><b>replacements</b>  - the array of replace methods</li>
+
     </ul>
 
+    Minimal configuration is:
+    <br/><br/>
+    <pre>
+{
+    "testPattern": "$package.$class#$testName",
+    "testDelimiter": ","
+}
+    </pre>
+
     <br/>For example:<br/><br/>
-    The <i>testsToRun</i> parameter received 2 tests separated by a semicolon: <b>v1:MF.simple.tests|AppTest|testA<i>;</i>MF.simple.tests|App2Test|testSendGet</b><br/>
-    The defined <i>format</i> is: <b>$package.$class#$testName</b><br/>
-    The defined <i>delimiter</i> is: <b> , </b>
+    The <i>testsToRun</i> parameter received 2 tests separated by a semicolon: <b>v1:myPackage1|myClass1|myTest1<i>;</i>myPackage2|myClass2|myTest2</b><br/>
+    The defined <i>testPattern</i> is: <b>$package.$class#$testName</b><br/>
+    The defined <i>testDelimiter</i> is: <b> , </b>
     <ul>
-        <li><b>$package</b> variable will get a value: <i>MF.simple.tests</i></li>
-        <li><b>$class</b> variable will get a value: <i>AppTest</i></li>
-        <li><b>$testName</b> variable will get a value: <i>testA</i></li>
+        <li><b>$package</b> variable will get a value: <i>myPackage1</i> for first test and <i>myPackage2</i> for second one</li>
+        <li><b>$class</b> variable will get a value: <i>myClass1</i> for first test and <i>myClass2</i> for second one</li>
+        <li><b>$testName</b> variable will get a value: <i>myTest1</i> for first test and <i>myTest2</i> for second one</li>
     </ul>
-    <br/>The <i>testsToRunConverted</i> will be equal: <b>MF.simple.tests.AppTest#testA,MF.simple.tests.App2Test#testSendGet</b>
+    <br/>The <i>testsToRunConverted</i> will be equal: <b>myPackage1.myClass1#myTest1,myPackage2.myClass2#myTest2</b>
+
+    <br/>
+    <br/>
+    There is possibility to alter values that received from ALM Octane, for example set lower case to the testName,replace spaces by '_', and so on.
+
+    <br>Here are examples of available replace methods. Each replace method contains "target" property that define what parts of the test pattern are affected by replace method,
+    available values are $package,$class,$testName. Its possible to put several values separated by '|'. The replacements are executed in the order they appear in configuration json.
+    <pre>
+"replacements": [
+{
+    "type": "<b>replaceRegex</b>",
+    "target": "$package|$class|$testName",
+    "regex": "aaa",
+    "replacement": "bbb",
+    "description": "Replaces all the sequence of characters matching regex by replacement string."
+},{
+    "type": "<b>replaceRegexFirst</b>",
+    "target": "$package|$class|$testName",
+    "regex": "aaa",
+    "replacement": "bbb",
+    "description": "Replaces the first substring that matches the given regex with the given replacement."
+},{
+    "type": "<b>replaceString</b>",
+    "target": "$package|$class|$testName",
+    "string": "xxx",
+    "replacement": "yyy",
+    "description": "Replaces all occurrences of ‘string’ with ‘replacement’."
+},{
+    "type": "<b>joinString</b>",
+    "target": "$package|$class|$testName",
+    "prefix": "xxx",
+    "suffix": "yyy",
+    "description": "Add prefix and suffix to the test template."
+},{
+    "type": "<b>toLowerCase</b>",
+    "target": "$package|$class|$testName",
+    "description": "Convert test template to lower case."
+},{
+    "type": "<b>toUpperCase</b>",
+    "target": "$package|$class|$testName",
+    "description": "Convert test template to upper  case."
+},{
+    "type": "<b>notLatinAndDigitToOctal</b>",
+    "target": "$package|$class|$testName",
+    "description": "Replaces all non-latin characters and digits ^[a-zA-Z0-9] to their ASCII octal value."
+}]
+</pre>
 
 </div>

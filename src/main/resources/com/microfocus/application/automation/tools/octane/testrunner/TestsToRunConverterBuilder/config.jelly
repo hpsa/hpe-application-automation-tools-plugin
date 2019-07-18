@@ -34,50 +34,109 @@
 
     <j:forEach var="myFramework" items="${descriptor.Frameworks}">
         <f:textbox id="format+${myFramework.name}" value="${myFramework.format}" hidden="hidden"/>
-        <f:textbox id="delimiter+${myFramework.name}" value="${myFramework.delimiter}" hidden="hidden"/>
     </j:forEach>
+    <f:entry title="Custom configuration" field="format">
+        <textarea id="format" name="teststorunconverter.format" type="text" disabled="disabled" class="setting-input" style="resize: vertical; min-height:90px;">
+            ${instance.testsToRunConverterModel.framework.format}
+        </textarea>
+        <select id="fillFormat" onchange="insertFormat(this)" style="visibility: hidden; float: right;position: relative;font-size: smaller;">
+                 <f:option value="title">Fill configuration ...</f:option>
+                 <f:option value="basic">Minimal configuration</f:option>
+                 <f:option value="extended">Extended configuration</f:option>
+         </select>
+    </f:entry>
 
-
-    <j:if test="${instance.testsToRunConverterModel.framework.name == 'custom'}">
-        <f:entry title="Test format" field="format" >
-            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" />
-        </f:entry>
-
-        <f:entry title="Tests delimiter" field="delimiter" >
-            <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" />
-        </f:entry>
-    </j:if>
-    <j:if test="${instance.testsToRunConverterModel.framework.name != 'custom'}">
-        <f:entry title="Format" field="format" >
-            <f:textbox id="format" name="teststorunconverter.format" value="${instance.testsToRunConverterModel.framework.format}" disabled="true"/>
-        </f:entry>
-
-        <f:entry title="Delimiter" field="delimiter" >
-            <f:textbox id="delimiter" name="teststorunconverter.delimiter" value="${instance.testsToRunConverterModel.framework.delimiter}" disabled="true"/>
-        </f:entry>
-    </j:if>
+    <f:advanced>
+    <f:section title="Test conversion"/>
+    <f:entry title="Tests to run" description="Tests to run in raw format, for example : v1:package1|className1|testName1;package2|className2|testName2">
+      <f:textbox field="testsToRun" />
+    </f:entry>
+            <f:validateButton title="Convert" progress="Evaluating..."
+                    method="testConvert" with="teststorunconverter.framework,teststorunconverter.format,testsToRun"/>
+    </f:advanced>
 
     <script>
+        function init(){
+            var isCustom=false;
+            var txtFormat = document.getElementById('format');
 
+            if(txtFormat){
+                var index = txtFormat.selectedIndex;
+                isCustom=true;//${instance.isCustom};
+            }
+            enableElements(isCustom);
+        }
+        function insertFormat(sender){
+            var index = sender.selectedIndex;
+            var options = sender.options;
+            var txtFormat = document.getElementById('format');
+
+            if(options[index].value === 'basic'){
+                txtFormat.value = "{\n\t\"testPattern\": \"$$package.$$class#$$testName\",\n\t\"testDelimiter\": \",\"\n}";
+            }
+            else if(options[index].value === 'extended'){
+
+                txtFormat.value = "{"+
+                "\n\t\"testPattern\": \"$$package.$$class#$$testName\","+
+                "\n\t\"testDelimiter\": \",\","+
+                "\n\t\"prefix\": \"\","+
+                "\n\t\"suffix\": \"\","+
+                "\n\t\"replacements\": ["+
+
+                "\n\t\{"+
+                "\n\t\t\"type\": \"replaceString\","+
+                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"string\": \"aaa\","+
+                "\n\t\t\"replacement\": \"bbb\""+
+                "\n\t\}"+
+
+                "\n\t\{"+
+                "\n\t\t\"type\": \"replaceRegexFirst\","+
+                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"regex\": \"aaa\","+
+                "\n\t\t\"replacement\": \"bbb\""+
+                "\n\t\}"+
+
+                "\n\t\{"+
+                "\n\t\t\"type\": \"joinString\","+
+                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"prefix\": \"\","+
+                "\n\t\t\"suffix\": \"\""+
+                "\n\t\}"+
+
+                "\n\t]"+
+                "\n}";
+            }
+            sender.selectedIndex = 0;
+        }
 
         function selectionChanged(sender) {
-
             var x = sender.selectedIndex;
             var y = sender.options;
-            var txtFormat = document.getElementById('format');
-            var txtDelimiter = document.getElementById('delimiter');
-
             var bCustom = y[x].value === 'custom' ? true : false;
-
-            txtFormat.disabled = !bCustom;
-            txtDelimiter.disabled = !bCustom;
-
+            enableElements(bCustom);
             var optionFormat = document.getElementById('format+' + y[x].value);
-            var optionDelimiter = document.getElementById('delimiter+' + y[x].value);
-
+            var txtFormat = document.getElementById('format');
             txtFormat.value = optionFormat ? optionFormat.value : "";
-            txtDelimiter.value = optionDelimiter ? optionDelimiter.value : "";
         }
+
+        function enableElements(isCustom, secondTry){
+            var txtFormat = document.getElementById('format');
+            if(txtFormat){
+                txtFormat.disabled = !isCustom;
+            }else{
+                if(!secondTry){
+                    setTimeout(function(){ enableElements(isCustom,true); }, 500);
+                    return;
+                }
+            }
+
+            var fillFormat = document.getElementById('fillFormat');
+            if(fillFormat){
+                fillFormat.style.visibility = isCustom ? "visible" : "hidden";
+            }
+        }
+        init();
 
     </script>
 
