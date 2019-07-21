@@ -23,7 +23,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:entry title="Testing framework" field="framework">
-        <select name="teststorunconverter.framework" onchange="selectionChanged(this)">
+        <select name="teststorunconverter.framework" onchange="frameworkChanged(this)">
              <j:forEach var="myFramework" items="${descriptor.Frameworks}">
                   <f:option selected="${myFramework.name == instance.testsToRunConverterModel.framework.name}" value="${myFramework.name}">
                         ${myFramework.description}
@@ -31,19 +31,27 @@
              </j:forEach>
         </select>
     </f:entry>
-
-    <j:forEach var="myFramework" items="${descriptor.Frameworks}">
-        <f:textbox id="format+${myFramework.name}" value="${myFramework.format}" hidden="hidden"/>
-    </j:forEach>
     <f:entry title="Custom configuration" field="format">
-        <textarea id="format" name="teststorunconverter.format" type="text" disabled="disabled" class="setting-input" style="resize: vertical; min-height:90px;">
-            ${instance.testsToRunConverterModel.framework.format}
-        </textarea>
-        <select id="fillFormat" onchange="insertFormat(this)" style="visibility: hidden; float: right;position: relative;font-size: smaller;">
-                 <f:option value="title">Fill configuration ...</f:option>
-                 <f:option value="basic">Minimal configuration</f:option>
-                 <f:option value="extended">Extended configuration</f:option>
-         </select>
+        <j:if test="${instance.isCustom}">
+            <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text setting-input">
+                ${instance.testsToRunConverterModel.framework.format}
+            </textarea>
+            <select class="custom-configuration-fill" onchange="insertFormat(this)">
+                     <f:option value="title">Fill configuration ...</f:option>
+                     <f:option value="basic">Minimal configuration</f:option>
+                     <f:option value="extended">Extended configuration</f:option>
+             </select>
+         </j:if>
+         <j:if test="${!instance.isCustom}">
+            <textarea name="teststorunconverter.format" type="text" disabled="true" class="custom-configuration-text setting-input">
+                ${instance.testsToRunConverterModel.framework.format}
+            </textarea>
+            <select class="custom-configuration-fill hidden" onchange="insertFormat(this)">
+                     <f:option value="title">Fill configuration ...</f:option>
+                     <f:option value="basic">Minimal configuration</f:option>
+                     <f:option value="extended">Extended configuration</f:option>
+             </select>
+         </j:if>
     </f:entry>
 
     <f:advanced>
@@ -55,21 +63,29 @@
                     method="testConvert" with="teststorunconverter.framework,teststorunconverter.format,testsToRun"/>
     </f:advanced>
 
-    <script>
-        function init(){
-            var isCustom=false;
-            var txtFormat = document.getElementById('format');
-
-            if(txtFormat){
-                var index = txtFormat.selectedIndex;
-                isCustom=true;//${instance.isCustom};
-            }
-            enableElements(isCustom);
+    <style>
+        .custom-configuration-fill{
+            top=-1px;
+            position: relative;
+            font-size: smaller;
+            float:right;
         }
+        .custom-configuration-text{
+            resize: vertical;
+            min-height:90px;
+            height:120px;
+        }
+        .hidden{
+            visibility: hidden
+        }
+    </style>
+    <script>
         function insertFormat(sender){
             var index = sender.selectedIndex;
             var options = sender.options;
-            var txtFormat = document.getElementById('format');
+
+            var parent = getTableParent(sender);
+            var txtFormat = parent.querySelector(".custom-configuration-text");
 
             if(options[index].value === 'basic'){
                 txtFormat.value = "{\n\t\"testPattern\": \"$$package.$$class#$$testName\",\n\t\"testDelimiter\": \",\"\n}";
@@ -110,34 +126,42 @@
             sender.selectedIndex = 0;
         }
 
-        function selectionChanged(sender) {
-            var x = sender.selectedIndex;
-            var y = sender.options;
-            var bCustom = y[x].value === 'custom' ? true : false;
-            enableElements(bCustom);
-            var optionFormat = document.getElementById('format+' + y[x].value);
-            var txtFormat = document.getElementById('format');
-            txtFormat.value = optionFormat ? optionFormat.value : "";
+        function frameworkChanged(sender) {
+            var parent = getTableParent(sender);
+            var bCustom = sender.options[sender.selectedIndex].value === 'custom' ? true : false;
+            var parent = getTableParent(sender)
+            enableElements(bCustom,parent);
         }
 
-        function enableElements(isCustom, secondTry){
-            var txtFormat = document.getElementById('format');
+        function enableElements(isCustom, parent){
+
+            var txtFormat = parent.querySelector(".custom-configuration-text");
             if(txtFormat){
                 txtFormat.disabled = !isCustom;
-            }else{
-                if(!secondTry){
-                    setTimeout(function(){ enableElements(isCustom,true); }, 500);
-                    return;
+            }
+
+            var fillFormat = parent.querySelector(".custom-configuration-fill");
+            if(fillFormat){
+                if(isCustom){
+                    fillFormat.classList.remove("hidden");
+                } else {
+                    fillFormat.classList.add("hidden");
                 }
             }
-
-            var fillFormat = document.getElementById('fillFormat');
-            if(fillFormat){
-                fillFormat.style.visibility = isCustom ? "visible" : "hidden";
-            }
         }
-        init();
 
+        function getTableParent(element){
+            var myElement = element;
+            var counter = 0;
+            while(myElement.nodeName.toLowerCase()!=="table"){
+                myElement = myElement.parentElement;
+                counter++;
+                if(counter>=4){
+                    break;
+                }
+            }
+            return myElement;
+        }
     </script>
 
 </j:jelly>
