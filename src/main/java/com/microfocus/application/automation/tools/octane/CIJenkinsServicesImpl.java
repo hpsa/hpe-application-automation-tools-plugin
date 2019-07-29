@@ -703,35 +703,32 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 						}
 					}
 
-					//PATCH UNTIL OCTANE SEND jobRefId correctly (fix in octane : pipeline-management-add-dialog-controller.js)
-					//bug in octane : duplicating parent prefix, for example job f1/f2/jobA , appear as f1/f2/f1/f2/jobA
-					//try to reduce duplication and find  job
-					if (result == null) {
-						int jobNameIndex = jobName.lastIndexOf('/');
-						String parentPrefix = jobName.substring(0, jobNameIndex);
-						String notDuplicatedParentPrefix1 = jobName.substring(0, parentPrefix.length() / 2);
-						String notDuplicatedParentPrefix2 = jobName.substring((parentPrefix.length() / 2) + 1, jobNameIndex);
-						if (StringUtils.equals(notDuplicatedParentPrefix1, notDuplicatedParentPrefix2)) {
-							String alternativeJobName = notDuplicatedParentPrefix1 + jobName.substring(jobNameIndex);
-							for (Job job : allJobs) {
-								if (alternativeJobName.equals(job.getFullName())) {
-									result = job;
-									break;
-								}
-							}
-						}
-					}
+                    // defect #875099 : two jobs with the same name in folder - are not treated correctly
+                    // PATCH UNTIL OCTANE SEND jobRefId correctly (fix in octane : pipeline-management-add-dialog-controller.js)
+                    //bug in octane : duplicating parent prefix, for example job f1/f2/jobA , appear as f1/f2/f1/f2/jobA
+                    //try to reduce duplication and find  job
+                    if (result == null) {
+                        int jobNameIndex = jobName.lastIndexOf('/');
+                        String parentPrefix = jobName.substring(0, jobNameIndex);
+                        String notDuplicatedParentPrefix1 = jobName.substring(0, parentPrefix.length() / 2);
+                        String notDuplicatedParentPrefix2 = jobName.substring((parentPrefix.length() / 2) + 1, jobNameIndex);
+                        if (StringUtils.equals(notDuplicatedParentPrefix1, notDuplicatedParentPrefix2)) {
+                            String alternativeJobName = notDuplicatedParentPrefix1 + jobName.substring(jobNameIndex);
+                            result = allJobs.stream().filter(job -> alternativeJobName.equals(job.getFullName())).findFirst().orElse(null);
+                        }
+                    }
 
-					//if not found - try to find by last name only. it work wrong if there are several jobs with the same name but in different subfolders
-					//for example : f1/f2/jobA and f1/f3/jobA
-					if (result == null) {
-						for (Job job : allJobs) {
-							if (jobRefId.endsWith(job.getName())) {
-								result = job;
-								break;
-							}
-						}
-					}
+                    //if not found - try to find by last name only. it work wrong if there are several jobs with the same name but in different subfolders
+                    //for example : f1/f2/jobA and f1/f3/jobA
+                    if (result == null) {
+                        for (Job job : allJobs) {
+                            if (jobRefId.endsWith(job.getName())) {
+                                result = job;
+                                logger.info(String.format("getJobByRefId %s found job only by jobName : %s", jobRefId, job.getName()));
+                                break;
+                            }
+                        }
+                    }
 				}
 			}
 		}
