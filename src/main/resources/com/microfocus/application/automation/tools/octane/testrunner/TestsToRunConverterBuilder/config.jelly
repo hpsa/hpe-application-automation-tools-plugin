@@ -31,7 +31,7 @@
              </j:forEach>
         </select>
     </f:entry>
-    <f:entry title="Custom configuration" field="format">
+    <f:entry title="Custom conversion format" field="format">
         <div class="custom-conf-parent">
             <j:if test="${instance.isCustom}">
                 <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text setting-input">
