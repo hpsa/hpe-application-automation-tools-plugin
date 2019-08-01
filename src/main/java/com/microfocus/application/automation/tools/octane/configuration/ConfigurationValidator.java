@@ -107,7 +107,7 @@ public class ConfigurationValidator {
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
 
-        }catch (IOException ioe) {
+        } catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
@@ -127,19 +127,25 @@ public class ConfigurationValidator {
             }
         }
 
-        ACLContext impersonatedContext = ACL.as(jenkinsUser);
-
-        //test permissions
-        Map<Permission, String> requiredPermissions = new HashMap<>();
-        requiredPermissions.put(Item.BUILD, "Job.BUILD");
-        requiredPermissions.put(Item.READ, "Job.READ");
-        Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
-        if (!missingPermissions.isEmpty()) {
-            errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
+        ACLContext impersonatedContext = null;
+        try {
+            impersonatedContext = ACL.as(jenkinsUser);
+            //test permissions
+            Map<Permission, String> requiredPermissions = new HashMap<>();
+            requiredPermissions.put(Item.BUILD, "Job.BUILD");
+            requiredPermissions.put(Item.READ, "Job.READ");
+            Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
+            if (!missingPermissions.isEmpty()) {
+                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
+            }
+        } catch (Exception e) {
+            errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), e.getMessage()));
+        } finally {
+            //depersonate
+            if (impersonatedContext != null) {
+                impersonatedContext.close();
+            }
         }
-
-        //depersonate
-        impersonatedContext.close();
     }
 
     public static FormValidation wrapWithFormValidation(boolean success, String message) {
@@ -153,7 +159,7 @@ public class ConfigurationValidator {
     }
 
     public static void checkHoProxySettins(List<String> errorMessages) {
-        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+        ProxyConfiguration proxy = Jenkins.get().proxy;
         boolean containsHttp = (proxy != null && proxy.getNoProxyHostPatterns().stream().anyMatch(p -> p.pattern().toLowerCase().startsWith("http")));
         if (containsHttp) {
             errorMessages.add("In the HTTP Proxy Configuration area, the No Proxy Host field must contain a host name only. Remove the http:// prefix before the host name.");
