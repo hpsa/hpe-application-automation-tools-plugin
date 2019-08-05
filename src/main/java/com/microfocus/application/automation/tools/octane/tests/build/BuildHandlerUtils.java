@@ -141,6 +141,11 @@ public class BuildHandlerUtils {
 		return jobPlainName.replaceAll("/", newSplitterCharacters);
 	}
 
+	public static String revertTranslateFolderJobName(String translatedJobName) {
+		String newSplitterCharacters = "/";
+		return translatedJobName.replaceAll("/job/", newSplitterCharacters);
+	}
+
 	public static CIBuildResult translateRunResult(Run run) {
 		CIBuildResult result;
 		if (run.getResult() == Result.SUCCESS) {

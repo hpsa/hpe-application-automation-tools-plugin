@@ -91,7 +91,7 @@ public final class CIEventCausesFactory {
 
 				boolean succeededToBuildFlowCauses = false;
 				Run upstreamRun = tmpUpstreamCause.getUpstreamRun();
-				if (upstreamRun != null && JobProcessorFactory.WORKFLOW_RUN_NAME.equals(upstreamRun.getClass().getSimpleName())) {
+				if (upstreamRun != null && JobProcessorFactory.WORKFLOW_RUN_NAME.equals(upstreamRun.getClass().getName())) {
 
 					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
 					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
