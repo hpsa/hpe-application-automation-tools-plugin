@@ -119,7 +119,11 @@ namespace HpToolsLauncher.TestRunners
 
             runDesc.TestType = TestType.LoadRunner.ToString();
             _resultsFolder = Helper.GetTempDir();
-
+            if (scenarioInf.ReportPath != null && !scenarioInf.ReportPath.Equals(""))
+            {
+                _resultsFolder = scenarioInf.ReportPath;
+            }
+            
             //a directory with this name may already exist. try to delete it.
             if (Directory.Exists(_resultsFolder))
             {
