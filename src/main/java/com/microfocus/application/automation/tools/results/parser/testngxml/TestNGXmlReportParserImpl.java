@@ -107,14 +107,14 @@ public class TestNGXmlReportParserImpl implements ReportParser {
 			status = status.trim();
 
 			if("PASS".equalsIgnoreCase(status)) {
-				return IAlmConsts.IStatuses.PASSED;
+				return IAlmConsts.IStatuses.PASSED.value();
 			} else if ("FAIL".equalsIgnoreCase(status)) {
-				return IAlmConsts.IStatuses.FAILED;
+				return IAlmConsts.IStatuses.FAILED.value();
 			} else {
-				return IAlmConsts.IStatuses.NO_RUN;
+				return IAlmConsts.IStatuses.NO_RUN.value();
 			}
 		} else {
-			return IAlmConsts.IStatuses.NO_RUN;
+			return IAlmConsts.IStatuses.NO_RUN.value();
 		}
 	}
 	

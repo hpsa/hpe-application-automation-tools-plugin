@@ -270,12 +270,12 @@ public class NUnitReportParserImpl implements ReportParser {
 			String success = testcase.getSuccess();
 
 			if("True".equalsIgnoreCase(success)) {
-				return IAlmConsts.IStatuses.PASSED;
+				return IAlmConsts.IStatuses.PASSED.value();
 			} else {
-				return IAlmConsts.IStatuses.FAILED;
+				return IAlmConsts.IStatuses.FAILED.value();
 			} 
 		} else {
-			return IAlmConsts.IStatuses.NO_RUN;
+			return IAlmConsts.IStatuses.NO_RUN.value();
 		}
 	}
 	
