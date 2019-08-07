@@ -134,17 +134,13 @@
 
 #testsTable {
     border: 1px;
-    width:85%;
-    margin-left: -70px;
+    width: 85%;
 }
 
 .testsDropDown {
     margin-left: 20px;
 }
 
-#checkBox1 {
-    margin-left: -70px;
-}
 
 #testsDropDown {
     width: 85%;
@@ -174,4 +170,16 @@
     height: 28px;
     margin-left: 10px;
     visibility: hidden;
+}
+
+td.help-text {
+    padding-left: 15px;
+}
+
+#cb27 {
+    margin-left: 35px;
+}
+
+div.help {
+    margin-left: 12px;
 }

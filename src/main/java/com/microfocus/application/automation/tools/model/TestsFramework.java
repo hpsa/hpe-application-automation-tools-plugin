@@ -18,50 +18,36 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.testrunner;
+package com.microfocus.application.automation.tools.model;
 
-import com.hp.octane.integrations.executor.TestsToRunFramework;
-import com.microfocus.application.automation.tools.model.TestsFramework;
-import org.kohsuke.stapler.DataBoundConstructor;
+public class TestsFramework {
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-/*
- * Test model for storing of available frameworks for converting
- */
-public class TestsToRunConverterModel implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    public final static TestsFramework none = new TestsFramework("", "", "");
-
-    public final static List<TestsFramework> Frameworks;
-
-    private String framework;
+    private String description;
+    private String name;
     private String format;
 
-    static {
-        List<TestsFramework> temp = new ArrayList<>();
-        temp.add(none);
-        for (TestsToRunFramework fr : TestsToRunFramework.values()) {
-            temp.add(new TestsFramework(fr.value(), fr.getDesc(), fr.getFormat()));
-        }
-        Frameworks = temp;
+    public TestsFramework() {
+        this.name = "";
+        this.description = "";
+        this.format = "";
     }
 
-    @DataBoundConstructor
-    public TestsToRunConverterModel(String framework, String format) {
-        this.framework = framework;
+    public TestsFramework(String name, String description, String format) {
+        this.name = name;
+        this.description = description;
         this.format = format;
     }
 
-    public TestsFramework getFramework() {
-        return new TestsFramework(framework, "", format);
+    public String getDescription() {
+        return description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getFormat() {
+        return format;
     }
 
 }
-
-
-

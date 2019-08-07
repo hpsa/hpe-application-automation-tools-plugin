@@ -185,6 +185,7 @@ namespace HpToolsAborter
                 foreach (var child in children)
                 {
                     var proc = Process.GetProcessById(child.ID);
+                   
                     if (proc != null)
                     {
                         KillProcess(proc);
@@ -196,6 +197,14 @@ namespace HpToolsAborter
         private static void KillQtpAutomationFromAlm()
         {
             var remoteAgent = Process.GetProcessesByName("AQTRmtAgent").FirstOrDefault();
+            var almProcesses = Process.GetProcessesByName("HP.ALM.Lab.Agent.RemoteService");
+            foreach(var almProcess in almProcesses)
+            {
+                if(almProcess != null)
+                {
+                    KillProcess(almProcess);
+                }
+            }
 
             if (remoteAgent != null)
             {
@@ -219,11 +228,9 @@ namespace HpToolsAborter
             }
         }
 
-        private static void KillServiceTestFromAlm()
+        public static void KillServiceTestFromAlm()
         {
-
             var dllHostProcesses = Process.GetProcessesByName("dllhost");
-
             foreach (var dllhostProcess in dllHostProcesses)
             {
                 List<ProcessData> children = new List<ProcessData>();
@@ -236,7 +243,6 @@ namespace HpToolsAborter
                 {
                     var process = Process.GetProcessById(internalExecuterData.ID);
                     KillProcess(process);
-
                     KillProcess(dllhostProcess);
                     break;
                 }

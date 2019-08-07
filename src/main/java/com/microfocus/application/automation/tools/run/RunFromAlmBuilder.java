@@ -28,11 +28,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 
-import hudson.model.Result;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -174,7 +170,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
                         TaskListener listener) throws InterruptedException, IOException {
-        
+
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
         
@@ -198,7 +194,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         // now merge them into one list
         Properties mergedProperties = new Properties();
-        
+
         mergedProperties.putAll(almServerSettingsModel.getProperties());
         mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
         

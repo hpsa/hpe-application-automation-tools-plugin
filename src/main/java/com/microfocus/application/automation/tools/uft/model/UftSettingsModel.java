@@ -201,5 +201,13 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         public FormValidation doCheckNumberOfReruns(@QueryParameter String value) {
             return UftToolUtils.doCheckNumberOfReruns(value);
         }
+
+        public List<EnumDescription> getFsTestTypes() {
+            return fsTestTypes;
+        }
+
+        public List<String> getNodes() {
+            return UftToolUtils.getNodesList();
+        }
     }
 }

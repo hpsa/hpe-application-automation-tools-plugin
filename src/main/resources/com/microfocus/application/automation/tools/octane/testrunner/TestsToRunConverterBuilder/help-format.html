@@ -1,0 +1,109 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+<div>
+    In the 'Custom conversion format' field, enter json that describes how to convert tests from raw format to the format of your testing framework.
+    After conversion, the result is injected to the "testsToRunConverted" parameter.
+
+    <br/><br/>
+    <i><b>Note</b>: Click "Validate" to check the correctness of the inserted configuration.</i>
+    <br/><br/>
+
+    The following are the components that you can use in the "Custom conversion format" :
+    <ul style="padding-left: 15px;">
+        <li><b>testPattern</b> - describes the pattern for converting single test. It uses reserved words (<b>$package</b>,<b>$class</b>,<b>$testName</b>) that will be
+    replaced by real test data. All other characters in the pattern will appear in the final result as is.</li>
+        <li><b>testDelimiter</b> - the delimiter used to separate different tests.</li>
+        <li><b>prefix</b>  - a prefix for the whole conversion result.</li>
+        <li><b>suffix</b>  - a suffix for the whole conversion result.</li>
+        <li><b>testsToRunConvertedParameter</b>  - the parameter name that will contain the conversion result. Default value is "testsToRunConverted".</li>
+        <li><b>replacements</b>  - the array of replace methods.</li>
+
+    </ul>
+
+    The minimal configuration is:
+    <br/><br/>
+    <pre>
+{
+    "testPattern": "$package.$class#$testName",
+    "testDelimiter": ","
+}
+    </pre>
+
+    <br/>For example:<br/><br/>
+    The <i>testsToRun</i> parameter received 2 tests separated by a semicolon: <b>v1:myPackage1|myClass1|myTest1<i>;</i>myPackage2|myClass2|myTest2</b><br/>
+    The defined <i>testPattern</i> is: <b>$package.$class#$testName</b><br/>
+    The defined <i>testDelimiter</i> is: <b> , </b>
+    <ul>
+        <li><b>$package</b> variable will get a value of <i>myPackage1</i> for the first test and <i>myPackage2</i> for the second test.</li>
+        <li><b>$class</b> variable will get a value of <i>myClass1</i> for the first test and <i>myClass2</i> for the second test.</li>
+        <li><b>$testName</b> variable will get a value of <i>myTest1</i> for the first test and <i>myTest2</i> for the second test.</li>
+    </ul>
+    <br/>The <i>testsToRunConverted</i> parameter will be equal: <b>myPackage1.myClass1#myTest1,myPackage2.myClass2#myTest2</b>
+
+    <br/>
+    <br/>
+    Optional:
+    <br/>
+    There is a possibility to alter values received from ALM Octane, for example to set lowercase to the testName, replace spaces by '_', and so on.
+    <br>
+    Here are examples of available replace methods. Each replace method contains "target" property that define what parts of the test pattern are affected by replace method,
+    available values are $package,$class,$testName. Its possible to put several values separated by '|'. The replacements are executed in the order they appear in the 'Custom conversion format' json.
+    <pre>
+"replacements": [
+{
+    "type": "<b>replaceRegex</b>",
+    "target": "$package|$class|$testName",
+    "regex": "aaa",
+    "replacement": "bbb",
+    "description": "Replaces all the sequence of characters matching the regex with a replacement string."
+},{
+    "type": "<b>replaceRegexFirst</b>",
+    "target": "$package|$class|$testName",
+    "regex": "aaa",
+    "replacement": "bbb",
+    "description": "Replaces the first substring that matches the given regex with the given replacement."
+},{
+    "type": "<b>replaceString</b>",
+    "target": "$package|$class|$testName",
+    "string": "xxx",
+    "replacement": "yyy",
+    "description": "Replaces all occurrences of ‘string’ with ‘replacement’."
+},{
+    "type": "<b>joinString</b>",
+    "target": "$package|$class|$testName",
+    "prefix": "xxx",
+    "suffix": "yyy",
+    "description": "Add prefix and suffix to the test template."
+},{
+    "type": "<b>toLowerCase</b>",
+    "target": "$package|$class|$testName",
+    "description": "Convert test template to lower case."
+},{
+    "type": "<b>toUpperCase</b>",
+    "target": "$package|$class|$testName",
+    "description": "Convert test template to upper  case."
+},{
+    "type": "<b>notLatinAndDigitToOctal</b>",
+    "target": "$package|$class|$testName",
+    "description": "Replaces all non-latin characters and digits ^[a-zA-Z0-9] to their ASCII octal value."
+}]
+</pre>
+
+</div>

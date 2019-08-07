@@ -51,34 +51,54 @@
         </div>
       </td>
       <td/>
-    </tr>     
-       <f:entry title="ALM server" field="almServerName">
-            <select name="sse.almServerName">
-                <j:forEach var="almServer" items="${descriptor.almServers}">
-                    <f:option selected="${almServer.almServerName==instance.almServerName}" value="${almServer.almServerName}">
-                        ${almServer.almServerName}
-                    </f:option>
-                </j:forEach>
-            </select>
+    </tr>
+
+     <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
+        <f:entry>
+           <label>ALM server</label>
+           <f:entry field="almServerName">
+                <select name="sse.almServerName">
+                    <j:forEach var="almServer" items="${descriptor.almServers}">
+                        <f:option selected="${almServer.almServerName==instance.almServerName}" value="${almServer.almServerName}">
+                            ${almServer.almServerName}
+                        </f:option>
+                    </j:forEach>
+                </select>
+            </f:entry>
         </f:entry>
-        
-        <f:entry name="sse.credentialsId" field="credentialsId" title="ALM Credentials">
-	        <c:select/>
+
+
+        <f:entry>
+            <label>ALM Credentials</label>
+            <f:entry name="sse.credentialsId" field="credentialsId">
+              <c:select/>
+            </f:entry>
 	    </f:entry>
 
-        <f:entry title="Domain" field="almDomain">
-            <f:textbox name="sse.almDomain" value="${instance.sseModel.almDomain}"/>
+        <f:entry>
+            <label>Domain</label>
+            <f:entry field="almDomain">
+                <f:textbox name="sse.almDomain" value="${instance.sseModel.almDomain}"/>
+            </f:entry>
         </f:entry>
 
-        <f:entry title="Project" field="almProject">
-            <f:textbox name="sse.almProject" value="${instance.sseModel.almProject}"/>
+        <f:entry>
+            <label>Project</label>
+            <f:entry field="almProject">
+                <f:textbox name="sse.almProject" value="${instance.sseModel.almProject}"/>
+            </f:entry>
         </f:entry>
 
-        <f:entry title="Client type" field="clientType">
-            <f:textbox name="sse.clientType" value="${instance.sseModel.clientType}"/>
+        <f:entry>
+            <label>Client type</label>
+            <f:entry field="clientType">
+                <f:textbox name="sse.clientType" value="${instance.sseModel.clientType}"/>
+            </f:entry>
         </f:entry>
 
-   		<f:entry title="Run type" field="runType">
+        <f:entry>
+            <label>Run type</label>
+            <f:entry field="runType">
                 <select name="sse.runType" >
                     <j:forEach var="runType" items="${descriptor.runTypes}">
                         <f:option selected="${runType.value == instance.runType}" value="${runType.value}">
@@ -86,42 +106,71 @@
                         </f:option>
                     </j:forEach>
                 </select>
-        </f:entry>        
-        <f:entry title="Test Set/Build Verification Suite ID" field="almEntityId">
-            <f:textbox name="sse.almEntityId" value="${instance.sseModel.almEntityId}"/>
+            </f:entry>
         </f:entry>
-        <f:entry title="Description" field="description">
-            <f:textbox name="sse.description" value="${instance.sseModel.description}"/>
+
+        <f:entry>
+            <label>Test Set/Build Verification Suite ID</label>
+            <f:entry field="almEntityId">
+                <f:textbox name="sse.almEntityId" value="${instance.sseModel.almEntityId}"/>
+            </f:entry>
         </f:entry>
-        <f:entry title="Timeslot Duration (in minutes, minimum = 30)" field="timeslotDuration">
-            <f:textbox name="sse.timeslotDuration" value="${instance.sseModel.timeslotDuration}"/>
+
+        <f:entry>
+            <label>Description</label>
+            <f:entry field="description">
+                <f:textbox name="sse.description" value="${instance.sseModel.description}"/>
+            </f:entry>
         </f:entry>
-        <f:entry title="Environment Configuration ID" field="environmentConfigurationId">
-       	    <f:textbox name="sse.environmentConfigurationId" value="${instance.sseModel.environmentConfigurationId}"/>
+
+        <f:entry>
+            <label>Timeslot Duration (in minutes, minimum = 30)</label>
+            <f:entry field="timeslotDuration">
+                <f:textbox name="sse.timeslotDuration" value="${instance.sseModel.timeslotDuration}"/>
+            </f:entry>
         </f:entry>
+
+        <f:entry>
+            <label>Environment Configuration ID</label>
+            <f:entry field="environmentConfigurationId">
+                <f:textbox name="sse.environmentConfigurationId" value="${instance.sseModel.environmentConfigurationId}"/>
+            </f:entry>
+        </f:entry>
+
         <f:block>
 			<f:optionalBlock name="sse.cdaDetails" title="Use CDA for provisioning and deployment" checked="${instance.cdaDetailsChecked}">
-    			<f:entry title="Deployment Action" field="deploymentAction">
-	                <select name="sse.deploymentAction" >
-	                    <j:forEach var="deploymentAction" items="${descriptor.deploymentActions}">
-	                        <f:option selected="${deploymentAction.value == instance.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
-	                          ${deploymentAction.description}
-	                        </f:option>
-	                    </j:forEach>
-	                </select>
-    			</f:entry>      
-    			<f:entry title="Deployed environment name" field="deployedEnvironmentName">
-   				    <f:textbox name="sse.deployedEnvironmentName" value="${instance.cdaDetails.deployedEnvironmentName}"/>
-    			</f:entry>  
-		        <f:entry title="Deprovisioning Action" field="deprovisioningAction">
-		                <select name="sse.deprovisioningAction" >
-		                    <j:forEach var="deprovisioningAction" items="${descriptor.deprovisioningActions}">
-		                        <f:option selected="${deprovisioningAction.value == instance.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
-		                          ${deprovisioningAction.description}
-		                        </f:option>
-		                    </j:forEach>
-		                </select>
-		        </f:entry>      
+    			<f:entry>
+                    <label>Deployment Action</label>
+                    <f:entry field="deploymentAction">
+                        <select name="sse.deploymentAction" >
+                            <j:forEach var="deploymentAction" items="${descriptor.deploymentActions}">
+                                <f:option selected="${deploymentAction.value == instance.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
+                                  ${deploymentAction.description}
+                                </f:option>
+                            </j:forEach>
+                        </select>
+                    </f:entry>
+    			</f:entry>
+
+    			<f:entry>
+    			    <label>Deployed environment name</label>
+                    <f:entry field="deployedEnvironmentName">
+                        <f:textbox name="sse.deployedEnvironmentName" value="${instance.cdaDetails.deployedEnvironmentName}"/>
+                    </f:entry>
+    			</f:entry>
+
+    			<f:entry>
+                    <label>Deprovisioning Action</label>
+                    <f:entry field="deprovisioningAction">
+                            <select name="sse.deprovisioningAction" >
+                                <j:forEach var="deprovisioningAction" items="${descriptor.deprovisioningActions}">
+                                    <f:option selected="${deprovisioningAction.value == instance.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
+                                      ${deprovisioningAction.description}
+                                    </f:option>
+                                </j:forEach>
+                            </select>
+                    </f:entry>
+		        </f:entry>
 			</f:optionalBlock>
   		</f:block>
    </j:jelly>

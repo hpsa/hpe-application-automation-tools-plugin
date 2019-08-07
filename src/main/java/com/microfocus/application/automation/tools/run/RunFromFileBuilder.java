@@ -30,6 +30,7 @@ import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -56,6 +57,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -1061,6 +1063,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         public boolean isParameterizedValue(String value) {
             //Parameter (with or without brackets)
             return value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$");
+        }
+
+        public List<EnumDescription> getFsUftRunModes() {
+            return RunFromFileSystemModel.fsUftRunModes;
+        }
+
+        public List<EnumDescription> getFsTestTypes() {
+            return UftSettingsModel.fsTestTypes;
+        }
+
+        public List<String> getNodes() {
+            return UftToolUtils.getNodesList();
         }
     }
 }

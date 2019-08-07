@@ -78,8 +78,10 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
             final File buildsFolder = new File(subdir, "builds");
             File[] builds = buildsFolder.listFiles();
 
-            for(final File buildDir : builds){
-                convertSpecifiedXmlFile(listener, buildDir, "build.xml");
+            if(builds != null) {
+                for (final File buildDir : builds) {
+                    convertSpecifiedXmlFile(listener, buildDir, "build.xml");
+                }
             }
         }
     }

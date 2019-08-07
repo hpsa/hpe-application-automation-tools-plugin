@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -37,7 +38,6 @@ import com.microfocus.application.automation.tools.octane.model.processors.scm.S
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
@@ -46,7 +46,7 @@ import java.util.*;
  * Created by lazara on 26/01/2016.
  */
 public class ModelFactory {
-	private static final Logger logger = LogManager.getLogger(ModelFactory.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ModelFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job job) {

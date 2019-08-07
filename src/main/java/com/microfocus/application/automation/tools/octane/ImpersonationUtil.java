@@ -24,10 +24,10 @@ package com.microfocus.application.automation.tools.octane;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
@@ -37,8 +37,7 @@ import java.util.Collections;
  */
 
 public class ImpersonationUtil {
-
-    private static final Logger logger = LogManager.getLogger(ImpersonationUtil.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(ImpersonationUtil.class);
 
     public static ACLContext startImpersonation(String instanceId) {
         OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);

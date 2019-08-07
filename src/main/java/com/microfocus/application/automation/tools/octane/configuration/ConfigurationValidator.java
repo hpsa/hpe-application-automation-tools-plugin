@@ -21,7 +21,7 @@
 package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.ProxyConfiguration;
@@ -36,7 +36,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConfigurationValidator {
-    private final static Logger logger = LogManager.getLogger(ConfigurationValidator.class);
+    private final static Logger logger = SDKBasedLoggerProvider.getLogger(ConfigurationValidator.class);
 
     private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
@@ -101,19 +100,13 @@ public class ConfigurationValidator {
     }
 
     public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
-        OctaneResponse checkResponse;
-        try {
-            checkResponse = OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
 
-            if (checkResponse.getStatus() == 401) {
-                errorMessages.add(Messages.AuthenticationFailure());
-            } else if (checkResponse.getStatus() == 403) {
-                errorMessages.add(Messages.AuthorizationFailure());
-            } else if (checkResponse.getStatus() == 404) {
-                errorMessages.add(Messages.ConnectionSharedSpaceInvalid());
-            } else if (checkResponse.getStatus() != 200) {
-                errorMessages.add(Messages.UnexpectedFailure() + ": " + checkResponse.getStatus());
-            }
+        try {
+            OctaneSDK.testAndValidateOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
+
+        } catch (OctaneConnectivityException octaneException) {
+            errorMessages.add(octaneException.getErrorMessageVal());
+
         } catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
@@ -134,19 +127,25 @@ public class ConfigurationValidator {
             }
         }
 
-        ACLContext impersonatedContext = ACL.as(jenkinsUser);
-
-        //test permissions
-        Map<Permission, String> requiredPermissions = new HashMap<>();
-        requiredPermissions.put(Item.BUILD, "Job.BUILD");
-        requiredPermissions.put(Item.READ, "Job.READ");
-        Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
-        if (!missingPermissions.isEmpty()) {
-            errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
+        ACLContext impersonatedContext = null;
+        try {
+            impersonatedContext = ACL.as(jenkinsUser);
+            //test permissions
+            Map<Permission, String> requiredPermissions = new HashMap<>();
+            requiredPermissions.put(Item.BUILD, "Job.BUILD");
+            requiredPermissions.put(Item.READ, "Job.READ");
+            Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
+            if (!missingPermissions.isEmpty()) {
+                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
+            }
+        } catch (Exception e) {
+            errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), e.getMessage()));
+        } finally {
+            //depersonate
+            if (impersonatedContext != null) {
+                impersonatedContext.close();
+            }
         }
-
-        //depersonate
-        impersonatedContext.close();
     }
 
     public static FormValidation wrapWithFormValidation(boolean success, String message) {
@@ -160,7 +159,7 @@ public class ConfigurationValidator {
     }
 
     public static void checkHoProxySettins(List<String> errorMessages) {
-        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+        ProxyConfiguration proxy = Jenkins.get().proxy;
         boolean containsHttp = (proxy != null && proxy.getNoProxyHostPatterns().stream().anyMatch(p -> p.pattern().toLowerCase().startsWith("http")));
         if (containsHttp) {
             errorMessages.add("In the HTTP Proxy Configuration area, the No Proxy Host field must contain a host name only. Remove the http:// prefix before the host name.");

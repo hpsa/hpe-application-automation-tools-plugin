@@ -24,11 +24,11 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
 import com.hp.octane.integrations.utils.SdkConstants;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -47,7 +47,7 @@ import java.util.*;
  * JUnit result parser and enricher according to HPRunnerType
  */
 public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
-	private static final Logger logger = LogManager.getLogger(JUnitXmlIterator.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(JUnitXmlIterator.class);
 
 	public static final String DASHBOARD_URL = "dashboardUrl";
 	private final FilePath workspace;

@@ -26,10 +26,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.XmlFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -64,8 +64,7 @@ import net.sf.json.JSONObject;
  * @author Kohsuke Kawaguchi
  */
 public class AlmServerSettingsBuilder extends Builder {
-
-    private static final Logger logger = LogManager.getLogger(AlmServerSettingsBuilder.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(AlmServerSettingsBuilder.class);
     
     @Override
     public DescriptorImpl getDescriptor() {

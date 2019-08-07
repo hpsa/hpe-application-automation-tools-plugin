@@ -44,7 +44,6 @@ import hudson.model.Job;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
@@ -57,7 +56,7 @@ import java.util.stream.Collectors;
  * This class is a proxy between JS UI code and server-side job configuration.
  */
 public class JobConfigurationProxy {
-	private final static Logger logger = LogManager.getLogger(JobConfigurationProxy.class);
+	private final static Logger logger = SDKBasedLoggerProvider.getLogger(JobConfigurationProxy.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	final private Job job;

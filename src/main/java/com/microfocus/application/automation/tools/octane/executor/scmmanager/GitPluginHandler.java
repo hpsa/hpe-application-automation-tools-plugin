@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.EnvVars;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
@@ -35,7 +36,6 @@ import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
@@ -45,8 +45,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GitPluginHandler implements ScmPluginHandler {
-
-	private static final Logger logger = LogManager.getLogger(GitPluginHandler.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GitPluginHandler.class);
 
 	@Override
 	public void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException {

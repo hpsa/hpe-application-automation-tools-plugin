@@ -24,6 +24,8 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftTestDiscoveryDispatcher;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.settings.OctaneServerSettingsBuilder;
@@ -31,7 +33,6 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
@@ -44,16 +45,25 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 @Extension
 public class GlobalEventsListenerOctaneImpl extends ItemListener {
-	private static final Logger logger = LogManager.getLogger(GlobalEventsListenerOctaneImpl.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GlobalEventsListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
 	public void onLoaded() {
+		logger.info("**********************************************************************");
+		logger.info("********************STARTING JENKINS *********************************");
+		logger.info("**********************************************************************");
+		logger.info("Jenkins version " + Jenkins.getVersion());
+		logger.info("Plugin version " + ConfigurationService.getPluginVersion());
+
 		OctaneServerSettingsBuilder.getOctaneSettingsManager().initOctaneClients();
 	}
 
 	@Override
 	public void onDeleted(Item item) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			CIEvent event;
 			if (item.getParent() != null && item.getParent().getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
@@ -71,8 +81,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 	@Override
 	public void onBeforeShutdown() {
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
-
-		UftTestDiscoveryDispatcher dispatcher = Jenkins.getInstance().getExtensionList(UftTestDiscoveryDispatcher.class).get(0);
+		UftTestDiscoveryDispatcher dispatcher = Jenkins.get().getExtensionList(UftTestDiscoveryDispatcher.class).get(0);
 		dispatcher.close();
 	}
 }
