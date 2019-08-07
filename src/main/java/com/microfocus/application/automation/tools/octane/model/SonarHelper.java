@@ -93,7 +93,15 @@ public class SonarHelper {
                     .filter(sonarInstallation -> sonarInstallation.getServerUrl().equals(sonarUrl))
                     .findFirst();
             if (installation.isPresent()) {
-                return Secret.toString(installation.get().getServerAuthenticationToken());
+                Object authenticationToken = installation.get().getServerAuthenticationToken();
+                if (authenticationToken != null){
+                   if (authenticationToken instanceof Secret){  //new versions of sonarqube scanner
+                       return Secret.toString((Secret) authenticationToken);
+                   }
+                   else{ // old versions of sonarqube scanner
+                       return authenticationToken.toString();
+                   }
+                }
             }
         }
         return "";
@@ -136,6 +144,16 @@ public class SonarHelper {
      * @return Sonar's auth token
      */
     private String extractSonarToken(SonarRunnerBuilder builder) {
-        return builder != null ? Secret.toString(builder.getSonarInstallation().getServerAuthenticationToken()) : "";
+        Object authenticationToken = builder != null  ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
+
+        if (authenticationToken != null){
+            if (authenticationToken instanceof Secret){  //new versions of sonarqube scanner
+                return Secret.toString((Secret) authenticationToken);
+            }
+            else{ // old versions of sonarqube scanner
+                return authenticationToken.toString();
+            }
+        }
+        return "";
     }
 }
