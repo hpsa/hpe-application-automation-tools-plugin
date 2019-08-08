@@ -31,32 +31,34 @@
              </j:forEach>
         </select>
     </f:entry>
-    <f:entry title="Custom configuration" field="format">
-        <j:if test="${instance.isCustom}">
-            <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text setting-input">
-                ${instance.testsToRunConverterModel.framework.format}
-            </textarea>
-            <select class="custom-configuration-fill" onchange="insertFormat(this)">
-                     <f:option value="title">Fill configuration ...</f:option>
-                     <f:option value="basic">Minimal configuration</f:option>
-                     <f:option value="extended">Extended configuration</f:option>
-             </select>
-         </j:if>
-         <j:if test="${!instance.isCustom}">
-            <textarea name="teststorunconverter.format" type="text" disabled="true" class="custom-configuration-text setting-input">
-                ${instance.testsToRunConverterModel.framework.format}
-            </textarea>
-            <select class="custom-configuration-fill hidden" onchange="insertFormat(this)">
-                     <f:option value="title">Fill configuration ...</f:option>
-                     <f:option value="basic">Minimal configuration</f:option>
-                     <f:option value="extended">Extended configuration</f:option>
-             </select>
-         </j:if>
+    <f:entry title="Custom conversion format" field="format">
+        <div class="custom-conf-parent">
+            <j:if test="${instance.isCustom}">
+                <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text setting-input">
+                    ${instance.testsToRunConverterModel.framework.format}
+                </textarea>
+                <select class="custom-configuration-fill" onchange="insertFormat(this)">
+                         <f:option value="title">Fill sample configuration ...</f:option>
+                         <f:option value="basic">Minimal configuration</f:option>
+                         <f:option value="extended">Extended configuration</f:option>
+                 </select>
+             </j:if>
+             <j:if test="${!instance.isCustom}">
+                <textarea name="teststorunconverter.format" type="text" disabled="true" class="custom-configuration-text setting-input">
+                    ${instance.testsToRunConverterModel.framework.format}
+                </textarea>
+                <select class="custom-configuration-fill hidden" onchange="insertFormat(this)">
+                      <f:option value="title">Fill sample configuration ...</f:option>
+                      <f:option value="basic">Minimal configuration</f:option>
+                      <f:option value="extended">Extended configuration</f:option>
+                </select>
+             </j:if>
+         </div>
     </f:entry>
 
-    <f:advanced>
-    <f:section title="Test conversion"/>
-    <f:entry title="Tests to run" description="Tests to run in raw format, for example : v1:package1|className1|testName1;package2|className2|testName2">
+    <f:advanced title ="Validate">
+    <f:section title="Validate conversion"/>
+    <f:entry title="Tests to run" description="Enter tests to run in raw format, for example : v1:package1|className1|testName1;package2|className2|testName2">
       <f:textbox field="testsToRun" />
     </f:entry>
             <f:validateButton title="Convert" progress="Evaluating..."
@@ -64,8 +66,17 @@
     </f:advanced>
 
     <style>
+        .custom-conf-parent{
+            position:relative;
+        }
+
+        .custom-configuration-fill1{
+            position: absolute;
+            font-size: smaller;
+            right: 20px;
+        }
         .custom-configuration-fill{
-            top=-1px;
+            top:-1px;
             position: relative;
             font-size: smaller;
             float:right;
@@ -88,12 +99,12 @@
             var txtFormat = parent.querySelector(".custom-configuration-text");
 
             if(options[index].value === 'basic'){
-                txtFormat.value = "{\n\t\"testPattern\": \"$$package.$$class#$$testName\",\n\t\"testDelimiter\": \",\"\n}";
+                txtFormat.value = "{\n\t\"testPattern\": \"$package.$class#$testName\",\n\t\"testDelimiter\": \",\"\n}";
             }
             else if(options[index].value === 'extended'){
 
                 txtFormat.value = "{"+
-                "\n\t\"testPattern\": \"$$package.$$class#$$testName\","+
+                "\n\t\"testPattern\": \"$package.$class#$testName\","+
                 "\n\t\"testDelimiter\": \",\","+
                 "\n\t\"prefix\": \"\","+
                 "\n\t\"suffix\": \"\","+
@@ -101,21 +112,21 @@
 
                 "\n\t\{"+
                 "\n\t\t\"type\": \"replaceString\","+
-                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"target\": \"$package|$class|$testName\","+
                 "\n\t\t\"string\": \"aaa\","+
                 "\n\t\t\"replacement\": \"bbb\""+
                 "\n\t\}"+
 
                 "\n\t\{"+
                 "\n\t\t\"type\": \"replaceRegexFirst\","+
-                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"target\": \"$package|$class|$testName\","+
                 "\n\t\t\"regex\": \"aaa\","+
                 "\n\t\t\"replacement\": \"bbb\""+
                 "\n\t\}"+
 
                 "\n\t\{"+
                 "\n\t\t\"type\": \"joinString\","+
-                "\n\t\t\"target\": \"$$package|$$class|$$testName\","+
+                "\n\t\t\"target\": \"$package|$class|$testName\","+
                 "\n\t\t\"prefix\": \"\","+
                 "\n\t\t\"suffix\": \"\""+
                 "\n\t\}"+
