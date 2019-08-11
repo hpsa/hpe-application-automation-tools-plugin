@@ -111,7 +111,7 @@ public class Webhooks implements UnprotectedRootAction {
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();
 						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
-						TopLevelItem topLevelItem = Jenkins.getInstance().getItem(jobName);
+						TopLevelItem topLevelItem = Jenkins.get().getItem(jobName);
 						if (isValidJenkinsJob(topLevelItem)) {
 							Job jenkinsJob = ((Job) topLevelItem);
 							Integer buildNumber = Integer.valueOf(buildId, 10);
@@ -122,7 +122,7 @@ public class Webhooks implements UnprotectedRootAction {
 									ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
 									GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
 									if (sonarConfiguration != null) {
-										String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl());
+										String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
 										HashMap project = (HashMap) inputNotification.get(PROJECT);
 										String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
 
