@@ -88,9 +88,9 @@
 
 	<developers>
 		<developer>
-			<id>gront</id>
-			<name>Daniel Gront</name>
-			<email>daniel.gront@microfocus.com</email>
+			<id>NarcisaMGalan</id>
+			<name>Maria Narcisa Galan</name>
+			<email>marianarcisa.galan@microfocus.com</email>
 			<roles>
 				<role>Global Owner</role>
 			</roles>
@@ -156,6 +156,14 @@
 			<name>Yuri Guller</name>
 			<email>gullerya@gmail.com</email>
 			<organization>MicroFocus - ALM Octane</organization>
+		</developer>
+		<developer>
+			<id>gront</id>
+			<name>Daniel Gront</name>
+			<email>daniel.gront@microfocus.com</email>
+			<roles>
+				<role>Global Owner (retired)</role>
+			</roles>
 		</developer>
 		<developer>
 			<id>YafimK</id>
