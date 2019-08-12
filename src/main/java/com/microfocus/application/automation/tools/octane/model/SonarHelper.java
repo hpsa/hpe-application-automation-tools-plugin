@@ -23,7 +23,6 @@ package com.microfocus.application.automation.tools.octane.model;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.EnvVars;
 import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
@@ -34,6 +33,8 @@ import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -71,7 +72,7 @@ public class SonarHelper {
                     postbuilders = ((Project) project).getBuildersList();
                 }
                 if (postbuilders != null){
-                    setDataFromSonarBuilder(postbuilders);
+                    setDataFromSonarBuilder(postbuilders, run);
                 }
             }
         }
@@ -86,25 +87,46 @@ public class SonarHelper {
     }
 
     // used by the web hook
-    public static String getSonarInstallationTokenByUrl(GlobalConfiguration sonarConfiguration, String sonarUrl) {
+    public static String getSonarInstallationTokenByUrl(GlobalConfiguration sonarConfiguration, String sonarUrl, Run run) {
         if (sonarConfiguration instanceof SonarGlobalConfiguration) {
             SonarGlobalConfiguration sonar = (SonarGlobalConfiguration) sonarConfiguration;
             Optional<SonarInstallation> installation = Arrays.stream(sonar.getInstallations())
                     .filter(sonarInstallation -> sonarInstallation.getServerUrl().equals(sonarUrl))
                     .findFirst();
             if (installation.isPresent()) {
-                Object authenticationToken = installation.get().getServerAuthenticationToken();
-                if (authenticationToken != null){
-                   if (authenticationToken instanceof Secret){  //new versions of sonarqube scanner
-                       return Secret.toString((Secret) authenticationToken);
-                   }
-                   else{ // old versions of sonarqube scanner
-                       return authenticationToken.toString();
-                   }
-                }
+                return extractAuthenticationToken(installation.get(), run);
             }
         }
         return "";
+    }
+
+    private static String extractAuthenticationToken(SonarInstallation sonarInstallation, Run run) {
+
+        try {
+            String result="";
+            String methodName = "getServerAuthenticationToken";
+            Method method = Arrays.stream(SonarInstallation.class.getDeclaredMethods())
+                    .filter(m->m.getName().equals(methodName))
+                    .findFirst().orElse(null);
+
+            if (method == null) {
+                throw new NoSuchMethodException();
+            } else if (method.getParameterCount() == 1) {//2.9+
+                result = (String) method.invoke(sonarInstallation, run);
+            } else if (method.getReturnType().equals(String.class)) {
+                result = (String) method.invoke(sonarInstallation);//2.6.1 version
+            } else if (method.getReturnType().equals(Secret.class)) {
+                Secret secret = (Secret) method.invoke(sonarInstallation);//2.8.1 version
+                result = Secret.toString(secret);
+            }
+
+            return result;
+
+
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("Not Supported version of Sonar Plugin");
+        }
+
     }
 
     private void setSonarDetailsFromMavenEnvironment(AbstractBuild build, TaskListener listener) {
@@ -120,12 +142,12 @@ public class SonarHelper {
         }
     }
 
-    private void setDataFromSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postBuilders) {
+    private void setDataFromSonarBuilder(DescribableList<Builder, Descriptor<Builder>> postBuilders, Run run) {
         Builder sonarBuilder = postBuilders.getDynamic(SONAR_ACTION_ID);
         if (sonarBuilder != null) {
             SonarRunnerBuilder builder = (SonarRunnerBuilder) sonarBuilder;
             this.serverUrl = extractSonarUrl(builder);
-            this.serverToken = extractSonarToken(builder);
+            this.serverToken = extractSonarToken(builder, run);
         }
     }
 
@@ -143,17 +165,8 @@ public class SonarHelper {
      *
      * @return Sonar's auth token
      */
-    private String extractSonarToken(SonarRunnerBuilder builder) {
-        Object authenticationToken = builder != null  ? builder.getSonarInstallation().getServerAuthenticationToken() : "";
-
-        if (authenticationToken != null){
-            if (authenticationToken instanceof Secret){  //new versions of sonarqube scanner
-                return Secret.toString((Secret) authenticationToken);
-            }
-            else{ // old versions of sonarqube scanner
-                return authenticationToken.toString();
-            }
-        }
-        return "";
+    private String extractSonarToken(SonarRunnerBuilder builder, Run run) {
+        String result  = builder != null  ? extractAuthenticationToken(builder.getSonarInstallation(), run) : "";
+        return result;
     }
 }
