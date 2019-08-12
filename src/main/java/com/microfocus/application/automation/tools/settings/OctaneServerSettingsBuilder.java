@@ -22,12 +22,12 @@ package com.microfocus.application.automation.tools.settings;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
-import com.microfocus.application.automation.tools.octane.configuration.MqmProject;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.CopyOnWrite;
 import hudson.Extension;
@@ -256,11 +256,11 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		public void setModel(OctaneServerSettingsModel newModel) {
 			//infer uiLocation
-			MqmProject mqmProject;
+
 			try {
-				mqmProject = ConfigurationValidator.parseUiLocation(newModel.getUiLocation());
-				newModel.setSharedSpace(mqmProject.getSharedSpace());
-				newModel.setLocation(mqmProject.getLocation());
+				OctaneUrlParser octaneUrlParser = ConfigurationValidator.parseUiLocation(newModel.getUiLocation());
+				newModel.setSharedSpace(octaneUrlParser.getSharedSpace());
+				newModel.setLocation(octaneUrlParser.getLocation());
 			} catch (FormValidation fv) {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 			}
@@ -351,9 +351,9 @@ public class OctaneServerSettingsBuilder extends Builder {
 											   @QueryParameter("username") String username,
 											   @QueryParameter("password") String password,
 											   @QueryParameter("impersonatedUser") String impersonatedUser) {
-			MqmProject mqmProject;
+			OctaneUrlParser octaneUrlParser;
 			try {
-				mqmProject = ConfigurationValidator.parseUiLocation(uiLocation);
+				octaneUrlParser = ConfigurationValidator.parseUiLocation(uiLocation);
 			} catch (FormValidation fv) {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 				return fv;
@@ -362,7 +362,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 			//  if parse is good, check authentication/authorization
 			List<String> fails = new ArrayList<>();
-			ConfigurationValidator.checkConfiguration(fails, mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
+			ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 			ConfigurationValidator.checkHoProxySettins(fails);
 
@@ -431,19 +431,19 @@ public class OctaneServerSettingsBuilder extends Builder {
 				ret = FormValidation.error("Location must be set");
 				return ret;
 			}
-			MqmProject mqmProject = null;
+			OctaneUrlParser octaneUrlParser = null;
 
 
 
 			try {
-				mqmProject = ConfigurationValidator.parseUiLocation(value);
+				octaneUrlParser = ConfigurationValidator.parseUiLocation(value);
 
 			} catch (Exception e) {
 				ret = FormValidation.error("Failed to parse location.");
 			}
 			for (OctaneServerSettingsModel serverSettingsModel : servers) {
-				if (mqmProject != null && serverSettingsModel.getSharedSpace().equals(mqmProject.getSharedSpace()) &&
-						serverSettingsModel.getLocation().equals(mqmProject.getLocation())) {
+				if (octaneUrlParser != null && serverSettingsModel.getSharedSpace().equals(octaneUrlParser.getSharedSpace()) &&
+						serverSettingsModel.getLocation().equals(octaneUrlParser.getLocation())) {
 					ret = FormValidation.error("This ALM Octane server configuration was already set.");
 					return ret;
 				}
