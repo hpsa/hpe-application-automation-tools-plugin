@@ -79,10 +79,6 @@ public final class CIEventCausesFactory {
 				tmpResultCause.setType(CIEventCauseType.USER);
 				tmpResultCause.setUser(tmpUserCause.getUserId());
 				result.put(tmpResultCause.generateKey(), tmpResultCause);
-			} else if (cause instanceof Cause.RemoteCause) {
-				//  TODO: add support to remove cause execution in SDK/DTOs
-				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
-				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UpstreamCause) {
 				tmpUpstreamCause = (Cause.UpstreamCause) cause;
 
@@ -111,7 +107,7 @@ public final class CIEventCausesFactory {
 					tmpResultCause.setCauses(processCauses(upstreamRun));
 					result.put(tmpResultCause.generateKey(), tmpResultCause);
 				}
-			} else {
+			} else { //  TODO: add support to Cause.RemoteCause execution in SDK/DTOs/Octane
 				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
 				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			}
