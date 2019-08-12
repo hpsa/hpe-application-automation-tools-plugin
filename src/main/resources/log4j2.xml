@@ -23,7 +23,7 @@
 <Configuration status="INFO" monitorInterval="10">
 
 	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%t] - %c{1}: %m%n</Property>
+		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%-50.50t] %-32.32c{1}: %m%n</Property>
 	</Properties>
 
 	<Appenders>

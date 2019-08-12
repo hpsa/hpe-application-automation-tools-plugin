@@ -52,7 +52,7 @@ public class ImpersonationUtil {
                 throw new PermissionException(401);
             }
         } else {
-            logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
+            logger.debug("No user set to impersonating to. Operations will be done using Anonymous user. Instance ID " + instanceId);
         }
 
         ACLContext impersonatedContext = ACL.as(jenkinsUser);
