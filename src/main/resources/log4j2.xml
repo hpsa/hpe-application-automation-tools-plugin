@@ -34,7 +34,7 @@
 			<Policies>
 				<SizeBasedTriggeringPolicy size="2MB"/>
 			</Policies>
-			<DefaultRolloverStrategy max="10"/>
+			<DefaultRolloverStrategy max="10" fileIndex="min"/>
 		</RollingFile>
 		<Async name="asyncOctaneFileAppender">
 			<AppenderRef ref="octaneFileAppender"/>
