@@ -31,7 +31,7 @@
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
-		LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, UFT Mobile,
+		LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Unified Functional Testing Mobile,
 		Application Lifecycle Management and Application Lifecycle Management Octane.
 	</description>
 	<url>https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools</url>
