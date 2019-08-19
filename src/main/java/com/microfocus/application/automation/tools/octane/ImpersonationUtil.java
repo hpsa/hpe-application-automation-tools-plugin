@@ -28,6 +28,7 @@ import com.microfocus.application.automation.tools.octane.configuration.SDKBased
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
@@ -49,10 +50,10 @@ public class ImpersonationUtil {
         if (user != null && !user.isEmpty()) {
             jenkinsUser = User.get(user, false, Collections.emptyMap());
             if (jenkinsUser == null) {
-                throw new PermissionException(401);
+                throw new PermissionException(HttpStatus.SC_UNAUTHORIZED);
             }
         } else {
-            logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
+            logger.debug("No user set to impersonating to. Operations will be done using Anonymous user. Instance ID " + instanceId);
         }
 
         ACLContext impersonatedContext = ACL.as(jenkinsUser);

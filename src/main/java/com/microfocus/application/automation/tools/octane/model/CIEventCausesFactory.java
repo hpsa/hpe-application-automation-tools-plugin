@@ -40,10 +40,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Causes Factory is a collection of static stateless methods to extract/traverse/transform causes chains of the runs
@@ -63,7 +60,7 @@ public final class CIEventCausesFactory {
 			throw new IllegalArgumentException("run MUST NOT be null");
 		}
 
-		List<CIEventCause> result = new LinkedList<>();
+		Map<String, CIEventCause> result = new LinkedHashMap();//LinkedHashMap - save order of insertion
 		List<Cause> causes = run.getCauses();
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
@@ -73,19 +70,15 @@ public final class CIEventCausesFactory {
 			tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
 			if (cause instanceof SCMTrigger.SCMTriggerCause) {
 				tmpResultCause.setType(CIEventCauseType.SCM);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
 				tmpResultCause.setType(CIEventCauseType.TIMER);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UserIdCause) {
 				tmpUserCause = (Cause.UserIdCause) cause;
 				tmpResultCause.setType(CIEventCauseType.USER);
 				tmpResultCause.setUser(tmpUserCause.getUserId());
-				result.add(tmpResultCause);
-			} else if (cause instanceof Cause.RemoteCause) {
-				//  TODO: add support to remove cause execution in SDK/DTOs
-				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UpstreamCause) {
 				tmpUpstreamCause = (Cause.UpstreamCause) cause;
 
@@ -99,7 +92,7 @@ public final class CIEventCausesFactory {
 						FlowNode enclosingNode = lookupJobEnclosingNode(run, rootWFRun);
 						if (enclosingNode != null) {
 							List<CIEventCause> flowCauses = processCauses(enclosingNode);
-							result.addAll(flowCauses);
+							flowCauses.forEach(fc -> result.put(fc.generateKey(), fc));
 							succeededToBuildFlowCauses = true;
 						}
 					}
@@ -112,14 +105,14 @@ public final class CIEventCausesFactory {
 					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
 					tmpResultCause.setCauses(processCauses(upstreamRun));
-					result.add(tmpResultCause);
+					result.put(tmpResultCause.generateKey(), tmpResultCause);
 				}
-			} else {
+			} else { //  TODO: add support to Cause.RemoteCause execution in SDK/DTOs/Octane
 				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			}
 		}
-		return result;
+		return new ArrayList<>(result.values());
 	}
 
 	public static List<CIEventCause> processCauses(FlowNode flowNode) {

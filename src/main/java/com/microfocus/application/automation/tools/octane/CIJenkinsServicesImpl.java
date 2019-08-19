@@ -73,6 +73,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.DatatypeConverter;
@@ -152,7 +153,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		try {
 			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			}
 
 			Collection<String> jobNames = Jenkins.get().getJobNames();
@@ -186,7 +187,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
 		} catch (AccessDeniedException ade) {
-			throw new PermissionException(403);
+			throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 		} finally {
 			stopImpersonation(securityContext);
 		}
@@ -201,7 +202,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			PipelineNode result;
 			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
 			if (!hasRead) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			}
 
 			TopLevelItem tli = getTopLevelItem(rootJobCiId);
@@ -220,7 +221,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 						result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
 					} else {
 						logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
-						throw new ConfigurationException(404);
+						throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 					}
 				}
 			}
@@ -242,18 +243,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if (job != null) {
 				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
 					//disabled job is not runnable and in this context we will handle it as 404
-					throw new ConfigurationException(404);
+					throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 				}
 				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 				if (!hasBuildPermission) {
 					stopImpersonation(securityContext);
-					throw new PermissionException(403);
+					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 					doRunImpl(job, originalBody);
 				}
 			} else {
-				throw new ConfigurationException(404);
+				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
 		} finally {
 			stopImpersonation(securityContext);
@@ -269,13 +270,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				boolean hasAbortPermissions = job.hasPermission(Item.CANCEL);
 				if (!hasAbortPermissions) {
 					stopImpersonation(securityContext);
-					throw new PermissionException(403);
+					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 					doStopImpl(job, originalBody);
 				}
 			} else {
-				throw new ConfigurationException(404);
+				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
 		} finally {
 			stopImpersonation(securityContext);
@@ -792,9 +793,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} catch (AccessDeniedException e) {
 			String user = ConfigurationService.getSettings(getInstanceId()).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			} else {
-				throw new PermissionException(405);
+				throw new PermissionException(HttpStatus.SC_METHOD_NOT_ALLOWED);
 			}
 		}
 		return item;

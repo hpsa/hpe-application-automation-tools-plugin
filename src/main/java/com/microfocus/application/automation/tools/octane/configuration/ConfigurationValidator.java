@@ -22,6 +22,8 @@ package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.ProxyConfiguration;
@@ -34,59 +36,32 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConfigurationValidator {
     private final static Logger logger = SDKBasedLoggerProvider.getLogger(ConfigurationValidator.class);
 
-    private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
-    private ConfigurationValidator(){
+    private ConfigurationValidator() {
         //hiding public constructor
     }
 
 
-    public static MqmProject parseUiLocation(String uiLocation) throws FormValidation {
+    public static OctaneUrlParser parseUiLocation(String uiLocation) throws FormValidation {
         try {
-            URL url = new URL(uiLocation);
-            String location;
-            int contextPos = uiLocation.indexOf("/ui");
-            if (contextPos < 0) {
-                throw wrapWithFormValidation(false, Messages.ApplicationContextNotFound());
-            } else {
-                location = uiLocation.substring(0, contextPos);
-            }
-            List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
-            for (NameValuePair param : params) {
-                if (param.getName().equals(PARAM_SHARED_SPACE)) {
-                    String[] sharedSpaceAndWorkspace = param.getValue().split("/");
-                    // we are relaxed and allow parameter without workspace in order not to force user to makeup
-                    // workspace value when configuring manually or via config API and not via copy & paste
-                    if (sharedSpaceAndWorkspace.length < 1 || StringUtils.isEmpty(sharedSpaceAndWorkspace[0])) {
-                        throw wrapWithFormValidation(false, Messages.UnexpectedSharedSpace());
-                    }
-                    return new MqmProject(location, sharedSpaceAndWorkspace[0]);
-                }
-            }
-            throw wrapWithFormValidation(false, Messages.MissingSharedSpace());
-        } catch (MalformedURLException e) {
-            throw wrapWithFormValidation(false, Messages.ConfigurationUrInvalid());
-        } catch (URISyntaxException e) {
-            throw wrapWithFormValidation(false, Messages.ConfigurationUrInvalid());
+            return OctaneUrlParser.parse(uiLocation);
+        } catch (OctaneSDKGeneralException e) {
+            throw wrapWithFormValidation(false, e.getMessage());
         }
     }
 
     /**
      * Used by tests only
+     *
      * @param location
      * @param sharedSpace
      * @param username
@@ -116,7 +91,7 @@ public class ConfigurationValidator {
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
 
         //start impersonation
-        Jenkins jenkins = Jenkins.getInstance();
+        Jenkins jenkins = Jenkins.get();
 
         User jenkinsUser = null;
         if (StringUtils.isNotEmpty(impersonatedUser)) {
