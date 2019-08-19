@@ -108,7 +108,7 @@ public class MCServerSettingsBuilder extends Builder {
         public FormValidation doCheckMCServerName(@QueryParameter String value) {
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error("MC server name cannot be empty");
+                ret = FormValidation.error("UFT Mobile server name cannot be empty");
             }
 
             return ret;
@@ -117,7 +117,7 @@ public class MCServerSettingsBuilder extends Builder {
         public FormValidation doCheckMCServerURL(@QueryParameter String value) {
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error("MC server cannot be empty");
+                ret = FormValidation.error("UFT Mobile server cannot be empty");
             }
 
             return ret;

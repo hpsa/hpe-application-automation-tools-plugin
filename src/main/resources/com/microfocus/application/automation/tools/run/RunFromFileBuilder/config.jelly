@@ -129,9 +129,9 @@
     </f:advanced>
 
     <!-- add MC server and app info starting -->
-     <f:advanced title="Mobile Center options">
-            <f:section title="Mobile Center options">
-                <f:entry title="MC Server" field="mcServerName">
+     <f:advanced title="UFT Mobile options">
+            <f:section title="UFT Mobile options">
+                <f:entry title="UFT Mobile Server" field="mcServerName">
                     <select name="runfromfs.mcServerName">
                         <j:forEach var="mcServer" items="${descriptor.mcServers}">
                             <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
@@ -204,13 +204,13 @@
                         <f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
                 </f:entry>
                 <f:entry>
-                        <f:checkbox title="Recreate Mobile Center job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+                        <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
                 </f:entry>
                 <f:entry>
                         <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
                 </f:entry>
                 <f:entry>
-                        <div id="errorMessage" style="color:red;display:none">MC login information or proxy is incorrect.</div>
+                        <div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
                 </f:entry>
 
             </f:section>
