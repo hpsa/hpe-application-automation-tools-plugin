@@ -38,13 +38,9 @@ namespace HpToolsLauncher
 {
     public class AlmTestSetsRunner : RunnerBase, IDisposable
     {
-
-        //private ITDConnection2 _tdConnection;
         private ITDConnection13 _tdConnection;
         private ITDConnection2 _tdConnectionOld;
-       // private TDConnection _tdConnection;
-  
-        //public ITDConnection2 TdConnection
+
         public ITDConnection13 TdConnection
          {
             get
