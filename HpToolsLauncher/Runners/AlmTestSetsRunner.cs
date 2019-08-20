@@ -298,46 +298,49 @@ namespace HpToolsLauncher
                 {
                     ConsoleWriter.WriteLine(ex.Message);
                 }
-
-                if (!TdConnection.Connected)
+                if (TdConnection.Connected)
                 {
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
-                    return false;
-                }
-                try
-                {
-                    if (!SSOEnabled)
+                    try
                     {
-                        TdConnection.Login(qcLogin, qcPass);
+                        if (!SSOEnabled)
+                        {
+                            TdConnection.Login(qcLogin, qcPass);
+                        }
+                        else
+                        {
+                            TdConnection.Login(qcClientID, qcApiKey);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleWriter.WriteLine(ex.Message);
+                    }
+
+                    if (TdConnection.LoggedIn)
+                    {
+                        try
+                        {
+                            TdConnection.Connect(qcDomain, qcProject);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+
+                        if (TdConnection.ProjectConnected) return true;
+
+                        ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                     }
                     else
                     {
-                        TdConnection.Login(qcClientID, qcApiKey);
+                        ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
                     }
-                }
-                catch (Exception ex)
+
+                } else
                 {
-                    ConsoleWriter.WriteLine(ex.Message);
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
                 }
 
-                if (!TdConnection.LoggedIn)
-                {
-                    ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
-                    return false;
-                }
-
-                try
-                {
-                    TdConnection.Connect(qcDomain, qcProject);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-                if (TdConnection.ProjectConnected) return true;
-
-                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                 return false;
             }
             else //older versions of ALM (< 12.60) 
@@ -351,40 +354,42 @@ namespace HpToolsLauncher
                      ConsoleWriter.WriteLine(ex.Message);
                 }
 
-                if (!TdConnectionOld.Connected)
+                if (TdConnectionOld.Connected)
                 {
+                    try
+                    {
+
+                        TdConnectionOld.Login(qcLogin, qcPass);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleWriter.WriteLine(ex.Message);
+                    }
+
+                    if (TdConnectionOld.LoggedIn)
+                    {
+                        try
+                        {
+                            TdConnectionOld.Connect(qcDomain, qcProject);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+
+                        if (TdConnectionOld.ProjectConnected) return true;
+
+                        ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
+                    }
+                    else
+                    {
+                        ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
+                    }
+                }
+                else {
                     ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
-                    return false;
                 }
 
-                try
-                {
-                  
-                   TdConnectionOld.Login(qcLogin, qcPass);
-                }
-                catch (Exception ex)
-                {
-                    ConsoleWriter.WriteLine(ex.Message);
-                }
-
-                if (!TdConnectionOld.LoggedIn)
-                {
-                    ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
-                    return false;
-                }
-
-                try
-                {
-                    TdConnectionOld.Connect(qcDomain, qcProject);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-                if (TdConnectionOld.ProjectConnected) return true;
-
-                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                 return false;
             }
         }

@@ -336,17 +336,16 @@ namespace HpToolsLauncher
 
                     List<string> filterByStatuses = new List<string>();
 
-                    if (statuses != "")
+                    if (statuses != "" && statuses.Contains(","))
                     {
-                        if (statuses.Contains(","))
-                        {
-                            filterByStatuses = statuses.Split(',').ToList();
-                        }
-                        else
-                        {
-                            filterByStatuses.Add(statuses);
-                        }
+
+                        filterByStatuses = statuses.Split(',').ToList();
                     }
+                    else
+                    {
+                        filterByStatuses.Add(statuses);
+                    }
+                    
 
                     bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") && Convert.ToBoolean(_ciParams["SSOEnabled"]);
 

@@ -274,11 +274,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             //build.setResult(Result.FAILURE);
         }
         return;
-       /* Testsuites testsuites = execute(build, logger, varResolver);
-        
-        FilePath resultsFilePath = workspace.child(getFileName());
-        Result resultStatus = createRunResults(resultsFilePath, testsuites, logger);
-        provideStepResultStatus(resultStatus, build, logger);*/
     }
     
     /**
