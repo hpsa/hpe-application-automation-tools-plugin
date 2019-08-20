@@ -88,7 +88,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     private SseModel _sseModel;
     private String _fileName;
     private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
-    private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
 
@@ -186,15 +185,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     	
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
 
-        EnvVars env = null;
-        try {
-            env = build.getEnvironment(listener);
-        } catch (IOException e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
-        }
-
-        VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         // now merge them into one list
         Properties mergedProperties = new Properties();
 
@@ -271,7 +261,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             }
 
             out.println("Operation was aborted by user.");
-            //build.setResult(Result.FAILURE);
         }
         return;
     }
@@ -379,14 +368,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         }
         
         return ret;
-    }
-    
-    private String getFileName() {
-        
-        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-        String time = formatter.format(new Date());
-        _fileName = String.format("Results%s.xml", time);
-        return _fileName;
     }
     
     private void stop(SSEBuilderPerformer performer, PrintStream logger) {
