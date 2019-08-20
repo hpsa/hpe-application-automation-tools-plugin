@@ -350,27 +350,27 @@ namespace HpToolsLauncher.ParallelRunner
         /// <returns></returns>
         public static ProxySettings GetMCProxySettings(McConnectionInfo mcConnectionInfo)
         {
-            if (String.IsNullOrEmpty(mcConnectionInfo.MobileProxySettingAddress))
+            if (String.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Address))
                 return null;
 
             AuthenticationSettings authenticationSettings = null;
 
-            if (!string.IsNullOrEmpty(mcConnectionInfo.MobileProxySettingUserName)
-                && !string.IsNullOrEmpty(mcConnectionInfo.MobileProxySettingPassword))
+            if (!string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_UserName)
+                && !string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Password))
             {
                 authenticationSettings = new AuthenticationSettings
                 {
-                    username = mcConnectionInfo.MobileProxySettingUserName,
+                    username = mcConnectionInfo.MobileProxySetting_UserName,
                     password = WinUserNativeMethods.
-                        ProtectBSTRToBase64(mcConnectionInfo.MobileProxySettingPassword)
+                        ProtectBSTRToBase64(mcConnectionInfo.MobileProxySetting_Password)
                 };
             }
 
             ProxySettings proxySettings = new ProxySettings
             {
                 authentication = authenticationSettings,
-                hostname = mcConnectionInfo.MobileProxySettingAddress,
-                port = mcConnectionInfo.MobileProxySettingPort,
+                hostname = mcConnectionInfo.MobileProxySetting_Address,
+                port = mcConnectionInfo.MobileProxySetting_Port,
                 type = mcConnectionInfo.MobileProxyType == 1 ? "system" : "http",
             };
 
@@ -396,7 +396,7 @@ namespace HpToolsLauncher.ParallelRunner
                 password = WinUserNativeMethods.ProtectBSTRToBase64(mcConnectionInfo.MobilePassword),
                 hostname = mcConnectionInfo.MobileHostAddress,
                 port = Convert.ToInt32(mcConnectionInfo.MobileHostPort),
-                protocol = mcConnectionInfo.MobileUseSsl > 0 ? "https" : "http",
+                protocol = mcConnectionInfo.MobileUseSSL > 0 ? "https" : "http",
                 tenantId = mcConnectionInfo.MobileTenantId,
             };
 
