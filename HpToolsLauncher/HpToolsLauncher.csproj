@@ -59,7 +59,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="interop.OTAClient">
-      <HintPath>externals\interop.OTAClient.dll</HintPath>
+      <HintPath>..\..\..\interop.OTAClient.DLL</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Interop.Wlrun, Version=11.52.0.0, Culture=neutral, processorArchitecture=MSIL">

@@ -103,6 +103,20 @@
         </f:entry>
 
         <f:entry>
+            <label id="clientId">Client ID</label>
+            <f:entry field="almClientID">
+                <f:textbox name="runfromalm.almClientID" value="${instance.runFromAlmModel.almClientID}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label id="apiKey">Api Key</label>
+            <f:entry field="almApiKey">
+                <f:textbox name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
             <label id="userName">User name</label>
             <f:entry field="almUserName">
                 <f:textbox name="runfromalm.almUserName" value="${instance.runFromAlmModel.almUserName}"/>

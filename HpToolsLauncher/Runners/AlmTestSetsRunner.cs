@@ -39,16 +39,29 @@ namespace HpToolsLauncher
     public class AlmTestSetsRunner : RunnerBase, IDisposable
     {
 
-        private ITDConnection2 _tdConnection;
-
-        public ITDConnection2 TdConnection
-        {
+        //private ITDConnection2 _tdConnection;
+        private ITDConnection13 _tdConnection;
+        private ITDConnection2 _tdConnectionOld;
+       // private TDConnection _tdConnection;
+  
+        //public ITDConnection2 TdConnection
+        public ITDConnection13 TdConnection
+         {
             get
             {
                 if (_tdConnection == null)
                     CreateTdConnection();
-
                 return _tdConnection;
+            }
+        }
+
+        public ITDConnection2 TdConnectionOld
+        {
+            get
+            {
+                if (_tdConnectionOld == null)
+                    CreateTdConnectionOld();
+                return _tdConnectionOld;
             }
         }
 
@@ -81,6 +94,10 @@ namespace HpToolsLauncher
         public double Timeout { get; set; }
 
         public bool SSOEnabled { get; set; }
+
+        public string ClientID { get; set; }
+
+        public string ApiKey { get; set; }
 
 
         /// <summary>
@@ -115,7 +132,9 @@ namespace HpToolsLauncher
                                 List<string> filterByStatuses,
                                 bool initialTestRun,
                                 TestStorageType testStorageType, 
-                                bool isSSOEnabled)
+                                bool isSSOEnabled,
+                                string qcClientId,
+                                string qcApiKey)
         {
             
             Timeout = intQcTimeout;
@@ -132,8 +151,10 @@ namespace HpToolsLauncher
             FilterByStatuses = filterByStatuses;
             InitialTestRun = initialTestRun;
             SSOEnabled = isSSOEnabled;
+            ClientID = qcClientId;
+            ApiKey = qcApiKey;
 
-            Connected = ConnectToProject(MQcServer, MQcUser, qcPassword, MQcDomain, MQcProject, SSOEnabled);
+            Connected = ConnectToProject(MQcServer, MQcUser, qcPassword, MQcDomain, MQcProject, SSOEnabled, ClientID,  ApiKey);
             TestSets = qcTestSets;
             Storage = testStorageType;
             if (!Connected)
@@ -154,9 +175,36 @@ namespace HpToolsLauncher
         //------------------------------- Connection to QC --------------------------
 
         /// <summary>
-        /// Creates a connection to QC
+        /// Creates a connection to QC (for ALM 12.60 and 15)
         /// </summary>
         private void CreateTdConnection()
+        {
+            Type type = Type.GetTypeFromProgID("TDApiOle80.TDConnection");
+         
+            if (type == null)
+            {
+                ConsoleWriter.WriteLine(GetAlmNotInstalledError());
+                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+
+            try
+            {
+                object conn = Activator.CreateInstance(type);
+               _tdConnection = conn as ITDConnection13;
+               
+            }
+            catch (FileNotFoundException ex)
+            {
+                ConsoleWriter.WriteLine(GetAlmNotInstalledError());
+                ConsoleWriter.WriteLine(ex.Message);
+                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+        }
+
+        /// <summary>
+        /// Creates a connection to QC (for ALM 12.55)
+        /// </summary>
+        private void CreateTdConnectionOld()
         {
             Type type = Type.GetTypeFromProgID("TDApiOle80.TDConnection");
 
@@ -169,7 +217,7 @@ namespace HpToolsLauncher
             try
             {
                 object conn = Activator.CreateInstance(type);
-                _tdConnection = conn as ITDConnection2;
+                _tdConnectionOld = conn as ITDConnection2;
             }
             catch (FileNotFoundException ex)
             {
@@ -178,7 +226,6 @@ namespace HpToolsLauncher
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
         }
-
 
         /// <summary>
         /// Returns ALM QC installation URL
@@ -214,7 +261,7 @@ namespace HpToolsLauncher
             }
             return oldQc;
         }
-
+        
         /// <summary>
         /// connects to QC and logs in
         /// </summary>
@@ -225,8 +272,10 @@ namespace HpToolsLauncher
         /// <param name="qcProject"></param>
         /// <param name="SSOEnabled"></param>
         /// <returns></returns>
-        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject, bool SSOEnabled)
+        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject, 
+                                        bool SSOEnabled, string qcClientID, string qcApiKey)
         {
+
             if (string.IsNullOrWhiteSpace(qcServerUrl)
                 || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
                 || string.IsNullOrWhiteSpace(qcDomain)
@@ -236,56 +285,115 @@ namespace HpToolsLauncher
                 return false;
             }
 
-            try
+            if (TdConnection != null)
             {
-                TdConnection.InitConnectionEx(qcServerUrl);
-            }
-            catch (Exception ex)
-            {
-                ConsoleWriter.WriteLine(ex.Message);
-            }
+                try
+                {
+                    if (!SSOEnabled)
+                    {
+                        TdConnection.InitConnectionEx(qcServerUrl);
+                    }
+                    else
+                    {
+                        TdConnection.InitConnectionWithApiKey(qcServerUrl, qcClientID, qcApiKey);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWriter.WriteLine(ex.Message);
+                }
 
-            if (!TdConnection.Connected)
-            {
-                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
+                if (!TdConnection.Connected)
+                {
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
+                    return false;
+                }
+                try
+                {
+                    if (!SSOEnabled)
+                    {
+                        TdConnection.Login(qcLogin, qcPass);
+                    }
+                    else
+                    {
+                        TdConnection.Login(qcClientID, qcApiKey);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWriter.WriteLine(ex.Message);
+                }
+
+                if (!TdConnection.LoggedIn)
+                {
+                    ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
+                    return false;
+                }
+
+                try
+                {
+                    TdConnection.Connect(qcDomain, qcProject);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                if (TdConnection.ProjectConnected) return true;
+
+                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                 return false;
             }
-            try
+            else //older versions of ALM (< 12.60) 
             {
-                if (!SSOEnabled)
+                try
                 {
-                    TdConnection.Login(qcLogin, qcPass);
+                    TdConnectionOld.InitConnectionEx(qcServerUrl);
                 }
-                else
+                catch (Exception ex)
                 {
-                    //TODO - connect through SSO
+                     ConsoleWriter.WriteLine(ex.Message);
                 }
-            }
-            catch (Exception ex)
-            {
-                ConsoleWriter.WriteLine(ex.Message);
-            }
 
-            if (!TdConnection.LoggedIn)
-            {
-                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
+                if (!TdConnectionOld.Connected)
+                {
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
+                    return false;
+                }
+
+                try
+                {
+                  
+                   TdConnectionOld.Login(qcLogin, qcPass);
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWriter.WriteLine(ex.Message);
+                }
+
+                if (!TdConnectionOld.LoggedIn)
+                {
+                    ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
+                    return false;
+                }
+
+                try
+                {
+                    TdConnectionOld.Connect(qcDomain, qcProject);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                if (TdConnectionOld.ProjectConnected) return true;
+
+                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                 return false;
             }
-
-            try
-            {
-                TdConnection.Connect(qcDomain, qcProject);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            if (TdConnection.ProjectConnected) return true;
-
-            ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
-            return false;
         }
+
+      
 
         /// <summary>
         /// Returns error message for incorrect installation of Alm QC.
@@ -352,7 +460,16 @@ namespace HpToolsLauncher
         /// <returns>the folder object</returns>
         private ITestSetFolder GetFolder(string testSet)
         {
-            ITestSetTreeManager tsTreeManager = (ITestSetTreeManager)TdConnection.TestSetTreeManager;
+            ITestSetTreeManager tsTreeManager;
+            if (TdConnection != null)
+            {
+                tsTreeManager = (ITestSetTreeManager)TdConnection.TestSetTreeManager;
+            }
+            else
+            {
+                tsTreeManager = (ITestSetTreeManager)TdConnectionOld.TestSetTreeManager;
+            }
+             
            
             ITestSetFolder tsFolder = null;
             try
@@ -374,7 +491,16 @@ namespace HpToolsLauncher
         {
             List<string> extraSetsList = new List<string>();
             List<string> removeSetsList = new List<string>();
-            var tsTreeManager = (ITestSetTreeManager)TdConnection.TestSetTreeManager;
+            ITestSetTreeManager tsTreeManager;
+            if (TdConnection != null)
+            {
+                tsTreeManager = (ITestSetTreeManager)TdConnection.TestSetTreeManager;
+            }
+            else
+            {
+                tsTreeManager = (ITestSetTreeManager)TdConnectionOld.TestSetTreeManager;
+            }
+            
 
             //go over all the test sets / testSetFolders and check which is which
             foreach (string testSetOrFolder in TestSets)
@@ -478,8 +604,17 @@ namespace HpToolsLauncher
         {
 
             if (testSuiteName == null) throw new ArgumentNullException("testSuiteName");
-            _tdConnection.KeepConnection = true;
-            var tsTreeManager = (ITestSetTreeManager)_tdConnection.TestSetTreeManager;
+            ITestSetTreeManager tsTreeManager;
+            if (TdConnection != null)
+            {
+                _tdConnection.KeepConnection = true;
+                tsTreeManager = (ITestSetTreeManager)_tdConnection.TestSetTreeManager;
+            }
+            else
+            {
+                _tdConnectionOld.KeepConnection = true;
+                tsTreeManager = (ITestSetTreeManager)_tdConnectionOld.TestSetTreeManager;
+            }
 
             try
             {//check test storage type
@@ -1078,6 +1213,7 @@ namespace HpToolsLauncher
 
             if (scheduler == null)
             {
+                Console.WriteLine("Run test set, scheduler is null");
                 Console.WriteLine(GetAlmNotInstalledError());
 
                 //proceeding with program execution is tasteless, since nothing will run without a properly installed QC.
@@ -1495,7 +1631,15 @@ namespace HpToolsLauncher
         private void WriteTestRunSummary(ITSTest prevTest)
         {
             int prevRunId = ConsoleWriter.ActiveTestRun.PrevRunId;
-            _tdConnection.KeepConnection = true;
+            if(TdConnection != null)
+            {
+                _tdConnection.KeepConnection = true;
+            }
+            else
+            {
+                _tdConnectionOld.KeepConnection = true;
+            }
+           
 
             int runId = GetTestRunId(prevTest);
             if (runId > prevRunId)
@@ -1688,8 +1832,16 @@ namespace HpToolsLauncher
             //Console.WriteLine("Dispose ALM connection");
             if (Connected)
             {
-                _tdConnection.Disconnect();
-                Marshal.ReleaseComObject(_tdConnection);
+                if (TdConnection != null)
+                {
+                    _tdConnection.Disconnect();
+                    Marshal.ReleaseComObject(_tdConnection);
+                }
+                else
+                {
+                    _tdConnectionOld.Disconnect();
+                    Marshal.ReleaseComObject(_tdConnectionOld);
+                }
             }
         }
 

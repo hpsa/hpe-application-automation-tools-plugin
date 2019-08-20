@@ -365,7 +365,7 @@ namespace HpToolsLauncher
                                      filterByStatuses,   
                                      initialTestRun,
                                      TestStorageType.AlmLabManagement,
-                                     isSSOEnabled);
+                                     isSSOEnabled, _ciParams["almClientID"], _ciParams["almApiKey"]);
                     break;
 
                 case TestStorageType.Alm:
@@ -447,7 +447,8 @@ namespace HpToolsLauncher
                                      filterByStatuses,
                                      initialTestRun,
                                      TestStorageType.Alm,
-                                     isSSOEnabled);
+                                     isSSOEnabled,
+                                     _ciParams["almClientID"], _ciParams["almApiKey"]);
                     break;
                 case TestStorageType.FileSystem:
                     bool displayController = false;
