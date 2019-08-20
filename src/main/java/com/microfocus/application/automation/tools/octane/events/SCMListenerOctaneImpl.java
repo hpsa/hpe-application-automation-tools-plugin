@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
@@ -40,6 +41,9 @@ public class SCMListenerOctaneImpl extends SCMListener {
 
     @Override
     public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
+        if(!OctaneSDK.hasClients()){
+            return;
+        }
         super.onChangeLogParsed(run, scm, listener, changelog);
         CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
         if (scmEvent != null) {

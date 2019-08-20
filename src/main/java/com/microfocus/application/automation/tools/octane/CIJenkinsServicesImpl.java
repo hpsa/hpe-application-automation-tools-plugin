@@ -48,6 +48,7 @@ import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
@@ -58,6 +59,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.param
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
@@ -70,7 +72,8 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.DatatypeConverter;
@@ -90,7 +93,7 @@ import java.util.stream.Collectors;
  */
 
 public class CIJenkinsServicesImpl extends CIPluginServices {
-	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
@@ -115,7 +118,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return new File(Jenkins.get().getRootDir(), "userContent");
+		return getAllowedStorageFile();
 	}
 
 	@Override
@@ -150,7 +153,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		try {
 			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
 			if (!hasReadPermission) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			}
 
 			Collection<String> jobNames = Jenkins.get().getJobNames();
@@ -184,7 +187,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
 		} catch (AccessDeniedException ade) {
-			throw new PermissionException(403);
+			throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 		} finally {
 			stopImpersonation(securityContext);
 		}
@@ -199,7 +202,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			PipelineNode result;
 			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
 			if (!hasRead) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			}
 
 			TopLevelItem tli = getTopLevelItem(rootJobCiId);
@@ -218,7 +221,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 						result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
 					} else {
 						logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
-						throw new ConfigurationException(404);
+						throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 					}
 				}
 			}
@@ -240,18 +243,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if (job != null) {
 				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
 					//disabled job is not runnable and in this context we will handle it as 404
-					throw new ConfigurationException(404);
+					throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 				}
 				boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 				if (!hasBuildPermission) {
 					stopImpersonation(securityContext);
-					throw new PermissionException(403);
+					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 					doRunImpl(job, originalBody);
 				}
 			} else {
-				throw new ConfigurationException(404);
+				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
 		} finally {
 			stopImpersonation(securityContext);
@@ -267,13 +270,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				boolean hasAbortPermissions = job.hasPermission(Item.CANCEL);
 				if (!hasAbortPermissions) {
 					stopImpersonation(securityContext);
-					throw new PermissionException(403);
+					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
 					doStopImpl(job, originalBody);
 				}
 			} else {
-				throw new ConfigurationException(404);
+				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
 		} finally {
 			stopImpersonation(securityContext);
@@ -685,26 +688,49 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	private Job getJobByRefId(String jobRefId) {
 		Job result = null;
 		if (jobRefId != null) {
-			try {
-				jobRefId = URLDecoder.decode(jobRefId, StandardCharsets.UTF_8.name());
-				TopLevelItem item = getTopLevelItem(jobRefId);
-				if (item instanceof Job) {
-					result = (Job) item;
-				} else if (jobRefId.contains("/") && item == null) {
-					String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
-					item = getTopLevelItem(newJobRefId);
-					if (item != null) {
-						Collection<? extends Job> allJobs = item.getAllJobs();
-						for (Job job : allJobs) {
-							if (jobRefId.endsWith(job.getName())) {
-								result = job;
-								break;
-							}
+			TopLevelItem item = getTopLevelItem(jobRefId);
+			if (item instanceof Job) {
+				result = (Job) item;
+			} else if (jobRefId.contains("/") && item == null) {
+				String parentJobRefId = jobRefId.substring(0, jobRefId.indexOf('/'));
+				item = getTopLevelItem(parentJobRefId);
+				if (item != null) {
+					String jobName = BuildHandlerUtils.revertTranslateFolderJobName(jobRefId);
+					Collection<? extends Job> allJobs = item.getAllJobs();
+					for (Job job : allJobs) {
+						if (jobName.equals(job.getFullName())) {
+							result = job;
+							break;
 						}
 					}
+
+                    // defect #875099 : two jobs with the same name in folder - are not treated correctly
+                    // PATCH UNTIL OCTANE SEND jobRefId correctly (fix in octane : pipeline-management-add-dialog-controller.js)
+                    //bug in octane : duplicating parent prefix, for example job f1/f2/jobA , appear as f1/f2/f1/f2/jobA
+                    //try to reduce duplication and find  job
+                    if (result == null) {
+                        int jobNameIndex = jobName.lastIndexOf('/');
+                        String parentPrefix = jobName.substring(0, jobNameIndex);
+                        String notDuplicatedParentPrefix1 = jobName.substring(0, parentPrefix.length() / 2);
+                        String notDuplicatedParentPrefix2 = jobName.substring((parentPrefix.length() / 2) + 1, jobNameIndex);
+                        if (StringUtils.equals(notDuplicatedParentPrefix1, notDuplicatedParentPrefix2)) {
+                            String alternativeJobName = notDuplicatedParentPrefix1 + jobName.substring(jobNameIndex);
+                            result = allJobs.stream().filter(job -> alternativeJobName.equals(job.getFullName())).findFirst().orElse(null);
+                        }
+                    }
+
+                    //if not found - try to find by last name only. it work wrong if there are several jobs with the same name but in different subfolders
+                    //for example : f1/f2/jobA and f1/f3/jobA
+                    if (result == null) {
+                        for (Job job : allJobs) {
+                            if (jobRefId.endsWith(job.getName())) {
+                                result = job;
+                                logger.info(String.format("getJobByRefId %s found job only by jobName : %s", jobRefId, job.getName()));
+                                break;
+                            }
+                        }
+                    }
 				}
-			} catch (UnsupportedEncodingException uee) {
-				logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
 			}
 		}
 		return result;
@@ -767,13 +793,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} catch (AccessDeniedException e) {
 			String user = ConfigurationService.getSettings(getInstanceId()).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
-				throw new PermissionException(403);
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			} else {
-				throw new PermissionException(405);
+				throw new PermissionException(HttpStatus.SC_METHOD_NOT_ALLOWED);
 			}
 		}
 		return item;
 	}
+
+    public static File getAllowedStorageFile() {
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        return (jenkins == null /*is slave*/) ? new File("octanePluginContent") : new File(jenkins.getRootDir(), "userContent") ;
+    }
 
 	public static CIServerInfo getJenkinsServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);

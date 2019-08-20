@@ -18,22 +18,36 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.configuration;
+package com.microfocus.application.automation.tools.model;
 
-final public class MqmProject {
-    private final String location;
-    private final String sharedSpace;
+public class TestsFramework {
 
-    public MqmProject(String location, String sharedSpace) {
-        this.location = location;
-        this.sharedSpace = sharedSpace;
+    private String description;
+    private String name;
+    private String format;
+
+    public TestsFramework() {
+        this.name = "";
+        this.description = "";
+        this.format = "";
     }
 
-    public String getLocation() {
-        return location;
+    public TestsFramework(String name, String description, String format) {
+        this.name = name;
+        this.description = description;
+        this.format = format;
     }
 
-    public String getSharedSpace() {
-        return sharedSpace;
+    public String getDescription() {
+        return description;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
 }

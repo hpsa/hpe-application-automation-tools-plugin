@@ -23,10 +23,10 @@ package com.microfocus.application.automation.tools.octane.model.processors.para
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import hudson.matrix.*;
 import hudson.model.*;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public enum ParameterProcessors {
 	NODE_LABEL("org.jvnet.jenkins.plugins.nodelabelparameter", NodeLabelParameterProcessor.class),
 	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class);
 
-	private static final Logger logger = LogManager.getLogger(ParameterProcessors.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ParameterProcessors.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private String targetPluginClassName;
 	private Class<? extends AbstractParametersProcessor> processorClass;

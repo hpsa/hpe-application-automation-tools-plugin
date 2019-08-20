@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.scm.SCMCommit;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.model.*;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
@@ -33,7 +34,6 @@ import hudson.scm.SVNRevisionState;
 import hudson.scm.SubversionChangeLogSet;
 import hudson.scm.SubversionSCM;
 import hudson.tasks.Mailer;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
@@ -47,7 +47,7 @@ import java.util.List;
  */
 
 class SvnSCMProcessor implements SCMProcessor {
-	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(SvnSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final int PARENT_COMMIT_INDEX = 1;
 

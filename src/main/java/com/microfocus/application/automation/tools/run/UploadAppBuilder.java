@@ -69,7 +69,7 @@ public class UploadAppBuilder extends Builder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        // get the mc server settings
+        // get the UFT Mobile server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
         JobConfigurationProxy job = JobConfigurationProxy.getInstance();
         JSONObject app = null;
@@ -81,7 +81,7 @@ public class UploadAppBuilder extends Builder {
         }
         boolean allSuccess = true;
         if(mcServerSettingsModel == null){
-            out.println("Failed to upload app to MC server. Cause: MC url didn't be configured." );
+            out.println("Failed to upload app to UFT Mobile server. Cause: UFT Mobile url didn't be configured." );
             return false;
         }else{
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
@@ -104,13 +104,13 @@ public class UploadAppBuilder extends Builder {
                     }
                     if(app == null){
                         if(uploadAppModel.isUseProxy()){
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
+                            out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s, Proxy url:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress()));
                         }else if(uploadAppModel.isUseAuthentication()){
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
+                            out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
                                     mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
                         }else{
-                            out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s,",
+                            out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s,",
                                     mcServerUrl, uploadAppModel.getMcUserName()));
                         }
                         build.setResult(Result.FAILURE);
@@ -123,7 +123,7 @@ public class UploadAppBuilder extends Builder {
                     }
                     out.println("uploaded app info: " + app.toJSONString());
                 } catch(FileNotFoundException fnf){
-                    out.println(String.format("Failed to upload app to MC server. Cause: File: %s is not found.", path));
+                    out.println(String.format("Failed to upload app to UFT Mobile server. Cause: File: %s is not found.", path));
                     build.setResult(Result.FAILURE);
                     allSuccess = false;
                     continue;
@@ -137,13 +137,13 @@ public class UploadAppBuilder extends Builder {
                     return false;
                 } catch (Exception e){
                     if(uploadAppModel.isUseProxy()){
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s",
+                        out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s, Proxy url:%s",
                                 mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress()));
                     }else if(uploadAppModel.isUseAuthentication()){
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
+                        out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s, Proxy url:%s, proxy userName:%s",
                                 mcServerUrl, uploadAppModel.getMcUserName(), uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
                     }else{
-                        out.println(String.format("Failed to upload app, Cause MC connection info is incorrect. url:%s, username:%s,",
+                        out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, username:%s,",
                                 mcServerUrl, uploadAppModel.getMcUserName()));
                     }
                     build.setResult(Result.FAILURE);
@@ -187,7 +187,7 @@ public class UploadAppBuilder extends Builder {
         @Override
         public String getDisplayName() {
 
-            return "Upload app to Mobile Center";
+            return "Upload app to UFT Mobile Server";
         }
 
         public boolean hasMCServers() {

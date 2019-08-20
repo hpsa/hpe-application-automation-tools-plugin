@@ -21,12 +21,16 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
-import com.microfocus.application.automation.tools.octane.model.processors.builders.*;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
+import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
+import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
-import org.apache.logging.log4j.LogManager;
+import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -43,7 +47,7 @@ import java.util.Set;
 
 @SuppressWarnings({"squid:S1132", "squid:S1872"})
 public abstract class AbstractProjectProcessor<T extends Job> {
-	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(AbstractProjectProcessor.class);
 	private final List<PipelinePhase> internals = new ArrayList<>();
 	private final List<PipelinePhase> postBuilds = new ArrayList<>();
 
@@ -76,26 +80,49 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
+		String suiteId = (String) parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue();
+		String suiteRunId = (String) parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue();
+		logger.info("cancelBuild for suiteId=" + suiteId +", suiteRunId=" + suiteRunId);
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
+			Queue queue = Jenkins.get().getQueue();
+			queue.getItems(project).forEach(item -> {
+				item.getActions(ParametersAction.class).forEach(action -> {
+					if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+						try {
+							logger.info("canceling item in queue : " + item.getDisplayName());
+							queue.cancel(item);
+						} catch (Exception e) {
+							logger.warn("Failed to cancel '" + item.getDisplayName() + "' in queue : " + e.getMessage(), e);
+						}
+					}
+				});
+			});
+
 			project.getBuilds().forEach(build -> {
 				if (build instanceof AbstractBuild) {
-					AbstractBuild abuild = (AbstractBuild) build;
-					abuild.getActions(ParametersAction.class).forEach(action -> {
-						if (action.getParameter("suiteId").getValue().equals(parametersAction.getParameter("suiteId").getValue())
-								&& action.getParameter("suiteRunId").getValue().equals(parametersAction.getParameter("suiteRunId").getValue())) {
+					AbstractBuild aBuild = (AbstractBuild) build;
+					aBuild.getActions(ParametersAction.class).forEach(action -> {
+						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
 							try {
-								abuild.doStop();
+								aBuild.doStop();
 							} catch (Exception e) {
-								logger.warn(e);
+								logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 							}
 						}
 					});
 				}
 			});
 		} else {
-			throw new IllegalStateException("unsupported job CAN NOT be stop");
+			throw new IllegalStateException("unsupported job CAN NOT be stopped");
 		}
+	}
+
+	private boolean checkSuiteIdParamsExistAndEqual(ParametersAction parametersAction, String suiteId, String suiteRunId) {
+		ParameterValue suiteIdPV = parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME);
+		ParameterValue suiteRunIdPV = parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+		return (suiteIdPV != null && suiteRunIdPV != null && suiteIdPV.getValue().equals(suiteId)
+				&& suiteRunIdPV.getValue().equals(suiteRunId));
 	}
 
 	/**

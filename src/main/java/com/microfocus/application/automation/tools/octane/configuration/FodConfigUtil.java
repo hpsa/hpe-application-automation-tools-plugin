@@ -29,7 +29,6 @@ import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ import static com.microfocus.application.automation.tools.octane.configuration.R
  * in Jenkins: URL, connection params, releaseId etc.
  */
 public class FodConfigUtil {
-    private final static Logger logger = LogManager.getLogger(FodConfigUtil.class);
+    private final static Logger logger = SDKBasedLoggerProvider.getLogger(FodConfigUtil.class);
 
     public final static String FOD_DESCRIPTOR = "org.jenkinsci.plugins.fodupload.FodGlobalDescriptor";
     public final static String FOD_STATIC_ASSESSMENT_STEP = "org.jenkinsci.plugins.fodupload.StaticAssessmentBuildStep";
@@ -78,6 +77,29 @@ public class FodConfigUtil {
     }
 
     private static Long getRelease(AbstractProject project) {
+        Long release = getReleaseVersionBefore12(project);
+        if(release != null){
+            logger.debug("A Version before 12 is detected.");
+            return release;
+        }
+
+        release = getReleaseVersion12(project);
+        if(release != null) {
+            logger.debug("A Version 12 or higher is detected.");
+        }
+        logger.debug("No release was set to this job");
+        return release;
+    }
+    private static Long getReleaseVersion12(AbstractProject project){
+        for (Object publisher : project.getPublishersList()) {
+            if (publisher instanceof Publisher &&
+                    FOD_STATIC_ASSESSMENT_STEP.equals(publisher.getClass().getName())) {
+                return getReleaseByReflectionV12(publisher);
+            }
+        }
+        return null;
+    }
+    private static Long getReleaseVersionBefore12(AbstractProject project){
         for (Object publisher : project.getPublishersList()) {
             if (publisher instanceof Publisher &&
                     FOD_STATIC_ASSESSMENT_STEP.equals(publisher.getClass().getName())) {
@@ -86,7 +108,14 @@ public class FodConfigUtil {
         }
         return null;
     }
+    private static Long getReleaseByReflectionV12(Object fodPublisher) {
 
+        Object sharedBuildStep = getFieldValue(fodPublisher, "sharedBuildStep");
+        if(sharedBuildStep == null){
+            return null;
+        }
+        return getReleaseByReflection(sharedBuildStep);
+    }
     private static Long getReleaseByReflection(Object fodPublisher) {
 
         Object modelObj = getFieldValue(fodPublisher, "model");

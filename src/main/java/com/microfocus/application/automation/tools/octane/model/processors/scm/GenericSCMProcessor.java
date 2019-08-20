@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.scm.SCMCommit;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.model.User;
@@ -33,7 +34,6 @@ import hudson.model.UserProperty;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.tasks.Mailer;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
@@ -45,7 +45,7 @@ import java.util.List;
  */
 
 class GenericSCMProcessor implements SCMProcessor {
-	private static final Logger logger = LogManager.getLogger(GenericSCMProcessor.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GenericSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override

@@ -20,21 +20,28 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class PredefinedConfiguration {
+import java.io.File;
 
-    private String uiLocation;
+/**
+ * SDK based (log4j brought by SDK) logger provider
+ * Main purpose of this custom logger provider is to ensure correct logs location configuration at the earliest point of the plugin initialization
+ * TODO: this method might become a part of an SPI interface of SDK's plugin services
+ */
+public final class SDKBasedLoggerProvider {
+	private static volatile boolean sysParamConfigured = false;
 
-    public String getUiLocation() {
-        return uiLocation;
-    }
-
-    public void setUiLocation(String location) {
-        this.uiLocation = location;
-    }
+	private SDKBasedLoggerProvider(){
+		//CodeClimate  : Add a private constructor to hide the implicit public one.
+	}
+	public static Logger getLogger(Class<?> type) {
+		if (!sysParamConfigured) {
+			System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
+			sysParamConfigured = true;
+		}
+		return LogManager.getLogger(type);
+	}
 }

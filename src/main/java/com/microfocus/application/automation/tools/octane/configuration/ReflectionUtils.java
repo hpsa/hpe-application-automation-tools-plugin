@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
@@ -30,7 +29,7 @@ import java.lang.reflect.Field;
  * on whom we have no type data.
  */
 public class ReflectionUtils {
-    private static final Logger logger = LogManager.getLogger(ReflectionUtils.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(ReflectionUtils.class);
     public static <T>  T getFieldValue(Object someObject, String fieldName) {
         for (Field field : someObject.getClass().getDeclaredFields()) {
             field.setAccessible(true);

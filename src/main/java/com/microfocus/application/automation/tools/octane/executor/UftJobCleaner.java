@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.model.FreeStyleProject;
@@ -34,12 +35,10 @@ import hudson.model.PeriodicWork;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
-
 
 /**
  * This class cleans outdated test execution jobs that were not used more than 7 days.
@@ -47,8 +46,7 @@ import java.util.*;
  */
 @Extension
 public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
-
-    private static Logger logger = LogManager.getLogger(UftJobCleaner.class);
+    private static Logger logger = SDKBasedLoggerProvider.getLogger(UftJobCleaner.class);
 
     public UftJobCleaner() {
         super("Uft Job Cleaner");
@@ -81,7 +79,10 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     @Override
     protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        if(!OctaneSDK.hasClients()){
+            return;
+        }
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
 
         clearExecutionJobs(jobs);
         clearDiscoveryJobs(jobs);
@@ -168,7 +169,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     }
 
     public static void deleteExecutionJobByExecutorIfNeverExecuted(String executorToDelete) {
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
             if (UftJobRecognizer.isExecutorJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
@@ -195,7 +196,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
      */
     public static void deleteDiscoveryJobByExecutor(String executorToDelete) {
 
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+        List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
             if (UftJobRecognizer.isDiscoveryJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
@@ -208,7 +209,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
                         proj.getLastBuild().getExecutor().interrupt();
                         waitBeforeDelete = true;
                     } else if (proj.isInQueue()) {
-                        Jenkins.getInstance().getQueue().cancel(proj);
+                        Jenkins.getInstanceOrNull().getQueue().cancel(proj);
                         waitBeforeDelete = true;
                     }
 

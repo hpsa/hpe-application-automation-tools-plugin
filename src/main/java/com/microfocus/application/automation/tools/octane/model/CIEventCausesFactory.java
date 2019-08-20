@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.octane.model;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Cause;
@@ -30,7 +31,6 @@ import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
@@ -40,10 +40,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Causes Factory is a collection of static stateless methods to extract/traverse/transform causes chains of the runs
@@ -52,7 +49,7 @@ import java.util.Set;
  */
 
 public final class CIEventCausesFactory {
-	private static final Logger logger = LogManager.getLogger(CIEventCausesFactory.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIEventCausesFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private CIEventCausesFactory() {
@@ -63,7 +60,7 @@ public final class CIEventCausesFactory {
 			throw new IllegalArgumentException("run MUST NOT be null");
 		}
 
-		List<CIEventCause> result = new LinkedList<>();
+		Map<String, CIEventCause> result = new LinkedHashMap();//LinkedHashMap - save order of insertion
 		List<Cause> causes = run.getCauses();
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
@@ -73,25 +70,21 @@ public final class CIEventCausesFactory {
 			tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
 			if (cause instanceof SCMTrigger.SCMTriggerCause) {
 				tmpResultCause.setType(CIEventCauseType.SCM);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
 				tmpResultCause.setType(CIEventCauseType.TIMER);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UserIdCause) {
 				tmpUserCause = (Cause.UserIdCause) cause;
 				tmpResultCause.setType(CIEventCauseType.USER);
 				tmpResultCause.setUser(tmpUserCause.getUserId());
-				result.add(tmpResultCause);
-			} else if (cause instanceof Cause.RemoteCause) {
-				//  TODO: add support to remove cause execution in SDK/DTOs
-				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UpstreamCause) {
 				tmpUpstreamCause = (Cause.UpstreamCause) cause;
 
 				boolean succeededToBuildFlowCauses = false;
 				Run upstreamRun = tmpUpstreamCause.getUpstreamRun();
-				if (upstreamRun != null && JobProcessorFactory.WORKFLOW_RUN_NAME.equals(upstreamRun.getClass().getSimpleName())) {
+				if (upstreamRun != null && JobProcessorFactory.WORKFLOW_RUN_NAME.equals(upstreamRun.getClass().getName())) {
 
 					//  for the child of the Workflow - break aside and calculate the causes chain of the stages
 					WorkflowRun rootWFRun = (WorkflowRun) upstreamRun;
@@ -99,7 +92,7 @@ public final class CIEventCausesFactory {
 						FlowNode enclosingNode = lookupJobEnclosingNode(run, rootWFRun);
 						if (enclosingNode != null) {
 							List<CIEventCause> flowCauses = processCauses(enclosingNode);
-							result.addAll(flowCauses);
+							flowCauses.forEach(fc -> result.put(fc.generateKey(), fc));
 							succeededToBuildFlowCauses = true;
 						}
 					}
@@ -112,14 +105,14 @@ public final class CIEventCausesFactory {
 					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
 					tmpResultCause.setCauses(processCauses(upstreamRun));
-					result.add(tmpResultCause);
+					result.put(tmpResultCause.generateKey(), tmpResultCause);
 				}
-			} else {
+			} else { //  TODO: add support to Cause.RemoteCause execution in SDK/DTOs/Octane
 				tmpResultCause.setType(CIEventCauseType.UNDEFINED);
-				result.add(tmpResultCause);
+				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			}
 		}
-		return result;
+		return new ArrayList<>(result.values());
 	}
 
 	public static List<CIEventCause> processCauses(FlowNode flowNode) {

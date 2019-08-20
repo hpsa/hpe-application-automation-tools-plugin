@@ -170,7 +170,7 @@ namespace HpToolsLauncher
 
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
 
-            ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
+            ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
             if (reportPath != null)
             {

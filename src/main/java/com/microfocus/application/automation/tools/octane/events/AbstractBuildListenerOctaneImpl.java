@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -28,6 +29,7 @@ import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -41,7 +43,6 @@ import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import hudson.scm.SCM;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
@@ -57,7 +58,7 @@ import java.util.List;
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
 public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractBuild> {
-	private static final Logger logger = LogManager.getLogger(AbstractBuildListenerOctaneImpl.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(AbstractBuildListenerOctaneImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Inject
@@ -65,6 +66,9 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onStarted(AbstractBuild build, TaskListener listener) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
@@ -89,6 +93,9 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 
 	@Override
 	public void onFinalized(AbstractBuild build) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
 		try {
 			boolean hasTests = testListener.processBuild(build);
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)

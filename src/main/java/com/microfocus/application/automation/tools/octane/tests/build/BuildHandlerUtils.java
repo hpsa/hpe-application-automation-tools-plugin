@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.tests.build;
 
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
@@ -29,7 +30,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
@@ -51,7 +51,7 @@ import java.io.IOException;
  */
 
 public class BuildHandlerUtils {
-	private static final Logger logger = LogManager.getLogger(BuildHandlerUtils.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(BuildHandlerUtils.class);
 
 	public static BuildDescriptor getBuildType(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
@@ -139,6 +139,11 @@ public class BuildHandlerUtils {
 	public static String translateFolderJobName(String jobPlainName) {
 		String newSplitterCharacters = "/job/";
 		return jobPlainName.replaceAll("/", newSplitterCharacters);
+	}
+
+	public static String revertTranslateFolderJobName(String translatedJobName) {
+		String newSplitterCharacters = "/";
+		return translatedJobName.replaceAll("/job/", newSplitterCharacters);
 	}
 
 	public static CIBuildResult translateRunResult(Run run) {

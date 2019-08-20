@@ -50,15 +50,15 @@ namespace HpToolsLauncher
 
         public string MobileTenantId { get; set; }
 
-        public int MobileUseSsl { get; set; }
+        public int MobileUseSSL { get; set; }
 
         public int MobileUseProxy { get; set; }
         public int MobileProxyType { get; set; }
-        public string MobileProxySettingAddress { get; set; }
-        public int MobileProxySettingPort { get; set; }
-        public int MobileProxySettingAuthentication { get; set; }
-        public string MobileProxySettingUserName { get; set; }
-        public string MobileProxySettingPassword { get; set; }
+        public string MobileProxySetting_Address { get; set; }
+        public int MobileProxySetting_Port { get; set; }
+        public int MobileProxySetting_Authentication { get; set; }
+        public string MobileProxySetting_UserName { get; set; }
+        public string MobileProxySetting_Password { get; set; }
 
 
         public McConnectionInfo() {
@@ -67,25 +67,25 @@ namespace HpToolsLauncher
             MobilePassword = "";
             MobileHostAddress = "";
             MobileTenantId = "";
-            MobileUseSsl = 0;
+            MobileUseSSL = 0;
 
             MobileUseProxy = 0;
             MobileProxyType = 0;
-            MobileProxySettingAddress = "";
-            MobileProxySettingPort = 0;
-            MobileProxySettingAuthentication = 0;
-            MobileProxySettingUserName = "";
-            MobileProxySettingPassword = "";
+            MobileProxySetting_Address = "";
+            MobileProxySetting_Port = 0;
+            MobileProxySetting_Authentication = 0;
+            MobileProxySetting_UserName = "";
+            MobileProxySetting_Password = "";
 
         }
 
         public override string ToString()
         {
-            string mcConnectionStr = 
-                string.Format("Mc HostAddress: {0}, McPort: {1}, Username: {2}, TenantId: {3}, UseSSL: {4}, UseProxy: {5}, ProxyType: {6}, ProxyAddress: {7}, ProxyPort: {8}, ProxyAuth: {9}, ProxyUser: {10}",
-                MobileHostAddress, MobileHostPort, MobileUserName, MobileTenantId, MobileUseSsl, MobileUseProxy, MobileProxyType, MobileProxySettingAddress, MobileProxySettingPort, MobileProxySettingAuthentication,
-                MobileProxySettingUserName);
-            return mcConnectionStr;
+           string McConnectionStr = 
+                string.Format("UFT Mobile HostAddress: {0}, Port: {1}, Username: {2}, TenantId: {3}, UseSSL: {4}, UseProxy: {5}, ProxyType: {6}, ProxyAddress: {7}, ProxyPort: {8}, ProxyAuth: {9}, ProxyUser: {10}",
+                MobileHostAddress, MobileHostPort, MobileUserName, MobileTenantId, MobileUseSSL, MobileUseProxy, MobileProxyType, MobileProxySetting_Address, MobileProxySetting_Port, MobileProxySetting_Authentication,
+                MobileProxySetting_UserName);
+            return McConnectionStr;
         }
     }
 
@@ -657,7 +657,7 @@ namespace HpToolsLauncher
                                 string mcUseSSL = _ciParams["MobileUseSSL"];
                                 if (!string.IsNullOrEmpty(mcUseSSL))
                                 {
-                                    mcConnectionInfo.MobileUseSsl = int.Parse(mcUseSSL);
+                                    mcConnectionInfo.MobileUseSSL = int.Parse(mcUseSSL);
                                 }
                             }
 
@@ -694,8 +694,8 @@ namespace HpToolsLauncher
 
                                     if (strArrayForProxyAddress.Length == 2)
                                     {
-                                        mcConnectionInfo.MobileProxySettingAddress = strArrayForProxyAddress[0];
-                                        mcConnectionInfo.MobileProxySettingPort = int.Parse(strArrayForProxyAddress[1]);
+                                        mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
+                                        mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
                                     }
                                 }
                             }
@@ -706,7 +706,7 @@ namespace HpToolsLauncher
                                 string proxyAuthentication = _ciParams["MobileProxySetting_Authentication"];
                                 if (!string.IsNullOrEmpty(proxyAuthentication))
                                 {
-                                    mcConnectionInfo.MobileProxySettingAuthentication = int.Parse(proxyAuthentication);
+                                    mcConnectionInfo.MobileProxySetting_Authentication = int.Parse(proxyAuthentication);
                                 }
                             }
 
@@ -716,7 +716,7 @@ namespace HpToolsLauncher
                                 string proxyUsername = _ciParams["MobileProxySetting_UserName"];
                                 if (!string.IsNullOrEmpty(proxyUsername))
                                 {
-                                    mcConnectionInfo.MobileProxySettingUserName = proxyUsername;
+                                    mcConnectionInfo.MobileProxySetting_UserName = proxyUsername;
                                 }
                             }
 
@@ -726,7 +726,7 @@ namespace HpToolsLauncher
                                 string proxyPassword = _ciParams["MobileProxySetting_Password"];
                                 if (!string.IsNullOrEmpty(proxyPassword))
                                 {
-                                    mcConnectionInfo.MobileProxySettingPassword = Decrypt(proxyPassword, _secretKey);
+                                    mcConnectionInfo.MobileProxySetting_Password = Decrypt(proxyPassword, _secretKey);
                                 }
                             }
 

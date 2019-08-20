@@ -21,7 +21,7 @@
 package com.microfocus.application.automation.tools.octane.testrunner;
 
 import com.hp.octane.integrations.executor.TestsToRunFramework;
-import com.microfocus.application.automation.tools.model.EnumDescription;
+import com.microfocus.application.automation.tools.model.TestsFramework;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
@@ -35,29 +35,30 @@ public class TestsToRunConverterModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public final static EnumDescription none = new EnumDescription("", "");
+    public final static TestsFramework none = new TestsFramework("", "", "");
 
-    public final static List<EnumDescription> Frameworks;
+    public final static List<TestsFramework> Frameworks;
 
     private String framework;
+    private String format;
 
     static {
-        List<EnumDescription> temp = new ArrayList<>();
+        List<TestsFramework> temp = new ArrayList<>();
         temp.add(none);
         for (TestsToRunFramework fr : TestsToRunFramework.values()) {
-            temp.add(new EnumDescription(fr.value(), fr.getDesc()));
+            temp.add(new TestsFramework(fr.value(), fr.getDesc(), fr.getFormat()));
         }
         Frameworks = temp;
     }
 
     @DataBoundConstructor
-    public TestsToRunConverterModel(String framework) {
-
+    public TestsToRunConverterModel(String framework, String format) {
         this.framework = framework;
+        this.format = format;
     }
 
-    public String getFramework() {
-        return framework;
+    public TestsFramework getFramework() {
+        return new TestsFramework(framework, "", format);
     }
 
 }
