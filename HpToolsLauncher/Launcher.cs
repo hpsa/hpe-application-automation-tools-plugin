@@ -272,41 +272,31 @@ namespace HpToolsLauncher
             RunTests(runner, resultsFilename, results);
 
        
-            switch (_runType)
+            if (_runType.Equals(TestStorageType.FileSystem))
             {
-                case TestStorageType.Alm:
-                    // string filter = (_ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "");
+                string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
 
-                    // bool filterSelected = !string.IsNullOrEmpty(filter) && Convert.ToBoolean(filter.ToLower());
-                    break;
-                case TestStorageType.FileSystem:
+                _rerunFailedTests = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
+
+
+                //the "On failure" option is selected and the run build contains failed tests
+                if (_rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
                 {
-                    string onCheckFailedTests = (_ciParams.ContainsKey("onCheckFailedTest") ? _ciParams["onCheckFailedTest"] : "");
+                    ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
 
-                    _rerunFailedTests = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
+                    //rerun the selected tests (either the entire set or just the selected ones)
+                    //create the runner according to type
+                    runner = CreateRunner(_runType, _ciParams, false);
 
-
-                    //the "On failure" option is selected and the run build contains failed tests
-                    if (_rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
+                    //runner instantiation failed (no tests to run or other problem)
+                    if (runner == null)
                     {
-                        ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
-
-                        //rerun the selected tests (either the entire set or just the selected ones)
-                        //create the runner according to type
-                        runner = CreateRunner(_runType, _ciParams, false);
-
-                        //runner instantiation failed (no tests to run or other problem)
-                        if (runner == null)
-                        {
-                            Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-                        }
-
-                        TestSuiteRunResults rerunResults = runner.Run();
-                        results.AppendResults(rerunResults);
-                        RunTests(runner, resultsFilename, results);
+                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
                     }
 
-                    break;
+                    TestSuiteRunResults rerunResults = runner.Run();
+                    results.AppendResults(rerunResults);
+                    RunTests(runner, resultsFilename, results);
                 }
             }
 

@@ -480,8 +480,9 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                return null;
+                Console.WriteLine("Unable to retrieve test set folder: " + ex.Message);
             }
+
             return tsFolder;
         }
 
@@ -1197,14 +1198,6 @@ namespace HpToolsLauncher
                 //need to run this to install everything needed http://AlmServer:8080/qcbin/start_a.jsp?common=true
                 //start the scheduler
                 scheduler = targetTestSet.StartExecution("");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            try
-            {
                 currentTestSetInstances = GetTestInstancesString(targetTestSet);
             }
             catch (Exception ex)
@@ -1418,17 +1411,11 @@ namespace HpToolsLauncher
                             qTest.ErrorDesc = testExecStatusObj.Status + " : " + testExecStatusObj.Message;
                             break;
                         case TestState.Waiting:
-                            break;
                         case TestState.Running:
-                            break;
                         case TestState.NoRun:
-                            break;
                         case TestState.Passed:
-                            break;
                         case TestState.Warning:
-                            break;
                         case TestState.Unknown:
-                            break;
                         default:
                             break;
                     }
