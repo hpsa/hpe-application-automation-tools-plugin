@@ -431,7 +431,6 @@ namespace HpToolsLauncher
                 Type runResultsOptionstype = Type.GetTypeFromProgID("QuickTest.RunResultsOptions");
                 var options = (RunResultsOptions)Activator.CreateInstance(runResultsOptionstype);
                 options.ResultsLocation = testResults.ReportLocation;
-                // _qtpApplication.Options.Run.RunMode = _uftRunMode;
                 if (_uftRunMode != null)
                 {
                     _qtpApplication.Options.Run.RunMode = _uftRunMode;

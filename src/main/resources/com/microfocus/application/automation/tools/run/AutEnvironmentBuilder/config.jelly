@@ -31,26 +31,26 @@
 
            table tr td div.help {
                margin-left: 12px;
-               background: none !important;
-               border: none !important;
+               background: none;
+               border: none;
            }
 
            .help {
                border: none;
-               background: none !important;
-               background-color: transparent !important;
+               background: none;
+               background-color: transparent;
            }
 
            table td .help {
-               background: none !important;
+               background: none;
            }
 
            table tr[nameref^="rowSetStart"] {
-               background: none !important;
+               background: none;
            }
 
            table tr[nameref^="cb31"] {
-              background-color: transparent !important;
+              background-color: transparent;
            }
 
            textarea.setting-input{

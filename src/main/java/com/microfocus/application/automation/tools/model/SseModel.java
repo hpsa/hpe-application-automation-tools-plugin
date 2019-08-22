@@ -225,6 +225,7 @@ public class SseModel {
                             EncryptionUtils.getSecretKey());
         }catch (Exception e){
             e.printStackTrace();
+            
         }
 
         props.put("almPassword", encAlmPass);

@@ -218,7 +218,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
         URL cmdExeUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+                Jenkins.getInstanceOrNull().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
         if (cmdExeUrl == null) {
             listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
             return;
@@ -256,8 +256,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 build.setResult(Result.FAILURE);
                 return;
             } catch (InterruptedException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.println("Exception: " + e1.getMessage());
             }
 
             out.println("Operation was aborted by user.");

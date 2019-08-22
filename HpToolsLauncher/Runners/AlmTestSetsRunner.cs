@@ -96,6 +96,7 @@ namespace HpToolsLauncher
         public string ApiKey { get; set; }
 
 
+
         /// <summary>
         /// constructor
         /// </summary>
@@ -1199,7 +1200,6 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                scheduler = null;
                 Console.WriteLine(ex.Message);
             }
 
@@ -1250,7 +1250,6 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
             }
 
-            //  ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + " " + tsList.Count);
 
             //set test parameters
             if (filteredTestList.Count > 0)
@@ -1337,9 +1336,9 @@ namespace HpToolsLauncher
         /// <param name="abortFilename"></param>
         private void SetTestResults(ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
         {
-            if (currentTest == null) throw new ArgumentNullException("currentTest");
+            if (currentTest == null) throw new ArgumentNullException("Current test set is null.");
 
-            if (activeTestDesc == null) throw new ArgumentNullException("activeTestDesc");
+            if (activeTestDesc == null) throw new ArgumentNullException("The test run results are empty.");
 
             // write the status for each test
             for (var k = 1; k <= executionStatus.Count; ++k)
@@ -1472,10 +1471,7 @@ namespace HpToolsLauncher
                                              IExecutionStatus executionStatus, Stopwatch sw,
                                              ref ITSTest prevTest, ref ITSTest currentTest, string abortFilename)
         {
-            // if (activeTestDesc == null) throw new ArgumentNullException(nameof(activeTestDesc));
-
-            // if (currentTest == null) throw new ArgumentNullException(nameof(currentTest));
-
+           
             var tsExecutionFinished = false;
 
             while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))

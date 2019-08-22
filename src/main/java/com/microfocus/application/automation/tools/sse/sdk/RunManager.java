@@ -144,7 +144,6 @@ public class RunManager {
      * Log report url
      */
     private void logReportUrl(boolean isSucceeded, Args args) {
-        isSucceeded = true;
         if (isSucceeded) {
             _logger.log(String.format(
                     "%s run report for run id %s is at: %s",
