@@ -19,8 +19,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    var checkbox = document.getElementById('checkBox1');
-    if(checkbox.checked){
+    var checkbox1 = document.getElementById('checkBox1');
+
+    if(checkbox1.checked){
          document.getElementsByName("fsTestType")[0].disabled = false;
          document.getElementsByName("selectedNode")[0].disabled = false;
 
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementsByName("fsTestType")[0].disabled = true;
         document.getElementsByName("selectedNode")[0].disabled = true;
     }
+
 
 
     var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
@@ -149,4 +151,6 @@ function clearRerunSettings(){
         element.value = "";
     });
 }
+
+
 

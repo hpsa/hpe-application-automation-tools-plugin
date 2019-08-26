@@ -84,6 +84,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almTimeout,
             String almRunMode,
             String almRunHost,
+            String almClientID,
+            String almApiKey,
+            boolean isSSOEnabled,
             boolean isFilterTestsEnabled,
             FilterTestsModel filterTestsModel){
 
@@ -101,12 +104,17 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunResultsMode,
                         almTimeout,
                         almRunMode,
-                        almRunHost);
+                        almRunHost,
+                        isSSOEnabled,
+                        almClientID,
+                        almApiKey);
     }
 
     public String getAlmServerName(){
         return runFromAlmModel.getAlmServerName();
     }
+
+    public boolean getIsSSOEnabled() { return runFromAlmModel.isSSOEnabled(); }
 
     public String getAlmUserName(){
         return runFromAlmModel.getAlmUserName();
@@ -148,7 +156,11 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return isFilterTestsEnabled;
     }
 
-    @DataBoundSetter
+    public String getAlmClientID() { return runFromAlmModel.getAlmClientID(); }
+
+    public String getAlmApiKey() { return runFromAlmModel.getAlmApiKey(); }
+
+   @DataBoundSetter
     public void setIsFilterTestsEnabled(boolean isFilterTestsEnabled) {
         this.isFilterTestsEnabled = isFilterTestsEnabled;
     }
@@ -249,20 +261,21 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
+
         URL cmdExeUrl =
                 Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
             return;
         }
-        
+
         FilePath propsFileName = projectWS.child(ParamFileName);
         FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
-        
+
         try {
             // create a file for the properties file, and save the properties
             propsFileName.copyFrom(propsStream);
-            
+
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
         } catch (IOException e1) {
@@ -270,7 +283,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        
         try {
             // Run the HpToolsLauncher.exe
             AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);

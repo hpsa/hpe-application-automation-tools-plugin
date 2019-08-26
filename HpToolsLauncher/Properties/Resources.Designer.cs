@@ -63,9 +63,9 @@ namespace HpToolsLauncher.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Could not find TestSet {0}.
         /// </summary>
-        internal static string AlmRunnerCantFindTest {
+        internal static string AlmRunnerCantFindTestSet {
             get {
-                return ResourceManager.GetString("AlmRunnerCantFindTest", resourceCulture);
+                return ResourceManager.GetString("AlmRunnerCantFindTestSet", resourceCulture);
             }
         }
         
@@ -138,6 +138,15 @@ namespace HpToolsLauncher.Properties {
         internal static string AlmRunnerErrorGettingStat {
             get {
                 return ResourceManager.GetString("AlmRunnerErrorGettingStat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;Unable to login. Please check username and password.&quot;.
+        /// </summary>
+        internal static string AlmRunnerIncorectCredentials {
+            get {
+                return ResourceManager.GetString("AlmRunnerIncorectCredentials", resourceCulture);
             }
         }
         
@@ -259,11 +268,38 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot find the test folder..
+        /// </summary>
+        internal static string AlmTestSetsRunnerGetFolderError {
+            get {
+                return ResourceManager.GetString("AlmTestSetsRunnerGetFolderError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No test meets the filtering criteria..
+        /// </summary>
+        internal static string AlmTestSetsRunnerNoTestAfterApplyingFilters {
+            get {
+                return ResourceManager.GetString("AlmTestSetsRunnerNoTestAfterApplyingFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to delete report folder {0}..
         /// </summary>
         internal static string CannotDeleteReportFolder {
             get {
                 return ResourceManager.GetString("CannotDeleteReportFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CreateTDConnection.
+        /// </summary>
+        internal static string CreateTDConnection {
+            get {
+                return ResourceManager.GetString("CreateTDConnection", resourceCulture);
             }
         }
         
@@ -984,6 +1020,33 @@ namespace HpToolsLauncher.Properties {
         internal static string LuancherDisplayTimout {
             get {
                 return ResourceManager.GetString("LuancherDisplayTimout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter name missing. Please specify the parameter name..
+        /// </summary>
+        internal static string MissingParameterName {
+            get {
+                return ResourceManager.GetString("MissingParameterName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter value is unspecified. Please provide a value or an empty string..
+        /// </summary>
+        internal static string MissingParameterValue {
+            get {
+                return ResourceManager.GetString("MissingParameterValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are using an old version of QC. Please update ALM QC..
+        /// </summary>
+        internal static string OldVersionOfQC {
+            get {
+                return ResourceManager.GetString("OldVersionOfQC", resourceCulture);
             }
         }
         

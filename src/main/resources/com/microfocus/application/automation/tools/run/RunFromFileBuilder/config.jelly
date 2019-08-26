@@ -19,9 +19,87 @@
   ~ ___________________________________________________________________
   ~
   -->
+
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
          xmlns:cv="/lib/custom">
+
+     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
+     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
+
+     <style>
+        #testsTable {
+            border: 1px;
+            width: 85%;
+        }
+
+        .testsDropDown {
+            margin-left: 20px;
+        }
+
+
+        #testsDropDown {
+            width: 85%;
+        }
+
+        #clearBtn {
+            background-image: url("${rootURL}/plugin/hp-application-automation-tools-plugin/icons/uft_icons/eraser.png");
+            background-size: 18px;
+            width: 20px;
+            margin-left: 20px;
+            visibility: hidden;
+        }
+
+        #cleanupTestInput {
+            width: 250px;
+            margin-left: 10px;
+        }
+
+        #cleanupTestList {
+            margin-left: 20px;
+        }
+
+        #copyPasteBtn {
+            background-image: url("${rootURL}/plugin/hp-application-automation-tools-plugin/icons/uft_icons/copy_paste.png");
+            background-size: 45px;
+            width: 50px;
+            height: 28px;
+            margin-left: 10px;
+            visibility: hidden;
+        }
+
+        td.help-text {
+            padding-left: 15px;
+        }
+
+        input[name="runfromfs.isParallelRunnerEnabled"]{
+            margin-left: 35px;
+        }
+
+        table tr td div.help {
+            margin-left: 12px;
+            background: none !important;
+            border: none !important;
+        }
+
+        .help {
+            background: none !important;
+        }
+
+        table td.help {
+            background: none !important;
+        }
+
+        table tr[nameref^="rowSetStart"] {
+            background: none !important;
+        }
+
+        textarea.setting-input{
+            resize: vertical;
+        }
+     </style>
+
     <st:bind var="a" value="${descriptor}"/>
 
     <st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
@@ -36,15 +114,6 @@
       </td>
       <td/>
     </tr>
-
-
-    <!--script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"/-->
-
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
-
-    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/PARALLEL_RUNNER_UI.css"/>
 
     <f:entry>
         <label>Tests</label>
@@ -67,7 +136,7 @@
                 <f:property field="fileSystemTestSetModel"/>
             </f:entry>
         </cv:customOptionalBlock>
-     </f:entry>
+    </f:entry>
 
 
     <f:entry>
@@ -82,7 +151,7 @@
 		    <f:entry field="fsUftRunMode">
 		        <label>Run Mode</label>
 		        <f:entry>
-                    <select name="runPipeline.fsUftRunMode">
+                    <select name="runPipeline.fsUftRunMode" style="margin-bottom: -20px;">
                         <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
                             <f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
                                 ${runMode.description}
@@ -91,13 +160,12 @@
                     </select>
                 </f:entry>
 			</f:entry>
-
-            <f:entry field="uftSettingsModel">
+             <f:entry>
                 <f:property field="uftSettingsModel"/>
-            </f:entry>
+             </f:entry>
         </f:section>
     </f:advanced>
-	
+
     <f:advanced title="LoadRunner-Specific Settings">
     	<f:section title="LoadRunner Settings">
 			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
@@ -215,5 +283,4 @@
 
             </f:section>
         </f:advanced>
-    <!-- end -->
 </j:jelly>
