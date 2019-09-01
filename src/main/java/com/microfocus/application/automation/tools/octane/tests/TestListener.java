@@ -24,10 +24,11 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import com.microfocus.application.automation.tools.octane.tests.detection.UFTExtension;
 import com.microfocus.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.Run;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
@@ -47,6 +48,9 @@ public class TestListener {
 	private static final String STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "StormTestRunner";
 	private static final String STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "RunFromSrfBuilder";
 	private static final String PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "PcBuilder";
+	private static final String RUN_FROM_FILE_BUILDER = "RunFromFileBuilder";
+	private static final String RUN_FROM_ALM_BUILDER = "RunFromAlmBuilder";
+
 	public static final String TEST_RESULT_FILE = "mqmTests.xml";
 
 	public boolean processBuild(Run run) {
@@ -56,24 +60,34 @@ public class TestListener {
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.get().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
-		List<Builder> builders = JobProcessorFactory.getFlowProcessor(run.getParent()).tryGetBuilders();
-		if (builders != null) {
-			for (Builder builder : builders) {
-				if (STORMRUNNER_LOAD_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-					hpRunnerType = HPRunnerType.StormRunnerLoad;
-					break;
+		if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(run.getClass().getName())) {
+			ParametersAction parameterAction = run.getAction(ParametersAction.class);
+			if (parameterAction != null) {
+				ParameterValue pv = parameterAction.getParameter(HPRunnerType.class.getSimpleName());
+				if (pv != null) {
+					hpRunnerType = HPRunnerType.valueOf((String) pv.getValue());
 				}
-				if (STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-					hpRunnerType = HPRunnerType.StormRunnerFunctional;
-					break;
-				}
-				if (UFTExtension.RUN_FROM_FILE_BUILDER.equals(builder.getClass().getSimpleName()) || UFTExtension.RUN_FROM_ALM_BUILDER.equals(builder.getClass().getSimpleName())) {
-					hpRunnerType = HPRunnerType.UFT;
-					break;
-				}
-				if (PERFORMANCE_CENTER_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-					hpRunnerType = HPRunnerType.PerformanceCenter;
-					break;
+			}
+		} else {
+			List<Builder> builders = JobProcessorFactory.getFlowProcessor(run.getParent()).tryGetBuilders();
+			if (builders != null) {
+				for (Builder builder : builders) {
+					if (STORMRUNNER_LOAD_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
+						hpRunnerType = HPRunnerType.StormRunnerLoad;
+						break;
+					}
+					if (STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
+						hpRunnerType = HPRunnerType.StormRunnerFunctional;
+						break;
+					}
+					if (RUN_FROM_FILE_BUILDER.equals(builder.getClass().getSimpleName()) || RUN_FROM_ALM_BUILDER.equals(builder.getClass().getSimpleName())) {
+						hpRunnerType = HPRunnerType.UFT;
+						break;
+					}
+					if (PERFORMANCE_CENTER_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
+						hpRunnerType = HPRunnerType.PerformanceCenter;
+						break;
+					}
 				}
 			}
 		}

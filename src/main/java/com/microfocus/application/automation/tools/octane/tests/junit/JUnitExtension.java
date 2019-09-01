@@ -59,6 +59,7 @@ import java.util.*;
 public class JUnitExtension extends OctaneTestsExtension {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(JUnitExtension.class);
 
+	private static final String UFT = "UFT";
 	private static final String STORMRUNNER_LOAD = "StormRunner Load";
 	private static final String STORMRUNNER_FUNCTIONAL = "StormRunner Functional";
 	private static final String LOAD_RUNNER = "LoadRunner";
@@ -135,7 +136,9 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType, boolean isLoadRunnerProject) throws InterruptedException {
 		ResultFields detectedFields;
-		if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+		if(hpRunnerType.equals(HPRunnerType.UFT)){
+			detectedFields = new ResultFields(UFT, UFT, null);
+		} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
 			detectedFields = new ResultFields(null, STORMRUNNER_LOAD, null);
 		} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
 			detectedFields = new ResultFields(null, STORMRUNNER_FUNCTIONAL, null);
