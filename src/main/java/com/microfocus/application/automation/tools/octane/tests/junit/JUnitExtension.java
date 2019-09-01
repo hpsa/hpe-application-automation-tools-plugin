@@ -93,11 +93,10 @@ public class JUnitExtension extends OctaneTestsExtension {
 	public TestResultContainer getTestResults(Run<?, ?> run, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 		logger.debug("Collecting JUnit results");
 
-		boolean isLoadRunnerProject = isLoadRunnerProject(run);
 		FilePath resultFile = new FilePath(run.getRootDir()).child(JUNIT_RESULT_XML);
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
-			ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
+			ResultFields detectedFields = getResultFields(run, hpRunnerType);
 			FilePath workspace = BuildHandlerUtils.getWorkspace(run);
 			if (workspace == null) {
 				logger.error("Received null workspace : " + run);
@@ -124,7 +123,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 					}
 				}
 				if (!resultFiles.isEmpty()) {
-					ResultFields detectedFields = getResultFields(run, hpRunnerType, isLoadRunnerProject);
+					ResultFields detectedFields = getResultFields(run, hpRunnerType);
 					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, resultFiles, false, hpRunnerType, jenkinsRootUrl));
 					return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 				}
@@ -134,7 +133,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 		}
 	}
 
-	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType, boolean isLoadRunnerProject) throws InterruptedException {
+	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType) throws InterruptedException {
 		ResultFields detectedFields;
 		if(hpRunnerType.equals(HPRunnerType.UFT)){
 			detectedFields = new ResultFields(UFT, UFT, null);
@@ -142,7 +141,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			detectedFields = new ResultFields(null, STORMRUNNER_LOAD, null);
 		} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
 			detectedFields = new ResultFields(null, STORMRUNNER_FUNCTIONAL, null);
-		} else if (isLoadRunnerProject) {
+		} else if (isLoadRunnerProject(build)) {
 			detectedFields = new ResultFields(null, LOAD_RUNNER, null);
 		} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 			detectedFields = new ResultFields(null, PERFORMANCE_CENTER_RUNNER, null, PERFORMANCE_TEST_TYPE);
@@ -153,13 +152,17 @@ public class JUnitExtension extends OctaneTestsExtension {
 		return detectedFields;
 	}
 
-	private boolean isLoadRunnerProject(Run run) throws IOException, InterruptedException {
-		FilePath performanceReportFolder = new FilePath(run.getRootDir()).child(PERFORMANCE_REPORT);
-		FilePath transactionSummaryFolder = new FilePath(run.getRootDir()).child(TRANSACTION_SUMMARY);
-		return performanceReportFolder.exists() &&
-				performanceReportFolder.isDirectory() &&
-				transactionSummaryFolder.exists() &&
-				transactionSummaryFolder.isDirectory();
+	private boolean isLoadRunnerProject(Run run) {
+		try {
+			FilePath performanceReportFolder = new FilePath(run.getRootDir()).child(PERFORMANCE_REPORT);
+			FilePath transactionSummaryFolder = new FilePath(run.getRootDir()).child(TRANSACTION_SUMMARY);
+			return performanceReportFolder.exists() &&
+					performanceReportFolder.isDirectory() &&
+					transactionSummaryFolder.exists() &&
+					transactionSummaryFolder.isDirectory();
+		} catch (IOException | InterruptedException e) {
+			return false;
+		}
 	}
 
 	private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath> {
