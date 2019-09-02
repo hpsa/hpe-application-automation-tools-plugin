@@ -61,6 +61,8 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This service is responsible to create jobs (discovery and execution) for execution process.
@@ -478,7 +480,9 @@ public class TestExecutionJobCreatorService {
 				String label = "" + computer.getNode().getSelfLabel();
 				if (label.toLowerCase().contains("uft")) {
 					label = label.trim();
-					if (label.contains(" ")) {
+					Pattern p = Pattern.compile("[^\\w]");
+					Matcher m = p.matcher(label);
+					if (m.find()){
 						label = "\"" + label + "\"";
 					}
 					labels.add(label);
