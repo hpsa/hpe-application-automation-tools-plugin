@@ -22,13 +22,7 @@ package com.microfocus.application.automation.tools.model;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
-import com.microfocus.application.automation.tools.EncryptionUtils;
-import hudson.EnvVars;
-import hudson.util.Secret;
-import hudson.util.VariableResolver;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -42,7 +36,6 @@ public class SseModel {
     public static final String TEST_SET = "TEST_SET";
     public static final String BVS = "BVS";
     public static final String PC = "PC";
-    public static final String RUN_MODE = "Run locally";
     
     public static final String COLLATE = "Collate";
     public static final String COLLATE_ANALYZE = "CollateAndAnalyze";
@@ -62,7 +55,7 @@ public class SseModel {
     private final String _postRunAction;
     private final String _environmentConfigurationId;
     private final CdaDetails _cdaDetails;
-    
+
     private final static EnumDescription _runTypeTestSet =
             new EnumDescription(TEST_SET, "Test Set");
     private final static EnumDescription _runTypeBVS = new EnumDescription(
@@ -130,7 +123,7 @@ public class SseModel {
         
         return _almServerName;
     }
-    
+
     public String getAlmServerUrl() {
         
         return _almServerUrl;
@@ -208,50 +201,4 @@ public class SseModel {
         
         return _postRunAction;
     }
-
-    private Properties createProperties() {
-        Properties props = new Properties();
-
-        props.put("almRunHost", getAlmServerName());
-        props.put("almServerUrl", getAlmServerUrl());
-        props.put("almUserName", getAlmUserName());
-
-        String encAlmPass = "";
-        try {
-
-            encAlmPass =
-                    EncryptionUtils.Encrypt(
-                            getAlmPassword(),
-                            EncryptionUtils.getSecretKey());
-        }catch (Exception e){
-            e.printStackTrace();
-            
-        }
-
-        props.put("almPassword", encAlmPass);
-        props.put("almDomain", getAlmDomain());
-        props.put("almProject", getAlmProject());
-        props.put("clientType", getClientType());
-        props.put("almRunType", getRunType());
-        props.put("TestSet1", getAlmEntityId());
-        props.put("almTimeout", getTimeslotDuration());
-        props.put("description", getDescription());
-        props.put("environmentConfigurationId", getEnvironmentConfigurationId());
-        if(getCdaDetails() != null){
-            props.put("deploymentAction", getCdaDetails().getDeploymentAction());
-            props.put("deployedEnvironmentName", getCdaDetails().getDeployedEnvironmentName());
-            props.put("deprovisioningAction", getCdaDetails().getDeprovisioningAction());
-        }
-
-        props.put("almRunMode", RUN_MODE);
-
-        return props;
-
-    }
-
-    public Properties getProperties() {
-        return createProperties();
-    }
-
-
 }

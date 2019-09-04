@@ -20,18 +20,17 @@
 
 package com.microfocus.application.automation.tools.run;
 
-import java.io.*;
-import java.net.URL;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringWriter;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.CdaDetails;
 import com.microfocus.application.automation.tools.model.EnumDescription;
@@ -42,9 +41,6 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.Testsu
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
-import hudson.*;
-import hudson.util.IOUtils;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
@@ -60,6 +56,10 @@ import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import com.microfocus.application.automation.tools.sse.SSEBuilderPerformer;
 
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.*;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
@@ -77,21 +77,17 @@ import static com.microfocus.application.automation.tools.Messages.SseBuilderSte
  * This Jenkins plugin contains an unofficial implementation of some of the elements of the HPE ALM
  * Lab Management SDK. Users are free to use this plugin as they wish, but HPE does not take
  * responsibility for supporting or providing backwards compatibility for the functionality herein.
- * 
- * 
+ *
+ *
  * @author Effi Bar-She'an
  * @author Dani Schreiber
- * 
+ *
  */
 public class SseBuilder extends Builder implements SimpleBuildStep {
-    
+
     private SseModel _sseModel;
     private String _fileName;
-    private static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
-    private String ResultFilename = "ApiResults.xml";
-    private String ParamFileName = "ApiRun.txt";
 
-    
     private String almServerName;
     private String credentialsId;
     private String clientType;
@@ -104,7 +100,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     private String postRunAction;
     private String environmentConfigurationId;
     private CdaDetails cdaDetails;
-    
+
     //Databound setters and getters.
     public String getAlmServerName() { return almServerName; }
     public String getCredentialsId() { return credentialsId; }
@@ -122,21 +118,21 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     public boolean isCdaDetailsChecked() {
         return cdaDetails != null;
     }
-    
+
     @DataBoundSetter
     public void setDescription(String description) { this.description = description; }
-    
+
     @DataBoundSetter
     public void setPostRunAction(String postRunAction) { this.postRunAction = postRunAction; }
-    
+
     @DataBoundSetter
     public void setEnvironmentConfigurationId(String environmentConfigurationId) {
         this.environmentConfigurationId = environmentConfigurationId;
     }
-    
+
     @DataBoundSetter
     public void setCdaDetails(CdaDetails cdaDetails) { this.cdaDetails = cdaDetails; }
-    
+
     /**
      * Should only contains mandatory properties.
      */
@@ -149,7 +145,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     		String runType,
     		String almEntityId,
             String timeslotDuration) {
-    	
+
 		this.almServerName = almServerName;
 		this.credentialsId = credentialsId;
 		this.almProject = almProject;
@@ -159,15 +155,15 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 		this.almEntityId = almEntityId;
 		this.clientType = clientType;
 	}
-    
+
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
             TaskListener listener) throws InterruptedException, IOException {
 
         PrintStream logger = listener.getLogger();
-    	
+
         UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
-    	
+
     	_sseModel = new SseModel(
                 almServerName,
                 credentials.getUsername(),
@@ -182,88 +178,17 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 postRunAction,
                 environmentConfigurationId,
                 cdaDetails);
-    	
+
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
 
-        // now merge them into one list
-        Properties mergedProperties = new Properties();
+        VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
+        Testsuites testsuites = execute(build, logger, varResolver);
 
-        mergedProperties.putAll(_sseModel.getProperties());
-
-        mergedProperties.put("runType", AlmRunTypes.RunType.AlmLabManagement.toString());
-
-        Date now = new Date();
-        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-        String time = formatter.format(now);
-
-        // get a unique filename for the params file
-        ParamFileName = "props" + time + ".txt";
-        ResultFilename = "Results" + time + ".xml";
-        mergedProperties.put("resultsFilename", ResultFilename);
-
-        // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            mergedProperties.store(stream, "");
-        } catch (IOException e) {
-            listener.error("Storing run variable failed: " + e);
-            build.setResult(Result.FAILURE);
-        }
-        String propsSerialization = stream.toString();
-        InputStream propsStream = IOUtils.toInputStream(propsSerialization);
-
-        // get the remote workspace filesys
-        FilePath projectWS = workspace;
-
-        // Get the URL to the Script used to run the test, which is bundled
-        // in the plugin
-        URL cmdExeUrl =
-                Jenkins.getInstanceOrNull().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
-        if (cmdExeUrl == null) {
-            listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
-            return;
-        }
-
-        FilePath propsFileName = projectWS.child(ParamFileName);
-        FilePath CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
-
-        try {
-            // create a file for the properties file, and save the properties
-            propsFileName.copyFrom(propsStream);
-
-            // Copy the script to the project workspace
-            CmdLineExe.copyFrom(cmdExeUrl);
-        } catch (IOException e1) {
-            build.setResult(Result.FAILURE);
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-
-        try {
-            // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
-        } catch (IOException ioe) {
-            Util.displayIOException(ioe, listener);
-            build.setResult(Result.FAILURE);
-            return;
-        } catch (InterruptedException e) {
-            build.setResult(Result.ABORTED);
-            PrintStream out = listener.getLogger();
-            try {
-                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
-            } catch (IOException e1) {
-                Util.displayIOException(e1, listener);
-                build.setResult(Result.FAILURE);
-                return;
-            } catch (InterruptedException e1) {
-                logger.println("Exception: " + e1.getMessage());
-            }
-
-            out.println("Operation was aborted by user.");
-        }
-        return;
+        FilePath resultsFilePath = workspace.child(getFileName());
+        Result resultStatus = createRunResults(resultsFilePath, testsuites, logger);
+        provideStepResultStatus(resultStatus, build, logger);
     }
-    
+
     /**
      * Get user name password credentials by id.
      */
@@ -271,18 +196,18 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     	if (StringUtils.isBlank(credentialsId)) {
     		throw new NullPointerException("credentials is not configured.");
     	}
-    	
+
     	UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
         		StandardUsernamePasswordCredentials.class,
         		run,
     			URIRequirementBuilder.create().build());
-    	
+
     	if (credentials == null) {
     		logger.println("Can not find credentials with the credentialsId:" + credentialsId);
     	}
     	return credentials;
     }
-        
+
     public AlmServerSettingsModel getAlmServerSettingsModel() {
         AlmServerSettingsModel ret = null;
         for (AlmServerSettingsModel almServer : getDescriptor().getAlmServers()) {
@@ -293,22 +218,22 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         }
         return ret;
     }
-    
+
     private void provideStepResultStatus(
             Result resultStatus,
             Run<?, ?> build,
             PrintStream logger) {
-        
+
         logger.println(String.format("Result Status: %s", resultStatus.toString()));
         build.setResult(resultStatus);
-        
+
     }
-    
+
     private Testsuites execute(
             Run<?, ?> build,
             PrintStream logger,
             VariableResolver<String> buildVariableResolver) throws InterruptedException {
-        
+
         Testsuites ret = null;
         SSEBuilderPerformer performer = null;
         try {
@@ -322,12 +247,12 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             build.setResult(Result.FAILURE);
             logger.print(String.format("Failed to execute test, Exception: %s", cause.getMessage()));
         }
-        
+
         return ret;
     }
-    
+
     private Result createRunResults(FilePath filePath, Testsuites testsuites, PrintStream logger) {
-        
+
         Result ret = Result.SUCCESS;
         try {
             if (testsuites != null) {
@@ -343,19 +268,19 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 logger.println("Empty Results");
                 ret = Result.UNSTABLE;
             }
-            
+
         } catch (Exception cause) {
             logger.print(String.format(
                     "Failed to create run results, Exception: %s",
                     cause.getMessage()));
             ret = Result.UNSTABLE;
         }
-        
+
         return ret;
     }
-    
+
     private boolean containsErrors(List<Testsuite> testsuites) {
-        
+
         boolean ret = false;
         for (Testsuite testsuite : testsuites) {
             for (Testcase testcase : testsuite.getTestcase()) {
@@ -365,12 +290,20 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 }
             }
         }
-        
+
         return ret;
     }
-    
+
+    private String getFileName() {
+
+        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+        String time = formatter.format(new Date());
+        _fileName = String.format("Results%s.xml", time);
+        return _fileName;
+    }
+
     private void stop(SSEBuilderPerformer performer, PrintStream logger) {
-        
+
         try {
             if (performer != null) {
                 performer.stop();
@@ -379,25 +312,25 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             logger.println(String.format("Failed to stop BVS. Exception: %s", cause.getMessage()));
         }
     }
-    
+
     private Testsuites execute(
             SSEBuilderPerformer performer,
             final PrintStream logger,
             VariableResolver<String> buildVariableResolver) throws InterruptedException,
             IOException {
-        
+
         return performer.start(_sseModel, new Logger() {
-            
+
             @Override
             public void log(String message) {
-                
+
                 logger.println(message);
             }
         }, buildVariableResolver);
     }
-    
+
     public String getServerUrl(String almServerName) {
-        
+
         String ret = "";
         AlmServerSettingsModel[] almServers = getDescriptor().getAlmServers();
         if (almServers != null && almServers.length > 0) {
@@ -408,98 +341,98 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 }
             }
         }
-        
+
         return ret;
     }
-    
+
     public SseModel getSseModel() {
-        
+
         return _sseModel;
     }
-    
+
     public String getRunResultsFileName() {
-        
+
         return _fileName;
     }
-    
+
     @Override
     public DescriptorImpl getDescriptor() {
-        
+
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     // This indicates to Jenkins that this is an implementation of an extension point
     @Extension
     // To expose this builder in the Snippet Generator.
     @Symbol("sseBuild")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        
+
         public DescriptorImpl() {
-            
+
             load();
         }
-        
+
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            
+
             return true;
         }
-        
+
         @Override
         public String getDisplayName() {
             return SseBuilderStepName(CompanyName());
         }
-        
+
         public boolean hasAlmServers() {
-            
+
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
         }
-        
+
         public AlmServerSettingsModel[] getAlmServers() {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }
-        
+
         public FormValidation doCheckTimeslotDuration(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
             	return FormValidation.error("Timeslot duration must be set");
             }
-            
+
             String val1 = value.trim();
-            
+
             if (!StringUtils.isNumeric(val1)) {
             	return FormValidation.error("Timeslot duration must be a number");
             }
-            
+
             if (Integer.valueOf(val1) < 30) {
             	return FormValidation.error("Timeslot duration must be higher than 30");
             }
-            
+
             return FormValidation.ok();
         }
-        
+
         public FormValidation doCheckAlmDomain(@QueryParameter String value) {
-            
+
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
                 ret = FormValidation.error("Domain must be set");
             }
-            
+
             return ret;
         }
-        
+
         public FormValidation doCheckAlmProject(@QueryParameter String value) {
-            
+
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
                 ret = FormValidation.error("Project must be set");
             }
-            
+
             return ret;
         }
-        
+
         public FormValidation doCheckAlmEntityId(@QueryParameter String value) {
 
             FormValidation ret = FormValidation.ok();
@@ -509,34 +442,34 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 
             return ret;
         }
-        
+
         public List<EnumDescription> getRunTypes() {
-            
+
             return SseModel.getRunTypes();
         }
-        
+
         public List<EnumDescription> getPostRunActions() {
-            
+
             return SseModel.getPostRunActions();
         }
-        
+
         public List<EnumDescription> getDeploymentActions() {
-            
+
             return CdaDetails.getDeploymentActions();
         }
-        
+
         public static List<EnumDescription> getDeprovisioningActions() {
-            
+
             return CdaDetails.getDeprovisioningActions();
         }
-        
+
         /**
          * To fill in the credentials drop down list which's field is 'credentialsId'.
          * This method's name works with tag <c:select/>.
          */
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
                 @QueryParameter String credentialsId) {
-        	
+
 			if (project == null || !project.hasPermission(Item.CONFIGURE)) {
                 return new StandardUsernameListBoxModel().includeCurrentValue(credentialsId);
             }
@@ -549,39 +482,39 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                             URIRequirementBuilder.create().build())
                     .includeCurrentValue(credentialsId);
 		}
-        
+
         public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
                 @QueryParameter String url,
                 @QueryParameter String value) {
 			if (project == null || !project.hasPermission(Item.EXTENDED_READ)) {
 				return FormValidation.ok();
 			}
-			
+
 			value = Util.fixEmptyAndTrim(value);
 			if (value == null) {
 				return FormValidation.ok();
 			}
-			
+
 			url = Util.fixEmptyAndTrim(url);
 			if (url == null)
 			// not set, can't check
 			{
 				return FormValidation.ok();
 			}
-			
+
 			if (url.indexOf('$') >= 0)
 			// set by variable, can't check
 			{
 				return FormValidation.ok();
 			}
-			
+
 			for (ListBoxModel.Option o : CredentialsProvider.listCredentials(
-						StandardUsernamePasswordCredentials.class, 
-						project, 
+						StandardUsernamePasswordCredentials.class,
+						project,
 						project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
 						URIRequirementBuilder.create().build(),
 						new IdMatcher(value))) {
-				
+
 				if (StringUtils.equals(value, o.value)) {
 					return FormValidation.ok();
 				}

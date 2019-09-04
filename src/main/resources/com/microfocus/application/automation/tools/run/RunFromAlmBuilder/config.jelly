@@ -32,8 +32,8 @@
 
         table tr td div.help {
             margin-left: 12px;
-            background: none !important;
-            border: none !important;
+            background: none;
+            border: none;
         }
 
         input[name="runfromAlm.isFilterTestsEnabled"]{
@@ -42,20 +42,20 @@
 
         .help {
             border: none;
-            background: none !important;
-            background-color: transparent !important;
+            background: none;
+            background-color: transparent;
         }
 
         table td .help {
-            background: none !important;
+            background: none;
         }
 
         table tr[nameref^="rowSetStart"] {
-            background: none !important;
+            background: none;
         }
 
         table tr[nameref^="cb20"] {
-           background-color: transparent !important;
+           background-color: transparent;
         }
 
         textarea.setting-input{
@@ -110,9 +110,9 @@
         </f:entry>
 
         <f:entry>
-            <label id="apiKey">Api Key</label>
+            <label id="apiKey">API key secret</label>
             <f:entry field="almApiKey">
-                <f:textbox name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}"/>
+                 <f:password name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}"/>
             </f:entry>
         </f:entry>
 

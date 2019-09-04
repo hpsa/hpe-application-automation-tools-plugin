@@ -223,7 +223,20 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem in qcPassword encription");
+            listener.fatalError("problem with qcPassword encryption");
+        }
+
+        String encAlmApiKey = "";
+        try{
+            encAlmApiKey =
+                    EncryptionUtils.Encrypt(
+                            runFromAlmModel.getAlmApiKey(),
+                            EncryptionUtils.getSecretKey());
+            mergedProperties.remove(RunFromAlmModel.ALM_API_KEY);
+            mergedProperties.put(RunFromAlmModel.ALM_API_KEY, encAlmApiKey);
+        }catch (Exception e) {
+            build.setResult(Result.FAILURE);
+            listener.fatalError("problem with apiKey encryption");
         }
 
         if(isFilterTestsEnabled){
