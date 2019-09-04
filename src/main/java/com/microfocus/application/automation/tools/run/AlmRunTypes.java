@@ -22,7 +22,7 @@ package com.microfocus.application.automation.tools.run;
 public class AlmRunTypes {
 
 	public enum RunType {
-		Alm, AlmLabManagement, FileSystem, LoadRunner
+		Alm, FileSystem, LoadRunner
 	}
 	
 }
