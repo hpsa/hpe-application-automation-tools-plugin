@@ -52,7 +52,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
     public final static String ALM_PASSWORD_KEY = "almPassword";
-    public final static String ALM_API_KEY = "almApiKey";
+    public final static String ALM_API_KEY_SECRET = "almApiKey";
 
     private String almServerName;
     private String almUserName;

@@ -232,8 +232,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                     EncryptionUtils.Encrypt(
                             runFromAlmModel.getAlmApiKey(),
                             EncryptionUtils.getSecretKey());
-            mergedProperties.remove(RunFromAlmModel.ALM_API_KEY);
-            mergedProperties.put(RunFromAlmModel.ALM_API_KEY, encAlmApiKey);
+            mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
+            mergedProperties.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
         }catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("problem with apiKey encryption");
