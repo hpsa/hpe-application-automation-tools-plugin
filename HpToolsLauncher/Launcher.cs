@@ -317,49 +317,7 @@ namespace HpToolsLauncher
             
             switch (runType)
             {
-                /*case TestStorageType.AlmLabManagement:
-                    List<string> testSetsList = GetParamsWithPrefix("TestSet");
-                   
-                    string filterByName = (_ciParams.ContainsKey("FilterByName") ? _ciParams["FilterByName"] : "");
-
-                    string statuses = (_ciParams.ContainsKey("FilterByStatus") ? _ciParams["FilterByStatus"] : "");
-
-                    List<string> filterByStatuses = new List<string>();
-
-                    if (statuses != "" && statuses.Contains(","))
-                    {
-
-                        filterByStatuses = statuses.Split(',').ToList();
-                    }
-                    else
-                    {
-                        filterByStatuses.Add(statuses);
-                    }
-                    
-
-                    bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") && Convert.ToBoolean(_ciParams["SSOEnabled"]);
-                    string almClientID = _ciParams.ContainsKey("almClientID") ? _ciParams["almClientID"] : "";
-                    string almAPIKey = _ciParams.ContainsKey("almApiKey") ? _ciParams["almApiKey"] : "";
-
-                    //create an Alm runner
-                    runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
-                                     _ciParams["almUserName"],
-                                     Decrypt(_ciParams["almPassword"], _secretKey),
-                                     _ciParams["almDomain"],
-                                     _ciParams["almProject"],
-                                     Convert.ToDouble(_ciParams["almTimeout"]),
-                                     QcRunMode.RUN_LOCAL,
-                                     "",
-                                     testSetsList,
-                                     false,
-                                     filterByName,
-                                     filterByStatuses,   
-                                     initialTestRun,
-                                     TestStorageType.AlmLabManagement,
-                                     isSSOEnabled, almClientID, almAPIKey);
-                    break;*/
-
-                case TestStorageType.Alm:
+                 case TestStorageType.Alm:
                     //check that all required parameters exist
                     foreach (string param1 in requiredParamsForQcRun)
                     {
