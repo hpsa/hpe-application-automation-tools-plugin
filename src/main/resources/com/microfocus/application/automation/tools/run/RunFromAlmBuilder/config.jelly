@@ -42,7 +42,7 @@
 
         .help {
             border: none;
-            background: none;
+            background: none !important;
             background-color: transparent;
         }
 
