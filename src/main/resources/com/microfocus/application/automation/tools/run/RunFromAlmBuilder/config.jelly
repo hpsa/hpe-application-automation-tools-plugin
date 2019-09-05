@@ -61,6 +61,16 @@
         textarea.setting-input{
             resize: vertical;
         }
+
+        [name="runfromalm.isSSOEnabled"] {
+            position: relative;
+            top: 1px !important;
+        }
+
+        [name="runfromAlm.isFilterTestsEnabled"] {
+            position: relative;
+            top: 2px;
+        }
     </style>
 
 	<j:if test="${empty(descriptor.almServers)}">
