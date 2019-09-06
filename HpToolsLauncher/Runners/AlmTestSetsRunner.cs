@@ -282,7 +282,8 @@ namespace HpToolsLauncher
                 || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
                 || string.IsNullOrWhiteSpace(qcDomain)
                 || string.IsNullOrWhiteSpace(qcProject)
-                || (SSOEnabled && (string.IsNullOrWhiteSpace(qcClientID) || string.IsNullOrWhiteSpace(qcApiKey))))
+                || (SSOEnabled && (string.IsNullOrWhiteSpace(qcClientID) 
+                || string.IsNullOrWhiteSpace(qcApiKey))))
             {
                 ConsoleWriter.WriteLine(Resources.AlmRunnerConnParamEmpty);
                 return false;
@@ -312,10 +313,6 @@ namespace HpToolsLauncher
                         if (!SSOEnabled)
                         {
                             TdConnection.Login(qcLogin, qcPass);
-                        }
-                        else
-                        {
-                            TdConnection.Login(qcClientID, qcApiKey);
                         }
                     }
                     catch (Exception ex)
@@ -365,7 +362,6 @@ namespace HpToolsLauncher
                 {
                     try
                     {
-
                         TdConnectionOld.Login(qcLogin, qcPass);
                     }
                     catch (Exception ex)
