@@ -71,6 +71,17 @@
             position: relative;
             top: 2px;
         }
+
+        [name="runfromalm.almClientID"] {
+             margin-bottom: 10px;
+        }
+        [name="runfromalm.almApiKey"] {
+             margin-bottom: 10px;
+        }
+        [name="runfromalm.almUserName"] {
+             margin-bottom: 10px;
+        }
+
     </style>
 
 	<j:if test="${empty(descriptor.almServers)}">
@@ -115,21 +126,27 @@
         <f:entry>
             <label id="clientId">Client ID</label>
             <f:entry field="almClientID">
-                <f:textbox name="runfromalm.almClientID" value="${instance.runFromAlmModel.almClientID}"/>
+                <f:textbox name="runfromalm.almClientID" value="${instance.runFromAlmModel.almClientID}" onclick="validateField()" onKeyPress="validateField()"
+                        onKeyUp="validateField()" />
+                <label id="errClientID" style="color: #CC0000; font-weight: bold; padding-top: 5px;">Client ID must be set</label>
             </f:entry>
         </f:entry>
 
         <f:entry>
             <label id="apiKey">API key secret</label>
             <f:entry field="almApiKey">
-                 <f:password name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}"/>
+                <f:password name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}" onclick="validateField()" onKeyPress="validateField()"
+                    onKeyUp="validateField()"/>
+                <label id="errApiKey" style="color: #CC0000; font-weight: bold;">Api key secret must be set</label>
             </f:entry>
         </f:entry>
 
         <f:entry>
             <label id="userName">User name</label>
             <f:entry field="almUserName">
-                <f:textbox name="runfromalm.almUserName" value="${instance.runFromAlmModel.almUserName}"/>
+                <f:textbox name="runfromalm.almUserName" value="${instance.runFromAlmModel.almUserName}" onclick="validateField()" onKeyPress="validateField()"
+                    onKeyUp="validateField()"/>
+                <label id="errUsername" style="color: #CC0000; font-weight: bold;">Username must be set</label>
             </f:entry>
         </f:entry>
 

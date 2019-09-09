@@ -25,6 +25,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 
@@ -226,5 +228,29 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         public List<EnumDescription> getAlmRunModes() {
             return runModes;
         }
+
+        /*public FormValidation doCheckAlmClientID(@QueryParameter String value){
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Client ID must be set");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckAlmApiKey(@QueryParameter String value){
+            if (StringUtils.isBlank(value) && isSSOEnabled) {
+                return FormValidation.error("Api key secret must be set");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckAlmUserName(@QueryParameter String value) {
+            if (StringUtils.isBlank(value) && !isSSOEnabled) {
+                return FormValidation.error("User name must be set");
+            }
+
+            return FormValidation.ok();
+        }*/
     }
 }

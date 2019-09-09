@@ -65,7 +65,7 @@ import static com.microfocus.application.automation.tools.Messages.RunFromAlmBui
 
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
-    private final RunFromAlmModel runFromAlmModel;
+    public RunFromAlmModel runFromAlmModel;
     private boolean isFilterTestsEnabled;
     private FilterTestsModel filterTestsModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
@@ -378,7 +378,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         public String getDisplayName() {
             return RunFromAlmBuilderStepName(CompanyName());
         }
-        
+
+
         public boolean hasAlmServers() {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
@@ -388,17 +389,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }
-        
-        public FormValidation doCheckAlmUserName(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("User name must be set");
-            }
-            
-            return FormValidation.ok();
-        }
-        
+
+
         public FormValidation doCheckAlmTimeout(@QueryParameter String value) {
-            
+
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.ok();
             }
