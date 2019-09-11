@@ -55,7 +55,7 @@ public class SseModel {
     private final String _postRunAction;
     private final String _environmentConfigurationId;
     private final CdaDetails _cdaDetails;
-    
+
     private final static EnumDescription _runTypeTestSet =
             new EnumDescription(TEST_SET, "Test Set");
     private final static EnumDescription _runTypeBVS = new EnumDescription(
@@ -123,7 +123,7 @@ public class SseModel {
         
         return _almServerName;
     }
-    
+
     public String getAlmServerUrl() {
         
         return _almServerUrl;

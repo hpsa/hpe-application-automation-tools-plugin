@@ -26,6 +26,12 @@
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
 
+    <style>
+        table tr[nameref^="rowSetStart"] {
+                    background: none !important;
+                }
+    </style>
+
     <f:entry>
         <f:entry>
            <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest" class="checbox-align" checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>

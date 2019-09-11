@@ -243,19 +243,24 @@ namespace HpToolsLauncher
         {
             string ver;
             string build;
-            TdConnection.GetTDVersion(out ver, out build);
             bool oldQc = false;
-            if (ver != null)
+            if (TdConnection != null)
             {
-                var intver = -1;
-                int.TryParse(ver, out intver);
-                if (intver <= 10)
+                TdConnection.GetTDVersion(out ver, out build);
+               
+                if (ver != null)
+                {
+                    var intver = -1;
+                    int.TryParse(ver, out intver);
+                    if (intver <= 10)
+                        oldQc = true;
+                }
+                else
+                {
                     oldQc = true;
+                }
             }
-            else
-            {
-                oldQc = true;
-            }
+
             return oldQc;
         }
         
@@ -276,7 +281,9 @@ namespace HpToolsLauncher
             if (string.IsNullOrWhiteSpace(qcServerUrl)
                 || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
                 || string.IsNullOrWhiteSpace(qcDomain)
-                || string.IsNullOrWhiteSpace(qcProject))
+                || string.IsNullOrWhiteSpace(qcProject)
+                || (SSOEnabled && (string.IsNullOrWhiteSpace(qcClientID) 
+                || string.IsNullOrWhiteSpace(qcApiKey))))
             {
                 ConsoleWriter.WriteLine(Resources.AlmRunnerConnParamEmpty);
                 return false;
@@ -306,10 +313,6 @@ namespace HpToolsLauncher
                         if (!SSOEnabled)
                         {
                             TdConnection.Login(qcLogin, qcPass);
-                        }
-                        else
-                        {
-                            TdConnection.Login(qcClientID, qcApiKey);
                         }
                     }
                     catch (Exception ex)
@@ -359,7 +362,6 @@ namespace HpToolsLauncher
                 {
                     try
                     {
-
                         TdConnectionOld.Login(qcLogin, qcPass);
                     }
                     catch (Exception ex)
@@ -1345,7 +1347,7 @@ namespace HpToolsLauncher
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
                 if (currentTest == null)
-                {
+                {   
                     ConsoleWriter.WriteLine(String.Format("currentTest is null for test.{0} after whole execution", k));
                     continue;
                 }

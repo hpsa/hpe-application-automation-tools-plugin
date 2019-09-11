@@ -37,7 +37,7 @@
 
            .help {
                border: none;
-               background: none;
+               background: none !important;
                background-color: transparent;
            }
 
@@ -46,7 +46,7 @@
            }
 
            table tr[nameref^="rowSetStart"] {
-               background: none;
+               background: none !important;
            }
 
            table tr[nameref^="cb31"] {

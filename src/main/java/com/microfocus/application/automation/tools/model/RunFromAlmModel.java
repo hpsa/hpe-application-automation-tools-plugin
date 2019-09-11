@@ -25,6 +25,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 
@@ -52,6 +54,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
     public final static String ALM_PASSWORD_KEY = "almPassword";
+    public final static String ALM_API_KEY_SECRET = "almApiKey";
 
     private String almServerName;
     private String almUserName;
@@ -199,8 +202,17 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
         props.put("almRunMode", almRunMode);
         props.put("almRunHost", almRunHost);
-        props.put("almClientID", almClientID);
-        props.put("almApiKey", almApiKey);
+        if(almClientID != null){
+            props.put("almClientID", almClientID);
+        } else {
+            props.put("almClientID", "");
+        }
+
+        if(almApiKey != null){
+            props.put("almApiKey", almApiKey);
+        }else{
+            props.put("almApiKey", "");
+        }
 
         return props;
     }

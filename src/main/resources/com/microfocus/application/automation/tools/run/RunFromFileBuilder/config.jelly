@@ -79,8 +79,8 @@
 
         table tr td div.help {
             margin-left: 12px;
-            background: none !important;
-            border: none !important;
+            background: none;
+            border: none;
         }
 
         .help {
@@ -88,11 +88,11 @@
         }
 
         table td.help {
-            background: none !important;
+            background: none;
         }
 
         table tr[nameref^="rowSetStart"] {
-            background: none !important;
+            background: none;
         }
 
         textarea.setting-input{
