@@ -20,16 +20,18 @@
 
 package com.microfocus.application.automation.tools.pipelineSteps;
 
+import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -61,6 +63,9 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
     @Override
     protected Void run() throws Exception {
         listener.getLogger().println("Running UFT Scenario step");
+
+        setRunnerTypeAsParameter();
+
         step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
 
         HashMap<String, String> resultFilename = new HashMap<String, String>(0);
@@ -68,5 +73,13 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
         step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
 
         return null;
+    }
+
+    private void setRunnerTypeAsParameter() {
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+        newParams.add(new StringParameterValue(HPRunnerType.class.getSimpleName(), HPRunnerType.UFT.name()));
+        ParametersAction newParametersAction = new ParametersAction(newParams);
+        build.addOrReplaceAction(newParametersAction);
     }
 }
