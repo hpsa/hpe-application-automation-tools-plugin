@@ -24,6 +24,7 @@ import com.microfocus.application.automation.tools.lr.Messages;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.EnvVars;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.apache.commons.lang.StringUtils;
 import javax.annotation.Nonnull;
@@ -61,14 +62,14 @@ public class ScriptRTSModel extends AbstractDescribableImpl<ScriptRTSModel> {
      * @param props
      * @param scriptName
      */
-    void addAdditionalAttributesToPropsFile(Properties props, String scriptName)
+    void addAdditionalAttributesToPropsFile(Properties props, String scriptName, EnvVars envVars)
     {
         for (AdditionalAttributeModel additionalAttribute: this.additionalAttributes) {
             if (!StringUtils.isEmpty(additionalAttribute.getName())) {
                 props.put("AdditionalAttribute" + additionalAttributeCounter,
                     scriptName + ";"
                     + additionalAttribute.getName() + ";"
-                    + additionalAttribute.getValue() + ";"
+                    + envVars.expand(additionalAttribute.getValue()) + ";"
                     + additionalAttribute.getDescription()
                     );
                 additionalAttributeCounter++;
