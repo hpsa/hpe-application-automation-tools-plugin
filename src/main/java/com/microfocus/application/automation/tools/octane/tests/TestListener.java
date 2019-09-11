@@ -22,20 +22,15 @@ package com.microfocus.application.automation.tools.octane.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
-import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
 import hudson.model.Run;
-import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
-import java.util.List;
 
 /**
  * Jenkins events life cycle listener for processing test results on build completed
@@ -45,13 +40,8 @@ import java.util.List;
 public class TestListener {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(TestListener.class);
 
-	private static final String STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "StormTestRunner";
-	private static final String STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS = "RunFromSrfBuilder";
-	private static final String PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "PcBuilder";
-	private static final String RUN_FROM_FILE_BUILDER = "RunFromFileBuilder";
-	private static final String RUN_FROM_ALM_BUILDER = "RunFromAlmBuilder";
-
 	public static final String TEST_RESULT_FILE = "mqmTests.xml";
+
 
 	public boolean processBuild(Run run) {
 		FilePath resultPath = new FilePath(new FilePath(run.getRootDir()), TEST_RESULT_FILE);
@@ -59,43 +49,11 @@ public class TestListener {
 		boolean success = true;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.get().getRootUrl();
-		HPRunnerType hpRunnerType = HPRunnerType.NONE;
-		if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(run.getClass().getName())) {
-			ParametersAction parameterAction = run.getAction(ParametersAction.class);
-			if (parameterAction != null) {
-				ParameterValue pv = parameterAction.getParameter(HPRunnerType.class.getSimpleName());
-				if (pv != null) {
-					hpRunnerType = HPRunnerType.valueOf((String) pv.getValue());
-				}
-			}
-		} else {
-			List<Builder> builders = JobProcessorFactory.getFlowProcessor(run.getParent()).tryGetBuilders();
-			if (builders != null) {
-				for (Builder builder : builders) {
-					if (STORMRUNNER_LOAD_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-						hpRunnerType = HPRunnerType.StormRunnerLoad;
-						break;
-					}
-					if (STORMRUNNER_FUNCTIONAL_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-						hpRunnerType = HPRunnerType.StormRunnerFunctional;
-						break;
-					}
-					if (RUN_FROM_FILE_BUILDER.equals(builder.getClass().getSimpleName()) || RUN_FROM_ALM_BUILDER.equals(builder.getClass().getSimpleName())) {
-						hpRunnerType = HPRunnerType.UFT;
-						break;
-					}
-					if (PERFORMANCE_CENTER_TEST_RUNNER_CLASS.equals(builder.getClass().getSimpleName())) {
-						hpRunnerType = HPRunnerType.PerformanceCenter;
-						break;
-					}
-				}
-			}
-		}
 
 		try {
 			for (OctaneTestsExtension ext : OctaneTestsExtension.all()) {
 				if (ext.supports(run)) {
-					TestResultContainer testResultContainer = ext.getTestResults(run, hpRunnerType, jenkinsRootUrl);
+					TestResultContainer testResultContainer = ext.getTestResults(run, jenkinsRootUrl);
 					if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
 						resultWriter.writeResults(testResultContainer);
 						hasTests = true;

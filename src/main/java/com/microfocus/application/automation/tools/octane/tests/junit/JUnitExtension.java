@@ -29,6 +29,7 @@ import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import com.microfocus.application.automation.tools.octane.tests.detection.MFToolsDetectionExtension;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsDetectionService;
 import com.microfocus.application.automation.tools.octane.tests.impl.ObjectStreamIterator;
@@ -59,18 +60,7 @@ import java.util.*;
 public class JUnitExtension extends OctaneTestsExtension {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(JUnitExtension.class);
 
-	private static final String UFT = "UFT";
-	private static final String STORMRUNNER_LOAD = "StormRunner Load";
-	private static final String STORMRUNNER_FUNCTIONAL = "StormRunner Functional";
-	private static final String LOAD_RUNNER = "LoadRunner";
-	private static final String PERFORMANCE_CENTER_RUNNER = "Performance Center";
-	private static final String PERFORMANCE_TEST_TYPE = "Performance";
-
 	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
-
-	private static final String PERFORMANCE_REPORT = "PerformanceReport";
-	private static final String TRANSACTION_SUMMARY = "TransactionSummary";
-
 	public static final String TEMP_TEST_RESULTS_FILE_NAME_PREFIX = "GetJUnitTestResults";
 
 	@Inject
@@ -90,20 +80,20 @@ public class JUnitExtension extends OctaneTestsExtension {
 	}
 
 	@Override
-	public TestResultContainer getTestResults(Run<?, ?> run, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
+	public TestResultContainer getTestResults(Run<?, ?> run, String jenkinsRootUrl) throws IOException, InterruptedException {
 		logger.debug("Collecting JUnit results");
 
 		FilePath resultFile = new FilePath(run.getRootDir()).child(JUNIT_RESULT_XML);
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
-			ResultFields detectedFields = getResultFields(run, hpRunnerType);
 			FilePath workspace = BuildHandlerUtils.getWorkspace(run);
 			if (workspace == null) {
 				logger.error("Received null workspace : " + run);
 				return null;
 			}
 
-			FilePath filePath = workspace.act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, hpRunnerType, jenkinsRootUrl));
+			FilePath filePath = workspace.act(new GetJUnitTestResults(run, Collections.singletonList(resultFile), false, jenkinsRootUrl));
+			ResultFields detectedFields = getResultFields(run);
 			return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
@@ -123,8 +113,8 @@ public class JUnitExtension extends OctaneTestsExtension {
 					}
 				}
 				if (!resultFiles.isEmpty()) {
-					ResultFields detectedFields = getResultFields(run, hpRunnerType);
-					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, resultFiles, false, hpRunnerType, jenkinsRootUrl));
+					ResultFields detectedFields = getResultFields(run);
+					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, resultFiles, false, jenkinsRootUrl));
 					return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 				}
 			}
@@ -133,36 +123,8 @@ public class JUnitExtension extends OctaneTestsExtension {
 		}
 	}
 
-	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType) throws InterruptedException {
-		ResultFields detectedFields;
-		if(hpRunnerType.equals(HPRunnerType.UFT)){
-			detectedFields = new ResultFields(UFT, UFT, null);
-		} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
-			detectedFields = new ResultFields(null, STORMRUNNER_LOAD, null);
-		} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
-			detectedFields = new ResultFields(null, STORMRUNNER_FUNCTIONAL, null);
-		} else if (isLoadRunnerProject(build)) {
-			detectedFields = new ResultFields(null, LOAD_RUNNER, null);
-		} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
-			detectedFields = new ResultFields(null, PERFORMANCE_CENTER_RUNNER, null, PERFORMANCE_TEST_TYPE);
-		} else {
-			detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-		}
-
-		return detectedFields;
-	}
-
-	private boolean isLoadRunnerProject(Run run) {
-		try {
-			FilePath performanceReportFolder = new FilePath(run.getRootDir()).child(PERFORMANCE_REPORT);
-			FilePath transactionSummaryFolder = new FilePath(run.getRootDir()).child(TRANSACTION_SUMMARY);
-			return performanceReportFolder.exists() &&
-					performanceReportFolder.isDirectory() &&
-					transactionSummaryFolder.exists() &&
-					transactionSummaryFolder.isDirectory();
-		} catch (IOException | InterruptedException e) {
-			return false;
-		}
+	private ResultFields getResultFields(Run<?, ?> build) throws InterruptedException {
+		return resultFieldsDetectionService.getDetectedFields(build);
 	}
 
 	private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath> {
@@ -184,13 +146,13 @@ public class JUnitExtension extends OctaneTestsExtension {
 		private Object additionalContext;
 		private String buildRootDir;
 
-		public GetJUnitTestResults(Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
+		public GetJUnitTestResults(Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
 			this.filePath = new FilePath(build.getRootDir()).createTempFile(TEMP_TEST_RESULTS_FILE_NAME_PREFIX, null);
 			this.buildStarted = build.getStartTimeInMillis();
 			this.workspace = BuildHandlerUtils.getWorkspace(build);
 			this.stripPackageAndClass = stripPackageAndClass;
-			this.hpRunnerType = hpRunnerType;
+			this.hpRunnerType = MFToolsDetectionExtension.getRunnerType(build);
 			this.jenkinsRootUrl = jenkinsRootUrl;
 			this.buildRootDir = build.getRootDir().getCanonicalPath();
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());

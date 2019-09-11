@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings("squid:S2699")
-@Ignore
 public class UFTExtensionTest {
 
 	@ClassRule
