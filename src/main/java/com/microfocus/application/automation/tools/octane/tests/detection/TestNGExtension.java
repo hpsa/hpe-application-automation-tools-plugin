@@ -57,7 +57,7 @@ public class TestNGExtension extends ResultFieldsDetectionExtension {
 	@Override
 	public ResultFields detect(final Run build) throws IOException, InterruptedException {
 		if (!(build instanceof AbstractBuild)) {
-			return new ResultFields(null, null, null);
+			return null;
 		}
 
 		final List<Object> publishers = ((AbstractBuild) build).getProject().getPublishersList().toList();

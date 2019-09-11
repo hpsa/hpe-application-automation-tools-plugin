@@ -179,6 +179,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 environmentConfigurationId,
                 cdaDetails);
 
+
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
 
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
@@ -522,10 +523,5 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 			// no credentials available, can't check
 			return FormValidation.warning("Cannot find any credentials with id " + value);
 		}
-
-        public FormValidation doCheckEnvironmentConfigurationId(@QueryParameter String value) {
-            return UftToolUtils.doCheckNumberOfReruns(value);
-        }
-
     }
 }

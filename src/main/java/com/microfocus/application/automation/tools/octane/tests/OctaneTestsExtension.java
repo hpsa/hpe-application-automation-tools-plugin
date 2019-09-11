@@ -36,9 +36,9 @@ public abstract class OctaneTestsExtension implements ExtensionPoint {
 	public abstract boolean supports(Run<?, ?> build) throws IOException, InterruptedException;
 
 
-	public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
+	public abstract TestResultContainer getTestResults(Run<?, ?> build, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
 
 	public static ExtensionList<OctaneTestsExtension> all() {
-		return Jenkins.getInstance().getExtensionList(OctaneTestsExtension.class);
+		return Jenkins.get().getExtensionList(OctaneTestsExtension.class);
 	}
 }

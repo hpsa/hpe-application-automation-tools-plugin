@@ -28,5 +28,6 @@ public enum HPRunnerType {
     StormRunnerFunctional,
     UFT,
     PerformanceCenter,
+    LoadRunner,
     NONE
 }
