@@ -66,9 +66,9 @@ public class CucumberTestResultsActionPublisher extends Recorder implements Simp
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
-        CucumberTestResultsAction action = new CucumberTestResultsAction(run, workspace, glob, taskListener);
+        CucumberTestResultsAction action = new CucumberTestResultsAction(run, glob, taskListener);
         run.addAction(action);
-        boolean isSuccessful = action.copyResultsToBuildFolder();
+        boolean isSuccessful = action.copyResultsToBuildFolder(workspace);
         if (!isSuccessful) {
             run.setResult(Result.FAILURE);
         }
