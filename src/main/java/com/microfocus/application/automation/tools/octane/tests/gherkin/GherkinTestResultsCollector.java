@@ -23,7 +23,6 @@ package com.microfocus.application.automation.tools.octane.tests.gherkin;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberResultsService;
 import com.microfocus.application.automation.tools.octane.tests.junit.TestResultStatus;
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
-import hudson.FilePath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -48,9 +47,9 @@ public class GherkinTestResultsCollector {
 
         //Retrieve the cucumber results xml
         int i = 0;
-        FilePath gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
+        File gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
 
-        while (gherkinTestResultsFilePath.exists()) {
+        while (gherkinTestResultsFile.exists()) {
             String gherkinTestResultsPath = buildDir.getAbsolutePath() + File.separator + CucumberResultsService.getGherkinResultFileName(i);
 
             //parse the xml
@@ -70,7 +69,7 @@ public class GherkinTestResultsCollector {
             }
 
             i++;
-            gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
+            gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
         } //end while
 
         return result;
