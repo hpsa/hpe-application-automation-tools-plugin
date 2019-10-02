@@ -39,9 +39,13 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
@@ -162,21 +166,25 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 
                 if (hpRunnerType.equals(HPRunnerType.UFT)) {
+					if (testName != null && testName.contains("..")) { //resolve existence of ../ - for example c://a/../b => c://b
+						testName = new File(testName).getCanonicalPath();
+					}
+
                     String myPackageName = packageName;
                     String myClassName = className;
                     String myTestName = testName;
                     packageName = "";
                     className = "";
 
-					if (testName.startsWith(workspace.getRemote())) {
-						// if workspace is prefix of the method name, cut it off
-						// currently this handling is needed for UFT tests
-						int testStartIndex = workspace.getRemote().length() + (sharedCheckOutDirectory == null ? 0 : (sharedCheckOutDirectory.length() + 1));
-						String path = testName.substring(testStartIndex);
+					// if workspace is prefix of the method name, cut it off
+					// currently this handling is needed for UFT tests
+					int uftTextIndexStart = getUftTestIndexStart(workspace, sharedCheckOutDirectory, testName);
+					if (uftTextIndexStart != -1) {
+						String path = testName.substring(uftTextIndexStart);
 						path = path.replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 						path = StringUtils.strip(path, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
-						//split path to package and and name fields
+						//split path to package and name fields
 						if (path.contains(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER)) {
 							int testNameStartIndex = path.lastIndexOf(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
@@ -274,6 +282,31 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 			}
 		}
+	}
+
+	private int getUftTestIndexStart(FilePath workspace, String sharedCheckOutDirectory, String testName) {
+		int returnIndex = -1;
+		try {
+			if (sharedCheckOutDirectory == null) {
+				sharedCheckOutDirectory = "";
+			}
+			String pathToTest;
+			if (StringUtils.isEmpty(sharedCheckOutDirectory)) {
+				pathToTest = workspace.getRemote();
+			} else {
+				pathToTest = Paths.get(sharedCheckOutDirectory).isAbsolute() ?
+						sharedCheckOutDirectory :
+						Paths.get(workspace.getRemote(), sharedCheckOutDirectory).toFile().getCanonicalPath();
+			}
+
+
+			if (testName.toLowerCase().startsWith(pathToTest.toLowerCase())) {
+				returnIndex = pathToTest.length() + 1;
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Failed to getUftTestIndexStart for testName '%s' and sharedCheckOutDirectory '%s' : ", testName, sharedCheckOutDirectory, e.getMessage()), e);
+		}
+		return returnIndex;
 	}
 
 	private String cleanTestName(String testName) {
