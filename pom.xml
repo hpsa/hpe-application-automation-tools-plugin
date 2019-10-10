@@ -48,7 +48,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.121.3</jenkins.version>
+		<jenkins.version>2.138.4</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -170,6 +170,13 @@
 			<name>Fima (Yafim) Kazak</name>
 			<roles>
 				<role>Global owner and LoadRunner Dev (retired)</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>paul-murray-mf </id>
+			<name>Paul Murray</name>
+			<roles>
+				<role>ALM Octane Starteam support</role>
 			</roles>
 		</developer>
 	</developers>

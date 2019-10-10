@@ -77,18 +77,18 @@ class StarTeamSCMProcessor implements SCMProcessor {
         .setCommits(commits);
   }
 
-  private SCMRepository getRepository(SCM starTeamData) {
+  private SCMRepository getRepository(SCM starTeamSCM) {
     SCMRepository result = null;
-    if (starTeamData != null) {
+    if (starTeamSCM != null) {
       try {
-        String url = getSCMRepositoryURL(starTeamData);
-        String branch = getSCMRepositoryBranch(starTeamData);
+        String url = getSCMRepositoryURL(starTeamSCM);
+        String branch = getSCMRepositoryBranch(starTeamSCM);
         result = dtoFactory.newDTO(SCMRepository.class).setType(SCMType.STARTEAM).setUrl(url).setBranch(branch);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-        logger.warn("failed to obtain BuildData; no SCM repository info will be available");
+        logger.warn(e.getClass().getSimpleName() + " unable to extract data from starTeamSCM, no SCM repository info will be available.");
       }
     } else {
-      logger.warn("failed to obtain BuildData; no SCM repository info will be available");
+      logger.warn("starTeamSCM is null, no SCM repository info will be available.");
     }
     return result;
   }
