@@ -85,7 +85,7 @@ class StarTeamSCMProcessor implements SCMProcessor {
         String branch = getSCMRepositoryBranch(starTeamSCM);
         result = dtoFactory.newDTO(SCMRepository.class).setType(SCMType.STARTEAM).setUrl(url).setBranch(branch);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-        logger.warn(e.getClass().getSimpleName() + " unable to extract data from starTeamSCM, no SCM repository info will be available.");
+        logger.warn(e.getClass().getSimpleName() + " unable to extract data from starTeamSCM, no SCM repository info will be available.", e);
       }
     } else {
       logger.warn("starTeamSCM is null, no SCM repository info will be available.");
