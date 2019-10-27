@@ -138,7 +138,7 @@ public class UFTTestDetectionCallable extends MasterToSlaveFileCallable<UftTestD
 
     @Override
     public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
+        //no need to check roles as this can be run on master and on slave
     }
 
     private static boolean isSvnDir(ChangeLogSet.AffectedFile path) {
