@@ -39,10 +39,6 @@ public interface ScmPluginHandler {
 
     void checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, StandardCredentials credentials, OctaneResponse result);
 
-    String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile);
-
-    String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile);
-
     String getScmRepositoryUrl(SCM scm);
 
     String getScmRepositoryCredentialsId(SCM scm);
