@@ -107,7 +107,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 
         //validate scm repository id
         if (StringUtils.isEmpty(scmRepositoryId)) {
-            String msg = "SCM repository is empty. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in job - set value \"-1\"";
+            String msg = "SCM repository field is empty. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in job - set value \"-1\"";
             logger.error(msg);
             build.setResult(Result.FAILURE);
             throw new IllegalArgumentException(msg);
@@ -154,6 +154,7 @@ public class UFTTestDetectionPublisher extends Recorder {
             List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Arrays.asList("id"));
             if (!foundEntities.isEmpty()) {
                 scmRepositoryId = foundEntities.get(0).getId();
+                UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepositoryId);
             } else {
                 //create a new scm repository
                 Entity newScmRepository = new EntityImpl();
@@ -163,9 +164,11 @@ public class UFTTestDetectionPublisher extends Recorder {
                 newScmRepository.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
                 List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Arrays.asList(newScmRepository));
                 scmRepositoryId = createEntities.get(0).getId();
+                UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
             }
 
             build.getProject().save();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
         } catch (Exception e) {
             UFTTestDetectionService.printToConsole(listener, "Failed to create scm repository in ALM Octane : " + e.getMessage());
             build.setResult(Result.FAILURE);

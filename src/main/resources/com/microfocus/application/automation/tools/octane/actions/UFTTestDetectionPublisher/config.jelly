@@ -44,7 +44,7 @@
     </f:entry>
 
     <f:entry title="Octane scm repository id" field="scmRepositoryId"
-             description="Set scm repository id that will be assigned to discovered tests. \nIf  you need to generate scm repository in ALM Octane based on your scm repository in job - set value '-1'.">
+             description="Set scm repository id that will be assigned to discovered tests. If  you need to generate scm repository in ALM Octane based on your scm repository in job - set value '-1'.">
         <f:textbox/>
     </f:entry>
 
