@@ -39,6 +39,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.scm.NullSCM;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -113,7 +114,13 @@ public class UFTTestDetectionPublisher extends Recorder {
             throw new IllegalArgumentException(msg);
         }
         if (scmRepositoryId.equals("-1")) {
-            generateScmRepository(build, listener);
+            try {
+                generateScmRepository(build, listener);
+            } catch (Exception e) {
+                UFTTestDetectionService.printToConsole(listener, "Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
+                build.setResult(Result.FAILURE);
+                return false;
+            }
         }
 
         try {
@@ -139,40 +146,43 @@ public class UFTTestDetectionPublisher extends Recorder {
         return true;
     }
 
-    private void generateScmRepository(AbstractBuild build, BuildListener listener) {
+    private void generateScmRepository(AbstractBuild build, BuildListener listener) throws IOException {
         SCM scm = build.getProject().getScm();
+        if (scm instanceof NullSCM) {
+            throw new IllegalArgumentException("SCM definition is missing in the job");
+        }
         ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getType());
         String url = ScmPluginFactory.getScmHandlerByScmPluginName(scm.getType()).getScmRepositoryUrl(scm);
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("SCM url is not defined in the job");
+        }
         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
         EntitiesService entitiesService = octaneClient.getEntitiesService();
 
-        try {
-            List<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, url));
-            long workspaceId = Long.parseLong(workspaceName);
-            String collectionName = "scm_repositories";
 
-            List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Arrays.asList("id"));
-            if (!foundEntities.isEmpty()) {
-                scmRepositoryId = foundEntities.get(0).getId();
-                UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepositoryId);
-            } else {
-                //create a new scm repository
-                Entity newScmRepository = new EntityImpl();
-                newScmRepository.setType("scm_repository");
-                newScmRepository.setName(url);
-                newScmRepository.setField("url", url);
-                newScmRepository.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
-                List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Arrays.asList(newScmRepository));
-                scmRepositoryId = createEntities.get(0).getId();
-                UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
-            }
+        List<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, url));
+        long workspaceId = Long.parseLong(workspaceName);
+        String collectionName = "scm_repositories";
 
-            build.getProject().save();
-            UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
-        } catch (Exception e) {
-            UFTTestDetectionService.printToConsole(listener, "Failed to create scm repository in ALM Octane : " + e.getMessage());
-            build.setResult(Result.FAILURE);
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Arrays.asList("id"));
+        if (!foundEntities.isEmpty()) {
+            scmRepositoryId = foundEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepositoryId);
+        } else {
+            //create a new scm repository
+            Entity newScmRepository = new EntityImpl();
+            newScmRepository.setType("scm_repository");
+            newScmRepository.setName(url);
+            newScmRepository.setField("url", url);
+            newScmRepository.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
+            List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Arrays.asList(newScmRepository));
+            scmRepositoryId = createEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
         }
+
+        build.getProject().save();
+        UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
+
     }
 
     private void handleDeletedFolders(AbstractBuild build) {
