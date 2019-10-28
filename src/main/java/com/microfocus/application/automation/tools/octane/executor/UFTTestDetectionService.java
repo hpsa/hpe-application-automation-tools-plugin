@@ -53,7 +53,7 @@ public class UFTTestDetectionService {
                 printToConsole(buildListener, "Executing full sync");
                 result = UftTestDiscoveryUtils.doFullDiscovery(rootDir);
             } else {
-                printToConsole(buildListener, "Executing changeSet sync");
+                printToConsole(buildListener, "Executing changeSet sync. For full sync - define in job boolean parameter 'Full sync' with value 'true'.");
                 result = doChangeSetDetection(scmChangesWrapper, rootDir);
                 removeTestDuplicatedForUpdateTests(result);
                 removeFalsePositiveDataTables(result, result.getDeletedTests(), result.getDeletedScmResourceFiles());
