@@ -111,16 +111,6 @@ public class GitPluginHandler implements ScmPluginHandler {
 	}
 
 	@Override
-	public String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile) {
-		return ((GitChangeSet.Path) affectedFile).getSrc();
-	}
-
-	@Override
-	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
-		return ((GitChangeSet.Path) affectedFile).getDst();
-	}
-
-	@Override
 	public String getScmRepositoryUrl(SCM scm) {
 		return ((GitSCM) scm).getUserRemoteConfigs().get(0).getUrl();
 	}

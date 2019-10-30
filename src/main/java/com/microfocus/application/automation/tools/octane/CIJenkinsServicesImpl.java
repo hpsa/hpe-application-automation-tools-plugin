@@ -566,17 +566,18 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	private InputStream getOctaneLogFile(Run run) {
 		InputStream result = null;
-		String octaneLogFilePath = run.getLogFile().getParent() + File.separator + "octane_log";
+		String octaneLogFilePath = run.getRootDir() + File.separator + "octane_log";
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
 			try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
-			     InputStream logStream = run.getLogInputStream();
-			     PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+			    InputStream logStream = run.getLogInputStream();
+			    PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
 				IOUtils.copy(logStream, out);
 				out.flush();
 			} catch (IOException ioe) {
 				logger.error("failed to transfer native log to Octane's one for " + run);
 			}
+
 		}
 		try {
 			result = new FileInputStream(octaneLogFilePath);
