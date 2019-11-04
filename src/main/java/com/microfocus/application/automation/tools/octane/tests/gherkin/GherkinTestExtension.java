@@ -50,7 +50,7 @@ public class GherkinTestExtension extends OctaneTestsExtension {
 	}
 
 	@Override
-	public TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws
+	public TestResultContainer getTestResults(Run<?, ?> build, String jenkinsRootUrl) throws
 			TestProcessingException, IOException, InterruptedException {
 		try {
 			List<TestResult> testResults = GherkinTestResultsCollector.collectGherkinTestsResults(build.getRootDir());

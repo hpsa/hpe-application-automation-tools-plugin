@@ -691,7 +691,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         if (scriptRTSSetModel != null) {
-            scriptRTSSetModel.addScriptsToProps(mergedProperties);
+            scriptRTSSetModel.addScriptsToProps(mergedProperties, env);
         }
 
         if(uftSettingsModel != null) {
