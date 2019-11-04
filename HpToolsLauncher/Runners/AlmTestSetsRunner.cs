@@ -889,7 +889,7 @@ namespace HpToolsLauncher
                 var runOnHost = runHost;
                 if (runMode == QcRunMode.RUN_PLANNED_HOST)
                 {
-                    runOnHost = runHost;// test.HostName; 
+                    runOnHost = test.HostName; //runHost;
                 }
 
 
@@ -900,7 +900,7 @@ namespace HpToolsLauncher
                     hostName = Environment.MachineName;
                 }
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTestRunOnHost, i, test.Name, hostName));
-
+                
                 scheduler.RunOnHost[test.ID] = runOnHost;
 
                 var testResults = new TestRunResults {TestName = test.Name};
@@ -1278,6 +1278,8 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(Resources.SingleSeperator);
 
             IExecutionStatus executionStatus = scheduler.ExecutionStatus;
+           
+
             ITSTest prevTest = null;
             ITSTest currentTest = null;
             string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
@@ -1291,12 +1293,14 @@ namespace HpToolsLauncher
             {
                 WriteTestRunSummary(prevTest);
             }
-
+           
             //done with all tests, stop collecting output in the testRun object.
             ConsoleWriter.ActiveTestRun = null;
 
             string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\";
+            
             SetTestResults(currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
+         
 
             //update the total runtime
             runDesc.TotalRunTime = sw.Elapsed;
@@ -1460,7 +1464,6 @@ namespace HpToolsLauncher
                                              IExecutionStatus executionStatus, Stopwatch sw,
                                              ref ITSTest prevTest, ref ITSTest currentTest, string abortFilename)
         {
-           
             var tsExecutionFinished = false;
 
             while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))
@@ -1474,6 +1477,7 @@ namespace HpToolsLauncher
                 }
                 for (var j = 1; j <= executionStatus.Count; ++j)
                 {
+             
                     TestExecStatus testExecStatusObj = executionStatus[j];
 
                     currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
@@ -1600,7 +1604,7 @@ namespace HpToolsLauncher
         {
             int runId = -1;
 
-            if (currentTest.LastRun == null) return runId;
+            if (currentTest == null) return runId;
 
             IRun lastRun = currentTest.LastRun as IRun;
             if (lastRun != null)
@@ -1628,6 +1632,7 @@ namespace HpToolsLauncher
            
 
             int runId = GetTestRunId(prevTest);
+           
             if (runId > prevRunId)
             {
                 string stepsString = GetTestStepsDescFromQc(prevTest);
