@@ -52,7 +52,7 @@ public final class SDKBasedLoggerProvider {
                 sysParamConfigured = true;
             }
             return LogManager.getLogger(type);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             //it can fail on slave because of missing permissions to create a folder for logs. In this case we return logger that do nothing
             //JENKINS-6010 : Cannot send junit results to Octane, because there is no permission on slave to create log folder
             return new EmptyLogger();
@@ -238,7 +238,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
@@ -418,7 +418,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void error(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
@@ -618,7 +618,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
@@ -663,7 +663,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
@@ -678,7 +678,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
@@ -718,7 +718,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
@@ -1018,7 +1018,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void info(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
@@ -1053,7 +1053,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
