@@ -156,7 +156,12 @@ namespace HpToolsLauncher
 
                         if (Directory.Exists(runDesc.ReportLocation))
                         {
-                            Directory.Delete(runDesc.ReportLocation, true);
+                            int lastIndex = runDesc.ReportLocation.IndexOf("\\");
+                            var location = runDesc.ReportLocation.Substring(0, lastIndex);
+                            var name = runDesc.ReportLocation.Substring(lastIndex + 1);
+                            runDesc.ReportLocation = Helper.GetNextResFolder(location, name);
+                            Console.WriteLine("Report location is:" + runDesc.ReportLocation);
+                            //Directory.Delete(runDesc.ReportLocation, true);
                             Directory.CreateDirectory(runDesc.ReportLocation);
                         }
                     }

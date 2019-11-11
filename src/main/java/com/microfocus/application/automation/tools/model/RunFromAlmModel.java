@@ -158,7 +158,11 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private Properties CreateProperties(EnvVars envVars,
                                         VariableResolver<String> varResolver) {
         Properties props = new Properties();
-        props.put("SSOEnabled", Boolean.toString(isSSOEnabled));
+        if(isSSOEnabled != null){
+            props.put("SSOEnabled", Boolean.toString(isSSOEnabled));
+        }else{
+            props.put("SSOEnabled", Boolean.toString(false));
+        }
 
         if (envVars == null) {
             props.put("almUserName", almUserName);
