@@ -266,7 +266,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test run was cancelled</value>
   </data>
   <data name="GeneralTimedOut" xml:space="preserve">
-    <value>==============\nJob timed out!\n==============</value>
+    <value>============== Job timed out! ==============</value>
   </data>
   <data name="GeneralTimeoutExpired" xml:space="preserve">
     <value>Timeout has expired</value>
