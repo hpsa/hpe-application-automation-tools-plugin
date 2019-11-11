@@ -54,185 +54,186 @@ public final class SDKBasedLoggerProvider {
             return LogManager.getLogger(type);
         } catch (Throwable e) {
             //it can fail on slave because of missing permissions to create a folder for logs. In this case we return logger that do nothing
+            //JENKINS-6010 : Cannot send junit results to Octane, because there is no permission on slave to create log folder
             return new EmptyLogger();
         }
     }
 
-    private static class EmptyLogger implements Logger  {
+    private static class EmptyLogger implements Logger {
 
         @Override
         public void catching(Level level, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void catching(Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void debug(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void debug(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Object o) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
@@ -242,177 +243,177 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void debug(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void debug(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void entry() {
-
+            //do nothing
         }
 
         @Override
         public void entry(Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void error(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void error(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
@@ -422,147 +423,147 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void error(Object o) {
-
+            //do nothing
         }
 
         @Override
         public void error(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void error(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void error(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void error(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void exit() {
-
+            //do nothing
         }
 
         @Override
@@ -572,47 +573,47 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
@@ -622,42 +623,42 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
@@ -667,12 +668,12 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Object o) {
-
+            //do nothing
         }
 
         @Override
@@ -682,37 +683,37 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(String s) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
@@ -722,92 +723,92 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void fatal(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
@@ -827,192 +828,192 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void info(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void info(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void info(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void info(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Object o) {
-
+            //do nothing
         }
 
         @Override
         public void info(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void info(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void info(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
@@ -1022,32 +1023,32 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void info(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
@@ -1057,12 +1058,12 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void info(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
@@ -1137,252 +1138,252 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void log(Level level, Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void log(Level level, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void printf(Level level, Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void printf(Level level, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
@@ -1397,242 +1398,242 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void trace(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void trace(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void trace(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Object o) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void trace(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void trace(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
@@ -1662,7 +1663,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void traceExit() {
-
+            //do nothing
         }
 
         @Override
@@ -1677,7 +1678,7 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void traceExit(EntryMessage entryMessage) {
-
+            //do nothing
         }
 
         @Override
@@ -1692,242 +1693,242 @@ public final class SDKBasedLoggerProvider {
 
         @Override
         public void warn(Marker marker, Message message) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Message message) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Message message, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(MessageSupplier messageSupplier) {
-
+            //do nothing
         }
 
         @Override
         public void warn(MessageSupplier messageSupplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(CharSequence charSequence) {
-
+            //do nothing
         }
 
         @Override
         public void warn(CharSequence charSequence, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Object o) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Object o, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object... objects) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Supplier<?>... suppliers) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Supplier<?> supplier) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Supplier<?> supplier, Throwable throwable) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void warn(Marker marker, String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8) {
-
+            //do nothing
         }
 
         @Override
         public void warn(String s, Object o, Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object o7, Object o8, Object o9) {
-
+            //do nothing
         }
     }
 }
