@@ -34,6 +34,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineContext;
 import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.services.entities.EntitiesService;
+import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
@@ -83,6 +84,7 @@ public class JobConfigurationProxy {
 					.setContextName(pipelineObject.getString("name"))
 					.setWorkspace(pipelineObject.getLong("workspaceId"))
 					.setReleaseId(pipelineObject.getLong("releaseId"))
+					.setMilestoneId(pipelineObject.getLong("milestoneId"))
 					.setStructure(pipelineNode)
 					.setServer(ciServerInfo);
 			PipelineContext createdPipelineContext = octaneClient.getPipelineContextService().createPipeline(octaneClient.getInstanceId(), pipelineNode.getJobCiId(), pipelineContext);
@@ -165,6 +167,7 @@ public class JobConfigurationProxy {
 					.setContextName(pipelineObject.getString("name"))
 					.setWorkspace(pipelineObject.getLong("workspaceId"))
 					.setReleaseId(pipelineObject.getLong("releaseId"))
+					.setMilestoneId(pipelineObject.getLong("milestoneId"))
 					.setIgnoreTests(pipelineObject.getBoolean("ignoreTests"))
 					.setTaxonomies(taxonomies)
 					.setListFields(fields);
@@ -343,6 +346,7 @@ public class JobConfigurationProxy {
 		pipelineJSON.put("id", pipeline.getContextEntityId());
 		pipelineJSON.put("name", pipeline.getContextEntityName());
 		pipelineJSON.put("releaseId", pipeline.getReleaseId() != null ? pipeline.getReleaseId() : -1);
+		pipelineJSON.put("milestoneId", pipeline.getMilestoneId() != null ? pipeline.getMilestoneId() : -1);
 		pipelineJSON.put("isRoot", pipeline.isPipelineRoot());
 		pipelineJSON.put("workspaceId", relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
@@ -371,6 +375,7 @@ public class JobConfigurationProxy {
 
 	private static void enrichPipelineInternal(JSONObject pipelineJSON, OctaneClient octaneClient) {
 		enrichRelease(pipelineJSON, octaneClient);
+		enrichMilestone(pipelineJSON, octaneClient);
 		enrichTaxonomies(pipelineJSON, octaneClient);
 		enrichFields(pipelineJSON, octaneClient);
 	}
@@ -388,6 +393,15 @@ public class JobConfigurationProxy {
 			pipeline.put("releaseName", releaseName);
 		}
 	}
+
+    private static void enrichMilestone(JSONObject pipeline, OctaneClient octaneClient) {
+        long workspaceId = pipeline.getLong("workspaceId");
+        if (pipeline.containsKey("milestoneId") && pipeline.getLong("milestoneId") != -1) {
+            long milestoneId = pipeline.getLong("milestoneId");
+            String milestoneName = getMilestonesById(octaneClient, Arrays.asList(milestoneId), workspaceId).get(0).getName();
+            pipeline.put("milestoneName", milestoneName);
+        }
+    }
 
 	private static void enrichTaxonomies(JSONObject pipeline, OctaneClient octaneClient) {
 		JSONArray ret = new JSONArray();
@@ -539,6 +553,48 @@ public class JobConfigurationProxy {
 
 		return ret;
 	}
+
+	@JavaScriptMethod
+	public JSONObject searchMilestones(String term, String instanceId, long workspaceId, long releaseId) {
+		int defaultSize = 5;
+		JSONObject ret = new JSONObject();
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
+
+		try {
+
+			ResponseEntityList milestonePagedList = queryMilestonesByNameAndRelease(octaneClient, term, workspaceId, releaseId, defaultSize);
+			List<Entity> milestones = milestonePagedList.getData();
+
+			boolean moreResults = milestonePagedList.getTotalCount() > milestones.size();
+			JSONArray retArray = new JSONArray();
+			if (moreResults) {
+				retArray.add(createMoreResultsJson());
+			}
+
+			String quotedTerm = Pattern.quote(term.toLowerCase());
+			if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
+				JSONObject notSpecifiedItemJson = new JSONObject();
+				notSpecifiedItemJson.put("id", -1);
+				notSpecifiedItemJson.put("text", NOT_SPECIFIED);
+				retArray.add(notSpecifiedItemJson);
+			}
+
+			for (Entity milestone : milestones) {
+				JSONObject relJson = new JSONObject();
+				relJson.put("id", milestone.getId());
+				relJson.put("text", milestone.getName());
+				retArray.add(relJson);
+			}
+			ret.put("results", retArray);
+
+		} catch (Exception e) {
+			logger.warn("Failed to retrieve milestones", e);
+			return error("Unable to retrieve milestones");
+		}
+
+		return ret;
+	}
+
 
 	@JavaScriptMethod
 	public JSONObject searchWorkspaces(String term, String instanceId) {
@@ -842,22 +898,26 @@ public class JobConfigurationProxy {
 	}
 
 	private static ResponseEntityList queryWorkspacesByName(OctaneClient octaneClient, String name, int limit) {
-		return queryEntitiesByName(octaneClient, name, null, "workspaces", limit);
+		return queryEntitiesByName(octaneClient, name, null, null, "workspaces", limit);
 	}
 
 	private static ResponseEntityList queryReleasesByName(OctaneClient octaneClient, String name, long workspaceId, int limit) {
-		return queryEntitiesByName(octaneClient, name, workspaceId, "releases", limit);
+		return queryEntitiesByName(octaneClient, name, null, workspaceId, "releases", limit);
+	}
+
+	private static ResponseEntityList queryMilestonesByNameAndRelease(OctaneClient octaneClient, String name, long workspaceId, long releaseId, int limit) {
+		Collection<String> conditions = new LinkedList<>();
+		conditions.add(QueryHelper.conditionRef("release", "id","" + releaseId)); //EntityConstants.Milestone.RELEASE_FIELD
+		return queryEntitiesByName(octaneClient, name, conditions, workspaceId, EntityConstants.Milestone.COLLECTION_NAME, limit);
 	}
 
 	private static ResponseEntityList queryTaxonomiesByName(OctaneClient octaneClient, String name, long workspaceId, int limit) {
-
 		EntitiesService entityService = octaneClient.getEntitiesService();
-
 		List<String> conditions = new LinkedList();
 		conditions.add("!category={null}");
 		if (!StringUtils.isEmpty(name)) {
-			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
-			conditions.add("(" + com.hp.octane.integrations.services.entities.QueryHelper.condition("name", "*" + name + "*") + "||" + com.hp.octane.integrations.services.entities.QueryHelper.conditionRef("category", "name", "*" + name + "*") + ")");
+			conditions.add(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+			conditions.add("(" + QueryHelper.condition("name", "*" + name + "*") + "||" + QueryHelper.conditionRef("category", "name", "*" + name + "*") + ")");
 		}
 
 		String url = entityService.buildEntityUrl(workspaceId, "taxonomy_nodes", conditions, Arrays.asList(EntityConstants.Base.NAME_FIELD, EntityConstants.Taxonomy.CATEGORY_NAME), 0, limit, EntityConstants.Base.NAME_FIELD);
@@ -865,14 +925,16 @@ public class JobConfigurationProxy {
 		return result;
 	}
 
-	private static ResponseEntityList queryEntitiesByName(OctaneClient octaneClient, String name, Long workspaceId, String collectionName, int limit) {
+	private static ResponseEntityList queryEntitiesByName(OctaneClient octaneClient, String name, Collection<String> conditions, Long workspaceId, String collectionName, int limit) {
 		EntitiesService entityService = octaneClient.getEntitiesService();
-
-		List<String> conditions = new LinkedList();
-		if (!StringUtils.isEmpty(name)) {
-			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+		if(conditions == null) {
+			conditions = new LinkedList();
 		}
-		String url = entityService.buildEntityUrl(workspaceId, collectionName, conditions, Arrays.asList(EntityConstants.Base.NAME_FIELD), 0, limit, EntityConstants.Base.NAME_FIELD);
+
+		if (!StringUtils.isEmpty(name)) {
+			conditions.add(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+		}
+		String url = entityService.buildEntityUrl(workspaceId, collectionName, conditions, Collections.singletonList(EntityConstants.Base.NAME_FIELD), 0, limit, EntityConstants.Base.NAME_FIELD);
 		ResponseEntityList result = entityService.getPagedEntities(url);
 		return result;
 	}
@@ -883,11 +945,11 @@ public class JobConfigurationProxy {
 		List<String> conditions = new LinkedList();
 		if (!StringUtils.isEmpty(name)) {
 			//list node are not filterable by name
-			//conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
+			//conditions.add(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
 			myLimit = 100;
 		}
 		if (!StringUtils.isEmpty(logicalListName)) {
-			conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.conditionRef("list_root", EntityConstants.Base.LOGICAL_NAME_FIELD, logicalListName));
+			conditions.add(QueryHelper.conditionRef("list_root", EntityConstants.Base.LOGICAL_NAME_FIELD, logicalListName));
 		}
 
 		String url = entityService.buildEntityUrl(workspaceId, "list_nodes", conditions, null, 0, myLimit, null);
@@ -911,6 +973,10 @@ public class JobConfigurationProxy {
 	private static List<Entity> getReleasesById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
 		return getEntitiesById(client, workspaceId, EntityConstants.Release.COLLECTION_NAME, itemIds);
 	}
+
+    private static List<Entity> getMilestonesById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
+        return getEntitiesById(client, workspaceId, EntityConstants.Milestone.COLLECTION_NAME, itemIds);
+    }
 
 	private static List<Entity> getTaxonomiesById(OctaneClient client, Collection<?> itemIds, long workspaceId) {
 		return getEntitiesById(client, workspaceId, EntityConstants.Taxonomy.COLLECTION_NAME, itemIds);
@@ -937,8 +1003,8 @@ public class JobConfigurationProxy {
 
 	private static List<Entity> getPipelineListNodeFieldsMetadata(OctaneClient octaneClient, long workspaceId) {
 		List<String> conditions = new LinkedList<>();
-		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.condition("entity_name", "pipeline_node"));
-		conditions.add(com.hp.octane.integrations.services.entities.QueryHelper.conditionIn("name", Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
+		conditions.add(QueryHelper.condition("entity_name", "pipeline_node"));
+		conditions.add(QueryHelper.conditionIn("name", Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
 
 		EntitiesService entityService = octaneClient.getEntitiesService();
 		String url = entityService.buildEntityUrl(workspaceId, "metadata/fields", conditions, null, 0, null, null);
