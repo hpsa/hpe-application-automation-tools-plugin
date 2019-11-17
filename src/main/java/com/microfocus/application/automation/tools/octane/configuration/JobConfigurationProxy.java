@@ -451,12 +451,7 @@ public class JobConfigurationProxy {
 					if (fieldTagsIdsList.size() > 0) {
 						List<Entity> enrichedFields = getListItemsById(client, fieldTagsIdsList, workspaceId);
 						JSONArray values = new JSONArray();
-						for (Entity item : enrichedFields) {
-							JSONObject value = new JSONObject();
-							value.put(ID_FIELD, item.getId());
-							value.put(NAME_FIELD, item.getName());
-							values.add(value);
-						}
+						fillArray(values, enrichedFields, NAME_FIELD);
 						ret.put(key, values);
 					}
 				}
@@ -546,7 +541,7 @@ public class JobConfigurationProxy {
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			fillArray(retArray, releases);
+			fillArray(retArray, releases, TEXT_FIELD);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -582,7 +577,7 @@ public class JobConfigurationProxy {
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			fillArray(retArray, milestones);
+			fillArray(retArray, milestones, TEXT_FIELD);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -610,7 +605,7 @@ public class JobConfigurationProxy {
 				retArray.add(createMoreResultsJson());
 			}
 
-			fillArray(retArray, workspaces);
+			fillArray(retArray, workspaces, TEXT_FIELD);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -621,11 +616,11 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private void fillArray(JSONArray array, List<Entity> entities) {
-		for (Entity workspace : entities) {
+	private static void fillArray(JSONArray array, List<Entity> entities, String valueFieldName) {
+		for (Entity entity : entities) {
 			JSONObject relJson = new JSONObject();
-			relJson.put(ID_FIELD, workspace.getId());
-			relJson.put(TEXT_FIELD, workspace.getName());
+			relJson.put(ID_FIELD, entity.getId());
+			relJson.put(valueFieldName, entity.getName());
 			array.add(relJson);
 		}
 	}
