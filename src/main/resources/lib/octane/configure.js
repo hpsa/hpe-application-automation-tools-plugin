@@ -332,11 +332,15 @@ function octane_job_configuration(target, progress, proxy) {
                     selectedReleaseId = releaseSelect.val();
                     milestoneSelect.val(-1).trigger("change");
                     trMilestone.css('visibility', 'visible');
-                    document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    if(pipeline.id != null){
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
                 });
 
                 milestoneSelect.change(function () {
-                    document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    if(pipeline.id != null) {
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
                 });
             }
         }
