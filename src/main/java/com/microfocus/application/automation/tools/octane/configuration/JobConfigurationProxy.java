@@ -60,6 +60,12 @@ public class JobConfigurationProxy {
 	private final static Logger logger = SDKBasedLoggerProvider.getLogger(JobConfigurationProxy.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private static final String MILESTONE_ID_FIELD = "milestoneId";
+	private static final String RELEASE_ID_FIELD = "releaseId";
+	private static final String WORKSPACE_ID_FIELD = "workspaceId";
+	private static final String NAME_FIELD = "name";
+	public static final String INSTANCE_ID_FIELD = "instanceId";
+
 	final private Job job;
 
 	private static final String NOT_SPECIFIED = "-- Not specified --";
@@ -73,7 +79,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
-		String instanceId = pipelineObject.getString("instanceId");
+		String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
 		CIServerInfo ciServerInfo = CIJenkinsServicesImpl.getJenkinsServerInfo();
 		ciServerInfo.setInstanceId(instanceId);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
@@ -81,10 +87,10 @@ public class JobConfigurationProxy {
 
 
 			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
-					.setContextName(pipelineObject.getString("name"))
-					.setWorkspace(pipelineObject.getLong("workspaceId"))
-					.setReleaseId(pipelineObject.getLong("releaseId"))
-					.setMilestoneId(pipelineObject.getLong("milestoneId"))
+					.setContextName(pipelineObject.getString(NAME_FIELD))
+					.setWorkspace(pipelineObject.getLong(WORKSPACE_ID_FIELD))
+					.setReleaseId(pipelineObject.getLong(RELEASE_ID_FIELD))
+					.setMilestoneId(pipelineObject.getLong(MILESTONE_ID_FIELD))
 					.setStructure(pipelineNode)
 					.setServer(ciServerInfo);
 			PipelineContext createdPipelineContext = octaneClient.getPipelineContextService().createPipeline(octaneClient.getInstanceId(), pipelineNode.getJobCiId(), pipelineContext);
@@ -124,7 +130,7 @@ public class JobConfigurationProxy {
 	public JSONObject updatePipelineOnSever(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
 
-		String instanceId = pipelineObject.getString("instanceId");
+		String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		try {
@@ -155,19 +161,19 @@ public class JobConfigurationProxy {
 					} else {
 						id = null;
 					}
-					assignedValues.add(dtoFactory.newDTO(ListItem.class).setId(id).setName(value.getString("name")));
+					assignedValues.add(dtoFactory.newDTO(ListItem.class).setId(id).setName(value.getString(NAME_FIELD)));
 				}
-				fields.put(jsonObject.getString("name"), assignedValues);
+				fields.put(jsonObject.getString(NAME_FIELD), assignedValues);
 			}
 
 			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
 
 			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
 					.setContextEntityId(pipelineId)
-					.setContextName(pipelineObject.getString("name"))
-					.setWorkspace(pipelineObject.getLong("workspaceId"))
-					.setReleaseId(pipelineObject.getLong("releaseId"))
-					.setMilestoneId(pipelineObject.getLong("milestoneId"))
+					.setContextName(pipelineObject.getString(NAME_FIELD))
+					.setWorkspace(pipelineObject.getLong(WORKSPACE_ID_FIELD))
+					.setReleaseId(pipelineObject.getLong(RELEASE_ID_FIELD))
+					.setMilestoneId(pipelineObject.getLong(MILESTONE_ID_FIELD))
 					.setIgnoreTests(pipelineObject.getBoolean("ignoreTests"))
 					.setTaxonomies(taxonomies)
 					.setListFields(fields);
@@ -196,8 +202,8 @@ public class JobConfigurationProxy {
 			//Server might do partial sucess
 			//So need to validate each item if it succedded or not
 			//For now we add handling of duplicate pipeline name
-			String originalName = pipelineObject.get("name").toString();
-			String updatedName = pipelineJSON.get("name").toString();
+			String originalName = pipelineObject.get(NAME_FIELD).toString();
+			String updatedName = pipelineJSON.get(NAME_FIELD).toString();
 			if (!originalName.equalsIgnoreCase(updatedName)) {
 				JSONObject errorObj = new JSONObject();
 				errorObj.put("message", "Failed to update pipeline name. Make sure not to enter the name of an existing pipeline.");
@@ -217,13 +223,13 @@ public class JobConfigurationProxy {
 	@JavaScriptMethod
 	public JSONObject deleteTests(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
-		String instanceId = pipelineObject.getString("instanceId");
+		String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
 			long pipelineId = pipelineObject.getLong("id");
-			long workspaceId = pipelineObject.getLong("workspaceId");
+			long workspaceId = pipelineObject.getLong(WORKSPACE_ID_FIELD);
 			octaneClient.getPipelineContextService().deleteTestsFromPipelineNodes(job.getName(), pipelineId, workspaceId);
-			result.put("Test deletion was succeful", "");
+			result.put("Test deletion was successful", "");
 		} catch (Exception e) {
 			logger.warn("Failed to delete tests", e);
 			return error("Unable to delete tests");
@@ -285,7 +291,7 @@ public class JobConfigurationProxy {
 					}
 					JSONObject workspaceJSON = new JSONObject();
 					workspaceJSON.put("id", relatedWorkspace.getId());
-					workspaceJSON.put("name", relatedWorkspace.getName());
+					workspaceJSON.put(NAME_FIELD, relatedWorkspace.getName());
 					workspaceJSON.put("pipelines", relatedPipelinesJSON);
 					workspaces.put(String.valueOf(relatedWorkspace.getId()), workspaceJSON);
 
@@ -324,12 +330,12 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject loadWorkspaceConfiguration(JSONObject pipelineJSON) {
-		String instanceId = pipelineJSON.getString("instanceId");
+		String instanceId = pipelineJSON.getString(INSTANCE_ID_FIELD);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
 
 		try {
-			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, pipelineJSON.getLong("workspaceId")));
+			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, pipelineJSON.getLong(WORKSPACE_ID_FIELD)));
 			ret.put("fieldsMetadata", fieldsMetadata);
 			enrichPipelineInternal(pipelineJSON, octaneClient);
 			ret.put("pipeline", pipelineJSON);
@@ -344,11 +350,11 @@ public class JobConfigurationProxy {
 	private static JSONObject fromPipeline(final PipelineContext pipeline, Entity relatedWorkspace) {
 		JSONObject pipelineJSON = new JSONObject();
 		pipelineJSON.put("id", pipeline.getContextEntityId());
-		pipelineJSON.put("name", pipeline.getContextEntityName());
-		pipelineJSON.put("releaseId", pipeline.getReleaseId() != null ? pipeline.getReleaseId() : -1);
-		pipelineJSON.put("milestoneId", pipeline.getMilestoneId() != null ? pipeline.getMilestoneId() : -1);
+		pipelineJSON.put(NAME_FIELD, pipeline.getContextEntityName());
+		pipelineJSON.put(RELEASE_ID_FIELD, pipeline.getReleaseId() != null ? pipeline.getReleaseId() : -1);
+		pipelineJSON.put(MILESTONE_ID_FIELD, pipeline.getMilestoneId() != null ? pipeline.getMilestoneId() : -1);
 		pipelineJSON.put("isRoot", pipeline.isPipelineRoot());
-		pipelineJSON.put("workspaceId", relatedWorkspace.getId());
+		pipelineJSON.put(WORKSPACE_ID_FIELD, relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
 		pipelineJSON.put("ignoreTests", pipeline.getIgnoreTests());
 		addTaxonomyTags(pipelineJSON, pipeline);
@@ -359,7 +365,7 @@ public class JobConfigurationProxy {
 
 	@JavaScriptMethod
 	public JSONObject enrichPipeline(JSONObject pipelineJSON) {
-		String instanceId = pipelineJSON.getString("instanceId");
+		String instanceId = pipelineJSON.getString(INSTANCE_ID_FIELD);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		JSONObject ret = new JSONObject();
 		try {
@@ -381,23 +387,23 @@ public class JobConfigurationProxy {
 	}
 
 	private static void enrichPipelineInstanceId(JSONObject pipelineJSON, String instanceId) {
-		pipelineJSON.put("instanceId", instanceId);
+		pipelineJSON.put(INSTANCE_ID_FIELD, instanceId);
 		pipelineJSON.put("instanceCaption", ConfigurationService.getSettings(instanceId).getCaption());
 	}
 
 	private static void enrichRelease(JSONObject pipeline, OctaneClient octaneClient) {
-		long workspaceId = pipeline.getLong("workspaceId");
-		if (pipeline.containsKey("releaseId") && pipeline.getLong("releaseId") != -1) {
-			long releaseId = pipeline.getLong("releaseId");
+		long workspaceId = pipeline.getLong(WORKSPACE_ID_FIELD);
+		if (pipeline.containsKey(RELEASE_ID_FIELD) && pipeline.getLong(RELEASE_ID_FIELD) != -1) {
+			long releaseId = pipeline.getLong(RELEASE_ID_FIELD);
 			String releaseName = getReleasesById(octaneClient, Arrays.asList(releaseId), workspaceId).get(0).getName();
 			pipeline.put("releaseName", releaseName);
 		}
 	}
 
     private static void enrichMilestone(JSONObject pipeline, OctaneClient octaneClient) {
-        long workspaceId = pipeline.getLong("workspaceId");
-        if (pipeline.containsKey("milestoneId") && pipeline.getLong("milestoneId") != -1) {
-            long milestoneId = pipeline.getLong("milestoneId");
+        long workspaceId = pipeline.getLong(WORKSPACE_ID_FIELD);
+        if (pipeline.containsKey(MILESTONE_ID_FIELD) && pipeline.getLong(MILESTONE_ID_FIELD) != -1) {
+            long milestoneId = pipeline.getLong(MILESTONE_ID_FIELD);
             String milestoneName = getMilestonesById(octaneClient, Arrays.asList(milestoneId), workspaceId).get(0).getName();
             pipeline.put("milestoneName", milestoneName);
         }
@@ -415,7 +421,7 @@ public class JobConfigurationProxy {
 					taxonomyIdsList.add(taxonomy.getLong("tagId"));
 				}
 			}
-			List<Taxonomy> taxonomies = convertTaxonomies(getTaxonomiesById(octaneClient, taxonomyIdsList, pipeline.getLong("workspaceId")));
+			List<Taxonomy> taxonomies = convertTaxonomies(getTaxonomiesById(octaneClient, taxonomyIdsList, pipeline.getLong(WORKSPACE_ID_FIELD)));
 			for (Taxonomy tax : taxonomies) {
 				ret.add(tag(tax));
 			}
@@ -427,7 +433,7 @@ public class JobConfigurationProxy {
 		JSONObject ret = new JSONObject();
 
 		if (pipeline.has("fields")) {
-			long workspaceId = pipeline.getLong("workspaceId");
+			long workspaceId = pipeline.getLong(WORKSPACE_ID_FIELD);
 			JSONObject pipelineFields = pipeline.getJSONObject("fields");
 			Iterator<?> keys = pipelineFields.keys();
 			//iteration over listFields
@@ -446,7 +452,7 @@ public class JobConfigurationProxy {
 						for (Entity item : enrichedFields) {
 							JSONObject value = new JSONObject();
 							value.put("id", item.getId());
-							value.put("name", item.getName());
+							value.put(NAME_FIELD, item.getName());
 							values.add(value);
 						}
 						ret.put(key, values);
@@ -815,7 +821,7 @@ public class JobConfigurationProxy {
 			JSONObject value = new JSONObject();
 			value.put("id", item.getId());
 			if (item.getName() != null) {
-				value.put("name", item.getName());
+				value.put(NAME_FIELD, item.getName());
 			}
 			ret.add(value);
 		}
@@ -907,7 +913,7 @@ public class JobConfigurationProxy {
 
 	private static ResponseEntityList queryMilestonesByNameAndRelease(OctaneClient octaneClient, String name, long workspaceId, long releaseId, int limit) {
 		Collection<String> conditions = new LinkedList<>();
-		conditions.add(QueryHelper.conditionRef(EntityConstants.Milestone.RELEASE_FIELD, "id","" + releaseId));
+		conditions.add(QueryHelper.conditionRef(EntityConstants.Milestone.RELEASE_FIELD, "id", Long.toString(releaseId)));
 		return queryEntitiesByName(octaneClient, name, conditions, workspaceId, EntityConstants.Milestone.COLLECTION_NAME, limit);
 	}
 
@@ -917,7 +923,7 @@ public class JobConfigurationProxy {
 		conditions.add("!category={null}");
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
-			conditions.add("(" + QueryHelper.condition("name", "*" + name + "*") + "||" + QueryHelper.conditionRef("category", "name", "*" + name + "*") + ")");
+			conditions.add("(" + QueryHelper.condition(NAME_FIELD, "*" + name + "*") + "||" + QueryHelper.conditionRef("category", NAME_FIELD, "*" + name + "*") + ")");
 		}
 
 		String url = entityService.buildEntityUrl(workspaceId, "taxonomy_nodes", conditions, Arrays.asList(EntityConstants.Base.NAME_FIELD, EntityConstants.Taxonomy.CATEGORY_NAME), 0, limit, EntityConstants.Base.NAME_FIELD);
@@ -945,7 +951,6 @@ public class JobConfigurationProxy {
 		List<String> conditions = new LinkedList();
 		if (!StringUtils.isEmpty(name)) {
 			//list node are not filterable by name
-			//conditions.add(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, "*" + name + "*"));
 			myLimit = 100;
 		}
 		if (!StringUtils.isEmpty(logicalListName)) {
@@ -1004,7 +1009,7 @@ public class JobConfigurationProxy {
 	private static List<Entity> getPipelineListNodeFieldsMetadata(OctaneClient octaneClient, long workspaceId) {
 		List<String> conditions = new LinkedList<>();
 		conditions.add(QueryHelper.condition("entity_name", "pipeline_node"));
-		conditions.add(QueryHelper.conditionIn("name", Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
+		conditions.add(QueryHelper.conditionIn(NAME_FIELD, Arrays.asList("test_tool_type", "test_level", "test_type", "test_framework"), false));
 
 		EntitiesService entityService = octaneClient.getEntitiesService();
 		String url = entityService.buildEntityUrl(workspaceId, "metadata/fields", conditions, null, 0, null, null);
@@ -1023,13 +1028,13 @@ public class JobConfigurationProxy {
 			List<Map<String, Object>> fieldFeatures = (List<Map<String, Object>>) entity.getField("field_features");
 			Map<String, Object> pipelineTaggingFeature = null;
 			for (Map<String, Object> feature : fieldFeatures) {
-				if (feature.get("name").equals("pipeline_tagging")) {
+				if (feature.get(NAME_FIELD).equals("pipeline_tagging")) {
 					pipelineTaggingFeature = feature;
 				}
 			}
 
 			JSONObject fieldMetadataJSON = new JSONObject();
-			fieldMetadataJSON.put("name", entity.getName());
+			fieldMetadataJSON.put(NAME_FIELD, entity.getName());
 			fieldMetadataJSON.put("listName", entity.getStringValue("label"));
 			fieldMetadataJSON.put("logicalListName", listNodeTarget.get("logical_name"));
 			fieldMetadataJSON.put("extensible", pipelineTaggingFeature.get("extensibility"));
