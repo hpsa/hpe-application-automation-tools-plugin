@@ -65,6 +65,8 @@ public class JobConfigurationProxy {
 	private static final String WORKSPACE_ID_FIELD = "workspaceId";
 	private static final String NAME_FIELD = "name";
 	public static final String INSTANCE_ID_FIELD = "instanceId";
+	public static final String ID_FIELD = "id";
+	public static final String TEXT_FIELD = "text";
 
 	final private Job job;
 
@@ -134,7 +136,7 @@ public class JobConfigurationProxy {
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 
 		try {
-			long pipelineId = pipelineObject.getLong("id");
+			long pipelineId = pipelineObject.getLong(ID_FIELD);
 
 			//build taxonomies
 			LinkedList<Taxonomy> taxonomies = new LinkedList<>();
@@ -156,8 +158,8 @@ public class JobConfigurationProxy {
 				List<ListItem> assignedValues = new LinkedList<>();
 				for (JSONObject value : toCollection(jsonObject.getJSONArray("values"))) {
 					String id;
-					if (value.containsKey("id")) {
-						id = value.getString("id");
+					if (value.containsKey(ID_FIELD)) {
+						id = value.getString(ID_FIELD);
 					} else {
 						id = null;
 					}
@@ -226,7 +228,7 @@ public class JobConfigurationProxy {
 		String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
 		try {
-			long pipelineId = pipelineObject.getLong("id");
+			long pipelineId = pipelineObject.getLong(ID_FIELD);
 			long workspaceId = pipelineObject.getLong(WORKSPACE_ID_FIELD);
 			octaneClient.getPipelineContextService().deleteTestsFromPipelineNodes(job.getName(), pipelineId, workspaceId);
 			result.put("Test deletion was successful", "");
@@ -290,7 +292,7 @@ public class JobConfigurationProxy {
 						relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getContextEntityId()), pipelineJSON);
 					}
 					JSONObject workspaceJSON = new JSONObject();
-					workspaceJSON.put("id", relatedWorkspace.getId());
+					workspaceJSON.put(ID_FIELD, relatedWorkspace.getId());
 					workspaceJSON.put(NAME_FIELD, relatedWorkspace.getName());
 					workspaceJSON.put("pipelines", relatedPipelinesJSON);
 					workspaces.put(String.valueOf(relatedWorkspace.getId()), workspaceJSON);
@@ -349,7 +351,7 @@ public class JobConfigurationProxy {
 
 	private static JSONObject fromPipeline(final PipelineContext pipeline, Entity relatedWorkspace) {
 		JSONObject pipelineJSON = new JSONObject();
-		pipelineJSON.put("id", pipeline.getContextEntityId());
+		pipelineJSON.put(ID_FIELD, pipeline.getContextEntityId());
 		pipelineJSON.put(NAME_FIELD, pipeline.getContextEntityName());
 		pipelineJSON.put(RELEASE_ID_FIELD, pipeline.getReleaseId() != null ? pipeline.getReleaseId() : -1);
 		pipelineJSON.put(MILESTONE_ID_FIELD, pipeline.getMilestoneId() != null ? pipeline.getMilestoneId() : -1);
@@ -443,7 +445,7 @@ public class JobConfigurationProxy {
 					List<String> fieldTagsIdsList = new LinkedList<>();
 					//getting all ids assigned to listField
 					for (JSONObject singleField : toCollection(pipelineFields.getJSONArray(key))) {
-						fieldTagsIdsList.add(singleField.getString("id"));
+						fieldTagsIdsList.add(singleField.getString(ID_FIELD));
 					}
 					//retrieving names of assigned items
 					if (fieldTagsIdsList.size() > 0) {
@@ -451,7 +453,7 @@ public class JobConfigurationProxy {
 						JSONArray values = new JSONArray();
 						for (Entity item : enrichedFields) {
 							JSONObject value = new JSONObject();
-							value.put("id", item.getId());
+							value.put(ID_FIELD, item.getId());
 							value.put(NAME_FIELD, item.getName());
 							values.add(value);
 						}
@@ -482,8 +484,8 @@ public class JobConfigurationProxy {
 				String quotedTerm = Pattern.quote(term.toLowerCase());
 				if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
 					JSONObject notSpecifiedItemJson = new JSONObject();
-					notSpecifiedItemJson.put("id", -1);
-					notSpecifiedItemJson.put("text", NOT_SPECIFIED);
+					notSpecifiedItemJson.put(ID_FIELD, -1);
+					notSpecifiedItemJson.put(TEXT_FIELD, NOT_SPECIFIED);
 					retArray.add(notSpecifiedItemJson);
 				}
 			}
@@ -491,8 +493,8 @@ public class JobConfigurationProxy {
 			for (Entity item : listItems) {
 				if (!toBeFiltered(item)) {
 					JSONObject itemJson = new JSONObject();
-					itemJson.put("id", item.getId());
-					itemJson.put("text", item.getName());
+					itemJson.put(ID_FIELD, item.getId());
+					itemJson.put(TEXT_FIELD, item.getName());
 					retArray.add(itemJson);
 				}
 
@@ -539,17 +541,12 @@ public class JobConfigurationProxy {
 			String quotedTerm = Pattern.quote(term.toLowerCase());
 			if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
 				JSONObject notSpecifiedItemJson = new JSONObject();
-				notSpecifiedItemJson.put("id", -1);
-				notSpecifiedItemJson.put("text", NOT_SPECIFIED);
+				notSpecifiedItemJson.put(ID_FIELD, -1);
+				notSpecifiedItemJson.put(TEXT_FIELD, NOT_SPECIFIED);
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			for (Entity release : releases) {
-				JSONObject relJson = new JSONObject();
-				relJson.put("id", release.getId());
-				relJson.put("text", release.getName());
-				retArray.add(relJson);
-			}
+			fillArray(retArray, releases);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -580,17 +577,12 @@ public class JobConfigurationProxy {
 			String quotedTerm = Pattern.quote(term.toLowerCase());
 			if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
 				JSONObject notSpecifiedItemJson = new JSONObject();
-				notSpecifiedItemJson.put("id", -1);
-				notSpecifiedItemJson.put("text", NOT_SPECIFIED);
+				notSpecifiedItemJson.put(ID_FIELD, -1);
+				notSpecifiedItemJson.put(TEXT_FIELD, NOT_SPECIFIED);
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			for (Entity milestone : milestones) {
-				JSONObject relJson = new JSONObject();
-				relJson.put("id", milestone.getId());
-				relJson.put("text", milestone.getName());
-				retArray.add(relJson);
-			}
+			fillArray(retArray, milestones);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -618,12 +610,7 @@ public class JobConfigurationProxy {
 				retArray.add(createMoreResultsJson());
 			}
 
-			for (Entity workspace : workspaces) {
-				JSONObject relJson = new JSONObject();
-				relJson.put("id", workspace.getId());
-				relJson.put("text", workspace.getName());
-				retArray.add(relJson);
-			}
+			fillArray(retArray, workspaces);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -632,6 +619,15 @@ public class JobConfigurationProxy {
 		}
 
 		return ret;
+	}
+
+	private void fillArray(JSONArray array, List<Entity> entities) {
+		for (Entity workspace : entities) {
+			JSONObject relJson = new JSONObject();
+			relJson.put(ID_FIELD, workspace.getId());
+			relJson.put(TEXT_FIELD, workspace.getName());
+			array.add(relJson);
+		}
 	}
 
 	@JavaScriptMethod
@@ -644,8 +640,8 @@ public class JobConfigurationProxy {
 				continue;
 			}
 			JSONObject relJson = new JSONObject();
-			relJson.put("id", model.getIdentity());
-			relJson.put("text", model.getCaption());
+			relJson.put(ID_FIELD, model.getIdentity());
+			relJson.put(TEXT_FIELD, model.getCaption());
 			retArray.add(relJson);
 		}
 		ret.put("results", retArray);
@@ -706,7 +702,7 @@ public class JobConfigurationProxy {
 				JSONArray childrenArray = new JSONArray();
 
 				JSONObject optgroup = new JSONObject();
-				optgroup.put("text", tagTypeName);
+				optgroup.put(TEXT_FIELD, tagTypeName);
 
 				//for tagTypesByName
 				JSONObject tagTypeJson = new JSONObject();
@@ -717,8 +713,8 @@ public class JobConfigurationProxy {
 				for (Entity tax : taxonomyType.getValue()) {
 					//creating input format for select2, so that this structure does not have to be refactored in javascript
 					JSONObject taxonomyJson = new JSONObject();
-					taxonomyJson.put("id", tax.getId());
-					taxonomyJson.put("text", tax.getName());
+					taxonomyJson.put(ID_FIELD, tax.getId());
+					taxonomyJson.put(TEXT_FIELD, tax.getName());
 					taxonomyJson.put("value", tax.getId());
 					if (pipelineTaxonomiesList.contains(tax.getId())) {
 						taxonomyJson.put("disabled", "disabled");
@@ -753,7 +749,7 @@ public class JobConfigurationProxy {
 
 			// New type... New value...
 			JSONObject optgroup = new JSONObject();
-			optgroup.put("text", "New type...");
+			optgroup.put(TEXT_FIELD, "New type...");
 			JSONObject newValueJson = createNewValueJson("newTagType");
 			JSONArray childrenArray = new JSONArray();
 			childrenArray.add(newValueJson);
@@ -776,8 +772,8 @@ public class JobConfigurationProxy {
 
 	private static JSONObject createMoreResultsJson() {
 		JSONObject moreResultsJson = new JSONObject();
-		moreResultsJson.put("id", "moreResultsFound");
-		moreResultsJson.put("text", Messages.TooManyResults());
+		moreResultsJson.put(ID_FIELD, "moreResultsFound");
+		moreResultsJson.put(TEXT_FIELD, Messages.TooManyResults());
 		moreResultsJson.put("warning", "true");
 		moreResultsJson.put("disabled", "disabled");
 		return moreResultsJson;
@@ -785,8 +781,8 @@ public class JobConfigurationProxy {
 
 	private static JSONObject createNewValueJson(String id) {
 		JSONObject newValueJson = new JSONObject();
-		newValueJson.put("id", id);
-		newValueJson.put("text", "New value...");
+		newValueJson.put(ID_FIELD, id);
+		newValueJson.put(TEXT_FIELD, "New value...");
 		newValueJson.put("newValue", "true");
 		return newValueJson;
 	}
@@ -819,7 +815,7 @@ public class JobConfigurationProxy {
 
 		for (ListItem item : listItems) {
 			JSONObject value = new JSONObject();
-			value.put("id", item.getId());
+			value.put(ID_FIELD, item.getId());
 			if (item.getName() != null) {
 				value.put(NAME_FIELD, item.getName());
 			}
@@ -913,7 +909,7 @@ public class JobConfigurationProxy {
 
 	private static ResponseEntityList queryMilestonesByNameAndRelease(OctaneClient octaneClient, String name, long workspaceId, long releaseId, int limit) {
 		Collection<String> conditions = new LinkedList<>();
-		conditions.add(QueryHelper.conditionRef(EntityConstants.Milestone.RELEASE_FIELD, "id", Long.toString(releaseId)));
+		conditions.add(QueryHelper.conditionRef(EntityConstants.Milestone.RELEASE_FIELD, ID_FIELD, Long.toString(releaseId)));
 		return queryEntitiesByName(octaneClient, name, conditions, workspaceId, EntityConstants.Milestone.COLLECTION_NAME, limit);
 	}
 
