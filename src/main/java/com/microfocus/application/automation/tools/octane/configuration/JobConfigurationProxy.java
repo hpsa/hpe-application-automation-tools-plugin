@@ -907,7 +907,7 @@ public class JobConfigurationProxy {
 
 	private static ResponseEntityList queryMilestonesByNameAndRelease(OctaneClient octaneClient, String name, long workspaceId, long releaseId, int limit) {
 		Collection<String> conditions = new LinkedList<>();
-		conditions.add(QueryHelper.conditionRef("release", "id","" + releaseId)); //EntityConstants.Milestone.RELEASE_FIELD
+		conditions.add(QueryHelper.conditionRef(EntityConstants.Milestone.RELEASE_FIELD, "id","" + releaseId));
 		return queryEntitiesByName(octaneClient, name, conditions, workspaceId, EntityConstants.Milestone.COLLECTION_NAME, limit);
 	}
 
