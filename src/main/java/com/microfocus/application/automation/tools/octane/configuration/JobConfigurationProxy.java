@@ -50,6 +50,7 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -451,7 +452,7 @@ public class JobConfigurationProxy {
 					if (fieldTagsIdsList.size() > 0) {
 						List<Entity> enrichedFields = getListItemsById(client, fieldTagsIdsList, workspaceId);
 						JSONArray values = new JSONArray();
-						fillArray(values, enrichedFields, NAME_FIELD);
+						fillArray(values, enrichedFields, NAME_FIELD, null);
 						ret.put(key, values);
 					}
 				}
@@ -484,16 +485,8 @@ public class JobConfigurationProxy {
 					retArray.add(notSpecifiedItemJson);
 				}
 			}
+			fillArray(retArray,listItems,TEXT_FIELD, this::isNotManualTestingToolType);
 
-			for (Entity item : listItems) {
-				if (!toBeFiltered(item)) {
-					JSONObject itemJson = new JSONObject();
-					itemJson.put(ID_FIELD, item.getId());
-					itemJson.put(TEXT_FIELD, item.getName());
-					retArray.add(itemJson);
-				}
-
-			}
 			// we shall use "if (extensible){}" on following line, but we do not have UI ready for the case: multiValue = true & extensible = true
 			if (extensible && !multiValue) {
 				//if exactly one item matches, we do not want to bother user with "new value" item
@@ -512,8 +505,8 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private boolean toBeFiltered(Entity item) {
-		return (item.getStringValue(EntityConstants.Base.LOGICAL_NAME_FIELD).equalsIgnoreCase("list_node.testing_tool_type.manual"));
+	private boolean isNotManualTestingToolType(Entity item) {
+		return !(item.getStringValue(EntityConstants.Base.LOGICAL_NAME_FIELD).equalsIgnoreCase("list_node.testing_tool_type.manual"));
 	}
 
 	@JavaScriptMethod
@@ -541,7 +534,7 @@ public class JobConfigurationProxy {
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			fillArray(retArray, releases, TEXT_FIELD);
+			fillArray(retArray, releases, TEXT_FIELD, null);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -577,7 +570,7 @@ public class JobConfigurationProxy {
 				retArray.add(notSpecifiedItemJson);
 			}
 
-			fillArray(retArray, milestones, TEXT_FIELD);
+			fillArray(retArray, milestones, TEXT_FIELD, null);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -605,7 +598,7 @@ public class JobConfigurationProxy {
 				retArray.add(createMoreResultsJson());
 			}
 
-			fillArray(retArray, workspaces, TEXT_FIELD);
+			fillArray(retArray, workspaces, TEXT_FIELD, null);
 			ret.put("results", retArray);
 
 		} catch (Exception e) {
@@ -616,12 +609,14 @@ public class JobConfigurationProxy {
 		return ret;
 	}
 
-	private static void fillArray(JSONArray array, List<Entity> entities, String valueFieldName) {
+	private static void fillArray(JSONArray array, List<Entity> entities, String valueFieldName, Predicate<? super Entity> predicate) {
 		for (Entity entity : entities) {
-			JSONObject relJson = new JSONObject();
-			relJson.put(ID_FIELD, entity.getId());
-			relJson.put(valueFieldName, entity.getName());
-			array.add(relJson);
+			if(predicate == null || predicate.test(entity)) {
+				JSONObject relJson = new JSONObject();
+				relJson.put(ID_FIELD, entity.getId());
+				relJson.put(valueFieldName, entity.getName());
+				array.add(relJson);
+			}
 		}
 	}
 
