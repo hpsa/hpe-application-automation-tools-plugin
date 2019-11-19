@@ -473,16 +473,17 @@ namespace HpToolsLauncher
             {
                 tsTreeManager = (ITestSetTreeManager)TdConnectionOld.TestSetTreeManager;
             }
-             
+
            
             ITestSetFolder tsFolder = null;
             try
             {
-                tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(testSet);
+           
+                tsFolder = (ITestSetFolder)tsTreeManager.NodeByPath[testSet];
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to retrieve test set folder: " + ex.Message);
+               Console.WriteLine("Unable to retrieve test set folder: " + ex.Message);
             }
 
             return tsFolder;
@@ -496,16 +497,6 @@ namespace HpToolsLauncher
         {
             List<string> extraSetsList = new List<string>();
             List<string> removeSetsList = new List<string>();
-            ITestSetTreeManager tsTreeManager;
-            if (TdConnection != null)
-            {
-                tsTreeManager = (ITestSetTreeManager)TdConnection.TestSetTreeManager;
-            }
-            else
-            {
-                tsTreeManager = (ITestSetTreeManager)TdConnectionOld.TestSetTreeManager;
-            }
-            
 
             //go over all the test sets / testSetFolders and check which is which
             foreach (string testSetOrFolder in TestSets)
@@ -580,7 +571,7 @@ namespace HpToolsLauncher
                 }
             }
 
-            if (targetTestSet != null) return targetTestSet;
+            if (targetTestSet != null) { return targetTestSet; }
 
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
 
@@ -607,8 +598,8 @@ namespace HpToolsLauncher
                                            string testSet, string tsName, ref string testSuiteName,
                                            string tsPath, ref bool isTestPath, ref string testName)
         {
-
-            if (testSuiteName == null) throw new ArgumentNullException("testSuiteName");
+           
+            if (testSuiteName == null) throw new ArgumentNullException("Missing test suite name");
             ITestSetTreeManager tsTreeManager;
             if (TdConnection != null)
             {
@@ -630,7 +621,7 @@ namespace HpToolsLauncher
                 }
                 else
                 {
-                    tsFolder = (ITestSetFolder) tsTreeManager.NodeByPath[tsPath];
+                    tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
                 }
 
                 isTestPath = false;
@@ -654,28 +645,20 @@ namespace HpToolsLauncher
                     testName = testSuiteName;
                     testSuiteName = tsPath.Substring(pos, tsPath.Length - pos);
                     tsPath = tsPath.Substring(0, pos - 1);
-                    tsFolder = (ITestSetFolder)tsTreeManager.NodeByPath[tsPath];
-                    
+                    tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
                     isTestPath = true;
                 }
                 catch (COMException ex)
                 {
                     tsFolder = null;
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Exception: " + ex.Message);
                 }
             }
-
             if (tsFolder != null)
             {
+                List testList = tsFolder.FindTestSets(testSuiteName);
                 
-                if ((testStorageType.Equals(TestStorageType.AlmLabManagement) && !testSet.Equals(""))
-                    || testStorageType.Equals(TestStorageType.Alm))
-                {
-                    List testList = tsFolder.FindTestSets(testSuiteName);
-                  
-                    return testList;
-                }
-
+                return testList;
             }
            
             //node wasn't found, folder = null
@@ -1166,6 +1149,7 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Unable to retrieve the list of tests");
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
                 Console.WriteLine(ex.Message);
                 //this will make sure run will fail at the end. (since there was an error)
@@ -1174,11 +1158,6 @@ namespace HpToolsLauncher
             }
 
             //get target test set
-            if (testSetList == null)
-            {
-                Console.WriteLine("Null test set list");
-            }
-
             ITestSet targetTestSet = null;
             try
             {
@@ -1186,7 +1165,7 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Null test set list");
+                Console.WriteLine("Empty target test set list");
             }
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
@@ -1209,7 +1188,6 @@ namespace HpToolsLauncher
 
             if (scheduler == null)
             {
-                Console.WriteLine("Run test set, scheduler is null");
                 Console.WriteLine(GetAlmNotInstalledError());
 
                 //proceeding with program execution is tasteless, since nothing will run without a properly installed QC.
@@ -1299,7 +1277,7 @@ namespace HpToolsLauncher
 
             string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\";
             
-            SetTestResults(currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
+            SetTestResults(ref currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
          
 
             //update the total runtime
@@ -1333,7 +1311,7 @@ namespace HpToolsLauncher
         /// <param name="runDesc"></param>
         /// <param name="testPath"></param>
         /// <param name="abortFilename"></param>
-        private void SetTestResults(ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
+        private void SetTestResults(ref ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
         {
             if (currentTest == null) throw new ArgumentNullException("Current test set is null.");
 
@@ -1481,7 +1459,7 @@ namespace HpToolsLauncher
                     TestExecStatus testExecStatusObj = executionStatus[j];
 
                     currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
-
+                   
                     if (currentTest == null)
                     {
                         ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} during execution", j));

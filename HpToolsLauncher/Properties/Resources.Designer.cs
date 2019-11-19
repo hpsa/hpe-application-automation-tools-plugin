@@ -484,7 +484,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ==============\nJob timed out!\n==============.
+        ///   Looks up a localized string similar to ============== Job timed out! ==============.
         /// </summary>
         internal static string GeneralTimedOut {
             get {
