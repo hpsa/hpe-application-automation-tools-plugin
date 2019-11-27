@@ -34,7 +34,7 @@
 		LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Unified Functional Testing Mobile,
 		Application Lifecycle Management and Application Lifecycle Management Octane.
 	</description>
-	<url>https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools</url>
+	<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin/blob/latest/doc/README.md</url>
 
 	<licenses>
 		<license>
