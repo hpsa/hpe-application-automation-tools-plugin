@@ -61,6 +61,10 @@
                     <td>Protractor</td>
                     <td>protractor conf.js --grep="$testsToRunConverted"</td>
                 </tr>
+                <tr>
+                    <td>Cucumber-JVM over Maven</td>
+                    <td>mvn clean -Dcucumber.options="$testsToRunConverted" test</td>
+                </tr>
                 </tbody>
             </table>
             </br>
@@ -88,6 +92,10 @@
                     <td>Protractor</td>
                     <td>protractor conf.js --grep="%testsToRunConverted%"</td>
                 </tr>
+                <tr>
+                    <td>Cucumber-JVM over Maven</td>
+                    <td>mvn clean -Dcucumber.options="%testsToRunConverted%" test</td>
+                </tr>
                 </tbody>
             </table>
             </br>
@@ -114,6 +122,10 @@
                 <tr>
                     <td>Protractor</td>
                     <td>bat(/protractor conf.js --grep="${params.testsToRunConverted}"/)</td>
+                </tr>
+                <tr>
+                    <td>Cucumber-JVM over Maven</td>
+                    <td>bat 'mvn clean -Dcucumber.options="${testsToRunConverted}" test'</td>
                 </tr>
                 </tbody>
             </table>
