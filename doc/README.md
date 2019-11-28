@@ -104,9 +104,9 @@ This plugin supports the following Micro Focus product versions:
 
 | --- | --- | --- |
 
-| ALM (Application Lifecycle Management) 12.xx | 12.xx, 15.0 |[ALM Integration  page](ALM_Integration)  |
+| ALM (Application Lifecycle Management) 12.xx | 12.xx, 15.0 |[ALM Integration  page](ALM_Integration.md)  |
 
-| ALM Lab Management | 12.xx | [ALM Integration  page](ALM_Integration) |
+| ALM Lab Management | 12.xx | [ALM Integration  page](ALM_Integration.md) |
 
 | ALM Octane | 12.53.20 or later (12.55.4 or later required
 
