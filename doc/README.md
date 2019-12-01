@@ -240,7 +240,7 @@ To set up a pipeline test job for your Micro Focus testing tool:
          a. Click the **Pipeline Syntax** link.
          b. In the Snippet Generator drop down, select the desired step, for example,  **uftScenarioLoad: Run UFT scenario**.
          c. Fill in the fields as required. Fields marked in red are mandatory. **Note:**   For fields that take multiple values, such as in the **Tests** field, separate multiple entries with a line break.
-         d. If relevant, select one of the **Report archive modes** (below).
+         d. If relevant, select one of the [Report archive modes](#report-archive-modes).
          e. Click  **Generate Pipeline Script**. Copy the code to the clipboard.
 
 6. Return to the Project Configuration page, and paste the generated Groovy script into the  **Script**  field in the Pipeline section.
