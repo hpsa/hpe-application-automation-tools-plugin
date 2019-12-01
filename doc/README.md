@@ -38,7 +38,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Tips and Troubleshooting](#tips-and-troubleshooting)
 
-- [Best Practice - Use Slave Machine](#best-practice-use-slave-machine)
+- [Best Practice-Use Slave Machine](#best-practice-use-slave-machine)
 - [Content Security Policy Header](#content-security-policy-header)
 
 - [Integration Issues](#integration-issues)
@@ -117,8 +117,8 @@ The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists th
 
 This plugin supports the following Micro Focus product versions:
 
-| **Micro Focus tool**                                | **Supported versions**                                       | **Find more information...**                                 |
-| --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Micro Focus tool                                    | Supported versions                                           | Find more information...                                     |
+| :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | ALM (Application Lifecycle Management)              | 12.xx, 15.0                                                  | [ALM Integration  page](ALM_Integration.md)                  |
 | ALM Lab Management                                  | 12.xx                                                        | [ALM Integration  page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
 | ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
@@ -344,7 +344,7 @@ For example:
 
 ## Tips and Troubleshooting
 
-### Best Practice - Use Slave Machine
+### Best Practice-Use Slave Machine
 
 For best performance, it is recommended to install the testing tools and ALM/QC as nodes on slave machines, and not directly on the Jenkins server.  For instructions on configuring nodes, see the [Step by step guide to set up master and agent machines in Windows]( https://wiki.jenkins.io/display/JENKINS/Step+by+step+guide+to+set+up+master+and+agent+machines+on+Windows ).
 
