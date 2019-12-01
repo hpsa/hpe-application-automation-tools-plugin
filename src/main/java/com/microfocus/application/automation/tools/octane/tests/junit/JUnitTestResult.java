@@ -31,6 +31,7 @@ import java.io.Serializable;
  */
 final public class JUnitTestResult implements Serializable, TestResult {
 
+    private final static int DEFAULT_STRING_SIZE = 255;
     private final String moduleName;
     private final String packageName;
     private final String className;
@@ -42,15 +43,23 @@ final public class JUnitTestResult implements Serializable, TestResult {
     private final String externalReportUrl;
 
     public JUnitTestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String externalReportUrl) {
-        this.moduleName = moduleName;
-        this.packageName = packageName;
-        this.className = className;
-        this.testName = testName;
+        this.moduleName = restrictSize(moduleName, DEFAULT_STRING_SIZE);
+        this.packageName = restrictSize(packageName, DEFAULT_STRING_SIZE);
+        this.className = restrictSize(className, DEFAULT_STRING_SIZE);
+        this.testName = restrictSize(testName, DEFAULT_STRING_SIZE);
         this.result = result;
         this.duration = duration;
         this.started = started;
         this.testError = testError;
         this.externalReportUrl = externalReportUrl;
+    }
+
+    private String restrictSize(String value, int size) {
+        String result = value;
+        if (value != null && value.length() > size) {
+            result = value.substring(0, size);
+        }
+        return result;
     }
 
     public String getModuleName() {

@@ -23,10 +23,29 @@
     margin-bottom: 10px;
 }
 
-div.help {
+table tr td div.help {
     margin-left: 12px;
+    background: none;
+    border: none;
 }
 
 #cb20 {
     margin-left: 35px;
+}
+.help {
+    border: none;
+    background: none;
+    background-color: transparent;
+}
+
+table td .help {
+    background: none;
+}
+
+table tr[nameref^="rowSetStart"] {
+    background: none;
+}
+
+table tr[nameref^="cb20"] {
+   background-color: transparent;
 }

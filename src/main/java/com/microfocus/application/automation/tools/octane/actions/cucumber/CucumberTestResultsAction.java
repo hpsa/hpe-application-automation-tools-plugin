@@ -32,16 +32,14 @@ import java.io.File;
 public class CucumberTestResultsAction implements Action {
     private final String glob;
     private final Run<?, ?> build;
-    private final FilePath workspace;
 
-    CucumberTestResultsAction(Run<?, ?> run, FilePath workspace , String glob, TaskListener listener) {
+    CucumberTestResultsAction(Run<?, ?> run, String glob, TaskListener listener) {
         this.build = run;
         this.glob = glob;
-        this.workspace = workspace;
         CucumberResultsService.setListener(listener);
     }
 
-    public boolean copyResultsToBuildFolder() {
+    public boolean copyResultsToBuildFolder(FilePath workspace) {
         try {
             CucumberResultsService.log(Messages.CucumberResultsActionCollecting());
             String[] files = CucumberResultsService.getCucumberResultFiles(workspace, glob);

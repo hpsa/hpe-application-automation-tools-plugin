@@ -25,6 +25,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
 import java.util.Arrays;
@@ -34,9 +35,9 @@ import hudson.util.Secret;
 
 import java.util.Properties;
 
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 
@@ -53,6 +54,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public final static int DEFAULT_TIMEOUT = 36000; // 10 hrs
     public final static String ALM_PASSWORD_KEY = "almPassword";
+    public final static String ALM_API_KEY_SECRET = "almApiKey";
 
     private String almServerName;
     private String almUserName;
@@ -64,12 +66,16 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private String almTimeout;
     private String almRunMode;
     private String almRunHost;
+    private Boolean isSSOEnabled;
+    private String almClientID;
+    private String almApiKey;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName,
                            String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
-                           String almRunMode, String almRunHost){
+                           String almRunMode, String almRunHost, Boolean isSSOEnabled,
+                           String almClientID, String almApiKey){
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -86,6 +92,10 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.almTimeout = almTimeout;
         this.almRunMode = almRunMode;
         this.almRunHost = almRunHost;
+
+        this.isSSOEnabled = isSSOEnabled;
+        this.almClientID = almClientID;
+        this.almApiKey = almApiKey;
     }
 
     public String getAlmUserName() {
@@ -128,6 +138,14 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         return almServerName;
     }
 
+    public Boolean isSSOEnabled() {
+        return isSSOEnabled;
+    }
+
+    public String getAlmClientID() { return almClientID; }
+
+    public String getAlmApiKey() { return almApiKey; }
+
     public Properties getProperties(EnvVars envVars,
                                     VariableResolver<String> varResolver) {
         return CreateProperties(envVars, varResolver);
@@ -140,6 +158,11 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private Properties CreateProperties(EnvVars envVars,
                                         VariableResolver<String> varResolver) {
         Properties props = new Properties();
+        if(isSSOEnabled != null){
+            props.put("SSOEnabled", Boolean.toString(isSSOEnabled));
+        }else{
+            props.put("SSOEnabled", Boolean.toString(false));
+        }
 
         if (envVars == null) {
             props.put("almUserName", almUserName);
@@ -183,6 +206,17 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
         props.put("almRunMode", almRunMode);
         props.put("almRunHost", almRunHost);
+        if(almClientID != null){
+            props.put("almClientID", almClientID);
+        } else {
+            props.put("almClientID", "");
+        }
+
+        if(almApiKey != null){
+            props.put("almApiKey", almApiKey);
+        }else{
+            props.put("almApiKey", "");
+        }
 
         return props;
     }

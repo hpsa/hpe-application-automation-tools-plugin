@@ -24,7 +24,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/utils.js"/>
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
+
+    <style>
+        table tr[nameref^="rowSetStart"] {
+                    background: none !important;
+                }
+    </style>
 
     <f:entry>
         <f:entry>
@@ -42,19 +48,17 @@
 
 
         <f:entry>
-                <label>Nodes</label>
-                <f:entry field="selectedNode">
-                    <select name="selectedNode" style="width: 150px;">
-                        <j:forEach var="node" items="${descriptor.nodes}">
-                            <f:option selected="${node==instance.selectedNode}" value="${node}">
-                                ${node}
-                            </f:option>
-                        </j:forEach>
-                    </select>
-                </f:entry>
+            <label>Nodes</label>
+            <f:entry field="selectedNode">
+                <select name="selectedNode" style="width: 150px;">
+                    <j:forEach var="node" items="${descriptor.nodes}">
+                        <f:option selected="${node==instance.selectedNode}" value="${node}">
+                            ${node}
+                        </f:option>
+                    </j:forEach>
+                </select>
+            </f:entry>
         </f:entry>
-
-
 
         <f:entry>
              <label class="attach-previous">Reruns:</label>

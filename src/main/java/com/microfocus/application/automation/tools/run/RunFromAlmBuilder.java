@@ -65,7 +65,7 @@ import static com.microfocus.application.automation.tools.Messages.RunFromAlmBui
 
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
-    private final RunFromAlmModel runFromAlmModel;
+    public RunFromAlmModel runFromAlmModel;
     private boolean isFilterTestsEnabled;
     private FilterTestsModel filterTestsModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
@@ -84,6 +84,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almTimeout,
             String almRunMode,
             String almRunHost,
+            String almClientID,
+            String almApiKey,
+            boolean isSSOEnabled,
             boolean isFilterTestsEnabled,
             FilterTestsModel filterTestsModel){
 
@@ -101,12 +104,17 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunResultsMode,
                         almTimeout,
                         almRunMode,
-                        almRunHost);
+                        almRunHost,
+                        isSSOEnabled,
+                        almClientID,
+                        almApiKey);
     }
 
     public String getAlmServerName(){
         return runFromAlmModel.getAlmServerName();
     }
+
+    public boolean getIsSSOEnabled() { return runFromAlmModel.isSSOEnabled(); }
 
     public String getAlmUserName(){
         return runFromAlmModel.getAlmUserName();
@@ -148,7 +156,11 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return isFilterTestsEnabled;
     }
 
-    @DataBoundSetter
+    public String getAlmClientID() { return runFromAlmModel.getAlmClientID(); }
+
+    public String getAlmApiKey() { return runFromAlmModel.getAlmApiKey(); }
+
+   @DataBoundSetter
     public void setIsFilterTestsEnabled(boolean isFilterTestsEnabled) {
         this.isFilterTestsEnabled = isFilterTestsEnabled;
     }
@@ -211,7 +223,20 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem in qcPassword encription");
+            listener.fatalError("problem with qcPassword encryption");
+        }
+
+        String encAlmApiKey = "";
+        try{
+            encAlmApiKey =
+                    EncryptionUtils.Encrypt(
+                            runFromAlmModel.getAlmApiKey(),
+                            EncryptionUtils.getSecretKey());
+            mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
+            mergedProperties.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
+        }catch (Exception e) {
+            build.setResult(Result.FAILURE);
+            listener.fatalError("problem with apiKey encryption");
         }
 
         if(isFilterTestsEnabled){
@@ -249,20 +274,21 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
+
         URL cmdExeUrl =
                 Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
             return;
         }
-        
+
         FilePath propsFileName = projectWS.child(ParamFileName);
         FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
-        
+
         try {
             // create a file for the properties file, and save the properties
             propsFileName.copyFrom(propsStream);
-            
+
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
         } catch (IOException e1) {
@@ -270,7 +296,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        
         try {
             // Run the HpToolsLauncher.exe
             AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
@@ -353,7 +378,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         public String getDisplayName() {
             return RunFromAlmBuilderStepName(CompanyName());
         }
-        
+
+
         public boolean hasAlmServers() {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
@@ -363,17 +389,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }
-        
-        public FormValidation doCheckAlmUserName(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error("User name must be set");
-            }
-            
-            return FormValidation.ok();
-        }
-        
+
+
         public FormValidation doCheckAlmTimeout(@QueryParameter String value) {
-            
+
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.ok();
             }

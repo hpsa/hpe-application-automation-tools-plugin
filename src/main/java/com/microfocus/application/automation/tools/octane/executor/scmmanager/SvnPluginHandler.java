@@ -89,16 +89,6 @@ public class SvnPluginHandler implements ScmPluginHandler {
 	}
 
 	@Override
-	public String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile) {
-		return null;
-	}
-
-	@Override
-	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
-		return null;
-	}
-
-	@Override
 	public String getScmRepositoryUrl(SCM scm) {
 		return ((SubversionSCM) scm).getLocations()[0].remote;
 	}

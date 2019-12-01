@@ -23,11 +23,11 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-        <version>3.28</version>
+        <version>3.43</version>
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.8.7-beta-SNAPSHOT</version>
+	<version>5.9.4-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -48,7 +48,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.121.3</jenkins.version>
+		<jenkins.version>2.138.4</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -172,6 +172,13 @@
 				<role>Global owner and LoadRunner Dev (retired)</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>paul-murray-mf </id>
+			<name>Paul Murray</name>
+			<roles>
+				<role>ALM Octane Starteam support</role>
+			</roles>
+		</developer>
 	</developers>
 
 	<build>
@@ -215,18 +222,6 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<additionalparam>-Xdoclint:none</additionalparam>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>none</phase>
-					</execution>
-				</executions>
-				<configuration>
 					<skip>true</skip>
 				</configuration>
 			</plugin>

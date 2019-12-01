@@ -31,7 +31,8 @@ import org.apache.logging.log4j.Logger;
 public enum SCMProcessors {
 	NONE("hudson.scm.NullSCM", null),
 	GIT("hudson.plugins.git.GitSCM", GitSCMProcessor.class),
-	SVN("hudson.scm.SubversionSCM", SvnSCMProcessor.class);
+	SVN("hudson.scm.SubversionSCM", SvnSCMProcessor.class),
+	STARTEAM("hudson.plugins.starteam.StarTeamSCM", StarTeamSCMProcessor.class);
 
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(OctaneServerSettingsBuilder.class);
 	private String targetSCMPluginClassName;

@@ -30,6 +30,7 @@ namespace HpToolsLauncher
     public enum TestStorageType
     {
         Alm,
+        AlmLabManagement,
         FileSystem,
         LoadRunner,
         Unknown

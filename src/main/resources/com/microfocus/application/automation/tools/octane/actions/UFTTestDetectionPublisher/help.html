@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
   ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
@@ -18,38 +17,17 @@
   ~ The information contained herein is subject to change without notice.
   ~ ___________________________________________________________________
   -->
-  
 
-<Configuration status="INFO" monitorInterval="10">
+<div>
+    This build step discovers UFT tests and external data table in the SCM repository and synchronizes corresponding entities to ALM Octane.</br>
+    Discovery can done in two ways
+    <ul>
+        <li>Full sync - Cloned SCM repository is scanned and all found tests and data tables are synchronized to ALM Octane.</li>
+        <li>ChangeSet sync - Only commits that are related to the build are scanned and only affected entities are synchronized.</li>
+    </ul>
+    By default, full sync is done for the first run of the job, and after that only ChangeSet sync is done.
+    If you need to force full sync - define in the job a boolean parameter "Full sync" and execute the job with this parameter is checked.
+    </br>
 
-	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%-50.50t] %-32.32c{1}: %m%n</Property>
-	</Properties>
-
-	<Appenders>
-
-		<RollingFile name="octaneFileAppender" append="true" fileName="${sys:octaneAllowedStorage:-}nga/logs/nga.log"
-					 filePattern="${sys:octaneAllowedStorage:-}nga/logs/nga-%i.log">
-			<PatternLayout pattern="${pattern}"/>
-			<Policies>
-				<SizeBasedTriggeringPolicy size="2MB"/>
-			</Policies>
-			<DefaultRolloverStrategy max="10" fileIndex="min"/>
-		</RollingFile>
-		<Async name="asyncOctaneFileAppender">
-			<AppenderRef ref="octaneFileAppender"/>
-		</Async>
-
-		<Console name="octaneConsoleAppender" target="SYSTEM_OUT">
-			<PatternLayout pattern="${pattern}"/>
-		</Console>
-
-	</Appenders>
-
-	<Loggers>
-		<Root level="info" additivity="true">
-			<AppenderRef ref="asyncOctaneFileAppender"/>
-		</Root>
-	</Loggers>
-
-</Configuration>
+    If you need to assign a discovered test in ALM Octane to a specific test runner, define a string parameter "Test Runner ID" and assign to it the ID of the relevant test runner.
+</div>

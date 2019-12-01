@@ -157,7 +157,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on" xml:space="preserve">
     <value>No Micro Focus testing tool is installed on {0}</value>
   </data>
-  <data name="AlmRunnerCantFindTest" xml:space="preserve">
+  <data name="AlmRunnerCantFindTestSet" xml:space="preserve">
     <value>Could not find TestSet {0}</value>
   </data>
   <data name="AlmRunnerConnParamEmpty" xml:space="preserve">
@@ -204,6 +204,9 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="AlmRunnerServerUnreachable" xml:space="preserve">
     <value>"ALM server {0} unreachable, check that server Url is correct"</value>
+  </data>
+  <data name="AlmRunnerIncorectCredentials" xml:space="preserve">
+    <value>"Unable to login. Please check username and password."</value>
   </data>
   <data name="AlmRunnerStartingExecution" xml:space="preserve">
     <value>Starting test set execution</value>
@@ -263,7 +266,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test run was cancelled</value>
   </data>
   <data name="GeneralTimedOut" xml:space="preserve">
-    <value>==============\nJob timed out!\n==============</value>
+    <value>============== Job timed out! ==============</value>
   </data>
   <data name="GeneralTimeoutExpired" xml:space="preserve">
     <value>Timeout has expired</value>
@@ -465,5 +468,23 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="SmallDoubleSeparator" xml:space="preserve">
     <value>===========================</value>
+  </data>
+  <data name="CreateTDConnection" xml:space="preserve">
+    <value>CreateTDConnection</value>
+  </data>
+  <data name="OldVersionOfQC" xml:space="preserve">
+    <value>You are using an old version of QC. Please update ALM QC.</value>
+  </data>
+  <data name="MissingParameterName" xml:space="preserve">
+    <value>Parameter name missing. Please specify the parameter name.</value>
+  </data>
+  <data name="MissingParameterValue" xml:space="preserve">
+    <value>Parameter value is unspecified. Please provide a value or an empty string.</value>
+  </data>
+  <data name="AlmTestSetsRunnerGetFolderError" xml:space="preserve">
+    <value>Cannot find the test folder.</value>
+  </data>
+  <data name="AlmTestSetsRunnerNoTestAfterApplyingFilters" xml:space="preserve">
+    <value>No test meets the filtering criteria.</value>
   </data>
 </root>

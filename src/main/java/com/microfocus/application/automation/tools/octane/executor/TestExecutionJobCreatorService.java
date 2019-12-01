@@ -61,6 +61,8 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This service is responsible to create jobs (discovery and execution) for execution process.
@@ -478,7 +480,10 @@ public class TestExecutionJobCreatorService {
 				String label = "" + computer.getNode().getSelfLabel();
 				if (label.toLowerCase().contains("uft")) {
 					label = label.trim();
-					if (label.contains(" ")) {
+					Pattern p = Pattern.compile("[^\\w]");
+					Matcher m = p.matcher(label);
+					if (m.find()){
+						//if contain non-letter/digit character, wrap with "
 						label = "\"" + label + "\"";
 					}
 					labels.add(label);
@@ -486,8 +491,14 @@ public class TestExecutionJobCreatorService {
 			}
 
 			if (!labels.isEmpty()) {
-				Label joinedLabel = Label.parseExpression(StringUtils.join(labels, "||"));
-				proj.setAssignedLabel(joinedLabel);
+				String joined = StringUtils.join(labels, "||");
+				//if there are more than 1 wrapped label (for example : "label 1"), need to wrap it with parentheses
+				boolean parenthesesRequired = labels.stream().filter(l -> l.startsWith("\"")).count() > 1;
+				if (parenthesesRequired) {
+					joined = "(" + joined + ")";
+				}
+
+				proj.setAssignedLabel(Label.parseExpression(joined));
 			}
 
 		} catch (IOException | ANTLRException e) {
