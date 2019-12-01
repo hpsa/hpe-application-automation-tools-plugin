@@ -22,12 +22,19 @@ package com.microfocus.application.automation.tools.octane.configuration;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.Descriptor;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /*
     Utility to help retrieving the configuration of the SSC Server URL and SSC project/version pair
@@ -37,6 +44,11 @@ public class SSCServerConfigUtil {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(SSCServerConfigUtil.class);
 	private static final String PUBLISHER_NEW_NAME = "com.fortify.plugin.jenkins.FortifyPlugin";
 	private static final String PUBLISHER_OLD_VERSION = "com.fortify.plugin.jenkins.FPRPublisher";
+
+	private static final String FORTIFY_UPLOAD_ACTION_NAME = "com.fortify.plugin.jenkins.FortifyUploadBuildAction";
+	private static final String FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD = "getProjectActions";
+	private static final String FORTIFY_UPLOAD_APP_NAME_METHOD = "getAppName";
+	private static final String FORTIFY_UPLOAD_APP_VERSION_METHOD = "getAppVersion";
 
 	public static String getSSCServer() {
 		Descriptor sscDescriptor = getSSCDescriptor();
@@ -51,6 +63,32 @@ public class SSCServerConfigUtil {
 	 */
 	public static SSCProjectVersionPair getProjectConfigurationFromBuild(AbstractBuild build) {
 		return build != null ? getProjectVersion(build.getProject()) : null;
+	}
+
+	public static SSCProjectVersionPair getProjectConfigurationFromWorkflowRun(WorkflowRun run) {
+
+		SSCProjectVersionPair projectVersionPair = null;
+		List<Action> workflowActions = run != null ? (List<Action>) run.getAllActions() : new ArrayList<>();
+
+		for (Action action: workflowActions) {
+			if (action.getClass().getName().equals(FORTIFY_UPLOAD_ACTION_NAME)) {
+				try {
+					List<Action> projectActions = (List<Action>)invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD);
+					Action projectMethods = projectActions != null && projectActions.size() > 0 ? projectActions.get(0) : null;
+
+					if (projectMethods != null) {
+						String projName = (String) invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD);
+						String version = (String) invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD);
+
+						projectVersionPair = new SSCProjectVersionPair(projName, version);
+					}
+				} catch(Exception e) {
+					logger.error("Failed getProjectConfigurationFromWorkflowRun", e);
+				}
+			}
+		}
+
+		return projectVersionPair;
 	}
 
 	private static SSCProjectVersionPair getProjectVersion(AbstractProject project) {
@@ -137,11 +175,24 @@ public class SSCServerConfigUtil {
 		return publisher;
 	}
 
+	private static Object invokeMethodByName(Action action, String methodName) throws InvocationTargetException, IllegalAccessException {
+		Method method = getMethodByName(action, methodName);
+
+		return method.invoke(action, null);
+	}
+
+	private static Method getMethodByName(Action action, String methodName) {
+		Method method = Arrays.stream(action.getClass().getDeclaredMethods())
+				.filter(m->m.getName().equals(methodName))
+				.findFirst().orElse(null);
+		return method;
+	}
+
 	public static final class SSCProjectVersionPair {
 		public final String project;
 		public final String version;
 
-		private SSCProjectVersionPair(String project, String version) {
+		public SSCProjectVersionPair(String project, String version) {
 			this.project = project;
 			this.version = version;
 		}

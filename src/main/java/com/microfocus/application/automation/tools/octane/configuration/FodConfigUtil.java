@@ -30,6 +30,7 @@ import jenkins.model.Jenkins;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.IOException;
 import java.util.Map;
@@ -74,6 +75,10 @@ public class FodConfigUtil {
 
     public static Long getFODReleaseFromBuild(AbstractBuild build) {
         return build != null ? getRelease(build.getProject()) : null;
+    }
+
+    public static Long getFODReleaseFromRun(WorkflowRun run) {
+        return null;// run != null ? getRelease(null) : null;
     }
 
     private static Long getRelease(AbstractProject project) {
