@@ -103,7 +103,7 @@ This plugin supports the following Micro Focus product versions:
 
 ## Prerequisites
 
-1. Install one of the five latest LTS versions of Jenkins, [(Click here for list](https://jenkins.io/changelog-stable/))
+1. Install one of the five latest LTS versions of Jenkins, [(Click here for a list.](https://jenkins.io/changelog-stable/))
 
 2. Install the Jenkins [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin).
 
@@ -202,16 +202,16 @@ To set up a pipeline test job for your Micro Focus testing tool:
   4. Enter the  **stage**  and  **node**  arguments into the  **Script**  area. For example,
 
      ```
-     stage(``'RunUFTTestFromFS'``){ ``// The stage name
-       ``node(``'Test'``){ ``// The name of the node in which to run the test.
+     stage('RunUFTTestFromFS'){ // The stage name
+       node('Test'){// The name of the node in which to run the test.
      ```
 
   5. Prepare the code for your testing tool:
 
-         a. Click the  **Pipeline Syntax**  link.
+         a. Click the **Pipeline Syntax** link.
          b. In the Snippet Generator drop down, select the desired step, for example,  **uftScenarioLoad: Run UFT scenario**.
-         c. Fill in the fields as required. Fields marked in red are mandatory.  **Note:**  For fields that take multiple values, such as in the  **Tests**  field, separate multiple entries with a line break.
-         d. If relevant, select one of the  **Report archive modes**  (below).
+         c. Fill in the fields as required. Fields marked in red are mandatory. **Note:**   For fields that take multiple values, such as in the **Tests** field, separate multiple entries with a line break.
+         d. If relevant, select one of the **Report archive modes** (below).
          e. Click  **Generate Pipeline Script**. Copy the code to the clipboard.
 
 6. Return to the Project Configuration page, and paste the generated Groovy script into the  **Script**  field in the Pipeline section.
@@ -311,9 +311,7 @@ The *interactive" flag causes the empty black Java window to be displayed.
 
 For example:
 
-![Jenkins_slave_setup](C:\Workzone\Jenkins\hpe-application-automation-tools-plugin\doc\Jenkins_slave_setup.jpg)
-
-
+![Jenkins_slave_command_line](Jenkins_slave_setup.png)
 
 ## Tips and Troubleshooting
 
@@ -323,7 +321,7 @@ For best performance, it is recommended to install the testing tools and ALM/QC 
 
 On the Jenkins slave machine, make sure the the Jenkins Slave service is not logged in with the  **Local System account**. To function properly, it should log in with an account the has administrator privileges.
 
-![Jenkins_slave_account](C:\Workzone\Jenkins\hpe-application-automation-tools-plugin\doc\Jenkins_slave_account.jpg)
+![Jenkins_slave_account](Jenkins_slave_account.png)
 
 
 
@@ -352,11 +350,11 @@ Follow these workarounds to enable the viewing LoadRunner Performance reports:
 - Click  **Manage Jenkins > Script Console** , and run one of the following scripts from the console:
 
   - Type the following line and press  **Run**.
-     `System.setProperty(``"hudson.model.DirectoryBrowserSupport.CSP"``, ``""``)` 
+     `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP","")` 
 
   - Alternatively, type the following line and press  **Run**.
-     `System.setProperty(``"hudson.model.DirectoryBrowserSupport.CSP"``, ``"sandbox; default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; child-src 'self';"``)`  
+     `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox; default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; child-src 'self';")`  
 
   - Another option that is more secure, but it disables the left pane menu and embedded Javascript:
-     `System.setProperty(``"hudson.model.DirectoryBrowserSupport.CSP"``, ``"sandbox; default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; child-src 'self';"``)` 
+     `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox; default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; child-src 'self';")` 
 

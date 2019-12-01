@@ -6,13 +6,17 @@ You can only integrate scenarios which have service level agreements (SLAs). Thi
 
 For additional information, see the [online help](https://admhelp.microfocus.com/lr/en/latest/help/WebHelp/Content/Controller/c_jenkins.htm) or [blog post](https://community.softwaregrp.com/t5/LoadRunner-and-Performance/Continuous-Performance-Testing-Using-Jenkins-CI-CD-Pipelines/ba-p/220264#.WjZnXN-WaUl) about continuous integration with LoadRunner.
 
+[TOC]
+
+
+
 ## Prerequisites
 
 1.  Install one of the five latest LTS versions of Jenkins, [(Click here for a list.)](https://jenkins.io/changelog-stable/)
     
 2.  Install the Jenkins [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin).
 
-## Set up a job
+## Job types
 
 There are two types of jobs that you can create: **FreeStyle** or **Pipeline**. FreeStyle is more UI friendly and Pipeline is in a form of code which is more flexible.
 
@@ -53,6 +57,8 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 8. Click **Apply** to save your changes and continue with more build steps. Click **Save** when you are finished adding build steps.
 
 ## Set up a Pipeline job
+
+#### Create a job
 
 1.  Select **Pipeline** and click **OK**.
 
@@ -121,8 +127,7 @@ Run or schedule the job as you would with any standard Jenkins job.
 
 #### Review the results in Jenkins  
 
-You can also view the results from the Jenkins interface, in the
-following modes:
+You can also view the results from the Jenkins interface, in the following modes:
 
 -   Per job/project
 
@@ -153,6 +158,5 @@ Click **Project performance report** in the left side Job menu. This lets you 
 **Note:** These reports might require you to perform a Security
 header override. For details, see [Content Security Policy Header](README.md#content-security-policy-header).
 
-For additional information about the plugin, refer to the [plugin's documentation
-.](README.md).
-For general questions, visit our [[Google group]](https://groups.google.com/forum/#!forum/micro-focus-application-automation-tools-plugin).
+For additional information about the plugin, refer to the [plugin's documentation](README.md).
+For general questions, visit our [Google group](https://groups.google.com/forum/#!forum/micro-focus-application-automation-tools-plugin).
