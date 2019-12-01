@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import com.microfocus.application.automation.tools.common.GeneralUtils;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -71,12 +70,12 @@ public class SSCServerConfigUtil {
 		for (Action action: workflowActions) {
 			if (action.getClass().getName().equals(FORTIFY_UPLOAD_ACTION_NAME)) {
 				try {
-					List<Action> projectActions = (List<Action>) GeneralUtils.invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD, null);
+					List<Action> projectActions = (List<Action>) ReflectionUtils.invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD, null);
 					Action projectMethods = projectActions != null && projectActions.size() > 0 ? projectActions.get(0) : null;
 
 					if (projectMethods != null) {
-						String projName = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD, null);
-						String version = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD, null);
+						String projName = (String) ReflectionUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD, null);
+						String version = (String) ReflectionUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD, null);
 
 						projectVersionPair = new SSCProjectVersionPair(projName, version);
 					}
