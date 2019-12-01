@@ -267,13 +267,13 @@ In order to allow the add-in to support non-English languages, make the followin
 
 1. Open the  **Jenkins.xml**  file in the Jenkins installation folder, for example: c:\Jenkins\Jenkins.xml.
 
-2. Go to the  <service>  -> <arguments> section and add the  **-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8**  flags after the  **-jar**  flag.
+2. Go to the  \<service>  -> \<arguments> section and add the  **-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8**  flags after the  **-jar**  flag.
 
 ### Slave configuration
 
 1. Open the  **jenkins-slave.xml**  file on the Jenkins slave (node) machine in the folder that you designated.
 
-2. Go to the <service>  -> <arguments> section and add the  **-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8**  flags after the  **-jar**  flag.
+2. Go to the \<service>  -> \<arguments> section and add the  **-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8**  flags after the  **-jar**  flag.
 
 For example:
 
