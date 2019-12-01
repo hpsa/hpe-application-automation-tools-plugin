@@ -71,12 +71,12 @@ public class SSCServerConfigUtil {
 		for (Action action: workflowActions) {
 			if (action.getClass().getName().equals(FORTIFY_UPLOAD_ACTION_NAME)) {
 				try {
-					List<Action> projectActions = (List<Action>) GeneralUtils.invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD);
+					List<Action> projectActions = (List<Action>) GeneralUtils.invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD, null);
 					Action projectMethods = projectActions != null && projectActions.size() > 0 ? projectActions.get(0) : null;
 
 					if (projectMethods != null) {
-						String projName = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD);
-						String version = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD);
+						String projName = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD, null);
+						String version = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD, null);
 
 						projectVersionPair = new SSCProjectVersionPair(projName, version);
 					}

@@ -28,10 +28,10 @@ import java.util.Arrays;
 
 public class GeneralUtils {
 
-    public static Object invokeMethodByName(Action action, String methodName) throws InvocationTargetException, IllegalAccessException {
+    public static Object invokeMethodByName(Action action, String methodName, Object... args) throws InvocationTargetException, IllegalAccessException {
         Method method = getMethodByName(action, methodName);
 
-        return method.invoke(action, null);
+        return method.invoke(action, args);
     }
 
     public static Method getMethodByName(Action action, String methodName) {
