@@ -14,7 +14,7 @@ This plugin is open source. If you identify any issues or want to submit enhance
 
 A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20issuetype%20%3D%20Bug%20AND%20status%20not%20in%20(Resolved%2C%20Closed)%20AND%20component%20%3D%20hp-application-automation-tools-plugin%20ORDER%20BY%20votes%20DESC%2C%20watchers%20DESC).
 
-### Table of Contents
+## Table of Contents
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
 
@@ -34,11 +34,11 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Enable non-English languages](#enable-non-english-languages)
 
-[Configuration for Java Web Start clients](#configuration for Java-web-start-clients)
+[Configuration for Java Web Start clients](#configuration-for-Java-web-start-clients)
 
 [Tips and Troubleshooting](#tips-and-troubleshooting)
 
-- [Best Practice: Use Slave Machine](#best-practice-use-slave-machine)
+- [Best Practice - Use Slave Machine](#best-practice-use-slave-machine)
 - [Content Security Policy Header](#content-security-policy-header)
 
 - [Integration Issues](#integration-issues)
