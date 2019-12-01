@@ -406,8 +406,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		try {
 			SSCProjectConfiguration result = null;
 			Run run = getRunByRefNames(jobId, buildId);
-			String sscServerUrl = SSCServerConfigUtil.getSSCServer();
-			String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
 			SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = null;
 
 			if (run instanceof AbstractBuild) {
@@ -416,8 +414,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromWorkflowRun((WorkflowRun) run);
 			} else {
 				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild or WorkflowRun) not found");
+				return result;
 			}
 
+			String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+			String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
 			if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
 				result = dtoFactory.newDTO(SSCProjectConfiguration.class)
 						.setSSCUrl(sscServerUrl)

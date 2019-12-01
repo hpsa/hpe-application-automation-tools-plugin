@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
+import com.microfocus.application.automation.tools.common.GeneralUtils;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -30,10 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -73,12 +71,12 @@ public class SSCServerConfigUtil {
 		for (Action action: workflowActions) {
 			if (action.getClass().getName().equals(FORTIFY_UPLOAD_ACTION_NAME)) {
 				try {
-					List<Action> projectActions = (List<Action>)invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD);
+					List<Action> projectActions = (List<Action>) GeneralUtils.invokeMethodByName(action, FORTIFY_UPLOAD_PROJECT_ACTIONS_METHOD);
 					Action projectMethods = projectActions != null && projectActions.size() > 0 ? projectActions.get(0) : null;
 
 					if (projectMethods != null) {
-						String projName = (String) invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD);
-						String version = (String) invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD);
+						String projName = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_NAME_METHOD);
+						String version = (String) GeneralUtils.invokeMethodByName(projectMethods, FORTIFY_UPLOAD_APP_VERSION_METHOD);
 
 						projectVersionPair = new SSCProjectVersionPair(projName, version);
 					}
@@ -173,19 +171,6 @@ public class SSCServerConfigUtil {
 			return plugin;
 		}
 		return publisher;
-	}
-
-	private static Object invokeMethodByName(Action action, String methodName) throws InvocationTargetException, IllegalAccessException {
-		Method method = getMethodByName(action, methodName);
-
-		return method.invoke(action, null);
-	}
-
-	private static Method getMethodByName(Action action, String methodName) {
-		Method method = Arrays.stream(action.getClass().getDeclaredMethods())
-				.filter(m->m.getName().equals(methodName))
-				.findFirst().orElse(null);
-		return method;
 	}
 
 	public static final class SSCProjectVersionPair {
