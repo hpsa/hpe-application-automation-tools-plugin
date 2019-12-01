@@ -14,9 +14,38 @@ This plugin is open source. If you identify any issues or want to submit enhance
 
 A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20issuetype%20%3D%20Bug%20AND%20status%20not%20in%20(Resolved%2C%20Closed)%20AND%20component%20%3D%20hp-application-automation-tools-plugin%20ORDER%20BY%20votes%20DESC%2C%20watchers%20DESC).
 
+### Table of Contents
+
+[What's New in version 5.9](#what's-new-in-version-5.9)
+
+[Changelog](#changelog)
+
+[Supported Integrations](#supported-integrations)
+
+[Prerequisites](#prerequisites)
+
+[User Guide](#userguide)
+
+- [Rebranding Script](#rebranding-script)
+- [Create an execution node](#create-an-execution-node)
+- [Connect an execution node to the Jenkins server](#connect-an-execution-node-to-the-jenkins-server)
+
+- [Support for pipelines](#support-for-pipelines)
+
+[Enable non-English languages](#enable-non-english-languages)
+
+[Configuration for Java Web Start clients](#configuration for Java-web-start-clients)
+
+[Tips and Troubleshooting](#tips-and-troubleshooting)
+
+- [Best Practice: Use Slave Machine](#best-practice-use-slave-machine)
+- [Content Security Policy Header](#content-security-policy-header)
+
+- [Integration Issues](#integration-issues)
+
+- [Workarounds for viewing LoadRunner Performance reports](#workaround-for-viewing-loadrunner-performance-reports)
 
 
-[toc]
 
 ### Content Security Policy
 
@@ -315,7 +344,7 @@ For example:
 
 ## Tips and Troubleshooting
 
-### Best Practice: Use Slave Machine
+### Best Practice - Use Slave Machine
 
 For best performance, it is recommended to install the testing tools and ALM/QC as nodes on slave machines, and not directly on the Jenkins server.  For instructions on configuring nodes, see the [Step by step guide to set up master and agent machines in Windows]( https://wiki.jenkins.io/display/JENKINS/Step+by+step+guide+to+set+up+master+and+agent+machines+on+Windows ).
 
