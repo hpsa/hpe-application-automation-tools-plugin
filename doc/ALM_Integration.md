@@ -2,9 +2,9 @@
 
 You can use this plugin to run ALM tests sets and use ALM Lab Management with the Jenkins continuous integration.
 
-If you are working with Quality Center 10.00 or earlier, and QuickTest Professional 9.x or 10.x, use the [[Quality Center Plugin]](https://wiki.jenkins-ci.org/display/JENKINS/Quality+Center+Plugin).
+If you are working with Quality Center 10.00 or earlier, and QuickTest Professional 9.x or 10.x, use the [Quality Center Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Quality+Center+Plugin).
 
-#### Table of Contents
+### Table of Contents
 
 [Configure the connection to ALM](#configure-the-connection-to-alm)
 
@@ -180,7 +180,9 @@ If you have Lab Management activated in ALM, you can create/update an AUT Enviro
     created/updated configuration. For each parameter:
 
     a.  Select the type of the parameter from the drop-down menu (Manual, Environment, From JSON).
+    
     b.  Enter the full path of the parameter as it appears in ALM.
+    
     c.  Enter the value you want to assign to this parameter.
 
 #### **Run the job**
@@ -229,7 +231,7 @@ You can upload tests running in JUnit, NUnit, or TestNG frameworks to ALM as par
 
 #### **Run the job**
 
-1.  Run or schedule the job as you would with any standard Jenkins job. 
+Run or schedule the job as you would with any standard Jenkins job. 
 
 #### **Review the results**
 
