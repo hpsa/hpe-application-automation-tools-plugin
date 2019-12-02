@@ -6,7 +6,21 @@ You can only integrate scenarios which have service level agreements (SLAs). Thi
 
 For additional information, see the [online help](https://admhelp.microfocus.com/lr/en/latest/help/WebHelp/Content/Controller/c_jenkins.htm) or [blog post](https://community.softwaregrp.com/t5/LoadRunner-and-Performance/Continuous-Performance-Testing-Using-Jenkins-CI-CD-Pipelines/ba-p/220264#.WjZnXN-WaUl) about continuous integration with LoadRunner.
 
-[TOC]
+### Table of Contents
+
+[Prerequisites](#prerequisites)
+
+[Job types](#job-types)
+
+[Freestyle jobs](#freestyle-jobs)
+
+[Pipeline jobs](#pipeline-jobs)
+
+- [Create a job](#create-a-job)
+- [Set up the post-build actions](#set-up-the-post-build-actions)
+- [Run the job](#run-the-job)
+- [Review the results in the Run Results Viewer](#review-the-results-in-the-run-results-viewer)
+- [Review the results in Jenkins](#review-the-results-in-jenkins)
 
 
 
@@ -26,7 +40,9 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 
 3.  Enter an item name (for a new job).
 
-## Set up a Freestyle job
+## Freestyle jobs
+
+To set up a Freestyle job:
 
 1.  Select **Free-style project** and click **OK**.
 
@@ -56,7 +72,9 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 
 8. Click **Apply** to save your changes and continue with more build steps. Click **Save** when you are finished adding build steps.
 
-## Set up a Pipeline job
+## Pipeline jobs
+
+To set up a Pipeline job:
 
 #### Create a job
 
@@ -69,14 +87,12 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 
 4.  Click **Pipeline Syntax**.
 
-5.  In **Sample Step** select **LoadRunnerTest:** **Run LoadRunner
-    performance scenario tests.**
-
+5.  In **Sample Step** select **LoadRunnerTest:** **Run LoadRunner performance scenario tests.**
+    
 6.  In the **Tests** box, enter a test with its full absolute path, or a folder or MTB containing one or more tests or LoadRunner scenarios. To specify multiple entries, click the down arrow on the right of the field and enter each test path on a separate line. Make sure that the paths are accessible from all machines in the local network.
     
-7.  In **Report archive mode** follow **Set up the Post Build
-    Actions** section.
-
+7.  In **Report archive mode** follow **Set up the Post Build Actions** section.
+    
 8.  Follow the Free Style Job section, steps 5 through 7.
 
 9.  Click **Generate Pipeline Script.**
@@ -86,7 +102,7 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 11. Go back to the **Pipeline **section.
 
 12. Paste the copied code into the **Script** block ([read here for how to write
-    pipeline](https://jenkins.io/doc/book/pipeline/getting-started/)).
+    pipeline scripts](https://jenkins.io/doc/book/pipeline/getting-started/)).
     
 13.  Click **Apply** to save your changes and continue with more build steps. Click **Save** when you are finished adding build steps.
 
@@ -97,11 +113,9 @@ There are two types of jobs that you can create: **FreeStyle** or **Pipeline*
 2.  Select an archiving option for the test run results:
 
     -   **Archive test reports for failed tests: **Only save test result reports for failed tests.
-        
--   **Always archive test reports:** Always save test result reports.
-        **Always archive and publish test reports:** Always save and publish test result reports.
-    -   **Do not archive test reports:** Never save the test results.
-
+    -   **Always archive test reports:** Always save test result reports.
+    -   **Always archive and publish test reports:** Always save and publish test result reports.
+    -   **Do not archive test reports:** Never save the test results.
 #### Run the job
 
 Run or schedule the job as you would with any standard Jenkins job.
@@ -133,11 +147,11 @@ You can also view the results from the Jenkins interface, in the following modes
 
 -   Per build/run
 
-**Per Job / Project (cross build / run results)**
+##### **Per Job / Project (cross build / run results)**
 
 Click **Project performance report** in the left side Job menu. This lets you review the various results from the job, per scenario. You compare the job results using an SLA.
 
-**Per build / run** 
+##### **Per build / run** 
 
 1.  Click **Performance report** to examine the performance summary report with its different results.
     
@@ -155,8 +169,7 @@ Click **Project performance report** in the left side Job menu. This lets you 
 
     d.  Click on **History** in the left panel to compare the results with those from previous runs.
 
-**Note:** These reports might require you to perform a Security
-header override. For details, see [Content Security Policy Header](README.md#content-security-policy-header).
+**Note:** These reports might require you to perform a Security header override. For details, see [Content Security Policy Header](README.md#content-security-policy-header).
 
 For additional information about the plugin, refer to the [plugin's documentation](README.md).
 For general questions, visit our [Google group](https://groups.google.com/forum/#!forum/micro-focus-application-automation-tools-plugin).

@@ -4,9 +4,21 @@ You can use this plugin to run ALM tests sets and use ALM Lab Management with th
 
 If you are working with Quality Center 10.00 or earlier, and QuickTest Professional 9.x or 10.x, use the [[Quality Center Plugin]](https://wiki.jenkins-ci.org/display/JENKINS/Quality+Center+Plugin).
 
-[TOC]
+#### Table of Contents
 
-## Configure the connection to your ALM Server
+[Configure the connection to ALM](#configure-the-connection-to-alm)
+
+[Run Test Sets from ALM](#run-test-sets-from-alm)
+
+[Run Server Side tests using ALM Lab Management](#run-server-side-tests-using-alm-lab-management)
+
+[Create or update the AUT Environment Configuration using ALM Lab Management](#create-or-update-the-aut-environment-configuration-using-ALM-Lab-Management)
+
+
+
+## Configure the connection to ALM
+
+To configure the connection to your ALM Server.
 
 1.  Go to the Jenkins Server home page.
 
@@ -70,7 +82,7 @@ In the **Post-build Actions** section, expand the **Add post-build action** 
 
 Run or schedule the job as you would with any standard Jenkins job. 
 
-#### Review the results**
+#### Review the results
 
 1.  From the dashboard, click on the job.
 
@@ -78,7 +90,7 @@ Run or schedule the job as you would with any standard Jenkins job. 
 
 3.  Copy the ALM link to your Internet Explorer browser and view the Test Set results from within ALM.
 
-## Running Server Side Tests Using ALM Lab Management
+## Run Server Side Tests Using ALM Lab Management
 
 If you have Lab Management activated in ALM, you can run server-side tests from functional test sets and build verification suites. After setting up the test sets and build verification suites, you can configure a Jenkins build step to execute your tests.
 
@@ -120,9 +132,9 @@ Run or schedule the job as you would with any standard Jenkins job. 
 
 **Note:** For environments with Internet Explorer 9 and ALM version 12.20 or later: The report, normally accessible through a link in the console log, will not be available.
 
-## Create/Update the AUT Environment Configuration Using ALM Lab Management
+## Create or update the AUT Environment Configuration using ALM Lab Management
 
-If you have Lab Management activated in ALM, you can create/update an AUT Environment Configuration for an existing AUT Environment in ALM.
+If you have Lab Management activated in ALM, you can create/update an AUT Environment Configuration for an existing AUT environment in ALM.
 
 #### **Set up a job**
 
@@ -168,10 +180,8 @@ If you have Lab Management activated in ALM, you can create/update an AUT Enviro
     created/updated configuration. For each parameter:
 
     a.  Select the type of the parameter from the drop-down menu (Manual, Environment, From JSON).
-    
-b.  Enter the full path of the parameter as it appears in ALM.
-    
-c.  Enter the value you want to assign to this parameter.
+    b.  Enter the full path of the parameter as it appears in ALM.
+    c.  Enter the value you want to assign to this parameter.
 
 #### **Run the job**
 
