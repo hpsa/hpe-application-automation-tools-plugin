@@ -35,6 +35,9 @@ import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -104,7 +107,8 @@ public class ConfigurationValidator {
 
         ACLContext impersonatedContext = null;
         try {
-            impersonatedContext = ACL.as(jenkinsUser);
+            Authentication auth = jenkins == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]);
+            impersonatedContext = ACL.as(auth);
             //test permissions
             Map<Permission, String> requiredPermissions = new HashMap<>();
             requiredPermissions.put(Item.BUILD, "Job.BUILD");
