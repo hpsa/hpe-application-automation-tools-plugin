@@ -30,18 +30,19 @@ import com.microfocus.application.automation.tools.octane.tests.build.BuildHandl
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
@@ -51,7 +52,7 @@ import java.util.List;
  * the reports that matches a specified regular expression path, are copied to
  * the build folder for future upload.
  */
-public class CoveragePublisher extends Recorder {
+public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 	private final String jacocoPathPattern;
 	private final String lcovPathPattern;
 
@@ -89,6 +90,22 @@ public class CoveragePublisher extends Recorder {
 	/**
 	 * this is where we build the project. this method is being called when we run the build
 	 *
+	 * @param run    instance
+	 * @param filePath instance
+	 * @param launcher for action attachment
+	 * @param taskListener for action attachment
+	 */
+	@Override
+	public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
+		boolean isSuccessful = perform(run, taskListener);
+		if (!isSuccessful) {
+			run.setResult(Result.FAILURE);
+		}
+	}
+
+	/**
+	 * this is where we build the project. this method is being called when we run the build
+	 *
 	 * @param build    instance
 	 * @param launcher instance
 	 * @param listener for action attachment
@@ -96,6 +113,10 @@ public class CoveragePublisher extends Recorder {
 	 */
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+		return perform(build, listener);
+	}
+
+	public boolean perform(Run build, TaskListener listener) {
 		boolean copyReportsToBuildFolderStatus = false;
 
 		// copy coverage reports
@@ -149,6 +170,7 @@ public class CoveragePublisher extends Recorder {
 	 * The Publisher object or Recorder is the base.
 	 * It needs a BuildStepDescriptor to provide certain information to Jenkins
 	 */
+	@Symbol("publishCodeCoverage")
 	@Extension
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 

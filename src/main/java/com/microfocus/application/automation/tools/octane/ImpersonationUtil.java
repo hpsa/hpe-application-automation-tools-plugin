@@ -28,6 +28,10 @@ import com.microfocus.application.automation.tools.octane.configuration.SDKBased
 import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
+import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
@@ -56,7 +60,9 @@ public class ImpersonationUtil {
             logger.debug("No user set to impersonating to. Operations will be done using Anonymous user. Instance ID " + instanceId);
         }
 
-        ACLContext impersonatedContext = ACL.as(jenkinsUser);
+        Authentication auth = (jenkinsUser == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]));
+
+        ACLContext impersonatedContext = ACL.as(auth);
         return impersonatedContext;
     }
 

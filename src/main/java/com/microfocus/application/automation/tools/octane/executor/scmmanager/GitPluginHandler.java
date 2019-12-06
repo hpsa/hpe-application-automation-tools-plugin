@@ -27,13 +27,13 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.EnvVars;
+import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.TaskListener;
 import hudson.plugins.git.*;
 import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
-import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
@@ -77,7 +77,7 @@ public class GitPluginHandler implements ScmPluginHandler {
 
 	@Override
 	public String getSharedCheckOutDirectory(Job j) {
-		SCM scm = ((FreeStyleProject) j).getScm();
+		SCM scm = ((AbstractProject) j).getScm();
 
 		GitSCM gitScm = (GitSCM) scm;
 		RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
