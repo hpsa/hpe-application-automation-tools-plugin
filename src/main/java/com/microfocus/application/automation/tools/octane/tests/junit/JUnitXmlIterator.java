@@ -221,12 +221,6 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
-					if (StringUtils.isNotEmpty(id) && additionalContext != null && additionalContext instanceof Map) {
-						Map<String, String> testId2Url = (Map) additionalContext;
-						if (testId2Url.containsKey(id))
-							externalURL = testId2Url.get(id);
-					}
 				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
                 	//console contains link to report
 					//link start with "View Report:"
