@@ -65,15 +65,7 @@ public class VulnerabilitiesWorkflowListener implements GraphListener {
         }
 
         SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromWorkflowRun(parentRun);
-        if (projectVersionPair != null) {
-            logger.warn("SSC configuration was found in " + parentRun);
-            String sscServerUrl = SSCServerConfigUtil.getSSCServer();
-            if (sscServerUrl == null || sscServerUrl.isEmpty()) {
-                logger.debug("SSC configuration not found in the whole CI Server");
-                return;
-            }
-            VulnerabilitiesUtils.insertQueueItem(parentRun, ToolType.SSC, null);
-        }
+        if (!VulnerabilitiesUtils.insertQueueItem(parentRun, projectVersionPair, logger)) return;
 
         Long release = FodConfigUtil.getFODReleaseFromRun(parentRun);
         if(release != null) {

@@ -97,12 +97,14 @@ public class ConfigurationValidator {
         Jenkins jenkins = Jenkins.get();
 
         User jenkinsUser = null;
-        if (StringUtils.isNotEmpty(impersonatedUser)) {
-            jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
-            if (jenkinsUser == null) {
-                errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
-                return;
-            }
+        if (StringUtils.isEmpty(impersonatedUser)) {
+            return;
+        }
+
+        jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
+        if (jenkinsUser == null) {
+            errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
+            return;
         }
 
         ACLContext impersonatedContext = null;

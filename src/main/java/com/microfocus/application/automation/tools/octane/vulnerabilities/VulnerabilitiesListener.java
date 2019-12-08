@@ -52,15 +52,7 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
         }
 
         SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild(build);
-        if (projectVersionPair != null) {
-            logger.warn("SSC configuration was found in " + build);
-            String sscServerUrl = SSCServerConfigUtil.getSSCServer();
-            if (sscServerUrl == null || sscServerUrl.isEmpty()) {
-                logger.debug("SSC configuration not found in the whole CI Server");
-                return;
-            }
-            VulnerabilitiesUtils.insertQueueItem(build, ToolType.SSC, null);
-        }
+        if (!VulnerabilitiesUtils.insertQueueItem(build, projectVersionPair, logger)) return;
 
         Long release = FodConfigUtil.getFODReleaseFromBuild(build);
         if(release != null) {
