@@ -24,13 +24,17 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Run;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class VulnerabilitiesUtils {
+
+    private VulnerabilitiesUtils() {}
 
     public static void insertFODQueueItem(Run run, Long releaseId ) {
         HashMap<String,String> additionalProperties = new HashMap<>();
@@ -38,7 +42,21 @@ public class VulnerabilitiesUtils {
         insertQueueItem(run, ToolType.FOD, additionalProperties);
     }
 
-    public static void insertQueueItem(Run run, ToolType toolType, Map<String,String> props) {
+
+    public static boolean insertQueueItem(Run run, SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair, Logger logger) {
+        if (projectVersionPair != null) {
+            logger.warn("SSC configuration was found in " + run);
+            String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+            if (sscServerUrl == null || sscServerUrl.isEmpty()) {
+                logger.debug("SSC configuration not found in the whole CI Server");
+                return false;
+            }
+            VulnerabilitiesUtils.insertQueueItem(run, ToolType.SSC, null);
+        }
+        return true;
+    }
+
+    private static void insertQueueItem(Run run, ToolType toolType, Map<String,String> props) {
         String jobCiId = BuildHandlerUtils.getJobCiId(run);
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 

@@ -78,7 +78,8 @@ public class FodConfigUtil {
     }
 
     public static Long getFODReleaseFromRun(WorkflowRun run) {
-        return null;// run != null ? getRelease(null) : null;
+        // to understand what does it mean for pipeline run
+        return run == null ? null : null;
     }
 
     private static Long getRelease(AbstractProject project) {
