@@ -160,7 +160,7 @@ public class ModelFactory {
 		Map<String, List<Run>> result = new HashMap<>();
 		Job run;
 		for (String invokeeName : invokeesNames) {
-			run = (Job) Jenkins.getInstance().getItem(invokeeName);
+			run = (Job) Jenkins.getInstanceOrNull().getItem(invokeeName);
 			result.put(invokeeName, getInvokees(self, run));
 		}
 		return result;

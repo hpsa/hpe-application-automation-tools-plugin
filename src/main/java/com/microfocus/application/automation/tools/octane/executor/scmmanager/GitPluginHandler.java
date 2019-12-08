@@ -56,7 +56,7 @@ public class GitPluginHandler implements ScmPluginHandler {
 		if (executorJob) {
 			String relativeCheckOut = "..\\..\\_test_sources\\" + scmRepository.getUrl().replaceAll("[<>:\"/\\|?*]", "_");
 			RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
-			extensions = Collections.<GitSCMExtension>singletonList(targetDirectory);
+			extensions = Collections.singletonList(targetDirectory);
 		}
 
 		String branch = "*/master";
@@ -71,7 +71,7 @@ public class GitPluginHandler implements ScmPluginHandler {
 			}
 		}
 
-		GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.<SubmoduleConfig>emptyList(), null, null, extensions);
+		GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.emptyList(), null, null, extensions);
 		proj.setScm(scm);
 	}
 

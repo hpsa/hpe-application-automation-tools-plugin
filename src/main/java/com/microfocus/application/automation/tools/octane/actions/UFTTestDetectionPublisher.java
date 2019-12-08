@@ -54,10 +54,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Post-build action of Uft test detection
@@ -160,11 +157,11 @@ public class UFTTestDetectionPublisher extends Recorder {
         EntitiesService entitiesService = octaneClient.getEntitiesService();
 
 
-        List<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, url));
+        List<String> conditions = Collections.singletonList(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, url));
         long workspaceId = Long.parseLong(workspaceName);
         String collectionName = "scm_repositories";
 
-        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Arrays.asList("id"));
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Collections.singletonList("id"));
         if (!foundEntities.isEmpty()) {
             scmRepositoryId = foundEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepositoryId);
@@ -175,7 +172,7 @@ public class UFTTestDetectionPublisher extends Recorder {
             newScmRepository.setName(url);
             newScmRepository.setField("url", url);
             newScmRepository.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
-            List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Arrays.asList(newScmRepository));
+            List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Collections.singletonList(newScmRepository));
             scmRepositoryId = createEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
         }
@@ -227,7 +224,7 @@ public class UFTTestDetectionPublisher extends Recorder {
             logger.warn("selecting the only configurationId - " + result);
         } else if (clients.size() > 0) {
             String executorLogicalName = UftJobRecognizer.getExecutorLogicalName((FreeStyleProject) build.getParent());
-            Collection<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
+            Collection<String> conditions = Collections.singletonList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
             for (OctaneClient client : clients) {
                 try {
                     List<Entity> entities = client.getEntitiesService().getEntities(workspaceId, EntityConstants.Executors.COLLECTION_NAME, conditions, null);

@@ -144,7 +144,6 @@ public class JUnitExtension extends OctaneTestsExtension {
 		//this class is run on master and JUnitXmlIterator is runnning on slave.
 		//this object pass some master2slave data
 		private Object additionalContext;
-		private String buildRootDir;
 
 		public GetJUnitTestResults(Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
@@ -154,7 +153,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.stripPackageAndClass = stripPackageAndClass;
 			this.hpRunnerType = MFToolsDetectionExtension.getRunnerType(build);
 			this.jenkinsRootUrl = jenkinsRootUrl;
-			this.buildRootDir = build.getRootDir().getCanonicalPath();
+			String buildRootDir = build.getRootDir().getCanonicalPath();
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
 
 			this.jobName = JobProcessorFactory.getFlowProcessor(build.getParent()).getTranslatedJobName();

@@ -69,7 +69,7 @@ public class FodConfigUtil {
     }
 
     private static Descriptor getFODDescriptor() {
-        return Jenkins.getInstance().getDescriptorByName(FOD_DESCRIPTOR);
+        return Jenkins.getInstanceOrNull().getDescriptorByName(FOD_DESCRIPTOR);
 
     }
 
