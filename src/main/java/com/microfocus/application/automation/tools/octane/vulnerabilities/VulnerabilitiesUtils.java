@@ -24,8 +24,10 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import hudson.model.ParametersAction;
 import hudson.model.Run;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class VulnerabilitiesUtils {
-
+    private static Logger logger = SDKBasedLoggerProvider.getLogger(VulnerabilitiesUtils.class);
     private VulnerabilitiesUtils() {}
 
     public static void insertFODQueueItem(Run run, Long releaseId ) {
@@ -43,7 +45,7 @@ public class VulnerabilitiesUtils {
     }
 
 
-    public static boolean insertQueueItem(Run run, SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair, Logger logger) {
+    public static boolean insertQueueItem(Run run, SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair) {
         if (projectVersionPair != null) {
             logger.warn("SSC configuration was found in " + run);
             String sscServerUrl = SSCServerConfigUtil.getSSCServer();
@@ -60,12 +62,7 @@ public class VulnerabilitiesUtils {
         String jobCiId = BuildHandlerUtils.getJobCiId(run);
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
-        //  [YG]: TODO productize the below code to be able to override the global maxTimeoutHours by Job's own configuration
-//		long queueItemTimeout = 0;
-//		ParametersAction parameters = run.getAction(ParametersAction.class);
-//		if (parameters != null && parameters.getParameter("some-predefined-value") != null) {
-//			queueItemTimeout = Long.parseLong((String) parameters.getParameter("some-predefined-value").getValue());
-//		}
+        final Long queueItemTimeoutHours = getQueueItemTimeoutHoursFromJob(run);
 
         OctaneSDK.getClients().forEach(octaneClient -> {
             String instanceId = octaneClient.getInstanceId();
@@ -75,9 +72,25 @@ public class VulnerabilitiesUtils {
                         jobCiId,
                         buildCiId, toolType,
                         run.getStartTimeInMillis(),
-                        settings.getMaxTimeoutHours(),
+                        queueItemTimeoutHours == null ? settings.getMaxTimeoutHours() : queueItemTimeoutHours,
                         props);
             }
         });
     }
+
+    private static Long getQueueItemTimeoutHoursFromJob(Run run) {
+        Long queueItemTimeoutHours = null;
+        String paramName = "fortify-maximum-analysis-timeout-hours";
+        try {
+            ParametersAction parameters = run.getAction(ParametersAction.class);
+            if (parameters != null && parameters.getParameter(paramName) != null) {
+                queueItemTimeoutHours = Long.parseLong((String) parameters.getParameter(paramName).getValue());
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to parse  " + paramName + " : " + e.getMessage());
+            queueItemTimeoutHours = null;
+        }
+        return queueItemTimeoutHours;
+    }
+
 }

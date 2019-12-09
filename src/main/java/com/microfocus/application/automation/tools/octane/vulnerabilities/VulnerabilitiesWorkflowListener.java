@@ -21,7 +21,6 @@
 package com.microfocus.application.automation.tools.octane.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
@@ -45,34 +44,34 @@ public class VulnerabilitiesWorkflowListener implements GraphListener {
 
     @Override
     public void onNewHead(FlowNode flowNode) {
-        if(!OctaneSDK.hasClients()){
+        if (!OctaneSDK.hasClients()) {
             return;
         }
         try {
             if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
                 sendPipelineFinishedEvent((FlowEndNode) flowNode);
             }
-        } catch (Throwable throwable) {
-            logger.error("failed to build and/or dispatch STARTED/FINISHED event for " + flowNode, throwable);
+        } catch (Exception e) {
+            logger.error("failed to build and/or dispatch STARTED/FINISHED event for " + flowNode, e);
         }
     }
 
     protected void sendPipelineFinishedEvent(FlowEndNode flowEndNode) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
 
-        if(!OctaneSDK.hasClients()){
+        if (!OctaneSDK.hasClients()) {
             return;
         }
 
         SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromWorkflowRun(parentRun);
-        if (!VulnerabilitiesUtils.insertQueueItem(parentRun, projectVersionPair, logger)) return;
+        if (!VulnerabilitiesUtils.insertQueueItem(parentRun, projectVersionPair)) return;
 
         Long release = FodConfigUtil.getFODReleaseFromRun(parentRun);
-        if(release != null) {
+        if (release != null) {
             logger.warn("FOD configuration was found in " + parentRun);
             VulnerabilitiesUtils.insertFODQueueItem(parentRun, release);
         }
-        if(projectVersionPair == null && release == null) {
+        if (projectVersionPair == null && release == null) {
             logger.warn("No Security Scan integration configuration was found " + parentRun);
         }
     }
