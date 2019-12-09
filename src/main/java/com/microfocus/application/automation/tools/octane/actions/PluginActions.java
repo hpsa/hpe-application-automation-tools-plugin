@@ -21,10 +21,8 @@
 package com.microfocus.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.Extension;
 import hudson.model.RootAction;
@@ -49,9 +47,7 @@ import java.util.Map;
 @Extension
 public class PluginActions implements RootAction {
     private String STATUS_REQUEST = "/nga/api/v1/status";
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
         return null;
@@ -65,9 +61,6 @@ public class PluginActions implements RootAction {
         return "nga";
     }
 
-    public ConfigApi getConfiguration() {
-        return new ConfigApi();
-    }
 
     public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException {
 

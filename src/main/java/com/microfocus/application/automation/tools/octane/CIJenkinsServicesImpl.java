@@ -75,6 +75,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
@@ -405,20 +406,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		try {
 			SSCProjectConfiguration result = null;
 			Run run = getRunByRefNames(jobId, buildId);
+			SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = null;
+
 			if (run instanceof AbstractBuild) {
-				String sscServerUrl = SSCServerConfigUtil.getSSCServer();
-				String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
-				SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild((AbstractBuild) run);
-				if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
-					result = dtoFactory.newDTO(SSCProjectConfiguration.class)
-							.setSSCUrl(sscServerUrl)
-							.setSSCBaseAuthToken(sscAuthToken)
-							.setProjectName(projectVersionPair.project)
-							.setProjectVersion(projectVersionPair.version);
-				}
+				projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild((AbstractBuild) run);
+			} else if (run instanceof WorkflowRun) {
+				projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromWorkflowRun((WorkflowRun) run);
 			} else {
-				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild) not found");
+				logger.error("build '" + jobId + " #" + buildId + "' (of specific type AbstractBuild or WorkflowRun) not found");
+				return result;
 			}
+
+			String sscServerUrl = SSCServerConfigUtil.getSSCServer();
+			String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
+			if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
+				result = dtoFactory.newDTO(SSCProjectConfiguration.class)
+						.setSSCUrl(sscServerUrl)
+						.setSSCBaseAuthToken(sscAuthToken)
+						.setProjectName(projectVersionPair.project)
+						.setProjectVersion(projectVersionPair.version);
+			}
+
 			return result;
 		} finally {
 			stopImpersonation(originalContext);

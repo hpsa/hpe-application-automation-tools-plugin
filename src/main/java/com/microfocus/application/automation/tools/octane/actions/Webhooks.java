@@ -28,7 +28,6 @@ import com.microfocus.application.automation.tools.model.OctaneServerSettingsMod
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.*;
@@ -85,10 +84,6 @@ public class Webhooks implements UnprotectedRootAction {
 
 	public String getUrlName() {
 		return WEBHOOK_PATH;
-	}
-
-	public ConfigApi getConfiguration() {
-		return new ConfigApi();
 	}
 
 	@RequirePOST

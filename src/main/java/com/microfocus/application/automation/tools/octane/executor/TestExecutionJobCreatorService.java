@@ -119,9 +119,9 @@ public class TestExecutionJobCreatorService {
 					suiteExecutionInfo.getSuiteId());
 
 			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(projectName);
 			if (proj == null) {
-				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
+				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, projectName);
 				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
 						suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
 			}
@@ -279,10 +279,10 @@ public class TestExecutionJobCreatorService {
 		try {
 			String discoveryJobName = String.format("%s %s (%s)", UftConstants.DISCOVERY_JOB_MIDDLE_NAME, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(discoveryJobName);
 			if (proj == null) {
 
-				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
+				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, discoveryJobName);
 				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
 						discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
 			}
@@ -325,10 +325,10 @@ public class TestExecutionJobCreatorService {
 		try {
 			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(discoveryJobName);
 			if (proj == null) {
 
-				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
+				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, discoveryJobName);
 				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
 						discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
 			}
@@ -369,7 +369,7 @@ public class TestExecutionJobCreatorService {
 
 	private static void addTimestamper(FreeStyleProject proj) {
 		try {
-			Descriptor<BuildWrapper> wrapperDescriptor = Jenkins.getInstance().getBuildWrapper("TimestamperBuildWrapper");
+			Descriptor<BuildWrapper> wrapperDescriptor = Jenkins.getInstanceOrNull().getBuildWrapper("TimestamperBuildWrapper");
 			if (wrapperDescriptor != null) {
 				BuildWrapper wrapper = proj.getBuildWrappersList().get(wrapperDescriptor);
 				if (wrapper == null) {
@@ -409,7 +409,7 @@ public class TestExecutionJobCreatorService {
 	private static ParametersDefinitionProperty getParametersDefinitions(FreeStyleProject proj) throws IOException {
 		ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
 		if (parameters == null) {
-			parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
+			parameters = new ParametersDefinitionProperty(new ArrayList<>());
 			proj.addProperty(parameters);
 		}
 		return parameters;
@@ -449,7 +449,7 @@ public class TestExecutionJobCreatorService {
 
 	private static void addDiscoveryAssignedNode(FreeStyleProject proj) {
 		try {
-			Label joinedLabel = Label.parseExpression(Jenkins.getInstance().getSelfLabel() + "||" + Jenkins.getInstance().getSelfLabel());
+			Label joinedLabel = Label.parseExpression(Jenkins.getInstanceOrNull().getSelfLabel() + "||" + Jenkins.getInstanceOrNull().getSelfLabel());
 			//why twice Jenkins.getInstance().getSelfLabel()==master? because only one master is not saved in method proj.setAssignedLabel as it is label of Jenkins.getInstance().getSelfLabel()
 			proj.setAssignedLabel(joinedLabel);
 		} catch (ANTLRException | IOException e) {
@@ -458,7 +458,7 @@ public class TestExecutionJobCreatorService {
 	}
 
 	private static void addExecutionAssignedNode(FreeStyleProject proj) {
-		Computer[] computers = Jenkins.getInstance().getComputers();
+		Computer[] computers = Jenkins.getInstanceOrNull().getComputers();
 		Set<String> labels = new HashSet();
 
 		//add existing
@@ -512,9 +512,9 @@ public class TestExecutionJobCreatorService {
 
 
 			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(projectName);
 			if (proj == null) {
-				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
+				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, projectName);
 				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
 						discoveryInfo.getExecutorId()));
 			}
@@ -573,7 +573,7 @@ public class TestExecutionJobCreatorService {
 			String testRunnerLogicalName = parts[parts.length - 1];
 
 			//find matching discovery job
-			List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+			List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
 			FreeStyleProject foundDiscoveryJob = null;
 			for (FreeStyleProject job : jobs) {
 				if (UftJobRecognizer.isDiscoveryJob(job)) {

@@ -24,38 +24,55 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.listeners.RunListener;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.flow.GraphListener;
+import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Jenkins events life cycle listener for processing vulnerabilities scan results on build completed
  */
 
 @Extension
-@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872"})
-public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
-    private static Logger logger = SDKBasedLoggerProvider.getLogger(VulnerabilitiesListener.class);
+public class VulnerabilitiesWorkflowListener implements GraphListener {
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(VulnerabilitiesWorkflowListener.class);
 
     @Override
-    public void onFinalized(AbstractBuild build) {
+    public void onNewHead(FlowNode flowNode) {
+        if (!OctaneSDK.hasClients()) {
+            return;
+        }
+        try {
+            if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
+                sendPipelineFinishedEvent((FlowEndNode) flowNode);
+            }
+        } catch (Exception e) {
+            logger.error("failed to build and/or dispatch STARTED/FINISHED event for " + flowNode, e);
+        }
+    }
+
+    protected void sendPipelineFinishedEvent(FlowEndNode flowEndNode) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
+
         if (!OctaneSDK.hasClients()) {
             return;
         }
 
-        SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromBuild(build);
-        if (!VulnerabilitiesUtils.insertQueueItem(build, projectVersionPair)) {
-            return;
-        }
+        SSCServerConfigUtil.SSCProjectVersionPair projectVersionPair = SSCServerConfigUtil.getProjectConfigurationFromWorkflowRun(parentRun);
+        if (!VulnerabilitiesUtils.insertQueueItem(parentRun, projectVersionPair)) return;
 
-        Long release = FodConfigUtil.getFODReleaseFromBuild(build);
+        Long release = FodConfigUtil.getFODReleaseFromRun(parentRun);
         if (release != null) {
-            logger.warn("FOD configuration was found in " + build);
-            VulnerabilitiesUtils.insertFODQueueItem(build, release);
+            logger.warn("FOD configuration was found in " + parentRun);
+            VulnerabilitiesUtils.insertFODQueueItem(parentRun, release);
         }
         if (projectVersionPair == null && release == null) {
-            logger.warn("No Security Scan integration configuration was found " + build);
+            logger.warn("No Security Scan integration configuration was found " + parentRun);
         }
     }
 }
