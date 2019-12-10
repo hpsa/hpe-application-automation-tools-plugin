@@ -377,7 +377,7 @@ public class PcClient {
             try {
 
                 if (threeStrikes < 3) {
-                    logger.println(String.format("%s - Cannot get response from PC about the state of the Run (ID=%s) %s time(s) consecutively",
+                    logger.println(String.format("%s - Cannot get response from LRE about the state of the Run (ID=%s) %s time(s) consecutively",
                             dateFormatter.getDate(),
                             runId,
                             (3 - threeStrikes)));
@@ -402,7 +402,7 @@ public class PcClient {
                 }
 
                 // In case we are in state before collate or before analyze, we will wait 1 minute for the state to change otherwise we exit
-                // because the user probably stopped the run from PC or timeslot has reached the end.
+                // because the user probably stopped the run from LRE or timeslot has reached the end.
                 if (Arrays.asList(states).contains(currentState)) {
                     counter++;
                     Thread.sleep(1000);
