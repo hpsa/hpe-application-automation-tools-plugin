@@ -221,19 +221,13 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
-					if (StringUtils.isNotEmpty(id) && additionalContext != null && additionalContext instanceof Map) {
-						Map<String, String> testId2Url = (Map) additionalContext;
-						if (testId2Url.containsKey(id))
-							externalURL = testId2Url.get(id);
-					}
 				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
                 	//console contains link to report
 					//link start with "View Report:"
 					String VIEW_REPORT_PREFIX = "View Report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {
-							if (str != null && str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
+							if (str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
 								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
 							}
 						}
@@ -304,7 +298,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				returnIndex = pathToTest.length() + 1;
 			}
 		} catch (Exception e) {
-			logger.error(String.format("Failed to getUftTestIndexStart for testName '%s' and sharedCheckOutDirectory '%s' : ", testName, sharedCheckOutDirectory, e.getMessage()), e);
+			logger.error(String.format("Failed to getUftTestIndexStart for testName '%s' and sharedCheckOutDirectory '%s' : %s", testName, sharedCheckOutDirectory, e.getMessage()), e);
 		}
 		return returnIndex;
 	}

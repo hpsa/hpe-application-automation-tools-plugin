@@ -28,7 +28,6 @@ import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
-import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.scm.SubversionSCM;
 import org.apache.commons.lang.StringUtils;

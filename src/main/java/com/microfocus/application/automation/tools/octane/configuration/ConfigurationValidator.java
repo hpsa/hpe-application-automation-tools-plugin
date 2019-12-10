@@ -35,6 +35,9 @@ import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -94,17 +97,20 @@ public class ConfigurationValidator {
         Jenkins jenkins = Jenkins.get();
 
         User jenkinsUser = null;
-        if (StringUtils.isNotEmpty(impersonatedUser)) {
-            jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
-            if (jenkinsUser == null) {
-                errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
-                return;
-            }
+        if (StringUtils.isEmpty(impersonatedUser)) {
+            return;
+        }
+
+        jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
+        if (jenkinsUser == null) {
+            errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
+            return;
         }
 
         ACLContext impersonatedContext = null;
         try {
-            impersonatedContext = ACL.as(jenkinsUser);
+            Authentication auth = jenkins == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]);
+            impersonatedContext = ACL.as(auth);
             //test permissions
             Map<Permission, String> requiredPermissions = new HashMap<>();
             requiredPermissions.put(Item.BUILD, "Job.BUILD");
