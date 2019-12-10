@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[What's New in version 5.9](#what's-new-in-version-5.9)
+[What's New in version 6.0](#what's-new-in-version-6.0)
 
 [Changelog](#changelog)
 
@@ -53,51 +53,20 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 
 
-## What&#39;s New in version 5.9
+## What&#39;s new in version 6.0
 
-See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
-
-Version 5.9 introduced the following enhancements:
+Version 6.0 introduced the following enhancement(s):
 
 **ALM Octane**
 
-- Support for custom converters to test frameworks
-
-- Improvements in logs
-
-- Support for additional versions of the Sonarqube scanner plugin (2.6.1, 2.8.1, 2.9)
-
-- Bug fixes
+- You can now SET/GET milestones on ALM Octane Pipeline configurations.
 
 
-
-**UFT Mobile (Mobile Center)**
-
-- Rebrand from &quot;Mobile Center&quot; to &quot;UFT Mobile&quot;
-
-
-
-**ALM**
-
-- Improvements in the logic of parsing test case status.
-
-https://issues.jenkins-ci.org/browse/JENKINS-58134 
-
-
-
-**UFT**
-
-- Support for ALM 15.0 with SSO 
-
-- Refactoring of HpToolsLauncher
-
-- Bug fixes
-
-
+For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Changelog
 
-The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists the changes in the versions of the plugin.
+The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists the bug fix changes in the versions of the plugin.
 
 
 
