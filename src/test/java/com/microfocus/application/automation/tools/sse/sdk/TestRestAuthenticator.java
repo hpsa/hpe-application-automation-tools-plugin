@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.sse.sdk;
@@ -43,7 +41,7 @@ public class TestRestAuthenticator extends TestCase {
     public void testLoginAlreadyAuthenticated() {
         
         Client client = new MockRestClientAlreadyAuthenticated(URL, DOMAIN, PROJECT, USER);
-        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", "RESTClient", new ConsoleLogger());
         Assert.assertTrue(ok);
     }
     
@@ -69,7 +67,7 @@ public class TestRestAuthenticator extends TestCase {
     public void testLoginNotAuthenticated() {
         
         Client client = new MockRestClientNotAuthenticated(URL, DOMAIN, PROJECT, USER);
-        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", "RESTClient", new ConsoleLogger());
         Assert.assertTrue(ok);
     }
     
@@ -88,6 +86,15 @@ public class TestRestAuthenticator extends TestCase {
             super(url, domain, project, username);
             _isAuthenticatedUrl = build(RestAuthenticator.IS_AUTHENTICATED);
             _authenticationUrl = build("authentication-point/authenticate");
+        }
+
+        @Override
+        public Response httpPost(
+                String url,
+                byte[] data,
+                Map<String, String> headers,
+                ResourceAccessLevel resourceAccessLevel) {
+            return new Response(null, null, null, HttpURLConnection.HTTP_OK);
         }
         
         @Override
@@ -126,7 +133,7 @@ public class TestRestAuthenticator extends TestCase {
     public void testLoginFailedToLogin() {
         
         Client client = new MockRestClientFailedToLogin(URL, DOMAIN, PROJECT, USER);
-        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", "RESTClient", new ConsoleLogger());
         Assert.assertFalse(ok);
     }
     

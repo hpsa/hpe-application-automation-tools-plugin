@@ -8,7 +8,7 @@
   ~ __________________________________________________________________
   ~ MIT License
   ~
-  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
   ~
   ~ The only warranties for products and services of Micro Focus and its affiliates
   ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -21,6 +21,68 @@
   -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/almUtils.js"/>
+
+    <style>
+        #testName {
+            width: 300px;
+            margin-bottom: 10px;
+        }
+
+        table tr td div.help {
+            margin-left: 12px;
+            background: none;
+            border: none;
+        }
+
+        input[name="runfromAlm.isFilterTestsEnabled"]{
+            margin-left: 35px;
+        }
+
+        .help {
+            border: none;
+            background: none !important;
+            background-color: transparent;
+        }
+
+        table td .help {
+            background: none;
+        }
+
+        table tr[nameref^="rowSetStart"] {
+            background: none;
+        }
+
+        table tr[nameref^="cb20"] {
+           background-color: transparent;
+        }
+
+        textarea.setting-input{
+            resize: vertical;
+        }
+
+        [name="runfromalm.isSSOEnabled"] {
+            position: relative;
+            top: 1px !important;
+        }
+
+        [name="runfromAlm.isFilterTestsEnabled"] {
+            position: relative;
+            top: 2px;
+        }
+
+        [name="runfromalm.almClientID"] {
+             margin-bottom: 10px;
+        }
+        [name="runfromalm.almApiKey"] {
+             margin-bottom: 10px;
+        }
+        [name="runfromalm.almUserName"] {
+             margin-bottom: 10px;
+        }
+
+    </style>
 
 	<j:if test="${empty(descriptor.almServers)}">
 		<tr>
@@ -42,46 +104,113 @@
         </div>
       </td>
       <td/>
-    </tr>     
-        <f:entry title="ALM server" field="almServerName">
-            <select name="runfromalm.almServerName">
-                <j:forEach var="almServer" items="${descriptor.almServers}">
-                    <f:option selected="${almServer.almServerName==instance.almServerSettingsModel.almServerName}" value="${almServer.almServerName}">
-                        ${almServer.almServerName}
-                    </f:option>
-                </j:forEach>
-            </select>
-        </f:entry>
-        <f:entry title="User name" field="almUserName">
-            <f:textbox name="runfromalm.almUserName" value="${instance.runFromAlmModel.almUserName}"/>
-        </f:entry>
-        <f:entry title="Password" field="almPassword">
-            <f:password name="runfromalm.almPassword" value="${instance.runFromAlmModel.almPassword}"/>
-        </f:entry>
-        <f:entry title="Domain" field="almDomain">
-            <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}"/>
-        </f:entry>
-        <f:entry title="Project" field="almProject">
-            <f:textbox name="runfromalm.almProject" value="${instance.runFromAlmModel.almProject}"/>
-        </f:entry>      
-        <f:entry title="Test sets" field="almTestSets">
-            <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
-        </f:entry>
-        <f:entry title="Timeout" field="almTimeout">
-            <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
-        </f:entry>
-        <f:advanced>
-            <f:entry title="Run mode" field="almRunMode">
-                <select name="runfromalm.almRunMode" >
-                    <j:forEach var="runMode" items="${descriptor.almRunModes}">
-                        <f:option selected="${runMode.value == instance.runFromAlmModel.almRunMode}" value="${runMode.value}">
-                          ${runMode.description}
+    </tr>
+        <f:entry>
+            <label>ALM server</label>
+            <f:entry field="almServerName">
+                <select name="runfromalm.almServerName">
+                    <j:forEach var="almServer" items="${descriptor.almServers}">
+                        <f:option selected="${almServer.almServerName==instance.almServerSettingsModel.almServerName}" value="${almServer.almServerName}">
+                            ${almServer.almServerName}
                         </f:option>
                     </j:forEach>
                 </select>
-            </f:entry>    
-            <f:entry title="Testing Tool host" field="almRunHost">
-                <f:textbox name="runfromalm.almRunHost" value="${instance.runFromAlmModel.almRunHost}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry field="isSSOEnabled">
+            <f:checkbox id="ssoCheckbox" title="SSO enabled" name="runfromalm.isSSOEnabled" checked="${instance.runFromAlmModel.isSSOEnabled}"
+                    value="${instance.runFromAlmModel.isSSOEnabled}" onclick="enableSSO(this)"/>
+        </f:entry>
+
+        <f:entry>
+            <label id="clientId">Client ID</label>
+            <f:entry field="almClientID">
+                <f:textbox name="runfromalm.almClientID" value="${instance.runFromAlmModel.almClientID}" onclick="validateField()" onKeyPress="validateField()"
+                        onKeyUp="validateField()" />
+                <label id="errClientID" style="color: #CC0000; font-weight: bold; padding-top: 5px;">Client ID must be set</label>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label id="apiKey">API key secret</label>
+            <f:entry field="almApiKey">
+                <f:password name="runfromalm.almApiKey" value="${instance.runFromAlmModel.almApiKey}" onclick="validateField()" onKeyPress="validateField()"
+                    onKeyUp="validateField()"/>
+                <label id="errApiKey" style="color: #CC0000; font-weight: bold;">Api key secret must be set</label>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label id="userName">User name</label>
+            <f:entry field="almUserName">
+                <f:textbox name="runfromalm.almUserName" value="${instance.runFromAlmModel.almUserName}" onclick="validateField()" onKeyPress="validateField()"
+                    onKeyUp="validateField()"/>
+                <label id="errUsername" style="color: #CC0000; font-weight: bold;">Username must be set</label>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label id="password">Password</label>
+            <f:entry field="almPassword">
+                <f:password name="runfromalm.almPassword" value="${instance.runFromAlmModel.almPassword}"/>
+            </f:entry>
+        </f:entry>
+
+
+        <f:entry>
+            <label>Domain</label>
+            <f:entry field="almDomain">
+                <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label>Project</label>
+            <f:entry field="almProject">
+                <f:textbox name="runfromalm.almProject" value="${instance.runFromAlmModel.almProject}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label>Test sets</label>
+            <f:entry field="almTestSets">
+                <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:entry>
+            <label>Timeout</label>
+            <f:entry field="almTimeout">
+                <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
+            </f:entry>
+        </f:entry>
+
+        <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
+            <f:entry field="filterTestsModel">
+                <f:property field="filterTestsModel" />
+            </f:entry>
+        </f:optionalBlock>
+
+        <f:advanced>
+            <f:entry>
+                <label>Run mode</label>
+                <f:entry field="almRunMode">
+                    <select name="runfromalm.almRunMode" >
+                        <j:forEach var="runMode" items="${descriptor.almRunModes}">
+                            <f:option selected="${runMode.value == instance.runFromAlmModel.almRunMode}" value="${runMode.value}">
+                              ${runMode.description}
+                            </f:option>
+                        </j:forEach>
+                    </select>
+                </f:entry>
+            </f:entry>
+
+            <f:entry>
+                <label>Testing Tool host</label>
+                <f:entry field="almRunHost">
+                    <f:textbox name="runfromalm.almRunHost" value="${instance.runFromAlmModel.almRunHost}"/>
+                </f:entry>
             </f:entry>
         </f:advanced>      
 </j:jelly>

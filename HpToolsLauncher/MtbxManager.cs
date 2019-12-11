@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -167,10 +167,10 @@ namespace HpToolsLauncher
                     }
 
                     XAttribute xname = GetAttribute(test, "name");
-
-                    string name = "<None>";
-                    if (xname != null)
+                    string name = "Unnamed Test";
+                    if (xname != null && xname.Value != ""){
                         name = xname.Value;
+                    }
                     
                     // optional report path attribute
                     XAttribute xReportPath = GetAttribute(test, "reportPath");

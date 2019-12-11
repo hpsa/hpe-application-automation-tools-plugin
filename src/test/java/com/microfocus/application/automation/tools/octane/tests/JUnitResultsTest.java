@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests;
@@ -40,14 +38,15 @@ import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701","squid:S2698"})
+
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109", "squid:S1607", "squid:S2701", "squid:S2698"})
 public class JUnitResultsTest extends OctanePluginTestBase {
 
 	private static Set<String> helloWorld2Tests = new HashSet<>();
 
 	static {
 		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testOnce",
-                TestResultStatus.PASSED));
+				TestResultStatus.PASSED));
 		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
 	}
 
@@ -80,7 +79,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -95,7 +93,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, subFolderHelloWorldTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -110,7 +107,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -127,7 +123,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	//temporary disable as it failed in CI
@@ -144,7 +139,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -162,7 +156,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, subFolderHelloWorldTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -177,7 +170,6 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, uftTests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
@@ -193,26 +185,29 @@ public class JUnitResultsTest extends OctanePluginTestBase {
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
 		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
-//		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsMatrixProject() throws Exception {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
+		String axisParamName = "osType";
+		String[] subtypes = new String[]{"Linux", "Windows"};
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
-		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
+		matrixProject.setAxes(new AxisList(new Axis(axisParamName, subtypes)));
 
-        matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test -Dmaven.test.failure.ignore=true -Dmaven.repo.local=%s\\m2-temp -X",
+		matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test -Dmaven.test.failure.ignore=true -Dmaven.repo.local=%s\\m2-temp -X",
 				TestUtils.getMavenHome(), System.getenv("TEMP")), mavenName));
 
-        matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 
 		for (MatrixRun run : build.getExactRuns()) {
-			matchTests(run, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+			matchTests(
+					run,
+					projectName + "/" + axisParamName + "=" + subtypes[build.getExactRuns().indexOf(run)],
+					TestUtils.helloWorldTests, helloWorld2Tests);
 		}
-//		Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/osType=Windows#1", projectName + "/osType=Linux#1")), getQueuedItems());
 		Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
 	}
 

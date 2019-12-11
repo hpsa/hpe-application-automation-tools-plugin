@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests.gherkin;
@@ -25,7 +23,6 @@ package com.microfocus.application.automation.tools.octane.tests.gherkin;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberResultsService;
 import com.microfocus.application.automation.tools.octane.tests.junit.TestResultStatus;
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
-import hudson.FilePath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -50,9 +47,9 @@ public class GherkinTestResultsCollector {
 
         //Retrieve the cucumber results xml
         int i = 0;
-        FilePath gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
+        File gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
 
-        while (gherkinTestResultsFilePath.exists()) {
+        while (gherkinTestResultsFile.exists()) {
             String gherkinTestResultsPath = buildDir.getAbsolutePath() + File.separator + CucumberResultsService.getGherkinResultFileName(i);
 
             //parse the xml
@@ -72,7 +69,7 @@ public class GherkinTestResultsCollector {
             }
 
             i++;
-            gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
+            gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
         } //end while
 
         return result;
@@ -127,7 +124,7 @@ public class GherkinTestResultsCollector {
         }
 
         private class ScenarioInfo {
-            private List<String> stepNames = new ArrayList<String>();
+            private List<String> stepNames = new ArrayList<>();
             private long duration = 0;
             private TestResultStatus status = TestResultStatus.PASSED;
             private boolean statusDetermined = false;
@@ -183,7 +180,7 @@ public class GherkinTestResultsCollector {
             }
 
             private List<Element> getStepElements(NodeList backgroundSteps, Element scenarioElement) {
-                List<Element> stepElements = new ArrayList<Element>();
+                List<Element> stepElements = new ArrayList<>();
                 if(backgroundSteps != null) {
                     for (int bs = 0; bs < backgroundSteps.getLength(); bs++) {
                         Element stepElement = (Element) backgroundSteps.item(bs);

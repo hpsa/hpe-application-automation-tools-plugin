@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -131,7 +131,7 @@ namespace HpToolsLauncherTests
                 100000,
                 QcRunMode.RUN_LOCAL,
                 null,
-                new List<string> { "Aaron\\Amit" });
+                new List<string> { "Aaron\\Amit" }, false, "", new List<string> { "Failed", "Blocked" }, false, TestStorageType.Alm, false, "", "");
 
             if (runner.Connected)
                 runner.Run();

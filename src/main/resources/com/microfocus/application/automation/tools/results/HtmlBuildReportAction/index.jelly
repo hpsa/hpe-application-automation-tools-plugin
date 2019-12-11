@@ -9,7 +9,7 @@
   ~ __________________________________________________________________
   ~ MIT License
   ~
-  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
   ~
   ~ The only warranties for products and services of Micro Focus and its affiliates
   ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -92,7 +92,7 @@
                             <td class = "bodycell" align = "center">
                                 <img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/html_report.svg"
                                      alt="Html_report"
-                                     title="Html Report"
+                                     title="HTML Report"
                                      style="width:16px;height:16px;"
                                 />
                             </td>
@@ -112,6 +112,9 @@
              <j:choose>
                 <j:when test="${status=='pass'}">
                     <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed"/></td>
+                </j:when>
+                <j:when test="${status=='warning'}">
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/warning.png" alt="Warning"/></td>
                 </j:when>
                 <j:otherwise>
                     <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed"/></td>

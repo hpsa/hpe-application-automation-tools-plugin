@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.run;
@@ -54,40 +52,40 @@ import static com.microfocus.application.automation.tools.Messages.CompanyName;
  * Created by barush on 21/10/2014.
  */
 public class AutEnvironmentBuilder extends Builder {
-    
+
     private final AutEnvironmentModel autEnvironmentModel;
-    
+
     @DataBoundConstructor
     public AutEnvironmentBuilder(AutEnvironmentModel autEnvironmentModel) {
-        
+
         this.autEnvironmentModel = autEnvironmentModel;
-        
+
     }
-    
+
     public AutEnvironmentModel getAutEnvironmentModel() {
         return autEnvironmentModel;
     }
-    
+
     @Override
     public DescriptorImpl getDescriptor() {
-        
+
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        
+
         autEnvironmentModel.setAlmServerUrl(getServerUrl(autEnvironmentModel.getAlmServerName()));
         PrintStream logger = listener.getLogger();
         EnvVars envVars = build.getEnvironment(listener);
         execute(build, envVars, autEnvironmentModel, logger);
-        
+
         return true;
     }
-    
+
     public String getServerUrl(String almServerName) {
-        
+
         String ret = "";
         AlmServerSettingsModel[] almServers = getDescriptor().getAlmServers();
         if (almServers != null && almServers.length > 0) {
@@ -98,16 +96,16 @@ public class AutEnvironmentBuilder extends Builder {
                 }
             }
         }
-        
+
         return ret;
     }
-    
+
     private void execute(
             AbstractBuild<?, ?> build,
             EnvVars envVars,
             AutEnvironmentModel autEnvironmentModel,
             final PrintStream printStreamLogger) {
-        
+
         AUTEnvironmentBuilderPerformer performer;
 
         Logger logger = new Logger() {
@@ -119,11 +117,11 @@ public class AutEnvironmentBuilder extends Builder {
         try {
             VariableResolver.ByMap<String> variableResolver =
                     new VariableResolver.ByMap<String>(envVars);
-            
+
             AUTEnvironmentResolvedModel autEnvModel =
                     AUTEnvironmentModelResolver.resolveModel(autEnvironmentModel, variableResolver);
             performer = new AUTEnvironmentBuilderPerformer(autEnvModel, variableResolver, logger);
-            performer.start();
+            performer.start(envVars);
             assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
 
         } catch (Exception e) {
@@ -131,22 +129,22 @@ public class AutEnvironmentBuilder extends Builder {
             build.setResult(Result.FAILURE);
         }
     }
-    
+
     private void assignOutputValue(
             AbstractBuild<?, ?> build,
             AUTEnvironmentBuilderPerformer performer,
             String outputParameterName,
             Logger logger) {
-        
+
         if (StringUtils.isNullOrEmpty(outputParameterName)) {
             logger.log("No environment variable was specified for getting the AUT Environment Configuration ID");
             return;
         }
-        
+
         ParametersAction oldParametersAction = build.getAction(ParametersAction.class);
         if (oldParametersAction != null
-            && oldParametersAction.getParameter(outputParameterName) != null) {
-            
+                && oldParametersAction.getParameter(outputParameterName) != null) {
+
             List<ParameterValue> parametersList =
                     new ArrayList<ParameterValue>(oldParametersAction.getParameters());
             Iterator<ParameterValue> iterator = parametersList.iterator();
@@ -167,41 +165,41 @@ public class AutEnvironmentBuilder extends Builder {
                     break;
                 }
             }
-            
+
             build.getActions().remove(oldParametersAction);
             build.addAction(new ParametersAction(parametersList));
-            
+
         } else {
             logger.log(String.format(
                     "Can't assign created AUT Environment Configuration ID to: [%s] because there's no such parameter for this build",
                     outputParameterName));
         }
-        
+
     }
-    
+
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        
+
         public DescriptorImpl() {
-            
+
             load();
         }
-        
+
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
-        
+
         @Override
         public String getDisplayName() {
             return AutEnvironmentBuilderStepName(CompanyName());
         }
-        
+
         public AlmServerSettingsModel[] getAlmServers() {
-            
+
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }
-        
+
     }
 }

@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -63,9 +63,9 @@ namespace HpToolsLauncher.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Could not find TestSet {0}.
         /// </summary>
-        internal static string AlmRunnerCantFindTest {
+        internal static string AlmRunnerCantFindTestSet {
             get {
-                return ResourceManager.GetString("AlmRunnerCantFindTest", resourceCulture);
+                return ResourceManager.GetString("AlmRunnerCantFindTestSet", resourceCulture);
             }
         }
         
@@ -79,7 +79,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Link: {0}.
+        ///   Looks up a localized string similar to Copy the following report link inside an IE browser to view the test run results: {0}.
         /// </summary>
         internal static string AlmRunnerDisplayLink {
             get {
@@ -142,6 +142,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;Unable to login. Please check username and password.&quot;.
+        /// </summary>
+        internal static string AlmRunnerIncorectCredentials {
+            get {
+                return ResourceManager.GetString("AlmRunnerIncorectCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to folder {0} cannot be found in ALM.
         /// </summary>
         internal static string AlmRunnerNoSuchFolder {
@@ -151,7 +160,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Number of tests in set: &quot;.
+        ///   Looks up a localized string similar to Number of tests in set:.
         /// </summary>
         internal static string AlmRunnerNumTests {
             get {
@@ -250,11 +259,29 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test: {0}, Status: {1}, Message: {2} \nLink: {3}\n.
+        ///   Looks up a localized string similar to Test: {0}, Status: {1}, Message: {2}, Link: {3}.
         /// </summary>
         internal static string AlmRunnerTestStat {
             get {
                 return ResourceManager.GetString("AlmRunnerTestStat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot find the test folder..
+        /// </summary>
+        internal static string AlmTestSetsRunnerGetFolderError {
+            get {
+                return ResourceManager.GetString("AlmTestSetsRunnerGetFolderError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No test meets the filtering criteria..
+        /// </summary>
+        internal static string AlmTestSetsRunnerNoTestAfterApplyingFilters {
+            get {
+                return ResourceManager.GetString("AlmTestSetsRunnerNoTestAfterApplyingFilters", resourceCulture);
             }
         }
         
@@ -264,6 +291,15 @@ namespace HpToolsLauncher.Properties {
         internal static string CannotDeleteReportFolder {
             get {
                 return ResourceManager.GetString("CannotDeleteReportFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CreateTDConnection.
+        /// </summary>
+        internal static string CreateTDConnection {
+            get {
+                return ResourceManager.GetString("CreateTDConnection", resourceCulture);
             }
         }
         
@@ -448,7 +484,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ==============\nJob timed out!\n==============.
+        ///   Looks up a localized string similar to ============== Job timed out! ==============.
         /// </summary>
         internal static string GeneralTimedOut {
             get {
@@ -493,7 +529,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}.
+        ///   Looks up a localized string similar to Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}, warnings: {5}.
         /// </summary>
         internal static string LauncherDisplayStatistics {
             get {
@@ -984,6 +1020,33 @@ namespace HpToolsLauncher.Properties {
         internal static string LuancherDisplayTimout {
             get {
                 return ResourceManager.GetString("LuancherDisplayTimout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter name missing. Please specify the parameter name..
+        /// </summary>
+        internal static string MissingParameterName {
+            get {
+                return ResourceManager.GetString("MissingParameterName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter value is unspecified. Please provide a value or an empty string..
+        /// </summary>
+        internal static string MissingParameterValue {
+            get {
+                return ResourceManager.GetString("MissingParameterValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are using an old version of QC. Please update ALM QC..
+        /// </summary>
+        internal static string OldVersionOfQC {
+            get {
+                return ResourceManager.GetString("OldVersionOfQC", resourceCulture);
             }
         }
         

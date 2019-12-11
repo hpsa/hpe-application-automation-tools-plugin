@@ -8,7 +8,7 @@
   ~ __________________________________________________________________
   ~ MIT License
   ~
-  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
   ~
   ~ The only warranties for products and services of Micro Focus and its affiliates
   ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -46,7 +46,7 @@
         }
     </script>
 
-    <f:entry title="MC Server" field="mcServerName">
+    <f:entry title="UFT Mobile Server" field="mcServerName">
         <select name="uploadApp.mcServerName">
             <j:forEach var="mcServer" items="${descriptor.mcServers}">
                 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">

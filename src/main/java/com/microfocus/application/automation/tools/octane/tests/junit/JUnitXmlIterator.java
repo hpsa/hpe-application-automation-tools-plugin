@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
@@ -26,11 +24,11 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
 import com.hp.octane.integrations.utils.SdkConstants;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -41,15 +39,19 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
  */
 public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
-	private static final Logger logger = LogManager.getLogger(JUnitXmlIterator.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(JUnitXmlIterator.class);
 
 	public static final String DASHBOARD_URL = "dashboardUrl";
 	private final FilePath workspace;
@@ -159,23 +161,30 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
+				if (testName != null && testName.endsWith("()")) {//clear ending () for gradle tests
+					testName = testName.substring(0, testName.length() - 2);
+				}
 
                 if (hpRunnerType.equals(HPRunnerType.UFT)) {
+					if (testName != null && testName.contains("..")) { //resolve existence of ../ - for example c://a/../b => c://b
+						testName = new File(testName).getCanonicalPath();
+					}
+
                     String myPackageName = packageName;
                     String myClassName = className;
                     String myTestName = testName;
                     packageName = "";
                     className = "";
 
-					if (testName.startsWith(workspace.getRemote())) {
-						// if workspace is prefix of the method name, cut it off
-						// currently this handling is needed for UFT tests
-						int testStartIndex = workspace.getRemote().length() + (sharedCheckOutDirectory == null ? 0 : (sharedCheckOutDirectory.length() + 1));
-						String path = testName.substring(testStartIndex);
+					// if workspace is prefix of the method name, cut it off
+					// currently this handling is needed for UFT tests
+					int uftTextIndexStart = getUftTestIndexStart(workspace, sharedCheckOutDirectory, testName);
+					if (uftTextIndexStart != -1) {
+						String path = testName.substring(uftTextIndexStart);
 						path = path.replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 						path = StringUtils.strip(path, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
-						//split path to package and and name fields
+						//split path to package and name fields
 						if (path.contains(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER)) {
 							int testNameStartIndex = path.lastIndexOf(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
@@ -212,19 +221,13 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
-					if (StringUtils.isNotEmpty(id) && additionalContext != null && additionalContext instanceof Map) {
-						Map<String, String> testId2Url = (Map) additionalContext;
-						if (testId2Url.containsKey(id))
-							externalURL = testId2Url.get(id);
-					}
 				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
                 	//console contains link to report
 					//link start with "View Report:"
 					String VIEW_REPORT_PREFIX = "View Report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {
-							if (str != null && str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
+							if (str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
 								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
 							}
 						}
@@ -273,6 +276,31 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 			}
 		}
+	}
+
+	private int getUftTestIndexStart(FilePath workspace, String sharedCheckOutDirectory, String testName) {
+		int returnIndex = -1;
+		try {
+			if (sharedCheckOutDirectory == null) {
+				sharedCheckOutDirectory = "";
+			}
+			String pathToTest;
+			if (StringUtils.isEmpty(sharedCheckOutDirectory)) {
+				pathToTest = workspace.getRemote();
+			} else {
+				pathToTest = Paths.get(sharedCheckOutDirectory).isAbsolute() ?
+						sharedCheckOutDirectory :
+						Paths.get(workspace.getRemote(), sharedCheckOutDirectory).toFile().getCanonicalPath();
+			}
+
+
+			if (testName.toLowerCase().startsWith(pathToTest.toLowerCase())) {
+				returnIndex = pathToTest.length() + 1;
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Failed to getUftTestIndexStart for testName '%s' and sharedCheckOutDirectory '%s' : %s", testName, sharedCheckOutDirectory, e.getMessage()), e);
+		}
+		return returnIndex;
 	}
 
 	private String cleanTestName(String testName) {

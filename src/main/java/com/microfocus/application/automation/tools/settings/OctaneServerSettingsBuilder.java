@@ -1,16 +1,16 @@
 /*
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
@@ -22,20 +22,18 @@ package com.microfocus.application.automation.tools.settings;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationListener;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationParser;
-import com.microfocus.application.automation.tools.octane.configuration.MqmProject;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
-import hudson.model.Item;
-import hudson.model.User;
-import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -43,10 +41,8 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -60,7 +56,7 @@ import java.util.*;
  */
 
 public class OctaneServerSettingsBuilder extends Builder {
-	private static final Logger logger = LogManager.getLogger(OctaneServerSettingsBuilder.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(OctaneServerSettingsBuilder.class);
 
 	@Override
 	public OctaneDescriptorImpl getDescriptor() {
@@ -68,7 +64,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 	}
 
 	public static OctaneDescriptorImpl getOctaneSettingsManager() {
-		OctaneDescriptorImpl octaneDescriptor = Jenkins.getInstance().getDescriptorByType(OctaneDescriptorImpl.class);
+		OctaneDescriptorImpl octaneDescriptor = Jenkins.get().getDescriptorByType(OctaneDescriptorImpl.class);
 		if (octaneDescriptor == null) {
 			throw new IllegalStateException("failed to obtain Octane plugin descriptor");
 		}
@@ -260,11 +256,11 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		public void setModel(OctaneServerSettingsModel newModel) {
 			//infer uiLocation
-			MqmProject mqmProject;
+
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(newModel.getUiLocation());
-				newModel.setSharedSpace(mqmProject.getSharedSpace());
-				newModel.setLocation(mqmProject.getLocation());
+				OctaneUrlParser octaneUrlParser = ConfigurationValidator.parseUiLocation(newModel.getUiLocation());
+				newModel.setSharedSpace(octaneUrlParser.getSharedSpace());
+				newModel.setLocation(octaneUrlParser.getLocation());
 			} catch (FormValidation fv) {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 			}
@@ -352,35 +348,30 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 		@SuppressWarnings("unused")
 		public FormValidation doTestConnection(@QueryParameter("uiLocation") String uiLocation,
-		                                       @QueryParameter("username") String username,
-		                                       @QueryParameter("password") String password,
-		                                       @QueryParameter("impersonatedUser") String impersonatedUser) {
-			MqmProject mqmProject;
+											   @QueryParameter("username") String username,
+											   @QueryParameter("password") String password,
+											   @QueryParameter("impersonatedUser") String impersonatedUser) {
+			OctaneUrlParser octaneUrlParser;
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(uiLocation);
+				octaneUrlParser = ConfigurationValidator.parseUiLocation(uiLocation);
 			} catch (FormValidation fv) {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 				return fv;
 			}
 
+
 			//  if parse is good, check authentication/authorization
-			ConfigurationParser parser = Jenkins.getInstance().getExtensionList(ConfigurationParser.class).iterator().next();
-			FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
+			List<String> fails = new ArrayList<>();
+			ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
+			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
+			ConfigurationValidator.checkHoProxySettins(fails);
 
-			//  if still good, check Jenkins user permissions
-			try {
-				SecurityContext preserveContext = impersonate(impersonatedUser);
-				if (!Jenkins.getInstance().hasPermission(Item.READ)) {
-					logger.warn("tested configuration failed on insufficient Jenkins' user permissions");
-					validation = FormValidation.errorWithMarkup(ConfigurationParser.markup("red", Messages.JenkinsUserPermissionsFailure()));
-				}
-				depersonate(preserveContext);
-			} catch (FormValidation fv) {
-				logger.warn("tested configuration failed on impersonating Jenkins' user, most likely non existent user provided", fv);
-				return fv;
+			if (fails.isEmpty()) {
+				return ConfigurationValidator.wrapWithFormValidation(true, Messages.ConnectionSuccess());
+			} else {
+				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
+				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
 			}
-
-			return validation;
 		}
 
 		public OctaneServerSettingsModel[] getServers() {
@@ -421,24 +412,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 			return result;
 		}
 
-		private SecurityContext impersonate(String user) throws FormValidation {
-			SecurityContext originalContext = null;
-			if (user != null && !user.equalsIgnoreCase("")) {
-				User jenkinsUser = User.get(user, false, Collections.emptyMap());
-				if (jenkinsUser != null) {
-					originalContext = ACL.impersonate(jenkinsUser.impersonate());
-				} else {
-					throw FormValidation.errorWithMarkup(ConfigurationParser.markup("red", Messages.JenkinsUserPermissionsFailure()));
-				}
-			}
-			return originalContext;
-		}
-
-		private void depersonate(SecurityContext originalContext) {
-			if (originalContext != null) {
-				ACL.impersonate(originalContext.getAuthentication());
-			}
-		}
 
 		public FormValidation doCheckInstanceId(@QueryParameter String value) {
 			if (value == null || value.isEmpty()) {
@@ -458,19 +431,19 @@ public class OctaneServerSettingsBuilder extends Builder {
 				ret = FormValidation.error("Location must be set");
 				return ret;
 			}
-			MqmProject mqmProject = null;
+			OctaneUrlParser octaneUrlParser = null;
 
 
 
 			try {
-				mqmProject = ConfigurationParser.parseUiLocation(value);
+				octaneUrlParser = ConfigurationValidator.parseUiLocation(value);
 
 			} catch (Exception e) {
 				ret = FormValidation.error("Failed to parse location.");
 			}
 			for (OctaneServerSettingsModel serverSettingsModel : servers) {
-				if (mqmProject != null && serverSettingsModel.getSharedSpace().equals(mqmProject.getSharedSpace()) &&
-						serverSettingsModel.getLocation().equals(mqmProject.getLocation())) {
+				if (octaneUrlParser != null && serverSettingsModel.getSharedSpace().equals(octaneUrlParser.getSharedSpace()) &&
+						serverSettingsModel.getLocation().equals(octaneUrlParser.getLocation())) {
 					ret = FormValidation.error("This ALM Octane server configuration was already set.");
 					return ret;
 				}

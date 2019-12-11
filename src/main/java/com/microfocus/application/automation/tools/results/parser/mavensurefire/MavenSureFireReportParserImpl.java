@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.results.parser.mavensurefire;
@@ -94,31 +92,37 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 		return testSets;
 	}
 
-	private String getRunStatus(Testcase testcase) {		
-		if(testcase.getError().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+	private String getRunStatus(Testcase testcase) {
+		if (testcase.getError().size() > 0) {
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getFailure().size()>0) {
-			return IAlmConsts.IStatuses.FAILED;
+		if (testcase.getFailure().size() > 0) {
+			return IAlmConsts.IStatuses.FAILED.value();
 		}
-		if(testcase.getStatus() == null) {
-			return IAlmConsts.IStatuses.PASSED;
+		if (testcase.getStatus() == null) {
+			return IAlmConsts.IStatuses.PASSED.value();
 		}
-		
+
+		String result;
 		String status = testcase.getStatus();
-		if(status != null ){
+		if (status != null) {
 			status = status.trim();
-			if (status.length()>0){
-				return status;
+			if (status.length() > 0) {
+				try {
+					result = IAlmConsts.IStatuses.valueOf(status.toUpperCase()).value();
+				} catch (IllegalArgumentException e) {
+					result = status;
+				}
 			} else {
-				return IAlmConsts.IStatuses.PASSED;
+				result = IAlmConsts.IStatuses.PASSED.value();
 			}
 		} else {
-			return IAlmConsts.IStatuses.PASSED;
+			result = IAlmConsts.IStatuses.PASSED.value();
 		}
+		return result;
 	}
 	
-	private String getRunDetail(Testcase testcase){
+	private String getRunDetail(Testcase testcase) {
 		String detail = ParserUtil.marshallerObject(Testcase.class, testcase);		
 		return Base64Encoder.encode(detail.getBytes());
 	}

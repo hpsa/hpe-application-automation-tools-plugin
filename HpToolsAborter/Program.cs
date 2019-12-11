@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -23,7 +23,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Management;
 using System.Diagnostics;
 using System.IO;
@@ -185,6 +184,7 @@ namespace HpToolsAborter
                 foreach (var child in children)
                 {
                     var proc = Process.GetProcessById(child.ID);
+                   
                     if (proc != null)
                     {
                         KillProcess(proc);
@@ -196,6 +196,14 @@ namespace HpToolsAborter
         private static void KillQtpAutomationFromAlm()
         {
             var remoteAgent = Process.GetProcessesByName("AQTRmtAgent").FirstOrDefault();
+            var almProcesses = Process.GetProcessesByName("HP.ALM.Lab.Agent.RemoteService");
+            foreach(var almProcess in almProcesses)
+            {
+                if(almProcess != null)
+                {
+                    KillProcess(almProcess);
+                }
+            }
 
             if (remoteAgent != null)
             {
@@ -219,11 +227,9 @@ namespace HpToolsAborter
             }
         }
 
-        private static void KillServiceTestFromAlm()
+        public static void KillServiceTestFromAlm()
         {
-
             var dllHostProcesses = Process.GetProcessesByName("dllhost");
-
             foreach (var dllhostProcess in dllHostProcesses)
             {
                 List<ProcessData> children = new List<ProcessData>();
@@ -236,7 +242,6 @@ namespace HpToolsAborter
                 {
                     var process = Process.GetProcessById(internalExecuterData.ID);
                     KillProcess(process);
-
                     KillProcess(dllhostProcess);
                     break;
                 }

@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.results;
@@ -327,14 +325,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         // folder
         File artifactsDir = new File(build.getRootDir(), "archive");
         artifactsDir.mkdirs();
-
+        listener.getLogger().println("artifactsDir: " + artifactsDir.getName() + " " + artifactsDir.getAbsolutePath());
         // read each result.xml
         /*
-         * The structure of the result file is: <testsuites> <testsuite>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/> </testsuite>
+         * The structure of the result file is:
+         * <testsuites>
+         *     <testsuite>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *          <testcase.........report="path-to-report"/>
+         *     </testsuite>
          * </testsuites>
          */
 
@@ -438,8 +439,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         String testStatus = eElement.getAttribute("status"); // e.g. "pass"
 
                         Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
-                        String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
-                        String testDateTime = sysinfo.substring(0, 19);
+                        String sysInfo = nodeSystemInfo.getFirstChild().getNodeValue();
+                        String testDateTime = sysInfo.substring(0, 19);
 
                         FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
                         boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
@@ -478,7 +479,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             // update the count for this file
                             fileNameCount.put(testName, nameCount);
                             testName += "[" + nameCount + "]";
-
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
@@ -487,11 +487,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             ReportInfoToCollect.add(reportMetaData);
 
                             listener.getLogger()
-                                    .println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
+                                    .println("add html report info to ReportInfoToCollect: " + testDateTime);
                         }
 
                         archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
-
                         if (archiveTestResult && rrvReport.exists()) {
 
                             if (reportFolder.exists()) {
@@ -553,8 +552,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 }
 
                 if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
-
-                    listener.getLogger().println("begin to collectAndPrepareHtmlReports");
                     collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
                 }
 
@@ -579,7 +576,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile, TaskListener _logger) {
-
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
         try {
@@ -591,7 +587,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         Document doc = builder.newDocument();
         Element root = doc.createElement("reports_data");
         doc.appendChild(root);
-
+        int currentReport = 1;
         for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
             String disPlayName = htmlReportInfo.getDisPlayName();
             String urlName = htmlReportInfo.getUrlName();
@@ -609,19 +605,22 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             elmReport.setAttribute("isHtmlreport", isHtmlReport);
             elmReport.setAttribute("isParallelRunnerReport", isParallelRunnerReport);
             root.appendChild(elmReport);
-
+            currentReport++;
         }
 
         try {
-            write2XML(doc, xmlFile);
+            write2XML(doc, xmlFile, _logger);
         } catch (TransformerException e) {
             _logger.error("Failed transforming xml file: " + e);
+            _logger.getLogger().println("Failed transforming xml file: " + e);
         } catch (FileNotFoundException e) {
             _logger.error("Failed to find " + xmlFile + ": " + e);
+            _logger.getLogger().println("Failed to find " + xmlFile + ": " + e);
         }
     }
 
-    private void write2XML(Document document, String filename) throws TransformerException, FileNotFoundException {
+    private void write2XML(Document document, String filename, TaskListener _logger) throws TransformerException, FileNotFoundException {
+        _logger.getLogger().println("create xml file from report meta data");
         document.normalize();
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -666,6 +665,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 listener.getLogger().println("source: " + source);
                 String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
                 String dest = testName;
+                String testDateTime = htmlReportInfo.getDateTime();
+                listener.getLogger().println("collectAndPrepareHtmlReports: " + testDateTime);
                 FilePath targetPath = new FilePath(rootTarget, dest); // target path is something like "C:\Program Files
                 // (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
 
@@ -1199,7 +1200,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
-                "Parsing test run dataset for perfomrance report");
+                "Parsing test run dataset for performance report");
         LrJobResults jobResults = new LrJobResults();
 
         // read each RunReport.xml

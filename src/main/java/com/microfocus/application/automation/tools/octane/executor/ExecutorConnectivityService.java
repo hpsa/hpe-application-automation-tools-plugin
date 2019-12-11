@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.executor;
@@ -34,6 +32,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
 import hudson.model.Item;
@@ -42,26 +41,20 @@ import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 /**
  * Utility for handling connectivity with scm repositories
  */
 public class ExecutorConnectivityService {
-
-	private static final Logger logger = LogManager.getLogger(ExecutorConnectivityService.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ExecutorConnectivityService.class);
 	private static final Map<Permission, String> requirePremissions = initRequirePremissions();
 	private static final Map<Permission, String> credentialsPremissions = initCredentialsPremissions();
+	private static final String PLUGIN_NAME = "Application Automation Tools";
 
 	/**
 	 * Validate that scm repository is valid
@@ -80,13 +73,10 @@ public class ExecutorConnectivityService {
 				credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
 			}
 
-
-			Jenkins jenkins = Jenkins.getActiveInstance();
-
-			List<String> permissionResult = checkCIPermissions(jenkins, credentials != null);
+			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), credentials != null);
 
 			if (permissionResult != null && !permissionResult.isEmpty()) {
-				String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
+				String user = User.current() != null ? User.current().getId() : Jenkins.ANONYMOUS.getPrincipal().toString();
 				String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
 				logger.error(error);
 				result.setStatus(HttpStatus.SC_FORBIDDEN);
@@ -120,39 +110,41 @@ public class ExecutorConnectivityService {
 
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
 		result.setStatus(HttpStatus.SC_CREATED);
+		BaseStandardCredentials jenkinsCredentials = null;
 
 		if (StringUtils.isNotEmpty(credentialsInfo.getCredentialsId())) {
-			BaseStandardCredentials cred = getCredentialsById(credentialsInfo.getCredentialsId());
-			if (cred != null) {
+			jenkinsCredentials = getCredentialsById(credentialsInfo.getCredentialsId());
+			if (jenkinsCredentials != null) {
 				BaseStandardCredentials newCred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(),
 						null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
 				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
 				try {
-					store.updateCredentials(Domain.global(), cred, newCred);
-					result.setStatus(HttpStatus.SC_CREATED);
-					result.setBody(newCred.getId());
+					store.updateCredentials(Domain.global(), jenkinsCredentials, newCred);
 				} catch (IOException e) {
 					logger.error("Failed to update credentials " + e.getMessage());
 					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 					result.setBody("Failed to update credentials " + e.getMessage());
 				}
-				return result;
+			}
+		} else if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
+			jenkinsCredentials = tryGetCredentialsByUsernamePassword(credentialsInfo.getUsername(), credentialsInfo.getPassword());
+			if (jenkinsCredentials == null) {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				String desc = String.format("Created by the Microfocus %s plugin on %s", PLUGIN_NAME, formatter.format(new Date()));
+				BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
+				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
+				try {
+					store.addCredentials(Domain.global(), c);
+				} catch (IOException e) {
+					logger.error("Failed to add credentials " + e.getMessage());
+					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+					result.setBody("Failed to add credentials " + e.getMessage());
+				}
 			}
 		}
-		if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-			String desc = "Created by the Microfocus Application Automation Tools plugin on " + formatter.format(new Date());
-			BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
-			CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
-			try {
-				store.addCredentials(Domain.global(), c);
-				result.setStatus(HttpStatus.SC_CREATED);
-				result.setBody(c.getId());
-			} catch (IOException e) {
-				logger.error("Failed to add credentials " + e.getMessage());
-				result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-				result.setBody("Failed to add credentials " + e.getMessage());
-			}
+
+		if (jenkinsCredentials != null) {
+			result.setBody(jenkinsCredentials.getId());
 		}
 
 		return result;
@@ -163,6 +155,18 @@ public class ExecutorConnectivityService {
 		for (BaseStandardCredentials cred : list) {
 			if (cred.getId().equals(credentialsId))
 				return cred;
+		}
+		return null;
+	}
+
+	private static UsernamePasswordCredentialsImpl tryGetCredentialsByUsernamePassword(String username, String password) {
+		List<UsernamePasswordCredentialsImpl> list = CredentialsProvider.lookupCredentials(UsernamePasswordCredentialsImpl.class, (Item) null, null, (DomainRequirement) null);
+		for (UsernamePasswordCredentialsImpl cred : list) {
+			if (StringUtils.equalsIgnoreCase(cred.getUsername(), username)
+					&& StringUtils.equals(cred.getPassword().getPlainText(), password)
+					&& cred.getDescription() != null && cred.getDescription().contains(PLUGIN_NAME)) {
+				return cred;
+			}
 		}
 		return null;
 	}

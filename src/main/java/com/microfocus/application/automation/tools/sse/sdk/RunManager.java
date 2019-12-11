@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.sse.sdk;
@@ -53,7 +51,7 @@ public class RunManager {
         Testsuites ret = null;
         _logger = logger;
         _running = true;
-        if (AuthenticationTool.authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), args.getClientType(), logger)) {
+        if (AuthenticationTool.getInstance().authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), args.getClientType(), logger)) {
             initialize(args, client);
             if (start(args)) {
                 _polling = true;
@@ -153,14 +151,12 @@ public class RunManager {
                     _runHandler.getRunId(),
                     _runHandler.getReportUrl(args)));
         } else {
+            String errMessage = "Failed to prepare timeslot for run. No entity of type " + args.getRunType() + " with id " + args.getEntityId() + " exists.";
             _logger.log(String.format(
-                    "Failed to start %s ID:%s, run id: %s "
+                    errMessage
                             + "\nNote: You can run only functional test sets and build verification suites using this plugin. "
                             + "Check to make sure that the configured ID is valid "
-                            + "(and that it is not a performance test ID).",
-                    args.getRunType(),
-                    args.getEntityId(),
-                    _runHandler.getRunId()));
+                            + "(and that it is not a performance test ID)."));
         }
     }
 

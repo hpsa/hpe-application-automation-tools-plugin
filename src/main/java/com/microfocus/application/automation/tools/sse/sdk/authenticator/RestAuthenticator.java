@@ -1,33 +1,32 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.sse.sdk.authenticator;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.microfocus.application.automation.tools.common.SSEException;
 import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 import com.microfocus.application.automation.tools.sse.sdk.Base64Encoder;
 import com.microfocus.application.automation.tools.sse.sdk.Client;
@@ -35,40 +34,86 @@ import com.microfocus.application.automation.tools.sse.sdk.Logger;
 import com.microfocus.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.microfocus.application.automation.tools.sse.sdk.Response;
 
-/***
- * 
+/**
  * @author Effi Bar-She'an
  * @author Dani Schreiber
- * 
  */
 
 public class RestAuthenticator implements Authenticator {
 
     public static final String IS_AUTHENTICATED = "rest/is-authenticated";
     public static final String AUTHENTICATE_HEADER = "WWW-Authenticate";
-    public static final String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
     public static final String AUTHENTICATION_INFO = "AuthenticationInfo";
     public static final String USER_NAME = "Username";
+    public static final String AUTHENTICATE_POINT = "authentication-point/authenticate";
+
+    private String authenticationPoint;
+    private Logger logger;
     
-    public boolean login(Client client, String username, String password, Logger logger) {
-        logger.log("Start login to ALM server...");
-        boolean ret = true;
-        String authenticationPoint = isAuthenticated(client, logger);
-        if (authenticationPoint != null) {
-            logger.log("Got authenticate point:" + authenticationPoint);
-            Response response = login(client, authenticationPoint, username, password);
-            if (response.isOk()) {
-                logLoggedInSuccessfully(username, client.getServerUrl(), logger);
-            } else {
-                logger.log(String.format(
-                        "Login to ALM Server at %s failed. Status Code: %s",
-                        client.getServerUrl(),
-                        response.getStatusCode()));
-                ret = false;
-            }
+    public boolean login(Client client, String username, String password, String clientType, Logger logger) {
+        this.logger = logger;
+
+        this.logger.log("Start login to ALM server...");
+        if (isAuthenticated(client)) {
+            return true;
         }
-        
+        prepareAuthenticationPoint(client);
+        boolean ret = authenticate(client, authenticationPoint, username, password);
+        if (ret) {
+            ret = appendQCSessionCookies(client, clientType);
+        }
         return ret;
+    }
+
+    /**
+     * Some customer always got wrong authenticate point because of an issue of ALM.
+     *          But they still can login with a right authenticate point.
+     *          So try to login with that anyway.
+     * @param client
+     */
+    private void prepareAuthenticationPoint(Client client) {
+        if (authenticationPoint != null && !isAuthenticatePointRight(authenticationPoint, client.getServerUrl())) {
+            authenticationPoint = null;
+        }
+        if (authenticationPoint == null) {
+            authenticationPoint = client.getServerUrl().endsWith("/") ?
+                    client.getServerUrl() + AUTHENTICATE_POINT :
+                    client.getServerUrl() + "/" + AUTHENTICATE_POINT;
+        }
+        logger.log("Try to authenticate through: " + authenticationPoint);
+    }
+
+    /**
+     * Some ALM server generates wrong authenticate point and port.
+     * @param authenticatePointStr
+     * @param serverUrlStr
+     * @return
+     */
+    private boolean isAuthenticatePointRight(String authenticatePointStr, String serverUrlStr) {
+        URL serverUrl;
+        URL authenticatePoint;
+
+        try {
+            serverUrl = new URL(serverUrlStr);
+        } catch (MalformedURLException e) {
+            logger.log(String.format("Server url %s is not a valid url.", e.getMessage()));
+            return false;
+        }
+
+        try {
+            authenticatePoint = new URL(authenticatePointStr);
+        } catch (MalformedURLException e) {
+            logger.log(String.format("Authenticate Point url %s is not a valid url.", e.getMessage()));
+            return false;
+        }
+
+        boolean result = serverUrl.getProtocol().equalsIgnoreCase(authenticatePoint.getProtocol())
+                && serverUrl.getPort() == authenticatePoint.getPort();
+
+        if (!result) {
+            logger.log("Authenticate point schema or port is different with server's. Please check with ALM site admin.");
+        }
+        return result;
     }
     
     /**
@@ -77,16 +122,30 @@ public class RestAuthenticator implements Authenticator {
      * @return true on operation success, false otherwise Basic authentication (must store returned
      *         cookies for further use)
      */
-    private Response login(Client client, String loginUrl, String username, String password) {
+    private boolean authenticate(Client client, String loginUrl, String username, String password) {
         // create a string that looks like:
         // "Basic ((username:password)<as bytes>)<64encoded>"
         byte[] credBytes = (username + ":" + password).getBytes();
         String credEncodedString = "Basic " + Base64Encoder.encode(credBytes);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(RESTConstants.AUTHORIZATION, credEncodedString);
-        return client.httpGet(loginUrl, null, headers, ResourceAccessLevel.PUBLIC);
+        Response response = client.httpGet(loginUrl, null, headers, ResourceAccessLevel.PUBLIC);
+
+        boolean ret = response.isOk();
+        if (ret) {
+            logger.log(String.format(
+                    "Logged in successfully to ALM Server %s using %s",
+                    client.getServerUrl(),
+                    username));
+        } else {
+            logger.log(String.format(
+                    "Login to ALM Server at %s failed. Status Code: %s",
+                    client.getServerUrl(),
+                    response.getStatusCode()));
+        }
+        return ret;
     }
-    
+
     /**
      * @return true if logout successful
      * @throws Exception
@@ -101,17 +160,15 @@ public class RestAuthenticator implements Authenticator {
                         null,
                         null,
                         ResourceAccessLevel.PUBLIC);
-        
         return response.isOk();
     }
 
     /**
      * Verify is the client is already authenticated. If not, try get the authenticate point.
-     * @param client client
-     * @param logger logger
-     * @return null or authenticate point
+     * @param client
+     * @return
      */
-    private String isAuthenticated(Client client, Logger logger) {
+    private boolean isAuthenticated(Client client) {
         Response response =
                 client.httpGet(
                         client.build(IS_AUTHENTICATED),
@@ -119,37 +176,45 @@ public class RestAuthenticator implements Authenticator {
                         null,
                         ResourceAccessLevel.PUBLIC);
         
-        if (isAlreadyAuthenticated(response, client.getUsername())) {
-            logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
-            return null;
+        if (checkAuthResponse(response, client.getUsername())) {
+            return true;
         }
 
         // Try to get authenticate point regardless the response status.
-        String authenticatePoint = getAuthenticatePoint(response);
-        if (authenticatePoint == null) {
-            // If can't get authenticate point, then output the message.
-            logger.log("Can't get authenticate header.");
-            if(response.getStatusCode() != HttpURLConnection.HTTP_OK) {
-                throw new SSEException(response.getFailure());
-            }
-        } else {
-            authenticatePoint = authenticatePoint.replace("\"", "");
-            authenticatePoint += "/authenticate";
+        authenticationPoint = getAuthenticatePoint(response);
+
+        if (authenticationPoint == null) {
+            logger.log(String.format("Failed to get authenticate authenticate point. Exception %s", response.getFailure()));
         }
-        return authenticatePoint;
+        else {
+            authenticationPoint = authenticationPoint.replace("\"", "");
+            authenticationPoint += "/authenticate";
+            logger.log("Got authenticate point:" + authenticationPoint);
+        }
+
+        return false;
     }
     
-    private boolean isAlreadyAuthenticated(Response response, String authUser) {
-        boolean ret = false;
-        if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
-            if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
-                ret = true;
-            } else{
-                throw new SSEException(INVALID_ALM_SERVER_URL);
+    private boolean checkAuthResponse(Response response, String authUser) {
+        if (response.getStatusCode() == HttpURLConnection.HTTP_OK) {
+            if (response.getData() != null
+                    && new String(response.getData()).contains(AUTHENTICATION_INFO)
+                    && new String(response.getData()).contains(USER_NAME)
+                    && new String(response.getData()).contains(authUser)) {
+                logger.log(String.format("Already logged in to ALM Server using %s", authUser));
+                return true;
             }
+            logger.log("Failed to check authenticate response header.");
+            return false;
         }
-        
-        return ret;
+
+        if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            logger.log(String.format("User %s unauthorized.", authUser));
+            return false;
+        }
+
+        logger.log(String.format("Failed to check authenticate status. Exception: %s", response.getFailure()));
+        return false;
     }
 
     /**
@@ -173,18 +238,30 @@ public class RestAuthenticator implements Authenticator {
         return authenticateHeaderArray[1];
     }
 
-    //if it's authenticated, the response should look like that:
-    //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
-    private boolean containAuthenticatedInfo(String authInfo, String authUser){
-        return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+    private boolean appendQCSessionCookies(Client client, String clientType) {
+        logger.log("Creating session...");
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
+        headers.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
+
+        // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
+        Response response =
+                client.httpPost(
+                        client.build("rest/site-session"),
+                        generateClientTypeData(clientType),
+                        headers,
+                        ResourceAccessLevel.PUBLIC);
+        boolean ret = response.isOk();
+        if (!ret) {
+            logger.log(String.format("Cannot append QCSession cookies. Exception: %s", response.getFailure()));
+        } else {
+            logger.log("Session created.");
+        }
+        return ret;
     }
 
-
-    private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
-        
-        logger.log(String.format(
-                "Logged in successfully to ALM Server %s using %s",
-                loginServerUrl,
-                username));
+    private byte[] generateClientTypeData(String clientType) {
+        String data = String.format("<session-parameters><client-type>%s</client-type></session-parameters>", clientType);
+        return data.getBytes();
     }
 }

@@ -8,7 +8,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
  * The only warranties for products and services of Micro Focus and its affiliates
  * and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -119,7 +119,11 @@ namespace HpToolsLauncher.TestRunners
 
             runDesc.TestType = TestType.LoadRunner.ToString();
             _resultsFolder = Helper.GetTempDir();
-
+            if (scenarioInf.ReportPath != null && !scenarioInf.ReportPath.Equals(""))
+            {
+                _resultsFolder = scenarioInf.ReportPath;
+            }
+            
             //a directory with this name may already exist. try to delete it.
             if (Directory.Exists(_resultsFolder))
             {

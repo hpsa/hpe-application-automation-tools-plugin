@@ -49,6 +49,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
@@ -65,6 +66,7 @@
       <HintPath>externals\Interop.Wlrun.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="QTObjectModelLib">
       <HintPath>externals\QTObjectModelLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>

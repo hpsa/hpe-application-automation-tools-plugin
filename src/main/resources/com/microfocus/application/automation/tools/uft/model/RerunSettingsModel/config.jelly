@@ -8,7 +8,7 @@
   ~ __________________________________________________________________
   ~ MIT License
   ~
-  ~ © Copyright 2012-2018 Micro Focus or one of its affiliates.
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
   ~
   ~ The only warranties for products and services of Micro Focus and its affiliates
   ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
@@ -24,18 +24,25 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
     <f:entry>
-        <f:checkbox field="checked" name="rerunSettingsModels.checked" style="width: 30px;"/>
-
-        <f:textbox field="test" name="rerunSettingsModels.test" value="${instance.test}" style="width: 350px; margin-left: 10px;" />
-
         <f:entry>
-            <label class="attach-previous" style="margin-right: -15px;">Reruns:</label>
-            <f:number field="numberOfReruns" name="rerunSettingsModels.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; margin-left: 20px;"/>
+            <f:checkbox title="Test" field="checked" name="rerunSettingsModels.checked" style="width: 30px; top: -20px;"/>
+            <f:entry field="test">
+                <f:textbox name="rerunSettingsModels.test" value="${instance.test}" style="width: 85%;" />
+            </f:entry>
+        </f:entry>
+
+        <f:entry field="numberOfReruns">
+            <label class="attach-previous">Reruns:</label>
+            <f:entry>
+                <f:number name="rerunSettingsModels.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px;"/>
+            </f:entry>
         </f:entry>
 
         <f:entry>
             <label class="attach-previous" style="margin-right: 2px;">Cleanup test:</label>
-            <f:textbox field="cleanupTest" name="rerunSettingsModels.cleanupTest" value="${instance.cleanupTest}" style="width: 350px;"/>
+            <f:entry>
+                <f:textbox field="cleanupTest" name="rerunSettingsModels.cleanupTest" value="${instance.cleanupTest}" style="width: 85%;"/>
+            </f:entry>
         </f:entry>
     </f:entry>
 </j:jelly>

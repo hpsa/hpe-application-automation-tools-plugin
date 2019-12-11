@@ -1,28 +1,27 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.tests.build;
 
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.FilePath;
 import hudson.matrix.MatrixConfiguration;
@@ -30,7 +29,7 @@ import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import hudson.model.Run;
-import org.apache.logging.log4j.LogManager;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
@@ -44,6 +43,7 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -51,7 +51,7 @@ import java.io.IOException;
  */
 
 public class BuildHandlerUtils {
-	private static final Logger logger = LogManager.getLogger(BuildHandlerUtils.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(BuildHandlerUtils.class);
 
 	public static BuildDescriptor getBuildType(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
@@ -89,19 +89,35 @@ public class BuildHandlerUtils {
 			if (fe != null) {
 				FlowGraphWalker w = new FlowGraphWalker(fe);
 				for (FlowNode n : w) {
-					if (n instanceof StepStartNode) {
-						WorkspaceAction action = n.getAction(WorkspaceAction.class);
-						if (action != null) {
-							return action.getWorkspace();
+					WorkspaceAction action = n.getAction(WorkspaceAction.class);
+					if (action != null) {
+						FilePath workspace = action.getWorkspace();
+						if (workspace == null) {
+							workspace = handleWorkspaceActionWithoutWorkspace(action);
 						}
+						return workspace;
 					}
 				}
-				logger.error("BuildHandlerUtils.getWorkspace - missing WorkspaceAction on WorkflowRun.");
 			}
 		}
 
 		logger.error("BuildHandlerUtils.getWorkspace - run is not handled. Run type : " + run.getClass());
 		return null;
+	}
+
+	private static FilePath handleWorkspaceActionWithoutWorkspace(WorkspaceAction action) {
+		logger.error("Found WorkspaceAction without workspace");
+		logger.warn("Node getPath = " + action.getPath());
+		logger.warn("Node getNode = " + action.getNode());
+		FilePath workspace = null;
+
+		if (StringUtils.isNotEmpty(action.getPath())) {
+			logger.warn("Node getPath is not empty, return getPath as workspace");
+			workspace = new FilePath(new File(action.getPath()));
+		} else {
+			logger.warn("Node getPath is empty, return workspace = null");
+		}
+		return workspace;
 	}
 
 	public static String getBuildCiId(Run run) {
@@ -112,17 +128,22 @@ public class BuildHandlerUtils {
 
 	public static String getJobCiId(Run run) {
 		if (run.getParent() instanceof MatrixConfiguration) {
-			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getParentBuild().getParent()).getTranslateJobName();
+			return JobProcessorFactory.getFlowProcessor(((MatrixRun) run).getProject()).getTranslatedJobName();
 		}
 		if (run.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslateJobName();
+			return JobProcessorFactory.getFlowProcessor(run.getParent()).getTranslatedJobName();
 		}
-		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslateJobName();
+		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) run).getProject()).getTranslatedJobName();
 	}
 
 	public static String translateFolderJobName(String jobPlainName) {
 		String newSplitterCharacters = "/job/";
 		return jobPlainName.replaceAll("/", newSplitterCharacters);
+	}
+
+	public static String revertTranslateFolderJobName(String translatedJobName) {
+		String newSplitterCharacters = "/";
+		return translatedJobName.replaceAll("/job/", newSplitterCharacters);
 	}
 
 	public static CIBuildResult translateRunResult(Run run) {

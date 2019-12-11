@@ -1,28 +1,25 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.octane.model;
 
-import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
@@ -32,14 +29,15 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
@@ -48,7 +46,7 @@ import java.util.*;
  * Created by lazara on 26/01/2016.
  */
 public class ModelFactory {
-	private static final Logger logger = LogManager.getLogger(ModelFactory.class);
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ModelFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job job) {
@@ -124,7 +122,7 @@ public class ModelFactory {
 	private static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
 		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(projectProcessor.getTranslateJobName());
+		pipelineNode.setJobCiId(projectProcessor.getTranslatedJobName());
 		pipelineNode.setName(job.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
@@ -136,7 +134,7 @@ public class ModelFactory {
 	private static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 		AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(project);
-		snapshotNode.setJobCiId(flowProcessor.getTranslateJobName());
+		snapshotNode.setJobCiId(flowProcessor.getTranslatedJobName());
 		snapshotNode.setName(project.getName());
 
 		if (!metaOnly) {
@@ -162,7 +160,7 @@ public class ModelFactory {
 		Map<String, List<Run>> result = new HashMap<>();
 		Job run;
 		for (String invokeeName : invokeesNames) {
-			run = (Job) Jenkins.getInstance().getItem(invokeeName);
+			run = (Job) Jenkins.getInstanceOrNull().getItem(invokeeName);
 			result.put(invokeeName, getInvokees(self, run));
 		}
 		return result;
@@ -258,7 +256,11 @@ public class ModelFactory {
 			if (defaultValue != null) {
 				ciParameter.setDefaultValue(defaultValue);
 			} else {
-				tmp = pd.getDefaultParameterValue();
+				try { //computing getDefaultParameterValue may throw exception(for example ChoiceParameterDefinition.getDefaultParameterValue may throw exception of ArrayIndexOutOfBoundsException)
+					tmp = pd.getDefaultParameterValue();
+				} catch (Throwable e) {
+					tmp = null;
+				}
 				ciParameter.setDefaultValue(tmp == null ? "" : tmp.getValue());
 			}
 			if (choices != null) {

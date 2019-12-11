@@ -1,0 +1,58 @@
+<!--
+  ~
+  ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+  ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~  marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  ~
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
+
+    <f:entry field="testName">
+        <div style="margin-bottom: 5px;">Run tests with names containing:</div>
+        <f:textbox id="testName" name="testName" value="${instance.testName}"/>
+    </f:entry>
+
+    <f:entry>
+        <div style="margin-bottom: 5px;">Run tests with status: </div>
+    </f:entry>
+
+    <f:entry field="blockedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.blockedCheckbox}" title="Blocked"/>
+    </f:entry>
+
+    <f:entry field="failedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.failedCheckbox}" title="Failed"/>
+    </f:entry>
+
+    <f:entry field="notCompletedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.notCompletedCheckbox}" title="Not Completed"/>
+    </f:entry>
+
+    <f:entry field="noRunCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.noRunCheckbox}" title="No Run"/>
+    </f:entry>
+
+    <f:entry field="passedCheckbox">
+     <f:checkbox id="checkboxStatus" checked="${instance.blockedCheckbox}" title="Passed"/>
+    </f:entry>
+
+</j:jelly>

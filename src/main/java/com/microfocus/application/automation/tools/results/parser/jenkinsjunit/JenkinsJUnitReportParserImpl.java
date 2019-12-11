@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 package com.microfocus.application.automation.tools.results.parser.jenkinsjunit;
@@ -107,22 +105,22 @@ public class JenkinsJUnitReportParserImpl implements ReportParser {
 	}
 	
 	private String getRunStatus(Result.Suites.Suite.Cases.Case c) {
+		String result;
 		if (c.getSkipped() != null && c.getSkipped().equals("true")) {
-			return IAlmConsts.IStatuses.NO_RUN;
+			result = IAlmConsts.IStatuses.NO_RUN.value();
+
+		} else if (c.getErrorStackTrace() != null && c.getErrorStackTrace().length() > 0) {
+			result = IAlmConsts.IStatuses.FAILED.value();
+
+		} else if (c.getErrorDetails() != null && c.getErrorDetails().length() > 0) {
+			result = IAlmConsts.IStatuses.FAILED.value();
+
+		} else if (c.getFailedSince() != null && c.getFailedSince().equals("0")) {
+			result = IAlmConsts.IStatuses.PASSED.value();
+
+		} else {
+			result = IAlmConsts.IStatuses.FAILED.value();
 		}
-		
-		if(c.getErrorStackTrace() != null && c.getErrorStackTrace().length() >0) {
-			return IAlmConsts.IStatuses.FAILED;
-		}
-		
-		if(c.getErrorDetails() != null && c.getErrorDetails().length() >0) {
-			return IAlmConsts.IStatuses.FAILED;
-		}
-		
-		if (c.getFailedSince() != null && c.getFailedSince().equals("0")) {
-			return IAlmConsts.IStatuses.PASSED;
-		}
-		
-		return IAlmConsts.IStatuses.FAILED;
+		return result;
 	}
 }

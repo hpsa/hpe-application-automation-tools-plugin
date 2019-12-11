@@ -1,23 +1,21 @@
 /*
- *
- *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
- *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
- *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
- *  marks are the property of their respective owners.
+ * Certain versions of software and/or documents ("Material") accessible here may contain branding from
+ * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * © Copyright 2012-2018 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
  * The only warranties for products and services of Micro Focus and its affiliates
- * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
  * accompanying such products and services. Nothing herein should be construed as
  * constituting an additional warranty. Micro Focus shall not be liable for technical
  * or editorial errors or omissions contained herein.
  * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
- *
  */
 
 function octane_job_configuration(target, progress, proxy) {
@@ -131,6 +129,8 @@ function octane_job_configuration(target, progress, proxy) {
         var apply = [];
         var dirtyFlag;
 
+        var selectedReleaseId;
+
         function initialize() {
             validators.length = 0;
             apply.length = 0;
@@ -187,6 +187,12 @@ function octane_job_configuration(target, progress, proxy) {
         function renderPipelineMetadata(pipeline, pipelineSelector) {
             var table = $("<table class='ui-block'><tbody><tr/></tbody></table>");
             pipelineDiv.append(table);
+
+            var releaseMilestoneAlertMessage = "<div id=\"releaseMilestoneAlert\" style=\"color: orange; visibility: hidden; font-style: italic\">Note: When you change a milestone or release, a new set of runs is created on ALM Octane, " +
+                "with a new run history.</div>";
+
+            pipelineDiv.append(releaseMilestoneAlertMessage);
+
             var tbody = table.find("tbody");
             var tr = tbody.find("tr");
 
@@ -282,21 +288,60 @@ function octane_job_configuration(target, progress, proxy) {
                 var tdReleaseSelect = $("<td class='setting-main'>");
                 trRelease.append(tdReleaseSelect);
 
-                var select = $("<select>");
-                select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isReleaseSpecified(pipeline)));
+                var releaseSelect = $("<select style='width: 360px;'>");
+                releaseSelect.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isReleaseSpecified(pipeline)));
                 if (pipeline.id !== null && isReleaseSpecified(pipeline)) {
-                    select.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
+                    releaseSelect.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
                 }
                 apply.push(function () {
-                    pipeline.releaseId = Number(select.val());
+                    pipeline.releaseId = Number(releaseSelect.val());
                 });
-                enableDirtyChangeCheck(select);
-                tdReleaseSelect.append(select);
-                select.prop('id', 'releaseSelect');
+                enableDirtyChangeCheck(releaseSelect);
+                tdReleaseSelect.append(releaseSelect);
+                releaseSelect.prop('id', 'releaseSelect');
                 trRelease.append($("<td class='setting-new'/>"));
                 if (pipeline.id == null) {
                     trRelease.css('visibility', 'hidden');
                 }
+
+                var trMilestone = $("<tr><td class='setting-name'><label for='pipeline-release-milestone'>Milestone:</label>");
+                tbody.append(trMilestone);
+
+                var tdMilestoneSelect = $("<td class='setting-main'>");
+                trMilestone.append(tdMilestoneSelect);
+
+                var milestoneSelect = $("<select style='width: 360px;'>");
+                milestoneSelect.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isMilestoneSpecified(pipeline)));
+                if (pipeline.id !== null && isMilestoneSpecified(pipeline)) {
+                    milestoneSelect.append($("<option>").text(pipeline.milestoneName).val(pipeline.milestoneId).attr('selected', 'true'));
+                }
+                apply.push(function () {
+                    pipeline.milestoneId = Number(milestoneSelect.val());
+                });
+                enableDirtyChangeCheck(milestoneSelect);
+                tdMilestoneSelect.append(milestoneSelect);
+                milestoneSelect.prop('id', 'milestoneSelect');
+                trMilestone.append($("<td class='setting-new'/>"));
+                if (pipeline.id == null) {
+                    trMilestone.css('visibility', 'hidden');
+                }
+
+                selectedReleaseId = pipeline.releaseId;
+
+                releaseSelect.change(function () {
+                    selectedReleaseId = releaseSelect.val();
+                    milestoneSelect.val(-1).trigger("change");
+                    trMilestone.css('visibility', 'visible');
+                    if(pipeline.id != null){
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
+                });
+
+                milestoneSelect.change(function () {
+                    if(pipeline.id != null) {
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
+                });
             }
         }
 
@@ -834,6 +879,14 @@ function octane_job_configuration(target, progress, proxy) {
             }
         }
 
+        function isMilestoneSpecified(pipeline) {
+            if (pipeline.hasOwnProperty("milestoneId") && pipeline.milestoneId !== -1) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         function makeDirty() {
             dirtyFlag = true;
         }
@@ -1117,6 +1170,29 @@ function octane_job_configuration(target, progress, proxy) {
                                 tmpWorkspaceId = pipeline.workspaceId;
                             }
                             proxy.searchReleases(term, pipeline.instanceId, tmpWorkspaceId, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+
+                $("#milestoneSelect").select2({
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            var tmpWorkspaceId;
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            if (!pipeline.id) {
+                                tmpWorkspaceId = selectedWorkspaceId;
+                            } else {
+                                tmpWorkspaceId = pipeline.workspaceId;
+                            }
+
+                            proxy.searchMilestones(term, pipeline.instanceId, tmpWorkspaceId, selectedReleaseId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
