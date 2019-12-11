@@ -5,12 +5,12 @@ This plugin integrates Micro Focus products with Jenkins. Using the plugin, you 
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.107.3). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.138.4 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
 
-This plugin is open source. If you identify any issues or want to submit enhancement requests, please use [JIRA](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin). The component for this plugin is the hp-application-automation-tools-plugin component. Your feedback and involvement will allow us to stabilize and enhance the capabilities of the plugin. The latest, early access, beta versions of this plugin are available [here](https://mvnrepository.com/artifact/org.jenkins-ci.plugins/hp-application-automation-tools-plugin).
+This plugin is open source. If you identify any issues or want to submit enhancement requests, please use [JIRA](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin). The component for this plugin is the *hp-application-automation-tools-plugin* component. Your feedback and involvement will allow us to stabilize and enhance the capabilities of the plugin. The latest, early access, beta versions of this plugin are available [here](https://mvnrepository.com/artifact/org.jenkins-ci.plugins/hp-application-automation-tools-plugin).
 
 A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20issuetype%20%3D%20Bug%20AND%20status%20not%20in%20(Resolved%2C%20Closed)%20AND%20component%20%3D%20hp-application-automation-tools-plugin%20ORDER%20BY%20votes%20DESC%2C%20watchers%20DESC).
 
