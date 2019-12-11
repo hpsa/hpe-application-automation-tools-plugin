@@ -116,7 +116,7 @@ This plugin supports the following Micro Focus product versions:
 
   - JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
 
-  - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results.)
+  - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results)
 
 8. **For ALM Octane integration with UFT:**
 
