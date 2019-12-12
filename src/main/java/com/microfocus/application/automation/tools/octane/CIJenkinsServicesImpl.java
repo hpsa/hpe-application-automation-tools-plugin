@@ -172,6 +172,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					if (tmpJob instanceof MatrixConfiguration) {
 						continue;
 					}
+					if (JobProcessorFactory.MAVEN_MODULE_NAME.equals(tmpJob.getClass().getName())){
+						continue;
+					}
+
 
 					PipelineNode tmpConfig;
 					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {

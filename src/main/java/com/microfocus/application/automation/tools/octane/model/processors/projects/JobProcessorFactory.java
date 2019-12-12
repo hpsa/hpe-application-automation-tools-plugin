@@ -57,6 +57,7 @@ public class JobProcessorFactory {
 
 	//  maven
 	public static final String MAVEN_JOB_NAME = "hudson.maven.MavenModuleSet";
+	public static final String MAVEN_MODULE_NAME = "hudson.maven.MavenModule";
 
 	//  folders
 	public static final String FOLDER_JOB_NAME = "com.cloudbees.hudson.plugins.folder.Folder";
