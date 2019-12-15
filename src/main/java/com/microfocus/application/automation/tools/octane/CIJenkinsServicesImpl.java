@@ -64,6 +64,7 @@ import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExten
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.matrix.MatrixConfiguration;
+import hudson.maven.MavenModule;
 import hudson.model.*;
 import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
@@ -163,19 +164,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				try {
 					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-					if (tmpJob == null) {
+					if (tmpJob == null ||
+							(tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) ||
+							tmpJob instanceof MatrixConfiguration ||
+							tmpJob instanceof MavenModule) {
 						continue;
 					}
-					if (tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) {
-						continue;
-					}
-					if (tmpJob instanceof MatrixConfiguration) {
-						continue;
-					}
-					if (JobProcessorFactory.MAVEN_MODULE_NAME.equals(tmpJob.getClass().getName())){
-						continue;
-					}
-
 
 					PipelineNode tmpConfig;
 					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
