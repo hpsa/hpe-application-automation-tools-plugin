@@ -162,6 +162,9 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			if (json.containsKey("type")) {
 				queueItem.setType(json.getString("type"));
 			}
+			if (json.containsKey("instanceId")) {
+				queueItem.setInstanceId(json.getString("instanceId"));
+			}
 			return queueItem;
 		}
 
@@ -172,6 +175,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			json.put("count", item.failCount);
 			json.put("workspace", item.workspace);
 			json.put("type", item.type);
+            json.put("instanceId", item.instanceId);
 			return json;
 		}
 	}
