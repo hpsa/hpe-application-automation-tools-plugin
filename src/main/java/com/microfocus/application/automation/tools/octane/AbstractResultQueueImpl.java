@@ -134,6 +134,8 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 
 	private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {
 
+		public static final String INSTANCE_ID = "instanceId";
+
 		@Override
 		public QueueItem from(byte[] bytes) throws IOException {
 			JSONObject json = (JSONObject) JSONSerializer.toJSON(IOUtils.toString(new ByteArrayInputStream(bytes)));
@@ -162,8 +164,8 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			if (json.containsKey("type")) {
 				queueItem.setType(json.getString("type"));
 			}
-			if (json.containsKey("instanceId")) {
-				queueItem.setInstanceId(json.getString("instanceId"));
+			if (json.containsKey(INSTANCE_ID)) {
+				queueItem.setInstanceId(json.getString(INSTANCE_ID));
 			}
 			return queueItem;
 		}
@@ -175,7 +177,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			json.put("count", item.failCount);
 			json.put("workspace", item.workspace);
 			json.put("type", item.type);
-            json.put("instanceId", item.instanceId);
+            json.put(INSTANCE_ID, item.instanceId);
 			return json;
 		}
 	}
