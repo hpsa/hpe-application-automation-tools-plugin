@@ -58,7 +58,7 @@ public class TestResultXmlWriterTest extends OctanePluginTestBase {
 	@BeforeClass
 	public static void initialize() {
 		List<TestResult> testResults = new ArrayList<>();
-		testResults.add(new JUnitTestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1, 2, null, null));
+		testResults.add(new JUnitTestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1, 2, null, null, null));
 		container = new TestResultContainer(testResults.iterator(), new ResultFields());
 		OctaneServerMock serverMock = OctaneServerMock.getInstance();
 		OctaneServerSettingsModel model = new OctaneServerSettingsModel(
