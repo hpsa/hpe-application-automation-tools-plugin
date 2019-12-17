@@ -121,14 +121,15 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         try {
-            UftTestDiscoveryResult results = build.getWorkspace().act(new UFTTestDetectionCallable(build, configurationId, getWorkspaceName(), getScmRepositoryId(), listener));
+            UftTestDiscoveryResult results = build.getWorkspace().act(new UFTTestDetectionCallable(build, configurationId, workspaceName, getScmRepositoryId(), listener));
             UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
             build.addAction(buildAction);
 
             if (results.hasChanges()) {
                 UFTTestDetectionService.publishDetectionResults(build, listener, results);
                 UftTestDiscoveryDispatcher dispatcher = getExtension(UftTestDiscoveryDispatcher.class);
-                dispatcher.enqueueResult(build.getProject().getName(), build.getNumber());
+                dispatcher.enqueueResult(configurationId, build.getProject().getFullName(), build.getNumber(), workspaceName);
+
             }
             if (!results.getDeletedFolders().isEmpty()) {
                 UFTTestDetectionService.printToConsole(listener, String.format("Found %s deleted folders", results.getDeletedFolders().size()));
