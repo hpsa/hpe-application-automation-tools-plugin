@@ -51,6 +51,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/***
+ * Tests on TestResultXmlWriter
+ */
 @SuppressWarnings({"squid:S2698", "squid:S2699"})
 public class TestResultXmlWriterTest extends OctanePluginTestBase {
 	private static TestResultContainer container;
