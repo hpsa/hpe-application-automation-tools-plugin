@@ -322,8 +322,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
      * @param projectName jobs name
      * @param buildNumber build number
      */
-    public void enqueueResult(String projectName, int buildNumber) {
-        queue.add(projectName, buildNumber);
+    public void enqueueResult( String instanceId, String projectName, int buildNumber, String workspace) {
+        queue.add(instanceId, projectName, buildNumber, workspace);
     }
 
     private static void handleMovedTests(UftTestDiscoveryResult result) {

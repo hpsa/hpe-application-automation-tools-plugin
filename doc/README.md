@@ -5,18 +5,18 @@ This plugin integrates Micro Focus products with Jenkins. Using the plugin, you 
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.107.3). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.138.4 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
 
-This plugin is open source. If you identify any issues or want to submit enhancement requests, please use [JIRA](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin). The component for this plugin is the hp-application-automation-tools-plugin component. Your feedback and involvement will allow us to stabilize and enhance the capabilities of the plugin. The latest, early access, beta versions of this plugin are available [here](https://mvnrepository.com/artifact/org.jenkins-ci.plugins/hp-application-automation-tools-plugin).
+This plugin is open source. If you identify any issues or want to submit enhancement requests, please use [JIRA](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin). The component for this plugin is the *hp-application-automation-tools-plugin* component. Your feedback and involvement will allow us to stabilize and enhance the capabilities of the plugin. The latest, early access, beta versions of this plugin are available [here](https://mvnrepository.com/artifact/org.jenkins-ci.plugins/hp-application-automation-tools-plugin).
 
 A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20issuetype%20%3D%20Bug%20AND%20status%20not%20in%20(Resolved%2C%20Closed)%20AND%20component%20%3D%20hp-application-automation-tools-plugin%20ORDER%20BY%20votes%20DESC%2C%20watchers%20DESC).
 
 ## Table of Contents
 
-[What's New in version 5.9](#what's-new-in-version-5.9)
+[What's New in version 6.0](#what's-new-in-version-6.0)
 
 [Changelog](#changelog)
 
@@ -53,51 +53,20 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 
 
-## What&#39;s New in version 5.9
+## What&#39;s new in version 6.0
 
-See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
-
-Version 5.9 introduced the following enhancements:
+Version 6.0 introduced the following enhancement(s):
 
 **ALM Octane**
 
-- Support for custom converters to test frameworks
-
-- Improvements in logs
-
-- Support for additional versions of the Sonarqube scanner plugin (2.6.1, 2.8.1, 2.9)
-
-- Bug fixes
+- You can now SET/GET milestones on ALM Octane Pipeline configurations.
 
 
-
-**UFT Mobile (Mobile Center)**
-
-- Rebrand from &quot;Mobile Center&quot; to &quot;UFT Mobile&quot;
-
-
-
-**ALM**
-
-- Improvements in the logic of parsing test case status.
-
-https://issues.jenkins-ci.org/browse/JENKINS-58134 
-
-
-
-**UFT**
-
-- Support for ALM 15.0 with SSO 
-
-- Refactoring of HpToolsLauncher
-
-- Bug fixes
-
-
+For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Changelog
 
-The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists the changes in the versions of the plugin.
+The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists the bug fix changes in the versions of the plugin.
 
 
 
@@ -147,7 +116,7 @@ This plugin supports the following Micro Focus product versions:
 
   - JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
 
-  - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results.)
+  - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results)
 
 8. **For ALM Octane integration with UFT:**
 

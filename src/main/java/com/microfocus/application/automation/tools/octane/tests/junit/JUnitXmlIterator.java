@@ -44,7 +44,6 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -71,6 +70,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String errorType;
 	private String errorMsg;
 	private String externalURL;
+	private String description;
 	private List<ModuleDetection> moduleDetection;
 	private String jenkinsRootUrl;
 	private String sharedCheckOutDirectory;
@@ -150,6 +150,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				stackTraceStr = "";
 				errorType = "";
 				errorMsg = "";
+				externalURL = "";
+				description = "";
 			} else if ("className".equals(localName)) { // NON-NLS
 				String fqn = readNextValue();
 				int p = fqn.lastIndexOf('.');
@@ -158,6 +160,16 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					packageName = fqn.substring(0, p);
 				} else {
 					packageName = "";
+				}
+			} else if ("stdout".equals(localName)) {
+				String stdoutValue = readNextValue();
+				if (stdoutValue != null) {
+					if (hpRunnerType.equals(HPRunnerType.UFT) && stdoutValue.contains("Test result: Warning")) {
+						errorMsg = "Test ended with 'Warning' status.";
+					}
+
+					externalURL = extractValueFromStdout(stdoutValue, "__octane_external_url_start__", "__octane_external_url_end__", externalURL);
+					description = extractValueFromStdout(stdoutValue, "__octane_description_start__", "__octane_description_end__", description);
 				}
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
@@ -270,12 +282,24 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 				if (stripPackageAndClass) {
 					//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description));
 				} else {
-					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description));
 				}
 			}
 		}
+	}
+
+	private String extractValueFromStdout(String stdoutValue, String startString, String endString, String defaultValue) {
+		String result = defaultValue;
+		int startIndex = stdoutValue.indexOf(startString);
+		if (startIndex > 0) {
+			int endIndex = stdoutValue.indexOf(endString, startIndex);
+			if (endIndex > 0) {
+				result = stdoutValue.substring(startIndex + startString.length(), endIndex).trim();
+			}
+		}
+		return result;
 	}
 
 	private int getUftTestIndexStart(FilePath workspace, String sharedCheckOutDirectory, String testName) {
