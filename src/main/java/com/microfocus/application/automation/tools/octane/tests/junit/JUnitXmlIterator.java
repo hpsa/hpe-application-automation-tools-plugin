@@ -165,7 +165,6 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				String stdoutValue = readNextValue();
 				if (stdoutValue != null) {
 					if (hpRunnerType.equals(HPRunnerType.UFT) && stdoutValue.contains("Test result: Warning")) {
-						status = TestResultStatus.FAILED;
 						errorMsg = "Test ended with 'Warning' status.";
 					}
 

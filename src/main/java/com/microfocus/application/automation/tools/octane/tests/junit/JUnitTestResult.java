@@ -117,6 +117,10 @@ final public class JUnitTestResult implements Serializable, TestResult {
             writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
             writer.writeCharacters(testError.getStackTraceStr());
             writer.writeEndElement();
+        } else if (testError != null && testError.getErrorMsg() != null) {//warning case
+            writer.writeStartElement("error");
+            writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
+            writer.writeEndElement();
         }
 
         if (description != null && !description.isEmpty()) {
