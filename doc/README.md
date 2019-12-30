@@ -1,7 +1,7 @@
 # Micro Focus Application Automation Tools
 
 
-This plugin integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run Performance Center or LoadRunner performance tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
+This plugin integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner performance tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
 
 ### Jenkins versions
 
