@@ -1,7 +1,7 @@
 # Micro Focus Application Automation Tools
 
 
-This plugin integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner performance tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
+This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner performance tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
 
 ### Jenkins versions
 
@@ -101,28 +101,21 @@ This plugin supports the following Micro Focus product versions:
 ## Prerequisites
 
 1. Install one of the five latest LTS versions of Jenkins, [(Click here for a list.](https://jenkins.io/changelog-stable/))
-
-2. Install the Jenkins [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin).
-
-3. **Java version 8 or higher.**  To verify your Java version, go to [http://www.java.com/en/download/installed.jsp](http://www.java.com/en/download/installed.jsp).
-
-4. **ALM/Quality Center client**  installed the machine that will run the tests. To check if you have a client installed, follow the instructions on this page:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
-
+2. **Java version 8 or higher.**  To verify your Java version, go to [http://www.java.com/en/download/installed.jsp](http://www.java.com/en/download/installed.jsp).
+3. Install the plugin: 
+   a. Download the *.hpi file for the Jenkins plugin from the [plugin page]( https://updates.jenkins-ci.org/download/plugins/hp-application-automation-tools-plugin/ ). 
+   b. Navigate to the **Manage Jenkins > Manage Plugins > Advanced** tab. 
+   c. In the **Upload Plugin** section, upload the *.hpi file.
+4. **For working with ALM and Quality Center,** make sure the ALM/Quality Center client  is installed on the machine that will run the tests. To check if the client installed, follow the instructions on:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
 5. **For running UFT tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
-
-6. **For running file system scenarios with LoadRunner or UFT**  you need to set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
-
+6. **For running file system scenarios with LoadRunner or UFT**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
 7. **For building and tracking pipelines on ALM Octane:**
 
   - JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
 
   - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results)
 
-8. **For ALM Octane integration with UFT:**
-
-  - Jenkins Git plugin (version 2.4.4 or later)
-
-
+8. **For ALM Octane integration with UFT:**, make sure you have version 2.4.4 or higher of the Git plugin.
 
 # User Guide
 
@@ -190,9 +183,9 @@ To connect and execution node to the Jenkins machine:
 
 To set up a pipeline test job for your Micro Focus testing tool:
 
-  1. From Jenkins Dashboard. click  **New Job**  or select an existing one.
+  1. From Jenkins Dashboard. click  **New Item**  or select an existing one.
 
-  2. On the page that opens, enter a job name (for a new job), click  **Build a Pipeline project** , and click  **OK**.
+  2. On the page that opens, enter an item name (for a new job), click  **Build a Pipeline project** , and click  **OK**.
 
   3. In the Project Configuration page, scroll down to the **Pipeline** section.
 
