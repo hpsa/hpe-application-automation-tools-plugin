@@ -101,14 +101,22 @@ This plugin supports the following Micro Focus product versions:
 ## Prerequisites
 
 1. Install one of the five latest LTS versions of Jenkins, [(Click here for a list.](https://jenkins.io/changelog-stable/))
+
 2. **Java version 8 or higher.**  To verify your Java version, go to [http://www.java.com/en/download/installed.jsp](http://www.java.com/en/download/installed.jsp).
-3. Install the plugin: 
+
+3. Install the plugin:
+   
    a. Download the *.hpi file for the Jenkins plugin from the [plugin page]( https://updates.jenkins-ci.org/download/plugins/hp-application-automation-tools-plugin/ ). 
+   
    b. Navigate to the **Manage Jenkins > Manage Plugins > Advanced** tab. 
+   
    c. In the **Upload Plugin** section, upload the *.hpi file.
 4. **For working with ALM and Quality Center,** make sure the ALM/Quality Center client  is installed on the machine that will run the tests. To check if the client installed, follow the instructions on:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
+
 5. **For running UFT tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
+
 6. **For running file system scenarios with LoadRunner or UFT**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
+
 7. **For building and tracking pipelines on ALM Octane:**
 
    *  JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
