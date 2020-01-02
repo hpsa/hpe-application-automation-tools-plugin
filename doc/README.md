@@ -111,11 +111,10 @@ This plugin supports the following Micro Focus product versions:
 6. **For running file system scenarios with LoadRunner or UFT**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
 7. **For building and tracking pipelines on ALM Octane:**
 
-  - JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
+   *  JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
+   *  A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results).
 
-  - A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results)
-
-8. **For ALM Octane integration with UFT:**, make sure you have version 2.4.4 or higher of the Git plugin.
+8. **For ALM Octane integration with UFT**, make sure you have version 2.4.4 or higher of the Git plugin.
 
 # User Guide
 
