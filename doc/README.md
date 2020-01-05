@@ -1,7 +1,7 @@
 # Micro Focus Application Automation Tools
 
 
-This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner performance tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
+This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner Professional tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
 
 ### Jenkins versions
 
@@ -106,11 +106,11 @@ This plugin supports the following Micro Focus product versions:
 
 3. Install the plugin:
    
-   a. Download the *.hpi file for the Jenkins plugin from the [plugin page]( https://updates.jenkins-ci.org/download/plugins/hp-application-automation-tools-plugin/ ). 
+   a. Download the .hpi file for the Jenkins plugin from the [plugin page]( https://updates.jenkins-ci.org/download/plugins/hp-application-automation-tools-plugin/ ). 
    
    b. Navigate to the **Manage Jenkins > Manage Plugins > Advanced** tab. 
    
-   c. In the **Upload Plugin** section, upload the *.hpi file.
+   c. In the **Upload Plugin** section, upload the .hpi file.
 4. **For working with ALM and Quality Center,** make sure the ALM/Quality Center client  is installed on the machine that will run the tests. To check if the client installed, follow the instructions on:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
 
 5. **For running UFT tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
