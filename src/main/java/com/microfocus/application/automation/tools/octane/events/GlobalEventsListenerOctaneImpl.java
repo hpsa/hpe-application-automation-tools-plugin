@@ -20,17 +20,22 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
+import com.cloudbees.hudson.plugins.folder.Folder;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.ItemType;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftTestDiscoveryDispatcher;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.settings.OctaneServerSettingsBuilder;
 import hudson.Extension;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.listeners.ItemListener;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
@@ -84,4 +89,59 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		UftTestDiscoveryDispatcher dispatcher = Jenkins.get().getExtensionList(UftTestDiscoveryDispatcher.class).get(0);
 		dispatcher.close();
 	}
+
+	@Override
+	public void onRenamed(Item item, String oldName, String newName) {
+		if(!OctaneSDK.hasClients()){
+			return;
+		}
+		logger.info("Renaming Job " + oldName + " to " + item.getFullName());
+
+		try {
+			CIEvent	event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.RENAMED);
+			String project;
+			if(isJob(item)) {
+				project = JobProcessorFactory.getFlowProcessor((Job) item).getTranslatedJobName();
+				event.setItemType(ItemType.JOB);
+			} else if (isMultibranch(item)) {
+                project = BuildHandlerUtils.translateFolderJobName(item.getFullName());
+				event.setItemType(ItemType.MULTI_BRANCH);
+			} else if(isFolder(item)) {
+				project = BuildHandlerUtils.translateFolderJobName(item.getFullName());
+				event.setItemType(ItemType.FOLDER);
+            } else {
+				logger.info("Cannot handle rename for " + item.getClass().getName());
+				return;
+			}
+
+			String previousProject = getPreviousProject(oldName, newName, project);
+
+			event.setProject(project)
+					.setProjectDisplayName(newName)
+					.setPreviousProject(previousProject)
+					.setPreviousProjectDisplayName(oldName);
+
+			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+		} catch (Throwable throwable) {
+			logger.error("failed to build and/or dispatch RENAMED event for " + item, throwable);
+		}
+	}
+
+	private String getPreviousProject(String oldName, String newName, String project) {
+		String jobPath = project.substring(0, project.lastIndexOf(newName));
+		return jobPath + oldName;
+	}
+
+	private boolean isFolder(Item item){
+	    return item.getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME) && item instanceof Folder;
+    }
+
+    private boolean isMultibranch(Item item){
+	    return item.getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME);
+    }
+
+    private boolean isJob(Item item){
+        return item instanceof Job;
+    }
 }
