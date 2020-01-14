@@ -52,7 +52,7 @@ public class RunListenerForLogs extends RunListener<Run> {
 				String instanceId = octaneClient.getInstanceId();
 				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
 				if (settings != null && !settings.isSuspend()) {
-					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
+					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, null);
 				}
 			});
 		} catch (Throwable t) {

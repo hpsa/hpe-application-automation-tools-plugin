@@ -123,7 +123,7 @@ public class ModelFactory {
 		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
 		pipelineNode.setJobCiId(projectProcessor.getTranslatedJobName());
-		pipelineNode.setName(job.getName());
+		pipelineNode.setName(job.getFullName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
 		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());

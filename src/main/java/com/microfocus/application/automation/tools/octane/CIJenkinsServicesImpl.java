@@ -216,7 +216,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					Item item = getItemByRefId(rootJobCiId);
 					//todo: check error message(s)
 					if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-						result = createPipelineNodeFromJobName(rootJobCiId);
+						result = createPipelineNodeFromJobName(item.getFullName());
 						result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
 					} else {
 						logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
@@ -566,7 +566,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	private PipelineNode createPipelineNodeFromJobName(String name) {
 		return dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(name)
+				.setJobCiId(BuildHandlerUtils.translateFolderJobName(name))
 				.setName(name);
 	}
 
@@ -771,11 +771,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				}
 			} else {
 				Collection<? extends Job> allJobs = item.getAllJobs();
+				String untranslatedFolderItemRefId = BuildHandlerUtils.revertTranslateFolderJobName(itemRefId);
 				for (Job job : allJobs) {
-					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName()) &&
-							itemRefId.endsWith(job.getParent().getFullName())
-					) {
-						result = (Item) job.getParent();
+					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(job.getParent().getClass().getName())) {
+						if (itemRefId.endsWith(job.getParent().getFullName()) || untranslatedFolderItemRefId.endsWith(job.getParent().getFullName())) {
+							result = (Item) job.getParent();
+						}
 					} else {
 						if (itemRefId.endsWith(job.getName())) {
 							result = job;
