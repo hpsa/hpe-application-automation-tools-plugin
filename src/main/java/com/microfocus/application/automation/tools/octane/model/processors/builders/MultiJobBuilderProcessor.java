@@ -26,6 +26,7 @@ import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
+import hudson.model.TopLevelItem;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
@@ -46,13 +47,18 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
         List<AbstractProject> items = new ArrayList<>();
         AbstractProject tmpProject;
         for (PhaseJobsConfig config : b.getPhaseJobs()) {
-            tmpProject = (AbstractProject) Jenkins.get().getItem(config.getJobName());
-            if (tmpProject == null) {
-                logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
-            } else if (processedJobs.contains(tmpProject)) {
-                logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
+            TopLevelItem item = Jenkins.get().getItem(config.getJobName());
+            if(item instanceof  AbstractProject){
+                tmpProject = (AbstractProject) item;
+                if (tmpProject == null) {
+                    logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
+                } else if (processedJobs.contains(tmpProject)) {
+                    logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
+                } else {
+                    items.add(tmpProject);
+                }
             } else {
-                items.add(tmpProject);
+                logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not AbstractProject");
             }
         }
         super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items, processedJobs));
