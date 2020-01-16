@@ -115,12 +115,13 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 				return;
 			}
 
+			String projectDisplayName = BuildHandlerUtils.translateFullDisplayName(item.getFullDisplayName());
 			String previousProject = getPreviousProject(oldName, newName, project);
-
+			String previousDisplayName = getPreviousDisplayName(oldName, newName, projectDisplayName);
 			event.setProject(project)
-					.setProjectDisplayName(newName)
+					.setProjectDisplayName(projectDisplayName)
 					.setPreviousProject(previousProject)
-					.setPreviousProjectDisplayName(oldName);
+					.setPreviousProjectDisplayName(previousDisplayName);
 
 			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 		} catch (Throwable throwable) {
@@ -129,8 +130,21 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 	}
 
 	private String getPreviousProject(String oldName, String newName, String project) {
-		String jobPath = project.substring(0, project.lastIndexOf(newName));
-		return jobPath + oldName;
+		if (project.contains("/")) {
+			String jobPath = project.substring(0, project.lastIndexOf("/" + newName));
+			return jobPath + "/" + oldName;
+		} else {
+			return oldName;
+		}
+	}
+
+	private String getPreviousDisplayName(String oldName, String newName, String fullDisplayName) {
+		if (fullDisplayName.contains("/")) {
+			String jobPath = fullDisplayName.substring(0, fullDisplayName.lastIndexOf("/" + newName));
+			return jobPath + "/" + oldName;
+		} else {
+			return oldName;
+		}
 	}
 
 	private boolean isFolder(Item item){
