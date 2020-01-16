@@ -48,17 +48,17 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
         AbstractProject tmpProject;
         for (PhaseJobsConfig config : b.getPhaseJobs()) {
             TopLevelItem item = Jenkins.get().getItem(config.getJobName());
-            if(item instanceof  AbstractProject){
+            if (item == null) {
+                logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found");
+            } else if (item instanceof AbstractProject) {
                 tmpProject = (AbstractProject) item;
-                if (tmpProject == null) {
-                    logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not found");
-                } else if (processedJobs.contains(tmpProject)) {
-                    logger.warn("Job '" + job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
+                if (processedJobs.contains(tmpProject)) {
+                    logger.warn(job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
                 } else {
                     items.add(tmpProject);
                 }
             } else {
-                logger.warn("Job '" + job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not AbstractProject");
+                logger.warn(job.getFullName() + "' contains phase job '" + config.getJobName() + "' that is not AbstractProject");
             }
         }
         super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items, processedJobs));
