@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 /**
  * Created by benmeior on 11/16/2016
  * Jenkins events listener to dispatch build logs to Octane server
