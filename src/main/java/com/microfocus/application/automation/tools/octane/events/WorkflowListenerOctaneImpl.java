@@ -114,7 +114,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 			event
-					.setParentCiId(parentRun.getParent().getParent().getFullName())
+					.setParentCiId(BuildHandlerUtils.translateFolderJobName(parentRun.getParent().getParent().getFullName()))
 					.setMultiBranchType(MultiBranchType.MULTI_BRANCH_CHILD)
 					.setProjectDisplayName(parentRun.getParent().getFullDisplayName().replaceAll(" » ", "/"));
 		}
