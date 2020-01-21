@@ -682,7 +682,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         // get a unique filename for the params file
         ParamFileName = "props" + time + ".txt";
-        ResultFilename = "Results" + time + ".xml";
+
+        ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
 
         mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 
