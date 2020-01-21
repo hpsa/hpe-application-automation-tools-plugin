@@ -25,8 +25,8 @@ import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
+import hudson.model.Item;
 import hudson.model.Job;
-import hudson.model.TopLevelItem;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
@@ -47,9 +47,9 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
         List<AbstractProject> items = new ArrayList<>();
         AbstractProject tmpProject;
         for (PhaseJobsConfig config : b.getPhaseJobs()) {
-            TopLevelItem item = Jenkins.get().getItem(config.getJobName());
+            Item item = Jenkins.get().getItemByFullName(config.getJobName());
             if (item == null) {
-                logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found");
+                logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found. Or jenkins user doesn't have permissions to read this job.");
             } else if (item instanceof AbstractProject) {
                 tmpProject = (AbstractProject) item;
                 if (processedJobs.contains(tmpProject)) {
