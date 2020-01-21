@@ -146,6 +146,10 @@ public class BuildHandlerUtils {
 		return translatedJobName.replaceAll("/job/", newSplitterCharacters);
 	}
 
+	public static String translateFullDisplayName(String fullDisplayName) {
+		return fullDisplayName.replaceAll(" » ", "/");
+	}
+
 	public static CIBuildResult translateRunResult(Run run) {
 		CIBuildResult result;
 		if (run.getResult() == Result.SUCCESS) {
