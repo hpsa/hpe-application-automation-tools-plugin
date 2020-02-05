@@ -168,7 +168,7 @@ public class UFTTestDetectionPublisher extends Recorder {
         try {
             build.getProject().save();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save job with updated SCM repository. Update manually SCM repository to " + scmRepositoryId);
+            throw new IllegalArgumentException("Failed to save job with updated SCM repository. Update manually SCM repository to " + scmRepositoryId + ". Error message : " + e.getMessage());
         }
 
         UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
