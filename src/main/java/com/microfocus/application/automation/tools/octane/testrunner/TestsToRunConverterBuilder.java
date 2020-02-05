@@ -180,7 +180,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         @Override
         public String getDisplayName() {
-            return "Micro Focus ALM Octane testing framework converter";
+            return "ALM Octane testing framework converter";
         }
 
         public FormValidation doTestConvert(

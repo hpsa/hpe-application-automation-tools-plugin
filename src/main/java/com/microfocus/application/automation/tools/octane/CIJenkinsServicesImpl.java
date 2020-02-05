@@ -122,6 +122,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	@Override
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
+		return getProxySupplier(targetUrl);
+	}
+
+	public static CIProxyConfiguration getProxySupplier(URL targetUrl) {
 		CIProxyConfiguration result = null;
 		ProxyConfiguration proxy = Jenkins.get().proxy;
 		if (proxy != null) {
