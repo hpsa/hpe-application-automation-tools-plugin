@@ -30,7 +30,6 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
 import com.microfocus.application.automation.tools.octane.Messages;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.*;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
@@ -47,7 +46,6 @@ import hudson.tasks.Recorder;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -61,7 +59,6 @@ import java.util.List;
  */
 
 public class UFTTestDetectionPublisher extends Recorder {
-    private static final Logger logger = SDKBasedLoggerProvider.getLogger(UFTTestDetectionPublisher.class);
     private String configurationId;
     private String workspaceName;
     private String scmRepositoryId;
@@ -102,11 +99,7 @@ public class UFTTestDetectionPublisher extends Recorder {
                 throw new IllegalArgumentException(msg);
             }
             if (scmRepositoryId.equals("-1")) {
-                try {
-                    generateScmRepository(build, listener);
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
-                }
+                generateScmRepository(build, listener);
             }
         } catch (IllegalArgumentException e) {
             UFTTestDetectionService.printToConsole(listener, e.getMessage());
@@ -138,7 +131,7 @@ public class UFTTestDetectionPublisher extends Recorder {
         return true;
     }
 
-    private void generateScmRepository(AbstractBuild build, BuildListener listener) throws IOException {
+    private void generateScmRepository(AbstractBuild build, BuildListener listener) {
         SCM scm = build.getProject().getScm();
         if (scm instanceof NullSCM) {
             throw new IllegalArgumentException("SCM definition is missing in the job");
@@ -172,9 +165,13 @@ public class UFTTestDetectionPublisher extends Recorder {
             UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
         }
 
-        build.getProject().save();
-        UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
+        try {
+            build.getProject().save();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save job with updated SCM repository. Update manually SCM repository to " + scmRepositoryId);
+        }
 
+        UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
     }
 
     private void handleDeletedFolders(AbstractBuild build) {
