@@ -53,7 +53,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -87,26 +86,32 @@ public class UFTTestDetectionPublisher extends Recorder {
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
         UFTTestDetectionService.printToConsole(listener, "UFTTestDetectionPublisher is started.");
 
-        //validate configuration id
-        if (configurationId == null || JellyUtils.NONE.equals(configurationId)) {
-            return exitWithFailure(build, listener, "ALM Octane configuration is missing.");
-        }
-
-        if (workspaceName == null || JellyUtils.NONE.equals(workspaceName)) {
-            return exitWithFailure(build, listener, "ALM Octane workspace is missing.");
-        }
-
-        //validate scm repository id
-        if (StringUtils.isEmpty(scmRepositoryId)) {
-            String msg = "SCM repository field is missing. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in job - set value \"-1\"";
-            return exitWithFailure(build, listener, msg);
-        }
-        if (scmRepositoryId.equals("-1")) {
-            try {
-                generateScmRepository(build, listener);
-            } catch (Exception e) {
-                return exitWithFailure(build, listener, "Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
+        try {
+            //validate configuration id
+            if (configurationId == null || JellyUtils.NONE.equals(configurationId)) {
+                throw new IllegalArgumentException("ALM Octane configuration is missing.");
             }
+
+            if (workspaceName == null || JellyUtils.NONE.equals(workspaceName)) {
+                throw new IllegalArgumentException("ALM Octane workspace is missing.");
+            }
+
+            //validate scm repository id
+            if (StringUtils.isEmpty(scmRepositoryId)) {
+                String msg = "SCM repository field is missing. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in the job - set value \"-1\"";
+                throw new IllegalArgumentException(msg);
+            }
+            if (scmRepositoryId.equals("-1")) {
+                try {
+                    generateScmRepository(build, listener);
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            UFTTestDetectionService.printToConsole(listener, e.getMessage());
+            build.setResult(Result.FAILURE);
+            return false;
         }
 
         try {
@@ -131,12 +136,6 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         return true;
-    }
-
-    private boolean exitWithFailure(AbstractBuild build, BuildListener listener, String message) {
-        UFTTestDetectionService.printToConsole(listener, message);
-        build.setResult(Result.FAILURE);
-        return false;
     }
 
     private void generateScmRepository(AbstractBuild build, BuildListener listener) throws IOException {
@@ -210,34 +209,6 @@ public class UFTTestDetectionPublisher extends Recorder {
         ExtensionList<T> items = Jenkins.get().getExtensionList(clazz);
         return items.get(0);
     }
-
-    private static String tryFindConfigurationId(AbstractBuild build, long workspaceId) {
-        String result = null;
-        List<OctaneClient> clients = OctaneSDK.getClients();
-        logger.warn("number of configurations is " + clients.size());
-        if (clients.size() == 1) {
-            result = OctaneSDK.getClients().get(0).getInstanceId();
-            logger.warn("selecting the only configurationId - " + result);
-        } else if (clients.size() > 0) {
-            String executorLogicalName = UftJobRecognizer.getExecutorLogicalName((FreeStyleProject) build.getParent());
-            Collection<String> conditions = Collections.singletonList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
-            for (OctaneClient client : clients) {
-                try {
-                    List<Entity> entities = client.getEntitiesService().getEntities(workspaceId, EntityConstants.Executors.COLLECTION_NAME, conditions, null);
-                    if (!entities.isEmpty()) {
-                        result = client.getInstanceId();
-                        logger.warn("executor logical name found in configurationId - " + result);
-                        break;
-                    }
-                } catch (Exception e) {
-                    logger.warn("Failed to check executor logical name in configuration " + client.getInstanceId() + " : " + e.getMessage());
-                }
-            }
-        }
-
-        return result;
-    }
-
 
     @Override
     public DescriptorImpl getDescriptor() {
