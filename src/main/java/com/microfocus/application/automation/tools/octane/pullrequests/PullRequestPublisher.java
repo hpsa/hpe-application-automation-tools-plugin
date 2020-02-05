@@ -28,11 +28,8 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.scm.PullRequest;
-import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchFactory;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchHandler;
@@ -40,9 +37,7 @@ import com.hp.octane.integrations.services.pullrequests.rest.ScmTool;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.AuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.BasicAuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.PATStrategy;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
+import com.microfocus.application.automation.tools.octane.JellyUtils;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -57,7 +52,6 @@ import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
@@ -75,7 +69,6 @@ import java.util.function.Consumer;
  */
 
 public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
-    private static final Logger logger = SDKBasedLoggerProvider.getLogger(PullRequestPublisher.class);
     private String configurationId;
     private String workspaceId;
     private String repositoryUrl;
@@ -84,19 +77,16 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
     private String targetBranchFilter;
     private String scmTool;
 
-    private static final String NONE = "none";
-    private static final String NONE_DISPLAY = "- none - ";
-
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
     public PullRequestPublisher(String configurationId, String workspaceId, String scmTool, String repositoryUrl, String credentialsId, String sourceBranchFilter, String targetBranchFilter) {
-        this.configurationId = NONE.equalsIgnoreCase(configurationId) ? null : configurationId;
-        this.workspaceId = NONE.equalsIgnoreCase(workspaceId) ? null : workspaceId;
+        this.configurationId = JellyUtils.NONE.equalsIgnoreCase(configurationId) ? null : configurationId;
+        this.workspaceId = JellyUtils.NONE.equalsIgnoreCase(workspaceId) ? null : workspaceId;
         this.repositoryUrl = repositoryUrl;
         this.credentialsId = credentialsId;
         this.sourceBranchFilter = sourceBranchFilter;
         this.targetBranchFilter = targetBranchFilter;
-        this.scmTool = NONE.equalsIgnoreCase(scmTool) ? null : scmTool;
+        this.scmTool = JellyUtils.NONE.equalsIgnoreCase(scmTool) ? null : scmTool;
     }
 
     @Override
@@ -141,7 +131,6 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             logConsumer.printLog("Failed to fetch pull requests : " + e.getMessage() );
             e.printStackTrace(taskListener.getLogger());
             run.setResult(Result.FAILURE);
-
         }
     }
 
@@ -308,7 +297,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public ListBoxModel doFillScmToolItems() {
-            ListBoxModel m = createComboModelWithNoneValue();
+            ListBoxModel m = JellyUtils.createComboModelWithNoneValue();
             for (ScmTool tool : ScmTool.values()) {
                 m.add(tool.getDesc(), tool.getValue());
             }
@@ -321,42 +310,15 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public ListBoxModel doFillConfigurationIdItems() {
-            ListBoxModel m = createComboModelWithNoneValue();
-
-            for (OctaneClient octaneClient : OctaneSDK.getClients()) {
-                OctaneServerSettingsModel model = ConfigurationService.getSettings(octaneClient.getInstanceId());
-                m.add(model.getCaption(), model.getIdentity());
-            }
-            return m;
+            return JellyUtils.fillConfigurationIdModel();
         }
 
         public ListBoxModel doFillWorkspaceIdItems(@QueryParameter String configurationId, @QueryParameter(value = "workspaceId") String workspaceId) {
-            ListBoxModel m = createComboModelWithNoneValue();
-            if (StringUtils.isNotEmpty(configurationId) && !NONE.equals(configurationId)) {
-                try {
-                    EntitiesService entitiesService = OctaneSDK.getClientByInstanceId(configurationId).getEntitiesService();
-                    List<Entity> workspaces = entitiesService.getEntities(null, "workspaces", null, null);
-                    for (Entity workspace : workspaces) {
-                        m.add(workspace.getId() + " " + workspace.getName(), String.valueOf(workspace.getId()));
-                    }
-                } catch (Exception e) {
-                    //octane configuration not found
-                    m.add(workspaceId, workspaceId);
-                    return m;
-                }
-            }
-            return m;
+            return JellyUtils.fillWorkspaceModel(configurationId, workspaceId);
         }
 
         public String getDisplayName() {
             return "ALM Octane pull-request fetcher";
-        }
-
-        private ListBoxModel createComboModelWithNoneValue() {
-            ListBoxModel m = new ListBoxModel();
-            m.add(NONE_DISPLAY, NONE);
-            return m;
-
         }
     }
 }

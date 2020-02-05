@@ -28,9 +28,8 @@ import com.hp.octane.integrations.dto.entities.impl.EntityImpl;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.JellyUtils;
 import com.microfocus.application.automation.tools.octane.Messages;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.*;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
@@ -45,7 +44,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -54,7 +52,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Post-build action of Uft test detection
@@ -87,36 +88,24 @@ public class UFTTestDetectionPublisher extends Recorder {
         UFTTestDetectionService.printToConsole(listener, "UFTTestDetectionPublisher is started.");
 
         //validate configuration id
-        if (configurationId == null) {
-            logger.error("discovery configurationId is null.");
-            configurationId = tryFindConfigurationId(build, Long.parseLong(workspaceName));
-            if (configurationId != null) {
-                try {
-                    build.getParent().save();
-                } catch (IOException e) {
-                    logger.error("Failed to save UFTTestDetectionPublisher : " + e.getMessage());
-                }
-            } else {
-                logger.error("No relevant ALM Octane configuration is found.");
-                build.setResult(Result.FAILURE);
-                throw new IllegalArgumentException("No relevant ALM Octane configuration is found.");
-            }
+        if (configurationId == null || JellyUtils.NONE.equals(configurationId)) {
+            return exitWithFailure(build, listener, "ALM Octane configuration is missing.");
+        }
+
+        if (workspaceName == null || JellyUtils.NONE.equals(workspaceName)) {
+            return exitWithFailure(build, listener, "ALM Octane workspace is missing.");
         }
 
         //validate scm repository id
         if (StringUtils.isEmpty(scmRepositoryId)) {
-            String msg = "SCM repository field is empty. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in job - set value \"-1\"";
-            logger.error(msg);
-            build.setResult(Result.FAILURE);
-            throw new IllegalArgumentException(msg);
+            String msg = "SCM repository field is missing. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in job - set value \"-1\"";
+            return exitWithFailure(build, listener, msg);
         }
         if (scmRepositoryId.equals("-1")) {
             try {
                 generateScmRepository(build, listener);
             } catch (Exception e) {
-                UFTTestDetectionService.printToConsole(listener, "Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
-                build.setResult(Result.FAILURE);
-                return false;
+                return exitWithFailure(build, listener, "Failed to generate Scm Repository in ALM Octane : " + e.getMessage());
             }
         }
 
@@ -142,6 +131,12 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         return true;
+    }
+
+    private boolean exitWithFailure(AbstractBuild build, BuildListener listener, String message) {
+        UFTTestDetectionService.printToConsole(listener, message);
+        build.setResult(Result.FAILURE);
+        return false;
     }
 
     private void generateScmRepository(AbstractBuild build, BuildListener listener) throws IOException {
@@ -262,46 +257,11 @@ public class UFTTestDetectionPublisher extends Recorder {
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         public ListBoxModel doFillConfigurationIdItems() {
-            ListBoxModel m = new ListBoxModel();
-
-            for (OctaneClient octaneClient : OctaneSDK.getClients()) {
-                OctaneServerSettingsModel model = ConfigurationService.getSettings(octaneClient.getInstanceId());
-                m.add(model.getCaption(), model.getIdentity());
-            }
-            return m;
-        }
-
-        public FormValidation doCheckConfigurationId(@QueryParameter String value) {
-            if (StringUtils.isEmpty(value)) {
-                return FormValidation.error("Please select configuration");
-            } else {
-                return FormValidation.ok();
-            }
+            return JellyUtils.fillConfigurationIdModel();
         }
 
         public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String configurationId, @QueryParameter(value = "workspaceName") String workspaceName) {
-            ListBoxModel m = new ListBoxModel();
-            if (StringUtils.isNotEmpty(configurationId)) {
-                try {
-                    EntitiesService entitiesService = OctaneSDK.getClientByInstanceId(configurationId).getEntitiesService();
-                    List<Entity> workspaces = entitiesService.getEntities(null, "workspaces", null, null);
-                    for (Entity workspace : workspaces) {
-                        m.add(workspace.getName(), String.valueOf(workspace.getId()));
-                    }
-                } catch (Exception e) {
-                    //octane configuration not found
-                    m.add(workspaceName, workspaceName);
-                    return m;
-                }
-            }
-            return m;
-        }
-
-        public FormValidation doCheckWorkspaceName(@QueryParameter(value = "workspaceName") String value) {
-            if (StringUtils.isEmpty(value)) {
-                return FormValidation.error("Please select workspace");
-            }
-            return FormValidation.ok();
+            return JellyUtils.fillWorkspaceModel(configurationId, workspaceName);
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
