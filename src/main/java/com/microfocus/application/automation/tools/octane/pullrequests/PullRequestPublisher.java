@@ -36,6 +36,7 @@ import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetch
 import com.hp.octane.integrations.services.pullrequests.rest.ScmTool;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.AuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.BasicAuthenticationStrategy;
+import com.hp.octane.integrations.services.pullrequests.rest.authentication.NoCredentialsStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.PATStrategy;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
 import hudson.Extension;
@@ -208,7 +209,9 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     private AuthenticationStrategy getAuthenticationStrategy(StandardCredentials credentials) {
         AuthenticationStrategy authenticationStrategy;
-        if (credentials instanceof StringCredentials) {
+        if (credentials == null){
+            authenticationStrategy = new NoCredentialsStrategy();
+        } else if (credentials instanceof StringCredentials) {
             Secret secret = ((StringCredentials) credentials).getSecret();
             authenticationStrategy = new PATStrategy(secret.getPlainText());
         } else if (credentials instanceof StandardUsernamePasswordCredentials) {

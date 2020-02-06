@@ -36,7 +36,7 @@
 
     <f:section title="SCM Tool"/>
     <f:entry title="SCM Tool type" field="scmTool"
-             description="Select scm tool type">
+             description="Select SCM tool type">
         <f:select/>
     </f:entry>
 
@@ -46,17 +46,17 @@
     </f:entry>
 
     <f:entry title="Credentials" field="credentialsId"
-             description="Select credentials to connect the repository.">
+             description="Select credentials to connect to the repository.">
         <c:select/>
     </f:entry>
 
     <f:entry title="Source Branch filter" field="sourceBranchFilter"
-             description="Filter patterns for source branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*)">
+             description="Filter patterns for source branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
         <f:textbox/>
     </f:entry>
 
     <f:entry title="Target Branch filter" field="targetBranchFilter"
-             description="Filter patterns for target branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*)">
+             description="Filter patterns for target branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
         <f:textbox/>
     </f:entry>
 
