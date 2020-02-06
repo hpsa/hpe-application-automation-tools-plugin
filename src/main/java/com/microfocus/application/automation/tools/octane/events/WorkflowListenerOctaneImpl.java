@@ -42,7 +42,6 @@ import org.jenkinsci.plugins.workflow.actions.TimingAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
-import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
@@ -80,7 +79,9 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 			if (BuildHandlerUtils.isWorkflowStartNode(flowNode)) {
 				sendPipelineStartedEvent(flowNode);
 			} else if (BuildHandlerUtils.isWorkflowEndNode(flowNode)) {
-				sendPipelineFinishedEvent((FlowEndNode) flowNode);
+				WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
+				sendPipelineFinishedEvent(parentRun);
+				BuildLogHelper.enqueueBuildLog(parentRun);
 			} else if (BuildHandlerUtils.isStageStartNode(flowNode)) {
 				sendStageStartedEvent((StepStartNode) flowNode);
 			} else if (BuildHandlerUtils.isStageEndNode(flowNode)) {
@@ -105,6 +106,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
 				.setProject(BuildHandlerUtils.getJobCiId(parentRun))
+				.setProjectDisplayName(BuildHandlerUtils.translateFullDisplayName(parentRun.getParent().getFullDisplayName()))
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
 				.setNumber(String.valueOf(parentRun.getNumber()))
 				.setParameters(ParameterProcessors.getInstances(parentRun))
@@ -126,8 +128,7 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		return run.getFullDisplayName();
 	}
 
-	private void sendPipelineFinishedEvent(FlowEndNode flowEndNode) {
-		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowEndNode);
+	private void sendPipelineFinishedEvent(WorkflowRun parentRun) {
 		workflowJobStarted.remove(getBuildKey(parentRun));
 		boolean hasTests = testListener.processBuild(parentRun);
 

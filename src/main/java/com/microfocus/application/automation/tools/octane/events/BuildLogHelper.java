@@ -18,7 +18,7 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.buildLogs;
+package com.microfocus.application.automation.tools.octane.events;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
@@ -28,27 +28,17 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
-import hudson.model.listeners.RunListener;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created by benmeior on 11/16/2016
- * Jenkins events listener to dispatch build logs to Octane server
- */
+public class BuildLogHelper {
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
 
-@Extension
-public class RunListenerForLogs extends RunListener<AbstractBuild> {
-	private static Logger logger = SDKBasedLoggerProvider.getLogger(RunListenerForLogs.class);
-
-	@Override
-	public void onFinalized(AbstractBuild run) {
+	public static void enqueueBuildLog(Run run) {
 		if(!OctaneSDK.hasClients()){
 			return;
 		}
@@ -70,7 +60,7 @@ public class RunListenerForLogs extends RunListener<AbstractBuild> {
 		}
 	}
 
-	public static Set<String> getRootJobCiIds(Run<?, ?> run) {
+	private static Set<String> getRootJobCiIds(Run<?, ?> run) {
 		Set<String> parents = new HashSet<>();
 		getRootJobCiIds(CIEventCausesFactory.processCauses(run), BuildHandlerUtils.getJobCiId(run), parents);
 		return parents;

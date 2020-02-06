@@ -45,7 +45,6 @@ import hudson.scm.SCM;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -69,6 +68,10 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 		if(!OctaneSDK.hasClients()){
 			return;
 		}
+		publishStartEvent(build);
+	}
+
+	private void publishStartEvent(AbstractBuild build) {
 		try {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
@@ -96,6 +99,11 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 		if(!OctaneSDK.hasClients()){
 			return;
 		}
+		publishFinishEvent(build);
+		BuildLogHelper.enqueueBuildLog(build);
+	}
+
+	private void publishFinishEvent(AbstractBuild build) {
 		try {
 			boolean hasTests = testListener.processBuild(build);
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
