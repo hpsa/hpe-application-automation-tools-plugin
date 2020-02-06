@@ -38,6 +38,10 @@ import java.util.Set;
 public class BuildLogHelper {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
 
+	private BuildLogHelper(){
+		//for code climate
+	}
+
 	public static void enqueueBuildLog(Run run) {
 		if(!OctaneSDK.hasClients()){
 			return;
@@ -55,7 +59,7 @@ public class BuildLogHelper {
 					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, String.join(";", parents));
 				}
 			});
-		} catch (Throwable t) {
+		} catch (Exception t) {
 			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
 		}
 	}

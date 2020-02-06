@@ -105,8 +105,8 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
-				.setProject(BuildHandlerUtils.getJobCiId(parentRun))
 				.setProjectDisplayName(BuildHandlerUtils.translateFullDisplayName(parentRun.getParent().getFullDisplayName()))
+				.setProject(BuildHandlerUtils.getJobCiId(parentRun))
 				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
 				.setNumber(String.valueOf(parentRun.getNumber()))
 				.setParameters(ParameterProcessors.getInstances(parentRun))
