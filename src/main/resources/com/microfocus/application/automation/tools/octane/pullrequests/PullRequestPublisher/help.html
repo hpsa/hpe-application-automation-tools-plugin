@@ -1,0 +1,41 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+
+<div>
+    This step is responsible for fetching pull requests from the SCM tool and injecting them to ALM Octane.
+    <br>
+    Every time pull requests are sent to ALM Octane the last update time is saved. The next time, only pull requests and commits that were updated after this time will be sent to ALM Octane.
+
+    <br>
+    <br>
+    Supported version of ALM Octane: 15.0.49 and later.
+
+
+    <br>
+    <br>
+    You can change the behaviour of this step by adding the following parameters to the job:
+    <ul>
+        <li><b>pullrequests_min_update_time</b> : Use this parameter to override the last update time that is updated after each successful injection to ALM Octane.</li><br>
+        <li><b>pullrequests_page_size</b> : Page size is defined on each request to the SCM tool. This defines the number of items fetched (pull request or commits). Default is 30.</li><br>
+        <li><b>pullrequests_max_pr_to_fetch</b>: Max number of pull requests to fetch. Default is 100.</li><br>
+        <li><b>pullrequests_max_commits_to_fetch</b> : Max number of commits to fetch for each pull request. Default is 100.</li><br>
+    </ul>
+
+</div>

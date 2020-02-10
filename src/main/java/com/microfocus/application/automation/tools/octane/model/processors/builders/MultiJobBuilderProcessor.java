@@ -49,7 +49,7 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
         for (PhaseJobsConfig config : b.getPhaseJobs()) {
             Item item = Jenkins.get().getItemByFullName(config.getJobName());
             if (item == null) {
-                logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found. Or jenkins user doesn't have permissions to read this job.");
+                logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found.");
             } else if (item instanceof AbstractProject) {
                 tmpProject = (AbstractProject) item;
                 if (processedJobs.contains(tmpProject)) {
