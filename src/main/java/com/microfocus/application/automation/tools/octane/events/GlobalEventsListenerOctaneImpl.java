@@ -61,7 +61,9 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		logger.info("Jenkins version " + Jenkins.getVersion());
 		logger.info("Plugin version " + ConfigurationService.getPluginVersion());
 
+		long startTime = System.currentTimeMillis();
 		OctaneServerSettingsBuilder.getOctaneSettingsManager().initOctaneClients();
+		logger.info(String.format("initOctaneClients took %s secs",	((System.currentTimeMillis() - startTime) / 1000)));
 	}
 
 	@Override
