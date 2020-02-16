@@ -60,6 +60,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private final HPRunnerType hpRunnerType;
 	private boolean stripPackageAndClass;
 	private String moduleName;
+	private String moduleNameFromFile;
 	private String packageName;
 	private String id;
 	private String className;
@@ -130,7 +131,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 			if ("file".equals(localName)) {  // NON-NLS
 				String path = readNextValue();
 				for (ModuleDetection detection : moduleDetection) {
-					moduleName = detection.getModule(new FilePath(new File(path)));
+					moduleNameFromFile = moduleName = detection.getModule(new FilePath(new File(path)));
 					if (moduleName != null) {
 						break;
 					}
@@ -152,8 +153,15 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				errorMsg = "";
 				externalURL = "";
 				description = "";
+				moduleName = moduleNameFromFile;
 			} else if ("className".equals(localName)) { // NON-NLS
 				String fqn = readNextValue();
+				int moduleIndex = fqn.indexOf("::");
+				if (moduleIndex > 0) {
+					moduleName = fqn.substring(0, moduleIndex);
+					fqn = fqn.substring(moduleIndex + 2);
+				}
+
 				int p = fqn.lastIndexOf('.');
 				className = fqn.substring(p + 1);
 				if (p > 0) {

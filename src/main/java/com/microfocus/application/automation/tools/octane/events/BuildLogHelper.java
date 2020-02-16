@@ -18,45 +18,69 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.buildLogs;
+package com.microfocus.application.automation.tools.octane.events;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
+import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.Extension;
 import hudson.model.Run;
-import hudson.model.listeners.RunListener;
 import org.apache.logging.log4j.Logger;
 
-/**
- * Created by benmeior on 11/16/2016
- * Jenkins events listener to dispatch build logs to Octane server
- */
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-@Extension
-public class RunListenerForLogs extends RunListener<Run> {
-	private static Logger logger = SDKBasedLoggerProvider.getLogger(RunListenerForLogs.class);
+public class BuildLogHelper {
+	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
 
-	@Override
-	public void onFinalized(Run run) {
+	private BuildLogHelper(){
+		//for code climate
+	}
+
+	public static void enqueueBuildLog(Run run) {
 		if(!OctaneSDK.hasClients()){
 			return;
 		}
 		try {
 			String jobCiId = BuildHandlerUtils.getJobCiId(run);
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
+			Set<String> parents = getRootJobCiIds(run);
+
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
 			OctaneSDK.getClients().forEach(octaneClient -> {
 				String instanceId = octaneClient.getInstanceId();
 				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
 				if (settings != null && !settings.isSuspend()) {
-					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId);
+					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, String.join(";", parents));
 				}
 			});
-		} catch (Throwable t) {
+		} catch (Exception t) {
 			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
+		}
+	}
+
+	private static Set<String> getRootJobCiIds(Run<?, ?> run) {
+		Set<String> parents = new HashSet<>();
+		getRootJobCiIds(CIEventCausesFactory.processCauses(run), BuildHandlerUtils.getJobCiId(run), parents);
+		return parents;
+	}
+
+	private static void getRootJobCiIds(List<CIEventCause> causes, String prevUpstream, Set<String> parents) {
+		if (causes != null) {
+			for (CIEventCause cause : causes) {
+				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
+					getRootJobCiIds(cause.getCauses(), cause.getProject(), parents);
+				} else {
+					if (prevUpstream != null && !prevUpstream.isEmpty()) {
+						parents.add(prevUpstream);
+					}
+				}
+			}
 		}
 	}
 }
