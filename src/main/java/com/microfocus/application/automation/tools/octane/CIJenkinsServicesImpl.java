@@ -212,7 +212,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} else if (item instanceof Job) {
 				result = ModelFactory.createStructureItem((Job) item);
 			} else {
-				result = createPipelineNodeFromJobName(rootJobCiId);
+				result = createPipelineNodeFromJobName(item.getFullName());
 				if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 					result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
 				}
