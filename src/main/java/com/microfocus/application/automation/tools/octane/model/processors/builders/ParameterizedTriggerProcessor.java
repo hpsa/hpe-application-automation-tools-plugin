@@ -51,9 +51,12 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 			items = config.getProjectList(job.getParent(), null);
 			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
-				if (next == null || processedJobs.contains(next)) {
+				if (next == null) {
 					iterator.remove();
 					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
+				} else if (processedJobs.contains(next)) {
+					iterator.remove();
+					logger.warn(String.format("encountered circular reference from %s to %s", job.getFullName(), next.getFullName()));
 				}
 			}
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, config.getBlock() != null, items, processedJobs));
@@ -68,9 +71,12 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 			items = config.getProjectList(project.getParent(), null);
 			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
-				if (next == null || processedJobs.contains(next)) {
+				if (next == null) {
 					iterator.remove();
 					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
+				} else if (processedJobs.contains(next)) {
+					iterator.remove();
+					logger.warn(String.format("encountered circular reference from %s to %s", project.getFullName(), next.getFullName()));
 				}
 			}
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, false, items, processedJobs));

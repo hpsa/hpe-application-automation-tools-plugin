@@ -45,9 +45,12 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
 		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 			AbstractProject next = iterator.next();
-			if (next == null || processedJobs.contains(next)) {
+			if (next == null) {
 				iterator.remove();
 				logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
+			} else if (processedJobs.contains(next)) {
+				iterator.remove();
+				logger.warn(String.format("encountered circular reference from %s to %s", project.getFullName(), next.getFullName()));
 			}
 		}
 		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items, processedJobs));
