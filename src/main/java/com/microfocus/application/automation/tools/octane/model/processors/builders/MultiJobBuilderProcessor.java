@@ -29,6 +29,7 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -47,13 +48,16 @@ class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
         List<AbstractProject> items = new ArrayList<>();
         AbstractProject tmpProject;
         for (PhaseJobsConfig config : b.getPhaseJobs()) {
+            if(StringUtils.isEmpty(config.getJobName())){
+                continue;
+            }
             Item item = Jenkins.get().getItemByFullName(config.getJobName());
             if (item == null) {
                 logger.warn(job.getFullName() + "' contains phase job  '" + config.getJobName() + "' that is not found.");
             } else if (item instanceof AbstractProject) {
                 tmpProject = (AbstractProject) item;
                 if (processedJobs.contains(tmpProject)) {
-                    logger.warn(job.getFullName() + "' contains duplicated phase job '" + config.getJobName() + "'");
+                    logger.warn(String.format("encountered circular reference from %s to %s", job.getFullName(), tmpProject.getFullName()));
                 } else {
                     items.add(tmpProject);
                 }
