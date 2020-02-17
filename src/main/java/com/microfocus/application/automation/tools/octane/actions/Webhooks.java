@@ -122,10 +122,8 @@ public class Webhooks implements UnprotectedRootAction {
 										String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
 										HashMap project = (HashMap) inputNotification.get(PROJECT);
 										String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
-										String ciJobId = jobName;
-										if (jenkinsJob.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-											ciJobId = BuildHandlerUtils.translateFolderJobName(jobName);
-										}
+										String ciJobId  = BuildHandlerUtils.translateFolderJobName(jobName);
+
 										if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
 											// use SDK to fetch and push data
 											octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
