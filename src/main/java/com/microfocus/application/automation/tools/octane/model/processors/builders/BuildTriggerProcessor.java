@@ -20,13 +20,11 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.builders;
 
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +34,6 @@ import java.util.Set;
  * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of BuildTrigger
  */
 public class BuildTriggerProcessor extends AbstractBuilderProcessor {
-	private static final Logger logger = SDKBasedLoggerProvider.getLogger(BuildTriggerProcessor.class);
 
 	public BuildTriggerProcessor(Publisher publisher, AbstractProject project, Set<Job> processedJobs) {
 		BuildTrigger t = (BuildTrigger) publisher;
