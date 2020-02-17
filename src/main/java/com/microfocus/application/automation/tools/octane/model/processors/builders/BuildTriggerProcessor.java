@@ -29,7 +29,6 @@ import hudson.tasks.Publisher;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -43,16 +42,7 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
-		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
-			AbstractProject next = iterator.next();
-			if (next == null) {
-				iterator.remove();
-				logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
-			} else if (processedJobs.contains(next)) {
-				iterator.remove();
-				logger.warn(String.format("encountered circular reference from %s to %s", project.getFullName(), next.getFullName()));
-			}
-		}
+		eliminateIllegalItems(project, processedJobs, items);
 		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items, processedJobs));
 	}
 }

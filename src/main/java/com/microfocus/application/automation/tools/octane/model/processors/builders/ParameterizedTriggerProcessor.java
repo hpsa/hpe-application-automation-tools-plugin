@@ -49,16 +49,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(job.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
-				AbstractProject next = iterator.next();
-				if (next == null) {
-					iterator.remove();
-					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
-				} else if (processedJobs.contains(next)) {
-					iterator.remove();
-					logger.warn(String.format("encountered circular reference from %s to %s", job.getFullName(), next.getFullName()));
-				}
-			}
+			eliminateIllegalItems(job, processedJobs, items);
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, config.getBlock() != null, items, processedJobs));
 		}
 	}
@@ -69,16 +60,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
-				AbstractProject next = iterator.next();
-				if (next == null) {
-					iterator.remove();
-					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
-				} else if (processedJobs.contains(next)) {
-					iterator.remove();
-					logger.warn(String.format("encountered circular reference from %s to %s", project.getFullName(), next.getFullName()));
-				}
-			}
+			eliminateIllegalItems(project, processedJobs, items);
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, false, items, processedJobs));
 		}
 	}
