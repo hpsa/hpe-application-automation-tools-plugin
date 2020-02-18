@@ -28,6 +28,8 @@ import com.microfocus.application.automation.tools.model.OctaneServerSettingsMod
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.*;
@@ -106,7 +108,7 @@ public class Webhooks implements UnprotectedRootAction {
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();
 						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
-						TopLevelItem topLevelItem = Jenkins.get().getItem(jobName);
+						Item topLevelItem = Jenkins.get().getItemByFullName(jobName);
 						if (isValidJenkinsJob(topLevelItem)) {
 							Job jenkinsJob = ((Job) topLevelItem);
 							Integer buildNumber = Integer.valueOf(buildId, 10);
@@ -120,10 +122,11 @@ public class Webhooks implements UnprotectedRootAction {
 										String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
 										HashMap project = (HashMap) inputNotification.get(PROJECT);
 										String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+										String ciJobId  = BuildHandlerUtils.translateFolderJobName(jobName);
 
 										if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
 											// use SDK to fetch and push data
-											octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(jobName, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
+											octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
 										}
 										if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
 											Map<String, String> additionalProperties = new HashMap<>();
@@ -132,7 +135,7 @@ public class Webhooks implements UnprotectedRootAction {
 											additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
 											additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
 											OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneInstanceId);
-											octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(jobName, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
+											octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
 
 										}
 										res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
@@ -195,7 +198,7 @@ public class Webhooks implements UnprotectedRootAction {
 
 	// we may get notifications from sonar project of jobs without sonar configuration
 	// or jobs of other CI servers, using this method, we ignore these notifications
-	private boolean isValidJenkinsJob(TopLevelItem jenkinsJob) {
+	private boolean isValidJenkinsJob(Item jenkinsJob) {
 		return jenkinsJob instanceof Job;
 	}
 

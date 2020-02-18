@@ -1410,8 +1410,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         for (Builder builder : builders) {
             if (builder instanceof RunFromAlmBuilder) {
                 almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
-            } else if (builder instanceof RunFromFileBuilder) {
-                fileSystemResultNames.add(((RunFromFileBuilder) builder).getRunResultsFileName());
             } else if (builder instanceof SseBuilder) {
                 String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
                 if (resultsFileName != null) {
@@ -1423,6 +1421,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     pcResultNames.add(resultsFileName);
                 }
             }
+        }
+
+        FileFilter fileSystemResultFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
+        List<FilePath> fileSystemResultsPath = workspace.list(fileSystemResultFileFilter);
+        for (FilePath fileSystemResultPath: fileSystemResultsPath)
+        {
+            fileSystemResultNames.add(fileSystemResultPath.getName());
         }
 
         mergedResultNames.addAll(almResultNames);
@@ -1452,7 +1457,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
 
-        return BuildStepMonitor.BUILD;
+        return BuildStepMonitor.NONE;
     }
 
     /**

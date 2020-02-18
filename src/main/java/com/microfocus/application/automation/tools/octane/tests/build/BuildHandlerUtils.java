@@ -137,13 +137,15 @@ public class BuildHandlerUtils {
 	}
 
 	public static String translateFolderJobName(String jobPlainName) {
-		String newSplitterCharacters = "/job/";
-		return jobPlainName.replaceAll("/", newSplitterCharacters);
+		return jobPlainName.replaceAll("/", "/job/");
 	}
 
 	public static String revertTranslateFolderJobName(String translatedJobName) {
-		String newSplitterCharacters = "/";
-		return translatedJobName.replaceAll("/job/", newSplitterCharacters);
+		return translatedJobName.replaceAll("/job/", "/");
+	}
+
+	public static String translateFullDisplayName(String fullDisplayName) {
+		return fullDisplayName.replaceAll(" » ", "/");
 	}
 
 	public static CIBuildResult translateRunResult(Run run) {

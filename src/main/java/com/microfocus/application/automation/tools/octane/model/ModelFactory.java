@@ -120,10 +120,11 @@ public class ModelFactory {
 	}
 
 	private static PipelineNode createStructureItem(Job job, Set<Job> processedJobs) {
-		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job, processedJobs);
+		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job);
+		projectProcessor.buildStructure(processedJobs);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
 		pipelineNode.setJobCiId(projectProcessor.getTranslatedJobName());
-		pipelineNode.setName(job.getName());
+		pipelineNode.setName(BuildHandlerUtils.translateFullDisplayName(job.getFullDisplayName()));
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
 		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
