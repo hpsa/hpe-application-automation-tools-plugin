@@ -114,6 +114,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             throw new IllegalArgumentException("SCM Tool is not defined.");
         }
 
+        logConsumer.printLog("Repository URL is " + repositoryUrl);
         StandardCredentials credentials = getCredentialsById(credentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
 
