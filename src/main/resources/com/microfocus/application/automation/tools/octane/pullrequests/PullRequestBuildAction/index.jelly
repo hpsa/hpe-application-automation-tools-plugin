@@ -83,6 +83,7 @@
              <th >Id</th>
              <th>Title</th>
              <th>State</th>
+             <th>IsMerged</th>
              <th>Author</th>
              <th>Updated Time</th>
              <th>Source</th>
@@ -97,7 +98,8 @@
                     <td ><a target="_blank" href="${s.selfUrl}">${s.id}</a></td>
                     <td >${s.title}</td>
                     <td >${s.state}</td>
-                    <td >${s.authorName}</td>
+                    <td >${s.merged}</td>
+                    <td title="${s.authorEmail}">${s.authorName}</td>
                     <td title="${s.updatedTime}">${it.getFormattedDate(s.updatedTime)}</td>
                     <td >${s.sourceRepository.url} : ${s.sourceRepository.branch}</td>
                     <td >${s.targetRepository.url} : ${s.targetRepository.branch}</td>

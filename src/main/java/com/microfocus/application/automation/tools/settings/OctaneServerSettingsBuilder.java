@@ -50,6 +50,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Octane configuration settings
@@ -142,13 +144,16 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		public void initOctaneClients() {
+			ExecutorService executor = Executors.newFixedThreadPool(Math.min(15, servers.length));
 			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
 				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
 						innerServerConfiguration.getSharedSpace());
 				octaneConfiguration.setClient(innerServerConfiguration.getUsername());
 				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
 				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
-				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+				executor.execute(() -> {
+					OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+				});
 			}
 		}
 
