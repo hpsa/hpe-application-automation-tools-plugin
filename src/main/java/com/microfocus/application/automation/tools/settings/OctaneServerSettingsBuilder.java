@@ -144,16 +144,18 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		public void initOctaneClients() {
-			ExecutorService executor = Executors.newFixedThreadPool(Math.min(15, servers.length));
-			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
-				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
-						innerServerConfiguration.getSharedSpace());
-				octaneConfiguration.setClient(innerServerConfiguration.getUsername());
-				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
-				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
-				executor.execute(() -> {
-					OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
-				});
+			if (servers.length > 0) {
+				ExecutorService executor = Executors.newFixedThreadPool(Math.min(10, servers.length));
+				for (OctaneServerSettingsModel innerServerConfiguration : servers) {
+					OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
+							innerServerConfiguration.getSharedSpace());
+					octaneConfiguration.setClient(innerServerConfiguration.getUsername());
+					octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
+					octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
+					executor.execute(() -> {
+						OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+					});
+				}
 			}
 		}
 
