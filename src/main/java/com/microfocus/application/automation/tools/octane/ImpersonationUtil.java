@@ -32,6 +32,8 @@ import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
+import org.acegisecurity.userdetails.UsernameNotFoundException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
@@ -49,28 +51,34 @@ public class ImpersonationUtil {
         if (settings == null) {
             throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + instanceId);
         }
-        String user = settings.getImpersonatedUser();
+
         User jenkinsUser = null;
-        if (user != null && !user.isEmpty()) {
-            jenkinsUser = User.get(user, false, Collections.emptyMap());
+        if (!StringUtils.isEmpty(settings.getImpersonatedUser())) {
+            jenkinsUser = User.get(settings.getImpersonatedUser(), false, Collections.emptyMap());
             if (jenkinsUser == null) {
                 throw new PermissionException(HttpStatus.SC_UNAUTHORIZED);
             }
-        } else {
-            logger.debug("No user set to impersonating to. Operations will be done using Anonymous user. Instance ID " + instanceId);
+        }
+        return startImpersonation(jenkinsUser);
+    }
+
+    public static ACLContext startImpersonation(User jenkinsUser) {
+
+        ACLContext impersonatedContext;
+        try {
+            impersonatedContext = ACL.as(jenkinsUser);
+        } catch (UsernameNotFoundException e) {
+            //defect#921010 : User impersonation is failing as customer is using custom UserDetailsService that does not have implementation of loadUserByUsername
+            Authentication auth = (jenkinsUser == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]));
+            impersonatedContext = ACL.as(auth);
         }
 
-        Authentication auth = (jenkinsUser == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]));
-
-        ACLContext impersonatedContext = ACL.as(auth);
         return impersonatedContext;
     }
 
-    public static Logger getLogger() {
-        return logger;
-    }
-
     public static void stopImpersonation(ACLContext impersonatedContext) {
-        impersonatedContext.close();
+        if (impersonatedContext != null) {
+            impersonatedContext.close();
+        }
     }
 }

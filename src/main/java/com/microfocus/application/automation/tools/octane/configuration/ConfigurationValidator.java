@@ -25,19 +25,16 @@ import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.ProxyConfiguration;
 import hudson.model.Item;
 import hudson.model.User;
-import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -92,29 +89,25 @@ public class ConfigurationValidator {
     }
 
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
-
-        //start impersonation
-        Jenkins jenkins = Jenkins.get();
-
         User jenkinsUser = null;
-        if (StringUtils.isEmpty(impersonatedUser)) {
-            return;
-        }
-
-        jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
-        if (jenkinsUser == null) {
-            errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
-            return;
+        if (!StringUtils.isEmpty(impersonatedUser)) {
+            jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
+            if (jenkinsUser == null) {
+                errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
+                return;
+            }
         }
 
         ACLContext impersonatedContext = null;
         try {
-            Authentication auth = jenkins == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]);
-            impersonatedContext = ACL.as(auth);
+            //start impersonation
+            impersonatedContext = ImpersonationUtil.startImpersonation(jenkinsUser);
+
             //test permissions
             Map<Permission, String> requiredPermissions = new HashMap<>();
             requiredPermissions.put(Item.BUILD, "Job.BUILD");
             requiredPermissions.put(Item.READ, "Job.READ");
+            Jenkins jenkins = Jenkins.get();
             Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
             if (!missingPermissions.isEmpty()) {
                 errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
@@ -123,9 +116,7 @@ public class ConfigurationValidator {
             errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), e.getMessage()));
         } finally {
             //depersonate
-            if (impersonatedContext != null) {
-                impersonatedContext.close();
-            }
+            ImpersonationUtil.stopImpersonation(impersonatedContext);
         }
     }
 
