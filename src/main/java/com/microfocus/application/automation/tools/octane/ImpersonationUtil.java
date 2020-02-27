@@ -68,6 +68,7 @@ public class ImpersonationUtil {
         try {
             impersonatedContext = ACL.as(jenkinsUser);
         } catch (UsernameNotFoundException e) {
+            logger.debug("Failed to get impersonatedContext from user. Trial to get impersonatedContext by manual auth creation.");
             //defect#921010 : User impersonation is failing as customer is using custom UserDetailsService that does not have implementation of loadUserByUsername
             Authentication auth = (jenkinsUser == null ? Jenkins.ANONYMOUS : new UsernamePasswordAuthenticationToken(jenkinsUser.getId(), "", new GrantedAuthority[0]));
             impersonatedContext = ACL.as(auth);
