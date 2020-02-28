@@ -50,7 +50,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     public UftJobCleaner() {
         super("Uft Job Cleaner");
-        logger.warn(String.format("Initial delay %d minutes, recurrencePeriod %d minutes, outdate threshold %d days", getInitialDelay() / MIN, getRecurrencePeriod() / MIN, getOutdateThreshold()));
+        logger.debug(String.format("Initial delay %d minutes, recurrencePeriod %d minutes, outdate threshold %d days", getInitialDelay() / MIN, getRecurrencePeriod() / MIN, getOutdateThreshold()));
     }
 
     @Override
