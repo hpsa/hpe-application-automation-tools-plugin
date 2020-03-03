@@ -376,8 +376,24 @@
 		<dependency>
 			<artifactId>workflow-aggregator</artifactId>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<version>2.6</version>
+			<version>2.5</version>
 			<exclusions>
+				<exclusion>
+					<artifactId>workflow-api</artifactId>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>workflow-step-api</artifactId>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>workflow-scm-step</artifactId>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>workflow-support</artifactId>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+				</exclusion>
 				<exclusion>
 					<artifactId>*</artifactId>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -386,20 +402,47 @@
 					<artifactId>*</artifactId>
 					<groupId>com.fasterxml.jackson.datatype</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+					<artifactId>workflow-multibranch</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jenkins-ci.plugins.workflow</groupId>
+					<artifactId>workflow-job</artifactId>
+				</exclusion>
+
+
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>script-security</artifactId>
-			<version>1.46</version>
+			<artifactId>workflow-cps</artifactId>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<version>2.53</version>
+			<exclusions>
+				<exclusion>
+					<!--  workflow-support 2.18 requires 2.2.6, while org.jenkins-ci.plugins.workflow 2.50 requires 2.0.8-->
+					<groupId>org.jenkins-ci.plugins</groupId>
+					<artifactId>scm-api</artifactId>
+				</exclusion>
+
+			</exclusions>
+		</dependency>
+		<!-- sonar 2.7.1 requires 2.18 required, while org.jenkins-ci.plugins.workflow 2.50 requires 2.17-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-support</artifactId>
+			<version>2.18</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>mailer</artifactId>
-			<version>1.20</version>
- 			<optional>true</optional>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-multibranch</artifactId>
+			<version>2.20</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-job</artifactId>
+			<version>2.21</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.jenkins-ci</groupId>
@@ -407,9 +450,14 @@
 			<version>1.4</version>
 		</dependency>
 		<dependency>
+			<artifactId>ssh-credentials</artifactId>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<version>1.13</version>
+		</dependency>
+		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>credentials</artifactId>
-			<version>2.1.18</version>
+			<version>2.1.11</version>
 		</dependency>
 		<dependency>
 			<groupId>com.microfocus.sv</groupId>
@@ -429,7 +477,7 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>junit</artifactId>
-			<version>1.20</version>
+			<version>1.19</version>
 		</dependency>
 
 
@@ -445,24 +493,24 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>parameterized-trigger</artifactId>
-			<version>2.33</version>
+			<version>2.25</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jenkins-ci.plugins</groupId>
-					<artifactId>conditional-buildstep</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<artifactId>maven-plugin</artifactId>
 			<groupId>org.jenkins-ci.main</groupId>
 			<version>2.17</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>mailer</artifactId>
+					<groupId>org.jenkins-ci.plugins</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<artifactId>matrix-project</artifactId>
 			<groupId>org.jenkins-ci.plugins</groupId>
-			<version>1.12</version>
+			<version>1.7.1</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -476,7 +524,7 @@
 		<dependency>
 			<artifactId>git</artifactId>
 			<groupId>org.jenkins-ci.plugins</groupId>
-			<version>3.3.2</version>
+			<version>3.1.0</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -490,7 +538,7 @@
 		<dependency>
 			<artifactId>extended-choice-parameter</artifactId>
 			<groupId>org.jenkins-ci.plugins</groupId>
-			<version>0.76</version>
+			<version>0.64</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
