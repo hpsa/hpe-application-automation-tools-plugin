@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane;
 
 import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -86,6 +87,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
@@ -732,13 +734,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	public static void publishEventToRelevantClients(CIEvent event) {
-		OctaneSDK.getClients().forEach(octaneClient -> {
+	public static Stream<OctaneClient> getActiveClients() {
+		return OctaneSDK.getClients().stream().filter(octaneClient -> {
 			String instanceId = octaneClient.getInstanceId();
 			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-			if (settings != null && !settings.isSuspend()) {
-				octaneClient.getEventsService().publishEvent(event);
-			}
+			return (settings != null && !settings.isSuspend()) ;
 		});
+	}
+
+	public static void publishEventToRelevantClients(CIEvent event) {
+		getActiveClients().forEach(c->c.getEventsService().publishEvent(event));
 	}
 }

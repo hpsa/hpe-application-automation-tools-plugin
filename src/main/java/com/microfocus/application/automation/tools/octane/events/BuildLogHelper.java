@@ -23,8 +23,7 @@ package com.microfocus.application.automation.tools.octane.events;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
@@ -52,12 +51,8 @@ public class BuildLogHelper {
 			Set<String> parents = getRootJobCiIds(run);
 
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
-			OctaneSDK.getClients().forEach(octaneClient -> {
-				String instanceId = octaneClient.getInstanceId();
-				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-				if (settings != null && !settings.isSuspend()) {
-					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, String.join(";", parents));
-				}
+			CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient -> {
+				octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, String.join(";", parents));
 			});
 		} catch (Exception t) {
 			logger.error("failed to enqueue " + run + " for logs push to Octane", t);

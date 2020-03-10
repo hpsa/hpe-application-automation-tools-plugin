@@ -20,7 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests;
 
-import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
@@ -72,7 +72,7 @@ public class TestListener {
 					if (success && hasTests) {
 						String projectFullName = BuildHandlerUtils.getJobCiId(run);
 						if (projectFullName != null) {
-							OctaneSDK.getClients().forEach(octaneClient ->
+							CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient ->
 									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber())));
 						}
 					}
