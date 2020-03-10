@@ -71,9 +71,10 @@ public class TestListener {
 				if (!"hudson.maven.MavenBuild".equals(run.getClass().getName())) {
 					if (success && hasTests) {
 						String projectFullName = BuildHandlerUtils.getJobCiId(run);
+						String parents = BuildHandlerUtils.getRootJobCiIds(run);
 						if (projectFullName != null) {
 							CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient ->
-									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber())));
+									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber()), parents));
 						}
 					}
 				}
