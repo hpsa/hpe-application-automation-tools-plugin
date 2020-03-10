@@ -19,8 +19,8 @@
  */
 package com.microfocus.application.automation.tools.run;
 
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.octane.actions.WebhookAction;
 import com.microfocus.application.automation.tools.octane.actions.Webhooks;
@@ -178,7 +178,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
             logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed, missing sonarQube server url or sonarQube authentication token");
         } else {
             logger.println("callback URL for jenkins resource will be set to: " + callbackWebHooksURL + " in sonarQube server with URL: " + this.sonarServerUrl);
-            OctaneSDK.getClients().forEach(octaneClient -> {
+            CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient -> {
                 try {
                     octaneClient.getSonarService().ensureSonarWebhookExist(callbackWebHooksURL, getSonarServerUrl(), getSonarToken());
                 } catch (SonarIntegrationException e) {

@@ -21,14 +21,13 @@
 package com.microfocus.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneClient;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
-import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -47,6 +46,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -103,7 +103,7 @@ public class Webhooks implements UnprotectedRootAction {
 				String buildId = (String) (sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME));
 				String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
 				Run run = null;
-				for (OctaneClient octaneClient : OctaneSDK.getClients()) {
+				for (OctaneClient octaneClient : CIJenkinsServicesImpl.getActiveClients().collect(Collectors.toSet())) {
 					ACLContext aclContext = null;
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();

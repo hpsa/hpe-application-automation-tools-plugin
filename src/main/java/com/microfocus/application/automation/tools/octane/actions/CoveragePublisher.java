@@ -20,9 +20,8 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
-import com.hp.octane.integrations.OctaneClient;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.actions.coverage.CoveragePublisherAction;
 import com.microfocus.application.automation.tools.octane.actions.coverage.CoverageService;
@@ -122,23 +121,25 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 		// copy coverage reports
 		CoveragePublisherAction action = new CoveragePublisherAction(build, listener);
 		build.addAction(action);
-		List<String> reportFileNames;
-		if (!(reportFileNames = action.copyCoverageReportsToBuildFolder(jacocoPathPattern, CoverageService.Jacoco.JACOCO_DEFAULT_FILE_NAME)).isEmpty()) {
-			for (OctaneClient octaneClient : OctaneSDK.getClients()) {
-				for (String reportFileName : reportFileNames) {
+		final List<String> jacocoReportFileNames = action.copyCoverageReportsToBuildFolder(jacocoPathPattern, CoverageService.Jacoco.JACOCO_DEFAULT_FILE_NAME);
+		if (!jacocoReportFileNames.isEmpty()) {
+			CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient-> {
+				for (String reportFileName : jacocoReportFileNames) {
 					octaneClient.getCoverageService()
 							.enqueuePushCoverage(BuildHandlerUtils.getJobCiId(build), String.valueOf(build.getNumber()), CoverageReportType.JACOCOXML, reportFileName);
 				}
-			}
+			});
 			copyReportsToBuildFolderStatus = true;
 		}
-		if (!(reportFileNames = action.copyCoverageReportsToBuildFolder(lcovPathPattern, CoverageService.Lcov.LCOV_DEFAULT_FILE_NAME)).isEmpty()) {
-			for (OctaneClient octaneClient : OctaneSDK.getClients()) {
-				for (String reportFileName : reportFileNames) {
+
+		final List<String> lcovReportFileNames = action.copyCoverageReportsToBuildFolder(lcovPathPattern, CoverageService.Lcov.LCOV_DEFAULT_FILE_NAME);
+		if (!lcovReportFileNames.isEmpty()) {
+			CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient-> {
+				for (String reportFileName : lcovReportFileNames) {
 					octaneClient.getCoverageService()
 							.enqueuePushCoverage(BuildHandlerUtils.getJobCiId(build), String.valueOf(build.getNumber()), CoverageReportType.LCOV, reportFileName);
 				}
-			}
+			});
 			copyReportsToBuildFolderStatus = true;
 		}
 
