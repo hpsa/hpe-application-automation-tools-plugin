@@ -152,6 +152,9 @@ public class OctaneServerSettingsBuilder extends Builder {
 					octaneConfiguration.setClient(innerServerConfiguration.getUsername());
 					octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
 					octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
+					if(innerServerConfiguration.isSuspend()){
+						logger.warn(octaneConfiguration.geLocationForLog() + "EVENTS ARE SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!");
+					}
 					executor.execute(() -> {
 						OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
 					});
@@ -354,10 +357,13 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		@SuppressWarnings("unused")
-		public FormValidation doTestConnection(@QueryParameter("uiLocation") String uiLocation,
+		public FormValidation doTestConnection(StaplerRequest req,
+											   @QueryParameter("uiLocation") String uiLocation,
 											   @QueryParameter("username") String username,
 											   @QueryParameter("password") String password,
-											   @QueryParameter("impersonatedUser") String impersonatedUser) {
+											   @QueryParameter("impersonatedUser") String impersonatedUser,
+											   @QueryParameter("suspend") Boolean isSuspend
+		) {
 			OctaneUrlParser octaneUrlParser;
 			try {
 				octaneUrlParser = ConfigurationValidator.parseUiLocation(uiLocation);
@@ -374,7 +380,11 @@ public class OctaneServerSettingsBuilder extends Builder {
 			ConfigurationValidator.checkHoProxySettins(fails);
 
 			if (fails.isEmpty()) {
-				return ConfigurationValidator.wrapWithFormValidation(true, Messages.ConnectionSuccess());
+				String msg = Messages.ConnectionSuccess();
+				if (isSuspend != null && isSuspend) {
+					msg += "<br/>Warning : Events are suspended (see in Advanced section)";
+				}
+				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
 				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
