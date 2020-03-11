@@ -153,7 +153,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 					octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
 					octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
 					if(innerServerConfiguration.isSuspend()){
-						logger.warn(octaneConfiguration.geLocationForLog() + "EVENTS ARE SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!");
+						logger.warn(octaneConfiguration.geLocationForLog() + "EVENTS ARE STOPPED !!!!!!!!!!!!!!!!!!!!!!!!");
 					}
 					executor.execute(() -> {
 						OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
@@ -382,7 +382,8 @@ public class OctaneServerSettingsBuilder extends Builder {
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
 				if (isSuspend != null && isSuspend) {
-					msg += "<br/>Warning : Events are suspended (see in Advanced section)";
+
+					msg += "<br/>Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
 				}
 				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
