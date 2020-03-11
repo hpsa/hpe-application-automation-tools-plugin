@@ -73,7 +73,7 @@ public class TestListener {
 						String projectFullName = BuildHandlerUtils.getJobCiId(run);
 						if (projectFullName != null) {
 							OctaneSDK.getClients().forEach(octaneClient ->
-									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber())));
+									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber()), null));
 						}
 					}
 				}
