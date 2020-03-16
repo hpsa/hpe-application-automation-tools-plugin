@@ -23,6 +23,8 @@ package com.microfocus.application.automation.tools.octane.events;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.MultiBranchType;
@@ -46,6 +48,7 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -114,6 +117,9 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setEstimatedDuration(parentRun.getEstimatedDuration())
 				.setCauses(CIEventCausesFactory.processCauses(parentRun));
 
+		if(isInternal(event.getCauses())){
+			event.setPhaseType(PhaseType.INTERNAL);
+		}
 		if (parentRun.getParent().getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
 			event
 					.setParentCiId(BuildHandlerUtils.translateFolderJobName(parentRun.getParent().getParent().getFullName()))
@@ -122,6 +128,17 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		}
 
 		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+	}
+
+	private boolean isInternal(List<CIEventCause> causes) {
+		if (causes != null) {
+			for (CIEventCause cause : causes) {
+				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private String getBuildKey(WorkflowRun run){
