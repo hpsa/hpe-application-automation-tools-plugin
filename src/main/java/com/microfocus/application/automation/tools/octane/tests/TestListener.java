@@ -71,9 +71,10 @@ public class TestListener {
 				if (!"hudson.maven.MavenBuild".equals(run.getClass().getName())) {
 					if (success && hasTests) {
 						String projectFullName = BuildHandlerUtils.getJobCiId(run);
+						logger.info("enqueued build '" + projectFullName + " #" + run.getNumber() + "' for test result submission");
 						if (projectFullName != null) {
 							OctaneSDK.getClients().forEach(octaneClient ->
-									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber())));
+									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber()), null));
 						}
 					}
 				}

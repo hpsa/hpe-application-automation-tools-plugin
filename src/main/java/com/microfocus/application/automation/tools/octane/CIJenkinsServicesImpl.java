@@ -77,7 +77,6 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -631,16 +630,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				if (ciParameter != null) {
 					tmpValue = null;
 					switch (ciParameter.getType()) {
-						case FILE:
-							try {
-								FileItemFactory fif = new DiskFileItemFactory();
-								FileItem fi = fif.createItem(ciParameter.getName(), "text/plain", false, UUID.randomUUID().toString());
-								fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(ciParameter.getValue().toString()));
-								tmpValue = new FileParameterValue(ciParameter.getName(), fi);
-							} catch (IOException ioe) {
-								logger.warn("failed to process file parameter", ioe);
-							}
-							break;
 						case NUMBER:
 						case STRING:
 							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
