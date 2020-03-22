@@ -20,9 +20,9 @@
 
 package com.microfocus.application.automation.tools.octane.vulnerabilities;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
@@ -63,7 +63,7 @@ public class VulnerabilitiesUtils {
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
         final Long queueItemTimeoutHours = getQueueItemTimeoutHoursFromJob(run);
-        CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient -> {
+        OctaneSDK.getClients().forEach(octaneClient -> {
             OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneClient.getInstanceId());
             octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
                     jobCiId,

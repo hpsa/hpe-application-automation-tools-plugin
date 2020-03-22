@@ -21,8 +21,8 @@
 package com.microfocus.application.automation.tools.octane.actions;
 
 import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
@@ -103,7 +103,7 @@ public class Webhooks implements UnprotectedRootAction {
 				String buildId = (String) (sonarAttachedProperties.get(BUILD_NUMBER_PARAM_NAME));
 				String jobName = (String) sonarAttachedProperties.get(JOB_NAME_PARAM_NAME);
 				Run run = null;
-				for (OctaneClient octaneClient : CIJenkinsServicesImpl.getActiveClients().collect(Collectors.toSet())) {
+				for (OctaneClient octaneClient : OctaneSDK.getClients()) {
 					ACLContext aclContext = null;
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();

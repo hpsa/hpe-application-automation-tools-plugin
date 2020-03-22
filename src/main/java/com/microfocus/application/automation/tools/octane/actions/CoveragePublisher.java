@@ -20,8 +20,8 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.actions.coverage.CoveragePublisherAction;
 import com.microfocus.application.automation.tools.octane.actions.coverage.CoverageService;
@@ -129,7 +129,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
 	private boolean enqueueReports(Run build, List<String> reportFileNames, CoverageReportType coverageReportType){
 		if (!reportFileNames.isEmpty()) {
-			CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient-> {
+			OctaneSDK.getClients().forEach(octaneClient-> {
 				for (String reportFileName : reportFileNames) {
 					octaneClient.getCoverageService()
 							.enqueuePushCoverage(BuildHandlerUtils.getJobCiId(build), String.valueOf(build.getNumber()), coverageReportType, reportFileName);

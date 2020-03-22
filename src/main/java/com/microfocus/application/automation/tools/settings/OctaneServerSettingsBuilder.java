@@ -151,10 +151,9 @@ public class OctaneServerSettingsBuilder extends Builder {
 							innerServerConfiguration.getSharedSpace());
 					octaneConfiguration.setClient(innerServerConfiguration.getUsername());
 					octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
+					octaneConfiguration.setSuspended(innerServerConfiguration.isSuspend());
+					octaneConfiguration.setImpersonatedUser(innerServerConfiguration.getImpersonatedUser());
 					octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
-					if(innerServerConfiguration.isSuspend()){
-						logger.warn(octaneConfiguration.geLocationForLog() + "EVENTS ARE STOPPED !!!!!!!!!!!!!!!!!!!!!!!!");
-					}
 					executor.execute(() -> {
 						OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
 					});
@@ -313,6 +312,8 @@ public class OctaneServerSettingsBuilder extends Builder {
 			octaneConfiguration.setUrl(newModel.getLocation());
 			octaneConfiguration.setClient(newModel.getUsername());
 			octaneConfiguration.setSecret(newModel.getPassword().getPlainText());
+			octaneConfiguration.setImpersonatedUser(newModel.getImpersonatedUser());
+			octaneConfiguration.setSuspended(newModel.isSuspend());
 
 			if (!octaneConfigurations.containsValue(octaneConfiguration)) {
 				octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
@@ -379,14 +380,18 @@ public class OctaneServerSettingsBuilder extends Builder {
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 			ConfigurationValidator.checkHoProxySettins(fails);
 
+			String suspendMessage = "Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
 				if (isSuspend != null && isSuspend) {
 
-					msg += "<br/>Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
+					msg += "<br/>" + suspendMessage;
 				}
 				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
+				if (isSuspend != null && isSuspend) {
+					fails.add(suspendMessage);
+				}
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
 				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
 			}

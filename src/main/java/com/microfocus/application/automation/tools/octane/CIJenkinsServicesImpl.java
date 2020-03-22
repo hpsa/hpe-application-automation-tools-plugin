@@ -21,7 +21,6 @@
 package com.microfocus.application.automation.tools.octane;
 
 import com.hp.octane.integrations.CIPluginServices;
-import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -723,15 +722,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	public static Stream<OctaneClient> getActiveClients() {
-		return OctaneSDK.getClients().stream().filter(octaneClient -> {
-			String instanceId = octaneClient.getInstanceId();
-			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-			return (settings != null && !settings.isSuspend()) ;
-		});
-	}
-
 	public static void publishEventToRelevantClients(CIEvent event) {
-		getActiveClients().forEach(c->c.getEventsService().publishEvent(event));
+		OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
 	}
 }

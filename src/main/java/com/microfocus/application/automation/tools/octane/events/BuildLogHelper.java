@@ -21,13 +21,10 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Run;
 import org.apache.logging.log4j.Logger;
-
-import java.util.Set;
 
 public class BuildLogHelper {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
@@ -46,7 +43,7 @@ public class BuildLogHelper {
 			String parents = BuildHandlerUtils.getRootJobCiIds(run);
 
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
-			CIJenkinsServicesImpl.getActiveClients().forEach(octaneClient -> {
+			OctaneSDK.getClients().forEach(octaneClient -> {
 				octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, parents);
 			});
 		} catch (Exception t) {

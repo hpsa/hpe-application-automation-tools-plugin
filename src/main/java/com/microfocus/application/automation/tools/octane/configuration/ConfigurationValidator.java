@@ -77,7 +77,7 @@ public class ConfigurationValidator {
     public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
 
         try {
-            OctaneSDK.testAndValidateOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
+            OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
 
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
