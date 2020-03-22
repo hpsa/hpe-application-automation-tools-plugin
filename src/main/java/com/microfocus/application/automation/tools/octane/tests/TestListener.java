@@ -72,6 +72,7 @@ public class TestListener {
 					if (success && hasTests) {
 						String projectFullName = BuildHandlerUtils.getJobCiId(run);
 						String parents = BuildHandlerUtils.getRootJobCiIds(run);
+						logger.info("enqueued build '" + projectFullName + " #" + run.getNumber() + "' for test result submission");
 						if (projectFullName != null) {
 							OctaneSDK.getClients().forEach(octaneClient ->
 									octaneClient.getTestsService().enqueuePushTestsResult(projectFullName, String.valueOf(run.getNumber()), parents));
