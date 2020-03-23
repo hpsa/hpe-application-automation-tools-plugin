@@ -326,7 +326,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
 				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
 			} else {
-				//just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Cctanes can change SDK compatibility
+				//just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Octanes can change SDK compatibility meanwhile
 				try {
 					OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId()).getConfigurationService().getOctaneConnectivityStatus(true);
 				} catch (Exception e) {
