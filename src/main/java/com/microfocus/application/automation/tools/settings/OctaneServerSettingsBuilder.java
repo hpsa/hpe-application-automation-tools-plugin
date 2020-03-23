@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.settings;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
@@ -328,9 +329,12 @@ public class OctaneServerSettingsBuilder extends Builder {
 			} else {
 				//just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Octanes can change SDK compatibility meanwhile
 				try {
-					OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId()).getConfigurationService().getOctaneConnectivityStatus(true);
+					OctaneClient client = OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId());
+					if(!client.getConfigurationService().getCurrentConfiguration().isSdkSupported()){
+						client.refreshSdkSupported();
+					}
 				} catch (Exception e) {
-					logger.info("Failed to refresh octaneConnectivityStatus: " + e.getMessage());
+					logger.info("Failed to refreshSdkSupported: " + e.getMessage());
 				}
 			}
 
