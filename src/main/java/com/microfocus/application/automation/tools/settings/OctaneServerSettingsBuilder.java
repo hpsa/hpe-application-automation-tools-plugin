@@ -22,6 +22,7 @@ package com.microfocus.application.automation.tools.settings;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -324,8 +325,14 @@ public class OctaneServerSettingsBuilder extends Builder {
 			if (!octaneConfigurations.containsValue(octaneConfiguration)) {
 				octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
 				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+			} else {
+				//just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Cctanes can change SDK compatibility
+				try {
+					OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId()).getConfigurationService().getOctaneConnectivityStatus(true);
+				} catch (Exception e) {
+					logger.info("Failed to refresh octaneConnectivityStatus: " + e.getMessage());
+				}
 			}
-
 
 			if (!newModel.equals(oldModel)) {
 				fireOnChanged(newModel, oldModel);
@@ -378,6 +385,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 				return fv;
 			}
+			logger.info("test configuration to : " + octaneUrlParser.getLocation() + "?p=" + octaneUrlParser.getSharedSpace());
 
 
 			//  if parse is good, check authentication/authorization
@@ -395,7 +403,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 				}
 				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
-				if (isSuspend != null && isSuspend) {
+				if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
 					fails.add(suspendMessage);
 				}
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
