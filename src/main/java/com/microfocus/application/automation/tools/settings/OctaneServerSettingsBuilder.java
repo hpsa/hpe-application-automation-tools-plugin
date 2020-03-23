@@ -245,7 +245,13 @@ public class OctaneServerSettingsBuilder extends Builder {
 					serversToRemove.add(server);
 					if (octaneConfiguration != null) {
 						logger.info("Removing client with instance Id: " + server.getIdentity());
-						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(server.getIdentity()));
+						try {
+							OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(server.getIdentity()));
+						} catch (IllegalArgumentException e) {
+							//failed to remove from SDK
+							//just remove from jenkins
+							logger.warn("Failed to remove client with instance Id: " + server.getIdentity() + " from SDK : " + e.getMessage());
+						}
 
 					}
 				}
