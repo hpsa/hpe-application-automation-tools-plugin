@@ -79,15 +79,13 @@ public class ConfigurationValidator {
 
         try {
             return OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
-
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
-
         } catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
