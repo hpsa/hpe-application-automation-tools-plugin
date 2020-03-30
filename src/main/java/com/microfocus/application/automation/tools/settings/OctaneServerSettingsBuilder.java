@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.settings;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
@@ -381,24 +382,36 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 			//  if parse is good, check authentication/authorization
 			List<String> fails = new ArrayList<>();
-			ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 			ConfigurationValidator.checkHoProxySettins(fails);
+			List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
 			String suspendMessage = "Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
+				String tooltip = null;
+				int workspaceNumberLimit = 25;
+				if (availableWorkspaces != null && !availableWorkspaces.isEmpty()) {
+					String titleNewLine = "&#xA;";
+					String suffix = (availableWorkspaces.size() > workspaceNumberLimit) ? titleNewLine + "and more " + (availableWorkspaces.size() - workspaceNumberLimit) + " workspaces" : "";
+					tooltip = availableWorkspaces.stream()
+							.sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getId())))
+							.limit(workspaceNumberLimit)
+							.map(w -> w.getId() + " - " + w.getName())
+							.collect(Collectors.joining(titleNewLine, "Available workspaces are : " + titleNewLine, suffix));
+				}
+
 				if (isSuspend != null && isSuspend) {
 
 					msg += "<br/>" + suspendMessage;
 				}
-				return ConfigurationValidator.wrapWithFormValidation(true, msg);
+				return ConfigurationValidator.wrapWithFormValidation(true, msg, tooltip);
 			} else {
 				if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
 					fails.add(suspendMessage);
 				}
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
-				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
+				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg, null);
 			}
 		}
 

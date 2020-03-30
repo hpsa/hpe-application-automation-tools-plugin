@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
@@ -55,7 +56,7 @@ public class ConfigurationValidator {
         try {
             return OctaneUrlParser.parse(uiLocation);
         } catch (OctaneSDKGeneralException e) {
-            throw wrapWithFormValidation(false, e.getMessage());
+            throw wrapWithFormValidation(false, e.getMessage(), null);
         }
     }
 
@@ -71,13 +72,13 @@ public class ConfigurationValidator {
     public static FormValidation checkConfigurationAndWrapWithFormValidation(String location, String sharedSpace, String username, Secret password) {
         List<String> errors = new ArrayList<>();
         checkConfiguration(errors, location, sharedSpace, username, password);
-        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0));
+        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0), null);
     }
 
-    public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
+    public static List<Entity> checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
 
         try {
-            OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
+            return OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
 
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
@@ -86,6 +87,7 @@ public class ConfigurationValidator {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
+        return null;
     }
 
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
@@ -120,9 +122,10 @@ public class ConfigurationValidator {
         }
     }
 
-    public static FormValidation wrapWithFormValidation(boolean success, String message) {
+    public static FormValidation wrapWithFormValidation(boolean success, String message, String tooltip) {
         String color = success ? "green" : "red";
-        String msg = "<font color=\"" + color + "\">" + message + "</font>";
+        String title = StringUtils.isNotEmpty(tooltip) ? "title=\"" + tooltip + "\"" : "";
+        String msg = "<font color=\"" + color + "\" " + title + ">" + message + "</font>";
         if (success) {
             return FormValidation.okWithMarkup(msg);
         } else {

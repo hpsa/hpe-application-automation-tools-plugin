@@ -206,9 +206,9 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
                         .setFormat(format)
                         .convert(rawTests, TestsToRunConverterBuilder.DEFAULT_EXECUTING_DIRECTORY);
-                return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + convertResult.getConvertedTestsString() + "</div>");
+                return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + convertResult.getConvertedTestsString() + "</div>", null);
             } catch (Exception e) {
-                return ConfigurationValidator.wrapWithFormValidation(false, "Failed to convert : " + e.getMessage());
+                return ConfigurationValidator.wrapWithFormValidation(false, "Failed to convert : " + e.getMessage(), null);
             }
         }
 
