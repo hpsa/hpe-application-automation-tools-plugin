@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Octane configuration settings
@@ -233,40 +234,26 @@ public class OctaneServerSettingsBuilder extends Builder {
 				return;
 			}
 
-			Set<OctaneServerSettingsModel> serversToRemove = new LinkedHashSet<>();
-			for (OctaneServerSettingsModel server : servers) {
-				boolean configFound = false;
-				for (Object jsonObj : jsonArray) {
-					if (server.getInternalId().equals(((JSONObject) jsonObj).getString("internalId"))) {
-						configFound = true;
-						break;
-					}
-				}
-				if (!configFound) {
-					OctaneConfiguration octaneConfiguration = octaneConfigurations.get(server.getInternalId());
-					serversToRemove.add(server);
-					if (octaneConfiguration != null) {
-						logger.info("Removing client with instance Id: " + server.getIdentity());
-						try {
-							OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(server.getIdentity()));
-						} catch (IllegalArgumentException e) {
-							//failed to remove from SDK
-							//just remove from jenkins
-							logger.warn("Failed to remove client with instance Id: " + server.getIdentity() + " from SDK : " + e.getMessage());
-						}
-
-					}
-				}
-			}
-
-			List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
-			for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
-				serversToLeave.remove(serverToRemove);
-				octaneConfigurations.remove(serverToRemove.getInternalId());
-			}
-			servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
+			Set<String> foundInternalId = jsonArray.stream().map(jsonObj -> ((JSONObject) jsonObj).getString("internalId")).filter(s->!s.isEmpty()).collect(Collectors.toSet());
+			Set<OctaneServerSettingsModel> serversToRemove = Arrays.stream(servers).filter(server -> !foundInternalId.contains(server.getInternalId())).collect(Collectors.toSet());
 
 			if (!serversToRemove.isEmpty()) {
+				List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
+				for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
+					logger.info("Removing client with instance Id: " + serverToRemove.getIdentity());
+					serversToLeave.remove(serverToRemove);
+					octaneConfigurations.remove(serverToRemove.getInternalId());
+
+					try {
+						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(serverToRemove.getIdentity()));
+					} catch (IllegalArgumentException e) {
+						//failed to remove from SDK
+						//just remove from jenkins
+						logger.warn("Failed to remove client with instance Id: " + serverToRemove.getIdentity() + " from SDK : " + e.getMessage());
+					}
+				}
+
+				servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
 				save();
 			}
 		}
