@@ -274,7 +274,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         return credentials;
     }
 
-    @Symbol("fetchPullRequestsToAlmOctane")
+    @Symbol("collectPullRequestsToAlmOctane")
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -322,7 +322,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public String getDisplayName() {
-            return "ALM Octane pull-request fetcher";
+            return "ALM Octane pull-request collector";
         }
     }
 }
