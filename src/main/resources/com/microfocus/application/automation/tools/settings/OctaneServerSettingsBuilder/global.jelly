@@ -69,7 +69,7 @@
                                 <td class="setting-leftspace" colspan="3">
                                     <div style="">
                                         <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}" field="suspend"/>
-                                        <label>&#160; Stop sending events, test results, build logs, coverage and vulnerabilities reports to ALM Octane.</label>
+                                        <label>&#160; Disable configuration (Stop sending all data to ALM Octane) </label>
                                     </div>
                                 </td>
                             </tr>

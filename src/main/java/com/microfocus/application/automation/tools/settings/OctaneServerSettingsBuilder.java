@@ -386,7 +386,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 			ConfigurationValidator.checkHoProxySettins(fails);
 			List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
-			String suspendMessage = "Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
+			String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
 				String tooltip = null;
