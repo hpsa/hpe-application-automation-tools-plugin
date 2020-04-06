@@ -67,10 +67,10 @@ public class UftToolUtils {
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
         if (fsTestPath != null) {
             List<String> buildTests;
-            Node node = Jenkins.getInstance().getNode(nodeName);
+            Node node = Jenkins.get().getNode(nodeName);
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
-            if (Jenkins.getInstance().getNodes().isEmpty() || (node == null)) {//run tests on master
+            if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
                 buildTests = listFilesForFolder(new File(directoryPath));
             } else {//run tests on selected node
                 buildTests = getTestsFromNode(nodeName, directoryPath);
@@ -82,7 +82,7 @@ public class UftToolUtils {
     }
 
     public static List<String> getTestsFromNode(String nodeName, String path) {
-        Node node = Jenkins.getInstance().getNode(nodeName);
+        Node node = Jenkins.get().getNode(nodeName);
         FilePath filePath = new FilePath(node.getChannel(), path);
         UftMasterToSlave uftMasterToSlave = new UftMasterToSlave();
         List<String> tests = new ArrayList<>();
@@ -194,7 +194,7 @@ public class UftToolUtils {
     }
 
     public static List<String> getNodesList() {
-        List<Node> nodeList = Jenkins.getInstance().getNodes();
+        List<Node> nodeList = Jenkins.get().getNodes();
         List<String> nodes = new ArrayList<>();
         nodes.add("master");
         for (Node node : nodeList) {

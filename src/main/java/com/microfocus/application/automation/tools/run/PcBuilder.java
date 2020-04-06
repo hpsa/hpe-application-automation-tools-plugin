@@ -679,7 +679,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     private boolean isPluginActive(String pluginDisplayName){
-        List<PluginWrapper> allPlugin = Jenkins.getInstance().pluginManager.getPlugins();
+        List<PluginWrapper> allPlugin = Jenkins.get().pluginManager.getPlugins();
         for (PluginWrapper pw :
                 allPlugin) {
 

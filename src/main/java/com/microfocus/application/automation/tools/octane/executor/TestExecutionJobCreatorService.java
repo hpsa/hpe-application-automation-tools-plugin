@@ -119,9 +119,9 @@ public class TestExecutionJobCreatorService {
 					suiteExecutionInfo.getSuiteId());
 
 			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
+			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(projectName);
 			if (proj == null) {
-				proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
+				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, projectName);
 				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
 						suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
 			}
@@ -136,7 +136,12 @@ public class TestExecutionJobCreatorService {
 			//add build action
 			String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
 			List<RunFromFileBuilder> builders = proj.getBuildersList().getAll(RunFromFileBuilder.class);
+			logger.info("TestExecutionJobCreatorService");
+			logger.trace("TestExecutionJobCreatorService");
+
 			if (builders != null && !builders.isEmpty()) {
+				logger.info("number of builders:" + builders.size());
+				logger.trace("number of builders:" + builders.size());
 				builders.get(0).setFsTests(fsTestsData);
 			} else {
 				proj.getBuildersList().add(new RunFromFileBuilder(fsTestsData));

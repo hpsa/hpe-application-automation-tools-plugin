@@ -25,6 +25,7 @@ import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -141,8 +142,9 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * Add properties (failed tests, cleanup tests, number of reruns) to properties file
      *
      * @param props
+     * @param listener
      */
-    public void addToProperties(Properties props) {
+    public void addToProperties(Properties props, TaskListener listener) {
         if (!StringUtils.isEmpty(this.selectedNode)) {
             props.put("Selected node", this.selectedNode);
         }
@@ -157,9 +159,11 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
         if (this.fsTestType.equals(fsTestTypes.get(0).getDescription())) {//any test in the build
             //add failed tests
+            listener.getLogger().println("Add tests to rerun - any test in the build");
             int i = 1;
             int index = 1;
             while (props.getProperty("Test" + index) != null) {
+                listener.getLogger().println("Retrieve failed test(addToProperties), key: " + ("Test" + index) + " and value: "+ props.getProperty("Test" + index));
                 props.put("FailedTest" + index, props.getProperty("Test" + index));
                 index++;
             }
@@ -176,9 +180,11 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
         } else {//specific tests in the build
             //set number of reruns
+            listener.getLogger().println("Add tests to rerun - specific tests in the build");
             int j = 1;
             for (RerunSettingsModel settings : this.rerunSettingsModels) {
                 if (settings.getChecked()) {//test is selected
+                    listener.getLogger().println("Retrieve failed test(addToProperties): " + settings.getTest());
                     props.put("FailedTest" + j, settings.getTest());
                     props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
                     if (!StringUtils.isEmpty(settings.getCleanupTest())) {

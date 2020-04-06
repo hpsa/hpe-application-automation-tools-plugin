@@ -28,6 +28,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.TaskListener;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
@@ -648,14 +649,14 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 	 */
 	@Nullable
 	public Properties getProperties(EnvVars envVars,
-									VariableResolver<String> varResolver) {
-		return createProperties(envVars, varResolver);
+									VariableResolver<String> varResolver, TaskListener listener) {
+		return createProperties(envVars, varResolver, listener);
 	}
 
 	private Properties createProperties(EnvVars envVars,
-										VariableResolver<String> varResolver) {
+										VariableResolver<String> varResolver, TaskListener listener) {
 
-		return createProperties(envVars);
+		return createProperties(envVars, listener);
 	}
 
     /**
@@ -665,8 +666,8 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @return the properties
      */
 	@Nullable
-	public Properties getProperties(EnvVars envVars) {
-        return createProperties(envVars);
+	public Properties getProperties(EnvVars envVars, TaskListener listener) {
+        return createProperties(envVars, listener);
     }
 
     /**
@@ -674,13 +675,13 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      *
      * @return the properties
      */
-    public Properties getProperties() {
-        return createProperties(null);
-    }
+   // public Properties getProperties() {
+    //    return createProperties(null);
+   // }
 
 
 
-    private Properties createProperties(EnvVars envVars) {
+    private Properties createProperties(EnvVars envVars, TaskListener listener) {
         Properties props = new Properties();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
@@ -696,6 +697,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 
             for (String test : testsArr) {
                 test = test.trim();
+                listener.getLogger().println("[RunFromFileSystemModel] createProperties current test to set: " + test);
                 props.put("Test" + i, test);
                 i++;
             }
