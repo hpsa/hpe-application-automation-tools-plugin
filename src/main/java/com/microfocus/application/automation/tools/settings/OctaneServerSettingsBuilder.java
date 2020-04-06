@@ -389,29 +389,33 @@ public class OctaneServerSettingsBuilder extends Builder {
 			String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
-				String tooltip = null;
-				int workspaceNumberLimit = 25;
+
+
 				if (availableWorkspaces != null && !availableWorkspaces.isEmpty()) {
+					int workspaceNumberLimit = 30;
 					String titleNewLine = "&#xA;";
 					String suffix = (availableWorkspaces.size() > workspaceNumberLimit) ? titleNewLine + "and more " + (availableWorkspaces.size() - workspaceNumberLimit) + " workspaces" : "";
-					tooltip = availableWorkspaces.stream()
+					String tooltip = availableWorkspaces.stream()
 							.sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getId())))
 							.limit(workspaceNumberLimit)
 							.map(w -> w.getId() + " - " + w.getName())
 							.collect(Collectors.joining(titleNewLine, "Available workspaces are : " + titleNewLine, suffix));
+					String icon = String.format("<img style=\"padding-left: 10px;\" src=\"%s/plugin/hp-application-automation-tools-plugin/icons/16x16/info-blue.png\"  title=\"%s\"/>",
+							Jenkins.get().getRootUrl(),tooltip);
+					msg = msg + icon;
 				}
 
 				if (isSuspend != null && isSuspend) {
 
 					msg += "<br/>" + suspendMessage;
 				}
-				return ConfigurationValidator.wrapWithFormValidation(true, msg, tooltip);
+				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
 				if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
 					fails.add(suspendMessage);
 				}
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
-				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg, null);
+				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
 			}
 		}
 

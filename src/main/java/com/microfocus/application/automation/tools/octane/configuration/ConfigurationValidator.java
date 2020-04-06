@@ -56,7 +56,7 @@ public class ConfigurationValidator {
         try {
             return OctaneUrlParser.parse(uiLocation);
         } catch (OctaneSDKGeneralException e) {
-            throw wrapWithFormValidation(false, e.getMessage(), null);
+            throw wrapWithFormValidation(false, e.getMessage());
         }
     }
 
@@ -72,7 +72,7 @@ public class ConfigurationValidator {
     public static FormValidation checkConfigurationAndWrapWithFormValidation(String location, String sharedSpace, String username, Secret password) {
         List<String> errors = new ArrayList<>();
         checkConfiguration(errors, location, sharedSpace, username, password);
-        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0), null);
+        return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0));
     }
 
     public static List<Entity> checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
@@ -120,10 +120,9 @@ public class ConfigurationValidator {
         }
     }
 
-    public static FormValidation wrapWithFormValidation(boolean success, String message, String tooltip) {
+    public static FormValidation wrapWithFormValidation(boolean success, String message) {
         String color = success ? "green" : "red";
-        String title = StringUtils.isNotEmpty(tooltip) ? "title=\"" + tooltip + "\"" : "";
-        String msg = "<font color=\"" + color + "\" " + title + ">" + message + "</font>";
+        String msg = "<font color=\"" + color + "\" >" + message + "</font>";
         if (success) {
             return FormValidation.okWithMarkup(msg);
         } else {
