@@ -146,7 +146,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         if (parameterAction != null) {
             fp.setPageSize(getIntegerValueParameter(parameterAction, "pullrequests_page_size"));
             fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_pr_to_collect"));
-            fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_commits_to_collect"));
+            fp.setMaxCommitsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_commits_to_collect"));
             fp.setMinUpdateTime(getLongValueParameter(parameterAction, "pullrequests_min_update_time"));
         }
         if (fp.getMinUpdateTime() == FetchParameters.DEFAULT_MIN_UPDATE_DATE) {
@@ -159,7 +159,6 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         logConsumer.accept("Target branch filter  : " + fp.getTargetBranchFilter());
         logConsumer.accept("Max PRs to collect    : " + fp.getMaxPRsToFetch());
         logConsumer.accept("Max commits to collect: " + fp.getMaxCommitsToFetch());
-        logConsumer.accept("Page size             : " + fp.getPageSize());
         return fp;
     }
 
