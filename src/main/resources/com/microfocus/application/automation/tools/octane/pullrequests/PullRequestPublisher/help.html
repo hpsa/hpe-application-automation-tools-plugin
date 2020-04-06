@@ -38,4 +38,38 @@
         <li><b>pullrequests_max_commits_to_fetch</b> : Max number of commits to fetch for each pull request. Default is 100.</li><br>
     </ul>
 
+    <br>
+    <br>
+
+    <b>Supported SCM Tools: </b>
+    <br>
+    <table border="1" width="100%" style="border-collapse: collapse;border: 1px solid black;">
+
+        <thead style="background-color: lightgray; font-weight: bold">
+        <tr>
+            <td width="20%">SCM Tool</td>
+            <td>Supported type of authentication</td>
+            <td>How to create PAT</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Bitbucket server</td>
+            <td>User/password and PAT (Personal access token)</td>
+            <td>Click on your profile icon -> Manage account -> Personal access tokens -> Create a token (Assign Read permissions for both Projects and Repositories)</td>
+        </tr>
+        <tr>
+            <td>Github Cloud</td>
+            <td>PAT (Personal access token) only</td>
+            <td rowspan="2">Click on your profile icon -> Settings -> Developer settings -> Personal access tokens -> Generate new token (Grants read-only access by uncheck all scopes)</td>
+        </tr>
+        <tr>
+            <td>Github Server</td>
+            <td>User/password and PAT (Personal access token)</td>
+        </tr>
+        </tbody>
+    </table>
+    <br>
+    Note : To create PAT credentials in Jenkins , use "Secret text" kind of credentials in "Add Credentials" dialog
+
 </div>
