@@ -48,7 +48,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.150.3</jenkins.version>
+		<jenkins.version>2.164.3</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
