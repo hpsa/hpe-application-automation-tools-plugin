@@ -60,6 +60,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		logger.info("**********************************************************************");
 		logger.info("Jenkins version " + Jenkins.getVersion());
 		logger.info("Plugin version " + ConfigurationService.getPluginVersion());
+		logger.info("CI SDK version " + OctaneSDK.SDK_VERSION);
 
 		OctaneServerSettingsBuilder.getOctaneSettingsManager().initOctaneClients();
 	}

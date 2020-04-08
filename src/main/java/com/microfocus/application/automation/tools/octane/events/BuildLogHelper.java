@@ -21,19 +21,10 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.causes.CIEventCause;
-import com.hp.octane.integrations.dto.causes.CIEventCauseType;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
-import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.Run;
 import org.apache.logging.log4j.Logger;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class BuildLogHelper {
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
@@ -49,38 +40,14 @@ public class BuildLogHelper {
 		try {
 			String jobCiId = BuildHandlerUtils.getJobCiId(run);
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
-			Set<String> parents = getRootJobCiIds(run);
+			String parents = BuildHandlerUtils.getRootJobCiIds(run);
 
 			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
 			OctaneSDK.getClients().forEach(octaneClient -> {
-				String instanceId = octaneClient.getInstanceId();
-				OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-				if (settings != null && !settings.isSuspend()) {
-					octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, String.join(";", parents));
-				}
+				octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, parents);
 			});
 		} catch (Exception t) {
 			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
-		}
-	}
-
-	private static Set<String> getRootJobCiIds(Run<?, ?> run) {
-		Set<String> parents = new HashSet<>();
-		getRootJobCiIds(CIEventCausesFactory.processCauses(run), BuildHandlerUtils.getJobCiId(run), parents);
-		return parents;
-	}
-
-	private static void getRootJobCiIds(List<CIEventCause> causes, String prevUpstream, Set<String> parents) {
-		if (causes != null) {
-			for (CIEventCause cause : causes) {
-				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
-					getRootJobCiIds(cause.getCauses(), cause.getProject(), parents);
-				} else {
-					if (prevUpstream != null && !prevUpstream.isEmpty()) {
-						parents.add(prevUpstream);
-					}
-				}
-			}
 		}
 	}
 }

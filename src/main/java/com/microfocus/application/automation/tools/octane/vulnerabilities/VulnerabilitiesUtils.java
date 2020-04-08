@@ -63,18 +63,14 @@ public class VulnerabilitiesUtils {
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
         final Long queueItemTimeoutHours = getQueueItemTimeoutHoursFromJob(run);
-
         OctaneSDK.getClients().forEach(octaneClient -> {
-            String instanceId = octaneClient.getInstanceId();
-            OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-            if (settings != null && !settings.isSuspend()) {
-                octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
-                        jobCiId,
-                        buildCiId, toolType,
-                        run.getStartTimeInMillis(),
-                        queueItemTimeoutHours == null ? settings.getMaxTimeoutHours() : queueItemTimeoutHours,
-                        props);
-            }
+            OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneClient.getInstanceId());
+            octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
+                    jobCiId,
+                    buildCiId, toolType,
+                    run.getStartTimeInMillis(),
+                    queueItemTimeoutHours == null ? settings.getMaxTimeoutHours() : queueItemTimeoutHours,
+                    props);
         });
     }
 

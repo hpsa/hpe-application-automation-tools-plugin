@@ -85,6 +85,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
@@ -722,12 +723,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	public static void publishEventToRelevantClients(CIEvent event) {
-		OctaneSDK.getClients().forEach(octaneClient -> {
-			String instanceId = octaneClient.getInstanceId();
-			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-			if (settings != null && !settings.isSuspend()) {
-				octaneClient.getEventsService().publishEvent(event);
-			}
-		});
+		OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
 	}
 }
