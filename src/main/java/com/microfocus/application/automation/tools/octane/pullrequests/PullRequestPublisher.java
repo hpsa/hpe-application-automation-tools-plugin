@@ -145,8 +145,8 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         ParametersAction parameterAction = run.getAction(ParametersAction.class);
         if (parameterAction != null) {
             fp.setPageSize(getIntegerValueParameter(parameterAction, "pullrequests_page_size"));
-            fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_pr_to_fetch"));
-            fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_commits_to_fetch"));
+            fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_pr_to_collect"));
+            fp.setMaxCommitsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_commits_to_collect"));
             fp.setMinUpdateTime(getLongValueParameter(parameterAction, "pullrequests_min_update_time"));
         }
         if (fp.getMinUpdateTime() == FetchParameters.DEFAULT_MIN_UPDATE_DATE) {
@@ -154,12 +154,11 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             fp.setMinUpdateTime(lastUpdateTime);
         }
 
-        logConsumer.accept("Min update date      : " + fp.getMinUpdateTime());
-        logConsumer.accept("Source branch filter : " + fp.getSourceBranchFilter());
-        logConsumer.accept("Target branch filter : " + fp.getTargetBranchFilter());
-        logConsumer.accept("Max PRs to fetch     : " + fp.getMaxPRsToFetch());
-        logConsumer.accept("Max commits to fetch : " + fp.getMaxCommitsToFetch());
-        logConsumer.accept("Page size            : " + fp.getPageSize());
+        logConsumer.accept("Min update date       : " + fp.getMinUpdateTime());
+        logConsumer.accept("Source branch filter  : " + fp.getSourceBranchFilter());
+        logConsumer.accept("Target branch filter  : " + fp.getTargetBranchFilter());
+        logConsumer.accept("Max PRs to collect    : " + fp.getMaxPRsToFetch());
+        logConsumer.accept("Max commits to collect: " + fp.getMaxCommitsToFetch());
         return fp;
     }
 
@@ -274,7 +273,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         return credentials;
     }
 
-    @Symbol("fetchPullRequestsToAlmOctane")
+    @Symbol("collectPullRequestsToAlmOctane")
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -322,7 +321,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public String getDisplayName() {
-            return "ALM Octane pull-request fetcher";
+            return "ALM Octane pull-request collector";
         }
     }
 }

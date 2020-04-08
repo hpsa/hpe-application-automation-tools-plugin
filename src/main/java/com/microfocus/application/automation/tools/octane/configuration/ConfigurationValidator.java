@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
@@ -74,18 +75,17 @@ public class ConfigurationValidator {
         return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0));
     }
 
-    public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
+    public static List<Entity> checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
 
         try {
-            OctaneSDK.testOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
-
+            return OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
-
         } catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
+        return Collections.emptyList();
     }
 
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
@@ -122,7 +122,7 @@ public class ConfigurationValidator {
 
     public static FormValidation wrapWithFormValidation(boolean success, String message) {
         String color = success ? "green" : "red";
-        String msg = "<font color=\"" + color + "\">" + message + "</font>";
+        String msg = "<font color=\"" + color + "\" >" + message + "</font>";
         if (success) {
             return FormValidation.okWithMarkup(msg);
         } else {

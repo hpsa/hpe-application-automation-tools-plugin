@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.settings;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
@@ -54,6 +55,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Octane configuration settings
@@ -233,40 +235,26 @@ public class OctaneServerSettingsBuilder extends Builder {
 				return;
 			}
 
-			Set<OctaneServerSettingsModel> serversToRemove = new LinkedHashSet<>();
-			for (OctaneServerSettingsModel server : servers) {
-				boolean configFound = false;
-				for (Object jsonObj : jsonArray) {
-					if (server.getInternalId().equals(((JSONObject) jsonObj).getString("internalId"))) {
-						configFound = true;
-						break;
-					}
-				}
-				if (!configFound) {
-					OctaneConfiguration octaneConfiguration = octaneConfigurations.get(server.getInternalId());
-					serversToRemove.add(server);
-					if (octaneConfiguration != null) {
-						logger.info("Removing client with instance Id: " + server.getIdentity());
-						try {
-							OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(server.getIdentity()));
-						} catch (IllegalArgumentException e) {
-							//failed to remove from SDK
-							//just remove from jenkins
-							logger.warn("Failed to remove client with instance Id: " + server.getIdentity() + " from SDK : " + e.getMessage());
-						}
-
-					}
-				}
-			}
-
-			List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
-			for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
-				serversToLeave.remove(serverToRemove);
-				octaneConfigurations.remove(serverToRemove.getInternalId());
-			}
-			servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
+			Set<String> foundInternalId = jsonArray.stream().map(jsonObj -> ((JSONObject) jsonObj).getString("internalId")).filter(s->!s.isEmpty()).collect(Collectors.toSet());
+			Set<OctaneServerSettingsModel> serversToRemove = Arrays.stream(servers).filter(server -> !foundInternalId.contains(server.getInternalId())).collect(Collectors.toSet());
 
 			if (!serversToRemove.isEmpty()) {
+				List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
+				for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
+					logger.info("Removing client with instance Id: " + serverToRemove.getIdentity());
+					serversToLeave.remove(serverToRemove);
+					octaneConfigurations.remove(serverToRemove.getInternalId());
+
+					try {
+						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(serverToRemove.getIdentity()));
+					} catch (IllegalArgumentException e) {
+						//failed to remove from SDK
+						//just remove from jenkins
+						logger.warn("Failed to remove client with instance Id: " + serverToRemove.getIdentity() + " from SDK : " + e.getMessage());
+					}
+				}
+
+				servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
 				save();
 			}
 		}
@@ -394,13 +382,29 @@ public class OctaneServerSettingsBuilder extends Builder {
 
 			//  if parse is good, check authentication/authorization
 			List<String> fails = new ArrayList<>();
-			ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 			ConfigurationValidator.checkHoProxySettins(fails);
+			List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
-			String suspendMessage = "Note that events and test results are currently not being sent to ALM Octane (see in Advanced section)";
+			String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
 			if (fails.isEmpty()) {
 				String msg = Messages.ConnectionSuccess();
+
+
+				if (availableWorkspaces != null && !availableWorkspaces.isEmpty()) {
+					int workspaceNumberLimit = 30;
+					String titleNewLine = "&#xA;";
+					String suffix = (availableWorkspaces.size() > workspaceNumberLimit) ? titleNewLine + "and more " + (availableWorkspaces.size() - workspaceNumberLimit) + " workspaces" : "";
+					String tooltip = availableWorkspaces.stream()
+							.sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getId())))
+							.limit(workspaceNumberLimit)
+							.map(w -> w.getId() + " - " + w.getName())
+							.collect(Collectors.joining(titleNewLine, "Available workspaces are : " + titleNewLine, suffix));
+					String icon = String.format("<img style=\"padding-left: 10px;\" src=\"%s/plugin/hp-application-automation-tools-plugin/icons/16x16/info-blue.png\"  title=\"%s\"/>",
+							Jenkins.get().getRootUrl(),tooltip);
+					msg = msg + icon;
+				}
+
 				if (isSuspend != null && isSuspend) {
 
 					msg += "<br/>" + suspendMessage;
