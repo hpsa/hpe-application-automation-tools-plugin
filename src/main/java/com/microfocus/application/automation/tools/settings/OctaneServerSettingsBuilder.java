@@ -245,6 +245,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 					serversToLeave.remove(serverToRemove);
 					octaneConfigurations.remove(serverToRemove.getInternalId());
 
+
 					try {
 						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(serverToRemove.getIdentity()));
 					} catch (IllegalArgumentException | IllegalStateException e) {
