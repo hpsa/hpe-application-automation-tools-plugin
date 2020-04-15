@@ -28,7 +28,6 @@ import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
-import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.scm.SubversionSCM;
 import org.apache.commons.lang.StringUtils;
@@ -86,16 +85,6 @@ public class SvnPluginHandler implements ScmPluginHandler {
 			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 			result.setBody(e.getMessage());
 		}
-	}
-
-	@Override
-	public String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile) {
-		return null;
-	}
-
-	@Override
-	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
-		return null;
 	}
 
 	@Override

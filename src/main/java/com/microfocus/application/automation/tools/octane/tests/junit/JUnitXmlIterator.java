@@ -39,9 +39,12 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
@@ -57,6 +60,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private final HPRunnerType hpRunnerType;
 	private boolean stripPackageAndClass;
 	private String moduleName;
+	private String moduleNameFromFile;
 	private String packageName;
 	private String id;
 	private String className;
@@ -67,6 +71,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String errorType;
 	private String errorMsg;
 	private String externalURL;
+	private String description;
 	private List<ModuleDetection> moduleDetection;
 	private String jenkinsRootUrl;
 	private String sharedCheckOutDirectory;
@@ -126,7 +131,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 			if ("file".equals(localName)) {  // NON-NLS
 				String path = readNextValue();
 				for (ModuleDetection detection : moduleDetection) {
-					moduleName = detection.getModule(new FilePath(new File(path)));
+					moduleNameFromFile = moduleName = detection.getModule(new FilePath(new File(path)));
 					if (moduleName != null) {
 						break;
 					}
@@ -146,14 +151,33 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				stackTraceStr = "";
 				errorType = "";
 				errorMsg = "";
+				externalURL = "";
+				description = "";
+				moduleName = moduleNameFromFile;
 			} else if ("className".equals(localName)) { // NON-NLS
 				String fqn = readNextValue();
+				int moduleIndex = fqn.indexOf("::");
+				if (moduleIndex > 0) {
+					moduleName = fqn.substring(0, moduleIndex);
+					fqn = fqn.substring(moduleIndex + 2);
+				}
+
 				int p = fqn.lastIndexOf('.');
 				className = fqn.substring(p + 1);
 				if (p > 0) {
 					packageName = fqn.substring(0, p);
 				} else {
 					packageName = "";
+				}
+			} else if ("stdout".equals(localName)) {
+				String stdoutValue = readNextValue();
+				if (stdoutValue != null) {
+					if (hpRunnerType.equals(HPRunnerType.UFT) && stdoutValue.contains("Test result: Warning")) {
+						errorMsg = "Test ended with 'Warning' status.";
+					}
+
+					externalURL = extractValueFromStdout(stdoutValue, "__octane_external_url_start__", "__octane_external_url_end__", externalURL);
+					description = extractValueFromStdout(stdoutValue, "__octane_description_start__", "__octane_description_end__", description);
 				}
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
@@ -162,21 +186,25 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 
                 if (hpRunnerType.equals(HPRunnerType.UFT)) {
+					if (testName != null && testName.contains("..")) { //resolve existence of ../ - for example c://a/../b => c://b
+						testName = new File(testName).getCanonicalPath();
+					}
+
                     String myPackageName = packageName;
                     String myClassName = className;
                     String myTestName = testName;
                     packageName = "";
                     className = "";
 
-					if (testName.startsWith(workspace.getRemote())) {
-						// if workspace is prefix of the method name, cut it off
-						// currently this handling is needed for UFT tests
-						int testStartIndex = workspace.getRemote().length() + (sharedCheckOutDirectory == null ? 0 : (sharedCheckOutDirectory.length() + 1));
-						String path = testName.substring(testStartIndex);
+					// if workspace is prefix of the method name, cut it off
+					// currently this handling is needed for UFT tests
+					int uftTextIndexStart = getUftTestIndexStart(workspace, sharedCheckOutDirectory, testName);
+					if (uftTextIndexStart != -1) {
+						String path = testName.substring(uftTextIndexStart);
 						path = path.replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 						path = StringUtils.strip(path, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
-						//split path to package and and name fields
+						//split path to package and name fields
 						if (path.contains(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER)) {
 							int testNameStartIndex = path.lastIndexOf(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
 
@@ -213,19 +241,13 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerFunctional)) {
-					if (StringUtils.isNotEmpty(id) && additionalContext != null && additionalContext instanceof Map) {
-						Map<String, String> testId2Url = (Map) additionalContext;
-						if (testId2Url.containsKey(id))
-							externalURL = testId2Url.get(id);
-					}
 				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
                 	//console contains link to report
 					//link start with "View Report:"
 					String VIEW_REPORT_PREFIX = "View Report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {
-							if (str != null && str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
+							if (str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
 								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
 							}
 						}
@@ -268,12 +290,49 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 				if (stripPackageAndClass) {
 					//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description));
 				} else {
-					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description));
 				}
 			}
 		}
+	}
+
+	private String extractValueFromStdout(String stdoutValue, String startString, String endString, String defaultValue) {
+		String result = defaultValue;
+		int startIndex = stdoutValue.indexOf(startString);
+		if (startIndex > 0) {
+			int endIndex = stdoutValue.indexOf(endString, startIndex);
+			if (endIndex > 0) {
+				result = stdoutValue.substring(startIndex + startString.length(), endIndex).trim();
+			}
+		}
+		return result;
+	}
+
+	private int getUftTestIndexStart(FilePath workspace, String sharedCheckOutDirectory, String testName) {
+		int returnIndex = -1;
+		try {
+			if (sharedCheckOutDirectory == null) {
+				sharedCheckOutDirectory = "";
+			}
+			String pathToTest;
+			if (StringUtils.isEmpty(sharedCheckOutDirectory)) {
+				pathToTest = workspace.getRemote();
+			} else {
+				pathToTest = Paths.get(sharedCheckOutDirectory).isAbsolute() ?
+						sharedCheckOutDirectory :
+						Paths.get(workspace.getRemote(), sharedCheckOutDirectory).toFile().getCanonicalPath();
+			}
+
+
+			if (testName.toLowerCase().startsWith(pathToTest.toLowerCase())) {
+				returnIndex = pathToTest.length() + 1;
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Failed to getUftTestIndexStart for testName '%s' and sharedCheckOutDirectory '%s' : %s", testName, sharedCheckOutDirectory, e.getMessage()), e);
+		}
+		return returnIndex;
 	}
 
 	private String cleanTestName(String testName) {

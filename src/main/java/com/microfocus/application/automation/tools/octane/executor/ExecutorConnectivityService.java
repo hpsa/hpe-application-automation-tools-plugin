@@ -73,13 +73,10 @@ public class ExecutorConnectivityService {
 				credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
 			}
 
-
-			Jenkins jenkins = Jenkins.getInstance();
-
-			List<String> permissionResult = checkCIPermissions(jenkins, credentials != null);
+			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), credentials != null);
 
 			if (permissionResult != null && !permissionResult.isEmpty()) {
-				String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
+				String user = User.current() != null ? User.current().getId() : Jenkins.ANONYMOUS.getPrincipal().toString();
 				String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
 				logger.error(error);
 				result.setStatus(HttpStatus.SC_FORBIDDEN);

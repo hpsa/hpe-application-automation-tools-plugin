@@ -50,7 +50,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     public UftJobCleaner() {
         super("Uft Job Cleaner");
-        logger.warn(String.format("Initial delay %d minutes, recurrencePeriod %d minutes, outdate threshold %d days", getInitialDelay() / MIN, getRecurrencePeriod() / MIN, getOutdateThreshold()));
+        logger.debug(String.format("Initial delay %d minutes, recurrencePeriod %d minutes, outdate threshold %d days", getInitialDelay() / MIN, getRecurrencePeriod() / MIN, getOutdateThreshold()));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
                         String configurationId = getConfigurationIdInDiscoveryJob(proj);
                         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
                         EntitiesService entitiesService = octaneClient.getEntitiesService();
-                        List<String> conditions = Arrays.asList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
+                        List<String> conditions = Collections.singletonList(QueryHelper.condition(EntityConstants.Base.LOGICAL_NAME_FIELD, executorLogicalName));
                         List<Entity> executors = entitiesService.getEntities(workspaceId, EntityConstants.Executors.COLLECTION_NAME, conditions, null);
                         if (executors.isEmpty()) {
                             try {

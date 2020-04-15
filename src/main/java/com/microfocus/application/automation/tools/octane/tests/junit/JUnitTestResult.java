@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 
 import javax.xml.stream.XMLStreamException;
@@ -31,26 +32,37 @@ import java.io.Serializable;
  */
 final public class JUnitTestResult implements Serializable, TestResult {
 
+    private final static int DEFAULT_STRING_SIZE = 255;
     private final String moduleName;
     private final String packageName;
     private final String className;
     private final String testName;
+    private final String description;
     private final TestResultStatus result;
     private final long duration;
     private final long started;
     private final TestError testError;
     private final String externalReportUrl;
 
-    public JUnitTestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String externalReportUrl) {
-        this.moduleName = moduleName;
-        this.packageName = packageName;
-        this.className = className;
-        this.testName = testName;
+    public JUnitTestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String externalReportUrl, String description) {
+        this.moduleName = restrictSize(moduleName, DEFAULT_STRING_SIZE);
+        this.packageName = restrictSize(packageName, DEFAULT_STRING_SIZE);
+        this.className = restrictSize(className, DEFAULT_STRING_SIZE);
+        this.testName = restrictSize(testName, DEFAULT_STRING_SIZE);
         this.result = result;
         this.duration = duration;
         this.started = started;
         this.testError = testError;
         this.externalReportUrl = externalReportUrl;
+        this.description = description;
+    }
+
+    private String restrictSize(String value, int size) {
+        String result = value;
+        if (value != null && value.length() > size) {
+            result = value.substring(0, size);
+        }
+        return result;
     }
 
     public String getModuleName() {
@@ -97,7 +109,7 @@ final public class JUnitTestResult implements Serializable, TestResult {
         writer.writeAttribute("duration", String.valueOf(duration));
         writer.writeAttribute("status", result.toPrettyName());
         writer.writeAttribute("started", String.valueOf(started));
-        if(externalReportUrl != null) {
+        if(externalReportUrl != null && !externalReportUrl.isEmpty()) {
             writer.writeAttribute("external_report_url", externalReportUrl);
         }
         if (result.equals(TestResultStatus.FAILED) && testError != null) {
@@ -105,6 +117,16 @@ final public class JUnitTestResult implements Serializable, TestResult {
             writer.writeAttribute("type", String.valueOf(testError.getErrorType()));
             writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
             writer.writeCharacters(testError.getStackTraceStr());
+            writer.writeEndElement();
+        } else if (testError != null && !SdkStringUtils.isEmpty(testError.getErrorMsg())) {//warning case
+            writer.writeStartElement("error");
+            writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
+            writer.writeEndElement();
+        }
+
+        if (description != null && !description.isEmpty()) {
+            writer.writeStartElement("description");
+            writer.writeCharacters(description);
             writer.writeEndElement();
         }
         writer.writeEndElement();

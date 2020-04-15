@@ -30,18 +30,12 @@ public class ScmPluginFactory {
 
 
     public static ScmPluginHandler getScmHandler(SCMType scmType) {
-        if (scmType.GIT.equals(scmType)) {
+        if (SCMType.GIT.equals(scmType)) {
             if (gitPluginHandler == null) {
-                /*try {
-                    Class theClass = Class.forName("com.hpe.application.automation.tools.octane.executor.scmmanager.GitPluginHandler");
-                    gitPluginHandler = (ScmPluginHandler)theClass.newInstance();
-                } catch (ClassNotFoundException|IllegalAccessException|InstantiationException e) {
-                    e.printStackTrace();
-                } */
                 gitPluginHandler = new GitPluginHandler();
             }
             return gitPluginHandler;
-        } else if (scmType.SVN.equals(scmType)) {
+        } else if (SCMType.SVN.equals(scmType)) {
             if (svnPluginHandler == null) {
                 svnPluginHandler = new SvnPluginHandler();
             }
@@ -54,40 +48,26 @@ public class ScmPluginFactory {
         SCMType scmType = null;
 
         if ("hudson.plugins.git.GitSCM".equals(pluginName)) {
-            scmType = scmType.GIT;
+            scmType = SCMType.GIT;
         } else if ("hudson.scm.SubversionSCM".equals(pluginName)) {
-            scmType = scmType.SVN;
+            scmType = SCMType.SVN;
         } else {
             return null;
         }
         return getScmHandler(scmType);
     }
-
-    public static ScmPluginHandler getScmHandlerByChangePathClass(String  changePathClass) {
-        SCMType scmType = null;
-
-        if ("hudson.plugins.git.GitChangeSet$Path".equals(changePathClass)) {
-            scmType = scmType.GIT;
-        } else {
-            return null;
-        }
-
-        return getScmHandler(scmType);
-    }
-
-
 
     public static boolean isPluginInstalled(SCMType scmType) {
         String shortName;
-        if (scmType.GIT.equals(scmType)) {
+        if (SCMType.GIT.equals(scmType)) {
             shortName = "git";
-        } else if (scmType.SVN.equals(scmType)) {
+        } else if (SCMType.SVN.equals(scmType)) {
             shortName = "subversion";
         } else {
             throw new IllegalArgumentException("SCM repository " + scmType + " isn't supported.");
         }
 
-        PluginWrapper plugin = Jenkins.getInstance().pluginManager.getPlugin(shortName);
+        PluginWrapper plugin = Jenkins.getInstanceOrNull().pluginManager.getPlugin(shortName);
         return plugin != null;
     }
 }

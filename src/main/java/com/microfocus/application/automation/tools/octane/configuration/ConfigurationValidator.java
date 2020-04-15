@@ -21,15 +21,16 @@
 package com.microfocus.application.automation.tools.octane.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.ProxyConfiguration;
 import hudson.model.Item;
 import hudson.model.User;
-import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.Permission;
 import hudson.util.FormValidation;
@@ -74,27 +75,22 @@ public class ConfigurationValidator {
         return wrapWithFormValidation(errors.isEmpty(), errors.isEmpty() ? Messages.ConnectionSuccess() : errors.get(0));
     }
 
-    public static void checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
+    public static List<Entity> checkConfiguration(List<String> errorMessages, String location, String sharedSpace, String username, Secret password) {
 
         try {
-            OctaneSDK.testAndValidateOctaneConfiguration(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
-
+            return OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(location, sharedSpace, username, password.getPlainText(), CIJenkinsServicesImpl.class);
         } catch (OctaneConnectivityException octaneException) {
             errorMessages.add(octaneException.getErrorMessageVal());
-
         } catch (IOException ioe) {
             logger.warn("Connection check failed due to communication problem", ioe);
             errorMessages.add(Messages.ConnectionFailure());
         }
+        return Collections.emptyList();
     }
 
     public static void checkImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
-
-        //start impersonation
-        Jenkins jenkins = Jenkins.get();
-
         User jenkinsUser = null;
-        if (StringUtils.isNotEmpty(impersonatedUser)) {
+        if (!StringUtils.isEmpty(impersonatedUser)) {
             jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
             if (jenkinsUser == null) {
                 errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
@@ -104,11 +100,14 @@ public class ConfigurationValidator {
 
         ACLContext impersonatedContext = null;
         try {
-            impersonatedContext = ACL.as(jenkinsUser);
+            //start impersonation
+            impersonatedContext = ImpersonationUtil.startImpersonation(jenkinsUser);
+
             //test permissions
             Map<Permission, String> requiredPermissions = new HashMap<>();
             requiredPermissions.put(Item.BUILD, "Job.BUILD");
             requiredPermissions.put(Item.READ, "Job.READ");
+            Jenkins jenkins = Jenkins.get();
             Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
             if (!missingPermissions.isEmpty()) {
                 errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
@@ -117,15 +116,13 @@ public class ConfigurationValidator {
             errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), e.getMessage()));
         } finally {
             //depersonate
-            if (impersonatedContext != null) {
-                impersonatedContext.close();
-            }
+            ImpersonationUtil.stopImpersonation(impersonatedContext);
         }
     }
 
     public static FormValidation wrapWithFormValidation(boolean success, String message) {
         String color = success ? "green" : "red";
-        String msg = "<font color=\"" + color + "\">" + message + "</font>";
+        String msg = "<font color=\"" + color + "\" >" + message + "</font>";
         if (success) {
             return FormValidation.okWithMarkup(msg);
         } else {

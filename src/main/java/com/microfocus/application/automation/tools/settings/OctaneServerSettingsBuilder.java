@@ -20,8 +20,11 @@
 
 package com.microfocus.application.automation.tools.settings;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -50,6 +53,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Octane configuration settings
@@ -142,13 +148,20 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		public void initOctaneClients() {
-			for (OctaneServerSettingsModel innerServerConfiguration : servers) {
-				OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
-						innerServerConfiguration.getSharedSpace());
-				octaneConfiguration.setClient(innerServerConfiguration.getUsername());
-				octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
-				octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
-				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+			if (servers.length > 0) {
+				ExecutorService executor = Executors.newFixedThreadPool(Math.min(10, servers.length));
+				for (OctaneServerSettingsModel innerServerConfiguration : servers) {
+					OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
+							innerServerConfiguration.getSharedSpace());
+					octaneConfiguration.setClient(innerServerConfiguration.getUsername());
+					octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
+					octaneConfiguration.setSuspended(innerServerConfiguration.isSuspend());
+					octaneConfiguration.setImpersonatedUser(innerServerConfiguration.getImpersonatedUser());
+					octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
+					executor.execute(() -> {
+						OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+					});
+				}
 			}
 		}
 
@@ -222,34 +235,26 @@ public class OctaneServerSettingsBuilder extends Builder {
 				return;
 			}
 
-			Set<OctaneServerSettingsModel> serversToRemove = new LinkedHashSet<>();
-			for (OctaneServerSettingsModel server : servers) {
-				boolean configFound = false;
-				for (Object jsonObj : jsonArray) {
-					if (server.getInternalId().equals(((JSONObject) jsonObj).getString("internalId"))) {
-						configFound = true;
-						break;
-					}
-				}
-				if (!configFound) {
-					OctaneConfiguration octaneConfiguration = octaneConfigurations.get(server.getInternalId());
-					serversToRemove.add(server);
-					if (octaneConfiguration != null) {
-						logger.info("Removing client with instance Id: " + server.getIdentity());
-						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(server.getIdentity()));
-
-					}
-				}
-			}
-
-			List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
-			for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
-				serversToLeave.remove(serverToRemove);
-				octaneConfigurations.remove(serverToRemove.getInternalId());
-			}
-			servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
+			Set<String> foundInternalId = jsonArray.stream().map(jsonObj -> ((JSONObject) jsonObj).getString("internalId")).filter(s->!s.isEmpty()).collect(Collectors.toSet());
+			Set<OctaneServerSettingsModel> serversToRemove = Arrays.stream(servers).filter(server -> !foundInternalId.contains(server.getInternalId())).collect(Collectors.toSet());
 
 			if (!serversToRemove.isEmpty()) {
+				List<OctaneServerSettingsModel> serversToLeave = new ArrayList<>(Arrays.asList(servers));
+				for (OctaneServerSettingsModel serverToRemove : serversToRemove) {
+					logger.info("Removing client with instance Id: " + serverToRemove.getIdentity());
+					serversToLeave.remove(serverToRemove);
+					octaneConfigurations.remove(serverToRemove.getInternalId());
+
+					try {
+						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(serverToRemove.getIdentity()));
+					} catch (IllegalArgumentException e) {
+						//failed to remove from SDK
+						//just remove from jenkins
+						logger.warn("Failed to remove client with instance Id: " + serverToRemove.getIdentity() + " from SDK : " + e.getMessage());
+					}
+				}
+
+				servers = serversToLeave.toArray(new OctaneServerSettingsModel[0]);
 				save();
 			}
 		}
@@ -303,12 +308,23 @@ public class OctaneServerSettingsBuilder extends Builder {
 			octaneConfiguration.setUrl(newModel.getLocation());
 			octaneConfiguration.setClient(newModel.getUsername());
 			octaneConfiguration.setSecret(newModel.getPassword().getPlainText());
+			octaneConfiguration.setImpersonatedUser(newModel.getImpersonatedUser());
+			octaneConfiguration.setSuspended(newModel.isSuspend());
 
 			if (!octaneConfigurations.containsValue(octaneConfiguration)) {
 				octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
 				OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+			} else {
+				//just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Octanes can change SDK compatibility meanwhile
+				try {
+					OctaneClient client = OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId());
+					if(!client.getConfigurationService().getCurrentConfiguration().isSdkSupported()){
+						client.refreshSdkSupported();
+					}
+				} catch (Exception e) {
+					logger.info("Failed to refreshSdkSupported: " + e.getMessage());
+				}
 			}
-
 
 			if (!newModel.equals(oldModel)) {
 				fireOnChanged(newModel, oldModel);
@@ -347,10 +363,13 @@ public class OctaneServerSettingsBuilder extends Builder {
 		}
 
 		@SuppressWarnings("unused")
-		public FormValidation doTestConnection(@QueryParameter("uiLocation") String uiLocation,
+		public FormValidation doTestConnection(StaplerRequest req,
+											   @QueryParameter("uiLocation") String uiLocation,
 											   @QueryParameter("username") String username,
 											   @QueryParameter("password") String password,
-											   @QueryParameter("impersonatedUser") String impersonatedUser) {
+											   @QueryParameter("impersonatedUser") String impersonatedUser,
+											   @QueryParameter("suspend") Boolean isSuspend
+		) {
 			OctaneUrlParser octaneUrlParser;
 			try {
 				octaneUrlParser = ConfigurationValidator.parseUiLocation(uiLocation);
@@ -358,17 +377,43 @@ public class OctaneServerSettingsBuilder extends Builder {
 				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
 				return fv;
 			}
+			logger.info("test configuration to : " + octaneUrlParser.getLocation() + "?p=" + octaneUrlParser.getSharedSpace());
 
 
 			//  if parse is good, check authentication/authorization
 			List<String> fails = new ArrayList<>();
-			ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 			ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
 			ConfigurationValidator.checkHoProxySettins(fails);
+			List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
+			String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
 			if (fails.isEmpty()) {
-				return ConfigurationValidator.wrapWithFormValidation(true, Messages.ConnectionSuccess());
+				String msg = Messages.ConnectionSuccess();
+
+
+				if (availableWorkspaces != null && !availableWorkspaces.isEmpty()) {
+					int workspaceNumberLimit = 30;
+					String titleNewLine = "&#xA;";
+					String suffix = (availableWorkspaces.size() > workspaceNumberLimit) ? titleNewLine + "and more " + (availableWorkspaces.size() - workspaceNumberLimit) + " workspaces" : "";
+					String tooltip = availableWorkspaces.stream()
+							.sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getId())))
+							.limit(workspaceNumberLimit)
+							.map(w -> w.getId() + " - " + w.getName())
+							.collect(Collectors.joining(titleNewLine, "Available workspaces are : " + titleNewLine, suffix));
+					String icon = String.format("<img style=\"padding-left: 10px;\" src=\"%s/plugin/hp-application-automation-tools-plugin/icons/16x16/info-blue.png\"  title=\"%s\"/>",
+							Jenkins.get().getRootUrl(),tooltip);
+					msg = msg + icon;
+				}
+
+				if (isSuspend != null && isSuspend) {
+
+					msg += "<br/>" + suspendMessage;
+				}
+				return ConfigurationValidator.wrapWithFormValidation(true, msg);
 			} else {
+				if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
+					fails.add(suspendMessage);
+				}
 				String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
 				return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
 			}

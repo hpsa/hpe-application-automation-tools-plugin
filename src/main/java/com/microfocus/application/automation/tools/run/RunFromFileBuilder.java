@@ -28,14 +28,12 @@ import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
-import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import hudson.*;
 import hudson.model.*;
-import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
@@ -173,13 +171,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @throws Exception
      */
     private static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
-                                                String time, int index, TaskListener listener) throws Exception {
+                                                String time, int index) throws Exception {
         if (RunFromFileSystemModel.isMtbxContent(content)) {
-            listener.getLogger().println("Test content is an mtbx file content");
             try {
                 String prefx = index > 0 ? index + "_" : "";
                 String mtbxFilePath = prefx + createMtbxFileInWs(workspace, content, time);
-                listener.getLogger().println("[RunFromFileBuilder] replaceTestWithMtbxFile, mtbxFilePath: " + mtbxFilePath);
                 props.setProperty(key, mtbxFilePath);
             } catch (IOException | InterruptedException e) {
                 throw new Exception(e);
@@ -198,8 +194,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @throws Exception
      */
     private static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
-                                                String time, TaskListener listener) throws Exception {
-        replaceTestWithMtbxFile(workspace, props, content, key, time, 0, listener);
+                                                String time) throws Exception {
+        replaceTestWithMtbxFile(workspace, props, content, key, time, 0);
     }
 
     /**
@@ -624,10 +620,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
-        //listener.getLogger().println("RunFromFileBuilder - perform method");
-        //listener.getLogger().println("before sync current thread id: " + Thread.currentThread().getId());
-        synchronized (this) {
-            //listener.getLogger().println("after sync current thread id: " + Thread.currentThread().getId());
 
             // get the mc server settings
             MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -735,7 +727,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                     String content1 = mergedProperties.getProperty(key, "");
                     listener.getLogger().println("[RunFromFileBuilder - perform] content1:" + content1);
                     try {
-                        replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index, listener);
+                        replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
                     } catch (Exception e) {
                         build.setResult(Result.FAILURE);
                         listener.error("Failed to save MTBX file : " + e.getMessage());
@@ -751,7 +743,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
                 listener.getLogger().println("[RunFromFileBuilder - perform] firstTestContent for Test1:" + firstTestContent);
                 try {
-                    replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time, listener);
+                    replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
                 } catch (Exception e) {
                     build.setResult(Result.FAILURE);
                     listener.error("Failed to save MTBX file : " + e.getMessage());
@@ -834,8 +826,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 }
                 out.println("Operation Was aborted by user.");
             }
-        }
     }
+
 
     /**
      * Gets mc server settings model.

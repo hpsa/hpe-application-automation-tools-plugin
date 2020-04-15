@@ -59,9 +59,6 @@
                             <f:textbox value="${mqm.impersonatedUser}"/>
                         </f:entry>
 
-                        <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                                method="testConnection" with="uiLocation,username,password,impersonatedUser"/>
-
                         <f:advanced>
                             <f:optionalBlock name="showIdentity" field="showIdentity" title="${%global.config.dynamic.instanceId.title}" >
                                 <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
@@ -72,7 +69,7 @@
                                 <td class="setting-leftspace" colspan="3">
                                     <div style="">
                                         <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}" field="suspend"/>
-                                        <label>&#160; ${%global.config.suspend.title}</label>
+                                        <label>&#160; Disable configuration (Stop sending all data to ALM Octane) </label>
                                     </div>
                                 </td>
                             </tr>
@@ -88,11 +85,12 @@
                               </f:entry>
                        </f:advanced>
 
+                        <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
+                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend"/>
 
                     </table>
 
-
-                   <div style="float:right">
+                   <div align="right" style="margin-top:15px">
                         <f:repeatableDeleteButton value="${%delete_identity_btn}"></f:repeatableDeleteButton>
                     </div>
                 </f:repeatable>

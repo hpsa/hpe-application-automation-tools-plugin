@@ -27,13 +27,13 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.EnvVars;
+import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.TaskListener;
 import hudson.plugins.git.*;
 import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
-import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
@@ -56,7 +56,7 @@ public class GitPluginHandler implements ScmPluginHandler {
 		if (executorJob) {
 			String relativeCheckOut = "..\\..\\_test_sources\\" + scmRepository.getUrl().replaceAll("[<>:\"/\\|?*]", "_");
 			RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
-			extensions = Collections.<GitSCMExtension>singletonList(targetDirectory);
+			extensions = Collections.singletonList(targetDirectory);
 		}
 
 		String branch = "*/master";
@@ -71,13 +71,13 @@ public class GitPluginHandler implements ScmPluginHandler {
 			}
 		}
 
-		GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.<SubmoduleConfig>emptyList(), null, null, extensions);
+		GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.emptyList(), null, null, extensions);
 		proj.setScm(scm);
 	}
 
 	@Override
 	public String getSharedCheckOutDirectory(Job j) {
-		SCM scm = ((FreeStyleProject) j).getScm();
+		SCM scm = ((AbstractProject) j).getScm();
 
 		GitSCM gitScm = (GitSCM) scm;
 		RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
@@ -108,16 +108,6 @@ public class GitPluginHandler implements ScmPluginHandler {
 			result.setBody(e.getMessage());
 		}
 
-	}
-
-	@Override
-	public String getChangeSetSrc(ChangeLogSet.AffectedFile affectedFile) {
-		return ((GitChangeSet.Path) affectedFile).getSrc();
-	}
-
-	@Override
-	public String getChangeSetDst(ChangeLogSet.AffectedFile affectedFile) {
-		return ((GitChangeSet.Path) affectedFile).getDst();
 	}
 
 	@Override

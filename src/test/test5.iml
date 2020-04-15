@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/java" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="lib1" level="project" />
+    <orderEntry type="library" name="junit" level="project" />
+    <orderEntry type="library" name="lib29" level="project" />
+    <orderEntry type="library" name="lib8" level="project" />
+    <orderEntry type="library" name="mailer" level="project" />
+    <orderEntry type="library" name="lib36" level="project" />
+    <orderEntry type="library" name="ant" level="project" />
+    <orderEntry type="library" name="lib6" level="project" />
+    <orderEntry type="library" name="lib16" level="project" />
+    <orderEntry type="library" name="lib20" level="project" />
+    <orderEntry type="library" name="jenkins-multijob-plugin" level="project" />
+    <orderEntry type="library" name="workflow-job" level="project" />
+    <orderEntry type="library" name="lib28" level="project" />
+    <orderEntry type="library" name="classes1" level="project" />
+    <orderEntry type="library" name="lib2" level="project" />
+    <orderEntry type="library" name="matrix-project" level="project" />
+    <orderEntry type="library" name="lib18" level="project" />
+    <orderEntry type="library" name="lib11" level="project" />
+    <orderEntry type="module" module-name="main5" />
+  </component>
+</module>

@@ -60,7 +60,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -72,29 +71,30 @@ import static com.microfocus.application.automation.tools.results.projectparser.
  */
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
 
-	public static final String REPORT_NAME_FIELD = "report";
-	public static final int SECS_IN_DAY = 86400;
-	public static final int SECS_IN_HOUR = 3600;
-	public static final int SECS_IN_MINUTE = 60;
-	public static final String SLA_ULL_NAME = "FullName";
-	public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR = "Archiving test reports failed due to xml parsing error: ";
-	private static final long serialVersionUID = 1L;
-	private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
-	private static final String IE_REPORT_FOLDER = "IE";
-	private static final String HTML_REPORT_FOLDER = "HTML";
-	private static final String LRA_FOLDER = "LRA";
-	private static final String INDEX_HTML_NAME = "index.html";
-	private static final String REPORT_INDEX_NAME = "report.index";
-	private static final String REPORTMETADATE_XML = "report_metadata.xml";
-	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-	private static final String RICH_REPORT_FOLDER = "RichReport";
-	private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
-	private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
-	private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
-	private static final String NO_RICH_REPORTS_ERROR = "Template contains no rich reports.";
-	private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary "
-			+ "report.";
-	private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
+    public static final String REPORT_NAME_FIELD = "report";
+    public static final int SECS_IN_DAY = 86400;
+    public static final int SECS_IN_HOUR = 3600;
+    public static final int SECS_IN_MINUTE = 60;
+    public static final String SLA_ULL_NAME = "FullName";
+    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
+            "Archiving test reports failed due to xml parsing error: ";
+    private static final long serialVersionUID = 1L;
+    private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
+    private static final String IE_REPORT_FOLDER = "IE";
+    private static final String HTML_REPORT_FOLDER = "HTML";
+    private static final String LRA_FOLDER = "LRA";
+    private static final String INDEX_HTML_NAME = "index.html";
+    private static final String REPORT_INDEX_NAME = "report.index";
+    private static final String REPORTMETADATE_XML = "report_metadata.xml";
+    private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
+    private static final String RICH_REPORT_FOLDER = "RichReport";
+    private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
+    private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
+    private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
+    private static final String NO_RICH_REPORTS_ERROR = "Template contains no rich reports.";
+    private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
+            "report.";
+    private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
 
 	private final ResultsPublisherModel _resultsPublisherModel;
 	private List<FilePath> runReportList;
@@ -1390,84 +1390,58 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
 	}
 
-	private String getCurrentStackTraceString() {
-		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-		return Arrays.stream(stackTrace).map(StackTraceElement::toString)
-				.collect(Collectors.joining("\n"));
-	}
+    @Override
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        final List<String> mergedResultNames = new ArrayList<String>();
 
-	@Override
-	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-			@Nonnull TaskListener listener) throws InterruptedException, IOException {
-		//listener.getLogger().println("[RunResultsRecorder] perform method");
-		//listener.getLogger().println("before sync current thread id: " + Thread.currentThread().getId());
-		synchronized (this) {
-			//listener.getLogger().println("current trace: " + getCurrentStackTraceString());
-			//listener.getLogger().println("after sync current thread id: " + Thread.currentThread().getId());
-			//(50000);
+        Project<?, ?> project = RuntimeUtils.cast(build.getParent());
+        List<Builder> builders = project.getBuilders();
+        runReportList = new ArrayList<FilePath>();
+        final List<String> almResultNames = new ArrayList<String>();
+        final List<String> fileSystemResultNames = new ArrayList<String>();
+        final List<String> almSSEResultNames = new ArrayList<String>();
+        final List<String> pcResultNames = new ArrayList<String>();
 
-			//listener.getLogger().println("launcher: " + launcher.toString());
-			final List<String> mergedResultNames = new ArrayList<String>();
-			//listener.getLogger().println("current build (id): " + build.getId() + " build number: " + build.getNumber());
-			//listener.getLogger().println(
-			//		"build executor: " + build.getExecutor() + " executor state " + build.getExecutor().getState());
-			//listener.getLogger().println("build summary: " + build.getBuildStatusSummary());
-			//listener.getLogger().println("build parent: " + build.getParent());
-			Project<?, ?> project;
-			List<Builder> builders;
-			//wait(50000);
-			//synchronized (this) {
-				project = RuntimeUtils.cast(build.getParent());
-				builders = project.getBuilders();
-			//}
-			//listener.getLogger().println("number of builders: " + builders.size());
-			runReportList = new ArrayList<FilePath>();
-			final List<String> almResultNames = new ArrayList<String>();
-			final List<String> fileSystemResultNames = new ArrayList<String>();
-			final List<String> almSSEResultNames = new ArrayList<String>();
-			final List<String> pcResultNames = new ArrayList<String>();
+        // Get the TestSet report files names of the current build
+        for (Builder builder : builders) {
+            if (builder instanceof RunFromAlmBuilder) {
+                almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
+            } else if (builder instanceof SseBuilder) {
+                String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
+                if (resultsFileName != null) {
+                    almSSEResultNames.add(resultsFileName);
+                }
+            } else if (builder instanceof PcBuilder) {
+                String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
+                if (resultsFileName != null) {
+                    pcResultNames.add(resultsFileName);
+                }
+            }
+        }
 
-			// Get the TestSet report files names of the current build
-			for (Builder builder : builders) {
-				//listener.getLogger().println("current builder: " + builder.toString());
-				if (builder instanceof RunFromAlmBuilder) {
-					//listener.getLogger().println("alm  builder");
-					almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
-				} else if (builder instanceof RunFromFileBuilder) {
-					//listener.getLogger().println("run from file  builder");
-					//listener.getLogger().println("result file " + ((RunFromFileBuilder) builder).getRunResultsFileName());
-					fileSystemResultNames.add(((RunFromFileBuilder) builder).getRunResultsFileName());
-				} else if (builder instanceof SseBuilder) {
-					//listener.getLogger().println("sse  builder");
-					String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
-					if (resultsFileName != null) {
-						almSSEResultNames.add(resultsFileName);
-					}
-				} else if (builder instanceof PcBuilder) {
-					//listener.getLogger().println("pc  builder");
-					String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
-					if (resultsFileName != null) {
-						pcResultNames.add(resultsFileName);
-					}
-				}
+        FileFilter fileSystemResultFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
+        List<FilePath> fileSystemResultsPath = workspace.list(fileSystemResultFileFilter);
+        for (FilePath fileSystemResultPath: fileSystemResultsPath)
+        {
+            fileSystemResultNames.add(fileSystemResultPath.getName());
+        }
 
-			}
+        mergedResultNames.addAll(almResultNames);
+        mergedResultNames.addAll(fileSystemResultNames);
+        mergedResultNames.addAll(almSSEResultNames);
+        mergedResultNames.addAll(pcResultNames);
 
-			mergedResultNames.addAll(almResultNames);
-			mergedResultNames.addAll(fileSystemResultNames);
-			mergedResultNames.addAll(almSSEResultNames);
-			mergedResultNames.addAll(pcResultNames);
-
-			// Has any QualityCenter builder been set up?
-			if (mergedResultNames.isEmpty()) {
-				//listener.getLogger().println("RunResultRecorder: no results xml File provided");
-				return;
-			}
+        // Has any QualityCenter builder been set up?
+        if (mergedResultNames.isEmpty()) {
+            listener.getLogger().println("RunResultRecorder: no results xml File provided");
+            return;
+        }
 
 			recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
 			return;
 		}
-	}
+	
 
 	@Override
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
@@ -1477,9 +1451,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	@Override
 	public BuildStepMonitor getRequiredMonitorService() {
-
-		return BuildStepMonitor.BUILD;
-	}
+        return BuildStepMonitor.NONE;
+    }
 
 	/**
 	 * Gets results publisher model.
