@@ -107,21 +107,23 @@ public class UftJobRecognizer {
     public static void deleteExecutionJobByExecutorIfNeverExecuted(String executorToDelete) {
         List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isExecutorJob(proj)) {
-                String executorId = UftJobRecognizer.getExecutorId(proj);
-                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
-                Boolean isExecutorMatch = (executorId != null && executorId.equals(executorToDelete)) ||
-                        (executorLogicalName != null && executorLogicalName.equals(executorToDelete));
-                if (isExecutorMatch && proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
-                    try {
-                        logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
-                        proj.delete();
-                    } catch (IOException | InterruptedException e) {
-                        logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
-                    }
+            if (UftJobRecognizer.isExecutorJob(proj) && isJobMatch(executorToDelete, proj)
+                    && proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
+                try {
+                    logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
+                    proj.delete();
+                } catch (IOException | InterruptedException e) {
+                    logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
                 }
             }
         }
+    }
+
+    private static Boolean isJobMatch(String executorToFind, FreeStyleProject proj) {
+        String executorId = UftJobRecognizer.getExecutorId(proj);
+        String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
+        return (executorId != null && executorId.equals(executorToFind)) ||
+                (executorLogicalName != null && executorLogicalName.equals(executorToFind));
     }
 
     /**
@@ -133,32 +135,20 @@ public class UftJobRecognizer {
 
         List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isDiscoveryJob(proj)) {
-                String executorId = UftJobRecognizer.getExecutorId(proj);
-                String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
-                if ((executorId != null && executorId.equals(executorToDelete)) ||
-                        (executorLogicalName != null && executorLogicalName.equals(executorToDelete))) {
-                    boolean waitBeforeDelete = false;
+            if (UftJobRecognizer.isDiscoveryJob(proj) && isJobMatch(executorToDelete, proj)) {
+                if (proj.isBuilding()) {
+                    proj.getLastBuild().getExecutor().interrupt();
+                    CIPluginSDKUtils.doWait(10000); //wait before deleting the job, so Jenkins will be able to complete some IO actions
+                } else if (proj.isInQueue()) {
+                    Jenkins.getInstanceOrNull().getQueue().cancel(proj);
+                    CIPluginSDKUtils.doWait(10000); //wait before deleting the job, so Jenkins will be able to complete some IO actions
+                }
 
-                    if (proj.isBuilding()) {
-                        proj.getLastBuild().getExecutor().interrupt();
-                        waitBeforeDelete = true;
-                    } else if (proj.isInQueue()) {
-                        Jenkins.getInstanceOrNull().getQueue().cancel(proj);
-                        waitBeforeDelete = true;
-                    }
-
-                    if (waitBeforeDelete) {
-                        //we cancelled building/queue - wait before deleting the job, so Jenkins will be able to complete some IO actions
-                        CIPluginSDKUtils.doWait(10000);
-                    }
-
-                    try {
-                        logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted", proj.getName()));
-                        proj.delete();
-                    } catch (Exception e) {
-                        logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
-                    }
+                try {
+                    logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted", proj.getName()));
+                    proj.delete();
+                } catch (Exception e) {
+                    logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
                 }
             }
         }
