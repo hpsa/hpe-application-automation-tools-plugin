@@ -20,12 +20,12 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -110,15 +110,14 @@ public class UftJobRecognizer {
             if (UftJobRecognizer.isExecutorJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
                 String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
-                if ((StringUtils.isNotEmpty(executorId) && executorId.equals(executorToDelete)) ||
-                        (StringUtils.isNotEmpty(executorLogicalName) && executorLogicalName.equals(executorToDelete))) {
-                    if (proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
-                        try {
-                            logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
-                            proj.delete();
-                        } catch (IOException | InterruptedException e) {
-                            logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
-                        }
+                Boolean isExecutorMatch = (executorId != null && executorId.equals(executorToDelete)) ||
+                        (executorLogicalName != null && executorLogicalName.equals(executorToDelete));
+                if (isExecutorMatch && proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
+                    try {
+                        logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
+                        proj.delete();
+                    } catch (IOException | InterruptedException e) {
+                        logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
                     }
                 }
             }
@@ -137,8 +136,8 @@ public class UftJobRecognizer {
             if (UftJobRecognizer.isDiscoveryJob(proj)) {
                 String executorId = UftJobRecognizer.getExecutorId(proj);
                 String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
-                if ((StringUtils.isNotEmpty(executorId) && executorId.equals(executorToDelete)) ||
-                        (StringUtils.isNotEmpty(executorLogicalName) && executorLogicalName.equals(executorToDelete))) {
+                if ((executorId != null && executorId.equals(executorToDelete)) ||
+                        (executorLogicalName != null && executorLogicalName.equals(executorToDelete))) {
                     boolean waitBeforeDelete = false;
 
                     if (proj.isBuilding()) {
@@ -150,18 +149,14 @@ public class UftJobRecognizer {
                     }
 
                     if (waitBeforeDelete) {
-                        try {
-                            //we cancelled building/queue - wait before deleting the job, so Jenkins will be able to complete some IO actions
-                            Thread.sleep(10000);
-                        } catch (InterruptedException e) {
-                            //do nothing
-                        }
+                        //we cancelled building/queue - wait before deleting the job, so Jenkins will be able to complete some IO actions
+                        CIPluginSDKUtils.doWait(10000);
                     }
 
                     try {
                         logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted", proj.getName()));
                         proj.delete();
-                    } catch (IOException | InterruptedException e) {
+                    } catch (Exception e) {
                         logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
                     }
                 }
