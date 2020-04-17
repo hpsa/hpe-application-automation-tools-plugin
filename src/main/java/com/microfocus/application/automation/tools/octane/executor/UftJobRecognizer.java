@@ -107,7 +107,7 @@ public class UftJobRecognizer {
     public static void deleteExecutionJobByExecutorIfNeverExecuted(String executorToDelete) {
         List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isExecutorJob(proj) && isJobMatch(executorToDelete, proj)
+            if (UftJobRecognizer.isExecutorJob(proj) && isJobMatchExecutor(executorToDelete, proj)
                     && proj.getLastBuild() == null && !proj.isBuilding() && !proj.isInQueue()) {
                 try {
                     logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted and this job was never executed and has no history.", proj.getName()));
@@ -119,7 +119,7 @@ public class UftJobRecognizer {
         }
     }
 
-    private static Boolean isJobMatch(String executorToFind, FreeStyleProject proj) {
+    private static Boolean isJobMatchExecutor(String executorToFind, FreeStyleProject proj) {
         String executorId = UftJobRecognizer.getExecutorId(proj);
         String executorLogicalName = UftJobRecognizer.getExecutorLogicalName(proj);
         return (executorId != null && executorId.equals(executorToFind)) ||
@@ -135,7 +135,7 @@ public class UftJobRecognizer {
 
         List<FreeStyleProject> jobs = Jenkins.getInstanceOrNull().getAllItems(FreeStyleProject.class);
         for (FreeStyleProject proj : jobs) {
-            if (UftJobRecognizer.isDiscoveryJob(proj) && isJobMatch(executorToDelete, proj)) {
+            if (UftJobRecognizer.isDiscoveryJob(proj) && isJobMatchExecutor(executorToDelete, proj)) {
                 if (proj.isBuilding()) {
                     proj.getLastBuild().getExecutor().interrupt();
                     CIPluginSDKUtils.doWait(10000); //wait before deleting the job, so Jenkins will be able to complete some IO actions
