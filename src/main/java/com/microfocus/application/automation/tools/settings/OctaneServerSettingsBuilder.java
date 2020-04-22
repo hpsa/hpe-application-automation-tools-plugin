@@ -96,27 +96,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 		@Override
 		protected XmlFile getConfigFile() {
 			XmlFile xmlFile = super.getConfigFile();
-			//Between 5.1 to 5.2 - migration hp->hpe was done.
-			//Old configuration file 'com.hp.application.automation.tools.settings.OctaneServerSettingsBuilder.xml'
-			//is replaced by new one 'com.hpe.application.automation.tools.settings.OctaneServerSettingsBuilder.xml'.
-			//As well, inside the configuration, there were replaces of hp->hpe
-			//if xmlFile is not exist, we will check if configuration file name exist in format of 5.1 version
-			//if so, we will copy old configuration to new one with replacements of hp->hpe
-			if (!xmlFile.exists()) {
-				//try to get from old path
-				File oldConfigurationFile = new File(xmlFile.getFile().getPath().replace("hpe", "hp"));
-				if (oldConfigurationFile.exists()) {
-					try {
-						String configuration = FileUtils.readFileToString(oldConfigurationFile);
-						String newConfiguration = StringUtils.replace(configuration, ".hp.", ".hpe.");
-						FileUtils.writeStringToFile(xmlFile.getFile(), newConfiguration);
-						xmlFile = super.getConfigFile();
-					} catch (IOException e) {
-						logger.error("failed to copy ALM Octane Plugin configuration 5.1 to new 5.2 format : " + e.getMessage());
-					}
-				}
-			}
-
 			return xmlFile;
 		}
 
@@ -245,9 +224,10 @@ public class OctaneServerSettingsBuilder extends Builder {
 					serversToLeave.remove(serverToRemove);
 					octaneConfigurations.remove(serverToRemove.getInternalId());
 
+
 					try {
 						OctaneSDK.removeClient(OctaneSDK.getClientByInstanceId(serverToRemove.getIdentity()));
-					} catch (IllegalArgumentException e) {
+					} catch (IllegalArgumentException | IllegalStateException e) {
 						//failed to remove from SDK
 						//just remove from jenkins
 						logger.warn("Failed to remove client with instance Id: " + serverToRemove.getIdentity() + " from SDK : " + e.getMessage());
