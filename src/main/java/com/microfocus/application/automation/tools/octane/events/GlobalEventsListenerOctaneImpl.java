@@ -97,7 +97,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 			return;
 		}
 
-		boolean skip = isFolder(item) || isMultibranchChild(item);
+		boolean skip = isFolder(item) || isMultibranchChild(item);//for MultibranchChild - there is a logic in Octane that handle child on parent event
 		logger.info("onLocationChanged '" + oldFullName + "' to '" + newFullName + "'" + (skip ? ". Skipped." : ""));
 		if (skip) {
 			return;
