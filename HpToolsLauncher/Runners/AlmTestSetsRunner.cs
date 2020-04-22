@@ -1163,7 +1163,7 @@ namespace HpToolsLauncher
             {
                 targetTestSet = GetTargetTestSet(testSetList, testSuiteName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Console.WriteLine("Empty target test set list");
             }
@@ -1814,7 +1814,7 @@ namespace HpToolsLauncher
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
