@@ -255,8 +255,6 @@ namespace HpToolsLauncher
             }
             string resultsFilename = _ciParams["resultsFilename"];
 
-            //Console.WriteLine("Run, resultsFilename = " + resultsFilename);
-
             UniqueTimeStamp = _ciParams.ContainsKey("uniqueTimeStamp") ? _ciParams["uniqueTimeStamp"] : resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
 
             List<TestData> failedTests = new List<TestData>();
@@ -289,10 +287,6 @@ namespace HpToolsLauncher
                     ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
 
                     //rerun the selected tests (either the entire set, just the selected tests or only the failed tests)
-                    //create the runner according to type
-                    //Console.WriteLine("[Run] Create runner");
-                    
-                    
                     List<TestRunResults> runResults = results.TestRuns;
                     int index = 0;
                     foreach(var item in runResults)
@@ -304,12 +298,12 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    //create the runner according to type
                     runner = CreateRunner(_runType, _ciParams, false, failedTests);
 
                     //runner instantiation failed (no tests to run or other problem)
                     if (runner == null)
                     {
-                       //Console.WriteLine("[Run] is null");
                         Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
                     }
 
@@ -480,7 +474,6 @@ namespace HpToolsLauncher
 
                                 if (fsTestType.Equals("Of any of the build's tests"))
                                 {
-                                    //ConsoleWriter.WriteLine("List of valid test has : " + validTests.Count + " tests");
                                     if (runOnlyFailedTests)
                                     {
                                         ConsoleWriter.WriteLine("Rerun only the failed tests");
@@ -518,12 +511,6 @@ namespace HpToolsLauncher
                                                 Console.WriteLine("There are no failed tests to rerun");
                                                 break;
                                             }
-
-                                            /*validTests = Helper.ValidateFiles(failedTests);
-                                             foreach (var item in validTests)
-                                             {
-                                                Console.WriteLine("valid failed test: " + item);
-                                             }*/
                                         }
 
                                         currentRerun--;

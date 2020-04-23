@@ -40,7 +40,6 @@ namespace HpToolsLauncher
     {
         private static readonly Dictionary<string, string> argsDictionary = new Dictionary<string, string>();
 
-        //[MTAThread]
         static void Main(string[] args)
         {
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
