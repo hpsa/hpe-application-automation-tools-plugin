@@ -46,6 +46,9 @@
             </f:entry>
         </f:entry>
 
+        <f:entry>
+            <f:checkbox id="checkBox2" title="Rerun only failed tests" field="onlyFailedTests" name="onlyFailedTests" class="checbox-align" checked="${instance.onlyFailedTests}" />
+        </f:entry>
 
         <f:entry>
             <label>Nodes</label>

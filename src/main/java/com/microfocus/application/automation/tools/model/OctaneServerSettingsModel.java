@@ -53,17 +53,12 @@ public class OctaneServerSettingsModel {
 	public OctaneServerSettingsModel() {
 	}
 
-	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
-		this(uiLocation, username, password, impersonatedUser, null);
-	}
-
 	@DataBoundConstructor
-	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser, String sscBaseToken) {
+	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
 		this.uiLocation = StringUtils.trim(uiLocation);
 		this.username = username;
 		this.password = password;
 		this.impersonatedUser = impersonatedUser;
-		this.sscBaseToken = sscBaseToken;
 	}
 
 	public String getInternalId() {
@@ -83,6 +78,7 @@ public class OctaneServerSettingsModel {
 		return this.sscBaseToken;
 	}
 
+	@DataBoundSetter
 	public void setSscBaseToken(String sscBaseToken) {
 		this.sscBaseToken = sscBaseToken;
 	}

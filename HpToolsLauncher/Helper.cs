@@ -471,7 +471,7 @@ namespace HpToolsLauncher
                 files = files.Union(root.GetFiles("*" + QTPFileExtention)).ToArray();
                 files = files.Union(root.GetFiles("*" + LoadRunnerFileExtention)).ToArray();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // This code just writes out the message and continues to recurse.
                 // You may decide to do something different here. For example, you
@@ -797,7 +797,7 @@ namespace HpToolsLauncher
                 runDesc.TestState = finalState;
                 return runDesc.TestState;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return TestState.Unknown;
             }
@@ -868,7 +868,7 @@ namespace HpToolsLauncher
                 runDesc.TestState = TestState.Error;
                 return runDesc.TestState;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return TestState.Unknown;
             }
@@ -1034,7 +1034,7 @@ namespace HpToolsLauncher
                 }
                 return;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             finally

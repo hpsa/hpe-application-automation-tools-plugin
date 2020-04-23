@@ -697,7 +697,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 
             for (String test : testsArr) {
                 test = test.trim();
-                listener.getLogger().println("[RunFromFileSystemModel] createProperties current test to set: " + test);
                 props.put("Test" + i, test);
                 i++;
             }

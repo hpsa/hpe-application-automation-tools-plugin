@@ -49,10 +49,7 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
-import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
-import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
-import com.microfocus.application.automation.tools.octane.executor.UftConstants;
-import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
+import com.microfocus.application.automation.tools.octane.executor.*;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -522,8 +519,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public void deleteExecutor(String id) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
-			UftJobCleaner.deleteExecutionJobByExecutorIfNeverExecuted(id);
+			UftJobRecognizer.deleteDiscoveryJobByExecutor(id);
+			UftJobRecognizer.deleteExecutionJobByExecutorIfNeverExecuted(id);
 		} finally {
 			stopImpersonation(securityContext);
 		}

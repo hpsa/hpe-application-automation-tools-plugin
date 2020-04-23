@@ -64,9 +64,11 @@ function enableCombobox(object){
     if (object.checked){
         document.getElementsByName("fsTestType")[0].disabled = false;
         document.getElementsByName("selectedNode")[0].disabled = false;
+        document.getElementById("checkBox2").disabled=false;
     } else {
         document.getElementsByName("fsTestType")[0].disabled = true;
         document.getElementsByName("selectedNode")[0].disabled = true;
+        document.getElementById("checkBox2").disabled=true;
     }
 }
 
@@ -93,8 +95,10 @@ function selectValueCombo(selectObj) {
     var selectValue = selectObj.options[selectIndex].text;
     if (selectValue === "Of any of the build's tests") {
         selectCleanupTest("hidden");
+        document.getElementById("checkBox2").disabled=false;
     } else {
         selectCleanupTest("visible");
+        document.getElementById("checkBox2").disabled=true;
     }
 }
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
  *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
@@ -21,27 +21,21 @@
  */
 
 using System;
+using System.Collections.Generic;
 
-namespace HpToolsLauncher
+namespace HpToolsLauncher.TestRunners
 {
-    public class RunnerBase: IAssetRunner
+    public class IterationInfo
     {
-        
-        public virtual void Dispose()
-        {
-        }
-        protected bool _blnRunCancelled = false;
+        public const string RANGE_ITERATION_MODE = "rngIterations";
+        public const string ONE_ITERATION_MODE = "oneIteration";
+        public const string ALL_ITERATION_MODE = "rngAll";
+        public static ISet<String> AvailableTypes = new HashSet<String>() { RANGE_ITERATION_MODE, ONE_ITERATION_MODE, ALL_ITERATION_MODE };
 
-        public bool RunWasCancelled
-        {
-            get { return _blnRunCancelled; }
-            set { _blnRunCancelled = value; }
-        }
+        public string IterationMode { get; set; }
 
-        public virtual TestSuiteRunResults Run()
-        {
-            throw new NotImplementedException();
-        }
-        
+        public string StartIteration { get; set; }
+
+        public string EndIteration { get; set; }
     }
 }

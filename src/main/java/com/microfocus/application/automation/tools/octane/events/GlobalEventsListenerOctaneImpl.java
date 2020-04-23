@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.octane.events;
 
-import com.cloudbees.hudson.plugins.folder.Folder;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
@@ -92,37 +91,33 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 	}
 
 	@Override
-	public void onRenamed(Item item, String oldName, String newName) {
-		if(!OctaneSDK.hasClients()){
+	public void onLocationChanged(Item item, String oldFullName, String newFullName) {
+
+		if (!OctaneSDK.hasClients()) {
 			return;
 		}
-		logger.info("Renaming Job " + oldName + " to " + item.getFullName());
+
+		boolean skip = isFolder(item) || isMultibranchChild(item);//for MultibranchChild - there is a logic in Octane that handle child on parent event
+		logger.info("onLocationChanged '" + oldFullName + "' to '" + newFullName + "'" + (skip ? ". Skipped." : ""));
+		if (skip) {
+			return;
+		}
 
 		try {
-			CIEvent	event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.RENAMED);
-			String project;
-			if(isJob(item)) {
-				project = JobProcessorFactory.getFlowProcessor((Job) item).getTranslatedJobName();
+			CIEvent event = dtoFactory.newDTO(CIEvent.class).setEventType(CIEventType.RENAMED);
+			if (isJob(item)) {
 				event.setItemType(ItemType.JOB);
 			} else if (isMultibranch(item)) {
-                project = BuildHandlerUtils.translateFolderJobName(item.getFullName());
 				event.setItemType(ItemType.MULTI_BRANCH);
-			} else if(isFolder(item)) {
-				project = BuildHandlerUtils.translateFolderJobName(item.getFullName());
-				event.setItemType(ItemType.FOLDER);
-            } else {
-				logger.info("Cannot handle rename for " + item.getClass().getName());
+			} else {
+				logger.info("Cannot handle onLocationChanged for " + item.getClass().getName());
 				return;
 			}
 
-			String projectDisplayName = BuildHandlerUtils.translateFullDisplayName(item.getFullDisplayName());
-			String previousProject = getPreviousProject(oldName, newName, project);
-			String previousDisplayName = getPreviousDisplayName(oldName, newName, projectDisplayName);
-			event.setProject(project)
-					.setProjectDisplayName(projectDisplayName)
-					.setPreviousProject(previousProject)
-					.setPreviousProjectDisplayName(previousDisplayName);
+			event.setProject(BuildHandlerUtils.translateFolderJobName(newFullName))
+					.setProjectDisplayName(newFullName)
+					.setPreviousProject(BuildHandlerUtils.translateFolderJobName(oldFullName))
+					.setPreviousProjectDisplayName(oldFullName);
 
 			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 		} catch (Throwable throwable) {
@@ -130,33 +125,21 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		}
 	}
 
-	private String getPreviousProject(String oldName, String newName, String project) {
-		if (project.contains("/")) {
-			String jobPath = project.substring(0, project.lastIndexOf("/" + newName));
-			return jobPath + "/" + oldName;
-		} else {
-			return oldName;
-		}
+
+	private boolean isFolder(Item item) {
+		return JobProcessorFactory.FOLDER_JOB_NAME.equals(item.getClass().getName());
 	}
 
-	private String getPreviousDisplayName(String oldName, String newName, String fullDisplayName) {
-		if (fullDisplayName.contains("/")) {
-			String jobPath = fullDisplayName.substring(0, fullDisplayName.lastIndexOf("/" + newName));
-			return jobPath + "/" + oldName;
-		} else {
-			return oldName;
-		}
+	private boolean isMultibranch(Item item) {
+		return JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getClass().getName());
 	}
 
-	private boolean isFolder(Item item){
-	    return item.getClass().getName().equals(JobProcessorFactory.FOLDER_JOB_NAME) && item instanceof Folder;
-    }
+	private boolean isJob(Item item) {
+		return item instanceof Job;
+	}
 
-    private boolean isMultibranch(Item item){
-	    return item.getClass().getName().equalsIgnoreCase(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME);
-    }
-
-    private boolean isJob(Item item){
-        return item instanceof Job;
-    }
+	private boolean isMultibranchChild(Item item) {
+		return JobProcessorFactory.WORKFLOW_JOB_NAME.equals(item.getClass().getName()) &&
+				JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getParent().getClass().getName());
+	}
 }

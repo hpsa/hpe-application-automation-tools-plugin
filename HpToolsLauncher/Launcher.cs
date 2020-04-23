@@ -259,9 +259,11 @@ namespace HpToolsLauncher
 
             UniqueTimeStamp = _ciParams.ContainsKey("uniqueTimeStamp") ? _ciParams["uniqueTimeStamp"] : resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
 
+            List<TestData> failedTests = new List<TestData>();
+
             //run the entire set of test once
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(_runType, _ciParams, true);
+            IAssetRunner runner = CreateRunner(_runType, _ciParams, true, failedTests);
 
             //runner instantiation failed (no tests to run or other problem)
             if (runner == null)
@@ -286,15 +288,28 @@ namespace HpToolsLauncher
                 {
                     ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
 
-                    //rerun the selected tests (either the entire set or just the selected ones)
+                    //rerun the selected tests (either the entire set, just the selected tests or only the failed tests)
                     //create the runner according to type
-                    Console.WriteLine("[Run] Create runner");
-                    runner = CreateRunner(_runType, _ciParams, false);
+                    //Console.WriteLine("[Run] Create runner");
+                    
+                    
+                    List<TestRunResults> runResults = results.TestRuns;
+                    int index = 0;
+                    foreach(var item in runResults)
+                    {
+                        if(item.TestState == TestState.Failed)
+                        {
+                            index++;
+                            failedTests.Add(new TestData(item.TestPath, "FailedTest" + index));
+                        }
+                    }
+
+                    runner = CreateRunner(_runType, _ciParams, false, failedTests);
 
                     //runner instantiation failed (no tests to run or other problem)
                     if (runner == null)
                     {
-                        Console.WriteLine("[Run] is null");
+                       //Console.WriteLine("[Run] is null");
                         Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
                     }
 
@@ -311,13 +326,15 @@ namespace HpToolsLauncher
         /// <param name="runType"></param>
         /// <param name="ciParams"></param>
         /// <param name="initialTestRun"></param>
-        private IAssetRunner CreateRunner(TestStorageType runType, JavaProperties ciParams, bool initialTestRun)
+        private IAssetRunner CreateRunner(TestStorageType runType, JavaProperties ciParams, bool initialTestRun, List<TestData> failedTests)
         {
             IAssetRunner runner = null;
             
             switch (runType)
             {
-                 case TestStorageType.Alm:
+                case TestStorageType.AlmLabManagement:
+                  
+                case TestStorageType.Alm:
                     //check that all required parameters exist
                     foreach (string param1 in requiredParamsForQcRun)
                     {
@@ -337,7 +354,7 @@ namespace HpToolsLauncher
                     }
 
                     ConsoleWriter.WriteLine(string.Format(Resources.LuancherDisplayTimout, dblQcTimeout));
-
+                    
                     QcRunMode enmQcRunMode = QcRunMode.RUN_LOCAL;
                     if (!Enum.TryParse<QcRunMode>(_ciParams["almRunMode"], true, out enmQcRunMode))
                     {
@@ -382,6 +399,7 @@ namespace HpToolsLauncher
                     bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") ? Convert.ToBoolean(_ciParams["SSOEnabled"]) : false;
                     string clientID = _ciParams.ContainsKey("almClientID") ? _ciParams["almClientID"] : "";
                     string apiKey = _ciParams.ContainsKey("almApiKey") ? Decrypt(_ciParams["almApiKey"], _secretKey) : "";
+                    string almRunHost = _ciParams.ContainsKey("almRunHost") ? _ciParams["almRunHost"] : "";
 
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
@@ -391,13 +409,13 @@ namespace HpToolsLauncher
                                      _ciParams["almProject"],
                                      dblQcTimeout,
                                      enmQcRunMode,
-                                     _ciParams["almRunHost"],
+                                     almRunHost,
                                      sets,
                                      isFilterSelected,
                                      filterByName,
                                      filterByStatuses,
                                      initialTestRun,
-                                     TestStorageType.Alm,
+                                     runType,
                                      isSSOEnabled,
                                      clientID, apiKey);
                     break;
@@ -430,6 +448,10 @@ namespace HpToolsLauncher
                     else
                     { //add also cleanup tests
                         string fsTestType = (_ciParams.ContainsKey("testType") ? _ciParams["testType"] : "");
+
+                        string onlyFailedTests = (_ciParams.ContainsKey("onlyFailedTests") ? _ciParams["onlyFailedTests"] : "");
+                        bool runOnlyFailedTests = !string.IsNullOrEmpty(onlyFailedTests) && Convert.ToBoolean(onlyFailedTests.ToLower());
+
                         //Console.WriteLine("Get failed tests to rerun");
                         List<TestData> validFailedTests = GetValidTests("FailedTest", Resources.LauncherNoFailedTestsFound, Resources.LauncherNoValidFailedTests);
                         List<TestData> validCleanupTests = new List<TestData>();
@@ -451,23 +473,57 @@ namespace HpToolsLauncher
                             ConsoleWriter.WriteLine("In order to rerun the tests the number of reruns should be greater than zero.");
                         } else
                         {
+                           
                             for (int i = 0; i < numberOfReruns.Count; i++)
                             {
                                 var currentRerun = numberOfReruns.ElementAt(i);
 
                                 if (fsTestType.Equals("Of any of the build's tests"))
                                 {
-                                    ConsoleWriter.WriteLine("Rerun the entire test set");
+                                    //ConsoleWriter.WriteLine("List of valid test has : " + validTests.Count + " tests");
+                                    if (runOnlyFailedTests)
+                                    {
+                                        ConsoleWriter.WriteLine("Rerun only the failed tests");
+                                    }
+                                    else
+                                    {
+                                        ConsoleWriter.WriteLine("Rerun the entire test set");
+                                    }
+                                    
                                     while (currentRerun > 0)
                                     {
-                                        if (validCleanupTests.Count > 0)
+                                        if (!runOnlyFailedTests)
                                         {
-                                            validTests.Add(validCleanupTests.ElementAt(i));
-                                        }
+                                            if (validCleanupTests.Count > 0)
+                                            {
+                                                validTests.Add(validCleanupTests.ElementAt(i));
+                                            }
 
-                                        foreach (var item in validFailedTests)
+
+                                            foreach (var item in validFailedTests)
+                                            {
+                                                validTests.Add(item);
+                                            }
+                                        } else
                                         {
-                                            validTests.Add(item);
+                                            if(failedTests.Count != 0)
+                                            {
+                                                foreach (var item in failedTests)
+                                                {
+                                                    validTests.Add(item);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("There are no failed tests to rerun");
+                                                break;
+                                            }
+
+                                            /*validTests = Helper.ValidateFiles(failedTests);
+                                             foreach (var item in validTests)
+                                             {
+                                                Console.WriteLine("valid failed test: " + item);
+                                             }*/
                                         }
 
                                         currentRerun--;
@@ -782,11 +838,8 @@ namespace HpToolsLauncher
 
         private void RunTests(IAssetRunner runner, string resultsFile, TestSuiteRunResults results)
         {
-            Console.WriteLine("LAUNCHER - [RunTests method]");
             try
             {
-               // lock (lockObject)
-               // {
                     if (_ciRun)
                     {
                         _xmlBuilder = new JunitXmlBuilder();
@@ -870,7 +923,6 @@ namespace HpToolsLauncher
                         }
 
                     }
-                //}
             }
             finally
             {

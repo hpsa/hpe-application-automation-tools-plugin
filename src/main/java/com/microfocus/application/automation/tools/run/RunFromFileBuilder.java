@@ -698,8 +698,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 resultFileNames = new HashMap<Long, String>();
             }
             resultFileNames.put(threadId, result);
-            //listener.getLogger().println("Properties file name is: " + ParamFileName);
-            //listener.getLogger().println("Results file name is(1): " + result);
 
             mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 
@@ -721,11 +719,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 // we need to replace each mtbx test with mtbx file path
                 for (int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size(); index++) {
                     String key = "Test" + index;
-                    listener.getLogger().println("[RunFromFileBuilder - perform] key:" + key);
                     String content = mergedProperties.getProperty(key + index, "");
-                    listener.getLogger().println("[RunFromFileBuilder - perform] content:" + content);
-                    String content1 = mergedProperties.getProperty(key, "");
-                    listener.getLogger().println("[RunFromFileBuilder - perform] content1:" + content1);
                     try {
                         replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
                     } catch (Exception e) {
@@ -741,7 +735,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 // this only applies to the normal file system flow
                 String firstTestKey = "Test1";
                 String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
-                listener.getLogger().println("[RunFromFileBuilder - perform] firstTestContent for Test1:" + firstTestContent);
                 try {
                     replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
                 } catch (Exception e) {
