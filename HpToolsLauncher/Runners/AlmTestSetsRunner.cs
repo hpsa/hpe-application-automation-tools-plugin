@@ -277,7 +277,6 @@ namespace HpToolsLauncher
         public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject, 
                                         bool SSOEnabled, string qcClientID, string qcApiKey)
         {
-            //Console.WriteLine("Connecting to project");
             if (string.IsNullOrWhiteSpace(qcServerUrl)
                 || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
                 || string.IsNullOrWhiteSpace(qcDomain)
@@ -1572,7 +1571,6 @@ namespace HpToolsLauncher
                     }
                     finally
                     {
-                        //continue;
                     }
                 }
 

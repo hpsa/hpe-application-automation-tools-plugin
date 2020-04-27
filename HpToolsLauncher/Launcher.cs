@@ -485,14 +485,14 @@ namespace HpToolsLauncher
                                     
                                     while (currentRerun > 0)
                                     {
+
+                                        if (validCleanupTests.Count > 0)
+                                        {
+                                            validTests.Add(validCleanupTests.ElementAt(i));
+                                        }
+
                                         if (!runOnlyFailedTests)
                                         {
-                                            if (validCleanupTests.Count > 0)
-                                            {
-                                                validTests.Add(validCleanupTests.ElementAt(i));
-                                            }
-
-
                                             foreach (var item in validFailedTests)
                                             {
                                                 validTests.Add(item);
