@@ -159,12 +159,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				try {
 					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-					if (tmpJob != null && !isJobIsRelevantForPipelineModule(tmpJob)) {
+					if (!isJobIsRelevantForPipelineModule(tmpJob)) {
 						continue;
 					}
 
 					PipelineNode tmpConfig;
-					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+					if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
 						tempJobName = tmpJob.getParent().getFullName();
 						tmpConfig = createPipelineNodeFromJobName(tempJobName);
 					} else {

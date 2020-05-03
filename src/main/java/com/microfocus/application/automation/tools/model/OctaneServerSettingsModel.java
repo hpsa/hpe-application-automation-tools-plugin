@@ -215,10 +215,8 @@ public class OctaneServerSettingsModel {
 						continue;
 					}
 
-					long workspaceId;
-					try {
-						workspaceId = Long.parseLong(subPart[0].trim());
-					} catch (NumberFormatException e) {
+					Long workspaceId = getLongOrNull(subPart[0]);
+					if (workspaceId == null) {
 						errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
 						continue;
 					}
@@ -237,12 +235,20 @@ public class OctaneServerSettingsModel {
 					workspace2ImpersonatedUserMap.put(workspaceId, user);
 				}
 			} catch (Exception e) {
-				errorsFound.add("Unexpected exception during workspace configuratin parsing: " + e.getMessage());
+				errorsFound.add("Unexpected exception during workspace configuration parsing: " + e.getMessage());
 			}
 		}
 		if (!ignoreErrors && !errorsFound.isEmpty()) {
 			throw new AggregatedMessagesException(errorsFound);
 		}
 		return workspace2ImpersonatedUserMap;
+	}
+
+	private static Long getLongOrNull(String str) {
+		try {
+			return Long.parseLong(str.trim());
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 }
