@@ -203,36 +203,8 @@ public class OctaneServerSettingsModel {
 		if (workspace2ImpersonatedUserConf != null) {
 			try {
 				String[] parts = workspace2ImpersonatedUserConf.split("[\\n]");
-				for (String part : parts) {
-					String trimmedPart = part.trim();
-					if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
-						continue;
-					}
-
-					String[] subPart = part.split(":");
-					if (subPart.length != 2) {
-						errorsFound.add("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + trimmedPart);
-						continue;
-					}
-
-					Long workspaceId = getLongOrNull(subPart[0]);
-					if (workspaceId == null) {
-						errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
-						continue;
-					}
-
-					String user = subPart[1].trim();
-					if (user.isEmpty()) {
-						errorsFound.add("Workspace configuration is not valid, user value is empty: " + trimmedPart);
-						continue;
-					}
-
-					if (workspace2ImpersonatedUserMap.containsKey(workspaceId)) {
-						errorsFound.add("Duplicated workspace configuration: " + trimmedPart);
-						continue;
-					}
-
-					workspace2ImpersonatedUserMap.put(workspaceId, user);
+				for (String workspaceConfiguration : parts) {
+					parseWorkspaceConfiguration(workspace2ImpersonatedUserMap, errorsFound, workspaceConfiguration);
 				}
 			} catch (Exception e) {
 				errorsFound.add("Unexpected exception during workspace configuration parsing: " + e.getMessage());
@@ -242,6 +214,38 @@ public class OctaneServerSettingsModel {
 			throw new AggregatedMessagesException(errorsFound);
 		}
 		return workspace2ImpersonatedUserMap;
+	}
+
+	private static void parseWorkspaceConfiguration(Map<Long, String> workspace2ImpersonatedUserMap, List<String> errorsFound, String workspaceConfiguration) {
+		String trimmedPart = workspaceConfiguration.trim();
+		if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
+			return;
+		}
+
+		String[] subPart = workspaceConfiguration.split(":");
+		if (subPart.length != 2) {
+			errorsFound.add("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + trimmedPart);
+			return;
+		}
+
+		Long workspaceId = getLongOrNull(subPart[0]);
+		if (workspaceId == null) {
+			errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
+			return;
+		}
+
+		String user = subPart[1].trim();
+		if (user.isEmpty()) {
+			errorsFound.add("Workspace configuration is not valid, user value is empty: " + trimmedPart);
+			return;
+		}
+
+		if (workspace2ImpersonatedUserMap.containsKey(workspaceId)) {
+			errorsFound.add("Duplicated workspace configuration: " + trimmedPart);
+			return;
+		}
+
+		workspace2ImpersonatedUserMap.put(workspaceId, user);
 	}
 
 	private static Long getLongOrNull(String str) {
