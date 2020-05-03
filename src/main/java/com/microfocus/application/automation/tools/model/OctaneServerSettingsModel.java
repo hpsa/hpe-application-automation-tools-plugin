@@ -20,14 +20,13 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import com.microfocus.application.automation.tools.octane.exceptions.AggregatedMessagesException;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import java.util.Date;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /*
  * Model for sorting the Octane configuration
@@ -49,6 +48,10 @@ public class OctaneServerSettingsModel {
 	private String location;
 	private String sharedSpace;
 	private long maxTimeoutHours;
+
+	private String workspace2ImpersonatedUserConf;
+	// inferred from workspace2ImpersonatedUserConf
+	private Map<Long, String> workspace2ImpersonatedUserMap;
 
 	public OctaneServerSettingsModel() {
 	}
@@ -171,11 +174,74 @@ public class OctaneServerSettingsModel {
 				Objects.equals(impersonatedUser, that.impersonatedUser) &&
 				Objects.equals(sscBaseToken, that.sscBaseToken) &&
 				Objects.equals(location, that.location) &&
+				Objects.equals(workspace2ImpersonatedUserConf, that.workspace2ImpersonatedUserConf) &&
 				Objects.equals(sharedSpace, that.sharedSpace);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId);
+		return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId, getWorkspace2ImpersonatedUserConf());
+	}
+
+	public String getWorkspace2ImpersonatedUserConf() {
+		return workspace2ImpersonatedUserConf;
+	}
+
+	@DataBoundSetter
+	public void setWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf) {
+		this.workspace2ImpersonatedUserConf = workspace2ImpersonatedUserConf;
+		workspace2ImpersonatedUserMap = parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, true);
+	}
+
+	public Map<Long, String> getWorkspace2ImpersonatedUserMap() {
+		return workspace2ImpersonatedUserMap;
+	}
+
+	public static Map<Long, String> parseWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf, boolean ignoreErrors) {
+		Map<Long, String> workspace2ImpersonatedUserMap = new HashMap<>();
+		List<String> errorsFound = new ArrayList<>();
+		if (workspace2ImpersonatedUserConf != null) {
+			try {
+				String[] parts = workspace2ImpersonatedUserConf.split("[\\n;]");
+				for (String part : parts) {
+					String trimmedPart = part.trim();
+					if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
+						continue;
+					}
+					String[] subPart = part.split(":");
+					if (subPart.length != 2) {
+						errorsFound.add("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + trimmedPart);
+						continue;
+					}
+
+					long workspaceId;
+					try {
+						workspaceId = Long.parseLong(subPart[0].trim());
+					} catch (NumberFormatException e) {
+						errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
+						continue;
+					}
+					String user = subPart[1].trim();
+					if (user.isEmpty()) {
+						errorsFound.add("Workspace configuration is not valid, user value is empty: " + trimmedPart);
+						continue;
+					}
+
+					if (workspace2ImpersonatedUserMap.containsKey(workspaceId)) {
+						errorsFound.add("Duplicated workspace configuration: " + trimmedPart);
+						continue;
+					}
+					workspace2ImpersonatedUserMap.put(workspaceId, user);
+
+				}
+			} catch (Exception e) {
+				errorsFound.add("Unexpected exception during workspace configuratin parsing: " + e.getMessage());
+			}
+
+		}
+		if (!ignoreErrors && !errorsFound.isEmpty()) {
+			throw new AggregatedMessagesException(errorsFound);
+		}
+		return workspace2ImpersonatedUserMap;
 	}
 }

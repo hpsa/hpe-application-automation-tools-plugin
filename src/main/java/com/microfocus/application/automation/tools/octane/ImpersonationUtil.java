@@ -46,15 +46,23 @@ import java.util.Collections;
 public class ImpersonationUtil {
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(ImpersonationUtil.class);
 
-    public static ACLContext startImpersonation(String instanceId) {
+    public static ACLContext startImpersonation(String instanceId, Long workspaceId) {
         OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
         if (settings == null) {
             throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + instanceId);
         }
 
+        String userName;
+        if (workspaceId != null && settings.getWorkspace2ImpersonatedUserMap().containsKey(workspaceId)) {
+            userName = settings.getWorkspace2ImpersonatedUserMap().get(workspaceId);
+            logger.info(String.format("Using workspace jenkins user '%s' for workspace '%s'", userName, workspaceId));
+        } else {
+            userName = settings.getImpersonatedUser();
+        }
+
         User jenkinsUser = null;
-        if (!StringUtils.isEmpty(settings.getImpersonatedUser())) {
-            jenkinsUser = User.get(settings.getImpersonatedUser(), false, Collections.emptyMap());
+        if (!StringUtils.isEmpty(userName)) {
+            jenkinsUser = User.get(userName, false, Collections.emptyMap());
             if (jenkinsUser == null) {
                 throw new PermissionException(HttpStatus.SC_UNAUTHORIZED);
             }

@@ -35,6 +35,13 @@
       tags they use. Views are always organized according to its owner class,
       so it should be straightforward to find them.
     -->
+
+    <style>
+           .vertical-resizable{
+               resize: vertical;
+           }
+    </style>
+
     <f:section title="ALM Octane CI">
         <f:entry title="ALM Octane Server Configuration" description="">
             <div data-aid="almOctane">
@@ -60,11 +67,6 @@
                         </f:entry>
 
                         <f:advanced>
-                            <f:optionalBlock name="showIdentity" field="showIdentity" title="${%global.config.dynamic.instanceId.title}" >
-                                <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
-                                    <f:textbox value="${mqm.identity}" />
-                                </f:entry>
-                            </f:optionalBlock>
                             <tr>
                                 <td class="setting-leftspace" colspan="3">
                                     <div style="">
@@ -73,6 +75,17 @@
                                     </div>
                                 </td>
                             </tr>
+                            <f:optionalBlock name="showIdentity" field="showIdentity" title="${%global.config.dynamic.instanceId.title}" >
+                                <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
+                                    <f:textbox value="${mqm.identity}" />
+                                </f:entry>
+                            </f:optionalBlock>
+
+                            <f:entry/>
+                             <f:entry title="${%global.config.workspaceConf.title}" field="workspace2ImpersonatedUserConf" description="${%global.config.workspaceConf.description}">
+                                <f:textarea  class="vertical-resizable"  value="${mqm.workspace2ImpersonatedUserConf}"/>
+                             </f:entry>
+
 
                             <f:entry/>
                             <f:section title="${%global.config.ssc.tech.preview.title}"/>
@@ -86,7 +99,7 @@
                        </f:advanced>
 
                         <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend"/>
+                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend,workspace2ImpersonatedUserConf"/>
 
                     </table>
 
