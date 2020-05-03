@@ -202,12 +202,13 @@ public class OctaneServerSettingsModel {
 		List<String> errorsFound = new ArrayList<>();
 		if (workspace2ImpersonatedUserConf != null) {
 			try {
-				String[] parts = workspace2ImpersonatedUserConf.split("[\\n;]");
+				String[] parts = workspace2ImpersonatedUserConf.split("[\\n]");
 				for (String part : parts) {
 					String trimmedPart = part.trim();
 					if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
 						continue;
 					}
+
 					String[] subPart = part.split(":");
 					if (subPart.length != 2) {
 						errorsFound.add("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + trimmedPart);
@@ -221,6 +222,7 @@ public class OctaneServerSettingsModel {
 						errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
 						continue;
 					}
+
 					String user = subPart[1].trim();
 					if (user.isEmpty()) {
 						errorsFound.add("Workspace configuration is not valid, user value is empty: " + trimmedPart);
@@ -231,13 +233,12 @@ public class OctaneServerSettingsModel {
 						errorsFound.add("Duplicated workspace configuration: " + trimmedPart);
 						continue;
 					}
-					workspace2ImpersonatedUserMap.put(workspaceId, user);
 
+					workspace2ImpersonatedUserMap.put(workspaceId, user);
 				}
 			} catch (Exception e) {
 				errorsFound.add("Unexpected exception during workspace configuratin parsing: " + e.getMessage());
 			}
-
 		}
 		if (!ignoreErrors && !errorsFound.isEmpty()) {
 			throw new AggregatedMessagesException(errorsFound);

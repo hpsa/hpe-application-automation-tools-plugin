@@ -49,7 +49,10 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
-import com.microfocus.application.automation.tools.octane.executor.*;
+import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
+import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -156,7 +159,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				try {
 					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-					if (!isJobIsRelevantForPipelineModule(tmpJob)) {
+					if (tmpJob != null && !isJobIsRelevantForPipelineModule(tmpJob)) {
 						continue;
 					}
 

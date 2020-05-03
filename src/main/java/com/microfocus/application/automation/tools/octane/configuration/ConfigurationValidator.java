@@ -123,11 +123,11 @@ public class ConfigurationValidator {
         }
     }
 
-    public static Set<String> getAvailableJobNamesForImpersonatedUser(List<String> errorMessages, String impersonatedUser) {
+    private static Set<String> getAvailableJobNames(List<String> errorMessages, String impersonatedUser) {
         User jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
         if (jenkinsUser == null) {
             errorMessages.add(String.format(Messages.JenkinsUserMisconfiguredFailure(), impersonatedUser));
-            return null;
+            return Collections.emptySet();
         }
 
         ACLContext impersonatedContext = null;
@@ -142,7 +142,7 @@ public class ConfigurationValidator {
             return validJobNames;
         } catch (Exception e) {
             errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), impersonatedUser, e.getMessage()));
-            return null;
+            return Collections.emptySet();
         } finally {
             //depersonate
             ImpersonationUtil.stopImpersonation(impersonatedContext);
@@ -172,6 +172,8 @@ public class ConfigurationValidator {
         if (workspace2ImpersonatedUserConf == null || workspace2ImpersonatedUserConf.trim().isEmpty()) {
             return workspace2ImpersonatedUser;
         }
+
+        //collect parse errors
         try {
             OctaneServerSettingsModel.parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, false);
         } catch (AggregatedMessagesException e) {
@@ -189,35 +191,26 @@ public class ConfigurationValidator {
             }
 
             List<String> tempErrorListForGeneralImpersonatedUser = new ArrayList<>();
-            Set<String> availableJobsForGeneralImpersonatedUser = getAvailableJobNamesForImpersonatedUser(tempErrorListForGeneralImpersonatedUser, impersonatedUser);
-            if (availableJobsForGeneralImpersonatedUser != null && !availableJobsForGeneralImpersonatedUser.isEmpty()) {
-                //validate that workspace impersonated uses has access to subset of jobs available to general impersonated user
-                Set<String> userNames = workspace2ImpersonatedUser.values().stream().collect(Collectors.toSet());
 
-                userNames.forEach(user -> {
-                    Set<String> availableJobs = getAvailableJobNamesForImpersonatedUser(errorMessages, user);
-                    if (availableJobs == null) {
-                        //this case indicate that there were error in getAvailableJobNamesForImpersonatedUser, no need to do additional validations
-                        return;
+            //get available jobs for general jenkins user for comparison with jobs of workspace jenkins user
+            Set<String> availableJobsForGeneralJenkinsUser = getAvailableJobNames(tempErrorListForGeneralImpersonatedUser, impersonatedUser);
+
+            //validate that workspace impersonated uses has access to subset of jobs available to general impersonated user
+            Set<String> userNames = workspace2ImpersonatedUser.values().stream().collect(Collectors.toSet());
+            userNames.forEach(user -> {
+                Set<String> availableJobs = getAvailableJobNames(errorMessages, user);
+                if (availableJobs.isEmpty()) {
+                    errorMessages.add(String.format("No job is available to the workspace Jenkins user '%s'", user));
+                } else {
+                    Set<String> unavailableJobsByGeneralImpersonatedUser = availableJobs.stream()
+                            .filter(jobName -> !availableJobsForGeneralJenkinsUser.contains(jobName)).collect(Collectors.toSet());
+                    if (!unavailableJobsByGeneralImpersonatedUser.isEmpty()) {
+                        errorMessages.add(String.format("There are jobs that are not accessible by '%s', but are accessible by the workspace jenkins user '%s', for example %s ",
+                                impersonatedUser, user,
+                                unavailableJobsByGeneralImpersonatedUser.stream().limit(3).collect(Collectors.toSet())));
                     }
-
-                    if (availableJobs.isEmpty()) {
-                        errorMessages.add(String.format("No job is available to the workspace Jenkins user '%s'", user));
-                    } else {
-                        Set<String> unavailableJobsByGeneralImpersonatedUser = availableJobs.stream()
-                                .filter(jobName -> !availableJobsForGeneralImpersonatedUser.contains(jobName)).collect(Collectors.toSet());
-                        if (!unavailableJobsByGeneralImpersonatedUser.isEmpty()) {
-                            errorMessages.add(String.format("There are jobs that are not accessible by '%s', but are accessible by the workspace jenkins user '%s', for example %s ",
-                                    impersonatedUser, user,
-                                    unavailableJobsByGeneralImpersonatedUser.stream().limit(3).collect(Collectors.toSet())));
-                        }
-                    }
-
-
-                });
-            }
-
-
+                }
+            });
         }
         return workspace2ImpersonatedUser;
     }
