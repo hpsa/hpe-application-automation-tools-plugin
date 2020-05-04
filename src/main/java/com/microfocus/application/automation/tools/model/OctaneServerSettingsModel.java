@@ -32,227 +32,223 @@ import java.util.*;
  * Model for sorting the Octane configuration
  */
 public class OctaneServerSettingsModel {
-	private String internalId = UUID.randomUUID().toString();
+    private String internalId = UUID.randomUUID().toString();
 
-	private String identity;
-	private Long identityFrom;
+    private String identity;
+    private Long identityFrom;
 
-	private String uiLocation;
-	private String username;
-	private Secret password;
-	private String impersonatedUser;
-	private boolean suspend;
-	private String sscBaseToken;
+    private String uiLocation;
+    private String username;
+    private Secret password;
+    private String impersonatedUser;
+    private boolean suspend;
+    private String sscBaseToken;
 
-	// inferred from uiLocation
-	private String location;
-	private String sharedSpace;
-	private long maxTimeoutHours;
+    // inferred from uiLocation
+    private String location;
+    private String sharedSpace;
+    private long maxTimeoutHours;
 
-	private String workspace2ImpersonatedUserConf;
-	// inferred from workspace2ImpersonatedUserConf
-	private Map<Long, String> workspace2ImpersonatedUserMap;
+    private String workspace2ImpersonatedUserConf;
+    // inferred from workspace2ImpersonatedUserConf
+    private Map<Long, String> workspace2ImpersonatedUserMap;
 
-	public OctaneServerSettingsModel() {
-	}
+    public OctaneServerSettingsModel() {
+    }
 
-	@DataBoundConstructor
-	public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
-		this.uiLocation = StringUtils.trim(uiLocation);
-		this.username = username;
-		this.password = password;
-		this.impersonatedUser = impersonatedUser;
-	}
+    @DataBoundConstructor
+    public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
+        this.uiLocation = StringUtils.trim(uiLocation);
+        this.username = username;
+        this.password = password;
+        this.impersonatedUser = impersonatedUser;
+    }
 
-	public String getInternalId() {
-		return internalId;
-	}
+    public String getInternalId() {
+        return internalId;
+    }
 
-	public boolean isSuspend() {
-		return this.suspend;
-	}
+    public boolean isSuspend() {
+        return this.suspend;
+    }
 
-	@DataBoundSetter
-	public void setSuspend(boolean suspend) {
-		this.suspend = suspend;
-	}
+    @DataBoundSetter
+    public void setSuspend(boolean suspend) {
+        this.suspend = suspend;
+    }
 
-	public String getSscBaseToken() {
-		return this.sscBaseToken;
-	}
+    public String getSscBaseToken() {
+        return this.sscBaseToken;
+    }
 
-	@DataBoundSetter
-	public void setSscBaseToken(String sscBaseToken) {
-		this.sscBaseToken = sscBaseToken;
-	}
+    @DataBoundSetter
+    public void setSscBaseToken(String sscBaseToken) {
+        this.sscBaseToken = sscBaseToken;
+    }
 
-	public String getUiLocation() {
-		return uiLocation;
-	}
+    public String getUiLocation() {
+        return uiLocation;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public Secret getPassword() {
-		return password;
-	}
+    public Secret getPassword() {
+        return password;
+    }
 
-	public String getImpersonatedUser() {
-		return impersonatedUser;
-	}
+    public String getImpersonatedUser() {
+        return impersonatedUser;
+    }
 
-	public String getIdentity() {
-		return identity;
-	}
+    public String getIdentity() {
+        return identity;
+    }
 
-	public void setIdentity(String identity) {
-		if (StringUtils.isEmpty(identity)) {
-			throw new IllegalArgumentException("Empty identity is not allowed");
-		}
-		this.identity = identity;
-		this.setIdentityFrom(new Date().getTime());
-	}
+    public void setIdentity(String identity) {
+        if (StringUtils.isEmpty(identity)) {
+            throw new IllegalArgumentException("Empty identity is not allowed");
+        }
+        this.identity = identity;
+        this.setIdentityFrom(new Date().getTime());
+    }
 
-	public Long getIdentityFrom() {
-		return identityFrom;
-	}
+    public Long getIdentityFrom() {
+        return identityFrom;
+    }
 
-	public String getLocation() {
-		return location;
-	}
+    public String getLocation() {
+        return location;
+    }
 
-	public void setLocation(String location) {
-		this.location = location;
-	}
+    public void setLocation(String location) {
+        this.location = location;
+    }
 
-	public String getSharedSpace() {
-		return sharedSpace;
-	}
+    public String getSharedSpace() {
+        return sharedSpace;
+    }
 
-	public void setSharedSpace(String sharedSpace) {
-		this.sharedSpace = sharedSpace;
-	}
+    public void setSharedSpace(String sharedSpace) {
+        this.sharedSpace = sharedSpace;
+    }
 
-	public void setIdentityFrom(Long identityFrom) {
-		this.identityFrom = identityFrom;
-	}
+    public void setIdentityFrom(Long identityFrom) {
+        this.identityFrom = identityFrom;
+    }
 
-	public long getMaxTimeoutHours() {
-		return maxTimeoutHours;
-	}
+    public long getMaxTimeoutHours() {
+        return maxTimeoutHours;
+    }
 
-	public void setMaxTimeoutHours(long maxTimeoutHours) {
-		this.maxTimeoutHours = maxTimeoutHours;
-	}
+    public void setMaxTimeoutHours(long maxTimeoutHours) {
+        this.maxTimeoutHours = maxTimeoutHours;
+    }
 
-	public boolean isValid() {
-		return identity != null && !identity.isEmpty() &&
-				location != null && !location.isEmpty() &&
-				internalId != null && !internalId.isEmpty() &&
-				sharedSpace != null && !sharedSpace.isEmpty();
-	}
+    public boolean isValid() {
+        return identity != null && !identity.isEmpty() &&
+                location != null && !location.isEmpty() &&
+                internalId != null && !internalId.isEmpty() &&
+                sharedSpace != null && !sharedSpace.isEmpty();
+    }
 
-	public void setInternalId(String internalId) {
-		this.internalId = internalId;
-	}
+    public void setInternalId(String internalId) {
+        this.internalId = internalId;
+    }
 
-	public String getCaption() {
-		return getLocation() + "?p=" + getSharedSpace();
-	}
+    public String getCaption() {
+        return getLocation() + "?p=" + getSharedSpace();
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		OctaneServerSettingsModel that = (OctaneServerSettingsModel) o;
-		return suspend == that.suspend &&
-				maxTimeoutHours == that.maxTimeoutHours &&
-				Objects.equals(identity, that.identity) &&
-				Objects.equals(username, that.username) &&
-				Objects.equals(password, that.password) &&
-				Objects.equals(impersonatedUser, that.impersonatedUser) &&
-				Objects.equals(sscBaseToken, that.sscBaseToken) &&
-				Objects.equals(location, that.location) &&
-				Objects.equals(workspace2ImpersonatedUserConf, that.workspace2ImpersonatedUserConf) &&
-				Objects.equals(sharedSpace, that.sharedSpace);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OctaneServerSettingsModel that = (OctaneServerSettingsModel) o;
+        return suspend == that.suspend &&
+                maxTimeoutHours == that.maxTimeoutHours &&
+                Objects.equals(identity, that.identity) &&
+                Objects.equals(username, that.username) &&
+                Objects.equals(password, that.password) &&
+                Objects.equals(impersonatedUser, that.impersonatedUser) &&
+                Objects.equals(sscBaseToken, that.sscBaseToken) &&
+                Objects.equals(location, that.location) &&
+                Objects.equals(workspace2ImpersonatedUserConf, that.workspace2ImpersonatedUserConf) &&
+                Objects.equals(sharedSpace, that.sharedSpace);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId, getWorkspace2ImpersonatedUserConf());
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId, getWorkspace2ImpersonatedUserConf());
+    }
 
-	public String getWorkspace2ImpersonatedUserConf() {
-		return workspace2ImpersonatedUserConf;
-	}
+    public String getWorkspace2ImpersonatedUserConf() {
+        return workspace2ImpersonatedUserConf;
+    }
 
-	@DataBoundSetter
-	public void setWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf) {
-		this.workspace2ImpersonatedUserConf = workspace2ImpersonatedUserConf;
-		workspace2ImpersonatedUserMap = parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, true);
-	}
+    @DataBoundSetter
+    public void setWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf) {
+        this.workspace2ImpersonatedUserConf = workspace2ImpersonatedUserConf;
+        workspace2ImpersonatedUserMap = parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, true);
+    }
 
-	public Map<Long, String> getWorkspace2ImpersonatedUserMap() {
-		return workspace2ImpersonatedUserMap;
-	}
+    public Map<Long, String> getWorkspace2ImpersonatedUserMap() {
+        return workspace2ImpersonatedUserMap;
+    }
 
-	public static Map<Long, String> parseWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf, boolean ignoreErrors) {
-		Map<Long, String> workspace2ImpersonatedUserMap = new HashMap<>();
-		List<String> errorsFound = new ArrayList<>();
-		if (workspace2ImpersonatedUserConf != null) {
-			try {
-				String[] parts = workspace2ImpersonatedUserConf.split("[\\n]");
-				for (String workspaceConfiguration : parts) {
-					parseWorkspaceConfiguration(workspace2ImpersonatedUserMap, errorsFound, workspaceConfiguration);
-				}
-			} catch (Exception e) {
-				errorsFound.add("Unexpected exception during workspace configuration parsing: " + e.getMessage());
-			}
-		}
-		if (!ignoreErrors && !errorsFound.isEmpty()) {
-			throw new AggregatedMessagesException(errorsFound);
-		}
-		return workspace2ImpersonatedUserMap;
-	}
+    public static Map<Long, String> parseWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf, boolean ignoreErrors) {
+        Map<Long, String> workspace2ImpersonatedUserMap = new HashMap<>();
+        List<String> errorsFound = new ArrayList<>();
+        if (workspace2ImpersonatedUserConf != null) {
+            String[] parts = workspace2ImpersonatedUserConf.split("\\n");
+            for (String workspaceConfiguration : parts) {
+                try {
+                    parseWorkspaceConfiguration(workspace2ImpersonatedUserMap, workspaceConfiguration);
+                } catch (IllegalArgumentException e) {
+                    errorsFound.add((e.getMessage()));
+                }
+            }
+        }
+        if (!ignoreErrors && !errorsFound.isEmpty()) {
+            throw new AggregatedMessagesException(errorsFound);
+        }
+        return workspace2ImpersonatedUserMap;
+    }
 
-	private static void parseWorkspaceConfiguration(Map<Long, String> workspace2ImpersonatedUserMap, List<String> errorsFound, String workspaceConfiguration) {
-		String trimmedPart = workspaceConfiguration.trim();
-		if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
-			return;
-		}
+    private static void parseWorkspaceConfiguration(Map<Long, String> workspace2ImpersonatedUserMap, String workspaceConfiguration) {
+        String workspaceConfigurationTrimmed = workspaceConfiguration.trim();
+        if (workspaceConfigurationTrimmed.isEmpty() || workspaceConfigurationTrimmed.startsWith("#")) {
+            return;
+        }
 
-		String[] subPart = workspaceConfiguration.split(":");
-		if (subPart.length != 2) {
-			errorsFound.add("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + trimmedPart);
-			return;
-		}
+        String[] subPart = workspaceConfiguration.split(":");
+        if (subPart.length != 2) {
+            throw new IllegalArgumentException("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + workspaceConfigurationTrimmed);
+        }
 
-		Long workspaceId = getLongOrNull(subPart[0]);
-		if (workspaceId == null) {
-			errorsFound.add("Workspace configuration is not valid, workspace ID must be numeric: " + trimmedPart);
-			return;
-		}
+        Long workspaceId = getLongOrNull(subPart[0]);
+        if (workspaceId == null) {
+            throw new IllegalArgumentException("Workspace configuration is not valid, workspace ID must be numeric: " + workspaceConfigurationTrimmed);
+        }
 
-		String user = subPart[1].trim();
-		if (user.isEmpty()) {
-			errorsFound.add("Workspace configuration is not valid, user value is empty: " + trimmedPart);
-			return;
-		}
+        String user = subPart[1].trim();
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("Workspace configuration is not valid, user value is empty: " + workspaceConfigurationTrimmed);
+        }
 
-		if (workspace2ImpersonatedUserMap.containsKey(workspaceId)) {
-			errorsFound.add("Duplicated workspace configuration: " + trimmedPart);
-			return;
-		}
+        if (workspace2ImpersonatedUserMap.containsKey(workspaceId)) {
+            throw new IllegalArgumentException("Duplicated workspace configuration: " + workspaceConfigurationTrimmed);
+        }
 
-		workspace2ImpersonatedUserMap.put(workspaceId, user);
-	}
+        workspace2ImpersonatedUserMap.put(workspaceId, user);
+    }
 
-	private static Long getLongOrNull(String str) {
-		try {
-			return Long.parseLong(str.trim());
-		} catch (NumberFormatException e) {
-			return null;
-		}
-	}
+    private static Long getLongOrNull(String str) {
+        try {
+            return Long.parseLong(str.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }
