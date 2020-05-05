@@ -51,7 +51,7 @@ public class OctaneServerSettingsModel {
 
     private String workspace2ImpersonatedUserConf;
     // inferred from workspace2ImpersonatedUserConf
-    private Map<Long, String> workspace2ImpersonatedUserMap;
+    private Map<Long, String> workspace2ImpersonatedUserMap = Collections.emptyMap();
 
     public OctaneServerSettingsModel() {
     }
