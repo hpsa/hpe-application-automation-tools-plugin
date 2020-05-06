@@ -109,7 +109,7 @@ public class PluginActions implements RootAction {
                         addMetrics(client.getSonarService().getMetrics(), "sonarService", confJson);
                         addMetrics(client.getCoverageService().getMetrics(), "coverageService", confJson);
 
-                        allMetricsJson.put(client.getInstanceId(), confJson);
+                        allMetricsJson.put(client.getConfigurationService().getCurrentConfiguration().geLocationForLog(), confJson);
                     }
             );
             result.put("metrics", allMetricsJson);
