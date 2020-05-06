@@ -46,8 +46,8 @@ import java.util.Map;
 
 @Extension
 public class PluginActions implements RootAction {
-    private String STATUS_REQUEST = "/nga/api/v1/status";
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private final String STATUS_REQUEST = "/nga/api/v1/status";
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
         return null;
@@ -100,18 +100,30 @@ public class PluginActions implements RootAction {
 
                     client -> {
                         JSONObject confJson = new JSONObject();
-                        JSONObject taskPollingMetricsJson = new JSONObject();
-                        client.getBridgeService().getMetrics().entrySet().forEach(e -> {
-                            String value = e.getValue() instanceof Date ? format.format(e.getValue()) : e.getValue().toString();
-                            taskPollingMetricsJson.put(e.getKey(), value);
-                        });
-                        confJson.put("taskPolling", taskPollingMetricsJson);
-                        allMetricsJson.put(client.getInstanceId(), confJson);
+                        addMetrics(client.getMetrics(), "client", confJson);
+                        addMetrics(client.getBridgeService().getMetrics(), "taskPollingService", confJson);
+                        addMetrics(client.getEventsService().getMetrics(), "eventsService", confJson);
+                        addMetrics(client.getTestsService().getMetrics(), "testsService", confJson);
+                        addMetrics(client.getLogsService().getMetrics(), "buildLogsService", confJson);
+                        addMetrics(client.getVulnerabilitiesService().getMetrics(), "vulnerabilitiesService", confJson);
+                        addMetrics(client.getSonarService().getMetrics(), "sonarService", confJson);
+                        addMetrics(client.getCoverageService().getMetrics(), "coverageService", confJson);
+
+                        allMetricsJson.put(client.getConfigurationService().getCurrentConfiguration().geLocationForLog(), confJson);
                     }
             );
             result.put("metrics", allMetricsJson);
         }
 
         return result;
+    }
+
+    private void addMetrics(Map<String, Object> metrics, String metricsGroup, JSONObject confJson) {
+        JSONObject metricsJson = new JSONObject();
+        metrics.entrySet().forEach(e -> {
+            String value = e.getValue() instanceof Date ? format.format(e.getValue()) : e.getValue().toString();
+            metricsJson.put(e.getKey(), value);
+        });
+        confJson.put(metricsGroup, metricsJson);
     }
 }

@@ -49,7 +49,10 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
-import com.microfocus.application.automation.tools.octane.executor.*;
+import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
+import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -82,7 +85,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
@@ -145,32 +147,24 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public CIJobsList getJobsList(boolean includeParameters) {
-		ACLContext securityContext = startImpersonation();
+	public CIJobsList getJobsList(boolean includeParameters, Long workspaceId) {
+		ACLContext securityContext = startImpersonation(workspaceId);
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		Map<String, PipelineNode> jobsMap = new HashMap<>();
 
 		try {
-			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
-			if (!hasReadPermission) {
-				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
-			}
-
 			Collection<String> jobNames = Jenkins.get().getJobNames();
 			for (String jobName : jobNames) {
 				String tempJobName = jobName;
 				try {
 					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-					if (tmpJob == null ||
-							(tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) ||
-							tmpJob instanceof MatrixConfiguration ||
-							tmpJob instanceof MavenModule) {
+					if (!isJobIsRelevantForPipelineModule(tmpJob)) {
 						continue;
 					}
 
 					PipelineNode tmpConfig;
-					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+					if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
 						tempJobName = tmpJob.getParent().getFullName();
 						tmpConfig = createPipelineNodeFromJobName(tempJobName);
 					} else {
@@ -182,6 +176,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				}
 			}
 
+			if(jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)){
+				//it is possible that user doesn't have general READ permission
+				// but has read permission to specific job, so we postponed this check to end
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+			}
+
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
 		} catch (AccessDeniedException ade) {
 			throw new PermissionException(HttpStatus.SC_FORBIDDEN);
@@ -190,6 +190,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 
 		return result;
+	}
+
+	public static boolean isJobIsRelevantForPipelineModule(Job job){
+		return !(job == null ||
+				(job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) ||
+				job instanceof MatrixConfiguration ||
+				job instanceof MavenModule);
 	}
 
 	@Override
@@ -537,7 +544,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	private ACLContext startImpersonation() {
-		return ImpersonationUtil.startImpersonation(getInstanceId());
+		return startImpersonation(null);
+	}
+
+	private ACLContext startImpersonation(Long workspaceId) {
+		return ImpersonationUtil.startImpersonation(getInstanceId(), workspaceId);
 	}
 
 	private void stopImpersonation(ACLContext impersonatedContext) {

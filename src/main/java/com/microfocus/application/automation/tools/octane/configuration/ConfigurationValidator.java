@@ -25,11 +25,14 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
+import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.octane.Messages;
+import com.microfocus.application.automation.tools.octane.exceptions.AggregatedMessagesException;
 import hudson.ProxyConfiguration;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.User;
 import hudson.security.ACLContext;
 import hudson.security.Permission;
@@ -93,7 +96,7 @@ public class ConfigurationValidator {
         if (!StringUtils.isEmpty(impersonatedUser)) {
             jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
             if (jenkinsUser == null) {
-                errorMessages.add(Messages.JenkinsUserMisconfiguredFailure());
+                errorMessages.add(String.format(Messages.JenkinsUserMisconfiguredFailure(), impersonatedUser));
                 return;
             }
         }
@@ -110,10 +113,36 @@ public class ConfigurationValidator {
             Jenkins jenkins = Jenkins.get();
             Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
             if (!missingPermissions.isEmpty()) {
-                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), StringUtils.join(missingPermissions, ", ")));
+                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), impersonatedUser, StringUtils.join(missingPermissions, ", ")));
             }
         } catch (Exception e) {
-            errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), e.getMessage()));
+            errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), impersonatedUser, e.getMessage()));
+        } finally {
+            //depersonate
+            ImpersonationUtil.stopImpersonation(impersonatedContext);
+        }
+    }
+
+    private static Set<String> getAvailableJobNames(List<String> errorMessages, String impersonatedUser) {
+        User jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
+        if (jenkinsUser == null) {
+            errorMessages.add(String.format(Messages.JenkinsUserMisconfiguredFailure(), impersonatedUser));
+            return Collections.emptySet();
+        }
+
+        ACLContext impersonatedContext = null;
+        try {
+            //start impersonation
+            impersonatedContext = ImpersonationUtil.startImpersonation(jenkinsUser);
+
+            //get job names
+            Collection<String> jobNames = Jenkins.get().getJobNames();
+            Set<String> validJobNames = jobNames.stream().filter(jobName -> CIJenkinsServicesImpl.isJobIsRelevantForPipelineModule((Job) Jenkins.get().getItemByFullName(jobName)))
+                    .collect(Collectors.toSet());
+            return validJobNames;
+        } catch (Exception e) {
+            errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), impersonatedUser, e.getMessage()));
+            return Collections.emptySet();
         } finally {
             //depersonate
             ImpersonationUtil.stopImpersonation(impersonatedContext);
@@ -136,5 +165,53 @@ public class ConfigurationValidator {
         if (containsHttp) {
             errorMessages.add("In the HTTP Proxy Configuration area, the No Proxy Host field must contain a host name only. Remove the http:// prefix before the host name.");
         }
+    }
+
+    public static Map<Long, String> checkWorkspace2ImpersonatedUserConf(String workspace2ImpersonatedUserConf, List<Entity> availableWorkspaces, String impersonatedUser, List<String> errorMessages) {
+        Map<Long, String> workspace2ImpersonatedUser = Collections.emptyMap();
+        if (workspace2ImpersonatedUserConf == null || workspace2ImpersonatedUserConf.trim().isEmpty()) {
+            return workspace2ImpersonatedUser;
+        }
+
+        //collect parse errors
+        try {
+            OctaneServerSettingsModel.parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, false);
+        } catch (AggregatedMessagesException e) {
+            errorMessages.addAll(e.getMessages());
+        }
+
+        if (!availableWorkspaces.isEmpty()) {
+            workspace2ImpersonatedUser = OctaneServerSettingsModel.parseWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, true);
+
+            //try to find  non-accessible workspaces
+            Set<Long> accessibleWorkspaceIds = availableWorkspaces.stream().map(Entity::getId).map(id -> Long.parseLong(id)).collect(Collectors.toSet());
+            List<Long> notAccessibleWorkspaceIds = workspace2ImpersonatedUser.keySet().stream().filter(workspaceId -> !accessibleWorkspaceIds.contains(workspaceId)).collect(Collectors.toList());
+            if (!notAccessibleWorkspaceIds.isEmpty()) {
+                errorMessages.add("Workspace configuration contains non-accessible ALM Octane workspaces: " + notAccessibleWorkspaceIds);
+            }
+
+            List<String> tempErrorListForGeneralImpersonatedUser = new ArrayList<>();
+
+            //get available jobs for general jenkins user for comparison with jobs of workspace jenkins user
+            Set<String> availableJobsForGeneralJenkinsUser = getAvailableJobNames(tempErrorListForGeneralImpersonatedUser, impersonatedUser);
+
+            //validate that workspace impersonated uses has access to subset of jobs available to general impersonated user
+            Set<String> userNames = workspace2ImpersonatedUser.values().stream().collect(Collectors.toSet());
+            userNames.forEach(user -> {
+                Set<String> availableJobs = getAvailableJobNames(errorMessages, user);
+                if (availableJobs.isEmpty()) {
+                    errorMessages.add(String.format("No job is available to the workspace Jenkins user '%s'", user));
+                } else {
+                    Set<String> unavailableJobsByGeneralImpersonatedUser = availableJobs.stream()
+                            .filter(jobName -> !availableJobsForGeneralJenkinsUser.contains(jobName)).collect(Collectors.toSet());
+                    if (!unavailableJobsByGeneralImpersonatedUser.isEmpty()) {
+                        errorMessages.add(String.format("There are jobs that are not accessible by '%s', but are accessible by the workspace jenkins user '%s', for example %s ",
+                                impersonatedUser, user,
+                                unavailableJobsByGeneralImpersonatedUser.stream().limit(3).collect(Collectors.toSet())));
+                    }
+                }
+            });
+        }
+        return workspace2ImpersonatedUser;
     }
 }
