@@ -107,7 +107,7 @@ public class Webhooks implements UnprotectedRootAction {
 					ACLContext aclContext = null;
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();
-						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
+						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId, null);
 						Item topLevelItem = Jenkins.get().getItemByFullName(jobName);
 						if (isValidJenkinsJob(topLevelItem)) {
 							Job jenkinsJob = ((Job) topLevelItem);
