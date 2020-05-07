@@ -200,14 +200,6 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
-	private static void removeParameter(FreeStyleProject proj, String parameterName) throws IOException {
-		ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
-		ParameterDefinition def = parameters.getParameterDefinition(parameterName);
-		if (def != null) {
-			parameters.getParameterDefinitions().remove(def);
-		}
-	}
-
 	private static void addStringParameter(FreeStyleProject proj, String parameterName, String defaultValue, String desc) throws IOException {
 		ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
 		if (parameters.getParameterDefinition(parameterName) == null) {
