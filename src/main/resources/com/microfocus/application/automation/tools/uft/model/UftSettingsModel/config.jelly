@@ -36,7 +36,7 @@
         <f:entry>
            <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest" class="checbox-align" checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
            <f:entry field="fsTestType">
-                <select name="fsTestType" style="width: 200px;" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
+                <select name="fsTestType" style="width: 250px;" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
                     <j:forEach var="testType" items="${descriptor.fsTestTypes}">
                         <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
                             ${testType.description}
@@ -44,10 +44,6 @@
                     </j:forEach>
                 </select>
             </f:entry>
-        </f:entry>
-
-        <f:entry>
-            <f:checkbox id="checkBox2" title="Rerun only failed tests" field="onlyFailedTests" name="onlyFailedTests" class="checbox-align" checked="${instance.onlyFailedTests}" />
         </f:entry>
 
         <f:entry>
@@ -95,6 +91,5 @@
                 </div>
             </f:entry>
         </f:section>
-
     </f:entry>
 </j:jelly>

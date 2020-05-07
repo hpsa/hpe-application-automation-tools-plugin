@@ -284,7 +284,7 @@ namespace HpToolsLauncher
                 //the "On failure" option is selected and the run build contains failed tests
                 if (_rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
                 {
-                    ConsoleWriter.WriteLine("There are failed tests. Rerun the selected tests.");
+                    ConsoleWriter.WriteLine("There are failed tests.");
 
                     //rerun the selected tests (either the entire set, just the selected tests or only the failed tests)
                     List<TestRunResults> runResults = results.TestRuns;
@@ -297,7 +297,7 @@ namespace HpToolsLauncher
                             failedTests.Add(new TestData(item.TestPath, "FailedTest" + index));
                         }
                     }
-
+                    
                     //create the runner according to type
                     runner = CreateRunner(_runType, _ciParams, false, failedTests);
 
@@ -367,7 +367,6 @@ namespace HpToolsLauncher
                     }
 
                     //check if filterTests flag is selected; if yes apply filters on the list
-                    
                     bool isFilterSelected;
                     string filter = _ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : "";
 
@@ -424,7 +423,7 @@ namespace HpToolsLauncher
                     }
                     string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : "");
 
-                    List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests);
+                    List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests, "");
 
                     //add build tests and cleanup tests in correct order
                     List<TestData> validTests = new List<TestData>();
@@ -442,16 +441,12 @@ namespace HpToolsLauncher
                     else
                     { //add also cleanup tests
                         string fsTestType = (_ciParams.ContainsKey("testType") ? _ciParams["testType"] : "");
-
-                        string onlyFailedTests = (_ciParams.ContainsKey("onlyFailedTests") ? _ciParams["onlyFailedTests"] : "");
-                        bool runOnlyFailedTests = !string.IsNullOrEmpty(onlyFailedTests) && Convert.ToBoolean(onlyFailedTests.ToLower());
-
-                        //Console.WriteLine("Get failed tests to rerun");
-                        List<TestData> validFailedTests = GetValidTests("FailedTest", Resources.LauncherNoFailedTestsFound, Resources.LauncherNoValidFailedTests);
+                     
+                        List<TestData> validFailedTests = GetValidTests("FailedTest", Resources.LauncherNoFailedTestsFound, Resources.LauncherNoValidFailedTests, fsTestType);
                         List<TestData> validCleanupTests = new List<TestData>();
-                        if (GetValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests).Count > 0)
+                        if (GetValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests, fsTestType).Count > 0)
                         {
-                            validCleanupTests = GetValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests);
+                            validCleanupTests = GetValidTests("CleanupTest", Resources.LauncherNoCleanupTestsFound, Resources.LauncherNoValidCleanupTests, fsTestType);
                         }
                         List<string> reruns = GetParamsWithPrefix("Reruns");
                         List<int> numberOfReruns = new List<int>();
@@ -467,58 +462,39 @@ namespace HpToolsLauncher
                             ConsoleWriter.WriteLine("In order to rerun the tests the number of reruns should be greater than zero.");
                         } else
                         {
+
+                            switch (fsTestType)
+                            {
+                                case "Rerun the entire set of tests": ConsoleWriter.WriteLine("The entire test set will run again.");break;
+                                case "Rerun specific tests in the build" : Console.WriteLine("Only the selected tests will run again."); break;
+                                case "Rerun only failed tests": ConsoleWriter.WriteLine("Only the failed tests will run again."); break;
+                            }
                            
                             for (int i = 0; i < numberOfReruns.Count; i++)
                             {
                                 var currentRerun = numberOfReruns.ElementAt(i);
 
-                                if (fsTestType.Equals("Of any of the build's tests"))
+                                if (fsTestType.Equals("Rerun the entire set of tests")) 
                                 {
-                                    if (runOnlyFailedTests)
-                                    {
-                                        ConsoleWriter.WriteLine("Rerun only the failed tests");
-                                    }
-                                    else
-                                    {
-                                        ConsoleWriter.WriteLine("Rerun the entire test set");
-                                    }
-                                    
                                     while (currentRerun > 0)
                                     {
-
                                         if (validCleanupTests.Count > 0)
                                         {
                                             validTests.Add(validCleanupTests.ElementAt(i));
                                         }
-
-                                        if (!runOnlyFailedTests)
+                                    
+                                        foreach (var item in validFailedTests)
                                         {
-                                            foreach (var item in validFailedTests)
-                                            {
                                                 validTests.Add(item);
-                                            }
-                                        } else
-                                        {
-                                            if(failedTests.Count != 0)
-                                            {
-                                                foreach (var item in failedTests)
-                                                {
-                                                    validTests.Add(item);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine("There are no failed tests to rerun");
-                                                break;
-                                            }
                                         }
-
+                                     
                                         currentRerun--;
                                     }
                           
-                                } else
+                                }
+
+                                if (fsTestType.Equals("Rerun specific tests in the build"))
                                 {
-                                   
                                     while (currentRerun > 0)
                                     {
                                         if (validCleanupTests.Count > 0)
@@ -527,6 +503,33 @@ namespace HpToolsLauncher
                                         }
 
                                         validTests.Add(validFailedTests.ElementAt(i));
+
+                                        currentRerun--;
+                                    }
+                                }
+
+                                if (fsTestType.Equals("Rerun only failed tests"))
+                                {
+                                    while (currentRerun > 0)
+                                    {
+                                        if (validCleanupTests.Count > 0)
+                                        {
+                                            validTests.Add(validCleanupTests.ElementAt(i));
+                                        }
+
+
+                                        if (failedTests.Count != 0)
+                                        {
+                                            foreach (var item in failedTests)
+                                            {
+                                                validTests.Add(item);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("There are no failed tests to rerun.");
+                                            break;
+                                        }
 
                                         currentRerun--;
                                     }
@@ -999,34 +1002,33 @@ namespace HpToolsLauncher
         /// <param name="errorNoTestsFound"></param>
         /// <param name="errorNoValidTests"></param>
         /// <returns>a list of tests</returns>
-        private List<TestData> GetValidTests(string propertiesParameter, string errorNoTestsFound, string errorNoValidTests)
+        private List<TestData> GetValidTests(string propertiesParameter, string errorNoTestsFound, string errorNoValidTests, String fsTestType)
         {
-            //Console.WriteLine("[GetValidTests]");
-            List<TestData> tests = new List<TestData>();
-            //Console.WriteLine("[GetValidTests], get key values with prefix : " + propertiesParameter);
-            Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix(propertiesParameter);
-            //Console.WriteLine("[GetValidTests], testsKeyValues pairs found:" + testsKeyValue.Count);
-            if(propertiesParameter.Equals("CleanupTest") && testsKeyValue.Count == 0)
+            if (!fsTestType.Equals("Rerun only failed tests") || 
+               (fsTestType.Equals("Rerun only failed tests") && propertiesParameter.Equals("CleanupTest")))
             {
-                return tests;
+                List<TestData> tests = new List<TestData>();
+                Dictionary<string, string> testsKeyValue = GetKeyValuesWithPrefix(propertiesParameter);
+                if (propertiesParameter.Equals("CleanupTest") && testsKeyValue.Count == 0)
+                {
+                    return tests;
+                }
+
+                foreach (var item in testsKeyValue)
+                {
+                    tests.Add(new TestData(item.Value, item.Key));
+                }
+
+                if (tests.Count == 0)
+                {
+                    WriteToConsole(errorNoTestsFound);
+                }
+
+                List<TestData> validTests = Helper.ValidateFiles(tests);
+
+                if (tests.Count <= 0 || validTests.Count != 0) return validTests;
+                ConsoleWriter.WriteLine(errorNoValidTests);
             }
-
-            foreach (var item in testsKeyValue)
-            {
-                //Console.WriteLine("[GetValidTests], item.key: " + item.Key + " item.value: " + item.Value);
-                tests.Add(new TestData(item.Value, item.Key));
-            }
-
-            if (tests.Count == 0)
-            {
-                WriteToConsole(errorNoTestsFound);
-            }
-
-            //Console.WriteLine("[GetValidTests], Validate files");
-            List<TestData> validTests = Helper.ValidateFiles(tests);
-
-            if (tests.Count <= 0 || validTests.Count != 0) return validTests;
-            ConsoleWriter.WriteLine(errorNoValidTests);
 
             return null;
         }

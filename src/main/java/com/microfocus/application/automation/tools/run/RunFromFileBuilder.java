@@ -104,7 +104,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(String fsTests) {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
-        resultFileNames = new HashMap<Long, String>();
+        //resultFileNames = new HashMap<Long, String>();
     }
 
     /**
@@ -114,7 +114,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
         this.runFromFileModel = runFromFileModel;
-        resultFileNames = new HashMap<Long, String>();
+        //resultFileNames = new HashMap<Long, String>();
     }
 
     /**
@@ -668,7 +668,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             }
 
             if (env == null) {
-                listener.fatalError("Enviroment not set");
+                listener.fatalError("Environment not set");
                 throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
             }
             if (build instanceof AbstractBuild) {
@@ -691,8 +691,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             // get a unique filename for the params file
             ParamFileName = "props" + time + ".txt";
-            ResultFilename = "Results" + time + ".xml";
-            String result = "Results" + time + ".xml";
+            ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
+
+            String result = String.format("Results%s_%d.xml", time, build.getNumber());
             long threadId= Thread.currentThread().getId();
             if (resultFileNames == null) {
                 resultFileNames = new HashMap<Long, String>();

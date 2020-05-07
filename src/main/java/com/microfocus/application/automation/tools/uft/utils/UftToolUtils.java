@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -49,10 +50,14 @@ public class UftToolUtils {
      * @return
      */
     public static List<RerunSettingsModel> updateRerunSettings(String nodeName, String fsTestPath, List<RerunSettingsModel> rerunSettingsModels) {
-        List<String> testPaths = UftToolUtils.getTests(UftToolUtils.getBuildTests(nodeName, fsTestPath), rerunSettingsModels);
-        for (String testPath : testPaths) {
-            if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
-                rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+        List<String> buildTests = UftToolUtils.getBuildTests(nodeName, fsTestPath);
+
+        if(buildTests != null && !buildTests.isEmpty()) {
+            List<String> testPaths = UftToolUtils.getTests(buildTests, rerunSettingsModels);
+            for (String testPath : testPaths) {
+                if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                    rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
+                }
             }
         }
 
@@ -65,16 +70,37 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
+        System.out.println("fsTestPath1");
         if (fsTestPath != null) {
-            List<String> buildTests;
+            List<String> buildTests = new ArrayList<>();
             Node node = Jenkins.get().getNode(nodeName);
             String directoryPath = fsTestPath.replace("\\", "/").trim();
 
             if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
-                buildTests = listFilesForFolder(new File(directoryPath));
+                List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
+                if(tests.size() == 1 ) {//single test, folder or mtbx file
+                    if(new File(directoryPath).isDirectory()) {
+                        buildTests = listFilesForFolder(new File(directoryPath));
+                    }
+                } else {//list of tests/folders
+                    for(String test : tests){
+                        File testFile = new File(test.trim());
+                        for (final File fileEntry : testFile.listFiles()) {
+                            if (fileEntry.isDirectory()) {
+                                if (fileEntry.getName().contains("Action")) {
+                                    buildTests.add(testFile.getPath().trim());//single test
+                                    break;
+                                } else {
+                                    buildTests.add(fileEntry.getPath().trim());
+                                }
+                            }
+                        }
+                    }
+                }
             } else {//run tests on selected node
                 buildTests = getTestsFromNode(nodeName, directoryPath);
             }
+
             return buildTests;
         }
 
@@ -105,11 +131,19 @@ public class UftToolUtils {
      */
     public static List<String> listFilesForFolder(final File folder) {
         List<String> buildTests = new ArrayList<>();
+
         if (!folder.isDirectory() && folder.getName().contains("mtbx")) {
             buildTests.add(folder.getPath().trim());
             return buildTests;
         }
-        if (folder.isDirectory()) {
+
+        if(folder.isDirectory() && !folder.getName().contains("mtbx")){//single test
+            if(folder.getName().contains("Action")) {
+                buildTests.add(folder.getPath().trim());
+            }
+        }
+
+        if (folder.isDirectory()) {//test folder
             for (final File fileEntry : folder.listFiles()) {
                 if (fileEntry.isDirectory()) {
                     if (fileEntry.getName().contains("Action")) {
@@ -150,8 +184,9 @@ public class UftToolUtils {
      * @return the updated list of tests to rerun
      */
     public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels) {
+        System.out.println("test");
         List<String> rerunTests = new ArrayList<>();
-        if (buildTests == null || rerunSettingModels == null) {
+        if (buildTests == null){// || rerunSettingModels == null) {
             return rerunTests;
         }
 

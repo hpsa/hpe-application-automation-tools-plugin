@@ -33,36 +33,35 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> {
-    public static final EnumDescription ANY_BUILD_TEST = new EnumDescription("Of any of the build's tests", "Of any " +
-            "of the build's tests");
-    public static final EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription("Of a specific test in the build",
-            "Of a specific test in the build");
-    public static final List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST);
+    public static final EnumDescription ANY_BUILD_TEST = new EnumDescription( "Rerun the entire set of tests", "Rerun the entire set of tests");
+    public static final EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription("Rerun specific tests in the build", "Rerun specific tests in the build");
+    public static final EnumDescription FAILED_BUILD_TEST = new EnumDescription("Rerun only failed tests", "Rerun only failed tests");
+    public static final List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST, FAILED_BUILD_TEST);
+
     private String selectedNode;
     private String fsTestPath;
     private String numberOfReruns;
     private String cleanupTest;
     private String onCheckFailedTest;
-    private String onlyFailedTests;
     private String fsTestType;
     private List<RerunSettingsModel> rerunSettingsModels;
 
     @DataBoundConstructor
-    public UftSettingsModel(String selectedNode, String numberOfReruns, String cleanupTest, String onCheckFailedTest, String onlyFailedTests,
+    public UftSettingsModel(String selectedNode, String numberOfReruns, String cleanupTest, String onCheckFailedTest,
                             String fsTestType, List<RerunSettingsModel> rerunSettingsModels) {
         this.selectedNode = selectedNode;
         this.numberOfReruns = numberOfReruns;
         this.cleanupTest = cleanupTest;
         this.onCheckFailedTest = onCheckFailedTest;
-        this.onlyFailedTests = onlyFailedTests;
         this.fsTestType = fsTestType;
         this.setRerunSettingsModels(UftToolUtils.updateRerunSettings(getSelectedNode(), getFsTestPath(),
-                rerunSettingsModels));
+              rerunSettingsModels));
     }
 
     public List<String> getNodes() {
@@ -113,15 +112,6 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
         this.onCheckFailedTest = onCheckFailedTest;
     }
 
-    public String getOnlyFailedTests() {
-        return onlyFailedTests;
-    }
-
-    @DataBoundSetter
-    public void setOnlyFailedTests(String onlyFailedTests) {
-        this.onlyFailedTests = onlyFailedTests;
-    }
-
     public String getFsTestType() {
         return fsTestType;
     }
@@ -166,12 +156,6 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
             props.put("onCheckFailedTest", "false");
         }
 
-        if (!StringUtils.isEmpty(this.onlyFailedTests)) {
-            props.put("onlyFailedTests", this.onlyFailedTests);
-        } else {
-            props.put("onlyFailedTests", "false");
-        }
-
         props.put("testType", this.fsTestType);
 
         if (this.fsTestType.equals(fsTestTypes.get(0).getDescription())) {//any test in the build
@@ -193,19 +177,35 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
                 props.put("CleanupTest" + i, this.cleanupTest);
             }
 
-        } else {//specific tests in the build
+        }
+
+        if(this.fsTestType.equals(fsTestTypes.get(1).getDescription())){//specific tests in the build
             //set number of reruns
             int j = 1;
-            for (RerunSettingsModel settings : this.rerunSettingsModels) {
-                if (settings.getChecked()) {//test is selected
-                    props.put("FailedTest" + j, settings.getTest());
-                    props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
-                    if (!StringUtils.isEmpty(settings.getCleanupTest())) {
-                        props.put("CleanupTest" + j, settings.getCleanupTest());
+            if(this.rerunSettingsModels != null && !this.rerunSettingsModels.isEmpty()) {
+                for (RerunSettingsModel settings : this.rerunSettingsModels) {
+                    if (settings.getChecked()) {//test is selected
+                        props.put("FailedTest" + j, settings.getTest());
+                        props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
+                        if (!StringUtils.isEmpty(settings.getCleanupTest())) {
+                            props.put("CleanupTest" + j, settings.getCleanupTest());
+                        }
+                        j++;
                     }
-                    j++;
                 }
             }
+        }
+
+        if(this.fsTestType.equals(fsTestTypes.get(2).getDescription())){//rerun only failed tests
+            //add number of reruns
+            if (!StringUtils.isEmpty(this.numberOfReruns)) {
+                props.put("Reruns1", this.numberOfReruns);
+            }
+            //add cleanup test
+            if (!StringUtils.isEmpty(this.cleanupTest)) {
+                props.put("CleanupTest1", this.cleanupTest);
+            }
+
         }
     }
 

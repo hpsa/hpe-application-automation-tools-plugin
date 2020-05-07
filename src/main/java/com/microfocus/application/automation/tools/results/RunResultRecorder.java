@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.results;
 import com.microfocus.application.automation.tools.common.RuntimeUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
+import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.results.projectparser.performance.*;
 import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
@@ -195,37 +196,21 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
 			@Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames)
 			throws InterruptedException, IOException {
-		//listener.getLogger().println(
-		//		"[recordRunResults] current build (id): " + build.getId() + " build number: " + build.getNumber());
-		//listener.getLogger().println("recordRunResults method");
-		//listener.getLogger().println("Number of results found: " + mergedResultNames.size());
+
 		for (String resultFile : mergedResultNames) {
-			listener.getLogger().println("current result file: " + resultFile);
 			JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
 			jUnitResultArchiver.setKeepLongStdio(true);
 			jUnitResultArchiver.setAllowEmptyResults(true);
-			//listener.getLogger().println("recordRunResults: before perform jUnitResultsArchiver");
-			//listener.getLogger().println("recordRunResults build: " + build.toString());
-			//listener.getLogger().println("recordRunResults workspace: " + workspace.toString());
-			//listener.getLogger().println("recordRunResults launcher: " + launcher.toString());
 			jUnitResultArchiver.perform(build, workspace, launcher, listener);
 		}
-		//listener.getLogger().println("recordRunResults, after perform jUnitResultsArchiver");
+
 		final TestResultAction tempAction = build.getAction(TestResultAction.class);
-		/*
-		 * if (tempAction == null || tempAction.getResult() == null) {
-		 * listener.getLogger().
-		 * println("RunResultRecorder: didn't find any test results to record"); return;
-		 * }
-		 */
-		if (tempAction == null) {
-			//listener.getLogger().println("RunResultRecorder: tempAction is null");
-			return;
-		}
-		if (tempAction.getResult() == null) {
-			//listener.getLogger().println("RunResultRecorder: tempAction.getResult() is null");
-			return;
-		}
+
+		 if (tempAction == null || tempAction.getResult() == null) {
+		  	listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
+		  	return;
+		 }
+
 
 		TestResult result = tempAction.getResult();
 
@@ -321,16 +306,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 		if ((resultFiles == null) || (resultFiles.isEmpty())) { return; }
 
-
-		/*if (resultFiles == null) {
-			listener.getLogger().println("archiveTestsReport: no result file");
-		}
-		if (resultFiles.isEmpty()) {
-			listener.getLogger().println("archiveTestsReport: empty result file");
-			return;
-		}*/
-
-		//listener.getLogger().println("archiveTestsReport: result file exists");
 		ArrayList<String> zipFileNames = new ArrayList<String>();
 		ArrayList<FilePath> reportFolders = new ArrayList<FilePath>();
 		List<String> reportNames = new ArrayList<String>();
@@ -456,7 +431,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 						String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
 						String testStatus = eElement.getAttribute("status"); // e.g. "pass"
-
 						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
 						String sysInfo = nodeSystemInfo.getFirstChild().getNodeValue();
 						String testDateTime = sysInfo.substring(0, 19);
@@ -1422,10 +1396,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         FileFilter fileSystemResultFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
         List<FilePath> fileSystemResultsPath = workspace.list(fileSystemResultFileFilter);
-        for (FilePath fileSystemResultPath: fileSystemResultsPath)
-        {
-            fileSystemResultNames.add(fileSystemResultPath.getName());
-        }
+		for (FilePath fileSystemResultPath: fileSystemResultsPath)
+		{
+			fileSystemResultNames.add(fileSystemResultPath.getName());
+		}
 
         mergedResultNames.addAll(almResultNames);
         mergedResultNames.addAll(fileSystemResultNames);

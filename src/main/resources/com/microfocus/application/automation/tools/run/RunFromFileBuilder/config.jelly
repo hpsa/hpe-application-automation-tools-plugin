@@ -98,6 +98,7 @@
         textarea.setting-input{
             resize: vertical;
         }
+
      </style>
 
     <st:bind var="a" value="${descriptor}"/>
@@ -149,9 +150,9 @@
     <f:advanced title="UFT-Specific Settings">
     	<f:section title="UFT Settings">
 		    <f:entry field="fsUftRunMode">
-		        <label>Run Mode</label>
+		        <label style=" position: relative; bottom: -40px;">Run Mode</label>
 		        <f:entry>
-                    <select name="runPipeline.fsUftRunMode" style="margin-bottom: -20px;">
+                    <select name="runPipeline.fsUftRunMode" style=" position: relative; bottom: -40px;">
                         <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
                             <f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
                                 ${runMode.description}

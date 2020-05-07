@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
     var selectValue = document.getElementsByName("fsTestType")[0].options[selectIndex].text;
-    if(selectValue === "Of any of the build's tests") {
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
         document.getElementById('testsTable').style.visibility = "hidden";
         document.getElementById('clearBtn').style.visibility = "hidden";
         document.getElementById('copyPasteBtn').style.visibility = "hidden";
@@ -64,18 +64,16 @@ function enableCombobox(object){
     if (object.checked){
         document.getElementsByName("fsTestType")[0].disabled = false;
         document.getElementsByName("selectedNode")[0].disabled = false;
-        document.getElementById("checkBox2").disabled=false;
     } else {
         document.getElementsByName("fsTestType")[0].disabled = true;
         document.getElementsByName("selectedNode")[0].disabled = true;
-        document.getElementById("checkBox2").disabled=true;
     }
 }
 
 function fileSelected(input){
     var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
     var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
-    if(selectValue === "Of any of the build's tests") {
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
         document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
     } else {
         addCleanupTest(input.files[0].name);
@@ -91,14 +89,13 @@ function selectCleanupTest(displayStyle) {
 }
 
 function selectValueCombo(selectObj) {
+
     var selectIndex = selectObj.selectedIndex;
     var selectValue = selectObj.options[selectIndex].text;
-    if (selectValue === "Of any of the build's tests") {
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
         selectCleanupTest("hidden");
-        document.getElementById("checkBox2").disabled=false;
     } else {
         selectCleanupTest("visible");
-        document.getElementById("checkBox2").disabled=true;
     }
 }
 
