@@ -104,7 +104,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(String fsTests) {
         runFromFileModel = new RunFromFileSystemModel(fsTests);
-        //resultFileNames = new HashMap<Long, String>();
     }
 
     /**
@@ -114,7 +113,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
         this.runFromFileModel = runFromFileModel;
-        //resultFileNames = new HashMap<Long, String>();
     }
 
     /**

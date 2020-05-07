@@ -184,9 +184,8 @@ public class UftToolUtils {
      * @return the updated list of tests to rerun
      */
     public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels) {
-        System.out.println("test");
         List<String> rerunTests = new ArrayList<>();
-        if (buildTests == null){// || rerunSettingModels == null) {
+        if (buildTests == null || rerunSettingModels == null) {
             return rerunTests;
         }
 
