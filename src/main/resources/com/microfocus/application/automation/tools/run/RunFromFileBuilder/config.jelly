@@ -48,7 +48,6 @@
             background-size: 18px;
             width: 20px;
             margin-left: 20px;
-            visibility: hidden;
         }
 
         #cleanupTestInput {
@@ -66,7 +65,6 @@
             width: 50px;
             height: 28px;
             margin-left: 10px;
-            visibility: hidden;
         }
 
         td.help-text {
