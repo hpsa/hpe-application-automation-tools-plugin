@@ -486,7 +486,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>2.6.3.15</version>
+			<version>2.6.3.16</version>
 		</dependency>
 
 		<!--BUILDER providers integration-->
