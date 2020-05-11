@@ -260,6 +260,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                 newModel.setIdentityFrom(oldModel.getIdentityFrom());
             }
 
+            OctaneServerSettingsModel[] serversBackup = servers;
             if (oldModel == null) {
                 if (servers == null) {
                     servers = new OctaneServerSettingsModel[]{newModel};
@@ -276,7 +277,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                     }
                 }
             } else {
-                updateServer(servers, newModel, oldModel);
+                removeClientIfIdentityChanged(servers, newModel, oldModel);
             }
             OctaneConfiguration octaneConfiguration = octaneConfigurations.containsKey(newModel.getInternalId()) ?
                     octaneConfigurations.get(newModel.getInternalId()) :
@@ -290,7 +291,12 @@ public class OctaneServerSettingsBuilder extends Builder {
 
             if (!octaneConfigurations.containsValue(octaneConfiguration)) {
                 octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
-                OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+                try {
+                    OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
+                } catch (Exception e) {
+                    servers = serversBackup;
+                    throw e;
+                }
             } else {
                 //just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Octanes can change SDK compatibility meanwhile
                 try {
@@ -310,7 +316,7 @@ public class OctaneServerSettingsBuilder extends Builder {
             save();
         }
 
-        private void updateServer(OctaneServerSettingsModel[] servers, OctaneServerSettingsModel newModel, OctaneServerSettingsModel oldModel) {
+        private void removeClientIfIdentityChanged(OctaneServerSettingsModel[] servers, OctaneServerSettingsModel newModel, OctaneServerSettingsModel oldModel) {
             if (servers != null) {
                 for (int i = 0; i < servers.length; i++) {
                     if (newModel.getInternalId().equals(servers[i].getInternalId())) {
