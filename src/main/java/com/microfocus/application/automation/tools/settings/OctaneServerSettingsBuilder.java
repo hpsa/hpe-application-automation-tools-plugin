@@ -297,16 +297,6 @@ public class OctaneServerSettingsBuilder extends Builder {
                     servers = serversBackup;
                     throw e;
                 }
-            } else {
-                //just refresh ConnectivityStatus, Why? we use this point to refresh cached ConnectivityStatuses, because some Octanes can change SDK compatibility meanwhile
-                try {
-                    OctaneClient client = OctaneSDK.getClientByInstanceId(octaneConfiguration.getInstanceId());
-                    if (!client.getConfigurationService().getCurrentConfiguration().isSdkSupported()) {
-                        client.refreshSdkSupported();
-                    }
-                } catch (Exception e) {
-                    logger.info("Failed to refreshSdkSupported: " + e.getMessage());
-                }
             }
 
             if (!newModel.equals(oldModel)) {
