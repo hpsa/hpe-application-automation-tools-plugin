@@ -291,7 +291,7 @@ namespace HpToolsLauncher
                     int index = 0;
                     foreach(var item in runResults)
                     {
-                        if(item.TestState == TestState.Failed)
+                        if(item.TestState == TestState.Failed || item.TestState == TestState.Error)
                         {
                             index++;
                             failedTests.Add(new TestData(item.TestPath, "FailedTest" + index));

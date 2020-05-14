@@ -782,7 +782,7 @@ namespace HpToolsLauncher
                             }
                             if (finalState == TestState.Failed)
                             {
-                                runDesc.FailureDesc = desc;
+                                runDesc.FailureDesc = desc; 
                             }
                         }
                     }

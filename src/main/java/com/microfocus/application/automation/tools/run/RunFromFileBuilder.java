@@ -618,206 +618,208 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
+       synchronized (this) {
 
-            // get the mc server settings
-            MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
+           // get the mc server settings
+           MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
-            EnvVars env = null;
-            try {
-                env = build.getEnvironment(listener);
+           EnvVars env = null;
+           try {
+               env = build.getEnvironment(listener);
 
-            } catch (IOException | InterruptedException e) {
-                listener.error("Failed loading build environment " + e);
-            }
+           } catch (IOException | InterruptedException e) {
+               listener.error("Failed loading build environment " + e);
+           }
 
-            // this is an unproper replacement to the build.getVariableResolver since workflow run won't support the
-            // getBuildEnvironment() as written here:
-            // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE
-            // .md#variable-substitutions
+           // this is an unproper replacement to the build.getVariableResolver since workflow run won't support the
+           // getBuildEnvironment() as written here:
+           // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE
+           // .md#variable-substitutions
 
-            JSONObject jobDetails = null;
-            String mcServerUrl = "";
-            // now merge them into one list
-            Properties mergedProperties = new Properties();
-            if (mcServerSettingsModel != null) {
-                mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
-                if (runFromFileModel.getProxySettings() == null) {
-                    jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
-                } else {
-                    jobDetails = runFromFileModel.getJobDetails(mcServerUrl,
-                            runFromFileModel.getProxySettings().getFsProxyAddress(),
-                            runFromFileModel.getProxySettings().getFsProxyUserName(),
-                            runFromFileModel.getProxySettings().getFsProxyPassword());
-                }
+           JSONObject jobDetails = null;
+           String mcServerUrl = "";
+           // now merge them into one list
+           Properties mergedProperties = new Properties();
+           if (mcServerSettingsModel != null) {
+               mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
+               if (runFromFileModel.getProxySettings() == null) {
+                   jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
+               } else {
+                   jobDetails = runFromFileModel.getJobDetails(mcServerUrl,
+                           runFromFileModel.getProxySettings().getFsProxyAddress(),
+                           runFromFileModel.getProxySettings().getFsProxyUserName(),
+                           runFromFileModel.getProxySettings().getFsProxyPassword());
+               }
 
-                mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
-                mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
-            }
+               mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
+               mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
+           }
 
-            if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
-                try {
-                    String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),
-                            EncryptionUtils.getSecretKey());
-                    mergedProperties.put("MobilePassword", encPassword);
-                } catch (Exception e) {
-                    build.setResult(Result.FAILURE);
-                    listener.fatalError("problem in UFT Mobile password encryption" + e);
-                }
-            }
+           if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
+               try {
+                   String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),
+                           EncryptionUtils.getSecretKey());
+                   mergedProperties.put("MobilePassword", encPassword);
+               } catch (Exception e) {
+                   build.setResult(Result.FAILURE);
+                   listener.fatalError("problem in UFT Mobile password encryption" + e);
+               }
+           }
 
-            if (env == null) {
-                listener.fatalError("Environment not set");
-                throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
-            }
-            if (build instanceof AbstractBuild) {
-                VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
-                mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver, listener));
-            } else {
-                mergedProperties.putAll(runFromFileModel.getProperties(env, listener));
-            }
+           if (env == null) {
+               listener.fatalError("Environment not set");
+               throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
+           }
+           if (build instanceof AbstractBuild) {
+               VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
+               mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver, listener));
+           } else {
+               mergedProperties.putAll(runFromFileModel.getProperties(env, listener));
+           }
 
-            int idx = 0;
-            for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
-                String key = iterator.next();
-                idx++;
-                mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
-            }
+           int idx = 0;
+           for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
+               String key = iterator.next();
+               idx++;
+               mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
+           }
 
-            Date now = new Date();
-            Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-            String time = formatter.format(now);
+           Date now = new Date();
+           Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+           String time = formatter.format(now);
 
-            // get a unique filename for the params file
-            ParamFileName = "props" + time + ".txt";
-            ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
+           // get a unique filename for the params file
+           ParamFileName = "props" + time + ".txt";
+           ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
 
-            String result = String.format("Results%s_%d.xml", time, build.getNumber());
-            long threadId= Thread.currentThread().getId();
-            if (resultFileNames == null) {
-                resultFileNames = new HashMap<Long, String>();
-            }
-            resultFileNames.put(threadId, result);
+           String result = String.format("Results%s_%d.xml", time, build.getNumber());
+           long threadId = Thread.currentThread().getId();
+           if (resultFileNames == null) {
+               resultFileNames = new HashMap<Long, String>();
+           }
+           resultFileNames.put(threadId, result);
 
-            mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
+           mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 
-            if (summaryDataLogModel != null) {
-                summaryDataLogModel.addToProps(mergedProperties);
-            }
+           if (summaryDataLogModel != null) {
+               summaryDataLogModel.addToProps(mergedProperties);
+           }
 
-            if (scriptRTSSetModel != null) {
-                scriptRTSSetModel.addScriptsToProps(mergedProperties, env);
-            }
+           if (scriptRTSSetModel != null) {
+               scriptRTSSetModel.addScriptsToProps(mergedProperties, env);
+           }
 
-            mergedProperties.put("resultsFilename", result);
+           mergedProperties.put("resultsFilename", result);
 
-            // parallel runner is enabled
-            if (isParallelRunnerEnabled) {
-                // add the parallel runner properties
-                fileSystemTestSetModel.addTestSetProperties(mergedProperties, env);
+           // parallel runner is enabled
+           if (isParallelRunnerEnabled) {
+               // add the parallel runner properties
+               fileSystemTestSetModel.addTestSetProperties(mergedProperties, env);
 
-                // we need to replace each mtbx test with mtbx file path
-                for (int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size(); index++) {
-                    String key = "Test" + index;
-                    String content = mergedProperties.getProperty(key + index, "");
-                    try {
-                        replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
-                    } catch (Exception e) {
-                        build.setResult(Result.FAILURE);
-                        listener.error("Failed to save MTBX file : " + e.getMessage());
-                    }
-                }
-            } else {
-                // handling mtbx file content :
-                // If we have mtbx content - it is located in Test1 property and there is no other test properties (like
-                // Test2 etc)
-                // We save mtbx content in workspace and replace content of Test1 by reference to saved file
-                // this only applies to the normal file system flow
-                String firstTestKey = "Test1";
-                String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
-                try {
-                    replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
-                } catch (Exception e) {
-                    build.setResult(Result.FAILURE);
-                    listener.error("Failed to save MTBX file : " + e.getMessage());
-                }
-            }
+               // we need to replace each mtbx test with mtbx file path
+               for (int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size(); index++) {
+                   String key = "Test" + index;
+                   String content = mergedProperties.getProperty(key + index, "");
+                   try {
+                       replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
+                   } catch (Exception e) {
+                       build.setResult(Result.FAILURE);
+                       listener.error("Failed to save MTBX file : " + e.getMessage());
+                   }
+               }
+           } else {
+               // handling mtbx file content :
+               // If we have mtbx content - it is located in Test1 property and there is no other test properties (like
+               // Test2 etc)
+               // We save mtbx content in workspace and replace content of Test1 by reference to saved file
+               // this only applies to the normal file system flow
+               String firstTestKey = "Test1";
+               String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+               try {
+                   replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
+               } catch (Exception e) {
+                   build.setResult(Result.FAILURE);
+                   listener.error("Failed to save MTBX file : " + e.getMessage());
+               }
+           }
 
-            if (uftSettingsModel != null) {
-                uftSettingsModel.addToProperties(mergedProperties, listener);
-            }
+           if (uftSettingsModel != null) {
+               uftSettingsModel.addToProperties(mergedProperties, listener);
+           }
 
-            // get properties serialized into a stream
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            try {
-                mergedProperties.store(stream, "");
-            } catch (IOException e) {
-                listener.error("Storing run variable failed: " + e);
-                build.setResult(Result.FAILURE);
-            }
-            String propsSerialization = stream.toString();
-            FilePath CmdLineExe;
-            try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
+           // get properties serialized into a stream
+           ByteArrayOutputStream stream = new ByteArrayOutputStream();
+           try {
+               mergedProperties.store(stream, "");
+           } catch (IOException e) {
+               listener.error("Storing run variable failed: " + e);
+               build.setResult(Result.FAILURE);
+           }
+           String propsSerialization = stream.toString();
+           FilePath CmdLineExe;
+           try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
 
-                // Get the URL to the Script used to run the test, which is bundled
-                // in the plugin
-                @SuppressWarnings("squid:S2259")
-                URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
-                if (cmdExeUrl == null) {
-                    listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
-                    return;
-                }
+               // Get the URL to the Script used to run the test, which is bundled
+               // in the plugin
+               @SuppressWarnings("squid:S2259")
+               URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+               if (cmdExeUrl == null) {
+                   listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+                   return;
+               }
 
-                @SuppressWarnings("squid:S2259")
-                URL cmdExe2Url = Jenkins.get().pluginManager.uberClassLoader.getResource(LRANALYSIS_LAUNCHER_EXE);
-                if (cmdExe2Url == null) {
-                    listener.fatalError(LRANALYSIS_LAUNCHER_EXE + "not found in resources");
-                    return;
-                }
+               @SuppressWarnings("squid:S2259")
+               URL cmdExe2Url = Jenkins.get().pluginManager.uberClassLoader.getResource(LRANALYSIS_LAUNCHER_EXE);
+               if (cmdExe2Url == null) {
+                   listener.fatalError(LRANALYSIS_LAUNCHER_EXE + "not found in resources");
+                   return;
+               }
 
-                FilePath propsFileName = workspace.child(ParamFileName);
-                CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
-                FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
+               FilePath propsFileName = workspace.child(ParamFileName);
+               CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+               FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
-                try {
-                    // create a file for the properties file, and save the properties
-                    propsFileName.copyFrom(propsStream);
+               try {
+                   // create a file for the properties file, and save the properties
+                   propsFileName.copyFrom(propsStream);
 
-                    // Copy the script to the project workspace
-                    CmdLineExe.copyFrom(cmdExeUrl);
+                   // Copy the script to the project workspace
+                   CmdLineExe.copyFrom(cmdExeUrl);
 
-                    CmdLineExe2.copyFrom(cmdExe2Url);
+                   CmdLineExe2.copyFrom(cmdExe2Url);
 
-                } catch (IOException | InterruptedException e) {
-                    build.setResult(Result.FAILURE);
-                    listener.error("Copying executable files to executing node " + e);
-                }
-            }
+               } catch (IOException | InterruptedException e) {
+                   build.setResult(Result.FAILURE);
+                   listener.error("Copying executable files to executing node " + e);
+               }
+           }
 
-            try {
-                // Run the HpToolsLauncher.exe
-                AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
-                // Has the report been successfully generated?
-            } catch (IOException ioe) {
-                Util.displayIOException(ioe, listener);
-                build.setResult(Result.FAILURE);
-                listener.error("Failed running HpToolsLauncher " + ioe);
-                return;
-            } catch (InterruptedException e) {
-                build.setResult(Result.ABORTED);
-                PrintStream out = listener.getLogger();
-                listener.error("Failed running HpToolsLauncher - build aborted " + e);
+           try {
+               // Run the HpToolsLauncher.exe
+               AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+               // Has the report been successfully generated?
+           } catch (IOException ioe) {
+               Util.displayIOException(ioe, listener);
+               build.setResult(Result.FAILURE);
+               listener.error("Failed running HpToolsLauncher " + ioe);
+               return;
+           } catch (InterruptedException e) {
+               build.setResult(Result.ABORTED);
+               PrintStream out = listener.getLogger();
+               listener.error("Failed running HpToolsLauncher - build aborted " + e);
 
-                try {
-                    AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
-                } catch (IOException e1) {
-                    Util.displayIOException(e1, listener);
-                    build.setResult(Result.FAILURE);
-                    return;
-                } catch (InterruptedException e1) {
-                    listener.error("Failed running HpToolsAborter " + e1);
-                }
-                out.println("Operation Was aborted by user.");
-            }
+               try {
+                   AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
+               } catch (IOException e1) {
+                   Util.displayIOException(e1, listener);
+                   build.setResult(Result.FAILURE);
+                   return;
+               } catch (InterruptedException e1) {
+                   listener.error("Failed running HpToolsAborter " + e1);
+               }
+               out.println("Operation Was aborted by user.");
+           }
+       }
     }
 
 
