@@ -573,7 +573,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} catch (IOException ioe) {
 				logger.error("failed to transfer native log to Octane's one for " + run);
 			}
-
 		}
 		try {
 			result = new FileInputStream(octaneLogFilePath);
