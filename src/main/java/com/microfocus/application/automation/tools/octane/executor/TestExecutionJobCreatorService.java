@@ -22,14 +22,10 @@ package com.microfocus.application.automation.tools.octane.executor;
 
 import antlr.ANTLRException;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
-import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
-import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
-import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
@@ -42,24 +38,12 @@ import hudson.model.*;
 import hudson.scm.SCM;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Builder;
-import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
-import jenkins.model.BuildDiscarder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,101 +54,6 @@ import java.util.regex.Pattern;
 public class TestExecutionJobCreatorService {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(TestExecutionJobCreatorService.class);
 
-	/**
-	 * Create (if needed) and run test execution
-	 *
-	 * @param suiteExecutionInfo
-	 */
-	public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-
-        /*
-        {
-                "tests": [{
-                        "testName": "GUITest2",
-                        "packageName": "GUITests"
-                    }, {
-                        "testName": "GUITest3",
-                        "packageName": "GUITests"
-                    }
-                ],
-                "scmRepository": {
-                    "type": "git",
-                                            "url": "git@github.com:radislavB/UftTests.git"
-                },
-                "executorId": "1",
-                "workspaceId": "1002",
-                "suiteId": "6",
-                "testingToolType": "uft"
-            }
-         */
-		FreeStyleProject proj = getExecutionJob(suiteExecutionInfo);
-
-		//start job
-		if (proj != null) {
-			ParameterValue suiteRunIdParam = new StringParameterValue(UftConstants.SUITE_RUN_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteRunId());
-			ParameterValue suiteIdParam = new StringParameterValue(UftConstants.SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId());
-			ParametersAction parameters = new ParametersAction(suiteRunIdParam, suiteIdParam);
-
-			Cause cause = StringUtils.isNotEmpty(suiteExecutionInfo.getSuiteRunId()) ? TriggeredBySuiteRunCause.create(suiteExecutionInfo.getSuiteRunId()) : new Cause.UserIdCause();
-			CauseAction causeAction = new CauseAction(cause);
-			proj.scheduleBuild2(0, parameters, causeAction);
-		}
-	}
-
-	private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
-
-		try {
-			String projectName = String.format("%s %s",
-					UftConstants.EXECUTION_JOB_MIDDLE_NAME,
-					suiteExecutionInfo.getSuiteId());
-
-			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(projectName);
-			if (proj == null) {
-				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, projectName);
-				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
-						suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
-			}
-
-			setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj, true);
-			addConstantParameter(proj, UftConstants.SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "ALM Octane test suite ID");
-			addStringParameter(proj, UftConstants.SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results. Provided by ALM Octane when running a planned suite run.\nOtherwise, leave this parameter empty. ALM Octane creates a new  test suite run for the new results.");
-			addExecutionAssignedNode(proj);
-			addTimestamper(proj);
-
-			//add build action
-			String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
-			List<RunFromFileBuilder> builders = proj.getBuildersList().getAll(RunFromFileBuilder.class);
-			logger.info("TestExecutionJobCreatorService");
-			logger.trace("TestExecutionJobCreatorService");
-
-			if (builders != null && !builders.isEmpty()) {
-				logger.info("number of builders:" + builders.size());
-				logger.trace("number of builders:" + builders.size());
-				builders.get(0).setFsTests(fsTestsData);
-			} else {
-				proj.getBuildersList().add(new RunFromFileBuilder(fsTestsData));
-			}
-
-			//add post-build action - publisher
-			RunResultRecorder runResultRecorder = null;
-			List publishers = proj.getPublishersList();//.add(new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue()));
-			for (Object publisher : publishers) {
-				if (publisher instanceof RunResultRecorder) {
-					runResultRecorder = (RunResultRecorder) publisher;
-				}
-			}
-			if (runResultRecorder == null) {
-				runResultRecorder = new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue());
-				publishers.add(runResultRecorder);
-			}
-			return proj;
-		} catch (IOException e) {
-			logger.error("Failed to create ExecutionJob : " + e.getMessage());
-			return null;
-		}
-	}
-
 	private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) {
 
 		ScmPluginHandler scmPluginHandler = ScmPluginFactory.getScmHandler(scmRepository.getType());
@@ -173,60 +62,6 @@ public class TestExecutionJobCreatorService {
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Failed to set SCM repository : " + e.getMessage());
 		}
-	}
-
-	private static String prepareMtbxData(List<TestExecutionInfo> tests) throws IOException {
-        /*<Mtbx>
-            <Test name="test1" path="${WORKSPACE}\${CHECKOUT_SUBDIR}\APITest1">
-			<Parameter name="A" value="abc" type="string"/>
-			<DataTable path="${WORKSPACE}\aa\bbb.xslx"/>
-			 ….
-			</Test>
-			<Test name="test2" path="${WORKSPACE}\${CHECKOUT_SUBDIR}\test2">
-				<Parameter name="p1" value="123" type="int"/>
-				<Parameter name="p4" value="123.4" type="float"/>
-			….
-			</Test>
-		</Mtbx>*/
-
-		try {
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-			Document doc = docBuilder.newDocument();
-			Element rootElement = doc.createElement("Mtbx");
-			doc.appendChild(rootElement);
-
-			for (TestExecutionInfo test : tests) {
-				Element testElement = doc.createElement("Test");
-				String packageAndTestName = (StringUtils.isNotEmpty(test.getPackageName()) ? test.getPackageName() + "\\" : "") + test.getTestName();
-				testElement.setAttribute("name", packageAndTestName);
-				String path = "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + (StringUtils.isEmpty(test.getPackageName()) ? "" : SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getPackageName()) +
-						SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getTestName();
-				testElement.setAttribute("path", path);
-
-				if (StringUtils.isNotEmpty(test.getDataTable())) {
-					Element dataTableElement = doc.createElement("DataTable");
-					dataTableElement.setAttribute("path", "${WORKSPACE}\\${CHECKOUT_SUBDIR}" + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getDataTable());
-					testElement.appendChild(dataTableElement);
-				}
-
-				rootElement.appendChild(testElement);
-			}
-
-			TransformerFactory tf = TransformerFactory.newInstance();
-			Transformer transformer = tf.newTransformer();
-			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-
-			StringWriter writer = new StringWriter();
-			transformer.transform(new DOMSource(doc), new StreamResult(writer));
-
-			return writer.toString();
-		} catch (Exception e) {
-			throw new IOException("Failed to build MTBX content : " + e.getMessage());
-		}
-
 	}
 
 	/**
@@ -253,7 +88,7 @@ public class TestExecutionJobCreatorService {
 
 		//start job
 		if (proj != null) {
-			List<ParameterValue> paramList =  new ArrayList<>();
+			List<ParameterValue> paramList = new ArrayList<>();
 			ParameterValue fullScanParam = new BooleanParameterValue(UftConstants.FULL_SCAN_PARAMETER_NAME, discoveryInfo.isForceFullDiscovery());
 			paramList.add(fullScanParam);
 
@@ -271,60 +106,6 @@ public class TestExecutionJobCreatorService {
 	}
 
 	private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
-		if (EntityConstants.Executors.UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME.equals(discoveryInfo.getExecutorType())) {
-			return getDiscoveryJobForUftTestRunner(discoveryInfo);
-		} else {
-			return getDiscoveryJobForUftExecutor(discoveryInfo);
-		}
-	}
-
-	private static FreeStyleProject getDiscoveryJobForUftExecutor(DiscoveryInfo discoveryInfo) {
-
-		try {
-			String discoveryJobName = String.format("%s %s (%s)", UftConstants.DISCOVERY_JOB_MIDDLE_NAME, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
-			//validate creation of job
-			FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstanceOrNull().getItem(discoveryJobName);
-			if (proj == null) {
-
-				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, discoveryJobName);
-				proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
-						discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
-			}
-
-			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, false);
-			addConstantParameter(proj, UftConstants.EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane test runner ID");
-			addConstantParameter(proj, UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
-			addBooleanParameter(proj, UftConstants.FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
-
-			//set polling once in two minutes
-			SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
-			proj.addTrigger(scmTrigger);
-			delayPollingStart(proj, scmTrigger);
-			addDiscoveryAssignedNode(proj);
-			addTimestamper(proj);
-
-			//add post-build action - publisher
-			UFTTestDetectionPublisher uftTestDetectionPublisher = null;
-			List publishers = proj.getPublishersList();
-			for (Object publisher : publishers) {
-				if (publisher instanceof UFTTestDetectionPublisher) {
-					uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
-				}
-			}
-
-			if (uftTestDetectionPublisher == null) {
-				uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getConfigurationId(), discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
-				publishers.add(uftTestDetectionPublisher);
-			}
-
-			return proj;
-		} catch (IOException | ANTLRException e) {
-			logger.error("Failed to  create DiscoveryJob : " + e.getMessage());
-			return null;
-		}
-	}
-
-	private static FreeStyleProject getDiscoveryJobForUftTestRunner(DiscoveryInfo discoveryInfo) {
 		try {
 			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
 			//validate creation of job
@@ -419,14 +200,6 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
-	private static void removeParameter(FreeStyleProject proj, String parameterName) throws IOException {
-		ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
-		ParameterDefinition def = parameters.getParameterDefinition(parameterName);
-		if (def != null) {
-			parameters.getParameterDefinitions().remove(def);
-		}
-	}
-
 	private static void addStringParameter(FreeStyleProject proj, String parameterName, String defaultValue, String desc) throws IOException {
 		ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
 		if (parameters.getParameterDefinition(parameterName) == null) {
@@ -478,7 +251,7 @@ public class TestExecutionJobCreatorService {
 					label = label.trim();
 					Pattern p = Pattern.compile("[^\\w]");
 					Matcher m = p.matcher(label);
-					if (m.find()){
+					if (m.find()) {
 						//if contain non-letter/digit character, wrap with "
 						label = "\"" + label + "\"";
 					}
@@ -517,7 +290,7 @@ public class TestExecutionJobCreatorService {
 
 			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, true);
 			addStringParameter(proj, UftConstants.TESTS_TO_RUN_PARAMETER_NAME, "", "Tests to run");
-			addStringParameter(proj, UftConstants.CHEKOUT_DIR_PARAMETER_NAME, "${WORKSPACE}\\${CHECKOUT_SUBDIR}", "Shared UFT directory");
+			addStringParameter(proj, UftConstants.CHECKOUT_DIR_PARAMETER_NAME, "${WORKSPACE}\\${CHECKOUT_SUBDIR}", "Shared UFT directory");
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane test runner ID");
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
 			addStringParameter(proj, UftConstants.SUITE_ID_PARAMETER_NAME, "", "ALM Octane test suite ID");
@@ -557,6 +330,7 @@ public class TestExecutionJobCreatorService {
 	 * This method is intended to create missing executor job.
 	 * Creation is triggered only if missing job name starts with UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS.
 	 * Scm details for new job is taken from matching discovery job. Matching is done by testRunner logical name
+	 *
 	 * @param uftExecutorJobNameWithTestRunner
 	 * @return
 	 */
@@ -574,26 +348,9 @@ public class TestExecutionJobCreatorService {
 				if (UftJobRecognizer.isDiscoveryJob(job)) {
 
 					ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-					ParameterDefinition parameterDefinition;
-
-					boolean replaceParams = false;
-					if (parameters.getParameterDefinitionNames().contains(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME)) {
-						parameterDefinition = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME);
-					} else {
-						parameterDefinition = parameters.getParameterDefinition(UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
-						replaceParams = true;
-					}
+					ParameterDefinition parameterDefinition = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME);
 					if (parameterDefinition != null && testRunnerLogicalName.equals(parameterDefinition.getDefaultParameterValue().getValue().toString())) {
 						foundDiscoveryJob = job;
-
-						if(replaceParams){
-							addConstantParameter(job, UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, testRunnerId, "ALM Octane test runner ID");
-							addConstantParameter(job, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, testRunnerLogicalName, "ALM Octane test runner logical name");
-							removeParameter(job,UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME);
-							removeParameter(job,UftConstants.EXECUTOR_ID_PARAMETER_NAME);
-							job.save();
-						}
-
 						break;
 					}
 				}

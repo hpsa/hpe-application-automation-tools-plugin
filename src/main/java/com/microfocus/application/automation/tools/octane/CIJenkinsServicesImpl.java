@@ -31,7 +31,6 @@ import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -503,16 +502,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
@@ -584,7 +573,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} catch (IOException ioe) {
 				logger.error("failed to transfer native log to Octane's one for " + run);
 			}
-
 		}
 		try {
 			result = new FileInputStream(octaneLogFilePath);

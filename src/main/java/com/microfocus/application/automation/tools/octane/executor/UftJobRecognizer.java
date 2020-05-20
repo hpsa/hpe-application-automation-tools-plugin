@@ -45,9 +45,7 @@ public class UftJobRecognizer {
      * @return
      */
     public static boolean isExecutorJob(FreeStyleProject job) {
-        boolean isExecutorJob = (job.getName().contains(UftConstants.EXECUTION_JOB_MIDDLE_NAME) ||
-                job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
-        return isExecutorJob;
+        return (job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
     }
 
     /**
@@ -57,9 +55,7 @@ public class UftJobRecognizer {
      * @return
      */
     public static boolean isDiscoveryJob(FreeStyleProject job) {
-        boolean isDiscoveryJob = (job.getName().contains(UftConstants.DISCOVERY_JOB_MIDDLE_NAME) ||
-                job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
-        return isDiscoveryJob;
+        return (job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
     }
 
     /**
@@ -70,14 +66,9 @@ public class UftJobRecognizer {
      */
     public static String getExecutorId(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        String parameterName = UftConstants.TEST_RUNNER_ID_PARAMETER_NAME;
-        if (!parameters.getParameterDefinitionNames().contains(parameterName)) {
-            parameterName = UftConstants.EXECUTOR_ID_PARAMETER_NAME;
-        }
-        ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
+        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_ID_PARAMETER_NAME);
         if (pd != null) {
-            String value = (String) pd.getDefaultParameterValue().getValue();
-            return value;
+            return (String) pd.getDefaultParameterValue().getValue();
         } else {
             return null;
         }
@@ -91,14 +82,9 @@ public class UftJobRecognizer {
      */
     public static String getExecutorLogicalName(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        String parameterName = UftConstants.EXECUTOR_LOGICAL_NAME_PARAMETER_NAME;
-        if (!parameters.getParameterDefinitionNames().contains(parameterName)) {
-            parameterName = UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME;
-        }
-        ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
+        ParameterDefinition pd = parameters.getParameterDefinition(UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME);
         if (pd != null) {
-            String value = (String) pd.getDefaultParameterValue().getValue();
-            return value;
+            return (String) pd.getDefaultParameterValue().getValue();
         } else {
             return null;
         }

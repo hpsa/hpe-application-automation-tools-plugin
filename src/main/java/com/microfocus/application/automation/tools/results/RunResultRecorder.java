@@ -483,7 +483,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						}
 
 						archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
-						if (archiveTestResult && rrvReport.exists()) {
+						if (archiveTestResult) { //&& rrvReport.exists()) {
 
 							if (reportFolder.exists()) {
 
