@@ -447,7 +447,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						FilePath htmlReport = new FilePath(reportFolder,
 								isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
 
-						FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
 						if (htmlReport.exists()) {
 							reportIsHtml = true;
 							String htmlReportDir = reportFolder.getRemote();
@@ -483,7 +482,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						}
 
 						archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
-						if (archiveTestResult) { //&& rrvReport.exists()) {
+						if (archiveTestResult) {
 
 							if (reportFolder.exists()) {
 
@@ -686,7 +685,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
 				FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName); // C:\Program Files
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-				// FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());
+
 				// //C:\Program Files
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
 				unzippedFolderPath.renameTo(targetPath);

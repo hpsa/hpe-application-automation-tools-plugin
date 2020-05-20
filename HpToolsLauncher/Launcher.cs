@@ -520,10 +520,7 @@ namespace HpToolsLauncher
 
                                         if (failedTests.Count != 0)
                                         {
-                                            foreach (var item in failedTests)
-                                            {
-                                                validTests.Add(item);
-                                            }
+                                            validTests.AddRange(failedTests);
                                         }
                                         else
                                         {

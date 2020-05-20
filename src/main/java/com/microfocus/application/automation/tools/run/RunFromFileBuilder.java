@@ -672,9 +672,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            }
            if (build instanceof AbstractBuild) {
                VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
-               mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver, listener));
+               mergedProperties.putAll(runFromFileModel.getProperties(env));
            } else {
-               mergedProperties.putAll(runFromFileModel.getProperties(env, listener));
+               mergedProperties.putAll(runFromFileModel.getProperties(env));
            }
 
            int idx = 0;
@@ -692,12 +692,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            ParamFileName = "props" + time + ".txt";
            ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
 
-           String result = String.format("Results%s_%d.xml", time, build.getNumber());
            long threadId = Thread.currentThread().getId();
            if (resultFileNames == null) {
                resultFileNames = new HashMap<Long, String>();
            }
-           resultFileNames.put(threadId, result);
+           resultFileNames.put(threadId, ResultFilename);
 
            mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 
@@ -709,7 +708,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                scriptRTSSetModel.addScriptsToProps(mergedProperties, env);
            }
 
-           mergedProperties.put("resultsFilename", result);
+           mergedProperties.put("resultsFilename", ResultFilename);
 
            // parallel runner is enabled
            if (isParallelRunnerEnabled) {
@@ -864,7 +863,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             long threadId = Thread.currentThread().getId();
             String fileName = resultFileNames.get(threadId);
             return fileName;
-            //return ResultFilename;
         }
     }
 

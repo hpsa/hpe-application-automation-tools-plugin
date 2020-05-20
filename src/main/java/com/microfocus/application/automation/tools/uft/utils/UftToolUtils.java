@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 public class UftToolUtils {
 
     private static final Logger logger = Logger.getLogger(UftToolUtils.class.getName());
+    private static final String ACTION_TAG = "Action";
 
     private UftToolUtils() {
     }
@@ -70,7 +71,6 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
-        System.out.println("fsTestPath1");
         if (fsTestPath != null) {
             List<String> buildTests = new ArrayList<>();
             Node node = Jenkins.get().getNode(nodeName);
@@ -85,16 +85,7 @@ public class UftToolUtils {
                 } else {//list of tests/folders
                     for(String test : tests){
                         File testFile = new File(test.trim());
-                        for (final File fileEntry : testFile.listFiles()) {
-                            if (fileEntry.isDirectory()) {
-                                if (fileEntry.getName().contains("Action")) {
-                                    buildTests.add(testFile.getPath().trim());//single test
-                                    break;
-                                } else {
-                                    buildTests.add(fileEntry.getPath().trim());
-                                }
-                            }
-                        }
+                        buildTests = getBuildTests(testFile);
                     }
                 }
             } else {//run tests on selected node
@@ -138,21 +129,30 @@ public class UftToolUtils {
         }
 
         if(folder.isDirectory() && !folder.getName().contains("mtbx")){//single test
-            if(folder.getName().contains("Action")) {
+            if(folder.getName().contains(ACTION_TAG)) {
                 buildTests.add(folder.getPath().trim());
             }
         }
 
-        if (folder.isDirectory()) {//test folder
-            for (final File fileEntry : folder.listFiles()) {
-                if (fileEntry.isDirectory()) {
-                    if (fileEntry.getName().contains("Action")) {
-                        buildTests.add(folder.getPath().trim());//single test
-                        break;
-                    } else {
-                        buildTests.add(fileEntry.getPath().trim());
-                    }
+        buildTests = getBuildTests(folder);
+
+        return buildTests;
+    }
+
+    /**
+     * Get the list of build tests
+     * @param folder
+     * @return either a single test or a set of tests
+     */
+    public static List<String> getBuildTests(final File folder){
+        List<String> buildTests = new ArrayList<>();
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                if(!fileEntry.getName().contains(ACTION_TAG)){
+                    buildTests.add(fileEntry.getPath().trim()); continue;
                 }
+                buildTests.add(folder.getPath().trim());//single test
+                break;
             }
         }
 

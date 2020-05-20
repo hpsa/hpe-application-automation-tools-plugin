@@ -158,54 +158,57 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
         props.put("testType", this.fsTestType);
 
-        if (this.fsTestType.equals(fsTestTypes.get(0).getDescription())) {//any test in the build
-            //add failed tests
-            int i = 1;
-            int index = 1;
-            while (props.getProperty("Test" + index) != null) {
-                props.put("FailedTest" + index, props.getProperty("Test" + index));
-                index++;
-            }
+        switch(this.fsTestType){
+            case "Rerun the entire set of tests" :{//add failed tests
+                int i = 1;
+                int index = 1;
+                while (props.getProperty("Test" + index) != null) {
+                    props.put("FailedTest" + index, props.getProperty("Test" + index));
+                    index++;
+                }
 
-            //add number of reruns
-            if (!StringUtils.isEmpty(this.numberOfReruns)) {
-                props.put("Reruns" + i, this.numberOfReruns);
-            }
+                //add number of reruns
+                if (!StringUtils.isEmpty(this.numberOfReruns)) {
+                    props.put("Reruns" + i, this.numberOfReruns);
+                }
 
-            //add cleanup test
-            if (!StringUtils.isEmpty(this.cleanupTest)) {
-                props.put("CleanupTest" + i, this.cleanupTest);
-            }
+                //add cleanup test
+                if (!StringUtils.isEmpty(this.cleanupTest)) {
+                    props.put("CleanupTest" + i, this.cleanupTest);
+                }
+            } break;
 
-        }
-
-        if(this.fsTestType.equals(fsTestTypes.get(1).getDescription())){//specific tests in the build
-            //set number of reruns
-            int j = 1;
-            if(this.rerunSettingsModels != null && !this.rerunSettingsModels.isEmpty()) {
-                for (RerunSettingsModel settings : this.rerunSettingsModels) {
-                    if (settings.getChecked()) {//test is selected
-                        props.put("FailedTest" + j, settings.getTest());
-                        props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
-                        if (!StringUtils.isEmpty(settings.getCleanupTest())) {
+            case "Rerun specific tests in the build": {
+                //set number of reruns
+                int j = 1;
+                if(this.rerunSettingsModels != null && !this.rerunSettingsModels.isEmpty()) {
+                    for (RerunSettingsModel settings : this.rerunSettingsModels) {
+                        if (settings.getChecked()) {//test is selected
+                            props.put("FailedTest" + j, settings.getTest());
+                            props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
+                            if (StringUtils.isEmpty(settings.getCleanupTest())){
+                                j++; continue;
+                            }
                             props.put("CleanupTest" + j, settings.getCleanupTest());
+                            j++;
                         }
-                        j++;
                     }
                 }
-            }
-        }
+            } break;
 
-        if(this.fsTestType.equals(fsTestTypes.get(2).getDescription())){//rerun only failed tests
-            //add number of reruns
-            if (!StringUtils.isEmpty(this.numberOfReruns)) {
-                props.put("Reruns1", this.numberOfReruns);
-            }
-            //add cleanup test
-            if (!StringUtils.isEmpty(this.cleanupTest)) {
-                props.put("CleanupTest1", this.cleanupTest);
-            }
+            case "Rerun only failed tests": {
+                //add number of reruns
+                if (!StringUtils.isEmpty(this.numberOfReruns)) {
+                    props.put("Reruns1", this.numberOfReruns);
+                }
+                //add cleanup test
+                if (!StringUtils.isEmpty(this.cleanupTest)) {
+                    props.put("CleanupTest1", this.cleanupTest);
+                }
+            } break;
 
+            default:
+                throw new IllegalStateException("Unexpected value: " + this.fsTestType);
         }
     }
 
