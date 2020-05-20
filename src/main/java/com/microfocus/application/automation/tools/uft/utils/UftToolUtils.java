@@ -71,31 +71,26 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
-        if (fsTestPath != null) {
-            List<String> buildTests = new ArrayList<>();
-            Node node = Jenkins.get().getNode(nodeName);
-            String directoryPath = fsTestPath.replace("\\", "/").trim();
+        if (fsTestPath == null)  return null;
+        List<String> buildTests = new ArrayList<>();
+        Node node = Jenkins.get().getNode(nodeName);
+        String directoryPath = fsTestPath.replace("\\", "/").trim();
 
-            if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
-                List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
-                if(tests.size() == 1 ) {//single test, folder or mtbx file
-                    if(new File(directoryPath).isDirectory()) {
-                        buildTests = listFilesForFolder(new File(directoryPath));
-                    }
-                } else {//list of tests/folders
-                    for(String test : tests){
-                        File testFile = new File(test.trim());
-                        buildTests = getBuildTests(testFile);
-                    }
+        if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
+            List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
+            if(tests.size() == 1 && (new File(directoryPath).isDirectory())) {//single test, folder or mtbx file
+                buildTests = listFilesForFolder(new File(directoryPath));
+            } else {//list of tests/folders
+                for(String test : tests){
+                    File testFile = new File(test.trim());
+                    buildTests = getBuildTests(testFile);
                 }
-            } else {//run tests on selected node
-                buildTests = getTestsFromNode(nodeName, directoryPath);
             }
-
-            return buildTests;
+        } else {//run tests on selected node
+            buildTests = getTestsFromNode(nodeName, directoryPath);
         }
 
-        return null;
+        return buildTests;
     }
 
     public static List<String> getTestsFromNode(String nodeName, String path) {
@@ -128,10 +123,8 @@ public class UftToolUtils {
             return buildTests;
         }
 
-        if(folder.isDirectory() && !folder.getName().contains("mtbx")){//single test
-            if(folder.getName().contains(ACTION_TAG)) {
+        if(folder.isDirectory() && !folder.getName().contains("mtbx") && folder.getName().contains(ACTION_TAG)){//single test
                 buildTests.add(folder.getPath().trim());
-            }
         }
 
         buildTests = getBuildTests(folder);

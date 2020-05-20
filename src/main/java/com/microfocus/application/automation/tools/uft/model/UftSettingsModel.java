@@ -39,9 +39,12 @@ import java.util.List;
 import java.util.Properties;
 
 public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> {
-    public static final EnumDescription ANY_BUILD_TEST = new EnumDescription( "Rerun the entire set of tests", "Rerun the entire set of tests");
-    public static final EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription("Rerun specific tests in the build", "Rerun specific tests in the build");
-    public static final EnumDescription FAILED_BUILD_TEST = new EnumDescription("Rerun only failed tests", "Rerun only failed tests");
+    public static final String ENTIRE_TEST_SET = "Rerun the entire set of tests";
+    public static final String SPECIFIC_TESTS = "Rerun specific tests in the build";
+    public static final String ONLY_FAILED_TESTS = "Rerun only failed tests";
+    public static final EnumDescription ANY_BUILD_TEST = new EnumDescription( ENTIRE_TEST_SET, ENTIRE_TEST_SET);
+    public static final EnumDescription SPECIFIC_BUILD_TEST = new EnumDescription(SPECIFIC_TESTS, SPECIFIC_TESTS);
+    public static final EnumDescription FAILED_BUILD_TEST = new EnumDescription(ONLY_FAILED_TESTS, ONLY_FAILED_TESTS);
     public static final List<EnumDescription> fsTestTypes = Arrays.asList(ANY_BUILD_TEST, SPECIFIC_BUILD_TEST, FAILED_BUILD_TEST);
 
     private String selectedNode;
@@ -150,65 +153,86 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
             props.put("Selected node", this.selectedNode);
         }
 
-        if (!StringUtils.isEmpty(this.onCheckFailedTest)) {
-            props.put("onCheckFailedTest", this.onCheckFailedTest);
-        } else {
-            props.put("onCheckFailedTest", "false");
-        }
+        String onCheckFailedTestVal = StringUtils.isEmpty(this.onCheckFailedTest) ? "false" : this.onCheckFailedTest;
+        props.put("onCheckFailedTest", onCheckFailedTestVal);
 
         props.put("testType", this.fsTestType);
 
         switch(this.fsTestType){
-            case "Rerun the entire set of tests" :{//add failed tests
-                int i = 1;
-                int index = 1;
-                while (props.getProperty("Test" + index) != null) {
-                    props.put("FailedTest" + index, props.getProperty("Test" + index));
-                    index++;
-                }
+            case ENTIRE_TEST_SET :
+                addPropertieForEntireSet(props);
+                break;
 
-                //add number of reruns
-                if (!StringUtils.isEmpty(this.numberOfReruns)) {
-                    props.put("Reruns" + i, this.numberOfReruns);
-                }
+            case SPECIFIC_TESTS:
+                addPropertiesForSpecificTests(props);
+                break;
 
-                //add cleanup test
-                if (!StringUtils.isEmpty(this.cleanupTest)) {
-                    props.put("CleanupTest" + i, this.cleanupTest);
-                }
-            } break;
-
-            case "Rerun specific tests in the build": {
-                //set number of reruns
-                int j = 1;
-                if(this.rerunSettingsModels != null && !this.rerunSettingsModels.isEmpty()) {
-                    for (RerunSettingsModel settings : this.rerunSettingsModels) {
-                        if (settings.getChecked()) {//test is selected
-                            props.put("FailedTest" + j, settings.getTest());
-                            props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
-                            if (StringUtils.isEmpty(settings.getCleanupTest())){
-                                j++; continue;
-                            }
-                            props.put("CleanupTest" + j, settings.getCleanupTest());
-                            j++;
-                        }
-                    }
-                }
-            } break;
-
-            case "Rerun only failed tests": {
-                //add number of reruns
-                if (!StringUtils.isEmpty(this.numberOfReruns)) {
-                    props.put("Reruns1", this.numberOfReruns);
-                }
-                //add cleanup test
-                if (!StringUtils.isEmpty(this.cleanupTest)) {
-                    props.put("CleanupTest1", this.cleanupTest);
-                }
-            } break;
+            case ONLY_FAILED_TESTS:
+                addPropertiesForFailedTests(props);
+                break;
 
             default:
                 throw new IllegalStateException("Unexpected value: " + this.fsTestType);
+        }
+    }
+
+
+    /**
+     * Add failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun the entire test set)
+     * @param props task properties
+     */
+    private void addPropertieForEntireSet(Properties props) {
+        int i = 1;
+        int index = 1;
+        while (props.getProperty("Test" + index) != null) {
+            props.put("FailedTest" + index, props.getProperty("Test" + index));
+            index++;
+        }
+
+        //add number of reruns
+        if (!StringUtils.isEmpty(this.numberOfReruns)) {
+            props.put("Reruns" + i, this.numberOfReruns);
+        }
+
+        //add cleanup test
+        if (!StringUtils.isEmpty(this.cleanupTest)) {
+            props.put("CleanupTest" + i, this.cleanupTest);
+        }
+    }
+
+    /**
+     * dd failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun specific tests)
+     * @param props task properties
+     */
+    private void addPropertiesForSpecificTests(Properties props){
+        int j = 1;
+        if(this.rerunSettingsModels != null && !this.rerunSettingsModels.isEmpty()) {
+            for (RerunSettingsModel settings : this.rerunSettingsModels) {
+                if (settings.getChecked()) {//test is selected
+                    props.put("FailedTest" + j, settings.getTest());
+                    props.put("Reruns" + j, String.valueOf(settings.getNumberOfReruns()));
+                    if (StringUtils.isEmpty(settings.getCleanupTest())){
+                        j++; continue;
+                    }
+                    props.put("CleanupTest" + j, settings.getCleanupTest());
+                    j++;
+                }
+            }
+        }
+    }
+
+    /**
+     * dd failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun only failed tests)
+     * @param props task properties
+     */
+    private void addPropertiesForFailedTests(Properties props) {
+        //add number of reruns
+        if (!StringUtils.isEmpty(this.numberOfReruns)) {
+            props.put("Reruns1", this.numberOfReruns);
+        }
+        //add cleanup test
+        if (!StringUtils.isEmpty(this.cleanupTest)) {
+            props.put("CleanupTest1", this.cleanupTest);
         }
     }
 
