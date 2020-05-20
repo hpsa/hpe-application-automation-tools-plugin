@@ -71,7 +71,7 @@ public class UftToolUtils {
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
-        if (fsTestPath == null)  return null;
+        if (fsTestPath == null)  return new ArrayList<>();
         List<String> buildTests = new ArrayList<>();
         Node node = Jenkins.get().getNode(nodeName);
         String directoryPath = fsTestPath.replace("\\", "/").trim();
