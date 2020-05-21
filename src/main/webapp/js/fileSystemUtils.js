@@ -34,18 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
     var selectValue = document.getElementsByName("fsTestType")[0].options[selectIndex].text;
-    if(selectValue === "Of any of the build's tests") {
-        document.getElementById('testsTable').style.visibility = "hidden";
-        document.getElementById('clearBtn').style.visibility = "hidden";
-        document.getElementById('copyPasteBtn').style.visibility = "hidden";
-        document.getElementById('clear').style.visibility = "hidden";
-        document.getElementById('infoMessage').style.visibility = "hidden";
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+        selectCleanupTest("none");
     } else {
-        document.getElementById('testsTable').style.visibility = "visible";
-        document.getElementById('clearBtn').style.visibility = "visible";
-        document.getElementById('copyPasteBtn').style.visibility = "visible";
-        document.getElementById('clear').style.visibility = "visible";
-        document.getElementById('infoMessage').style.visibility = "visible";
+        selectCleanupTest("block");
     }
 
 }, false);
@@ -73,7 +65,7 @@ function enableCombobox(object){
 function fileSelected(input){
     var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
     var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
-    if(selectValue === "Of any of the build's tests") {
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
         document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
     } else {
         addCleanupTest(input.files[0].name);
@@ -81,20 +73,21 @@ function fileSelected(input){
 }
 
 function selectCleanupTest(displayStyle) {
-    document.getElementById('clearBtn').style.visibility = displayStyle;
-    document.getElementById('clear').style.visibility = displayStyle;
-    document.getElementById('copyPasteBtn').style.visibility = displayStyle;
-    document.getElementById('infoMessage').style.visibility = displayStyle;
-    document.getElementById('testsTable').style.visibility = displayStyle;
+    document.getElementById('clearBtn').style.display = displayStyle;
+    document.getElementById('clear').style.display = displayStyle;
+    document.getElementById('copyPasteBtn').style.display = displayStyle;
+    document.getElementById('infoMessage').style.display = displayStyle;
+    document.getElementById('testsTable').style.display = displayStyle;
 }
 
 function selectValueCombo(selectObj) {
+
     var selectIndex = selectObj.selectedIndex;
     var selectValue = selectObj.options[selectIndex].text;
-    if (selectValue === "Of any of the build's tests") {
-        selectCleanupTest("hidden");
+    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+        selectCleanupTest("none");
     } else {
-        selectCleanupTest("visible");
+        selectCleanupTest("block");
     }
 }
 

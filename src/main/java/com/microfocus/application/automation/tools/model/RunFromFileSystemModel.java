@@ -28,6 +28,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.TaskListener;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
@@ -641,44 +642,15 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     }
 
     /**
-	 * Gets properties.
-	 *
-	 * @param envVars     the env vars
-	 * @return the properties
-	 */
-	@Nullable
-	public Properties getProperties(EnvVars envVars,
-									VariableResolver<String> varResolver) {
-		return createProperties(envVars, varResolver);
-	}
-
-	private Properties createProperties(EnvVars envVars,
-										VariableResolver<String> varResolver) {
-
-		return createProperties(envVars);
-	}
-
-    /**
      * Gets properties.
      *
-     * @param envVars     the env vars
+     * @param envVars the env vars
      * @return the properties
      */
 	@Nullable
 	public Properties getProperties(EnvVars envVars) {
         return createProperties(envVars);
     }
-
-    /**
-     * Gets properties.
-     *
-     * @return the properties
-     */
-    public Properties getProperties() {
-        return createProperties(null);
-    }
-
-
 
     private Properties createProperties(EnvVars envVars) {
         Properties props = new Properties();
@@ -703,46 +675,23 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put("fsTests", "");
         }
 
-        if (StringUtils.isEmpty(fsTimeout)){
-            props.put("fsTimeout", "-1");
-        }
-        else{
-            props.put("fsTimeout", "" + envVars.expand(fsTimeout));
-        }
+        String fsTimeoutVal = StringUtils.isEmpty(fsTimeout) ? "-1" : envVars.expand(fsTimeout);
+        props.put("fsTimeout", fsTimeoutVal);
 
-        if (StringUtils.isEmpty(fsUftRunMode)){
-            props.put("fsUftRunMode", "Fast");
-        }
-        else{
-            props.put("fsUftRunMode", "" + fsUftRunMode);
-        }
+        String fsUFTRunModeVal = StringUtils.isEmpty(fsUftRunMode) ? "Fast" : "" + fsUftRunMode;
+        props.put("fsUftRunMode", fsUFTRunModeVal);
 
-        if (StringUtils.isEmpty(controllerPollingInterval)){
-            props.put("controllerPollingInterval", "30");
-        }
-        else{
-            props.put("controllerPollingInterval", "" + controllerPollingInterval);
-        }
+        String controllerPollingIntervalValue = StringUtils.isEmpty(controllerPollingInterval) ? "30" : controllerPollingInterval;
+        props.put("controllerPollingInterval", controllerPollingIntervalValue);
 
-        if (StringUtils.isEmpty(analysisTemplate)) {
-            props.put("analysisTemplate", "");
-        } else{
-            props.put("analysisTemplate", analysisTemplate);
-        }
+        String analysisTemplateVal = StringUtils.isEmpty(analysisTemplate) ? "" : analysisTemplate;
+        props.put("analysisTemplate", analysisTemplateVal);
 
-       if (StringUtils.isEmpty(displayController) || displayController.equals("false")){
-            props.put("displayController", "0");
-        }
-        else{
-            props.put("displayController", "1");
-        }
+        String displayControllerVal = (StringUtils.isEmpty(displayController) || displayController.equals("false")) ? "0" : "1";
+        props.put("displayController", displayControllerVal);
 
-        if (StringUtils.isEmpty(perScenarioTimeOut)){
-            props.put("PerScenarioTimeOut", "10");
-        }
-        else{
-            props.put("PerScenarioTimeOut", ""+ envVars.expand(perScenarioTimeOut));
-        }
+        String perScenarioTimeOutVal = StringUtils.isEmpty(perScenarioTimeOut) ? "10" : envVars.expand(perScenarioTimeOut);
+        props.put("PerScenarioTimeOut", perScenarioTimeOutVal);
 
         if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
             props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));

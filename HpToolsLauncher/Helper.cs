@@ -198,12 +198,14 @@ namespace HpToolsLauncher
         }
 
 
-        //verify that files/fodlers exist (does not recurse into folders)
+        //verify that files/folders exist (does not recurse into folders)
         public static List<TestData> ValidateFiles(IEnumerable<TestData> tests)
         {
+            //Console.WriteLine("[ValidateFiles]");
             List<TestData> validTests = new List<TestData>();
             foreach (TestData test in tests)
             {
+                //Console.WriteLine("ValidateFiles, test Id: " + test.Id +  ", test path " + test.Tests);
                 if (!File.Exists(test.Tests) && !Directory.Exists(test.Tests))
                 {
                     ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test.Tests));
@@ -780,7 +782,7 @@ namespace HpToolsLauncher
                             }
                             if (finalState == TestState.Failed)
                             {
-                                runDesc.FailureDesc = desc;
+                                runDesc.FailureDesc = desc; 
                             }
                         }
                     }

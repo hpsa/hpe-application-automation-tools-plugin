@@ -280,7 +280,6 @@ namespace HpToolsLauncher
 
             GuiTestRunResult guiTestRunResult = ExecuteQTPRun(runDesc);
             runDesc.ReportLocation = guiTestRunResult.ReportPath;
-
             if (!guiTestRunResult.IsSuccess)
             {
                 runDesc.TestState = TestState.Error;

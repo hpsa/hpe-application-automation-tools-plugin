@@ -74,6 +74,7 @@ local.properties
 #Intellij files
 .idea/
 hp-application-automation-tools-plugin.iml
+*.iml
 
 #Visual studio 14 files
 HpToolsLauncher/.vs/
