@@ -107,20 +107,24 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	}
 
 	private String getStormRunnerURL(String path) {
+		try {
+			String srUrl = null;
+			File srReport = new File(path);
+			if (srReport.exists()) {
+				TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
 
-		String srUrl = null;
-		File srReport = new File(path);
-		if (srReport.exists()) {
-			TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
-
-			for (Property property : testSuite.getProperties()) {
-				if (property.getPropertyName().equals(DASHBOARD_URL)) {
-					srUrl = property.getPropertyValue();
-					break;
+				for (Property property : testSuite.getProperties()) {
+					if (property.getPropertyName().equals(DASHBOARD_URL)) {
+						srUrl = property.getPropertyValue();
+						break;
+					}
 				}
 			}
+			return srUrl;
+		} catch (Exception e) {
+			logger.debug("Failed to getStormRunnerURL: " + e.getMessage());
+			return "";
 		}
-		return srUrl;
 	}
 
 	@Override
@@ -137,7 +141,6 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				}
 				if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
-					logger.error("ALM Octane Runner: " + hpRunnerType);
 					externalURL = getStormRunnerURL(path);
 				}
 			} else if ("id".equals(localName)) {
@@ -151,7 +154,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				stackTraceStr = "";
 				errorType = "";
 				errorMsg = "";
-				externalURL = "";
+				if (!hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+					externalURL = "";//srl link is read in previous "file" section
+				}
 				description = "";
 				moduleName = moduleNameFromFile;
 			} else if ("className".equals(localName)) { // NON-NLS
@@ -241,14 +246,14 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
-                	//console contains link to report
-					//link start with "View Report:"
-					String VIEW_REPORT_PREFIX = "View Report: ";
+				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad) && externalURL.equals("")) {
+					//console contains link to report
+					//link start with "View report:"
+					String VIEW_REPORT_PREFIX = "view report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {
-							if (str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
-								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
+							if (str instanceof String && ((String) str).toLowerCase().startsWith(VIEW_REPORT_PREFIX)) {
+								externalURL = ((String) str).substring(VIEW_REPORT_PREFIX.length()).trim();
 							}
 						}
 					}
