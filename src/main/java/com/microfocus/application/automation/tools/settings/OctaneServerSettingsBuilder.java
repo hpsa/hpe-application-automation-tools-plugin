@@ -376,8 +376,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                             .limit(workspaceNumberLimit)
                             .map(w -> w.getId() + " - " + w.getName() + getUserForWorkspace(w, workspace2ImpersonatedUser))
                             .collect(Collectors.joining(titleNewLine, "Available workspaces are : " + titleNewLine, suffix));
-                    String icon = String.format("<img style=\"padding-left: 10px;\" src=\"%s/plugin/hp-application-automation-tools-plugin/icons/16x16/info-blue.png\"  title=\"%s\"/>",
-                            Jenkins.get().getRootUrl(), tooltip);
+                    String icon = String.format("<img style=\"padding-left: 10px;\" src=\"plugin/hp-application-automation-tools-plugin/icons/16x16/info-blue.png\"  title=\"%s\"/>", tooltip);
                     msg = msg + icon;
                 }
 
