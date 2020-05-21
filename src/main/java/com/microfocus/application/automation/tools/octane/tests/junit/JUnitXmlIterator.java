@@ -51,8 +51,6 @@ import java.util.Optional;
  */
 public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(JUnitXmlIterator.class);
-
-	public static final String DASHBOARD_URL = "dashboardUrl";
 	private final FilePath workspace;
 	private final long buildStarted;
 	private final String buildId;
@@ -76,6 +74,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String jenkinsRootUrl;
 	private String sharedCheckOutDirectory;
 	private Object additionalContext;
+	private String filePath;
+	public static final String SRL_REPORT_URL = "reportUrl";
 
 	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext) throws XMLStreamException {
 		super(read);
@@ -106,42 +106,18 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		return 0;
 	}
 
-	private String getStormRunnerURL(String path) {
-		try {
-			String srUrl = null;
-			File srReport = new File(path);
-			if (srReport.exists()) {
-				TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
-
-				for (Property property : testSuite.getProperties()) {
-					if (property.getPropertyName().equals(DASHBOARD_URL)) {
-						srUrl = property.getPropertyValue();
-						break;
-					}
-				}
-			}
-			return srUrl;
-		} catch (Exception e) {
-			logger.debug("Failed to getStormRunnerURL: " + e.getMessage());
-			return "";
-		}
-	}
-
 	@Override
 	protected void onEvent(XMLEvent event) throws XMLStreamException, IOException, InterruptedException {
 		if (event instanceof StartElement) {
 			StartElement element = (StartElement) event;
 			String localName = element.getName().getLocalPart();
 			if ("file".equals(localName)) {  // NON-NLS
-				String path = readNextValue();
+				filePath = readNextValue();
 				for (ModuleDetection detection : moduleDetection) {
-					moduleNameFromFile = moduleName = detection.getModule(new FilePath(new File(path)));
+					moduleNameFromFile = moduleName = detection.getModule(new FilePath(new File(filePath)));
 					if (moduleName != null) {
 						break;
 					}
-				}
-				if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
-					externalURL = getStormRunnerURL(path);
 				}
 			} else if ("id".equals(localName)) {
 				id = readNextValue();
@@ -154,9 +130,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				stackTraceStr = "";
 				errorType = "";
 				errorMsg = "";
-				if (!hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
-					externalURL = "";//srl link is read in previous "file" section
-				}
+				externalURL = "";
 				description = "";
 				moduleName = moduleNameFromFile;
 			} else if ("className".equals(localName)) { // NON-NLS
@@ -232,7 +206,6 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						if (optional.isPresent()) {
 							cleanedTestName = optional.get();
 							createdTests.remove(cleanedTestName);
-
 						}
 						testReportCreated = optional.isPresent();
 					}
@@ -246,16 +219,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
 				} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad) && externalURL.equals("")) {
-					//console contains link to report
-					//link start with "View report:"
-					String VIEW_REPORT_PREFIX = "view report: ";
-					if (additionalContext != null && additionalContext instanceof Collection) {
-						for (Object str : (Collection) additionalContext) {
-							if (str instanceof String && ((String) str).toLowerCase().startsWith(VIEW_REPORT_PREFIX)) {
-								externalURL = ((String) str).substring(VIEW_REPORT_PREFIX.length()).trim();
-							}
-						}
+				} else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+					externalURL = tryGetStormRunnerReportURLFromJunitFile(filePath);
+					if (StringUtils.isEmpty(externalURL) && additionalContext != null && additionalContext instanceof Collection) {
+						externalURL = tryGetStormRunnerReportURLFromLog((Collection) additionalContext);
 					}
 				}
 			} else if ("duration".equals(localName)) { // NON-NLS
@@ -303,6 +270,37 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		}
 	}
 
+	private static String tryGetStormRunnerReportURLFromLog(Collection logLines) {
+		//console contains link to report
+		//link start with "View report:"
+		String VIEW_REPORT_PREFIX = "view report at:";
+		for (Object str : logLines) {
+			if (str instanceof String && ((String) str).toLowerCase().startsWith(VIEW_REPORT_PREFIX)) {
+				return  ((String) str).substring(VIEW_REPORT_PREFIX.length()).trim();
+			}
+		}
+		return "";
+	}
+
+	private static String tryGetStormRunnerReportURLFromJunitFile(String path) {
+		try {
+			String srUrl = null;
+			File srReport = new File(path);
+			if (srReport.exists()) {
+				TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
+				for (Property property : testSuite.getProperties()) {
+					if (property.getPropertyName().equals(SRL_REPORT_URL)) {
+						srUrl = property.getPropertyValue();
+						break;
+					}
+				}
+			}
+			return srUrl;
+		} catch (Exception e) {
+			logger.debug("Failed to getStormRunnerURL: " + e.getMessage());
+			return "";
+		}
+	}
 	private String extractValueFromStdout(String stdoutValue, String startString, String endString, String defaultValue) {
 		String result = defaultValue;
 		int startIndex = stdoutValue.indexOf(startString);
