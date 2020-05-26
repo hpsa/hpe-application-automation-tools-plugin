@@ -39,6 +39,7 @@ import com.hp.octane.integrations.services.pullrequests.rest.authentication.Basi
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.NoCredentialsStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.PATStrategy;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -114,13 +115,12 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             throw new IllegalArgumentException("SCM Tool is not defined.");
         }
 
-        logConsumer.printLog("Repository URL is " + repositoryUrl);
         StandardCredentials credentials = getCredentialsById(credentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
 
         PullRequestFetchHandler fetchHandler = PullRequestFetchFactory.getHandler(ScmTool.fromValue(scmTool), authenticationStrategy);
         try {
-            FetchParameters fp = createFetchParameters(run, logConsumer::printLog);
+            FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
             List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, logConsumer::printLog);
             PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
@@ -136,11 +136,22 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
     }
 
-    private FetchParameters createFetchParameters(@Nonnull Run<?, ?> run, Consumer<String> logConsumer) {
-        FetchParameters fp = new FetchParameters()
-                .setRepoUrl(repositoryUrl)
-                .setSourceBranchFilter(sourceBranchFilter)
-                .setTargetBranchFilter(targetBranchFilter);
+    private FetchParameters createFetchParameters(@Nonnull Run<?, ?> run,  @Nonnull TaskListener taskListener, Consumer<String> logConsumer) {
+
+        FetchParameters fp ;
+        try {
+            EnvVars env = run.getEnvironment(taskListener);
+            fp = new FetchParameters()
+                    .setRepoUrl(env.expand(repositoryUrl))
+                    .setSourceBranchFilter(env.expand(sourceBranchFilter))
+                    .setTargetBranchFilter(env.expand(targetBranchFilter));
+        } catch (IOException | InterruptedException e) {
+            taskListener.error("Failed loading build environment " + e);
+            fp = new FetchParameters()
+                    .setRepoUrl(repositoryUrl)
+                    .setSourceBranchFilter(sourceBranchFilter)
+                    .setTargetBranchFilter(targetBranchFilter);
+        }
 
         ParametersAction parameterAction = run.getAction(ParametersAction.class);
         if (parameterAction != null) {
@@ -154,6 +165,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             fp.setMinUpdateTime(lastUpdateTime);
         }
 
+        logConsumer.accept("Repository URL        : " + fp.getRepoUrl());
         logConsumer.accept("Min update date       : " + fp.getMinUpdateTime());
         logConsumer.accept("Source branch filter  : " + fp.getSourceBranchFilter());
         logConsumer.accept("Target branch filter  : " + fp.getTargetBranchFilter());
