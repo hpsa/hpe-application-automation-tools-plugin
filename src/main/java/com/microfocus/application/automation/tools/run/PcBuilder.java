@@ -38,6 +38,7 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.Testsu
 import hudson.*;
 import hudson.console.HyperlinkNote;
 import hudson.model.*;
+import hudson.model.Queue;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
@@ -61,10 +62,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
@@ -200,10 +198,15 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return true;
     }
 
-    private void setPcModelBuildParameters(AbstractBuild<?, ?> build) {
-            String buildParameters = build.getBuildVariables().toString();
+    private void setPcModelBuildParameters(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+            Map<String, String> mapParamsAndEnvars = new HashMap<String, String>();
+            Map<String, String> buildParameters = build.getBuildVariables();
+            mapParamsAndEnvars.putAll(buildParameters);
+            Map<String, String> buildEnvars = build.getEnvironment();
+            mapParamsAndEnvars.putAll(buildEnvars);
+            String buildParametersAndEnvars =  mapParamsAndEnvars.toString();
             if (!buildParameters.isEmpty())
-                getPcModel().setBuildParameters(buildParameters);
+                getPcModel().setBuildParameters(buildParametersAndEnvars);
     }
 
     public File getWorkspacePath(){
