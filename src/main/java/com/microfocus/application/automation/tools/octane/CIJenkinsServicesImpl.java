@@ -700,10 +700,26 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return item;
 	}
 
-    public static File getAllowedStorageFile() {
-        Jenkins jenkins = Jenkins.getInstanceOrNull();
-        return (jenkins == null /*is slave*/) ? new File("octanePluginContent") : new File(jenkins.getRootDir(), "userContent") ;
-    }
+	public static File getAllowedStorageFile() {
+		Jenkins jenkins = Jenkins.getInstanceOrNull();
+		String value;
+		if (jenkins != null) {
+			value = "userContent";
+			String prop = System.getProperty("octaneAllowedStorage");
+			// jenkins.xml
+			//  <arguments>-Xrs -Xmx256m -DoctaneAllowedStorage=userContentTemp -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -jar "%BASE%\jenkins.war"
+			if (StringUtils.isNotEmpty(prop)) {
+				value = prop;
+			}
+		} else {/*is slave*/
+			value = "octanePluginContent";
+			String prop = System.getProperty("octaneAllowedStorageSlave");
+			if (StringUtils.isNotEmpty(prop)) {
+				value = prop;
+			}
+		}
+		return new File(value);
+	}
 
 	public static CIServerInfo getJenkinsServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
