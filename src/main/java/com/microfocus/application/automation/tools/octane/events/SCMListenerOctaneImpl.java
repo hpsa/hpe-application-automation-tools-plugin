@@ -31,6 +31,10 @@ import hudson.model.listeners.SCMListener;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Run Listener that handles SCM CI events and dispatches notifications to the Octane server
  * Created by gullery on 10/07/2016.
@@ -39,15 +43,18 @@ import hudson.scm.SCM;
 @Extension
 public class SCMListenerOctaneImpl extends SCMListener {
 
-    @Override
-    public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-        if(!OctaneSDK.hasClients()){
-            return;
-        }
-        super.onChangeLogParsed(run, scm, listener, changelog);
-        CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-        if (scmEvent != null) {
-            CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent);
-        }
-    }
+	private final ScheduledExecutorService publishService = Executors.newScheduledThreadPool(5);
+
+	@Override
+	public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
+		if (!OctaneSDK.hasClients()) {
+			return;
+		}
+		super.onChangeLogParsed(run, scm, listener, changelog);
+		CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
+		if (scmEvent != null) {
+			//delay sending SCM event to verify that it will come after started event
+			publishService.schedule(() -> CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent), 2, TimeUnit.SECONDS);
+		}
+	}
 }
