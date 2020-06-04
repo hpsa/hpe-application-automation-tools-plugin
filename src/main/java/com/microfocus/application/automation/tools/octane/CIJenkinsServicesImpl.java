@@ -720,10 +720,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				if (allowPrint) {
 					systemLogger.info("octaneAllowedStorage : " + f.getAbsolutePath());
 					//validate that folder exist
-					if (!f.exists()) {
-						if (!f.mkdirs()) {
-							systemLogger.warning("Failed to create octaneAllowedStorage : " + f.getAbsolutePath() + ". Create this folder and restart Jenkins.");
-						}
+					if (!f.exists() && !f.mkdirs()) {
+						systemLogger.warning("Failed to create octaneAllowedStorage : " + f.getAbsolutePath() + ". Create this folder and restart Jenkins.");
 					}
 				}
 				return f;
