@@ -705,31 +705,41 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	public static File getAllowedStorageFile() {
-		boolean allowPrint = !skipOctaneAllowedStoragePrint;
-		skipOctaneAllowedStoragePrint = true;
 		Jenkins jenkins = Jenkins.getInstanceOrNull();
-		File folder = null;
+		File folder;
 		if (jenkins != null) {
-			// jenkins.xml
-			//  <arguments>-Xrs -Xmx256m -octaneAllowedStorage=userContentTemp -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -jar "%BASE%\jenkins.war"
-			String prop = System.getProperty("octaneAllowedStorage");
-			if (StringUtils.isNotEmpty(prop)) {
-				folder = new File(prop);
-				if (!folder.isAbsolute()) {
-					folder = new File(jenkins.getRootDir(), prop);
-				}
-				if (allowPrint) {
-					systemLogger.info("octaneAllowedStorage : " + folder.getAbsolutePath());
-					//validate that folder exist
-					if (!folder.exists() && !folder.mkdirs()) {
-						systemLogger.warning("Failed to create octaneAllowedStorage : " + folder.getAbsolutePath() + ". Create this folder and restart Jenkins.");
-					}
-				}
-			} else {
-				folder = new File(jenkins.getRootDir(), "userContent");
-			}
+			folder = getAllowedStorageFileForMasterJenkins(jenkins);
 		} else {/*is slave*/
 			folder =  new File("octanePluginContent");
+		}
+		return folder;
+	}
+
+	private static File getAllowedStorageFileForMasterJenkins(Jenkins jenkins) {
+		boolean allowPrint;
+		synchronized (dtoFactory) {
+			allowPrint = !skipOctaneAllowedStoragePrint;
+			skipOctaneAllowedStoragePrint = true;
+		}
+
+		File folder;
+		// jenkins.xml
+		//  <arguments>-Xrs -Xmx256m -octaneAllowedStorage=userContentTemp -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -jar "%BASE%\jenkins.war"
+		String prop = System.getProperty("octaneAllowedStorage");
+		if (StringUtils.isNotEmpty(prop)) {
+			folder = new File(prop);
+			if (!folder.isAbsolute()) {
+				folder = new File(jenkins.getRootDir(), prop);
+			}
+			if (allowPrint) {
+				systemLogger.info("octaneAllowedStorage : " + folder.getAbsolutePath());
+				//validate that folder exist
+				if (!folder.exists() && !folder.mkdirs()) {
+					systemLogger.warning("Failed to create octaneAllowedStorage : " + folder.getAbsolutePath() + ". Create this folder and restart Jenkins.");
+				}
+			}
+		} else {
+			folder = new File(jenkins.getRootDir(), "userContent");
 		}
 		return folder;
 	}
