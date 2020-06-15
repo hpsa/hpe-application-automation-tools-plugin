@@ -54,6 +54,12 @@
       border-color: #666666;
       background-color: #00b0f0;
     }
+
+    .reportTable {
+        height: 400px;
+        display: block;
+        overflow: auto;
+    }
     </style>
 
     <st:include it="${it.build}" page="sidepanel.jelly" />
@@ -62,6 +68,7 @@
        <br/>
 
        <p>
+       <div class="reportTable">
        <table border="1" cellpadding="0" cellspacing="0" frame="vsides above bottom" >
          <tr>
              <th class = "topNormalCell">Type</th>
@@ -125,6 +132,7 @@
            </tr>
          </j:forEach>
        </table>
+       </div>
        </p>
     </l:main-panel>
 

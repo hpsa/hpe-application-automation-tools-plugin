@@ -422,6 +422,7 @@ namespace HpToolsLauncher
 
                 Stopwatch s = Stopwatch.StartNew();
 
+                Console.WriteLine("Running tests from file system");
                 var results = runner.RunTest(testInfo, ref errorReason, RunCancelled);
 
                 results.Runtime = s.Elapsed;
