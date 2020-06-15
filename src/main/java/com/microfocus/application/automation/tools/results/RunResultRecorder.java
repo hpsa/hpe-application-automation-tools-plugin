@@ -96,6 +96,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
             "report.";
     private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
+    private static final String REPORT_ARCHIVE_SUFFIX = "_Report.zip";
 
 	private final ResultsPublisherModel _resultsPublisherModel;
 	private List<FilePath> runReportList;
@@ -486,12 +487,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							if (reportFolder.exists()) {
 
 								FilePath testFolder = new FilePath(projectWS.getChannel(), testFolderPath);
-								listener.getLogger().println("testFolder: " + testFolder);
 								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(),"UFT");
-								//String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testName);
 								zipFileNames.add(zipFileName);
-
-								listener.getLogger().println("Zipping report folder: " + reportFolderPath);
 
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
@@ -1143,13 +1140,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName, String productName)
 			throws IOException, InterruptedException {
 
-		String result = fileName + "_Report.zip";
+		String result = fileName + REPORT_ARCHIVE_SUFFIX;
 		int index = 1;
 		if(productName.equals("UFT") && names.indexOf(result) == -1){
-			result = fileName + "_" + index + "_Report.zip";
+			result = fileName + "_" + index + REPORT_ARCHIVE_SUFFIX;
 		}
 		while (names.indexOf(result) > -1) {
-			result = fileName + "_" + (++index) + "_Report.zip";
+			result = fileName + "_" + (++index) + REPORT_ARCHIVE_SUFFIX;
 		}
 
 		return result;
