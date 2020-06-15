@@ -271,6 +271,8 @@ namespace HpToolsLauncher
                                                  ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
                                                  : tagUnifiedLicenseType.qtNonUnified);
 
+            Dictionary<string, object> paramList = testinf.GetParameterDictionaryForQTP();
+
             if (!HandleInputParameters(testPath, ref errorReason, testinf.GetParameterDictionaryForQTP(), testinf))
             {
                 runDesc.TestState = TestState.Error;

@@ -82,9 +82,9 @@ namespace HpToolsLauncher
              && string.Equals(a.Name.LocalName, eName.LocalName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static List<TestInfo> Parse(string mtbxFileName, Dictionary<string, string> jankinsEnvironmentVars, string testGroupName)
+        public static List<TestInfo> Parse(string mtbxFileName, Dictionary<string, string> jenkinsEnvironmentVars, string testGroupName)
         {
-            return LoadMtbx(File.ReadAllText(mtbxFileName), jankinsEnvironmentVars, testGroupName);
+            return LoadMtbx(File.ReadAllText(mtbxFileName), jenkinsEnvironmentVars, testGroupName);
         }
         private static string ReplaceString(string str, string oldValue, string newValue, StringComparison comparison)
         {

@@ -96,6 +96,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
             "report.";
     private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
+    private static final String REPORT_ARCHIVE_SUFFIX = "_Report.zip";
 
 	private final ResultsPublisherModel _resultsPublisherModel;
 	private List<FilePath> runReportList;
@@ -386,7 +387,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						reportFolders.add(reportFolder);
 
 						FilePath testFolder = new FilePath(projectWS.getChannel(), testFolderPath);
-						String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
+						String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(),"LR");
 						FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
 
 						if (archiveFolder(reportFolder, testStatus, archivedFile, listener)) {
@@ -466,7 +467,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							if (fileNameCount.containsKey(testName)) {
 								nameCount = fileNameCount.get(testName) + 1;
 							}
-
 							// update the count for this file
 							fileNameCount.put(testName, nameCount);
 							testName += "[" + nameCount + "]";
@@ -487,11 +487,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							if (reportFolder.exists()) {
 
 								FilePath testFolder = new FilePath(projectWS.getChannel(), testFolderPath);
-
-								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
+								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(),"UFT");
 								zipFileNames.add(zipFileName);
-
-								listener.getLogger().println("Zipping report folder: " + reportFolderPath);
 
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
@@ -520,7 +517,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								// reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
 								File testFileFullName = new File(testFolderPath);
 								String testName = testFileFullName.getName();
-								reportMetaData.setDisPlayName(testName); // use the name, not the full path
+								reportMetaData.setDisPlayName(testName + "[" + fileNameCount.get(testName)+ "]"); // use the name, not the full path
 								String zipFileUrlName = "artifact/" + zipFileName;
 								reportMetaData.setUrlName(zipFileUrlName); // for RRV, the file url and resource url are
 																			// the same.
@@ -1140,15 +1137,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/*
 	 * if we have a directory with file name "file.zip" we will return "file_1.zip"
 	 */
-	private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName)
+	private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName, String productName)
 			throws IOException, InterruptedException {
 
-		String result = fileName + "_Report.zip";
-
-		int index = 0;
-
+		String result = fileName + REPORT_ARCHIVE_SUFFIX;
+		int index = 1;
+		if(productName.equals("UFT") && names.indexOf(result) == -1){
+			result = fileName + "_" + index + REPORT_ARCHIVE_SUFFIX;
+		}
 		while (names.indexOf(result) > -1) {
-			result = fileName + "_" + (++index) + "_Report.zip";
+			result = fileName + "_" + (++index) + REPORT_ARCHIVE_SUFFIX;
 		}
 
 		return result;
