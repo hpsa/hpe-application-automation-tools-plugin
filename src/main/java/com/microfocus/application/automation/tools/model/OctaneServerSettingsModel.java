@@ -278,7 +278,7 @@ public class OctaneServerSettingsModel {
             }
             String key;
             String value = null;
-            int separation = trimmedPart.indexOf(":");
+            int separation = trimmedPart.indexOf(':');
             if (separation > 0) {
                 key = trimmedPart.substring(0, separation);
                 value = trimmedPart.substring(separation + 1);
