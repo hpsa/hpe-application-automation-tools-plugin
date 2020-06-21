@@ -24,6 +24,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -213,5 +214,16 @@ public class ConfigurationValidator {
             });
         }
         return workspace2ImpersonatedUser;
+    }
+
+    public static void checkParameters(String parameters, List<String> fails) {
+        Map<String, String> params = OctaneServerSettingsModel.parseParameters(parameters);
+        params.entrySet().forEach(entry -> {
+            try {
+                ConfigurationParameterFactory.tryCreate(entry.getKey(), entry.getValue());
+            } catch (Exception ex) {
+                fails.add(ex.getMessage());
+            }
+        });
     }
 }
