@@ -18,36 +18,27 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.events;
+package com.microfocus.application.automation.tools.octane.exceptions;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
-import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Run;
-import org.apache.logging.log4j.Logger;
+import java.util.List;
 
-public class BuildLogHelper {
-	private static Logger logger = SDKBasedLoggerProvider.getLogger(BuildLogHelper.class);
+/**
+ * Define exception type that receive list of error messages
+ */
+public class AggregatedMessagesException extends RuntimeException {
+    private List<String> messages;
 
-	private BuildLogHelper(){
-		//for code climate
-	}
+    public AggregatedMessagesException(List<String> messages) {
+        this.messages = messages;
+    }
 
-	public static void enqueueBuildLog(Run run) {
-		if(!OctaneSDK.hasClients()){
-			return;
-		}
-		try {
-			String jobCiId = BuildHandlerUtils.getJobCiId(run);
-			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
-			String parents = BuildHandlerUtils.getRootJobCiIds(run);
+    @Override
+    public String getMessage() {
+        return String.join(";", getMessages());
+    }
 
-			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
-			OctaneSDK.getClients().forEach(octaneClient -> {
-				octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, parents);
-			});
-		} catch (Exception t) {
-			logger.error("failed to enqueue " + run + " for logs push to Octane", t);
-		}
-	}
+
+    public List<String> getMessages() {
+        return messages;
+    }
 }

@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 
 import javax.xml.stream.XMLStreamException;
@@ -117,7 +118,7 @@ final public class JUnitTestResult implements Serializable, TestResult {
             writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
             writer.writeCharacters(testError.getStackTraceStr());
             writer.writeEndElement();
-        } else if (testError != null && testError.getErrorMsg() != null) {//warning case
+        } else if (testError != null && !SdkStringUtils.isEmpty(testError.getErrorMsg())) {//warning case
             writer.writeStartElement("error");
             writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
             writer.writeEndElement();

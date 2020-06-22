@@ -28,7 +28,6 @@ import com.microfocus.application.automation.tools.model.OctaneServerSettingsMod
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
-import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -47,6 +46,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -107,7 +107,7 @@ public class Webhooks implements UnprotectedRootAction {
 					ACLContext aclContext = null;
 					try {
 						String octaneInstanceId = octaneClient.getInstanceId();
-						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId);
+						aclContext = ImpersonationUtil.startImpersonation(octaneInstanceId, null);
 						Item topLevelItem = Jenkins.get().getItemByFullName(jobName);
 						if (isValidJenkinsJob(topLevelItem)) {
 							Job jenkinsJob = ((Job) topLevelItem);

@@ -79,7 +79,7 @@ public class EventsTest {
 				"http://127.0.0.1:" + serverMock.getPort() + "/ui?p=" + sharedSpaceId,
 				username,
 				Secret.fromString(password),
-				"", null);
+				"");
 		ConfigurationService.configurePlugin(model);
 		instanceId = model.getIdentity();
 	}

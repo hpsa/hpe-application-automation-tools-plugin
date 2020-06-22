@@ -31,7 +31,6 @@ import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -52,7 +51,7 @@ import com.microfocus.application.automation.tools.octane.configuration.SSCServe
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
-import com.microfocus.application.automation.tools.octane.executor.UftJobCleaner;
+import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -72,12 +71,11 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -93,7 +91,11 @@ import java.util.stream.Collectors;
 
 public class CIJenkinsServicesImpl extends CIPluginServices {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
+	private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+	//we going to print octaneAllowedStorage to system log, this flag help to avoid multiple prints
+	private static boolean skipOctaneAllowedStoragePrint = false;
 
 	@Override
 	public CIServerInfo getServerInfo() {
@@ -148,32 +150,24 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public CIJobsList getJobsList(boolean includeParameters) {
-		ACLContext securityContext = startImpersonation();
+	public CIJobsList getJobsList(boolean includeParameters, Long workspaceId) {
+		ACLContext securityContext = startImpersonation(workspaceId);
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		Map<String, PipelineNode> jobsMap = new HashMap<>();
 
 		try {
-			boolean hasReadPermission = Jenkins.get().hasPermission(Item.READ);
-			if (!hasReadPermission) {
-				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
-			}
-
 			Collection<String> jobNames = Jenkins.get().getJobNames();
 			for (String jobName : jobNames) {
 				String tempJobName = jobName;
 				try {
 					Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
-					if (tmpJob == null ||
-							(tmpJob instanceof AbstractProject && ((AbstractProject) tmpJob).isDisabled()) ||
-							tmpJob instanceof MatrixConfiguration ||
-							tmpJob instanceof MavenModule) {
+					if (!isJobIsRelevantForPipelineModule(tmpJob)) {
 						continue;
 					}
 
 					PipelineNode tmpConfig;
-					if (JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
+					if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
 						tempJobName = tmpJob.getParent().getFullName();
 						tmpConfig = createPipelineNodeFromJobName(tempJobName);
 					} else {
@@ -185,6 +179,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				}
 			}
 
+			if(jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)){
+				//it is possible that user doesn't have general READ permission
+				// but has read permission to specific job, so we postponed this check to end
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+			}
+
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
 		} catch (AccessDeniedException ade) {
 			throw new PermissionException(HttpStatus.SC_FORBIDDEN);
@@ -193,6 +193,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 
 		return result;
+	}
+
+	public static boolean isJobIsRelevantForPipelineModule(Job job){
+		return !(job == null ||
+				(job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) ||
+				job instanceof MatrixConfiguration ||
+				job instanceof MavenModule);
 	}
 
 	@Override
@@ -499,16 +506,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
@@ -522,8 +519,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public void deleteExecutor(String id) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			UftJobCleaner.deleteDiscoveryJobByExecutor(id);
-			UftJobCleaner.deleteExecutionJobByExecutorIfNeverExecuted(id);
+			UftJobRecognizer.deleteDiscoveryJobByExecutor(id);
+			UftJobRecognizer.deleteExecutionJobByExecutorIfNeverExecuted(id);
 		} finally {
 			stopImpersonation(securityContext);
 		}
@@ -540,7 +537,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	private ACLContext startImpersonation() {
-		return ImpersonationUtil.startImpersonation(getInstanceId());
+		return startImpersonation(null);
+	}
+
+	private ACLContext startImpersonation(Long workspaceId) {
+		return ImpersonationUtil.startImpersonation(getInstanceId(), workspaceId);
 	}
 
 	private void stopImpersonation(ACLContext impersonatedContext) {
@@ -576,7 +577,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} catch (IOException ioe) {
 				logger.error("failed to transfer native log to Octane's one for " + run);
 			}
-
 		}
 		try {
 			result = new FileInputStream(octaneLogFilePath);
@@ -631,16 +631,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				if (ciParameter != null) {
 					tmpValue = null;
 					switch (ciParameter.getType()) {
-						case FILE:
-							try {
-								FileItemFactory fif = new DiskFileItemFactory();
-								FileItem fi = fif.createItem(ciParameter.getName(), "text/plain", false, UUID.randomUUID().toString());
-								fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(ciParameter.getValue().toString()));
-								tmpValue = new FileParameterValue(ciParameter.getName(), fi);
-							} catch (IOException ioe) {
-								logger.warn("failed to process file parameter", ioe);
-							}
-							break;
 						case NUMBER:
 						case STRING:
 							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
@@ -714,10 +704,45 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return item;
 	}
 
-    public static File getAllowedStorageFile() {
-        Jenkins jenkins = Jenkins.getInstanceOrNull();
-        return (jenkins == null /*is slave*/) ? new File("octanePluginContent") : new File(jenkins.getRootDir(), "userContent") ;
-    }
+	public static File getAllowedStorageFile() {
+		Jenkins jenkins = Jenkins.getInstanceOrNull();
+		File folder;
+		if (jenkins != null) {
+			folder = getAllowedStorageFileForMasterJenkins(jenkins);
+		} else {/*is slave*/
+			folder =  new File("octanePluginContent");
+		}
+		return folder;
+	}
+
+	private static File getAllowedStorageFileForMasterJenkins(Jenkins jenkins) {
+		boolean allowPrint;
+		synchronized (dtoFactory) {
+			allowPrint = !skipOctaneAllowedStoragePrint;
+			skipOctaneAllowedStoragePrint = true;
+		}
+
+		File folder;
+		// jenkins.xml
+		//  <arguments>-Xrs -Xmx256m -octaneAllowedStorage=userContentTemp -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -jar "%BASE%\jenkins.war"
+		String prop = System.getProperty("octaneAllowedStorage");
+		if (StringUtils.isNotEmpty(prop)) {
+			folder = new File(prop);
+			if (!folder.isAbsolute()) {
+				folder = new File(jenkins.getRootDir(), prop);
+			}
+			if (allowPrint) {
+				systemLogger.info("octaneAllowedStorage : " + folder.getAbsolutePath());
+				//validate that folder exist
+				if (!folder.exists() && !folder.mkdirs()) {
+					systemLogger.warning("Failed to create octaneAllowedStorage : " + folder.getAbsolutePath() + ". Create this folder and restart Jenkins.");
+				}
+			}
+		} else {
+			folder = new File(jenkins.getRootDir(), "userContent");
+		}
+		return folder;
+	}
 
 	public static CIServerInfo getJenkinsServerInfo() {
 		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
@@ -733,12 +758,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	public static void publishEventToRelevantClients(CIEvent event) {
-		OctaneSDK.getClients().forEach(octaneClient -> {
-			String instanceId = octaneClient.getInstanceId();
-			OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
-			if (settings != null && !settings.isSuspend()) {
-				octaneClient.getEventsService().publishEvent(event);
-			}
-		});
+		OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
 	}
 }
