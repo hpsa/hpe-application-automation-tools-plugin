@@ -20,11 +20,11 @@
 
 package com.microfocus.application.automation.tools.settings;
 
-import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -133,6 +133,11 @@ public class OctaneServerSettingsBuilder extends Builder {
                     octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
                     octaneConfiguration.setSuspended(innerServerConfiguration.isSuspend());
                     octaneConfiguration.setImpersonatedUser(innerServerConfiguration.getImpersonatedUser());
+                    octaneConfiguration.clearParameters();
+                    innerServerConfiguration.getParametersAsMap().entrySet().forEach(entry -> {
+                        ConfigurationParameterFactory.addParameter(octaneConfiguration, entry.getKey(), entry.getValue());
+                    });
+
                     octaneConfigurations.put(innerServerConfiguration.getInternalId(), octaneConfiguration);
                     executor.execute(() -> {
                         OctaneSDK.addClient(octaneConfiguration, CIJenkinsServicesImpl.class);
@@ -193,7 +198,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                     String sscPollingTimeoutString = json.getString("maxTimeoutHours");
                     if (sscPollingTimeoutString != null && !sscPollingTimeoutString.isEmpty()) {
                         try {
-                            long sscPollingTimeout = Long.valueOf(sscPollingTimeoutString);
+                            long sscPollingTimeout = Long.parseLong(sscPollingTimeoutString);
                             newModel.setMaxTimeoutHours(sscPollingTimeout);
                         } catch (NumberFormatException e) {
                             newModel.setMaxTimeoutHours(0);
@@ -289,6 +294,12 @@ public class OctaneServerSettingsBuilder extends Builder {
             octaneConfiguration.setImpersonatedUser(newModel.getImpersonatedUser());
             octaneConfiguration.setSuspended(newModel.isSuspend());
 
+            octaneConfiguration.clearParameters();
+            newModel.getParametersAsMap().entrySet().forEach(entry -> {
+                ConfigurationParameterFactory.addParameter(octaneConfiguration, entry.getKey(), entry.getValue());
+            });
+
+
             if (!octaneConfigurations.containsValue(octaneConfiguration)) {
                 octaneConfigurations.put(newModel.getInternalId(), octaneConfiguration);
                 try {
@@ -342,7 +353,8 @@ public class OctaneServerSettingsBuilder extends Builder {
                                                @QueryParameter("password") String password,
                                                @QueryParameter("impersonatedUser") String impersonatedUser,
                                                @QueryParameter("suspend") Boolean isSuspend,
-                                               @QueryParameter("workspace2ImpersonatedUserConf") String workspace2ImpersonatedUserConf
+                                               @QueryParameter("workspace2ImpersonatedUserConf") String workspace2ImpersonatedUserConf,
+                                               @QueryParameter("parameters") String parameters
         ) {
             OctaneUrlParser octaneUrlParser;
             try {
@@ -361,6 +373,7 @@ public class OctaneServerSettingsBuilder extends Builder {
             List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
             Map<Long, String> workspace2ImpersonatedUser = ConfigurationValidator.checkWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, availableWorkspaces, impersonatedUser, fails);
+            ConfigurationValidator.checkParameters(parameters, fails);
 
             String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
             if (fails.isEmpty()) {

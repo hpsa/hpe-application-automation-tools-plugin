@@ -50,8 +50,9 @@ public class OctaneServerSettingsModel {
     private long maxTimeoutHours;
 
     private String workspace2ImpersonatedUserConf;
-    // inferred from workspace2ImpersonatedUserConf
     private Map<Long, String> workspace2ImpersonatedUserMap;
+
+    private String parameters;
 
     public OctaneServerSettingsModel() {
     }
@@ -253,5 +254,45 @@ public class OctaneServerSettingsModel {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public String getParameters() {
+        return parameters;
+    }
+
+    public Map<String, String> getParametersAsMap() {
+        return parseParameters(parameters);
+    }
+
+
+    public static Map<String, String> parseParameters(String rawParameters) {
+        Map<String, String> map = new HashMap<>();
+        if (rawParameters == null) {
+            return map;
+        }
+        String[] parts = rawParameters.split("\\n");
+        for (String part : parts) {
+            String trimmedPart = part.trim();
+            if (trimmedPart.isEmpty() || trimmedPart.startsWith("#")) {
+                continue;
+            }
+            String key;
+            String value = null;
+            int separation = trimmedPart.indexOf(':');
+            if (separation > 0) {
+                key = trimmedPart.substring(0, separation);
+                value = trimmedPart.substring(separation + 1);
+            } else {
+                key = trimmedPart;
+            }
+            map.put(key, value);
+        }
+
+        return map;
+    }
+
+    @DataBoundSetter
+    public void setParameters(String parameters) {
+        this.parameters = parameters;
     }
 }

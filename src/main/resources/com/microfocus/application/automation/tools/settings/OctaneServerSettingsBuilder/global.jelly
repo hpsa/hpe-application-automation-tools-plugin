@@ -39,6 +39,7 @@
     <style>
            .vertical-resizable{
                resize: vertical;
+               height : 55px;
            }
     </style>
 
@@ -86,6 +87,10 @@
                                 <f:textarea  class="vertical-resizable"  value="${mqm.workspace2ImpersonatedUserConf}"/>
                              </f:entry>
 
+                              <f:entry title="${%global.config.parameters.title}" field="parameters" description="${%global.config.parameters.description}">
+                                 <f:textarea  class="vertical-resizable"  value="${mqm.parameters}"/>
+                              </f:entry>
+
 
                             <f:entry/>
                             <f:section title="${%global.config.ssc.tech.preview.title}"/>
@@ -99,7 +104,7 @@
                        </f:advanced>
 
                         <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend,workspace2ImpersonatedUserConf"/>
+                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend,workspace2ImpersonatedUserConf,parameters"/>
 
                     </table>
 
