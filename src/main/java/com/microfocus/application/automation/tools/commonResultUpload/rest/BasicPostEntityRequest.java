@@ -71,6 +71,7 @@ public abstract class BasicPostEntityRequest {
             builder.append(RestXmlUtils.fieldXml(entry.getKey(), entry.getValue()));
         }
         builder.append("</Fields></Entity>");
+        logger.info("Request body: " + builder.toString());
         return builder.toString().getBytes();
     }
 

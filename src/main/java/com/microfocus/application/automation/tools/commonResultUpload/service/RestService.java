@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.commonResultUpload.service;
 
+import com.microfocus.application.automation.tools.common.SSEException;
 import com.microfocus.application.automation.tools.commonResultUpload.CommonUploadLogger;
 import com.microfocus.application.automation.tools.commonResultUpload.rest.CreateAlmEntityEntityRequest;
 import com.microfocus.application.automation.tools.commonResultUpload.rest.GetAlmEntityRequest;
@@ -93,11 +94,21 @@ public class RestService {
 
         List<String> list = new ArrayList<>();
         if (response.isOk() && !response.toString().equals("")) {
-            Document document = XPathUtils.getDocument(response.toString());
-            NodeList domainList = document.getElementsByTagName(dopo);
-            for (int i = 0; i < domainList.getLength(); i++) {
-                String project = domainList.item(i).getAttributes().getNamedItem("Name").getTextContent();
-                list.add(project);
+            Document document = null;
+            try {
+                document = XPathUtils.getDocument(response.toString());
+            } catch (SSEException e) {
+                logger.error("Get xml document failed: " + e.getMessage());
+                logger.error("Please check ALM server's status.");
+            }
+            if (document != null) {
+                NodeList domainList = document.getElementsByTagName(dopo);
+                for (int i = 0; i < domainList.getLength(); i++) {
+                    String project = domainList.item(i).getAttributes().getNamedItem("Name").getTextContent();
+                    list.add(project);
+                }
+            } else {
+                logger.error("Cannot get any content from response while getting " + dopo);
             }
         } else {
             logger.error("Get " + dopo + "s failed from: " + url);
