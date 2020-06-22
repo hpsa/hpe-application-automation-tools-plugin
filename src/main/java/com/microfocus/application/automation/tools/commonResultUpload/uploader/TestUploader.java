@@ -41,6 +41,7 @@ public class TestUploader {
     private static final String TEST_FOLDERS_REST_PREFIX = "test-folders";
     public static final String[] NO_VERSION_TESTS = new String[]{"ALT-SCENARIO",
             "LEANFT-TEST", "LR-SCENARIO", "QAINSPECT-TEST"};
+    private static final String VC_VERSION_NUMBER = "vc-version-number";
 
     private Map<String, String> params;
     private Logger logger;
@@ -80,7 +81,7 @@ public class TestUploader {
                 // Find exists test under folder
                 Map<String, String> existsTest = folderService.findEntityInFolder(folder, test,
                         TEST_REST_PREFIX, TEST_FOLDERS_REST_PREFIX,
-                        new String[]{"id", "name", "subtype-id", "vc-version-number"});
+                        new String[]{"id", "name", "subtype-id", VC_VERSION_NUMBER});
                 if (existsTest != null) {
                     newTest = existsTest;
                 } else {
@@ -115,13 +116,13 @@ public class TestUploader {
 
         boolean versioningEnabled = customizationService.isVersioningEnabled(
                 CustomizationService.TEST_ENTITY_NAME);
-        if (versioningEnabled && StringUtils.isEmpty(newTest.get("vc-version-number"))) {
+        if (versioningEnabled && StringUtils.isEmpty(newTest.get(VC_VERSION_NUMBER))) {
             versionControlService.refreshEntityVersion(TEST_REST_PREFIX,
                     newTest.get(AlmCommonProperties.ID));
 
             newTest.putAll(restService.get(newTest.get(AlmCommonProperties.ID),
                     TEST_REST_PREFIX, CriteriaTranslator.getCriteriaString(
-                            new String[]{"id", "name", "subtype-id", "vc-version-number"}, newTest)).get(0));
+                            new String[]{"id", "name", "subtype-id", VC_VERSION_NUMBER}, newTest)).get(0));
         }
     }
 }

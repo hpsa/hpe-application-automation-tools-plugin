@@ -41,6 +41,7 @@ public class RunUploader {
 
     public static final String RUN_PREFIX = "runs";
     private static final String RUN_VERSION_MAP_NAME = "udf|Run On Version";
+    private static final String VC_VERSION_NUMBER = "vc-version-number";
 
     private CommonUploadLogger logger;
     private Map<String, String> params;
@@ -165,33 +166,34 @@ public class RunUploader {
             }
         }
 
-        boolean shouldProceed = true;
         boolean versioningEnabled = customizationService.isVersioningEnabled(
                 CustomizationService.TEST_ENTITY_NAME);
-        if (versioningEnabled && run.containsKey(RUN_VERSION_MAP_NAME)
-                && StringUtils.isNotEmpty(test.get("vc-version-number"))) {
 
-            if (StringUtils.isEmpty(run.get(RUN_VERSION_MAP_NAME))) {
-                run.put(RUN_VERSION_MAP_NAME, test.get("vc-version-number"));
-                logger.info("Run on version not found. Set it as the latest test version.");
-            } else {
-                try {
-                    int testLatestVersion = Integer.parseInt(test.get("vc-version-number"));
-                    int runVersion = Integer.parseInt(run.get(RUN_VERSION_MAP_NAME));
-                    if (runVersion > testLatestVersion) {
-                        logger.error("Run version larger than test latest version.");
-                        shouldProceed = false;
-                    }
-                    if (runVersion < 1) {
-                        run.put(RUN_VERSION_MAP_NAME, "1");
-                        logger.info("Run on version is " + runVersion + ". Minimum version should be 1. Set it to 1.");
-                    }
-                } catch (NumberFormatException e) {
-                    logger.error("Version number illegal. " + e.getMessage());
-                    shouldProceed = false;
-                }
-            }
+        if (!versioningEnabled || !run.containsKey(RUN_VERSION_MAP_NAME)
+                || StringUtils.isEmpty(test.get(VC_VERSION_NUMBER))) {
+            return true;
         }
-        return shouldProceed;
+        if (StringUtils.isEmpty(run.get(RUN_VERSION_MAP_NAME))) {
+            run.put(RUN_VERSION_MAP_NAME, test.get(VC_VERSION_NUMBER));
+            logger.info("Run on version not found. Set it as the latest test version.");
+            return true;
+        }
+        try {
+            int testLatestVersion = Integer.parseInt(test.get(VC_VERSION_NUMBER));
+            int runVersion = Integer.parseInt(run.get(RUN_VERSION_MAP_NAME));
+            if (runVersion > testLatestVersion) {
+                logger.error("Run version larger than test latest version.");
+                return false;
+            }
+            if (runVersion < 1) {
+                run.put(RUN_VERSION_MAP_NAME, "1");
+                logger.info("Run on version is " + runVersion + ". Minimum version should be 1. Set it to 1.");
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            logger.error("Version number illegal. " + e.getMessage());
+            return false;
+        }
+
     }
 }
