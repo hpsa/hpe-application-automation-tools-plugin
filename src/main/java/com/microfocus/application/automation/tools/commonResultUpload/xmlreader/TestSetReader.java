@@ -24,6 +24,7 @@ package com.microfocus.application.automation.tools.commonResultUpload.xmlreader
 
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.EntitiesFieldMap;
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
+import hudson.FilePath;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -42,6 +43,13 @@ public class TestSetReader {
     private ValueTranslator translator;
     private EntitiesFieldMap entitiesFieldMap;
     private static final String ROOT = "root";
+
+    public TestSetReader(FilePath filePath, EntitiesFieldMap entitiesFieldMap)
+            throws IOException, ParserConfigurationException, InterruptedException, SAXException {
+        xr = new XpathReader(filePath);
+        translator = new ValueTranslator(xr);
+        this.entitiesFieldMap = entitiesFieldMap;
+    }
 
     public TestSetReader(String resultPath, EntitiesFieldMap entitiesFieldMap)
             throws IOException, SAXException, ParserConfigurationException {

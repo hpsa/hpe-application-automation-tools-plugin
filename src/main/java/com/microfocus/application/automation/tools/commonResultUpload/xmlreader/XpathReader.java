@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.commonResultUpload.xmlreader;
 
+import hudson.FilePath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -41,6 +42,15 @@ public class XpathReader {
 
     private XPath xPath;
     private Document doc;
+
+    public XpathReader(FilePath filePath) throws IOException, InterruptedException, ParserConfigurationException,
+            SAXException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = null;
+        builder = factory.newDocumentBuilder();
+        doc = builder.parse(filePath.read());
+        xPath =  XPathFactory.newInstance().newXPath();
+    }
 
     public XpathReader(String filePath) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

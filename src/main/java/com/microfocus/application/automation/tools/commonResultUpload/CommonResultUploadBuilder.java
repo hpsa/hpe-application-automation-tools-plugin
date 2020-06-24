@@ -86,7 +86,7 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
     }
 
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener)
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener)
             throws InterruptedException, IOException {
 
         CommonUploadLogger logger = new CommonUploadLogger(taskListener.getLogger());
@@ -104,10 +104,10 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         params.put("almTestFolder", almTestFolder);
         params.put("almTestSetFolder", almTestSetFolder);
         params.put("runStatusMapping", runStatusMapping);
-        params.put("testingResultFile", testingResultFile);
+        params.put("testingResultFile", Util.replaceMacro(testingResultFile, varResolver));
         params.put("fieldMapping", fieldMapping);
 
-        Uploader uploader = new Uploader(run, logger, params);
+        Uploader uploader = new Uploader(run, workspace, logger, params);
         uploader.upload();
 
         // Output failed uploaded entities.

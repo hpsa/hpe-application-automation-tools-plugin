@@ -37,6 +37,7 @@ import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.
 import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.results.service.AlmRestTool;
 import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
+import hudson.FilePath;
 import hudson.model.Run;
 
 import java.util.List;
@@ -53,9 +54,11 @@ public class Uploader {
     private RestService rs;
     private FolderService fs;
     private Run<?, ?> run;
+    private FilePath workspace;
 
-    public Uploader(Run<?, ?> run, CommonUploadLogger logger, Map<String, String> params) {
+    public Uploader(Run<?, ?> run, FilePath workspace, CommonUploadLogger logger, Map<String, String> params) {
         this.run = run;
+        this.workspace = workspace;
         this.logger = logger;
         this.params = params;
     }
@@ -119,8 +122,8 @@ public class Uploader {
         if (entitiesFieldMap == null) {
             return null;
         }
-        XmlReader xmlReader = new XmlReader(run, logger);
-        List<XmlResultEntity> xmlResultEntities = xmlReader.read(params.get("testingResultFile"), entitiesFieldMap);
+        XmlReader xmlReader = new XmlReader(run, workspace, logger);
+        List<XmlResultEntity> xmlResultEntities = xmlReader.scan(params.get("testingResultFile"), entitiesFieldMap);
         if (xmlResultEntities == null || xmlResultEntities.size() == 0) {
             logger.error("No test result content is found.");
         }
