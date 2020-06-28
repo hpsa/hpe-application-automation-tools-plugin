@@ -40,7 +40,6 @@ import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
@@ -277,42 +276,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} else {
 				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-
-	@Override
-	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			SnapshotNode result = null;
-			Job job = getJobByRefId(jobCiId);
-			if (job != null) {
-				Run run = job.getLastBuild();
-				if (run != null) {
-					result = ModelFactory.createSnapshotItem(run, subTree);
-				}
-			}
-			return result;
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			SnapshotNode result = null;
-			Run run = getRunByRefNames(jobId, buildId);
-			if (run != null) {
-				result = ModelFactory.createSnapshotItem(run, subTree);
-			} else {
-				logger.error("build '" + jobId + " #" + buildId + "' not found");
-			}
-			return result;
 		} finally {
 			stopImpersonation(securityContext);
 		}
