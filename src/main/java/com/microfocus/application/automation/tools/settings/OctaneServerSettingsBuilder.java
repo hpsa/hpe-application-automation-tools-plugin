@@ -44,6 +44,7 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
@@ -373,7 +374,7 @@ public class OctaneServerSettingsBuilder extends Builder {
             List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
 
             Map<Long, String> workspace2ImpersonatedUser = ConfigurationValidator.checkWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, availableWorkspaces, impersonatedUser, fails);
-            ConfigurationValidator.checkParameters(parameters, fails);
+            ConfigurationValidator.checkParameters(parameters, impersonatedUser, fails);
 
             String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
             if (fails.isEmpty()) {
@@ -402,7 +403,9 @@ public class OctaneServerSettingsBuilder extends Builder {
                 if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
                     fails.add(suspendMessage);
                 }
-                String errorMsg = "Validation failed : <ul><li>" + StringUtils.join(fails, "</li><li>") + "</li></ul>";
+                String errorMsg = "Validation failed : <ul><li>" +
+                        fails.stream().map(s -> StringEscapeUtils.escapeHtml(s)).collect(Collectors.joining("</li><li>")) +
+                        "</li></ul>";
                 return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
             }
         }

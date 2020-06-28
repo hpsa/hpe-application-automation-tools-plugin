@@ -49,7 +49,6 @@ import com.microfocus.application.automation.tools.octane.configuration.SDKBased
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
-import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
@@ -234,10 +233,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
-			//create UFT test runner job on the fly if missing
-			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
-				job = createExecutorByJobName(jobCiId);
-			}
 			if (job != null) {
 				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
 					//disabled job is not runnable and in this context we will handle it as 404
@@ -452,19 +447,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			}
 		} else {
 			return null;
-		}
-	}
-
-
-	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			return TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
-		} catch (Exception e) {
-			logger.warn("Failed to create createExecutor by name : " + e.getMessage());
-			return null;
-		} finally {
-			stopImpersonation(securityContext);
 		}
 	}
 
