@@ -117,9 +117,8 @@ public class TestExecutionJobCreatorService {
 			String errorMsg = null;
 			if (item == null) {
 				errorMsg = UftTestRunnerFolderParameter.KEY + " parameter is defined with '" + uftFolderParameter.getFolder() + "', the folder is not found. Validate that folder exist and jenkins user has READ permission on the folder.";
-
 			}
-			if (!JobProcessorFactory.isFolder(item)) {
+			if (item != null && !JobProcessorFactory.isFolder(item)) {
 				errorMsg = UftTestRunnerFolderParameter.KEY + " parameter is defined with '" + uftFolderParameter.getFolder() + "', the item is " + item.getClass().getName() + " , but expected to be a folder.";
 			}
 			if (errorMsg != null) {
@@ -133,18 +132,22 @@ public class TestExecutionJobCreatorService {
 		}
 	}
 
+	private static FreeStyleProject createProject(String configurationId, String name) throws IOException {
+		Folder folder = getParentFolder(configurationId);
+		FreeStyleProject proj;
+		if (folder == null) {
+			proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, name);
+		} else {
+			proj = folder.createProject(FreeStyleProject.class, name);
+		}
+		return proj;
+	}
+
 	private static FreeStyleProject createDiscoveryJob(DiscoveryInfo discoveryInfo) {
 		try {
 			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
-			//validate creation of job
+			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), discoveryJobName);
 
-			Folder folder = getParentFolder(discoveryInfo.getConfigurationId());
-			FreeStyleProject proj;
-			if (folder == null) {
-				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, discoveryJobName);
-			} else {
-				proj = folder.createProject(FreeStyleProject.class, discoveryJobName);
-			}
 			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
 					discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
 
@@ -309,18 +312,10 @@ public class TestExecutionJobCreatorService {
 	public static FreeStyleProject createExecutor(DiscoveryInfo discoveryInfo) {
 		try {
 			String projectName = String.format("%s-%s-%s", UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName());
-
-			Folder folder = getParentFolder(discoveryInfo.getConfigurationId());
-			FreeStyleProject proj;
-			if (folder == null) {
-				proj = Jenkins.getInstanceOrNull().createProject(FreeStyleProject.class, projectName);
-			} else {
-				proj = folder.createProject(FreeStyleProject.class, projectName);
-			}
+			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), projectName);
 
 			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
 					discoveryInfo.getExecutorId()));
-
 
 			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, true);
 			addStringParameter(proj, UftConstants.TESTS_TO_RUN_PARAMETER_NAME, "", "Tests to run");

@@ -240,7 +240,7 @@ public class ConfigurationValidator {
             jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
             if (jenkinsUser == null) {
                 //user exception will be thrown earlier
-                return;//throw new PermissionException(HttpStatus.SC_UNAUTHORIZED);
+                return;
             }
         }
 
