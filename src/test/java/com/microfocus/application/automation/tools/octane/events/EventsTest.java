@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.octane.events;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.services.WorkerPreflight;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.microfocus.application.automation.tools.octane.OctaneServerMock;
@@ -71,6 +72,7 @@ public class EventsTest {
 	public static void beforeClass() {
 		//  ensure server mock is up
 		OctaneServerMock serverMock = OctaneServerMock.getInstance();
+		WorkerPreflight.setDebugMode(true);
 		assertTrue(serverMock.isRunning());
 		serverMock.addTestSpecificHandler(eventsTestHandler);
 
