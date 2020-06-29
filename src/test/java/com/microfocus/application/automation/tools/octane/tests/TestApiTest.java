@@ -77,7 +77,7 @@ public class TestApiTest {
 
 		//  prepare Octane Server Mock
 		OctaneServerMock octaneServerMock = OctaneServerMock.getInstance();
-		WorkerPreflight.setDebugMode(true);
+		WorkerPreflight.setSkipConnectionValidation(true);
 		octaneServerMockPort = octaneServerMock.getPort();
 		octaneServerMock.addTestSpecificHandler(testApiPreflightHandler);
 		octaneServerMock.addTestSpecificHandler(testApiPushTestsResultHandler);
