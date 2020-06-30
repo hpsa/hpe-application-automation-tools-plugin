@@ -72,7 +72,6 @@ public class EventsTest {
 	public static void beforeClass() {
 		//  ensure server mock is up
 		OctaneServerMock serverMock = OctaneServerMock.getInstance();
-		WorkerPreflight.setSkipConnectionValidation(true);
 		assertTrue(serverMock.isRunning());
 		serverMock.addTestSpecificHandler(eventsTestHandler);
 
