@@ -54,6 +54,7 @@ import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMUtils;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
@@ -354,6 +355,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(originalContext);
 		}
+	}
+
+	@Override
+	public InputStream getSCMData(String jobId, String buildId) {
+		ACLContext originalContext = startImpersonation();
+		InputStream result = null;
+
+		try {
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				result = SCMUtils.getSCMData(run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+		} catch (IOException | InterruptedException e) {
+			logger.error("Failed to load SCMData for jobId " + jobId + " buildId " + buildId, e);
+		} finally {
+			stopImpersonation(originalContext);
+		}
+
+		return result;
 	}
 
 	@Override
