@@ -151,7 +151,8 @@ public class EntitiesFieldMapLoader {
     }
 
     private static boolean containsValue(String value, Map<String, String> map) {
-        for (String key : map.keySet()) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            String key = entry.getKey();
             if (value.equals(map.get(key))) {
                 return true;
             }

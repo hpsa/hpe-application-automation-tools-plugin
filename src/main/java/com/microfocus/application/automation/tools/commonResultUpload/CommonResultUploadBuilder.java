@@ -91,7 +91,13 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
             throws InterruptedException, IOException {
 
         CommonUploadLogger logger = new CommonUploadLogger(taskListener.getLogger());
-        UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, run, logger);
+        UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, run);
+        if (credentials == null) {
+            logger.warn("Can not find credentials with the credentialsId:" + credentialsId);
+            run.setResult(Result.ABORTED);
+            return;
+        }
+
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(run.getEnvironment(taskListener));
 
         Map<String, String> params = new HashMap<String, String>();
@@ -136,16 +142,11 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         return "";
     }
 
-    private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run,
-                                                           CommonUploadLogger logger) {
+    private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run) {
         UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
                 StandardUsernamePasswordCredentials.class,
                 run,
                 URIRequirementBuilder.create().build());
-
-        if (credentials == null) {
-            logger.warn("Can not find credentials with the credentialsId:" + credentialsId);
-        }
         return credentials;
     }
 
