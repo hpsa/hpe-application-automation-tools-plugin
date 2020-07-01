@@ -98,7 +98,7 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         params.put(ALM_SERVER_NAME, almServerName);
         params.put(ALM_SERVER_URL, getAlmServerUrl(almServerName));
         params.put(USERNAME, credentials.getUsername());
-        params.put(PASSWORD, credentials.getPassword().getPlainText());
+        params.put(PASS, credentials.getPassword().getPlainText());
         params.put(ALM_DOMAIN, Util.replaceMacro(almDomain, varResolver));
         params.put(CLIENT_TYPE, clientType);
         params.put(ALM_PROJECT, Util.replaceMacro(almProject, varResolver));

@@ -32,7 +32,7 @@ public final class ParamConstant {
     public static final String ALM_SERVER_NAME = "almServerName";
     public static final String ALM_SERVER_URL = "almServerUrl";
     public static final String USERNAME = "username";
-    public static final String PASSWORD = "password";
+    public static final String PASS = "password";
     public static final String ALM_DOMAIN = "almDomain";
     public static final String CLIENT_TYPE = "clientType";
     public static final String ALM_PROJECT = "almProject";

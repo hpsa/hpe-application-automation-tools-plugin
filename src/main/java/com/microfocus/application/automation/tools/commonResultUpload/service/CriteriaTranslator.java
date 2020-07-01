@@ -52,12 +52,12 @@ public class CriteriaTranslator {
         }
 
         sb.append("&query={");
-        for (String key : entity.keySet()) {
+        for (Map.Entry<String, String> entry : entity.entrySet()) {
+            String key = entry.getKey();
             if (key.startsWith(CRITERIA_PREFIX)) {
                 tobeRemoved.add(key);
                 String realName = key.substring(
-                        key.indexOf(CRITERIA_PREFIX) + CRITERIA_PREFIX.length(),
-                        key.length());
+                        key.indexOf(CRITERIA_PREFIX) + CRITERIA_PREFIX.length());
                 tobeAdded.put(realName, entity.get(key));
                 sb.append(realName).append("[")
                         .append(AlmRestTool.getEncodedString(entity.get(key)))

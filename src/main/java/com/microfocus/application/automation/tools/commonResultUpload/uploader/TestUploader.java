@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.commonResultUpload.uploader;
 
+import com.microfocus.application.automation.tools.commonResultUpload.CommonUploadLogger;
 import com.microfocus.application.automation.tools.commonResultUpload.service.CriteriaTranslator;
 import com.microfocus.application.automation.tools.commonResultUpload.service.CustomizationService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.FolderService;
@@ -44,16 +45,17 @@ public class TestUploader {
     public static final String[] NO_VERSION_TESTS = new String[]{"ALT-SCENARIO",
             "LEANFT-TEST", "LR-SCENARIO", "QAINSPECT-TEST"};
     private static final String VC_VERSION_NUMBER = "vc-version-number";
+    private static final String SUB_TYPE_ID = "subtype-id";
 
     private Map<String, String> params;
-    private Logger logger;
+    private CommonUploadLogger logger;
     private RestService restService;
     private FolderService folderService;
     private CustomizationService customizationService;
     private TestInstanceUploader testInstanceUploader;
     private VersionControlService versionControlService;
 
-    public TestUploader(Logger logger, Map<String, String> params,
+    public TestUploader(CommonUploadLogger logger, Map<String, String> params,
                         RestService restService, FolderService folderService,
                         TestInstanceUploader testInstanceUploader,
                         CustomizationService customizationService,
@@ -68,6 +70,7 @@ public class TestUploader {
     }
 
     public void upload(Map<String, String> testset, List<XmlResultEntity> xmlResultEntities) {
+        logger.info("Test upload start.");
         for (XmlResultEntity xmlResultEntity : xmlResultEntities) {
             Map<String, String> test = xmlResultEntity.getValueMap();
             Map<String, String> newTest;
@@ -83,7 +86,7 @@ public class TestUploader {
                 // Find exists test under folder
                 Map<String, String> existsTest = folderService.findEntityInFolder(folder, test,
                         TEST_REST_PREFIX, TEST_FOLDERS_REST_PREFIX,
-                        new String[]{"id", "name", "subtype-id", VC_VERSION_NUMBER});
+                        new String[]{"id", "name", SUB_TYPE_ID, VC_VERSION_NUMBER});
                 if (existsTest != null) {
                     newTest = existsTest;
                 } else {
@@ -111,7 +114,7 @@ public class TestUploader {
     private void getVersionNumberForVC(Map<String, String> newTest) {
         // Some test type doesn't have version support
         for (String noVersionTest : NO_VERSION_TESTS) {
-            if (newTest.get("subtype-id").equals(noVersionTest)) {
+            if (newTest.get(SUB_TYPE_ID).equals(noVersionTest)) {
                 return;
             }
         }
@@ -124,7 +127,7 @@ public class TestUploader {
 
             newTest.putAll(restService.get(newTest.get(AlmCommonProperties.ID),
                     TEST_REST_PREFIX, CriteriaTranslator.getCriteriaString(
-                            new String[]{"id", "name", "subtype-id", VC_VERSION_NUMBER}, newTest)).get(0));
+                            new String[]{"id", "name", SUB_TYPE_ID, VC_VERSION_NUMBER}, newTest)).get(0));
         }
     }
 }

@@ -22,6 +22,7 @@
 
 package com.microfocus.application.automation.tools.commonResultUpload.uploader;
 
+import com.microfocus.application.automation.tools.commonResultUpload.CommonUploadLogger;
 import com.microfocus.application.automation.tools.commonResultUpload.service.CriteriaTranslator;
 import com.microfocus.application.automation.tools.commonResultUpload.service.FolderService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RestService;
@@ -41,12 +42,12 @@ public class TestSetUploader {
     private static final String TEST_SET_FOLDERS_REST_PREFIX = "test-set-folders";
 
     private Map<String, String> params;
-    private Logger logger;
+    private CommonUploadLogger logger;
     private RestService restService;
     private FolderService folderService;
     private TestUploader testuploader;
 
-    public TestSetUploader(Logger logger, Map<String, String> params,
+    public TestSetUploader(CommonUploadLogger logger, Map<String, String> params,
                            RestService restService,
                            FolderService folderService,
                            TestUploader testuploader) {
@@ -58,6 +59,7 @@ public class TestSetUploader {
     }
 
     public void upload(List<XmlResultEntity> xmlResultEntities) {
+        logger.info("Test set upload start.");
         for (XmlResultEntity xmlResultEntity : xmlResultEntities) {
             Map<String, String> testset = xmlResultEntity.getValueMap();
 
@@ -71,32 +73,41 @@ public class TestSetUploader {
                 continue;
             }
 
-            Map<String, String> newTestset;
-            if (existTestsets.size() > 0) {
-                newTestset = existTestsets.get(0);
-            } else {
-                // If no, create test set under folder
-                if (!StringUtils.isEmpty(params.get(ALM_TESTSET_FOLDER))) {
-                    Map<String, String> folder = folderService.createOrFindPath(
-                            TEST_SET_FOLDERS_REST_PREFIX,
-                            "0",
-                            params.get(ALM_TESTSET_FOLDER));
-                    if (folder == null) {
-                        continue;
-                    }
-                    testset.put(AlmCommonProperties.PARENT_ID, folder.get(AlmCommonProperties.ID));
-                } else {
-                    // Or create test set under root
-                    testset.put(AlmCommonProperties.PARENT_ID, "0");
-                }
-                newTestset = restService.create(TEST_SET_REST_PREFIX, testset);
-            }
-
-            if (newTestset == null) {
-                continue;
-            } else {
-                testuploader.upload(newTestset, xmlResultEntity.getSubEntities());
-            }
+            uploadOrUpdateTestset(existTestsets, testset, xmlResultEntity);
         }
+    }
+
+    private boolean uploadOrUpdateTestset(List<Map<String, String>> existTestsets,
+                                          Map<String, String> testset, XmlResultEntity xmlResultEntity) {
+        Map<String, String> newTestset;
+        if (existTestsets.size() > 0) {
+            newTestset = existTestsets.get(0);
+        } else {
+            // If no, create test set under folder
+            newTestset = createTestsetInFolder(testset);
+        }
+        if (newTestset == null) {
+            return false;
+        } else {
+            testuploader.upload(newTestset, xmlResultEntity.getSubEntities());
+        }
+        return true;
+    }
+
+    private Map<String, String> createTestsetInFolder(Map<String, String> testset) {
+        if (!StringUtils.isEmpty(params.get(ALM_TESTSET_FOLDER))) {
+            Map<String, String> folder = folderService.createOrFindPath(
+                    TEST_SET_FOLDERS_REST_PREFIX,
+                    "0",
+                    params.get(ALM_TESTSET_FOLDER));
+            if (folder == null) {
+                return null;
+            }
+            testset.put(AlmCommonProperties.PARENT_ID, folder.get(AlmCommonProperties.ID));
+        } else {
+            // Or create test set under root
+            testset.put(AlmCommonProperties.PARENT_ID, "0");
+        }
+        return restService.create(TEST_SET_REST_PREFIX, testset);
     }
 }

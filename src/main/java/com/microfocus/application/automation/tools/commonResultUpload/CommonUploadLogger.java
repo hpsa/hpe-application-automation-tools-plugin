@@ -76,7 +76,7 @@ public class CommonUploadLogger implements Logger {
     }
 
     private void storeError(String message) {
-        if (message.indexOf('(') > 0 && message.indexOf(')') > message.indexOf('(')) {
+        if (message.indexOf('(') > -1 && message.indexOf(')') > message.indexOf('(')) {
             failedEntityNames.add(
                     message.substring(message.indexOf('(') + 1, message.indexOf(')'))
             );

@@ -63,11 +63,11 @@ public class UDFTranslator {
         List<String> tobeRemoved = new ArrayList<>();
         Map<String, String> tobeAdded = new HashMap<>();
 
-        for (String name : entityMap.keySet()) {
+        for (Map.Entry<String, String> entry : entityMap.entrySet()) {
+            String name = entry.getKey();
             if (name.startsWith(UDF_PREFIX)) {
                 String label = name.substring(
-                        name.indexOf(UDF_PREFIX) + UDF_PREFIX.length(),
-                        name.length());
+                        name.indexOf(UDF_PREFIX) + UDF_PREFIX.length());
                 String realName = customizationService.getUDFNameByLabel(entityName, label);
                 if (StringUtils.isNotEmpty(realName)) {
                     tobeAdded.put(realName, entityMap.get(name));

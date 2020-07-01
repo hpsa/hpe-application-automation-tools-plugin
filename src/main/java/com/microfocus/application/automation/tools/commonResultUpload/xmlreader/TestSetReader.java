@@ -75,13 +75,14 @@ public class TestSetReader {
             Node currentNode = nodes.item(i);
 
             Map<String, String> fieldsMap = new HashMap<>();
-            for (String fieldname : configMap.keySet()) {
-                String fieldValue = configMap.get(fieldname);
-                if (ROOT.equals(fieldname)) {
+            for (Map.Entry<String, String> entry : configMap.entrySet()) {
+                String fieldName = entry.getKey();
+                String fieldValue = configMap.get(fieldName);
+                if (ROOT.equals(fieldName)) {
                     continue;
                 }
                 fieldValue = translator.translate(fieldValue, currentNode);
-                fieldsMap.put(fieldname, fieldValue);
+                fieldsMap.put(fieldName, fieldValue);
             }
             entity.setValueMap(fieldsMap);
 

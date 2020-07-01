@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class EntitiesFieldMapLoader {
 
+    private static final String ILLEGAL = "Illegal ";
     private static final String[] TEST_SET_REQUIRED_FIELDS = new String[]{"root", "name", "subtype-id"};
     private static final String[] RUN_REQUIRED_FIELDS = new String[]{"root"};
 
@@ -84,7 +85,7 @@ public class EntitiesFieldMapLoader {
         subtypeId = subtypeId.substring(2, subtypeId.length());
         Map<String, String> subtypeMap = cs.getEntitySubTypes(entityName);
         if (!containsValue(subtypeId, subtypeMap)) {
-            logger.error("Illegal " + entityName + " subtype-id: " + subtypeId);
+            logger.error(ILLEGAL + entityName + " subtype-id: " + subtypeId);
             return false;
         }
         return true;
@@ -133,16 +134,15 @@ public class EntitiesFieldMapLoader {
         for (String fieldName : fieldMap.keySet()) {
             // Check if field name exists
             if (!containsValue(fieldName, entityFields) && !fieldName.equals("root") && !fieldName.contains("|")) {
-                logger.error("Illegal " + entityName + " field name: " + fieldName);
+                logger.error(ILLEGAL + entityName + " field name: " + fieldName);
                 return false;
             }
             // Check if field label exists
             if (fieldName.startsWith(UDFTranslator.UDF_PREFIX)) {
                 String label = fieldName.substring(
-                        fieldName.indexOf(UDFTranslator.UDF_PREFIX) + UDFTranslator.UDF_PREFIX.length(),
-                        fieldName.length());
+                        fieldName.indexOf(UDFTranslator.UDF_PREFIX) + UDFTranslator.UDF_PREFIX.length());
                 if (!entityFields.containsKey(label)) {
-                    logger.error("Illegal " + entityName + " label: " + fieldName);
+                    logger.error(ILLEGAL + entityName + " label: " + fieldName);
                     return false;
                 }
             }

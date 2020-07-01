@@ -73,7 +73,7 @@ public class Uploader {
                 params.get(USERNAME));
 
         boolean login = AuthenticationTool.getInstance().authenticate(restClient,
-                params.get(USERNAME), params.get(PASSWORD),
+                params.get(USERNAME), params.get(PASS),
                 params.get(ALM_SERVER_URL), params.get(CLIENT_TYPE), logger);
         if (login) {
             init();
