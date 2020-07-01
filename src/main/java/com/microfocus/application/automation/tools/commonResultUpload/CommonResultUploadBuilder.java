@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2012 Hewlett-Packard Development Company, L.P.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ *
  */
 
 package com.microfocus.application.automation.tools.commonResultUpload;
@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.microfocus.application.automation.tools.Messages.CommonResultUploadBuilderName;
+import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.*;
 
 public class CommonResultUploadBuilder extends Recorder implements SimpleBuildStep {
 
@@ -94,18 +95,18 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(run.getEnvironment(taskListener));
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("almServerName", almServerName);
-        params.put("almServerUrl", getAlmServerUrl(almServerName));
-        params.put("username", credentials.getUsername());
-        params.put("password", credentials.getPassword().getPlainText());
-        params.put("almDomain", Util.replaceMacro(almDomain, varResolver));
-        params.put("clientType", clientType);
-        params.put("almProject", Util.replaceMacro(almProject, varResolver));
-        params.put("almTestFolder", almTestFolder);
-        params.put("almTestSetFolder", almTestSetFolder);
-        params.put("runStatusMapping", runStatusMapping);
-        params.put("testingResultFile", Util.replaceMacro(testingResultFile, varResolver));
-        params.put("fieldMapping", fieldMapping);
+        params.put(ALM_SERVER_NAME, almServerName);
+        params.put(ALM_SERVER_URL, getAlmServerUrl(almServerName));
+        params.put(USERNAME, credentials.getUsername());
+        params.put(PASSWORD, credentials.getPassword().getPlainText());
+        params.put(ALM_DOMAIN, Util.replaceMacro(almDomain, varResolver));
+        params.put(CLIENT_TYPE, clientType);
+        params.put(ALM_PROJECT, Util.replaceMacro(almProject, varResolver));
+        params.put(ALM_TEST_FOLDER, almTestFolder);
+        params.put(ALM_TESTSET_FOLDER, almTestSetFolder);
+        params.put(RUN_STATUS_MAPPING, runStatusMapping);
+        params.put(TESTING_RESULT_FILE, Util.replaceMacro(testingResultFile, varResolver));
+        params.put(FIELD_MAPPING, fieldMapping);
 
         Uploader uploader = new Uploader(run, workspace, logger, params);
         uploader.upload();

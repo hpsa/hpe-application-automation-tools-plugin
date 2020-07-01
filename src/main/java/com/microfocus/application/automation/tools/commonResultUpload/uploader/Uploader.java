@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2012 Hewlett-Packard Development Company, L.P.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * © Copyright 2012-2019 Micro Focus or one of its affiliates..
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors (“Micro Focus”) are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
+ * ___________________________________________________________________
+ *
  */
 
 package com.microfocus.application.automation.tools.commonResultUpload.uploader;
@@ -40,8 +40,11 @@ import com.microfocus.application.automation.tools.sse.sdk.authenticator.Authent
 import hudson.FilePath;
 import hudson.model.Run;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.*;
 
 public class Uploader {
 
@@ -64,22 +67,22 @@ public class Uploader {
     }
 
     public void upload() {
-        restClient = new RestClient(params.get("almServerUrl"),
-                params.get("almDomain"),
-                params.get("almProject"),
-                params.get("username"));
+        restClient = new RestClient(params.get(ALM_SERVER_URL),
+                params.get(ALM_DOMAIN),
+                params.get(ALM_PROJECT),
+                params.get(USERNAME));
 
         boolean login = AuthenticationTool.getInstance().authenticate(restClient,
-                params.get("username"), params.get("password"),
-                params.get("almServerUrl"), params.get("clientType"), logger);
+                params.get(USERNAME), params.get(PASSWORD),
+                params.get(ALM_SERVER_URL), params.get(CLIENT_TYPE), logger);
         if (login) {
             init();
-            if (!rs.getDomains().contains(params.get("almDomain"))) {
-                logger.error("Invalid domain name:" + params.get("almDomain"));
+            if (!rs.getDomains().contains(params.get(ALM_DOMAIN))) {
+                logger.error("Invalid domain name:" + params.get(ALM_DOMAIN));
                 return;
             }
-            if (!rs.getProjects(params.get("almDomain")).contains(params.get("almProject"))) {
-                logger.error("Invalid project name:" + params.get("almProject"));
+            if (!rs.getProjects(params.get(ALM_DOMAIN)).contains(params.get(ALM_PROJECT))) {
+                logger.error("Invalid project name:" + params.get(ALM_PROJECT));
                 return;
             }
             List<XmlResultEntity> xmlResultEntities = getUploadData();
@@ -91,7 +94,7 @@ public class Uploader {
                 return;
             }
             AlmRestTool almRestTool = new AlmRestTool(restClient, logger);
-            params.put("actualUser", almRestTool.getActualUsername());
+            params.put(ACTUAL_USER, almRestTool.getActualUsername());
             testSetUploader.upload(xmlResultEntities);
         } else {
             logger.error("Login failed.");
@@ -107,7 +110,7 @@ public class Uploader {
     }
 
     private TestSetUploader getTestSetUploader() {
-        RunStatusMap runStatusMap = RunStatusMapLoader.load(params.get("runStatusMapping"), logger);
+        RunStatusMap runStatusMap = RunStatusMapLoader.load(params.get(RUN_STATUS_MAPPING), logger);
         if (runStatusMap == null) {
             return null;
         }
@@ -118,12 +121,15 @@ public class Uploader {
     }
 
     private List<XmlResultEntity> getUploadData() {
-        EntitiesFieldMap entitiesFieldMap = EntitiesFieldMapLoader.load(params.get("fieldMapping"), logger, cs);
+        List<XmlResultEntity> xmlResultEntities = new ArrayList<>();
+
+        EntitiesFieldMap entitiesFieldMap = EntitiesFieldMapLoader.load(params.get(FIELD_MAPPING), logger, cs);
         if (entitiesFieldMap == null) {
-            return null;
+            return xmlResultEntities;
         }
+
         XmlReader xmlReader = new XmlReader(run, workspace, logger);
-        List<XmlResultEntity> xmlResultEntities = xmlReader.scan(params.get("testingResultFile"), entitiesFieldMap);
+        xmlResultEntities = xmlReader.scan(params.get(TESTING_RESULT_FILE), entitiesFieldMap);
         if (xmlResultEntities == null || xmlResultEntities.size() == 0) {
             logger.error("No test result content is found.");
         }
