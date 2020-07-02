@@ -21,9 +21,10 @@
 package com.microfocus.application.automation.tools.octane.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.events.CIEvent;
-import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
-import com.microfocus.application.automation.tools.octane.model.CIEventFactory;
+import com.hp.octane.integrations.dto.scm.SCMData;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMProcessors;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMUtils;
+import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -51,10 +52,21 @@ public class SCMListenerOctaneImpl extends SCMListener {
 			return;
 		}
 		super.onChangeLogParsed(run, scm, listener, changelog);
-		CIEvent scmEvent = CIEventFactory.createScmEvent(run, scm);
-		if (scmEvent != null) {
+
+		String jobCiId = BuildHandlerUtils.getJobCiId(run);
+		String buildCiId = BuildHandlerUtils.getBuildCiId(run);
+
+		SCMData scmData = SCMUtils.extractSCMData(run, scm, SCMProcessors.getAppropriate(scm.getClass().getName()));
+		SCMUtils.persistSCMData(run, jobCiId, buildCiId, scmData);
+
+		if (scmData != null) {
 			//delay sending SCM event to verify that it will come after started event
-			publishService.schedule(() -> CIJenkinsServicesImpl.publishEventToRelevantClients(scmEvent), 2, TimeUnit.SECONDS);
+			publishService.schedule(() -> enqueueSCMDataForAllClients(jobCiId, buildCiId, scmData), 2, TimeUnit.SECONDS);
 		}
+	}
+
+	private void enqueueSCMDataForAllClients(String jobCiId, String buildCiId, SCMData scmData) {
+		OctaneSDK.getClients().forEach(octaneClient ->
+			octaneClient.getSCMDataService().enqueueSCMData(jobCiId, buildCiId, scmData));
 	}
 }
