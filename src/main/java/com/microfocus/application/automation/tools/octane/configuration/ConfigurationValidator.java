@@ -226,7 +226,7 @@ public class ConfigurationValidator {
                 ConfigurationParameter parameter = ConfigurationParameterFactory.tryCreate(entry.getKey(), entry.getValue());
 
                 if (parameter.getKey().equals(UftTestRunnerFolderParameter.KEY)) {
-                    checkUftFolderParameter(parameter,impersonatedUser, fails);
+                    checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
                 }
             } catch (Exception ex) {
                 fails.add(ex.getMessage());
@@ -234,7 +234,7 @@ public class ConfigurationValidator {
         });
     }
 
-    private static void checkUftFolderParameter(ConfigurationParameter param, String impersonatedUser, List<String> fails) {
+    private static void checkUftFolderParameterWithImpersonation(UftTestRunnerFolderParameter param, String impersonatedUser, List<String> fails) {
         User jenkinsUser = null;
         if (!StringUtils.isEmpty(impersonatedUser)) {
             jenkinsUser = User.get(impersonatedUser, false, Collections.emptyMap());
@@ -246,21 +246,25 @@ public class ConfigurationValidator {
 
         ACLContext acl = ImpersonationUtil.startImpersonation(jenkinsUser);
         try {
-            String folder = ((UftTestRunnerFolderParameter) param).getFolder();
-            Item item = Jenkins.get().getItemByFullName(folder);
-            if (item == null) {
-                String msg = UftTestRunnerFolderParameter.KEY + " : folder '" + folder + "' is not found. Validate that folder exist and jenkins user has READ permission on the folder.";
-                if (folder.contains("/job/")) {
-                    msg += " Replace '/job/' by '/'.";
-                }
-                fails.add(msg);
-            } else if (!JobProcessorFactory.isFolder(item)) {
-                fails.add(UftTestRunnerFolderParameter.KEY + " : '" + folder + "' is not a folder.");
-            }
+            checkUftFolderParameter(param, fails);
         } catch (Exception e) {
             fails.add(UftTestRunnerFolderParameter.KEY + " - Failed to check parameter : " + e.getMessage());
         } finally {
             ImpersonationUtil.stopImpersonation(acl);
+        }
+    }
+
+    public static void checkUftFolderParameter(UftTestRunnerFolderParameter param, List<String> fails) {
+        String folder = param.getFolder();
+        Item item = Jenkins.get().getItemByFullName(folder);
+        if (item == null) {
+            String msg = UftTestRunnerFolderParameter.KEY + " : folder '" + folder + "' is not found. Validate that folder exist and jenkins user has READ permission on the folder.";
+            if (folder.contains("/job/")) {
+                msg += " Replace '/job/' by '/'.";
+            }
+            fails.add(msg);
+        } else if (!JobProcessorFactory.isFolder(item)) {
+            fails.add(UftTestRunnerFolderParameter.KEY + " : '" + folder + "' is not a folder.");
         }
     }
 }

@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane;
 
 import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -42,11 +43,9 @@ import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
-import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
+import com.microfocus.application.automation.tools.octane.configuration.*;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
@@ -476,7 +475,23 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+
+			//validate UftTestRunnerFolderParameter
+			if (response.getStatus() == HttpStatus.SC_OK) {
+				OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
+				UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
+						.getCurrentConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
+				if (uftFolderParameter != null) {
+					List<String> errors = new ArrayList<>();
+					ConfigurationValidator.checkUftFolderParameter(uftFolderParameter, errors);
+					if (!errors.isEmpty()) {
+						response.setStatus(HttpStatus.SC_BAD_REQUEST);
+						response.setBody(errors.get(0));
+					}
+				}
+			}
+			return response;
 		} finally {
 			stopImpersonation(securityContext);
 		}
