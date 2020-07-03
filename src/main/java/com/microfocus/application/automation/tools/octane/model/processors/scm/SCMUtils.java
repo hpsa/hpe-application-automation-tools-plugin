@@ -22,6 +22,10 @@ public class SCMUtils {
     private static final String SCM_DATA_FILE = "scmdata.json";
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+    private SCMUtils() {
+        //code climate : Add a private constructor to hide the implicit public one
+    }
+
     public static SCMData extractSCMData(Run run, SCM scm, SCMProcessor scmProcessor) {
         SCMData result = null;
         if (run.getParent() instanceof MatrixConfiguration || run instanceof AbstractBuild) {
