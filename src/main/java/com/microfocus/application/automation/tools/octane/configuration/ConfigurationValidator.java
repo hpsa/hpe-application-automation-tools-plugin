@@ -143,6 +143,9 @@ public class ConfigurationValidator {
             Collection<String> jobNames = Jenkins.get().getJobNames();
             Set<String> validJobNames = jobNames.stream().filter(jobName -> CIJenkinsServicesImpl.isJobIsRelevantForPipelineModule((Job) Jenkins.get().getItemByFullName(jobName)))
                     .collect(Collectors.toSet());
+            if (validJobNames.isEmpty()) {
+                errorMessages.add(String.format("No job is available to the workspace Jenkins user '%s'", impersonatedUser));
+            }
             return validJobNames;
         } catch (Exception e) {
             errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), impersonatedUser, e.getMessage()));
@@ -203,9 +206,7 @@ public class ConfigurationValidator {
             Set<String> userNames = workspace2ImpersonatedUser.values().stream().collect(Collectors.toSet());
             userNames.forEach(user -> {
                 Set<String> availableJobs = getAvailableJobNames(errorMessages, user);
-                if (availableJobs.isEmpty()) {
-                    errorMessages.add(String.format("No job is available to the workspace Jenkins user '%s'", user));
-                } else {
+                if (!availableJobs.isEmpty()) {
                     Set<String> unavailableJobsByGeneralImpersonatedUser = availableJobs.stream()
                             .filter(jobName -> !availableJobsForGeneralJenkinsUser.contains(jobName)).collect(Collectors.toSet());
                     if (!unavailableJobsByGeneralImpersonatedUser.isEmpty()) {
