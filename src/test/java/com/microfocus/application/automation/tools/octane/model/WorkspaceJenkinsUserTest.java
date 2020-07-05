@@ -21,10 +21,12 @@
 package com.microfocus.application.automation.tools.octane.model;
 
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
+import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
 import com.microfocus.application.automation.tools.octane.exceptions.AggregatedMessagesException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +48,7 @@ public class WorkspaceJenkinsUserTest {
 
         //iteration 1 - ignore errors
         Map<Long, String> output = OctaneServerSettingsModel.parseWorkspace2ImpersonatedUserConf(payload, true);
-        Assert.assertEquals(2, output.size());
+        Assert.assertEquals(3, output.size());
         Assert.assertTrue(output.containsKey(1001L));
         Assert.assertEquals("user1", output.get(1001L));
 
@@ -60,8 +62,8 @@ public class WorkspaceJenkinsUserTest {
         } catch (Exception e) {
             if (e instanceof AggregatedMessagesException) {
                 List<String> messages = ((AggregatedMessagesException) e).getMessages();
-                Assert.assertEquals(5, messages.size());
-                Assert.assertTrue(messages.contains("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': 1003:user1003:user1004"));
+                Assert.assertEquals(4, messages.size());
+                //Assert.assertTrue(messages.contains("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': 1003:user1003:user1004"));
                 Assert.assertTrue(messages.contains("Workspace configuration is not valid, workspace ID must be numeric: user1004:1004"));
                 Assert.assertTrue(messages.contains("Workspace configuration is not valid, workspace ID must be numeric: abc:abc"));
                 Assert.assertTrue(messages.contains("Workspace configuration is not valid, user value is empty: 1005:"));
@@ -70,8 +72,5 @@ public class WorkspaceJenkinsUserTest {
                 Assert.fail("Wrong type of exception : " + e.getClass().getName());
             }
         }
-
     }
-
-
 }
