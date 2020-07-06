@@ -230,7 +230,11 @@ public class ConfigurationValidator {
                     checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
                 }
             } catch (Exception ex) {
-                fails.add(ex.getMessage());
+                String failMessage = ex.getMessage();
+                if (ex instanceof NoSuchElementException) {
+                    failMessage += ". Validate that you use correct format : <param_name> : <param value>";
+                }
+                fails.add(failMessage);
             }
         });
     }
