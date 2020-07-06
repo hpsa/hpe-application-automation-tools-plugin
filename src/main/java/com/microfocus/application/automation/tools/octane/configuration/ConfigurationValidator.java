@@ -229,12 +229,11 @@ public class ConfigurationValidator {
                 if (parameter.getKey().equals(UftTestRunnerFolderParameter.KEY)) {
                     checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
                 }
-            } catch (Exception ex) {
-                String failMessage = ex.getMessage();
-                if (ex instanceof NoSuchElementException) {
-                    failMessage += ". Validate that you use correct format : <param_name> : <param value>";
-                }
+            } catch (NoSuchElementException e1) {
+                String failMessage = e1.getMessage() + ". Validate that you use correct format : <param_name> : <param value>";
                 fails.add(failMessage);
+            } catch (Exception ex) {
+                fails.add(ex.getMessage());
             }
         });
     }
