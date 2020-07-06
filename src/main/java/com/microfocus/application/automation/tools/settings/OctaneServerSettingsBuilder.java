@@ -426,6 +426,11 @@ public class OctaneServerSettingsBuilder extends Builder {
             return servers;
         }
 
+        public void setServers(OctaneServerSettingsModel... servers) {
+            this.servers = servers;
+            save();
+        }
+
         public OctaneServerSettingsModel getSettings(String instanceId) {
             if (instanceId == null || instanceId.isEmpty()) {
                 throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");

@@ -26,12 +26,13 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import java.io.Serializable;
 import java.util.*;
 
 /*
  * Model for sorting the Octane configuration
  */
-public class OctaneServerSettingsModel {
+public class OctaneServerSettingsModel implements Serializable {
     private String internalId = UUID.randomUUID().toString();
 
     private String identity;
