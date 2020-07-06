@@ -110,9 +110,9 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         params.put(ALM_PROJECT, Util.replaceMacro(almProject, varResolver));
         params.put(ALM_TEST_FOLDER, almTestFolder);
         params.put(ALM_TESTSET_FOLDER, almTestSetFolder);
-        params.put(RUN_STATUS_MAPPING, runStatusMapping);
+        params.put(RUN_STATUS_MAPPING, Util.replaceMacro(runStatusMapping, varResolver));
         params.put(TESTING_RESULT_FILE, Util.replaceMacro(testingResultFile, varResolver));
-        params.put(FIELD_MAPPING, fieldMapping);
+        params.put(FIELD_MAPPING, Util.replaceMacro(fieldMapping, varResolver));
 
         Uploader uploader = new Uploader(run, workspace, logger, params);
         uploader.upload();
