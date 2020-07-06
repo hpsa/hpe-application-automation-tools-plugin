@@ -19,9 +19,9 @@
   -->
 
 <div>
-    Define additional parameters.
+    Define additional parameters
     <br/>
-    Format: param_name:param_value
+    Format: <b>param_name:param_value</b>
     <br/>
     Use a separate line for each parameter. Any line that starts with '#' is defined as a comment and is not parsed.
     <br/>
@@ -31,21 +31,34 @@
 
         <thead style="background-color: lightgray; font-weight: bold">
         <tr>
-            <td style="width: 200px">Param name</td>
+            <td style="width: 220px">Param name</td>
             <td style="width: 100px">Value</td>
             <td>Description</td>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>ENCODE_CI_JOB_BASE64</td>
-            <td>true/false</td>
-            <td>ALM Octane includes a built-in Jetty web server, but there is a possibility to add an external web server such as Apache HTTP server or similar.
-                This is usually done to add one more security layer. Some such servers might not allow receiving requests with encoded slashes (%2F).
-                As a job name might contain a slash, this parameter allows base64 encoding for job IDs during sending test results, build logs, coverage and vulnerabilities data to ALM OCtane.
-                <br/>
-                Default is false. Supported ALM Octane version 15.1.20 and above.</td>
-        </tr>
+            <tr>
+                <td>ENCODE_CI_JOB_BASE64</td>
+                <td>true/false</td>
+                <td>ALM Octane includes a built-in Jetty web server, but there is a possibility to add an external web server such as Apache HTTP server or similar.
+                    This is usually done to add one more security layer. Some such servers might not allow receiving requests with encoded slashes (%2F).
+                    As a job name might contain a slash, this parameter allows base64 encoding for job IDs during sending test results, build logs, coverage and vulnerabilities data to ALM OCtane.
+                    <br/>
+                    Default is false. Supported ALM Octane version 15.1.20 and above.</td>
+            </tr>
+            <tr>
+                <td>SCM_REST_API</td>
+                <td>true/false</td>
+                <td>The plugin uses a dedicated REST API in order to send data on SCM commits to ALM Octane. This parameter allows to use the events mechanism instead of REST API.
+                    <br/>
+                Default is true (Rest API). Supported ALM Octane version 15.1.20 and above.</td>
+            </tr>
+            <tr>
+                <td>UFT_TEST_RUNNER_FOLDER</td>
+                <td>folder path</td>
+                <td>ALM Octane allows generation of discovery and execution jobs for UFT test runner. By default, those jobs are created in Jenkins root. This parameter allow to define the folder
+                    in which those jobs will be created. <br/>For example : my_team_folder/uft</td>
+            </tr>
         </tbody>
     </table>
 </div>

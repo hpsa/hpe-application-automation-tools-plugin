@@ -20,10 +20,8 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
+import hudson.model.Item;
 import hudson.model.Job;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by gadiel on 30/11/2016.
@@ -94,5 +92,22 @@ public class JobProcessorFactory {
 		}
 
 		return flowProcessor;
+	}
+
+	public static  boolean isFolder(Item item) {
+		return JobProcessorFactory.FOLDER_JOB_NAME.equals(item.getClass().getName());
+	}
+
+	public static boolean isMultibranch(Item item) {
+		return JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getClass().getName());
+	}
+
+	public static boolean isJob(Item item) {
+		return item instanceof Job;
+	}
+
+	public static boolean isMultibranchChild(Item item) {
+		return JobProcessorFactory.WORKFLOW_JOB_NAME.equals(item.getClass().getName()) &&
+				JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getParent().getClass().getName());
 	}
 }

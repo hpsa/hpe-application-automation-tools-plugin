@@ -108,7 +108,9 @@ public class PluginActions implements RootAction {
                         addMetrics(client.getVulnerabilitiesService().getMetrics(), "vulnerabilitiesService", confJson);
                         addMetrics(client.getSonarService().getMetrics(), "sonarService", confJson);
                         addMetrics(client.getCoverageService().getMetrics(), "coverageService", confJson);
+                        addMetrics(client.getSCMDataService().getMetrics(), "scmDataService", confJson);
                         addMetrics(client.getRestService().obtainOctaneRestClient().getMetrics(), "restClient", confJson);
+
 
                         allMetricsJson.put(client.getConfigurationService().getCurrentConfiguration().geLocationForLog(), confJson);
                     }

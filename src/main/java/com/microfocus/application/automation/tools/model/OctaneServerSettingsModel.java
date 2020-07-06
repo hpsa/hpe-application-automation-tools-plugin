@@ -26,12 +26,13 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import java.io.Serializable;
 import java.util.*;
 
 /*
  * Model for sorting the Octane configuration
  */
-public class OctaneServerSettingsModel {
+public class OctaneServerSettingsModel implements Serializable {
     private String internalId = UUID.randomUUID().toString();
 
     private String identity;
@@ -226,17 +227,17 @@ public class OctaneServerSettingsModel {
             return;
         }
 
-        String[] subPart = workspaceConfiguration.split(":");
-        if (subPart.length != 2) {
+        int splitterIndex = workspaceConfiguration.indexOf(':');
+        if (splitterIndex == -1) {
             throw new IllegalArgumentException("Workspace configuration is not valid, valid format is 'Workspace ID:jenkins user': " + workspaceConfigurationTrimmed);
         }
 
-        Long workspaceId = getLongOrNull(subPart[0]);
+        Long workspaceId = getLongOrNull(workspaceConfiguration.substring(0, splitterIndex));
         if (workspaceId == null) {
             throw new IllegalArgumentException("Workspace configuration is not valid, workspace ID must be numeric: " + workspaceConfigurationTrimmed);
         }
 
-        String user = subPart[1].trim();
+        String user = workspaceConfiguration.substring(splitterIndex + 1).trim();
         if (user.isEmpty()) {
             throw new IllegalArgumentException("Workspace configuration is not valid, user value is empty: " + workspaceConfigurationTrimmed);
         }

@@ -21,6 +21,7 @@
 package com.microfocus.application.automation.tools.octane;
 
 import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -40,22 +41,19 @@ import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-import com.microfocus.application.automation.tools.octane.configuration.FodConfigUtil;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
-import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
+import com.microfocus.application.automation.tools.octane.configuration.*;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.microfocus.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
-import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMUtils;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
@@ -235,10 +233,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
-			//create UFT test runner job on the fly if missing
-			if (job == null && jobCiId != null && jobCiId.startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS)) {
-				job = createExecutorByJobName(jobCiId);
-			}
 			if (job != null) {
 				if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
 					//disabled job is not runnable and in this context we will handle it as 404
@@ -277,42 +271,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} else {
 				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-
-	@Override
-	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			SnapshotNode result = null;
-			Job job = getJobByRefId(jobCiId);
-			if (job != null) {
-				Run run = job.getLastBuild();
-				if (run != null) {
-					result = ModelFactory.createSnapshotItem(run, subTree);
-				}
-			}
-			return result;
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
-	@Override
-	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			SnapshotNode result = null;
-			Run run = getRunByRefNames(jobId, buildId);
-			if (run != null) {
-				result = ModelFactory.createSnapshotItem(run, subTree);
-			} else {
-				logger.error("build '" + jobId + " #" + buildId + "' not found");
-			}
-			return result;
 		} finally {
 			stopImpersonation(securityContext);
 		}
@@ -396,6 +354,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(originalContext);
 		}
+	}
+
+	@Override
+	public InputStream getSCMData(String jobId, String buildId) {
+		ACLContext originalContext = startImpersonation();
+		InputStream result = null;
+
+		try {
+			Run run = getRunByRefNames(jobId, buildId);
+			if (run != null) {
+				result = SCMUtils.getSCMData(run);
+			} else {
+				logger.error("build '" + jobId + " #" + buildId + "' not found");
+			}
+		} catch (IOException | InterruptedException e) {
+			logger.error("Failed to load SCMData for jobId " + jobId + " buildId " + buildId, e);
+		} finally {
+			stopImpersonation(originalContext);
+		}
+
+		return result;
 	}
 
 	@Override
@@ -492,24 +471,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 
-
-	private Job createExecutorByJobName(String uftExecutorJobNameWithTestRunner) {
-		ACLContext securityContext = startImpersonation();
-		try {
-			return TestExecutionJobCreatorService.createExecutorByJobName(uftExecutorJobNameWithTestRunner);
-		} catch (Exception e) {
-			logger.warn("Failed to create createExecutor by name : " + e.getMessage());
-			return null;
-		} finally {
-			stopImpersonation(securityContext);
-		}
-	}
-
 	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+
+			//validate UftTestRunnerFolderParameter
+			if (response.getStatus() == HttpStatus.SC_OK) {
+				OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
+				UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
+						.getCurrentConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
+				if (uftFolderParameter != null) {
+					List<String> errors = new ArrayList<>();
+					ConfigurationValidator.checkUftFolderParameter(uftFolderParameter, errors);
+					if (!errors.isEmpty()) {
+						response.setStatus(HttpStatus.SC_BAD_REQUEST);
+						response.setBody(errors.get(0));
+					}
+				}
+			}
+			return response;
 		} finally {
 			stopImpersonation(securityContext);
 		}

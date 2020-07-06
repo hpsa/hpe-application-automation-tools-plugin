@@ -97,7 +97,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 			return;
 		}
 
-		boolean skip = isFolder(item) || isMultibranchChild(item);//for MultibranchChild - there is a logic in Octane that handle child on parent event
+		boolean skip = JobProcessorFactory.isFolder(item) || JobProcessorFactory.isMultibranchChild(item);//for MultibranchChild - there is a logic in Octane that handle child on parent event
 		logger.info("onLocationChanged '" + oldFullName + "' to '" + newFullName + "'" + (skip ? ". Skipped." : ""));
 		if (skip) {
 			return;
@@ -105,9 +105,9 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 
 		try {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class).setEventType(CIEventType.RENAMED);
-			if (isJob(item)) {
+			if (JobProcessorFactory.isJob(item)) {
 				event.setItemType(ItemType.JOB);
-			} else if (isMultibranch(item)) {
+			} else if (JobProcessorFactory.isMultibranch(item)) {
 				event.setItemType(ItemType.MULTI_BRANCH);
 			} else {
 				logger.info("Cannot handle onLocationChanged for " + item.getClass().getName());
@@ -123,23 +123,5 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		} catch (Throwable throwable) {
 			logger.error("failed to build and/or dispatch RENAMED event for " + item, throwable);
 		}
-	}
-
-
-	private boolean isFolder(Item item) {
-		return JobProcessorFactory.FOLDER_JOB_NAME.equals(item.getClass().getName());
-	}
-
-	private boolean isMultibranch(Item item) {
-		return JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getClass().getName());
-	}
-
-	private boolean isJob(Item item) {
-		return item instanceof Job;
-	}
-
-	private boolean isMultibranchChild(Item item) {
-		return JobProcessorFactory.WORKFLOW_JOB_NAME.equals(item.getClass().getName()) &&
-				JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(item.getParent().getClass().getName());
 	}
 }
