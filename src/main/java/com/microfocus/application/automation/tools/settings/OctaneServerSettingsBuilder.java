@@ -148,11 +148,9 @@ public class OctaneServerSettingsBuilder extends Builder {
         }
 
         @Override
-        public boolean isApplicable(
-                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
-            // Indicates that this builder can be used with all kinds of project
-            // types
-            return true;
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            // Available only for global configuration
+            return false;
         }
 
         /**
