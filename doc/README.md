@@ -5,7 +5,7 @@ This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.138.4 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.164.3 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
