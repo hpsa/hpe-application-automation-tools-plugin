@@ -51,11 +51,11 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
 
         Long release = FodConfigUtil.getFODReleaseFromBuild(build);
         if (release != null) {
-            logger.warn("FOD configuration was found in " + build);
+            logger.info("FOD configuration was found in " + build);
             VulnerabilitiesUtils.insertFODQueueItem(build, release);
         }
         if (projectVersionPair == null && release == null) {
-            logger.warn("No Security Scan integration configuration was found " + build);
+            logger.info("No Security Scan integration configuration was found " + build);
         }
     }
 }
