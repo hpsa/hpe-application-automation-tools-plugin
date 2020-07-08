@@ -401,7 +401,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                 if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
                     fails.add(suspendMessage);
                 }
-                String errorMsg = "Validation failed : <ul><li>" +
+                String errorMsg = "Validation failed : <ul data-aid=\"validation-errors\"><li>" +
                         fails.stream().map(s -> StringEscapeUtils.escapeHtml(s)).collect(Collectors.joining("</li><li>")) +
                         "</li></ul>";
                 return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);
