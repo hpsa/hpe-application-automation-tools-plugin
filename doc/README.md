@@ -5,7 +5,7 @@ This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (currently 2.164.3 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.164.3 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[What's New in version 6.0](#what's-new-in-version-6.0)
+[What's New in version 6.3](#what's-new-in-version-6.3)
 
 [Changelog](#changelog)
 
@@ -53,13 +53,24 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 
 
-## What&#39;s new in version 6.0
+## What&#39;s new in version 6.3
 
-Version 6.0 introduced the following enhancement(s):
+Version 6.3 introduced the following enhancement(s):
 
 **ALM Octane**
 
-- You can now SET/GET milestones on ALM Octane Pipeline configurations.
+- Ability to disable configuration.
+- Ability to configure jenkinsUser per ALM Octane workspace and to restrict job visibility during new pipeline creation.
+- Ability to configure ALM Octane allowed storage for logs.
+- Support for base64 encoding for jobIds (relevant for ALM Octane behind an Apache server).
+- New icons indication the connected workspaces.
+- Bug fix: UFT Discovery job now populates the description of UFT API tests.
+- Bug fix: Connectivuity issue where ALM indicated that Jenkins was not conencted, was resolved.
+- Bug fix: CI pipeline jobs are automatically updated when you rename or move jobs.
+
+**UFT One**
+
+- Support for defining the number of iterations for UFT tests.
 
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
