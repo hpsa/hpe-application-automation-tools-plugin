@@ -837,7 +837,7 @@ namespace HpToolsLauncher
                         Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
 
                     _xmlBuilder.CreateXmlFromRunResults(results);
-                    //Console.WriteLine("Number of test runs:" +  results.TestRuns.Count);
+
                     if (results.TestRuns.Count == 0)
                     {
                         Console.WriteLine("No tests were run");
@@ -848,7 +848,6 @@ namespace HpToolsLauncher
                     //if there is an error
                     if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))
                     {
-                        //Console.WriteLine("There are failed tests");
                         Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                     }
 
