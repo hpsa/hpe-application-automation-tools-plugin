@@ -39,7 +39,7 @@
     <style>
            .vertical-resizable{
                resize: vertical;
-               height : 55px;
+               height : 70px;
            }
     </style>
 
