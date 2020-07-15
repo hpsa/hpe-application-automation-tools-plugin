@@ -63,9 +63,9 @@ Version 6.3 introduced the following enhancement(s):
 - Ability to configure jenkinsUser per ALM Octane workspace and to restrict job visibility during new pipeline creation.
 - Ability to configure ALM Octane allowed storage for logs.
 - Support for base64 encoding for jobIds (relevant for ALM Octane behind an Apache server).
-- New icons indication the connected workspaces.
+- New icons indicating the connected workspaces.
 - Bug fix: UFT Discovery job now populates the description of UFT API tests.
-- Bug fix: Connectivuity issue where ALM indicated that Jenkins was not conencted, was resolved.
+- Bug fix: Connectivity issue where ALM indicated that Jenkins was not connected, was resolved.
 - Bug fix: CI pipeline jobs are automatically updated when you rename or move jobs.
 
 **UFT One**
