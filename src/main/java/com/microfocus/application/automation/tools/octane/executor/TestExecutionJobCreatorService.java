@@ -110,7 +110,7 @@ public class TestExecutionJobCreatorService {
 	private static Folder getParentFolder(String configurationId) {
 		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
 		UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
-				.getCurrentConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
+				.getConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
 
 		if (uftFolderParameter != null) {
 			Item item = Jenkins.getInstanceOrNull().getItem(uftFolderParameter.getFolder());

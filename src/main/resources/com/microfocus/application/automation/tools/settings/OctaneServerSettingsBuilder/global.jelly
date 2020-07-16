@@ -39,7 +39,7 @@
     <style>
            .vertical-resizable{
                resize: vertical;
-               height : 70px;
+               height : 90px;
            }
     </style>
 
@@ -91,16 +91,6 @@
                                  <f:textarea  class="vertical-resizable"  value="${mqm.parameters}"/>
                               </f:entry>
 
-
-                            <f:entry/>
-                            <f:section title="${%global.config.ssc.tech.preview.title}"/>
-
-                              <f:entry title="${%global.config.ssc.basetoken.title}" field="sscBaseToken" description="${%global.config.ssc.basetoken.description}">
-                                  <f:textbox value="${mqm.sscBaseToken}" />
-                              </f:entry>
-                              <f:entry title="${%global.config.ssc.polling.timeout.title}" field="maxTimeoutHours" description="${%global.config.ssc.polling.timeout.description}">
-                                  <f:textbox value="${mqm.maxTimeoutHours}" />
-                              </f:entry>
                        </f:advanced>
 
                         <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"

@@ -24,6 +24,7 @@ import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
@@ -101,6 +102,17 @@ public class OctaneServerSettingsBuilder extends Builder {
             load();
             if (servers == null) {
                 servers = new OctaneServerSettingsModel[0];
+            } else {
+                //convertFortifyParameters
+                boolean updated = false;
+                for (OctaneServerSettingsModel model : servers) {
+                    if (convertFortifyParameters(model)) {
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    save();
+                }
             }
 
             boolean shouldSave = false;
@@ -122,6 +134,20 @@ public class OctaneServerSettingsBuilder extends Builder {
             if (shouldSave) {
                 save();
             }
+        }
+
+        private boolean convertFortifyParameters(OctaneServerSettingsModel model) {
+            if (!model.isFortifyParamsConverted()) {
+                if (model.getSscBaseToken() != null && !model.getSscBaseToken().trim().isEmpty()) {
+                    String params = StringUtils.isEmpty(model.getParameters()) ? "" : model.getParameters().trim() + System.lineSeparator();
+
+                    params += FortifySSCTokenParameter.KEY + ":" + model.getSscBaseToken().trim();
+                    model.setParameters(params);
+                }
+                model.setFortifyParamsConverted(true);
+                return true;
+            }
+            return false;
         }
 
         public void initOctaneClients() {
@@ -192,18 +218,6 @@ public class OctaneServerSettingsBuilder extends Builder {
                     newModel.setInternalId(oldModel.getInternalId());
                 }
 
-
-                if (json.containsKey("maxTimeoutHours")) {
-                    String sscPollingTimeoutString = json.getString("maxTimeoutHours");
-                    if (sscPollingTimeoutString != null && !sscPollingTimeoutString.isEmpty()) {
-                        try {
-                            long sscPollingTimeout = Long.parseLong(sscPollingTimeoutString);
-                            newModel.setMaxTimeoutHours(sscPollingTimeout);
-                        } catch (NumberFormatException e) {
-                            newModel.setMaxTimeoutHours(0);
-                        }
-                    }
-                }
                 setModel(newModel);
             }
 
