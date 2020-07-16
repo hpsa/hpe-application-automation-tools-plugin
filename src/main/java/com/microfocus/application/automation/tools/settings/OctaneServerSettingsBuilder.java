@@ -100,19 +100,10 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         public OctaneDescriptorImpl() {
             load();
+            convertFortifyParameters();
+
             if (servers == null) {
                 servers = new OctaneServerSettingsModel[0];
-            } else {
-                //convertFortifyParameters
-                boolean updated = false;
-                for (OctaneServerSettingsModel model : servers) {
-                    if (convertFortifyParameters(model)) {
-                        updated = true;
-                    }
-                }
-                if (updated) {
-                    save();
-                }
             }
 
             boolean shouldSave = false;
@@ -133,6 +124,20 @@ public class OctaneServerSettingsBuilder extends Builder {
             }
             if (shouldSave) {
                 save();
+            }
+        }
+
+        private void convertFortifyParameters() {
+            boolean updated = false;
+            if (servers != null) {
+                for (OctaneServerSettingsModel model : servers) {
+                    if (convertFortifyParameters(model)) {
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    save();
+                }
             }
         }
 
