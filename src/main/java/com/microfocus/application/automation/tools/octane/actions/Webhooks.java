@@ -24,11 +24,10 @@ import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
-import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
-import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import com.microfocus.application.automation.tools.octane.vulnerabilities.VulnerabilitiesUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.*;
@@ -46,7 +45,6 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -134,8 +132,8 @@ public class Webhooks implements UnprotectedRootAction {
 											additionalProperties.put(SONAR_URL_KEY, action.getServerUrl());
 											additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
 											additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
-											OctaneServerSettingsModel settings = ConfigurationService.getSettings(octaneInstanceId);
-											octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildId, ToolType.SONAR, run.getStartTimeInMillis(), settings.getMaxTimeoutHours(), additionalProperties);
+											octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildId, ToolType.SONAR, run.getStartTimeInMillis(),
+													VulnerabilitiesUtils.getFortifyTimeoutHours(octaneInstanceId), additionalProperties);
 
 										}
 										res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook

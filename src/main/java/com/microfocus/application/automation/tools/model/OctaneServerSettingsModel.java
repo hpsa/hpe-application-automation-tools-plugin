@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.model;
 import com.microfocus.application.automation.tools.octane.exceptions.AggregatedMessagesException;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.annotation.Obsolete;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -44,11 +45,12 @@ public class OctaneServerSettingsModel implements Serializable {
     private String impersonatedUser;
     private boolean suspend;
     private String sscBaseToken;
+    private boolean fortifyParamsConverted;
 
     // inferred from uiLocation
     private String location;
     private String sharedSpace;
-    private long maxTimeoutHours;
+
 
     private String workspace2ImpersonatedUserConf;
     private Map<Long, String> workspace2ImpersonatedUserMap;
@@ -79,10 +81,12 @@ public class OctaneServerSettingsModel implements Serializable {
         this.suspend = suspend;
     }
 
+    @Obsolete
     public String getSscBaseToken() {
         return this.sscBaseToken;
     }
 
+    @Obsolete
     @DataBoundSetter
     public void setSscBaseToken(String sscBaseToken) {
         this.sscBaseToken = sscBaseToken;
@@ -140,14 +144,6 @@ public class OctaneServerSettingsModel implements Serializable {
         this.identityFrom = identityFrom;
     }
 
-    public long getMaxTimeoutHours() {
-        return maxTimeoutHours;
-    }
-
-    public void setMaxTimeoutHours(long maxTimeoutHours) {
-        this.maxTimeoutHours = maxTimeoutHours;
-    }
-
     public boolean isValid() {
         return identity != null && !identity.isEmpty() &&
                 location != null && !location.isEmpty() &&
@@ -169,12 +165,10 @@ public class OctaneServerSettingsModel implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         OctaneServerSettingsModel that = (OctaneServerSettingsModel) o;
         return suspend == that.suspend &&
-                maxTimeoutHours == that.maxTimeoutHours &&
                 Objects.equals(identity, that.identity) &&
                 Objects.equals(username, that.username) &&
                 Objects.equals(password, that.password) &&
                 Objects.equals(impersonatedUser, that.impersonatedUser) &&
-                Objects.equals(sscBaseToken, that.sscBaseToken) &&
                 Objects.equals(location, that.location) &&
                 Objects.equals(workspace2ImpersonatedUserConf, that.workspace2ImpersonatedUserConf) &&
                 Objects.equals(sharedSpace, that.sharedSpace);
@@ -182,7 +176,7 @@ public class OctaneServerSettingsModel implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(identity, username, password, impersonatedUser, suspend, sscBaseToken, location, sharedSpace, maxTimeoutHours, internalId, getWorkspace2ImpersonatedUserConf());
+        return Objects.hash(identity, username, password, impersonatedUser, suspend, location, sharedSpace, internalId, getWorkspace2ImpersonatedUserConf());
     }
 
     public String getWorkspace2ImpersonatedUserConf() {
@@ -295,5 +289,13 @@ public class OctaneServerSettingsModel implements Serializable {
     @DataBoundSetter
     public void setParameters(String parameters) {
         this.parameters = parameters;
+    }
+
+    public boolean isFortifyParamsConverted() {
+        return fortifyParamsConverted;
+    }
+
+    public void setFortifyParamsConverted(boolean fortifyParamsConverted) {
+        this.fortifyParamsConverted = fortifyParamsConverted;
     }
 }

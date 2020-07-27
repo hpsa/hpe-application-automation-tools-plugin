@@ -42,6 +42,8 @@ import hudson.scm.SCM;
 import hudson.tasks.Mailer;
 import hudson.util.DescribableList;
 import jenkins.MasterToSlaveFileCallable;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
@@ -222,9 +224,6 @@ class GitSCMProcessor implements SCMProcessor {
 			for (ChangeLogSet.Entry change : set) {
 				if (change instanceof GitChangeSet) {
 					GitChangeSet commit = (GitChangeSet) change;
-					User user = commit.getAuthor();
-					String userEmail = null;
-
 					List<SCMChange> tmpChanges = new ArrayList<>();
 					for (GitChangeSet.Path item : commit.getAffectedFiles()) {
 						SCMChange tmpChange = dtoFactory.newDTO(SCMChange.class)
@@ -233,26 +232,47 @@ class GitSCMProcessor implements SCMProcessor {
 						tmpChanges.add(tmpChange);
 					}
 
-					for (UserProperty property : user.getAllProperties()) {
-						if (property instanceof Mailer.UserProperty) {
-							userEmail = ((Mailer.UserProperty) property).getAddress();
-						}
-					}
-
 					SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
 							.setTime(commit.getTimestamp())
-							.setUser(user.getId())
-							.setUserEmail(userEmail)
 							.setRevId(commit.getCommitId())
 							.setParentRevId(commit.getParentCommit())
 							.setComment(commit.getComment().trim())
 							.setChanges(tmpChanges);
 
+					setUserInCommit(commit,tmpCommit);
 					commits.add(tmpCommit);
 				}
 			}
 		}
 		return commits;
+	}
+
+	private void setUserInCommit(GitChangeSet commit, SCMCommit dtoCommit) {
+		User user = commit.getAuthor();
+		String userName = user.getId();
+		String userEmail = null;
+		for (UserProperty property : user.getAllProperties()) {
+			if (property instanceof Mailer.UserProperty) {
+				userEmail = ((Mailer.UserProperty) property).getAddress();
+			}
+		}
+
+		try {
+			//commits in github UI - returns with user "noreply"
+			if ("noreply".equals(userName)) {
+				String authorEmail = (String) FieldUtils.readField(commit, "authorEmail", true);
+				if (StringUtils.isNotEmpty(authorEmail) && authorEmail.contains("@")) {
+					userEmail = authorEmail;
+					userName = authorEmail.substring(0, authorEmail.indexOf('@'));
+				}
+			}
+		} catch (Exception e) {
+			logger.info("Failed to extract authorEmail : " + e.getMessage());
+		}
+
+		dtoCommit
+				.setUser(userName)
+				.setUserEmail(userEmail);
 	}
 
 	private static final class FileContentCallable extends MasterToSlaveFileCallable<String> {
