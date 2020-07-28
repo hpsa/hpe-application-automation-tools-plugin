@@ -169,6 +169,8 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
             case ONLY_FAILED_TESTS:
                 addPropertiesForFailedTests(props);
                 break;
+
+            default: break;
         }
     }
 
