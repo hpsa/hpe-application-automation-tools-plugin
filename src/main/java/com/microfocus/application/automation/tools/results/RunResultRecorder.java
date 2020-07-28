@@ -658,9 +658,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 		try {
 			for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
-				//listener.getLogger().println("Test Name: " + htmlReportInfo.getDisPlayName() + " resource URl: " + htmlReportInfo.getResourceURL());
-				//listener.getLogger().println("collect html report, test timestamp: " + htmlReportInfo.getDateTime());
-				//listener.getLogger().println("is html report: " + htmlReportInfo.getIsHtmlReport());
+
 				// make sure it's a html report
 				if (!htmlReportInfo.getIsHtmlReport()) {
 					continue;
@@ -670,9 +668,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 				try {
 					EnvVars env = build.getEnvironment(listener);
-					long indexFolder = getIndexOfReportFolder(new File(htmlReportDir), EXTERNAL_REPORT_FOLDER, listener, env.get("NODE_NAME"));
+					long indexFolder = getIndexOfReportFolder(new File(htmlReportDir), EXTERNAL_REPORT_FOLDER, env.get("NODE_NAME"));
 					if(indexFolder > 0) {
-						String innerHtmlReportDir = htmlReportDir.substring(0, htmlReportDir.lastIndexOf("\\")) + "\\" + EXTERNAL_REPORT_FOLDER + indexFolder;
+						String innerHtmlReportDir = htmlReportDir.substring(0, htmlReportDir.lastIndexOf('\\')) + "\\" + EXTERNAL_REPORT_FOLDER + indexFolder;
 
 						archiveAndCopyReportFolder(runWorkspace, reportDir, innerHtmlReportDir);
 					}
@@ -715,8 +713,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				// or for Parallel runner /GuiTest1[1]/parallelrun_results.html
 
 				htmlReportInfo.setUrlName(urlName);
-
-				//listener.getLogger().println();
 			}
 		} catch (Exception ex) {
 			listener.getLogger().println("catch exception in collectAndPrepareHtmlReports: " + ex);
@@ -753,9 +749,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 
-	public int getIndexOfReportFolder(File directory, String fileName, TaskListener listener, String nodeName) throws IOException, InterruptedException {
+	public int getIndexOfReportFolder(File directory, String fileName, String nodeName) throws IOException, InterruptedException {
 		hudson.model.Node node = Jenkins.get().getNode(nodeName);
-		String testFolderPath = directory.getPath().substring(0, directory.getPath().lastIndexOf("\\"));
+		String testFolderPath = directory.getPath().substring(0, directory.getPath().lastIndexOf('\\'));
 		int index = 0;
 		FilePath testFilePath = null;
 		if(Jenkins.get().getNodes().isEmpty() || (node == null)) {//tests are running on master
@@ -766,10 +762,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
 
 		for (FilePath file : testFilePath.listDirectories()) {
-			if (file.isDirectory() && file.getName().startsWith(fileName)) {
-				if(index < Integer.parseInt(file.getName().substring(5))) {
+			if (file.isDirectory() && file.getName().startsWith(fileName) && index < Integer.parseInt(file.getName().substring(5))) {
 					index = Integer.parseInt(file.getName().substring(5));
-				}
 			}
 		}
 
