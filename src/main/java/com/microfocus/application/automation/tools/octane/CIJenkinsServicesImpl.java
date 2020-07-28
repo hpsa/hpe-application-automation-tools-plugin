@@ -43,6 +43,7 @@ import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.*;
@@ -395,7 +396,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			}
 
 			String sscServerUrl = SSCServerConfigUtil.getSSCServer();
-			String sscAuthToken = ConfigurationService.getSettings(getInstanceId()).getSscBaseToken();
+			String sscAuthToken = getFortifySSCToken();
+
 			if (sscServerUrl != null && !sscServerUrl.isEmpty() && projectVersionPair != null) {
 				result = dtoFactory.newDTO(SSCProjectConfiguration.class)
 						.setSSCUrl(sscServerUrl)
@@ -408,6 +410,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(originalContext);
 		}
+	}
+
+	private String getFortifySSCToken(){
+		OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
+		FortifySSCTokenParameter parameter = (FortifySSCTokenParameter) octaneClient.getConfigurationService().getConfiguration().getParameter(FortifySSCTokenParameter.KEY);
+		if (parameter != null) {
+			return parameter.getToken();
+		}
+		return "";
 	}
 
 	@Override
@@ -481,7 +492,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if (response.getStatus() == HttpStatus.SC_OK) {
 				OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
 				UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
-						.getCurrentConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
+						.getConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
 				if (uftFolderParameter != null) {
 					List<String> errors = new ArrayList<>();
 					ConfigurationValidator.checkUftFolderParameter(uftFolderParameter, errors);

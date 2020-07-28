@@ -68,11 +68,11 @@ public class VulnerabilitiesWorkflowListener implements GraphListener {
 
         Long release = FodConfigUtil.getFODReleaseFromRun(parentRun);
         if (release != null) {
-            logger.warn("FOD configuration was found in " + parentRun);
+            logger.info("FOD configuration was found in " + parentRun);
             VulnerabilitiesUtils.insertFODQueueItem(parentRun, release);
         }
         if (projectVersionPair == null && release == null) {
-            logger.warn("No Security Scan integration configuration was found " + parentRun);
+            logger.info("No Security Scan integration configuration was found " + parentRun);
         }
     }
 }

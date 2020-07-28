@@ -24,6 +24,7 @@ import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
@@ -99,6 +100,8 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         public OctaneDescriptorImpl() {
             load();
+            convertFortifyParameters();
+
             if (servers == null) {
                 servers = new OctaneServerSettingsModel[0];
             }
@@ -122,6 +125,34 @@ public class OctaneServerSettingsBuilder extends Builder {
             if (shouldSave) {
                 save();
             }
+        }
+
+        private void convertFortifyParameters() {
+            boolean updated = false;
+            if (servers != null) {
+                for (OctaneServerSettingsModel model : servers) {
+                    if (convertFortifyParameters(model)) {
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    save();
+                }
+            }
+        }
+
+        private boolean convertFortifyParameters(OctaneServerSettingsModel model) {
+            if (!model.isFortifyParamsConverted()) {
+                if (model.getSscBaseToken() != null && !model.getSscBaseToken().trim().isEmpty()) {
+                    String params = StringUtils.isEmpty(model.getParameters()) ? "" : model.getParameters().trim() + System.lineSeparator();
+
+                    params += FortifySSCTokenParameter.KEY + ":" + model.getSscBaseToken().trim();
+                    model.setParameters(params);
+                }
+                model.setFortifyParamsConverted(true);
+                return true;
+            }
+            return false;
         }
 
         public void initOctaneClients() {
@@ -148,11 +179,9 @@ public class OctaneServerSettingsBuilder extends Builder {
         }
 
         @Override
-        public boolean isApplicable(
-                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
-            // Indicates that this builder can be used with all kinds of project
-            // types
-            return true;
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            // Available only for global configuration
+            return false;
         }
 
         /**
@@ -194,18 +223,6 @@ public class OctaneServerSettingsBuilder extends Builder {
                     newModel.setInternalId(oldModel.getInternalId());
                 }
 
-
-                if (json.containsKey("maxTimeoutHours")) {
-                    String sscPollingTimeoutString = json.getString("maxTimeoutHours");
-                    if (sscPollingTimeoutString != null && !sscPollingTimeoutString.isEmpty()) {
-                        try {
-                            long sscPollingTimeout = Long.parseLong(sscPollingTimeoutString);
-                            newModel.setMaxTimeoutHours(sscPollingTimeout);
-                        } catch (NumberFormatException e) {
-                            newModel.setMaxTimeoutHours(0);
-                        }
-                    }
-                }
                 setModel(newModel);
             }
 
@@ -403,7 +420,7 @@ public class OctaneServerSettingsBuilder extends Builder {
                 if (isSuspend != null && isSuspend && !fails.contains(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE)) {
                     fails.add(suspendMessage);
                 }
-                String errorMsg = "Validation failed : <ul><li>" +
+                String errorMsg = "Validation failed : <ul data-aid=\"validation-errors\"><li>" +
                         fails.stream().map(s -> StringEscapeUtils.escapeHtml(s)).collect(Collectors.joining("</li><li>")) +
                         "</li></ul>";
                 return ConfigurationValidator.wrapWithFormValidation(false, errorMsg);

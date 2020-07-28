@@ -112,7 +112,7 @@ public class PluginActions implements RootAction {
                         addMetrics(client.getRestService().obtainOctaneRestClient().getMetrics(), "restClient", confJson);
 
 
-                        allMetricsJson.put(client.getConfigurationService().getCurrentConfiguration().geLocationForLog(), confJson);
+                        allMetricsJson.put(client.getConfigurationService().getConfiguration().geLocationForLog(), confJson);
                     }
             );
             result.put("metrics", allMetricsJson);

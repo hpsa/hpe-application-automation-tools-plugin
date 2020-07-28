@@ -321,7 +321,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            return aClass.equals(FreeStyleProject.class);
+            return true;
         }
 
         public ListBoxModel doFillConfigurationIdItems() {
