@@ -30,6 +30,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.scm.PullRequest;
+import com.hp.octane.integrations.services.pullrequests.factory.CommitUserIdPicker;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchFactory;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchHandler;
@@ -39,10 +40,7 @@ import com.hp.octane.integrations.services.pullrequests.rest.authentication.Basi
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.NoCredentialsStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.PATStrategy;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
+import hudson.*;
 import hudson.model.*;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
@@ -63,6 +61,7 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -70,7 +69,7 @@ import java.util.function.Consumer;
  * Post-build action of Uft test detection
  */
 
-public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
+public class PullRequestPublisher extends Recorder implements SimpleBuildStep, CommitUserIdPicker {
     private String configurationId;
     private String workspaceId;
     private String repositoryUrl;
@@ -121,7 +120,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         PullRequestFetchHandler fetchHandler = PullRequestFetchFactory.getHandler(ScmTool.fromValue(scmTool), authenticationStrategy);
         try {
             FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
-            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, logConsumer::printLog);
+            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, this, logConsumer::printLog);
             PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
             run.addAction(buildAction);
@@ -204,6 +203,22 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     public String getWorkspaceId() {
         return workspaceId;
+    }
+
+    @Override
+    public String getUserIdForCommit(String email, String login) {
+        if (login != null) {
+            User user = User.get(login, false, Collections.emptyMap());
+            if (user != null) {
+                return user.getId();
+            }
+        }
+        if (email != null && email.contains("@")) {
+            String[] emailParts = email.split("@");
+            return emailParts[0];
+
+        }
+        return login;
     }
 
     private static class LogConsumer {
