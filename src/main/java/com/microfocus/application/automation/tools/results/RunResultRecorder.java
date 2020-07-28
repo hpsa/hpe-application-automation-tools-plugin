@@ -475,11 +475,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							FilePath htmlReport = new FilePath(reportFolder,
 									isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
 
+						ReportMetaData reportMetaData = new ReportMetaData();
 						if (htmlReport.exists()) {
 							reportIsHtml = true;
 							String htmlReportDir = reportFolder.getRemote();
-
-							ReportMetaData reportMetaData = new ReportMetaData();
 							reportMetaData.setFolderPath(htmlReportDir);
 							reportMetaData.setIsHtmlReport(true);
 							reportMetaData.setDateTime(testDateTime);
@@ -530,20 +529,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								instr.close();
 
 								// add to Report list
-								ReportMetaData reportMetaData = new ReportMetaData();
-								reportMetaData.setIsHtmlReport(false);
-								reportMetaData.setIsParallelRunnerReport(false);
-								// reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
-								 testFileFullName = new File(testFolderPath);
-								 testName = testFileFullName.getName();
-								reportMetaData.setDisPlayName(testName + "[" + fileNameCount.get(testName) + "]"); // use the name, not the full path
 								String zipFileUrlName = "artifact/" + zipFileName;
-								reportMetaData.setUrlName(zipFileUrlName); // for RRV, the file url and resource url are
-								// the same.
-								reportMetaData.setResourceURL(zipFileUrlName);
-								reportMetaData.setDateTime(testDateTime);
-								reportMetaData.setStatus(testStatus);
-								ReportInfoToCollect.add(reportMetaData);
+								reportMetaData.setArchiveUrl(zipFileUrlName);
 
 							} else {
 								listener.getLogger().println("No report folder was found in: " + reportFolderPath);
@@ -598,6 +585,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			String status = htmlReportInfo.getStatus();
 			String isHtmlReport = htmlReportInfo.getIsHtmlReport() ? "true" : "false";
 			String isParallelRunnerReport = htmlReportInfo.getIsParallelRunnerReport() ? "true" : "false";
+			String archiveUrl = htmlReportInfo.getArchiveUrl();
 			Element elmReport = doc.createElement(REPORT_NAME_FIELD);
 			elmReport.setAttribute("disPlayName", disPlayName);
 			elmReport.setAttribute("urlName", urlName);
@@ -606,6 +594,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			elmReport.setAttribute("status", status);
 			elmReport.setAttribute("isHtmlreport", isHtmlReport);
 			elmReport.setAttribute("isParallelRunnerReport", isParallelRunnerReport);
+			elmReport.setAttribute("archiveUrl", archiveUrl);
 			root.appendChild(elmReport);
 			currentReport++;
 		}
