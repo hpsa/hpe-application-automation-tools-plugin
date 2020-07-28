@@ -578,8 +578,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 	private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile, TaskListener _logger) {
-		//_logger.getLogger().println("********* writeReportMetaData2XML ************");
-
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = null;
 		try {
@@ -594,7 +592,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		int currentReport = 1;
 		for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
 			String disPlayName = htmlReportInfo.getDisPlayName();
-			//_logger.getLogger().println("Test name: " + disPlayName);
 			String urlName = htmlReportInfo.getUrlName();
 			String resourceURL = htmlReportInfo.getResourceURL();
 			String dateTime = htmlReportInfo.getDateTime();
