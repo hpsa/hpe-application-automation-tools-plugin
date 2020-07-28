@@ -76,6 +76,7 @@
              <th class = "topNormalCell">Timestamp</th>
              <th class = "topNormalCell">Status</th>
              <th class = "topLastCell">Folder</th>
+             <th class = "topLastCell">Archive</th>
          </tr>
 
          <j:forEach var="s" items="${it.allReports}">
@@ -129,6 +130,11 @@
              </j:choose>
 
              <td class = "bodycell"><a href="../${s.resourceURL}">Open</a></td>
+             <td class = "bodycell">
+                <j:if test="${s.hasArchiveUrl}">
+                    <a href="../${s.archiveUrl}">Download</a>
+                </j:if>
+             </td>
            </tr>
          </j:forEach>
        </table>
