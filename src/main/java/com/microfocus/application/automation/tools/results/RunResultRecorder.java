@@ -334,7 +334,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		// folder
 		File artifactsDir = new File(build.getRootDir(), "archive");
 		artifactsDir.mkdirs();
-		//listener.getLogger().println("artifactsDir: " + artifactsDir.getName() + " " + artifactsDir.getAbsolutePath());
+
 		// read each result.xml
 		/*
 		 * The structure of the result file is: <testsuites> <testsuite>
@@ -471,7 +471,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						// check for the new html report
 						if(!reportFolder.exists()) {
 							reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
-							//listener.getLogger().println("reportFolder(last) : " + reportFolder.getName());
 						}
 							FilePath htmlReport = new FilePath(reportFolder,
 									isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
@@ -490,32 +489,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							 testFileFullName = new File(testFolderPath);
 							 testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
 
-							// we must consider the case when we run the same test in the same build
-						/*	int nameCount = 1;
-							if (fileNameCount.containsKey(testName)) {
-								nameCount = fileNameCount.get(testName) + 1;
-							}
-							// update the count for this file
-							fileNameCount.put(testName, nameCount);*/
 							testName += "[" + nameCount + "]";
 							String resourceUrl = "artifact/UFTReport/" + testName;
-							//listener.getLogger().println("resourceUrl: " + resourceUrl);
+
 							reportMetaData.setResourceURL(resourceUrl);
 							reportMetaData.setDisPlayName(testName); // use the name, not the full path
 
 							// don't know reportMetaData's URL path yet, we will generate it later.
 							ReportInfoToCollect.add(reportMetaData);
-
-							//listener.getLogger().println("add html report info to ReportInfoToCollect: " + testDateTime);
 						}
 
 						archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
 						if (archiveTestResult) {
-							//listener.getLogger().println("reportFolder exists: " + reportFolder.exists());
+
 							if (reportFolder.exists()) {
 
 								FilePath testFolder = new FilePath(projectWS.getChannel(), testFolderPath);
-								//listener.getLogger().println("testFolder: " + testFolder.getName());
+
 								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
 								zipFileNames.add(zipFileName);
 
@@ -535,7 +525,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 								FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
 								archivedFile.copyFrom(instr);
-								//listener.getLogger().println("copy from slave to master: " + archivedFile);
+
 								outstr.close();
 								instr.close();
 
