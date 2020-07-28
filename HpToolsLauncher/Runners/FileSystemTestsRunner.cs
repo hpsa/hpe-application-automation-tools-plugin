@@ -281,6 +281,12 @@ namespace HpToolsLauncher
             try
             {
                 var start = DateTime.Now;
+
+               
+                Dictionary<string, int> rerunList = createDictionary(_tests);
+
+                int index = 1;
+
                 foreach (var test in _tests)
                 {
                     if (RunCancelled()) break;
@@ -303,7 +309,7 @@ namespace HpToolsLauncher
                             TestPath = test.TestPath
                         };
                     }
-
+                    
                     //get the original source for this test, for grouping tests under test classes
                     runResult.TestGroup = test.TestGroup;
 
@@ -341,7 +347,42 @@ namespace HpToolsLauncher
 
                     UpdateCounters(runResult.TestState);
                     var testTotalTime = (DateTime.Now - testStart).TotalSeconds;
+
+                    //create test folders
+                    if (rerunList[test.TestPath] > 0)
+                    {
+                        if (!Directory.Exists(Path.Combine(test.TestPath, "Report1")))
+                        {
+                            rerunList[test.TestPath]--;
+                        }
+                        else
+                        {
+                            index = index + 1;
+                            rerunList[test.TestPath]--;
+                        }
+                    }
+
+                   
+                    //update report folder
+                    String uftReportDir = Path.Combine(test.TestPath, "Report");
+                    String uftReportDirNew = Path.Combine(test.TestPath, "Report" + index);
+
+                    if (Directory.Exists(uftReportDir))
+                    {
+                        if (Directory.Exists(uftReportDirNew))
+                        {
+                            DelecteDirectory(uftReportDirNew);
+                        }
+                        //rename Report folder to Report1,2,...,N
+                        Directory.Move(uftReportDir, uftReportDirNew);
+                    }
+                    
+                    if(rerunList[test.TestPath] == 0)
+                    {
+                        index = 1;
+                    }
                 }
+
                 totalTime = (DateTime.Now - start).TotalSeconds;
             }
             finally
@@ -358,6 +399,34 @@ namespace HpToolsLauncher
             }
 
             return activeRunDesc;
+        }
+
+        private Dictionary<string, int> createDictionary(List<TestInfo> validTests)
+        {
+            var rerunList = new Dictionary<string, int>();
+            foreach (var item in validTests)
+            {
+                if (!rerunList.ContainsKey(item.TestPath))
+                {
+                    // Console.WriteLine("item.Tests: " + item.Tests);
+                    rerunList.Add(item.TestPath, 1);
+                }
+                else
+                {
+                    // Console.WriteLine("modify value");
+                    rerunList[item.TestPath]++;
+                }
+            }
+
+            return rerunList;
+        }
+
+        public static void DelecteDirectory(String dirPath)
+        {
+            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
+            foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();
+            foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+            Directory.Delete(dirPath);
         }
 
         /// <summary>
@@ -422,7 +491,6 @@ namespace HpToolsLauncher
 
                 Stopwatch s = Stopwatch.StartNew();
 
-                Console.WriteLine("Running tests from file system");
                 var results = runner.RunTest(testInfo, ref errorReason, RunCancelled);
 
                 results.Runtime = s.Elapsed;
