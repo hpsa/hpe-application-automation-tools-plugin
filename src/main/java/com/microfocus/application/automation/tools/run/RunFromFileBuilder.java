@@ -743,7 +743,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            }
 
            if (uftSettingsModel != null) {
-               uftSettingsModel.addToProperties(mergedProperties, listener);
+               uftSettingsModel.addToProperties(mergedProperties);
            }
 
            // get properties serialized into a stream

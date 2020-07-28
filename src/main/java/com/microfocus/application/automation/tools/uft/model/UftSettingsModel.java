@@ -146,9 +146,8 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * Add properties (failed tests, cleanup tests, number of reruns) to properties file
      *
      * @param props
-     * @param listener
      */
-    public void addToProperties(Properties props, TaskListener listener) {
+    public void addToProperties(Properties props) {
         if (!StringUtils.isEmpty(this.selectedNode)) {
             props.put("Selected node", this.selectedNode);
         }
@@ -160,7 +159,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
 
         switch(this.fsTestType){
             case ENTIRE_TEST_SET :
-                addPropertieForEntireSet(props);
+                addPropertiesForEntireSet(props);
                 break;
 
             case SPECIFIC_TESTS:
@@ -171,8 +170,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
                 addPropertiesForFailedTests(props);
                 break;
 
-            default:
-                throw new IllegalStateException("Unexpected value: " + this.fsTestType);
+            default: break;
         }
     }
 
@@ -181,7 +179,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
      * Add failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun the entire test set)
      * @param props task properties
      */
-    private void addPropertieForEntireSet(Properties props) {
+    private void addPropertiesForEntireSet(Properties props) {
         int i = 1;
         int index = 1;
         while (props.getProperty("Test" + index) != null) {

@@ -296,7 +296,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>No valid cleanup tests were found. Fix the test paths.</value>
   </data>
   <data name="LauncherNoFailedTestsFound" xml:space="preserve">
-    <value>No failed tests were found. Fix the test paths.</value>
+    <value>No tests were selected to rerun.</value>
   </data>
   <data name="LauncherNoValidFailedTests" xml:space="preserve">
     <value>No valid failed tests to rerun were found. Fix the test paths.</value>

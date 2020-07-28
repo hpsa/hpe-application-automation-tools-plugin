@@ -29,6 +29,7 @@ using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
 using System.Xml.Serialization;
+using System.IO;
 
 namespace HpToolsLauncher
 {
@@ -117,7 +118,7 @@ namespace HpToolsLauncher
         /// if running an alm job theses strings are mandatory:
         /// </summary>
         private string[] requiredParamsForQcRun = { "almServerUrl",
-                                 "almUserName",
+                                 "almUsername",
                                  "almPassword",
                                  "almDomain",
                                  "almProject",
@@ -259,6 +260,7 @@ namespace HpToolsLauncher
 
             List<TestData> failedTests = new List<TestData>();
 
+           
             //run the entire set of test once
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runType, _ciParams, true, failedTests);
@@ -291,15 +293,16 @@ namespace HpToolsLauncher
                     int index = 0;
                     foreach(var item in runResults)
                     {
-                        if(item.TestState == TestState.Failed || item.TestState == TestState.Error)
+                        if (item.TestState == TestState.Failed || item.TestState == TestState.Error)
                         {
                             index++;
                             failedTests.Add(new TestData(item.TestPath, "FailedTest" + index));
                         }
                     }
-                    
-                    //create the runner according to type
-                    runner = CreateRunner(_runType, _ciParams, false, failedTests);
+
+                 
+                  //create the runner according to type
+                  runner = CreateRunner(_runType, _ciParams, false, failedTests);
 
                     //runner instantiation failed (no tests to run or other problem)
                     if (runner == null)
@@ -308,10 +311,19 @@ namespace HpToolsLauncher
                     }
 
                     TestSuiteRunResults rerunResults = runner.Run();
+                    
                     results.AppendResults(rerunResults);
                     RunTests(runner, resultsFilename, results);
                 }
             }
+        }
+
+        public static void DeleteDirectory(String dirPath)
+        {
+            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
+            foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();
+            foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+            Directory.Delete(dirPath);
         }
 
         /// <summary>
@@ -391,12 +403,12 @@ namespace HpToolsLauncher
 
                     bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") ? Convert.ToBoolean(_ciParams["SSOEnabled"]) : false;
                     string clientID = _ciParams.ContainsKey("almClientID") ? _ciParams["almClientID"] : "";
-                    string apiKey = _ciParams.ContainsKey("almApiKey") ? Decrypt(_ciParams["almApiKey"], _secretKey) : "";
+                    string apiKey = _ciParams.ContainsKey("almApiKeySecret") ? Decrypt(_ciParams["almApiKeySecret"], _secretKey) : "";
                     string almRunHost = _ciParams.ContainsKey("almRunHost") ? _ciParams["almRunHost"] : "";
-
+                   
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
-                                     _ciParams["almUserName"],
+                                     _ciParams["almUsername"],
                                      Decrypt(_ciParams["almPassword"], _secretKey),
                                      _ciParams["almDomain"],
                                      _ciParams["almProject"],
@@ -436,6 +448,22 @@ namespace HpToolsLauncher
                         foreach (var item in validBuildTests)
                         {
                             validTests.Add(item);
+                        }
+
+                        foreach (var item in validTests)
+                        {
+                            if (!Directory.Exists(item.Tests) && item.Tests.Contains("mtbx"))
+                            {
+                                List<TestInfo> mtbxTests = MtbxManager.Parse(item.Tests, null, item.Tests);
+                                foreach (var currentTest in mtbxTests)
+                                {
+                                    deleteOldReportFolders(currentTest.TestPath);
+                                }
+                            }
+                            else
+                            {
+                                deleteOldReportFolders(item.Tests);
+                            }
                         }
                     }
                     else
@@ -778,6 +806,25 @@ namespace HpToolsLauncher
             return runner;
         }
 
+        private Dictionary<string, int> createDictionary(List<TestData> validTests)
+        {
+            var rerunList = new Dictionary<string, int>();
+            foreach(var item in validTests)
+            {
+                if (!rerunList.ContainsKey(item.Tests))
+                {
+                   // Console.WriteLine("item.Tests: " + item.Tests);
+                    rerunList.Add(item.Tests, 1);
+                } else
+                {
+                   // Console.WriteLine("modify value");
+                   rerunList[item.Tests]++;
+                }
+            }
+
+            return rerunList;
+        }
+
         private List<string> GetParamsWithPrefix(string prefix)
         {
             int idx = 1;
@@ -837,7 +884,7 @@ namespace HpToolsLauncher
                         Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
 
                     _xmlBuilder.CreateXmlFromRunResults(results);
-                    //Console.WriteLine("Number of test runs:" +  results.TestRuns.Count);
+
                     if (results.TestRuns.Count == 0)
                     {
                         Console.WriteLine("No tests were run");
@@ -848,7 +895,6 @@ namespace HpToolsLauncher
                     //if there is an error
                     if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))
                     {
-                        //Console.WriteLine("There are failed tests");
                         Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                     }
 
@@ -923,6 +969,20 @@ namespace HpToolsLauncher
                 };
             }
 
+        }
+
+        public void deleteOldReportFolders(string testFolderPath)
+        {
+            String partialName = "Report";
+
+            DirectoryInfo testDirectory = new DirectoryInfo(testFolderPath);
+
+            DirectoryInfo[] directories = testDirectory.GetDirectories("*" + partialName + "*");
+
+            foreach (DirectoryInfo foundDir in directories)
+            {
+                DeleteDirectory(foundDir.FullName);
+            }
         }
 
         private SummaryDataLogger GetSummaryDataLogger()

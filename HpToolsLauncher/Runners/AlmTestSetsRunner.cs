@@ -156,6 +156,7 @@ namespace HpToolsLauncher
             Storage = testStorageType;
             if (!Connected)
             {
+                Console.WriteLine("ALM Test set runner not connected");
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
         }
@@ -583,6 +584,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
 
             //this will make sure run will fail at the end. (since there was an error)
+            Console.WriteLine("Null target test set");
             Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
             return null;
 
