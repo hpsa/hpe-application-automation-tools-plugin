@@ -20,15 +20,25 @@
 
 package com.microfocus.application.automation.tools.uft.utils;
 
+import com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil;
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.ivy.util.FileUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -77,13 +87,26 @@ public class UftToolUtils {
         String directoryPath = fsTestPath.replace("\\", "/").trim();
 
         if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
-            List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
-            if(tests.size() == 1 && (new File(directoryPath).isDirectory())) {//single test, folder or mtbx file
-                buildTests = listFilesForFolder(new File(directoryPath));
-            } else {//list of tests/folders
-                for(String test : tests){
-                    File testFile = new File(test.trim());
-                    buildTests = getBuildTests(testFile);
+            if(directoryPath.contains("<Mtbx>")){//mtbx content in the test path
+                try {
+                    buildTests = parseMtbxContent(directoryPath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
+
+                if (tests.size() == 1 && (new File(directoryPath).isDirectory())) {//single test, folder or mtbx file
+                    buildTests = listFilesForFolder(new File(directoryPath));
+                } else {//list of tests/folders
+                    for (String test : tests) {
+                        File testFile = new File(test.trim());
+                        buildTests = getBuildTests(testFile);
+                    }
                 }
             }
         } else {//run tests on selected node
@@ -91,6 +114,45 @@ public class UftToolUtils {
         }
 
         return buildTests;
+    }
+
+    public static List<String> parseMtbxContent(String mtbxContent) throws IOException, SAXException, ParserConfigurationException {
+        List<String> tests = new ArrayList<>();
+
+        File tempFile = new File("TempFile.txt");
+        BufferedWriter output = null;
+        try {
+            output = new BufferedWriter(new FileWriter(tempFile));
+            output.write(mtbxContent);
+        }catch(IOException ex){
+            System.out.println("Error writing the file : " + ex.getMessage());
+        }finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            }catch (IOException ex){
+                System.out.println("Error closing the buffer writer" + ex.getMessage());
+            }
+        }
+
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(tempFile);
+        document.getDocumentElement().normalize();
+        Element root = document.getDocumentElement();
+        NodeList childNodes = root.getChildNodes();
+        for (int x = 0; x < childNodes.getLength(); x++) {
+            org.w3c.dom.Node data = childNodes.item(x);
+            if (data.getNodeName().equalsIgnoreCase("Test")) {
+                tests.add(XmlParserUtil.getNodeAttr("path", data));
+            }
+        }
+
+        tempFile.delete();
+
+        return tests;
     }
 
     public static List<String> getTestsFromNode(String nodeName, String path) {
