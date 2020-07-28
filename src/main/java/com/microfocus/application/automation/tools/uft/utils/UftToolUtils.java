@@ -120,9 +120,22 @@ public class UftToolUtils {
         List<String> tests = new ArrayList<>();
 
         File tempFile = new File("TempFile.txt");
-        BufferedWriter output = new BufferedWriter(new FileWriter(tempFile));
-        output.write(mtbxContent);
-        output.close();
+        BufferedWriter output = null;
+        try {
+            output = new BufferedWriter(new FileWriter(tempFile));
+            output.write(mtbxContent);
+        }catch(IOException ex){
+            System.out.println("Error writing the file : " + ex.getMessage());
+        }finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            }catch (IOException ex){
+                System.out.println("Error closing the buffer writer" + ex.getMessage());
+            }
+        }
+
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
