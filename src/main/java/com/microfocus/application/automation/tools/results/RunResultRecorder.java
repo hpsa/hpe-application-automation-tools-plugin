@@ -611,7 +611,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
 
 		try {
-			write2XML(doc, xmlFile, _logger);
+			write2XML(doc, xmlFile);
 		} catch (TransformerException e) {
 			_logger.error("Failed transforming xml file: " + e);
 			_logger.getLogger().println("Failed transforming xml file: " + e);
@@ -621,7 +621,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
 	}
 
-	private void write2XML(Document document, String filename, TaskListener _logger)
+	private void write2XML(Document document, String filename)
 			throws TransformerException, FileNotFoundException {
 		document.normalize();
 
@@ -677,7 +677,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
 
 				String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
-				//listener.getLogger().println("testName: " + testName);
 				String dest = testName;
 				FilePath targetPath = new FilePath(rootTarget, dest); // target path is something like "C:\Program Files
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
