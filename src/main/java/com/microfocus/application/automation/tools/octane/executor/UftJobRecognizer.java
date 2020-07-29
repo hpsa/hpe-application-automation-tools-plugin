@@ -38,6 +38,7 @@ import java.util.List;
 public class UftJobRecognizer {
 
     private static Logger logger = SDKBasedLoggerProvider.getLogger(UftJobRecognizer.class);
+
     /**
      * Check if current job is EXECUTOR job
      *
@@ -45,7 +46,8 @@ public class UftJobRecognizer {
      * @return
      */
     public static boolean isExecutorJob(FreeStyleProject job) {
-        return (job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
+        return (job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS) ||
+                job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
     }
 
     /**
@@ -55,7 +57,8 @@ public class UftJobRecognizer {
      * @return
      */
     public static boolean isDiscoveryJob(FreeStyleProject job) {
-        return (job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS));
+        return (job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS) ||
+                job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
     }
 
     /**

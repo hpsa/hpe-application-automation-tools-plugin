@@ -35,4 +35,7 @@ public class UftConstants {
 
     public static final String DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS = "UFT-test-discovery-job-Test-Runner-ID";
     public static final String EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS = "UFT-test-execution-job-Test-Runner-ID";
+
+    public static final String DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW = "UFT-discovery-job";
+    public static final String EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW = "UFT-test-runner";
 }
