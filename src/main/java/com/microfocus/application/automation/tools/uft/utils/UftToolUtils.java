@@ -84,7 +84,7 @@ public class UftToolUtils {
      */
     public static List<String> getBuildTests(String nodeName, String fsTestPath) {
         if (fsTestPath == null)  return new ArrayList<>();
-        List<String> buildTests = new ArrayList<>();
+        List<String> buildTests;
         Node node = Jenkins.get().getNode(nodeName);
         String directoryPath = fsTestPath.replace("\\", "/").trim();
 
@@ -101,7 +101,7 @@ public class UftToolUtils {
         List<String> buildTests = new ArrayList<>();
         if (isMtbxContent(directoryPath)) {//mtbx content in the test path
             buildTests = extractTestPathsFromMtbxContent(directoryPath);
-        } else {
+        } else if (directoryPath != null) {
             List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
 
             if (tests.size() == 1 && (new File(directoryPath).isDirectory())) {//single test, folder or mtbx file
