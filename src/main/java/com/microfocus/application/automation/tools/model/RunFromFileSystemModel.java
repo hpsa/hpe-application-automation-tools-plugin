@@ -658,7 +658,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         if (!StringUtils.isEmpty(this.fsTests)) {
             String expandedFsTests = envVars.expand(fsTests);
             String[] testsArr;
-            if (isMtbxContent(expandedFsTests)) {
+            if (UftToolUtils.isMtbxContent(expandedFsTests)) {
                 testsArr = new String[]{expandedFsTests};
             } else {
                 testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
@@ -747,10 +747,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         }
 
         return props;
-    }
-
-    public static boolean isMtbxContent(String testContent) {
-        return testContent.toLowerCase().contains("<mtbx>");
     }
 
     /**
