@@ -59,12 +59,12 @@ public class UftToolUtils {
      * @return
      */
     public static List<RerunSettingsModel> updateRerunSettings(String nodeName, String fsTestPath, List<RerunSettingsModel> rerunSettingsModels) {
-        List<String> buildTests = UftToolUtils.getBuildTests(nodeName, fsTestPath);
+        List<String> buildTests = getBuildTests(nodeName, fsTestPath);
 
         if(buildTests != null && !buildTests.isEmpty()) {
-            List<String> testPaths = UftToolUtils.getTests(buildTests, rerunSettingsModels);
+            List<String> testPaths = getTests(buildTests, rerunSettingsModels);
             for (String testPath : testPaths) {
-                if (!UftToolUtils.listContainsTest(rerunSettingsModels, testPath)) {
+                if (!listContainsTest(rerunSettingsModels, testPath)) {
                     rerunSettingsModels.add(new RerunSettingsModel(testPath, false, 0, ""));
                 }
             }
@@ -82,30 +82,30 @@ public class UftToolUtils {
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
-    public static List<String> getBuildTests(String nodeName, String fsTestPath) {
+    private static List<String> getBuildTests(String nodeName, String fsTestPath) {
         if (fsTestPath == null)  return new ArrayList<>();
         List<String> buildTests;
         Node node = Jenkins.get().getNode(nodeName);
-        String directoryPath = fsTestPath.replace("\\", "/").trim();
+        String rawTestString = fsTestPath.replace("\\", "/").trim();
 
         if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//run tests on master
-            buildTests = getBuildTestsFromTestPath(directoryPath);
+            buildTests = getTests(rawTestString);
         } else {//run tests on selected node
-            buildTests = getTestsFromNode(nodeName, directoryPath);
+            buildTests = getTestsFromNode(nodeName, rawTestString);
         }
 
         return buildTests;
     }
 
-    private static List<String> getBuildTestsFromTestPath(String directoryPath) {
+    private static List<String> getTests(String rawTestString) {
         List<String> buildTests = new ArrayList<>();
-        if (isMtbxContent(directoryPath)) {//mtbx content in the test path
-            buildTests = extractTestPathsFromMtbxContent(directoryPath);
-        } else if (directoryPath != null) {
-            List<String> tests = Arrays.asList(directoryPath.split("\\r?\\n"));
+        if (isMtbxContent(rawTestString)) {//mtbx content in the test path
+            buildTests = extractTestPathsFromMtbxContent(rawTestString);
+        } else if (rawTestString != null) {
+            List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
 
-            if (tests.size() == 1 && (new File(directoryPath).isDirectory())) {//single test, folder or mtbx file
-                buildTests = listFilesForFolder(new File(directoryPath));
+            if (tests.size() == 1 && (new File(rawTestString).isDirectory())) {//single test, folder or mtbx file
+                buildTests = listFilesForFolder(new File(rawTestString));
             } else {//list of tests/folders
                 for (String test : tests) {
                     File testFile = new File(test.trim());
@@ -183,7 +183,7 @@ public class UftToolUtils {
      * @param folder
      * @return either a single test or a set of tests
      */
-    public static List<String> getBuildTests(final File folder){
+    private static List<String> getBuildTests(final File folder){
         List<String> buildTests = new ArrayList<>();
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
@@ -205,7 +205,7 @@ public class UftToolUtils {
      * @param test               the verified test
      * @return true if the list already contains the test, false otherwise
      */
-    public static Boolean listContainsTest(List<RerunSettingsModel> rerunSettingModels, String test) {
+    private static Boolean listContainsTest(List<RerunSettingsModel> rerunSettingModels, String test) {
         for (RerunSettingsModel settings : rerunSettingModels) {
             if (settings.getTest().trim().equals(test.trim())) {
                 return true;
@@ -222,7 +222,7 @@ public class UftToolUtils {
      * @param rerunSettingModels the list of current tests
      * @return the updated list of tests to rerun
      */
-    public static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels) {
+    private static List<String> getTests(List<String> buildTests, List<RerunSettingsModel> rerunSettingModels) {
         List<String> rerunTests = new ArrayList<>();
         if (buildTests == null || rerunSettingModels == null) {
             return rerunTests;
