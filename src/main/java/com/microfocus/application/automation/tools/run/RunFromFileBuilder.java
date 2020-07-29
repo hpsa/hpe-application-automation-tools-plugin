@@ -170,7 +170,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      */
     private static void replaceTestWithMtbxFile(FilePath workspace, Properties props, String content, String key,
                                                 String time, int index) throws Exception {
-        if (RunFromFileSystemModel.isMtbxContent(content)) {
+        if (UftToolUtils.isMtbxContent(content)) {
             try {
                 String prefx = index > 0 ? index + "_" : "";
                 String mtbxFilePath = prefx + createMtbxFileInWs(workspace, content, time);
