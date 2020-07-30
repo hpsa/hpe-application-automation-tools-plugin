@@ -20,6 +20,14 @@
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
+import com.cloudbees.plugins.credentials.CredentialsNameProvider;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import com.hp.octane.integrations.CIPluginServices;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
@@ -527,6 +535,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		} finally {
 			stopImpersonation(securityContext);
 		}
+	}
+
+	@Override
+	public List<CredentialsInfo> getCredentials() {
+		List<StandardUsernameCredentials> list = CredentialsProvider.lookupCredentials(StandardUsernameCredentials.class, (Item) null, null, (DomainRequirement) null);
+		List<CredentialsInfo> output = list.stream()
+				.map(c -> dtoFactory.newDTO(CredentialsInfo.class).setCredentialsId(c.getId()).setUsername(CredentialsNameProvider.name(c)))
+				.collect(Collectors.toList());
+		return output;
 	}
 
 	private ACLContext startImpersonation() {
