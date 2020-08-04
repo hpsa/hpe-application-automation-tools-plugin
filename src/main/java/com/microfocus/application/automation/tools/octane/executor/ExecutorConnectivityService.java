@@ -52,8 +52,8 @@ import java.util.*;
  */
 public class ExecutorConnectivityService {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ExecutorConnectivityService.class);
-	private static final Map<Permission, String> requirePremissions = initRequirePremissions();
-	private static final Map<Permission, String> credentialsPremissions = initCredentialsPremissions();
+	private static final Map<Permission, String> requirePremissions = initRequirePermissions();
+	private static final Map<Permission, String> credentialsPremissions = initCredentialsPermissions();
 	private static final String PLUGIN_NAME = "Application Automation Tools";
 
 	/**
@@ -66,14 +66,16 @@ public class ExecutorConnectivityService {
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
 		if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
 
+			boolean needCredentialsPermission = false;
 			BaseStandardCredentials credentials = null;
 			if (StringUtils.isNotEmpty(testConnectivityInfo.getUsername()) && testConnectivityInfo.getPassword() != null) {
 				credentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
+				needCredentialsPermission = true;
 			} else if (StringUtils.isNotEmpty(testConnectivityInfo.getCredentialsId())) {
 				credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
 			}
 
-			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), credentials != null);
+			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), needCredentialsPermission);
 
 			if (permissionResult != null && !permissionResult.isEmpty()) {
 				String user = User.current() != null ? User.current().getId() : Jenkins.ANONYMOUS.getPrincipal().toString();
@@ -171,10 +173,10 @@ public class ExecutorConnectivityService {
 		return null;
 	}
 
-	private static List<String> checkCIPermissions(final Jenkins jenkins, boolean hasCredentials) {
+	private static List<String> checkCIPermissions(final Jenkins jenkins, boolean checkCredentialsPermissions) {
 		List<String> result = new ArrayList<>();
 		checkPermissions(jenkins, result, requirePremissions);
-		if (hasCredentials) {
+		if (checkCredentialsPermissions) {
 			checkPermissions(jenkins, result, credentialsPremissions);
 		}
 		return result;
@@ -188,15 +190,15 @@ public class ExecutorConnectivityService {
 		}
 	}
 
-	private static Map<Permission, String> initRequirePremissions() {
+	private static Map<Permission, String> initRequirePermissions() {
 		Map<Permission, String> result = new HashMap<>();
 		result.put(Item.CREATE, "Job.CREATE");
-		result.put(Item.DELETE, "Job.DELETE");
+		//result.put(Item.DELETE, "Job.DELETE");
 		result.put(Item.READ, "Job.READ");
 		return result;
 	}
 
-	private static Map<Permission, String> initCredentialsPremissions() {
+	private static Map<Permission, String> initCredentialsPermissions() {
 		Map<Permission, String> result = new HashMap<>();
 		result.put(CredentialsProvider.CREATE, "Credentials.CREATE");
 		result.put(CredentialsProvider.UPDATE, "Credentials.UPDATE");
