@@ -77,7 +77,7 @@ public class ExecutorConnectivityService {
 
 			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), needCredentialsPermission);
 
-			if (permissionResult != null && !permissionResult.isEmpty()) {
+			if (!permissionResult.isEmpty()) {
 				String user = User.current() != null ? User.current().getId() : Jenkins.ANONYMOUS.getPrincipal().toString();
 				String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
 				logger.error(error);
@@ -193,7 +193,6 @@ public class ExecutorConnectivityService {
 	private static Map<Permission, String> initRequirePermissions() {
 		Map<Permission, String> result = new HashMap<>();
 		result.put(Item.CREATE, "Job.CREATE");
-		//result.put(Item.DELETE, "Job.DELETE");
 		result.put(Item.READ, "Job.READ");
 		return result;
 	}
