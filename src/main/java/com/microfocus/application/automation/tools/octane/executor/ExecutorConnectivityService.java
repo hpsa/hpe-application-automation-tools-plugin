@@ -200,7 +200,6 @@ public class ExecutorConnectivityService {
 	private static Map<Permission, String> initCredentialsPermissions() {
 		Map<Permission, String> result = new HashMap<>();
 		result.put(CredentialsProvider.CREATE, "Credentials.CREATE");
-		result.put(CredentialsProvider.UPDATE, "Credentials.UPDATE");
 		return result;
 
 	}
