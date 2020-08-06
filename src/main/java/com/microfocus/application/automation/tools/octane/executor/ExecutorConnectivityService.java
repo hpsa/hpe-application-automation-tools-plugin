@@ -117,24 +117,10 @@ public class ExecutorConnectivityService {
 	public static OctaneResponse upsertRepositoryCredentials(final CredentialsInfo credentialsInfo) {
 
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
-		result.setStatus(HttpStatus.SC_CREATED);
+		result.setStatus(HttpStatus.SC_OK);
 		BaseStandardCredentials jenkinsCredentials = null;
 
-		if (StringUtils.isNotEmpty(credentialsInfo.getCredentialsId())) {
-			jenkinsCredentials = getCredentialsById(credentialsInfo.getCredentialsId());
-			if (jenkinsCredentials != null) {
-				BaseStandardCredentials newCred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(),
-						null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
-				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
-				try {
-					store.updateCredentials(Domain.global(), jenkinsCredentials, newCred);
-				} catch (IOException e) {
-					logger.error("Failed to update credentials " + e.getMessage());
-					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-					result.setBody("Failed to update credentials " + e.getMessage());
-				}
-			}
-		} else if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
+		if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
 			jenkinsCredentials = tryGetCredentialsByUsernamePassword(credentialsInfo.getUsername(), credentialsInfo.getPassword());
 			if (jenkinsCredentials == null) {
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -144,6 +130,7 @@ public class ExecutorConnectivityService {
 				try {
 					if(store.addCredentials(Domain.global(), c)){
 						jenkinsCredentials = c;
+                        result.setStatus(HttpStatus.SC_CREATED);
 					}
 				} catch (IOException e) {
 					logger.error("Failed to add credentials " + e.getMessage());
