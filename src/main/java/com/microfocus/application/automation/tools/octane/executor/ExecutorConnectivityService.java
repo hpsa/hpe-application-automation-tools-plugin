@@ -63,6 +63,7 @@ public class ExecutorConnectivityService {
 	 * @return OctaneResponse return status code and error to show for client
 	 */
 	public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		logger.info("checkRepositoryConnectivity started to " + testConnectivityInfo.getScmRepository().getUrl());
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
 		if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
 
@@ -97,6 +98,11 @@ public class ExecutorConnectivityService {
 		} else {
 			result.setStatus(HttpStatus.SC_BAD_REQUEST);
 			result.setBody("Missing input for testing");
+		}
+		if (result.getStatus() != HttpStatus.SC_OK) {
+			logger.info("checkRepositoryConnectivity failed: " + result.getBody());
+		}else{
+			logger.info("checkRepositoryConnectivity ok" );
 		}
 		return result;
 	}
@@ -136,7 +142,9 @@ public class ExecutorConnectivityService {
 				BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
 				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
 				try {
-					store.addCredentials(Domain.global(), c);
+					if(store.addCredentials(Domain.global(), c)){
+						jenkinsCredentials = c;
+					}
 				} catch (IOException e) {
 					logger.error("Failed to add credentials " + e.getMessage());
 					result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
