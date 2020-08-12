@@ -275,8 +275,8 @@ public class OctaneServerSettingsModel implements Serializable {
             String value = null;
             int separation = trimmedPart.indexOf(':');
             if (separation > 0) {
-                key = trimmedPart.substring(0, separation);
-                value = trimmedPart.substring(separation + 1);
+                key = trimmedPart.substring(0, separation).trim();
+                value = trimmedPart.substring(separation + 1).trim();
             } else {
                 key = trimmedPart;
             }
