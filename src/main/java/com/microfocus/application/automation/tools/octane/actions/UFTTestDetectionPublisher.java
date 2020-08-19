@@ -165,7 +165,7 @@ public class UFTTestDetectionPublisher extends Recorder {
         String scmRepoId;
         String collectionName = "scm_repositories";
         List<String> conditions = Collections.singletonList(QueryHelper.condition("url", url));
-        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Collections.singletonList("id"));
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Collections.singletonList(EntityConstants.Base.ID_FIELD));
         if (!foundEntities.isEmpty()) {
             scmRepoId = foundEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepoId);
@@ -192,7 +192,7 @@ public class UFTTestDetectionPublisher extends Recorder {
 
         //find repository root
         List<String> conditions = Collections.singletonList(QueryHelper.condition("url", url));
-        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, rootCollectionName, conditions, Collections.singletonList("id"));
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, rootCollectionName, conditions, Collections.singletonList(EntityConstants.Base.ID_FIELD));
         if (!foundEntities.isEmpty()) {
             scmRootId = foundEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, "SCM repository root" + url + " is already exist in ALM Octane with id=" + scmRootId);
@@ -206,8 +206,11 @@ public class UFTTestDetectionPublisher extends Recorder {
 
         //find branch
         String name = scmPluginHandler.tryExtractUrlShortName(url) + (isGit ? ":master" : "");
-        conditions = Collections.singletonList(QueryHelper.orConditions(QueryHelper.condition("branch", "master"), QueryHelper.conditionEmpty("branch")));
-        foundEntities = entitiesService.getEntities(workspaceId, branchCollectionName, conditions, Arrays.asList("id", "branch"));
+        String branchCondition = QueryHelper.orConditions(QueryHelper.condition(EntityConstants.ScmRepository.BRANCH, "master"),
+                QueryHelper.conditionEmpty(EntityConstants.ScmRepository.BRANCH));
+        conditions = Collections.singletonList(branchCondition);
+        foundEntities = entitiesService.getEntities(workspaceId, branchCollectionName, conditions,
+                Arrays.asList(EntityConstants.ScmRepository.ID_FIELD, EntityConstants.ScmRepository.BRANCH));
         if (!foundEntities.isEmpty()) {
             scmBranchId = foundEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, "SCM branch" + name + " is already exist in ALM Octane with id=" + scmBranchId);
