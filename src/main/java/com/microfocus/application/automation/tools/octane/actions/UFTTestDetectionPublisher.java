@@ -195,7 +195,7 @@ public class UFTTestDetectionPublisher extends Recorder {
         List<Entity> foundEntities = entitiesService.getEntities(workspaceId, rootCollectionName, conditions, Collections.singletonList(EntityConstants.Base.ID_FIELD));
         if (!foundEntities.isEmpty()) {
             scmRootId = foundEntities.get(0).getId();
-            UFTTestDetectionService.printToConsole(listener, String.format("SCM repository root %s is already exist in ALM Octane with id=%s" + url, scmRootId));
+            UFTTestDetectionService.printToConsole(listener, String.format("SCM repository root %s is already exist in ALM Octane with id=%s", url, scmRootId));
         } else {
             //create a new scm repository root
             Entity newScmRepositoryRoot = buildNewRepoEntity(scmPluginHandler, url, EntityConstants.ScmRepositoryRoot.ENTITY_NAME);
