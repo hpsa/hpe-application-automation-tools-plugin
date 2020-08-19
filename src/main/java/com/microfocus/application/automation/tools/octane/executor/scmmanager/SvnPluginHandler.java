@@ -98,4 +98,9 @@ public class SvnPluginHandler implements ScmPluginHandler {
 	public SCMType getScmType() {
 		return SCMType.SVN;
 	}
+
+	@Override
+	public String tryExtractUrlShortName(String url) {
+		return url;
+	}
 }

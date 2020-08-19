@@ -25,6 +25,8 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.entities.impl.EntityImpl;
+import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
@@ -51,6 +53,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -95,10 +98,6 @@ public class UFTTestDetectionPublisher extends Recorder {
 
             //validate scm repository id
             if (StringUtils.isEmpty(scmRepositoryId)) {
-                String msg = "SCM repository field is missing. Get relevant scm repository id from ALM Octane SpaceConfiguration->DevOps->Scm Repositories. If you need to generate ScmRepository in ALM Octane based on your scm repository in the job - set value \"-1\"";
-                throw new IllegalArgumentException(msg);
-            }
-            if (scmRepositoryId.equals("-1")) {
                 generateScmRepository(build, listener);
             }
         } catch (IllegalArgumentException e) {
@@ -143,26 +142,13 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
         EntitiesService entitiesService = octaneClient.getEntitiesService();
-
-
-        List<String> conditions = Collections.singletonList(QueryHelper.condition(EntityConstants.Base.NAME_FIELD, url));
+        ConfigurationService configurationService = octaneClient.getConfigurationService();
         long workspaceId = Long.parseLong(workspaceName);
-        String collectionName = "scm_repositories";
 
-        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Collections.singletonList("id"));
-        if (!foundEntities.isEmpty()) {
-            scmRepositoryId = foundEntities.get(0).getId();
-            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepositoryId);
+        if (configurationService.isOctaneVersionGreaterOrEqual("15.1.28")) {
+            scmRepositoryId = getScmRepositoriesWithRoots(listener, scmPluginHandler, url, entitiesService, workspaceId);
         } else {
-            //create a new scm repository
-            Entity newScmRepository = new EntityImpl();
-            newScmRepository.setType("scm_repository");
-            newScmRepository.setName(url);
-            newScmRepository.setField("url", url);
-            newScmRepository.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
-            List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Collections.singletonList(newScmRepository));
-            scmRepositoryId = createEntities.get(0).getId();
-            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepositoryId);
+            scmRepositoryId = getScmRepositoriesLegacy(listener, scmPluginHandler, url, entitiesService, workspaceId);
         }
 
         try {
@@ -172,6 +158,87 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         UFTTestDetectionService.printToConsole(listener, "SCM repository field value is updated to " + scmRepositoryId);
+    }
+
+
+    private static String getScmRepositoriesLegacy(BuildListener listener, ScmPluginHandler scmPluginHandler, String url, EntitiesService entitiesService, long workspaceId) {
+        String scmRepoId;
+        String collectionName = "scm_repositories";
+        List<String> conditions = Collections.singletonList(QueryHelper.condition("url", url));
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, collectionName, conditions, Collections.singletonList("id"));
+        if (!foundEntities.isEmpty()) {
+            scmRepoId = foundEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is already exist in ALM Octane with id=" + scmRepoId);
+        } else {
+            //create a new scm repository
+            Entity newScmRepository = buildNewRepoEntity(scmPluginHandler, url, "scm_repository");
+            String name = scmPluginHandler.tryExtractUrlShortName(url) + (SCMType.GIT.equals(scmPluginHandler.getScmType()) ? ":master" : "");
+            newScmRepository.setName(name);
+
+            List<Entity> createEntities = entitiesService.postEntities(workspaceId, collectionName, Collections.singletonList(newScmRepository));
+            scmRepoId = createEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository " + url + " is created in ALM Octane with id=" + scmRepoId);
+        }
+        return scmRepoId;
+    }
+
+    private static String getScmRepositoriesWithRoots(BuildListener listener, ScmPluginHandler scmPluginHandler, String url, EntitiesService entitiesService, long workspaceId) {
+        String scmBranchId;
+        String scmRootId;
+        String branchCollectionName = EntityConstants.ScmRepository.COLLECTION_NAME;
+        String rootCollectionName = EntityConstants.ScmRepositoryRoot.COLLECTION_NAME;
+
+        boolean isGit = SCMType.GIT.equals(scmPluginHandler.getScmType());
+
+        //find repository root
+        List<String> conditions = Collections.singletonList(QueryHelper.condition("url", url));
+        List<Entity> foundEntities = entitiesService.getEntities(workspaceId, rootCollectionName, conditions, Collections.singletonList("id"));
+        if (!foundEntities.isEmpty()) {
+            scmRootId = foundEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository root" + url + " is already exist in ALM Octane with id=" + scmRootId);
+        } else {
+            //create a new scm repository root
+            Entity newScmRepositoryRoot = buildNewRepoEntity(scmPluginHandler, url, EntityConstants.ScmRepositoryRoot.ENTITY_NAME);
+            List<Entity> createEntities = entitiesService.postEntities(workspaceId, rootCollectionName, Collections.singletonList(newScmRepositoryRoot));
+            scmRootId = createEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM repository root " + url + " is created in ALM Octane with id=" + scmRootId);
+        }
+
+        //find branch
+        String name = scmPluginHandler.tryExtractUrlShortName(url) + (isGit ? ":master" : "");
+        conditions = Collections.singletonList(QueryHelper.orConditions(QueryHelper.condition("branch", "master"), QueryHelper.conditionEmpty("branch")));
+        foundEntities = entitiesService.getEntities(workspaceId, branchCollectionName, conditions, Arrays.asList("id", "branch"));
+        if (!foundEntities.isEmpty()) {
+            scmBranchId = foundEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM branch" + name + " is already exist in ALM Octane with id=" + scmBranchId);
+        } else {
+            //create a new branch
+            Entity newBranch = buildNewRepoEntity(scmPluginHandler, url, "scm_repository");
+            newBranch.setName(name);
+
+            if (isGit) {
+                newBranch.setField(EntityConstants.ScmRepository.BRANCH, "master");
+            }
+
+
+            Entity scmRoot = new EntityImpl().setType(EntityConstants.ScmRepositoryRoot.ENTITY_NAME).setId(scmRootId);
+            newBranch.setField(EntityConstants.ScmRepository.PARENT, scmRoot);
+            List<Entity> createEntities = entitiesService.postEntities(workspaceId, branchCollectionName, Collections.singletonList(newBranch));
+            scmBranchId = createEntities.get(0).getId();
+            UFTTestDetectionService.printToConsole(listener, "SCM branch " + name + " is created in ALM Octane with id=" + scmBranchId);
+        }
+
+        return scmBranchId;
+    }
+
+    private static Entity buildNewRepoEntity(ScmPluginHandler scmPluginHandler, String url, String entityType) {
+        Entity newScmRepositoryRoot = new EntityImpl();
+        newScmRepositoryRoot.setType(entityType);
+        String name = scmPluginHandler.tryExtractUrlShortName(url);
+        newScmRepositoryRoot.setName(name);
+        newScmRepositoryRoot.setField("url", url);
+        newScmRepositoryRoot.setField("scm_type", scmPluginHandler.getScmType().getOctaneId());
+        return newScmRepositoryRoot;
     }
 
     private void handleDeletedFolders(AbstractBuild build) {

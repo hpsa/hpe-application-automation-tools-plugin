@@ -43,4 +43,6 @@ public interface ScmPluginHandler {
     String getScmRepositoryCredentialsId(SCM scm);
 
     SCMType getScmType();
+
+    String tryExtractUrlShortName(String url);
 }
