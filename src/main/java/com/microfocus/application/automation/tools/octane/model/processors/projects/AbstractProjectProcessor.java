@@ -91,10 +91,11 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				item.getActions(ParametersAction.class).forEach(action -> {
 					if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
 						try {
-							logger.info("canceling item in queue : " + item.getDisplayName());
+							logger.info("canceling item in queue : " + item.toString());
 							queue.cancel(item);
+							logger.info("Item in queue is cancelled item : " + item.toString());
 						} catch (Exception e) {
-							logger.warn("Failed to cancel '" + item.getDisplayName() + "' in queue : " + e.getMessage(), e);
+							logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
 						}
 					}
 				});
@@ -107,6 +108,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
 							try {
 								aBuild.doStop();
+								logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
 							} catch (Exception e) {
 								logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 							}
