@@ -566,17 +566,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             //setIsTestRunner
             if (tmpConfig.getParameters() != null) {
                 Optional opt = tmpConfig.getParameters().stream().filter(p -> TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER.equals(p.getName())).findFirst();
-                if (opt.isPresent()) {
-                    tmpConfig.setIsTestRunner(true);
-                }
+				tmpConfig.setIsTestRunner(opt.isPresent());
             }
 
             //setHasUpstream
             if (job instanceof AbstractProject) {
                 List<AbstractProject> upstreams = Jenkins.get().getDependencyGraph().getUpstream((AbstractProject) job);
-                if (upstreams.size() > 0) {
-                    tmpConfig.setHasUpstream(true);
-                }
+				tmpConfig.setHasUpstream(upstreams.size() > 0);
             }
 
         }
