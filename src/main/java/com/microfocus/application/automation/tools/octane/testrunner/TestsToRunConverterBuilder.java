@@ -54,7 +54,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
     private TestsToRunConverterModel framework;
 
-    private static final String TESTS_TO_RUN_PARAMETER = "testsToRun";
+    public static final String TESTS_TO_RUN_PARAMETER = "testsToRun";
 
     private static final String DEFAULT_EXECUTING_DIRECTORY = "${workspace}";
     private static final String CHECKOUT_DIRECTORY_PARAMETER = "testsToRunCheckoutDirectory";

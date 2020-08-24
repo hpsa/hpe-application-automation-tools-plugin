@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
@@ -46,7 +47,9 @@ import java.util.Map;
 
 @Extension
 public class PluginActions implements RootAction {
-    private final String STATUS_REQUEST = "/nga/api/v1/status";
+    private final String API = "/nga/api/v1";
+    private final String STATUS_REQUEST = API + "/status";
+    private final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
@@ -69,6 +72,12 @@ public class PluginActions implements RootAction {
             res.setHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
             res.setStatus(200);
             res.getWriter().write(result.toString());
+            return;
+        } else if (req.getRequestURI().toLowerCase().contains(REENQUEUE_EVENT_REQUEST)) {
+            reEnqueueEvent(req.getParameterMap());
+            res.setHeader("Content-Type", ContentType.TEXT_PLAIN.getMimeType());
+            res.setStatus(200);
+            res.getWriter().write("resent");
             return;
         } else {
             res.setStatus(404);
@@ -128,5 +137,36 @@ public class PluginActions implements RootAction {
             metricsJson.put(e.getKey(), value);
         });
         confJson.put(metricsGroup, metricsJson);
+    }
+
+    private void reEnqueueEvent(Map<String, String[]> parameterMap) {
+        if (!parameterMap.containsKey("instanceId")) {
+            throw new IllegalArgumentException("instanceId parameter is missing");
+        }
+        if (!parameterMap.containsKey("eventType")) {
+            throw new IllegalArgumentException("eventType parameter is missing");
+        }
+        if (!parameterMap.containsKey("jobId")) {
+            throw new IllegalArgumentException("jobId parameter is missing");
+        }
+        if (!parameterMap.containsKey("buildId")) {
+            throw new IllegalArgumentException("buildId parameter is missing");
+        }
+
+        String instanceId = parameterMap.get("instanceId")[0];
+        String eventType = parameterMap.get("eventType")[0];
+        String jobId = parameterMap.get("jobId")[0];
+        String buildId = parameterMap.get("buildId")[0];
+        String rootId = null;
+        if (parameterMap.containsKey("rootId")) {
+            rootId = parameterMap.get("rootId")[0];
+        }
+
+        OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
+        if ("tests".equals(eventType.toLowerCase())) {
+            octaneClient.getTestsService().enqueuePushTestsResult(jobId, buildId, rootId);
+        } else if ("commits".equals(eventType.toLowerCase())) {
+            octaneClient.getSCMDataService().enqueueSCMData(jobId, buildId, null);
+        }
     }
 }
