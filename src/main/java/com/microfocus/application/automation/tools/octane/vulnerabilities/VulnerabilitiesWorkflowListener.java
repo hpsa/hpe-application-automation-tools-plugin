@@ -72,7 +72,7 @@ public class VulnerabilitiesWorkflowListener implements GraphListener {
             VulnerabilitiesUtils.insertFODQueueItem(parentRun, release);
         }
         if (projectVersionPair == null && release == null) {
-            logger.info("No Security Scan integration configuration was found " + parentRun);
+            logger.debug("No Security Scan integration configuration was found " + parentRun);
         }
     }
 }
