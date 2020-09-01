@@ -42,7 +42,7 @@ public class BuildLogHelper {
 			String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 			String parents = BuildHandlerUtils.getRootJobCiIds(run);
 
-			logger.info("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
+			logger.debug("enqueued build '" + jobCiId + " #" + buildCiId + "' for log submission");
 			OctaneSDK.getClients().forEach(octaneClient -> {
 				octaneClient.getLogsService().enqueuePushBuildLog(jobCiId, buildCiId, parents);
 			});
