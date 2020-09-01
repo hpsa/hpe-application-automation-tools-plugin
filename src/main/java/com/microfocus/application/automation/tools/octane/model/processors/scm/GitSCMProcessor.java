@@ -127,7 +127,7 @@ class GitSCMProcessor implements SCMProcessor {
 				commonOriginRevision.revision = workspace.act(new FileContentCallable(getCheckoutDir(abstractBuild)));
 
 			}
-			logger.info("most recent common revision resolved to " + commonOriginRevision.revision + " (branch: " + commonOriginRevision.branch + ")");
+			logger.debug("most recent common revision resolved to " + commonOriginRevision.revision + " (branch: " + commonOriginRevision.branch + ")");
 		} catch (Exception e) {
 			logger.error("failed to resolve most recent common revision : " + e.getClass().getName() + " - " + e.getMessage());
 			return commonOriginRevision;
