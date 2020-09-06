@@ -222,7 +222,7 @@ public class GherkinTestResultsCollector {
     private static void validateXMLVersion(Document doc) {
         String XML_VERSION = "1";
         NodeList featuresNodes = doc.getElementsByTagName("features");
-        if(featuresNodes.item(0)!=null) {
+        if(featuresNodes.getLength() > 0) {
             String versionAttr = ((Element) featuresNodes.item(0)).getAttribute("version");
             if (versionAttr == null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION) != 0) {
                 throw new IllegalArgumentException("\n********************************************************\n" +
