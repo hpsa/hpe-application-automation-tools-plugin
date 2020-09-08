@@ -121,7 +121,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
         try {
             FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
             List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, this, logConsumer::printLog);
-            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getMinUpdateTime(),
+            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, this.repositoryUrl, fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
             run.addAction(buildAction);
 

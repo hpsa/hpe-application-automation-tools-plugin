@@ -40,6 +40,7 @@ public class PullRequestBuildAction implements Action {
     private final long minUpdateTime;
     private final String sourceBranchFilter;
     private final String targetBranchFilter;
+    private final String repositoryUrl;
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
     private SimpleDateFormat updatedDateFormat = null;
@@ -50,13 +51,14 @@ public class PullRequestBuildAction implements Action {
         return "notepad.png";
     }
 
-    public PullRequestBuildAction(final Run<?, ?> build, List<PullRequest> pullRequests, long minUpdateTime,
+    public PullRequestBuildAction(final Run<?, ?> build, List<PullRequest> pullRequests, String repositoryUrl, long minUpdateTime,
                                   String sourceBranchFilter, String targetBranchFilter) {
         this.build = build;
         this.pullRequests = pullRequests;
         this.minUpdateTime = minUpdateTime;
         this.sourceBranchFilter = sourceBranchFilter;
         this.targetBranchFilter = targetBranchFilter;
+        this.repositoryUrl = repositoryUrl;
     }
 
     @CheckForNull
@@ -119,5 +121,9 @@ public class PullRequestBuildAction implements Action {
 
     public String getTargetBranchFilter() {
         return targetBranchFilter;
+    }
+
+    public String getRepositoryUrl() {
+        return repositoryUrl;
     }
 }
