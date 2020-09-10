@@ -114,22 +114,37 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
             throw new IllegalArgumentException("SCM Tool is not defined.");
         }
 
-        StandardCredentials credentials = getCredentialsById(credentialsId, run, taskListener.getLogger());
+        String myCredentialsId = credentialsId;
+        String myConfigurationId = configurationId;
+        String myWorkspaceId = workspaceId;
+        String myScmTool = scmTool;
+        try {
+            EnvVars env = run.getEnvironment(taskListener);
+            myCredentialsId = env.expand(credentialsId);
+            myConfigurationId = env.expand(configurationId);
+            myWorkspaceId = env.expand(workspaceId);
+            myScmTool = env.expand(scmTool);
+        } catch (IOException | InterruptedException e) {
+            taskListener.error("Failed loading build environment " + e);
+        }
+
+        FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
+
+        StandardCredentials credentials = getCredentialsById(myCredentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
 
-        PullRequestFetchHandler fetchHandler = PullRequestFetchFactory.getHandler(ScmTool.fromValue(scmTool), authenticationStrategy);
+        PullRequestFetchHandler fetchHandler = PullRequestFetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
         try {
-            FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
             List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, this, logConsumer::printLog);
-            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getMinUpdateTime(),
+            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
             run.addAction(buildAction);
 
             if (!pullRequests.isEmpty()) {
-                OctaneSDK.getClientByInstanceId(configurationId).getPullRequestService().sendPullRequests(pullRequests, workspaceId, fp, logConsumer::printLog);
+                OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
             }
         } catch (Exception e) {
-            logConsumer.printLog("Failed to fetch pull requests : " + e.getMessage() );
+            logConsumer.printLog("Failed to fetch pull requests : " + e.getMessage());
             e.printStackTrace(taskListener.getLogger());
             run.setResult(Result.FAILURE);
         }
