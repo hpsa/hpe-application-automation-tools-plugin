@@ -62,7 +62,7 @@ public class ConfigurationValidator {
     public static OctaneUrlParser parseUiLocation(String uiLocation) throws FormValidation {
         try {
             return OctaneUrlParser.parse(uiLocation);
-        } catch (OctaneSDKGeneralException e) {
+        } catch (IllegalArgumentException e) {
             throw wrapWithFormValidation(false, e.getMessage());
         }
     }

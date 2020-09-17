@@ -159,8 +159,7 @@ public class OctaneServerSettingsBuilder extends Builder {
             if (servers.length > 0) {
                 ExecutorService executor = Executors.newFixedThreadPool(Math.min(10, servers.length));
                 for (OctaneServerSettingsModel innerServerConfiguration : servers) {
-                    OctaneConfiguration octaneConfiguration = new OctaneConfiguration(innerServerConfiguration.getIdentity(), innerServerConfiguration.getLocation(),
-                            innerServerConfiguration.getSharedSpace());
+                    OctaneConfiguration octaneConfiguration = OctaneConfiguration.createWithUiLocation(innerServerConfiguration.getIdentity(), innerServerConfiguration.getUiLocation());
                     octaneConfiguration.setClient(innerServerConfiguration.getUsername());
                     octaneConfiguration.setSecret(innerServerConfiguration.getPassword().getPlainText());
                     octaneConfiguration.setSuspended(innerServerConfiguration.isSuspend());
@@ -304,9 +303,8 @@ public class OctaneServerSettingsBuilder extends Builder {
             }
             OctaneConfiguration octaneConfiguration = octaneConfigurations.containsKey(newModel.getInternalId()) ?
                     octaneConfigurations.get(newModel.getInternalId()) :
-                    new OctaneConfiguration(newModel.getIdentity(), newModel.getLocation(), newModel.getSharedSpace());
-            octaneConfiguration.setSharedSpace(newModel.getSharedSpace());
-            octaneConfiguration.setUrl(newModel.getLocation());
+                    OctaneConfiguration.create(newModel.getIdentity(), newModel.getLocation(), newModel.getSharedSpace());
+            octaneConfiguration.setUrlAndSpace(newModel.getLocation(), newModel.getSharedSpace());
             octaneConfiguration.setClient(newModel.getUsername());
             octaneConfiguration.setSecret(newModel.getPassword().getPlainText());
             octaneConfiguration.setImpersonatedUser(newModel.getImpersonatedUser());
