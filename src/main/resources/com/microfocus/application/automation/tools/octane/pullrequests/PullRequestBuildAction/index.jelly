@@ -69,6 +69,7 @@
        <br/>
        <br/>
        <div>
+            <div>repositoryUrl : ${it.repositoryUrl}</div>
             <div>minUpdateDate : ${it.minUpdateTime} - ${it.getFormattedDate(it.minUpdateTime)}</div>
             <div>sourceBranchFilter : ${it.sourceBranchFilter}</div>
             <div>targetBranchFilter : ${it.targetBranchFilter}</div>

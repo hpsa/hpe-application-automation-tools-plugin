@@ -55,7 +55,7 @@ public class VulnerabilitiesListener extends RunListener<AbstractBuild> {
             VulnerabilitiesUtils.insertFODQueueItem(build, release);
         }
         if (projectVersionPair == null && release == null) {
-            logger.info("No Security Scan integration configuration was found " + build);
+            logger.debug("No Security Scan integration configuration was found " + build);
         }
     }
 }

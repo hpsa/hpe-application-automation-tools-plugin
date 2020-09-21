@@ -43,6 +43,8 @@ import org.jenkinsci.plugins.gitclient.GitClient;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GitPluginHandler implements ScmPluginHandler {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GitPluginHandler.class);
@@ -124,4 +126,22 @@ public class GitPluginHandler implements ScmPluginHandler {
 	public SCMType getScmType() {
 		return SCMType.GIT;
 	}
+
+    @Override
+    public String tryExtractUrlShortName(String url) {
+		/*
+        Use Reg-ex pattern which covers both formats:
+        git@github.com:MicroFocus/hpaa-octane-dev.git
+        https://github.houston.softwaregrp.net/Octane/syncx.git
+        */
+
+        String patternStr = "^.*[/:](.*/.*)$";
+        Pattern pattern = Pattern.compile(patternStr);
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find() && matcher.groupCount() == 1) {
+            return matcher.group(1);
+        } else {
+            return url;
+        }
+    }
 }

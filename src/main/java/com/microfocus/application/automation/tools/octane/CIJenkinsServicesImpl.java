@@ -20,6 +20,10 @@
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.cloudbees.plugins.credentials.CredentialsNameProvider;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.hp.octane.integrations.CIPluginServices;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
@@ -55,6 +59,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.param
 import com.microfocus.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.scm.SCMUtils;
+import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunConverterBuilder;
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
@@ -529,6 +534,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		}
 	}
 
+	@Override
+	public List<CredentialsInfo> getCredentials() {
+		List<StandardUsernameCredentials> list = CredentialsProvider.lookupCredentials(StandardUsernameCredentials.class, (Item) null, null, (DomainRequirement) null);
+		List<CredentialsInfo> output = list.stream()
+				.map(c -> dtoFactory.newDTO(CredentialsInfo.class).setCredentialsId(c.getId()).setUsername(CredentialsNameProvider.name(c)))
+				.collect(Collectors.toList());
+		return output;
+	}
+
 	private ACLContext startImpersonation() {
 		return startImpersonation(null);
 	}
@@ -541,15 +555,29 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		ImpersonationUtil.stopImpersonation(impersonatedContext);
 	}
 
-	private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
-		PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-				.setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName())
-				.setName(name);
-		if (includeParameters) {
-			tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
-		}
-		return tmpConfig;
-	}
+    private PipelineNode createPipelineNode(String name, Job job, boolean includeParameters) {
+        PipelineNode tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+                .setJobCiId(JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName())
+                .setName(name);
+
+        if (includeParameters) {
+            tmpConfig.setParameters(ParameterProcessors.getConfigs(job));
+
+            //setIsTestRunner
+            if (tmpConfig.getParameters() != null) {
+                Optional opt = tmpConfig.getParameters().stream().filter(p -> TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER.equals(p.getName())).findFirst();
+				tmpConfig.setIsTestRunner(opt.isPresent());
+            }
+
+            //setHasUpstream
+            if (job instanceof AbstractProject) {
+                List<AbstractProject> upstreams = Jenkins.get().getDependencyGraph().getUpstream((AbstractProject) job);
+				tmpConfig.setHasUpstream(upstreams.size() > 0);
+            }
+
+        }
+        return tmpConfig;
+    }
 
 	private PipelineNode createPipelineNodeFromJobName(String name) {
 		return dtoFactory.newDTO(PipelineNode.class)

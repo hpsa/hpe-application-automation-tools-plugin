@@ -374,9 +374,11 @@ public class OctaneServerSettingsBuilder extends Builder {
                                                @QueryParameter("workspace2ImpersonatedUserConf") String workspace2ImpersonatedUserConf,
                                                @QueryParameter("parameters") String parameters
         ) {
+            String myImpersonatedUser = StringUtils.trim(impersonatedUser);
+            String myUsername = StringUtils.trim(username);
             OctaneUrlParser octaneUrlParser;
             try {
-                octaneUrlParser = ConfigurationValidator.parseUiLocation(uiLocation);
+                octaneUrlParser = ConfigurationValidator.parseUiLocation(StringUtils.trim(uiLocation));
             } catch (FormValidation fv) {
                 logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
                 return fv;
@@ -386,12 +388,12 @@ public class OctaneServerSettingsBuilder extends Builder {
 
             //  if parse is good, check authentication/authorization
             List<String> fails = new ArrayList<>();
-            ConfigurationValidator.checkImpersonatedUser(fails, impersonatedUser);
+            ConfigurationValidator.checkImpersonatedUser(fails, myImpersonatedUser);
             ConfigurationValidator.checkHoProxySettins(fails);
-            List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), username, Secret.fromString(password));
+            List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), myUsername, Secret.fromString(password));
 
-            Map<Long, String> workspace2ImpersonatedUser = ConfigurationValidator.checkWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, availableWorkspaces, impersonatedUser, fails);
-            ConfigurationValidator.checkParameters(parameters, impersonatedUser, fails);
+            Map<Long, String> workspace2ImpersonatedUser = ConfigurationValidator.checkWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, availableWorkspaces, myImpersonatedUser, fails);
+            ConfigurationValidator.checkParameters(parameters, myImpersonatedUser, fails);
 
             String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
             if (fails.isEmpty()) {

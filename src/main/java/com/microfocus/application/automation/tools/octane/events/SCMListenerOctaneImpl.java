@@ -44,29 +44,22 @@ import java.util.concurrent.TimeUnit;
 @Extension
 public class SCMListenerOctaneImpl extends SCMListener {
 
-	private final ScheduledExecutorService publishService = Executors.newScheduledThreadPool(5);
+    @Override
+    public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
+        if (!OctaneSDK.hasClients()) {
+            return;
+        }
+        super.onChangeLogParsed(run, scm, listener, changelog);
 
-	@Override
-	public void onChangeLogParsed(Run<?, ?> run, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
-		if (!OctaneSDK.hasClients()) {
-			return;
-		}
-		super.onChangeLogParsed(run, scm, listener, changelog);
+        String jobCiId = BuildHandlerUtils.getJobCiId(run);
+        String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
-		String jobCiId = BuildHandlerUtils.getJobCiId(run);
-		String buildCiId = BuildHandlerUtils.getBuildCiId(run);
+        SCMData scmData = SCMUtils.extractSCMData(run, scm, SCMProcessors.getAppropriate(scm.getClass().getName()));
+        SCMUtils.persistSCMData(run, jobCiId, buildCiId, scmData);
 
-		SCMData scmData = SCMUtils.extractSCMData(run, scm, SCMProcessors.getAppropriate(scm.getClass().getName()));
-		SCMUtils.persistSCMData(run, jobCiId, buildCiId, scmData);
-
-		if (scmData != null) {
-			//delay sending SCM event to verify that it will come after started event
-			publishService.schedule(() -> enqueueSCMDataForAllClients(jobCiId, buildCiId, scmData), 2, TimeUnit.SECONDS);
-		}
-	}
-
-	private void enqueueSCMDataForAllClients(String jobCiId, String buildCiId, SCMData scmData) {
-		OctaneSDK.getClients().forEach(octaneClient ->
-			octaneClient.getSCMDataService().enqueueSCMData(jobCiId, buildCiId, scmData));
-	}
+        if (scmData != null) {
+            OctaneSDK.getClients().forEach(octaneClient ->
+                    octaneClient.getSCMDataService().enqueueSCMData(jobCiId, buildCiId, scmData));
+        }
+    }
 }

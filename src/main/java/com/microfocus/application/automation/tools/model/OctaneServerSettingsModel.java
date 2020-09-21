@@ -63,9 +63,9 @@ public class OctaneServerSettingsModel implements Serializable {
     @DataBoundConstructor
     public OctaneServerSettingsModel(String uiLocation, String username, Secret password, String impersonatedUser) {
         this.uiLocation = StringUtils.trim(uiLocation);
-        this.username = username;
+        this.username = StringUtils.trim(username);
         this.password = password;
-        this.impersonatedUser = impersonatedUser;
+        this.impersonatedUser = StringUtils.trim(impersonatedUser);
     }
 
     public String getInternalId() {
@@ -116,7 +116,7 @@ public class OctaneServerSettingsModel implements Serializable {
         if (StringUtils.isEmpty(identity)) {
             throw new IllegalArgumentException("Empty identity is not allowed");
         }
-        this.identity = identity;
+        this.identity = StringUtils.trim(identity);
         this.setIdentityFrom(new Date().getTime());
     }
 
@@ -129,7 +129,7 @@ public class OctaneServerSettingsModel implements Serializable {
     }
 
     public void setLocation(String location) {
-        this.location = location;
+        this.location = StringUtils.trim(location);
     }
 
     public String getSharedSpace() {
@@ -137,7 +137,7 @@ public class OctaneServerSettingsModel implements Serializable {
     }
 
     public void setSharedSpace(String sharedSpace) {
-        this.sharedSpace = sharedSpace;
+        this.sharedSpace = StringUtils.trim(sharedSpace);
     }
 
     public void setIdentityFrom(Long identityFrom) {
@@ -275,8 +275,8 @@ public class OctaneServerSettingsModel implements Serializable {
             String value = null;
             int separation = trimmedPart.indexOf(':');
             if (separation > 0) {
-                key = trimmedPart.substring(0, separation);
-                value = trimmedPart.substring(separation + 1);
+                key = trimmedPart.substring(0, separation).trim();
+                value = trimmedPart.substring(separation + 1).trim();
             } else {
                 key = trimmedPart;
             }
