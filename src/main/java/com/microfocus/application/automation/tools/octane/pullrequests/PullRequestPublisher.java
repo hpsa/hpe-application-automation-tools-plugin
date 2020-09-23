@@ -40,7 +40,10 @@ import com.hp.octane.integrations.services.pullrequests.rest.authentication.Basi
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.NoCredentialsStrategy;
 import com.hp.octane.integrations.services.pullrequests.rest.authentication.PATStrategy;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
-import hudson.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.*;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
@@ -128,7 +131,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
             taskListener.error("Failed loading build environment " + e);
         }
 
-        FetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
+        FetchParameters fp = createFetchParameters(run, taskListener, myConfigurationId, myWorkspaceId, logConsumer::printLog);
 
         StandardCredentials credentials = getCredentialsById(myCredentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
@@ -150,9 +153,9 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
         }
     }
 
-    private FetchParameters createFetchParameters(@Nonnull Run<?, ?> run,  @Nonnull TaskListener taskListener, Consumer<String> logConsumer) {
+    private FetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, String myConfigurationId, String myWorkspaceId, Consumer<String> logConsumer) {
 
-        FetchParameters fp ;
+        FetchParameters fp;
         try {
             EnvVars env = run.getEnvironment(taskListener);
             fp = new FetchParameters()
@@ -175,7 +178,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
             fp.setMinUpdateTime(getLongValueParameter(parameterAction, "pullrequests_min_update_time"));
         }
         if (fp.getMinUpdateTime() == FetchParameters.DEFAULT_MIN_UPDATE_DATE) {
-            long lastUpdateTime = OctaneSDK.getClientByInstanceId(configurationId).getPullRequestService().getLastUpdateTime(workspaceId, repositoryUrl);
+            long lastUpdateTime = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestService().getLastUpdateTime(myWorkspaceId, fp.getRepoUrl());
             fp.setMinUpdateTime(lastUpdateTime);
         }
 
@@ -251,7 +254,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep, C
 
     private AuthenticationStrategy getAuthenticationStrategy(StandardCredentials credentials) {
         AuthenticationStrategy authenticationStrategy;
-        if (credentials == null){
+        if (credentials == null) {
             authenticationStrategy = new NoCredentialsStrategy();
         } else if (credentials instanceof StringCredentials) {
             Secret secret = ((StringCredentials) credentials).getSecret();
