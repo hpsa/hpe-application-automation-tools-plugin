@@ -20,23 +20,31 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+
 public class AlmServerSettingsModel {
     
     private final String _almServerName;
     private final String _almServerUrl;
-    
+    private List<CredentialsModel> _almCredentials;
+    private List<SSOCredentialsModel> _almSSOCredentials;
+
     @DataBoundConstructor
-    public AlmServerSettingsModel(String almServerName, String almServerUrl) {
+    public AlmServerSettingsModel(String almServerName, String almServerUrl,
+                                  List<CredentialsModel> almCredentials,
+                                  List<SSOCredentialsModel> almSSOCredentials) {
         
-        _almServerName = almServerName;
-        _almServerUrl = almServerUrl;
+        this._almServerName = almServerName.trim();
+        this._almServerUrl = almServerUrl.trim();
+        this._almCredentials = almCredentials;
+        this._almSSOCredentials = almSSOCredentials;
     }
-    
+
     /**
      * @return the almServerName
      */
@@ -52,16 +60,30 @@ public class AlmServerSettingsModel {
         
         return _almServerUrl;
     }
-    
+
+    public List<CredentialsModel> getAlmCredentials(){
+        return _almCredentials;
+    }
+
+    public void set_almCredentials(List<CredentialsModel> almCredentials){
+        this._almCredentials = almCredentials;
+    }
+
+    public List<SSOCredentialsModel> getAlmSSOCredentials() { return _almSSOCredentials; }
+
+    public void set_almSSOCredentials(List<SSOCredentialsModel> almSSOCredentials){
+        this._almSSOCredentials = almSSOCredentials;
+    }
+
     public Properties getProperties() {
         
         Properties prop = new Properties();
+
         if (!StringUtils.isEmpty(_almServerUrl)) {
-            prop.put("almServerUrl", _almServerUrl);
+            prop.put("almServerUrl", _almServerUrl.trim());
         } else {
             prop.put("almServerUrl", "");
         }
-        
         return prop;
     }
 }

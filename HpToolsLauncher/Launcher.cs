@@ -907,9 +907,12 @@ namespace HpToolsLauncher
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
                 int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
 
-                //TODO: Temporary fix to remove since jenkins doesn't retrieve results from jobs that marked as failed and unstable marks jobs with only failed tests
                 if ((numErrors <= 0) && (numFailures > 0))
                 {
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                }
+
+                if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0)){
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
                 }
 

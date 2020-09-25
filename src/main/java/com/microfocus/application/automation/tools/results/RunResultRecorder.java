@@ -431,7 +431,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						Element eElement = (Element) nNode;
 
 						if (!eElement.hasAttribute(REPORT_NAME_FIELD)) {
-							listener.getLogger().println("Node " + i + " does not contain file report_metadata.xml");
 							continue;
 						}
 

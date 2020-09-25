@@ -618,7 +618,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
-       synchronized (this) {
+      // synchronized (this) {
 
            // get the mc server settings
            MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -794,8 +794,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            }
 
            try {
-               // Run the HpToolsLauncher.exe
-               AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+               synchronized (this) {
+                   // Run the HpToolsLauncher.exe
+                   AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+               }
                // Has the report been successfully generated?
            } catch (IOException ioe) {
                Util.displayIOException(ioe, listener);
@@ -818,7 +820,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                }
                out.println("Operation Was aborted by user.");
            }
-       }
     }
 
 

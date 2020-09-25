@@ -53,6 +53,8 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<java.level>8</java.level>
+		<!--project.build.sourceEncoding>Unicode</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>Unicode</project.reporting.outputEncoding-->
 	</properties>
 
 	<distributionManagement>
@@ -221,7 +223,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-					<additionalparam>-Xdoclint:none</additionalparam>
 					<skip>true</skip>
 				</configuration>
 			</plugin>
@@ -272,6 +273,7 @@
 							<executable>java</executable>
 							<arguments>
 								<argument>-jar</argument>
+								<!--suppress UnresolvedMavenProperty -->
 								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
 								<argument>-s</argument>
 								<argument>http://localhost:8080</argument>
@@ -282,6 +284,7 @@
 								<argument>"${project.artifactId}"</argument>
 								<!-- <argument>-deploy</argument> -->
 								<argument>-restart</argument>
+								<!--suppress UnresolvedMavenProperty -->
 								<argument>password-file ${id_rsa_file}</argument>
 							</arguments>
 						</configuration>
