@@ -107,16 +107,18 @@
       <td/>
     </tr>
 
+
         <f:entry>
             <div class="info">
                 The credentials for "Run from ALM" tasks have been moved to Jenkins Configure System page. In order to update them please create a new project, add as a
                 "Post build action" in the configuration page the action called "Migrate ALM Credentials" and run the job.
+                In case migration process was accomplised, please add/edit credentials in global configuration page.
             </div>
         </f:entry>
 
         <f:entry field="almServerName">
           <label>ALM server</label>
-          <f:select/>
+          <f:select clazz="servers"/>
         </f:entry>
 
         <f:entry field="isSSOEnabled">
@@ -141,7 +143,7 @@
         <f:entry>
             <label>Domain</label>
             <f:entry field="almDomain">
-                <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}"/>
+                <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}" />
             </f:entry>
         </f:entry>
 

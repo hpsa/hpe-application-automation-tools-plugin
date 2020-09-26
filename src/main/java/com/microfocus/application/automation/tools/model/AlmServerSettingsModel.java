@@ -23,11 +23,17 @@ package com.microfocus.application.automation.tools.model;
 import java.util.List;
 import java.util.Properties;
 
+import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nonnull;
 
-public class AlmServerSettingsModel {
+
+public class AlmServerSettingsModel extends AbstractDescribableImpl<AlmServerSettingsModel> {
     
     private final String _almServerName;
     private final String _almServerUrl;
@@ -85,5 +91,15 @@ public class AlmServerSettingsModel {
             prop.put("almServerUrl", "");
         }
         return prop;
+    }
+
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<AlmServerSettingsModel> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Alm Server Settings Model";
+        }
     }
 }

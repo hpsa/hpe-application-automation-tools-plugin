@@ -214,7 +214,14 @@ public class AlmServerSettingsBuilder extends Builder {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("ALM server name cannot be empty");
             }
-            
+
+            List<AlmServerSettingsModel> models = Arrays.asList(getInstallations());
+            for (AlmServerSettingsModel model : models) {
+                if (model.getAlmServerName().equals(value) && model.getAlmCredentials().isEmpty() && model.getAlmSSOCredentials().isEmpty()) {
+                    return FormValidation.error("Alm server does not have credentials defined");
+                }
+            }
+
             return FormValidation.ok();
         }
         
@@ -257,6 +264,31 @@ public class AlmServerSettingsBuilder extends Builder {
                 return FormValidation.error("Error opening a connection to the ALM server");
             }
             
+            return FormValidation.ok();
+        }
+
+
+
+        public FormValidation doCheckAlmUsername(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Username must be set");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckAlmClientID(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Client ID must be set");
+            }
+
+            return FormValidation.ok();
+        }
+
+        private FormValidation doCheckAlmCredentials(@QueryParameter List<CredentialsModel> almCredentials) {
+            if(almCredentials.isEmpty()){
+                return FormValidation.error("Am server does not have credentials defined");
+            }
             return FormValidation.ok();
         }
 

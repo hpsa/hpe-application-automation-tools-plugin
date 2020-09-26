@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
@@ -71,14 +72,11 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private String almClientID;
     private String almApiKey;
 
-    private AlmServerSettingsModel almServerSettingsModel;
-
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName, String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
                            String almRunMode, String almRunHost, Boolean isSSOEnabled,
-                           String almClientID, String almApiKey,
-                           AlmServerSettingsModel almServerSettingsModel){
+                           String almClientID, String almApiKey) {
 
         this.almServerName = almServerName;
         this.almUserName = almUserName;
@@ -99,7 +97,6 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.isSSOEnabled = isSSOEnabled;
         this.almClientID = almClientID;
         this.almApiKey = almApiKey;
-        this.almServerSettingsModel = almServerSettingsModel;
     }
 
     public String getAlmUserName() {
@@ -163,9 +160,11 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         return CreateProperties(null, null);
     }
 
+
     private Properties CreateProperties(EnvVars envVars,
                                         VariableResolver<String> varResolver) {
         Properties props = new Properties();
+
         if(isSSOEnabled != null){
             props.put("SSOEnabled", Boolean.toString(isSSOEnabled));
         }else{

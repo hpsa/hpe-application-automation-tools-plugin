@@ -23,6 +23,7 @@ package com.microfocus.application.automation.tools.run;
 import com.cloudbees.groovy.cps.impl.ListBlock;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
 import hudson.EnvVars;
@@ -64,7 +65,7 @@ import static com.microfocus.application.automation.tools.Messages.CompanyName;
 import static com.microfocus.application.automation.tools.Messages.RunFromAlmBuilderStepName;
 
 public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
-    
+
     public RunFromAlmModel runFromAlmModel;
     private boolean isFilterTestsEnabled;
     private FilterTestsModel filterTestsModel;
@@ -110,8 +111,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almRunHost,
                         isSSOEnabled,
                         almClientID,
-                        almApiKey,
-                       almServerSettingsModel);
+                        almApiKey);
     }
 
     public String getAlmServerName(){
@@ -235,7 +235,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             }
             encAlmPass =
                     EncryptionUtils.Encrypt(
-                            //runFromAlmModel.getAlmPassword(),
                             almPassword,
                             EncryptionUtils.getSecretKey());
             
@@ -260,8 +259,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
             encAlmApiKey =
                     EncryptionUtils.Encrypt(
-                            //runFromAlmModel.getAlmApiKey(),
-                            //almServerSettingsModel.getAlmApiKeySecret(),
                             almApiKeySecret,
                             EncryptionUtils.getSecretKey());
             mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
@@ -385,8 +382,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         return null;
     }
 
-
-
     public RunFromAlmModel getRunFromAlmModel() {
         return runFromAlmModel;
     }
@@ -442,10 +437,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             List<String> usernames = new ArrayList<>();
             Set<AlmServerSettingsModel> serverList = getAlmServers();
             for (AlmServerSettingsModel model: serverList) {
-                    if (!model.getAlmCredentials().isEmpty() && model.getAlmServerName().equals(almServerName)) {
-                        for(CredentialsModel credentialsModel : model.getAlmCredentials()) {
-                            usernames.add(credentialsModel.getAlmUsername());
-                        }
+                    if (model.getAlmCredentials().get(0).getAlmUsername() != null && model.getAlmCredentials().get(0).getAlmUsername() != "" && model.getAlmServerName().equals(almServerName)) {
+                        usernames.add(model.getAlmCredentials().get(0).getAlmUsername());
                     }
             }
 
@@ -476,18 +469,40 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return m;
         }
 
+
+
+
         public ListBoxModel doFillAlmUserNameItems(@QueryParameter String almServerName) {
             ListBoxModel m = new ListBoxModel();
             Set<AlmServerSettingsModel> serverList = getAlmServers();
             for (AlmServerSettingsModel model: serverList) {
-                if (!model.getAlmCredentials().isEmpty() && model.getAlmServerName().equals(almServerName)) {
-                  for(CredentialsModel credentialsModel : model.getAlmCredentials()) {
-                      m.add(credentialsModel.getAlmUsername());
-                  }
+                if (model.getAlmServerName().equals(almServerName)) {
+                    if(!model.getAlmCredentials().isEmpty()) {
+                        for (CredentialsModel credentialsModel : model.getAlmCredentials()) {
+                            m.add(credentialsModel.getAlmUsername());
+                        }
+                    }
                 }
             }
-            if(m.size() == 0){
-               m.add("No username defined in Jenkins Configure System page");
+            if(m.size() == 0 && !StringUtils.isEmpty(almServerName)){
+               m.add(UftConstants.NO_USERNAME_DEFINED);
+            }
+
+
+            if (m.size() == 0 && StringUtils.isEmpty(almServerName)) {//new job
+                Set<String> serverNames = getAlmServerNames();
+                for (AlmServerSettingsModel model: serverList) {
+                    for (String serverName : serverNames) {
+                        if (model.getAlmServerName().equals(serverName)) {
+                            for (CredentialsModel credentialsModel : model.getAlmCredentials()) {
+                                m.add(credentialsModel.getAlmUsername());
+                            }
+                        }
+                    }
+                }
+               if (m.size() == 0) {
+                    m.add(UftConstants.NO_USERNAME_DEFINED);
+               }
             }
 
             return m;
@@ -497,14 +512,34 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             ListBoxModel m = new ListBoxModel();
             Set<AlmServerSettingsModel> serverList = getAlmServers();
             for (AlmServerSettingsModel model: serverList) {
-                if(!model.getAlmSSOCredentials().isEmpty() && model.getAlmServerName().equals(almServerName)){
-                    for(SSOCredentialsModel ssoCredentialsModel : model.getAlmSSOCredentials()) {
-                        m.add(ssoCredentialsModel.getAlmClientID());
+                if(model.getAlmServerName().equals(almServerName)){
+                    if(!model.getAlmSSOCredentials().isEmpty()) {
+                        for (SSOCredentialsModel ssoCredentialsModel : model.getAlmSSOCredentials()) {
+                            m.add(ssoCredentialsModel.getAlmClientID());
+                        }
                     }
                 }
+
             }
-            if(m.size() == 0){
-                m.add("No client ID defined in Jenkins Configure System page");
+
+            if(m.size() == 0 && !StringUtils.isEmpty(almServerName)){
+                m.add(UftConstants.NO_CLIENT_ID_DEFINED);
+            }
+
+            if (m.size() == 0 && StringUtils.isEmpty(almServerName)) {//new job
+                Set<String> serverNames = getAlmServerNames();
+                for (AlmServerSettingsModel model: serverList) {
+                    for (String serverName : serverNames) {
+                        if (model.getAlmServerName().equals(serverName)) {
+                            for (SSOCredentialsModel ssoCredentialsModel : model.getAlmSSOCredentials()) {
+                                m.add(ssoCredentialsModel.getAlmClientID());
+                            }
+                        }
+                    }
+                }
+                if(m.size() == 0){
+                        m.add(UftConstants.NO_CLIENT_ID_DEFINED);
+                }
             }
 
             return m;
@@ -529,10 +564,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
         
         public FormValidation doCheckAlmPassword(@QueryParameter String value) {
-            // if (StringUtils.isBlank(value)) {
-            // return FormValidation.error("Password must be set");
-            // }
-            
             return FormValidation.ok();
         }
         
@@ -570,7 +601,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         public List<EnumDescription> getAlmRunModes() {
             return RunFromAlmModel.runModes;
         }
-
 
     }
     

@@ -9,13 +9,6 @@ jQuery( document ).ready(function($) {
     });
 
     function validateTaskForm(){
-        var usernameListValue = $('.usernameList').children("option:selected").val();
-        var clientIDListValue = $('.clientIDList').children("option:selected").val();
-        if(usernameListValue == "No username defined in Jenkins Configure System page" && clientIDListValue == "No client ID defined in Jenkins Configure System page"){
-            $('.info').show();
-        } else {
-            $('.info').hide();
-        }
 
         var checkBoxList = $('input[name="runfromalm.isSSOEnabled"]');
 
