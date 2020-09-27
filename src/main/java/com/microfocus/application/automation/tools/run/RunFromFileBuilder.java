@@ -618,7 +618,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
-       synchronized (this) {
+       //synchronized (this) {
 
            // get the mc server settings
            MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -783,7 +783,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                    propsFileName.copyFrom(propsStream);
 
                    // Copy the script to the project workspace
-                   CmdLineExe.copyFrom(cmdExeUrl);
+                   if (!CmdLineExe.exists()) {
+                       CmdLineExe.copyFrom(cmdExeUrl);
+                   }
 
                    CmdLineExe2.copyFrom(cmdExe2Url);
 
@@ -818,7 +820,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                }
                out.println("Operation Was aborted by user.");
            }
-       }
+       //}
     }
 
 

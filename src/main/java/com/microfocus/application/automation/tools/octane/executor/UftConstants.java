@@ -38,4 +38,7 @@ public class UftConstants {
 
     public static final String DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW = "UFT-discovery-job";
     public static final String EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW = "UFT-test-runner";
+
+    public static final String NO_USERNAME_DEFINED = "No username defined in Jenkins Configure System page";
+    public static final String NO_CLIENT_ID_DEFINED = "No client ID defined in Jenkins Configure System page";
 }
