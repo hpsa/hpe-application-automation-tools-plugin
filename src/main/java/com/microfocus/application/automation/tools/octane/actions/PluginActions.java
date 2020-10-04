@@ -50,6 +50,7 @@ public class PluginActions implements RootAction {
     private final String API = "/nga/api/v1";
     private final String STATUS_REQUEST = API + "/status";
     private final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
+    private final String CLEAR_JOB_LIST_CACHE = API + "/clear-job-list-cache";
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
@@ -78,6 +79,12 @@ public class PluginActions implements RootAction {
             res.setHeader("Content-Type", ContentType.TEXT_PLAIN.getMimeType());
             res.setStatus(200);
             res.getWriter().write("resent");
+            return;
+        } else if (req.getRequestURI().toLowerCase().contains(CLEAR_JOB_LIST_CACHE)) {
+            clearJobListCache();
+            res.setHeader("Content-Type", ContentType.TEXT_PLAIN.getMimeType());
+            res.setStatus(200);
+            res.getWriter().write("done");
             return;
         } else {
             res.setStatus(404);
@@ -137,6 +144,12 @@ public class PluginActions implements RootAction {
             metricsJson.put(e.getKey(), value);
         });
         confJson.put(metricsGroup, metricsJson);
+    }
+
+    private void clearJobListCache() {
+        OctaneSDK.getClients().stream().forEach(oc -> {
+            oc.getTasksProcessor().resetJobListCache();
+        });
     }
 
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {

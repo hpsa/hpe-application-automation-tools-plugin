@@ -23,7 +23,7 @@ package com.microfocus.application.automation.tools.octane.configuration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+import com.hp.octane.integrations.services.configurationparameters.JobListCacheAllowed;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
@@ -220,7 +220,7 @@ public class ConfigurationValidator {
         return workspace2ImpersonatedUser;
     }
 
-    public static void checkParameters(String parameters, String impersonatedUser, List<String> fails) {
+    public static void checkParameters(String parameters, String impersonatedUser, Map<Long, String> workspace2ImpersonatedUser, List<String> fails) {
         Map<String, String> params = OctaneServerSettingsModel.parseParameters(parameters);
         params.entrySet().forEach(entry -> {
             try {
@@ -228,6 +228,11 @@ public class ConfigurationValidator {
 
                 if (parameter.getKey().equals(UftTestRunnerFolderParameter.KEY)) {
                     checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
+                }
+                if (parameter.getKey().equals(JobListCacheAllowed.KEY) && ((JobListCacheAllowed) parameter).isAllowed()) {
+                    if (!workspace2ImpersonatedUser.isEmpty()) {
+                        fails.add(JobListCacheAllowed.KEY + " - is not compatible with defining 'Jenkins user for specific workspaces'");
+                    }
                 }
             } catch (NoSuchElementException e1) {
                 String failMessage = e1.getMessage() + ". Validate that you use correct format : <param_name> : <param value>";

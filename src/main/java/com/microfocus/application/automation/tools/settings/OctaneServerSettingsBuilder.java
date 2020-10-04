@@ -350,6 +350,12 @@ public class OctaneServerSettingsBuilder extends Builder {
         }
 
         private void fireOnChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf) {
+            try {
+                OctaneSDK.getClientByInstanceId(newConf.getIdentity()).getTasksProcessor().resetJobListCache();
+            } catch (Exception e) {
+                logger.info("Failed to reset resetJobListCache for client with instance Id: " + newConf.getIdentity() + ", " + e.getMessage());
+            }
+
             ExtensionList<ConfigurationListener> listeners = ExtensionList.lookup(ConfigurationListener.class);
             for (ConfigurationListener listener : listeners) {
                 try {
@@ -391,7 +397,7 @@ public class OctaneServerSettingsBuilder extends Builder {
             List<Entity> availableWorkspaces = ConfigurationValidator.checkConfiguration(fails, octaneUrlParser.getLocation(), octaneUrlParser.getSharedSpace(), myUsername, Secret.fromString(password));
 
             Map<Long, String> workspace2ImpersonatedUser = ConfigurationValidator.checkWorkspace2ImpersonatedUserConf(workspace2ImpersonatedUserConf, availableWorkspaces, myImpersonatedUser, fails);
-            ConfigurationValidator.checkParameters(parameters, myImpersonatedUser, fails);
+            ConfigurationValidator.checkParameters(parameters, myImpersonatedUser, workspace2ImpersonatedUser, fails);
 
             String suspendMessage = "Note that current configuration is disabled (see in Advanced section)";
             if (fails.isEmpty()) {
