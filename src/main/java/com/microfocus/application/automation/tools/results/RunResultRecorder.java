@@ -484,7 +484,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								// the type for this report
 								testFileFullName = new File(testFolderPath);
 								testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
-								//listener.getLogger().println("nameCount: " + nameCount);
 								testName += "[" + nameCount + "]";
 								String resourceUrl = "artifact/UFTReport/" + testName;
 
@@ -642,7 +641,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				try {
 					EnvVars env = build.getEnvironment(listener);
 					long indexFolder = getIndexOfReportFolder(new File(htmlReportDir), EXTERNAL_REPORT_FOLDER, env.get("NODE_NAME"));
-					//listener.getLogger().println("indexFolder: " + indexFolder);
 					if(indexFolder > 0) {
 						String innerHtmlReportDir = htmlReportDir.substring(0, htmlReportDir.lastIndexOf('\\')) + "\\" + EXTERNAL_REPORT_FOLDER + indexFolder;
 
