@@ -97,8 +97,10 @@ public class MigrateAlmCredentialsBuilder extends Recorder implements Serializab
     public Boolean isMigrationDone(){
         List<AlmServerSettingsModel> models = Arrays.asList(Jenkins.getInstanceOrNull().getDescriptorByType(AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations());
         for(AlmServerSettingsModel model : models){
-            if(!model.getAlmCredentials().isEmpty() || !model.getAlmSSOCredentials().isEmpty()){
-                return true;
+            if(model != null) {
+                if (!model.getAlmCredentials().isEmpty() || !model.getAlmSSOCredentials().isEmpty()) {
+                    return true;
+                }
             }
         }
 

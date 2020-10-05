@@ -282,13 +282,21 @@ namespace HpToolsLauncher
             {
                 var start = DateTime.Now;
 
-               
-                Dictionary<string, int> rerunList = createDictionary(_tests);
+                Dictionary<string, int> indexList = new Dictionary<string, int>();
+                foreach(var test in _tests)
+                {
+                    indexList[test.TestPath] = 0;
+                }
 
-                int index = 1;
+                Dictionary<string, int> rerunList = createDictionary(_tests);
 
                 foreach (var test in _tests)
                 {
+                    if (indexList[test.TestPath] == 0)
+                    {
+                        indexList[test.TestPath] = 1;
+                    }
+
                     if (RunCancelled()) break;
 
                     var testStart = DateTime.Now;
@@ -309,7 +317,7 @@ namespace HpToolsLauncher
                             TestPath = test.TestPath
                         };
                     }
-                    
+
                     //get the original source for this test, for grouping tests under test classes
                     runResult.TestGroup = test.TestGroup;
 
@@ -357,15 +365,14 @@ namespace HpToolsLauncher
                         }
                         else
                         {
-                            index = index + 1;
+                            indexList[test.TestPath]++;
                             rerunList[test.TestPath]--;
                         }
                     }
 
-                   
                     //update report folder
                     String uftReportDir = Path.Combine(test.TestPath, "Report");
-                    String uftReportDirNew = Path.Combine(test.TestPath, "Report" + index);
+                    String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
 
                     if (Directory.Exists(uftReportDir))
                     {
@@ -375,11 +382,6 @@ namespace HpToolsLauncher
                         }
                         //rename Report folder to Report1,2,...,N
                         Directory.Move(uftReportDir, uftReportDirNew);
-                    }
-                    
-                    if(rerunList[test.TestPath] == 0)
-                    {
-                        index = 1;
                     }
                 }
 

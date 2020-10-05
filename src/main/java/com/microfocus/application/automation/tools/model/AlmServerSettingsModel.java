@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -68,14 +69,24 @@ public class AlmServerSettingsModel extends AbstractDescribableImpl<AlmServerSet
     }
 
     public List<CredentialsModel> getAlmCredentials(){
-        return _almCredentials;
+        if(_almCredentials != null) {
+            return _almCredentials;
+        }
+
+        return new ArrayList<>();
     }
 
     public void set_almCredentials(List<CredentialsModel> almCredentials){
         this._almCredentials = almCredentials;
     }
 
-    public List<SSOCredentialsModel> getAlmSSOCredentials() { return _almSSOCredentials; }
+    public List<SSOCredentialsModel> getAlmSSOCredentials() {
+        if (_almSSOCredentials != null) {
+            return _almSSOCredentials;
+        }
+
+        return new ArrayList<>();
+    }
 
     public void set_almSSOCredentials(List<SSOCredentialsModel> almSSOCredentials){
         this._almSSOCredentials = almSSOCredentials;
