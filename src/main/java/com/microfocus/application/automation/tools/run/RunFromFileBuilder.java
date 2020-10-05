@@ -745,6 +745,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            if (uftSettingsModel != null) {
                uftSettingsModel.addToProperties(mergedProperties);
            }
+           //cleanup report folders before running the build
+           String selectedNode = env.get("NODE_NAME");
+           int index = 1;
+           while (mergedProperties.getProperty("Test" + index) != null) {
+               String testPath = mergedProperties.getProperty(("Test" + index));
+               List<String> buildTests = UftToolUtils.getBuildTests(selectedNode, testPath);
+               for(String test : buildTests) {
+                   UftToolUtils.deleteReportFoldersFromNode(selectedNode, test);
+               }
+               index++;
+           }
 
            // get properties serialized into a stream
            ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -783,9 +794,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                    propsFileName.copyFrom(propsStream);
 
                    // Copy the script to the project workspace
-                   if (!CmdLineExe.exists()) {
-                       CmdLineExe.copyFrom(cmdExeUrl);
-                   }
+                   CmdLineExe.copyFrom(cmdExeUrl);
 
                    CmdLineExe2.copyFrom(cmdExe2Url);
 

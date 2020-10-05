@@ -37,7 +37,6 @@ import hudson.util.Secret;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.dgmimpl.arrays.BooleanArrayGetAtMetaMethod;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 

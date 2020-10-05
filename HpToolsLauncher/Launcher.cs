@@ -241,6 +241,7 @@ namespace HpToolsLauncher
         /// </summary>
         public void Run()
         {
+
             _ciRun = true;
             if (_runType == TestStorageType.Unknown)
                 Enum.TryParse<TestStorageType>(_ciParams["runType"], true, out _runType);
@@ -269,13 +270,14 @@ namespace HpToolsLauncher
             //runner instantiation failed (no tests to run or other problem)
             if (runner == null)
             {
+                ConsoleWriter.WriteLine("empty runner;");
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
             TestSuiteRunResults results = runner.Run();
-
+     
             RunTests(runner, resultsFilename, results);
-
+            
 
             if (_runType.Equals(TestStorageType.FileSystem))
             {
@@ -283,8 +285,7 @@ namespace HpToolsLauncher
 
                 _rerunFailedTests = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
 
-
-                //the "On failure" option is selected and the run build contains failed tests
+                 //the "On failure" option is selected and the run build contains failed tests
                 if (_rerunFailedTests.Equals(true) && Launcher.ExitCode != ExitCodeEnum.Passed)
                 {
                     ConsoleWriter.WriteLine("There are failed tests.");
@@ -452,7 +453,7 @@ namespace HpToolsLauncher
                             validTests.Add(item);
                         }
 
-                        foreach (var item in validTests)
+                       /* foreach (var item in validTests)
                         {
                             if (!Directory.Exists(item.Tests) && item.Tests.Contains("mtbx"))
                             {
@@ -466,7 +467,7 @@ namespace HpToolsLauncher
                             {
                                 deleteOldReportFolders(item.Tests);
                             }
-                        }
+                        }*/
                     }
                     else
                     { //add also cleanup tests
@@ -497,7 +498,7 @@ namespace HpToolsLauncher
                             switch (fsTestType)
                             {
                                 case "Rerun the entire set of tests": ConsoleWriter.WriteLine("The entire test set will run again."); break;
-                                case "Rerun specific tests in the build": Console.WriteLine("Only the selected tests will run again."); break;
+                                case "Rerun specific tests in the build": ConsoleWriter.WriteLine("Only the selected tests will run again."); break;
                                 case "Rerun only failed tests": ConsoleWriter.WriteLine("Only the failed tests will run again."); break;
                             }
 
@@ -816,12 +817,10 @@ namespace HpToolsLauncher
             {
                 if (!rerunList.ContainsKey(item.Tests))
                 {
-                    // Console.WriteLine("item.Tests: " + item.Tests);
                     rerunList.Add(item.Tests, 1);
                 }
                 else
                 {
-                    // Console.WriteLine("modify value");
                     rerunList[item.Tests]++;
                 }
             }
@@ -924,7 +923,7 @@ namespace HpToolsLauncher
                         break;
                     }
                 }
-
+               
                 //this is the total run summary
                 ConsoleWriter.ActiveTestRun = null;
                 string runStatus = "";
@@ -964,8 +963,6 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine("Job Errors summary:");
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
-
-                    Environment.Exit((int)Launcher.ExitCode);
                 }
             }
             finally
@@ -984,8 +981,9 @@ namespace HpToolsLauncher
 
         public void deleteOldReportFolders(string testFolderPath)
         {
+            ConsoleWriter.WriteLine("Delete old report folders");
             String partialName = "Report";
-
+            
             DirectoryInfo testDirectory = new DirectoryInfo(testFolderPath);
 
             DirectoryInfo[] directories = testDirectory.GetDirectories("*" + partialName + "*");

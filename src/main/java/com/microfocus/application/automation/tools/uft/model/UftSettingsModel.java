@@ -220,7 +220,7 @@ public class UftSettingsModel extends AbstractDescribableImpl<UftSettingsModel> 
     }
 
     /**
-     * dd failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun only failed tests)
+     * Add failed tests, number of reruns and cleanup to the set of properties in case of on failure scenario (rerun only failed tests)
      * @param props task properties
      */
     private void addPropertiesForFailedTests(Properties props) {
