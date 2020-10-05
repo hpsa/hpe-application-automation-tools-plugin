@@ -456,23 +456,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						} else {
 							reportIndex = "1";
 						}
-						//listener.getLogger().println("report Index: " + reportIndex + " for test: " + testFolderPath);
 
 						FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath + reportIndex);
-						//FilePath reportFolder;
-						//synchronized (this) {
-						//listener.getLogger().println("reportFolderPath:" + reportFolderPath);
-							//File rFolder = new File(reportFolderPath + reportIndex);
-							//listener.getLogger().println("rFolder: " + rFolder.getPath());
-							//reportFolder = new FilePath(rFolder);
-							//listener.getLogger().println("Channel : " + projectWS.getChannel().toString());
-							//reportFolder = new FilePath(projectWS.getChannel(), rFolder.getPath());
-							//listener.getLogger().println("reportFolder: " + reportFolder.getName());
+
 							if (!reportFolder.exists()) {
-							//	listener.getLogger().println("report folder does not exist");
 								reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
 							}
-						//}
 							boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
 							reportFolders.add(reportFolder);
 
@@ -480,12 +469,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							boolean archiveTestResult;
 
 							// check for the new html report
-						/*if(!reportFolder.exists()) {
-							reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
-						}*/
+
 							FilePath htmlReport = new FilePath(reportFolder,
 									isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
-							//listener.getLogger().println("before report meta data");
 							ReportMetaData reportMetaData = new ReportMetaData();
 							if (htmlReport.exists()) {
 								reportIsHtml = true;

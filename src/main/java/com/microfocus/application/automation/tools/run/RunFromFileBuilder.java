@@ -794,9 +794,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                    propsFileName.copyFrom(propsStream);
 
                    // Copy the script to the project workspace
-                  // if (!CmdLineExe.exists()) {
-                       CmdLineExe.copyFrom(cmdExeUrl);
-                  // }
+                   CmdLineExe.copyFrom(cmdExeUrl);
 
                    CmdLineExe2.copyFrom(cmdExe2Url);
 
