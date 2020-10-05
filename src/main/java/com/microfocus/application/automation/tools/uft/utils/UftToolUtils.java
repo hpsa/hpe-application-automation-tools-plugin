@@ -82,7 +82,7 @@ public class UftToolUtils {
      *
      * @return an mtbx file with tests, a single test or a list of tests from test folder
      */
-    private static List<String> getBuildTests(String nodeName, String fsTestPath) {
+    public static List<String> getBuildTests(String nodeName, String fsTestPath) {
         if (fsTestPath == null)  return new ArrayList<>();
         List<String> buildTests;
         Node node = Jenkins.get().getNode(nodeName);
@@ -116,7 +116,7 @@ public class UftToolUtils {
         return buildTests;
     }
 
-    private static List<String> extractTestPathsFromMtbxContent(String mtbxContent) {
+    public static List<String> extractTestPathsFromMtbxContent(String mtbxContent) {
         List<String> tests = new ArrayList<>();
 
         try {
@@ -153,6 +153,25 @@ public class UftToolUtils {
         }
 
         return tests;
+    }
+
+    public static void deleteReportFoldersFromNode(String nodeName, String testPath){
+        Node node = Jenkins.get().getNode(nodeName);
+        FilePath filePath = new FilePath(node.getChannel(), testPath);
+        try {
+            List<FilePath> entries = filePath.list();
+            for(FilePath entry : entries){
+                if(entry.getName().contains("Report")){
+                    entry.deleteContents();
+                    entry.delete();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
