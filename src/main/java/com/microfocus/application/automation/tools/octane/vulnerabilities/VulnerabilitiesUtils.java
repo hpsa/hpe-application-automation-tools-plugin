@@ -22,7 +22,7 @@ package com.microfocus.application.automation.tools.octane.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeout;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeoutParameter;
 import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.configuration.SSCServerConfigUtil;
@@ -75,11 +75,12 @@ public class VulnerabilitiesUtils {
 
     public static int getFortifyTimeoutHours(String instanceId){
         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
-        FortifySSCFetchTimeout parameter = (FortifySSCFetchTimeout) octaneClient.getConfigurationService().getConfiguration().getParameter(FortifySSCFetchTimeout.KEY);
+        FortifySSCFetchTimeoutParameter parameter = (FortifySSCFetchTimeoutParameter) octaneClient.getConfigurationService().getConfiguration()
+                .getParameter(FortifySSCFetchTimeoutParameter.KEY);
         if (parameter != null) {
             return parameter.getTimeout();
         }
-        return FortifySSCFetchTimeout.DEFAULT_TIMEOUT;
+        return FortifySSCFetchTimeoutParameter.DEFAULT_TIMEOUT;
     }
 
     private static Long getQueueItemTimeoutHoursFromJob(Run run) {

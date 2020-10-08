@@ -198,15 +198,17 @@ public class BuildHandlerUtils {
 
 	public static String getRootJobCiIds(Run<?, ?> run) {
 		Set<String> parents = new HashSet<>();
-		getRootJobCiIds(CIEventCausesFactory.processCauses(run), BuildHandlerUtils.getJobCiId(run), parents);
+		getRootJobCiIds(BuildHandlerUtils.getJobCiId(run), CIEventCausesFactory.processCauses(run), parents);
 		return String.join(";", parents);
 	}
 
-	private static void getRootJobCiIds(List<CIEventCause> causes, String prevUpstream, Set<String> parents) {
+	@Deprecated
+	//use CIPluginSDKUtils.getRootJobCiIds
+	private static void getRootJobCiIds(String prevUpstream, List<CIEventCause> causes , Set<String> parents) {
 		if (causes != null) {
 			for (CIEventCause cause : causes) {
 				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
-					getRootJobCiIds(cause.getCauses(), cause.getProject(), parents);
+					getRootJobCiIds(cause.getProject(), cause.getCauses(), parents);
 				} else {
 					if (prevUpstream != null && !prevUpstream.isEmpty()) {
 						parents.add(prevUpstream);

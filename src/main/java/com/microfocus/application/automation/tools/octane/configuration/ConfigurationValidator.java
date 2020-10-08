@@ -23,7 +23,7 @@ package com.microfocus.application.automation.tools.octane.configuration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
-import com.hp.octane.integrations.services.configurationparameters.JobListCacheAllowed;
+import com.hp.octane.integrations.services.configurationparameters.JobListCacheAllowedParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
@@ -229,9 +229,9 @@ public class ConfigurationValidator {
                 if (parameter.getKey().equals(UftTestRunnerFolderParameter.KEY)) {
                     checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
                 }
-                if (parameter.getKey().equals(JobListCacheAllowed.KEY) && ((JobListCacheAllowed) parameter).isAllowed()) {
+                if (parameter.getKey().equals(JobListCacheAllowedParameter.KEY) && ((JobListCacheAllowedParameter) parameter).isAllowed()) {
                     if (!workspace2ImpersonatedUser.isEmpty()) {
-                        fails.add(JobListCacheAllowed.KEY + " - is not compatible with defining 'Jenkins user for specific workspaces'");
+                        fails.add(JobListCacheAllowedParameter.KEY + " - is not compatible with defining 'Jenkins user for specific workspaces'");
                     }
                 }
             } catch (NoSuchElementException e1) {
