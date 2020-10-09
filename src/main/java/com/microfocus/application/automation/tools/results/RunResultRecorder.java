@@ -28,6 +28,7 @@ import com.microfocus.application.automation.tools.run.PcBuilder;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import com.microfocus.application.automation.tools.run.SseBuilder;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -722,17 +723,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 
 	public int getIndexOfReportFolder(File directory, String fileName, String nodeName) throws IOException, InterruptedException {
-		hudson.model.Node node = Jenkins.get().getNode(nodeName);
 		String testFolderPath = directory.getPath().substring(0, directory.getPath().lastIndexOf('\\'));
 		int index = 0;
-		FilePath testFilePath = null;
-		if(Jenkins.get().getNodes().isEmpty() || (node == null)) {//tests are running on master
-			//run on master
-			testFilePath = new FilePath(new File(testFolderPath));
-		} else{//run on node
-			testFilePath = new FilePath(node.getChannel(), testFolderPath);
-		}
 
+		FilePath testFilePath = UftToolUtils.getFilePath(nodeName, testFolderPath);
 		for (FilePath file : testFilePath.listDirectories()) {
 			if (file.isDirectory() && file.getName().startsWith(fileName) && index < Integer.parseInt(file.getName().substring(5))) {
 					index = Integer.parseInt(file.getName().substring(5));

@@ -29,6 +29,7 @@ using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
 
+
 namespace HpToolsLauncher
 {
     public class FileSystemTestsRunner : RunnerBase, IDisposable
@@ -374,15 +375,23 @@ namespace HpToolsLauncher
                     String uftReportDir = Path.Combine(test.TestPath, "Report");
                     String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
 
-                    if (Directory.Exists(uftReportDir))
+                    try
                     {
-                        if (Directory.Exists(uftReportDirNew))
+                        if (Directory.Exists(uftReportDir))
                         {
-                            DelecteDirectory(uftReportDirNew);
+                            if (Directory.Exists(uftReportDirNew))
+                            {
+                                Helper.DeleteDirectory(uftReportDirNew);
+                            }
+
+                            Directory.Move(uftReportDir, uftReportDirNew);
                         }
-                        //rename Report folder to Report1,2,...,N
-                        Directory.Move(uftReportDir, uftReportDirNew);
                     }
+                    catch
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                        Directory.Move(uftReportDir, uftReportDirNew);
+                    } 
                 }
 
                 totalTime = (DateTime.Now - start).TotalSeconds;
@@ -403,6 +412,7 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
+             
         private Dictionary<string, int> createDictionary(List<TestInfo> validTests)
         {
             var rerunList = new Dictionary<string, int>();
@@ -410,25 +420,15 @@ namespace HpToolsLauncher
             {
                 if (!rerunList.ContainsKey(item.TestPath))
                 {
-                    // Console.WriteLine("item.Tests: " + item.Tests);
                     rerunList.Add(item.TestPath, 1);
                 }
                 else
                 {
-                    // Console.WriteLine("modify value");
                     rerunList[item.TestPath]++;
                 }
             }
 
             return rerunList;
-        }
-
-        public static void DelecteDirectory(String dirPath)
-        {
-            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
-            foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();
-            foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-            Directory.Delete(dirPath);
         }
 
         /// <summary>
