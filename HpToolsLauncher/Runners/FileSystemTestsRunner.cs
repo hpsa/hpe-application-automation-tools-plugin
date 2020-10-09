@@ -28,6 +28,7 @@ using System.Reflection;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
+using System.Threading;
 
 namespace HpToolsLauncher
 {
@@ -374,15 +375,38 @@ namespace HpToolsLauncher
                     String uftReportDir = Path.Combine(test.TestPath, "Report");
                     String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
 
-                    if (Directory.Exists(uftReportDir))
+                    //while (!IsFolderReady(uftReportDir));
+
+                    //while (!Directory.Exists(uftReportDir)) { Thread.Sleep(1000); }
+
+                    try
+                    {
+                        if (Directory.Exists(uftReportDir))
+                        {
+                            if (Directory.Exists(uftReportDirNew))
+                            {
+                                DeleteDirectory(uftReportDirNew);
+                            }
+
+                            Directory.Move(uftReportDir, uftReportDirNew);
+                        }
+                    }
+                    catch
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                        Directory.Move(uftReportDir, uftReportDirNew);
+                    } 
+
+                    /*if (Directory.Exists(uftReportDir))
                     {
                         if (Directory.Exists(uftReportDirNew))
                         {
-                            DelecteDirectory(uftReportDirNew);
+                            DeleteDirectory(uftReportDirNew);
                         }
+
                         //rename Report folder to Report1,2,...,N
                         Directory.Move(uftReportDir, uftReportDirNew);
-                    }
+                    }*/
                 }
 
                 totalTime = (DateTime.Now - start).TotalSeconds;
@@ -403,6 +427,23 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
+        public static bool IsFolderReady(string sFilename)
+        {
+            try
+            {
+                using (FileStream inputStream = File.Open(sFilename, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return inputStream.Length > 0;
+                }
+            }
+            catch (Exception)
+            {
+                ConsoleWriter.WriteLine("Folder not ready");
+                return false;
+            }
+        }
+
+       
         private Dictionary<string, int> createDictionary(List<TestInfo> validTests)
         {
             var rerunList = new Dictionary<string, int>();
@@ -410,12 +451,10 @@ namespace HpToolsLauncher
             {
                 if (!rerunList.ContainsKey(item.TestPath))
                 {
-                    // Console.WriteLine("item.Tests: " + item.Tests);
                     rerunList.Add(item.TestPath, 1);
                 }
                 else
                 {
-                    // Console.WriteLine("modify value");
                     rerunList[item.TestPath]++;
                 }
             }
@@ -423,7 +462,7 @@ namespace HpToolsLauncher
             return rerunList;
         }
 
-        public static void DelecteDirectory(String dirPath)
+        public static void DeleteDirectory(String dirPath)
         {
             DirectoryInfo directory = Directory.CreateDirectory(dirPath);
             foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();

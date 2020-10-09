@@ -103,13 +103,17 @@ public class UftToolUtils {
             buildTests = extractTestPathsFromMtbxContent(rawTestString);
         } else if (rawTestString != null) {
             List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
-
-            if (tests.size() == 1 && (new File(rawTestString).isDirectory())) {//single test, folder or mtbx file
-                buildTests = listFilesForFolder(new File(rawTestString));
+            File testFolder = new File(rawTestString);
+            if (tests.size() == 1 && (testFolder.isDirectory())) {//single test, folder or mtbx file
+                if(testFolder.exists()){
+                    buildTests = listFilesForFolder(new File(rawTestString));
+                }
             } else {//list of tests/folders
                 for (String test : tests) {
                     File testFile = new File(test.trim());
-                    buildTests = getBuildTests(testFile);
+                    if(testFile.exists()) {
+                        buildTests = getBuildTests(testFile);
+                    }
                 }
             }
         }
@@ -157,20 +161,26 @@ public class UftToolUtils {
 
     public static void deleteReportFoldersFromNode(String nodeName, String testPath){
         Node node = Jenkins.get().getNode(nodeName);
-        FilePath filePath = new FilePath(node.getChannel(), testPath);
-        try {
-            List<FilePath> entries = filePath.list();
-            for(FilePath entry : entries){
-                if(entry.getName().contains("Report")){
-                    entry.deleteContents();
-                    entry.delete();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        FilePath filePath;
+        if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//tests are running on master
+            filePath = new FilePath(new File(testPath));
+        } else {
+            filePath = new FilePath(node.getChannel(), testPath);
         }
+            try {
+                List<FilePath> entries = filePath.list();
+                for (FilePath entry : entries) {
+                    if (entry.getName().contains("Report")) {
+                        entry.deleteContents();
+                        entry.delete();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
 
     }
 
