@@ -320,13 +320,7 @@ namespace HpToolsLauncher
             }
         }
 
-        public static void DeleteDirectory(String dirPath)
-        {
-            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
-            foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();
-            foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-            Directory.Delete(dirPath);
-        }
+        
 
         /// <summary>
         /// creates the correct runner according to the given type
@@ -990,7 +984,7 @@ namespace HpToolsLauncher
 
             foreach (DirectoryInfo foundDir in directories)
             {
-                DeleteDirectory(foundDir.FullName);
+                Helper.DeleteDirectory(foundDir.FullName);
             }
         }
 

@@ -381,7 +381,7 @@ namespace HpToolsLauncher
                         {
                             if (Directory.Exists(uftReportDirNew))
                             {
-                                DeleteDirectory(uftReportDirNew);
+                                Helper.DeleteDirectory(uftReportDirNew);
                             }
 
                             Directory.Move(uftReportDir, uftReportDirNew);
@@ -429,14 +429,6 @@ namespace HpToolsLauncher
             }
 
             return rerunList;
-        }
-
-        public static void DeleteDirectory(String dirPath)
-        {
-            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
-            foreach (System.IO.FileInfo file in directory.GetFiles()) file.Delete();
-            foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-            Directory.Delete(dirPath);
         }
 
         /// <summary>
