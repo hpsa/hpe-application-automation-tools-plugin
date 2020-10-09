@@ -28,6 +28,7 @@ import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.sse.common.RestXmlUtils;
 import com.microfocus.application.automation.tools.sse.common.XPathUtils;
 import com.microfocus.application.automation.tools.sse.sdk.Response;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +69,7 @@ public abstract class BasicPostEntityRequest {
     protected byte[] getDataBytes(Map<String, String> valueMap) {
         StringBuilder builder = new StringBuilder("<Entity><Fields>");
         for (Map.Entry<String, String> entry : valueMap.entrySet()) {
-            builder.append(RestXmlUtils.fieldXml(entry.getKey(), entry.getValue()));
+            builder.append(RestXmlUtils.fieldXml(entry.getKey(), StringEscapeUtils.escapeHtml4(entry.getValue())));
         }
         builder.append("</Fields></Entity>");
         logger.info("Request body: " + builder.toString());
