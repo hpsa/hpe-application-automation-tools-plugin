@@ -160,13 +160,7 @@ public class UftToolUtils {
     }
 
     public static void deleteReportFoldersFromNode(String nodeName, String testPath){
-        Node node = Jenkins.get().getNode(nodeName);
-        FilePath filePath;
-        if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//tests are running on master
-            filePath = new FilePath(new File(testPath));
-        } else {
-            filePath = new FilePath(node.getChannel(), testPath);
-        }
+         FilePath filePath = getFilePath(nodeName, testPath);
             try {
                 List<FilePath> entries = filePath.list();
                 for (FilePath entry : entries) {
@@ -182,6 +176,18 @@ public class UftToolUtils {
             }
 
 
+    }
+
+    public static FilePath getFilePath(String nodeName, String testPath){
+        Node node = Jenkins.get().getNode(nodeName);
+        FilePath filePath;
+        if (Jenkins.get().getNodes().isEmpty() || (node == null)) {//tests are running on master
+            filePath = new FilePath(new File(testPath));
+        } else {//tests are running on node
+            filePath = new FilePath(node.getChannel(), testPath);
+        }
+
+        return filePath;
     }
 
     /**
