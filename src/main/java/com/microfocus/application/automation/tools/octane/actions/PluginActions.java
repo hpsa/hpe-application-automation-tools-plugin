@@ -47,12 +47,13 @@ import java.util.Map;
 
 @Extension
 public class PluginActions implements RootAction {
+
+    private static final String CONTENT_TYPE = "Content-Type";
     private static final String API = "/nga/api/v1";
     private static final String STATUS_REQUEST = API + "/status";
     private static final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
     private static final String CLEAR_JOB_LIST_CACHE = API + "/clear-job-list-cache";
-    private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    private static final String CONTENT_TYPE = "Content-Type";
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
         return null;
