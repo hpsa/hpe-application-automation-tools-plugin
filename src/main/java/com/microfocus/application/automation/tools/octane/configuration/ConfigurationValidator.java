@@ -229,10 +229,9 @@ public class ConfigurationValidator {
                 if (parameter.getKey().equals(UftTestRunnerFolderParameter.KEY)) {
                     checkUftFolderParameterWithImpersonation((UftTestRunnerFolderParameter) parameter, impersonatedUser, fails);
                 }
-                if (parameter.getKey().equals(JobListCacheAllowedParameter.KEY) && ((JobListCacheAllowedParameter) parameter).isAllowed()) {
-                    if (!workspace2ImpersonatedUser.isEmpty()) {
-                        fails.add(JobListCacheAllowedParameter.KEY + " - is not compatible with defining 'Jenkins user for specific workspaces'");
-                    }
+                if (parameter.getKey().equals(JobListCacheAllowedParameter.KEY) && ((JobListCacheAllowedParameter) parameter).isAllowed() &&
+                        !workspace2ImpersonatedUser.isEmpty()) {
+                    fails.add(JobListCacheAllowedParameter.KEY + " - is not compatible with defining 'Jenkins user for specific workspaces'");
                 }
             } catch (NoSuchElementException e1) {
                 String failMessage = e1.getMessage() + ". Validate that you use correct format : <param_name> : <param value>";
