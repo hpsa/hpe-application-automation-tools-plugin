@@ -79,23 +79,18 @@ public class PluginActions implements RootAction {
             JSONObject result = getStatusResult(req.getParameterMap());
             res.setHeader(CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
             res.getWriter().write(result.toString());
-            return;
         } else if (req.getRequestURI().toLowerCase().contains(REENQUEUE_EVENT_REQUEST)) {
             reEnqueueEvent(req.getParameterMap());
             res.getWriter().write("resent");
-            return;
         } else if (req.getRequestURI().toLowerCase().contains(CLEAR_JOB_LIST_CACHE)) {
             resetJobListCache();
             res.getWriter().write("done");
-            return;
         } else if (req.getRequestURI().toLowerCase().contains(CLEAR_OCTANE_ROOTS_CACHE)) {
             resetOctaneRootsCache();
             res.getWriter().write("done");
-            return;
         } else {
             res.setStatus(404);
             res.getWriter().write("");
-            return;
         }
     }
 
