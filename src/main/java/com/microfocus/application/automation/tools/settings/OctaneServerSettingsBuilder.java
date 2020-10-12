@@ -350,12 +350,21 @@ public class OctaneServerSettingsBuilder extends Builder {
         }
 
         private void fireOnChanged(OctaneServerSettingsModel newConf, OctaneServerSettingsModel oldConf) {
+            //resetJobListCache
             try {
                 OctaneSDK.getClientByInstanceId(newConf.getIdentity()).getTasksProcessor().resetJobListCache();
             } catch (Exception e) {
-                logger.info("Failed to reset resetJobListCache for client with instance Id: " + newConf.getIdentity() + ", " + e.getMessage());
+                logger.info("Failed to resetJobListCache for client with instance Id: " + newConf.getIdentity() + ", " + e.getMessage());
             }
 
+            //resetOctaneRootsCache
+            try {
+                OctaneSDK.getClientByInstanceId(newConf.getIdentity()).getConfigurationService().resetOctaneRootsCache();
+            } catch (Exception e) {
+                logger.info("Failed to resetOctaneRootsCache for client with instance Id: " + newConf.getIdentity() + ", " + e.getMessage());
+            }
+
+            //update listeners
             ExtensionList<ConfigurationListener> listeners = ExtensionList.lookup(ConfigurationListener.class);
             for (ConfigurationListener listener : listeners) {
                 try {

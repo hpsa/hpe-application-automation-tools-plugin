@@ -63,13 +63,15 @@ public class VulnerabilitiesUtils {
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
         final Long queueItemTimeoutHours = getQueueItemTimeoutHoursFromJob(run);
+        String parents = BuildHandlerUtils.getRootJobCiIds(run);
         OctaneSDK.getClients().forEach(octaneClient -> {
             octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(
                     jobCiId,
                     buildCiId, toolType,
                     run.getStartTimeInMillis(),
                     queueItemTimeoutHours == null ? getFortifyTimeoutHours(octaneClient.getInstanceId()) : queueItemTimeoutHours,
-                    props);
+                    props,
+                    parents);
         });
     }
 

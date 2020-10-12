@@ -117,6 +117,7 @@ public class Webhooks implements UnprotectedRootAction {
 									ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
 									GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
 									if (sonarConfiguration != null) {
+										String parents = BuildHandlerUtils.getRootJobCiIds(run);
 										String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
 										HashMap project = (HashMap) inputNotification.get(PROJECT);
 										String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
@@ -124,7 +125,7 @@ public class Webhooks implements UnprotectedRootAction {
 
 										if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
 											// use SDK to fetch and push data
-											octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildId, sonarProjectKey, action.getServerUrl(), sonarToken);
+											octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildId, sonarProjectKey, action.getServerUrl(), sonarToken, parents);
 										}
 										if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
 											Map<String, String> additionalProperties = new HashMap<>();
@@ -133,7 +134,7 @@ public class Webhooks implements UnprotectedRootAction {
 											additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
 											additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
 											octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildId, ToolType.SONAR, run.getStartTimeInMillis(),
-													VulnerabilitiesUtils.getFortifyTimeoutHours(octaneInstanceId), additionalProperties);
+													VulnerabilitiesUtils.getFortifyTimeoutHours(octaneInstanceId), additionalProperties, parents);
 
 										}
 										res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook

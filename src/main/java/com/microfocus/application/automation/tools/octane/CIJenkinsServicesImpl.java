@@ -784,4 +784,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public static void publishEventToRelevantClients(CIEvent event) {
 		OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
 	}
+
+	@Override
+	public boolean isTestRunnerJob(String jobId) {
+		Item item = getItemByRefId(jobId);
+		if (item instanceof Job) {
+			Job job = (Job) item;
+			if (job.getProperty(ParametersDefinitionProperty.class) != null) {
+				ParametersDefinitionProperty params = ((ParametersDefinitionProperty) job.getProperty(ParametersDefinitionProperty.class));
+				return params.getParameterDefinition(TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER) != null;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String getMultibranchParentIfItsChild(String jobId) {
+		Item item = getItemByRefId(jobId);
+		if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME) &&
+				item.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			return BuildHandlerUtils.translateFolderJobName(item.getParent().getFullName());
+		}
+		return null;
+	}
 }
