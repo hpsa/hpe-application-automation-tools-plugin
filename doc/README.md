@@ -5,7 +5,7 @@ This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.164.3 ). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.176.1). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[What's New in version 6.3](#what's-new-in-version-6.3)
+[New Featues and Enhancements](#new-featues-and-enhancements)
 
 [Changelog](#changelog)
 
@@ -24,7 +24,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Prerequisites](#prerequisites)
 
-[User Guide](#userguide)
+[User Guide](#user-guide)
 
 - [Rebranding Script](#rebranding-script)
 - [Create an execution node](#create-an-execution-node)
@@ -34,7 +34,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Enable non-English languages](#enable-non-english-languages)
 
-[Configuration for Java Web Start clients](#configuration-for-Java-web-start-clients)
+[Configuration for Java Web Start clients](#configuration-for-java-web-start-clients)
 
 [Tips and Troubleshooting](#tips-and-troubleshooting)
 
@@ -43,7 +43,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 - [Integration Issues](#integration-issues)
 
-- [Workarounds for viewing LoadRunner Performance reports](#workaround-for-viewing-loadrunner-performance-reports)
+- [Workarounds for viewing LoadRunner Performance reports](#workarounds-for-viewing-loadrunner-performance-reports)
 
 
 
@@ -51,26 +51,26 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
+## New Featues and Enhancements
 
+Version 6.4 introduced the following enhancement(s):
 
-## What&#39;s new in version 6.3
+**General**
 
-Version 6.3 introduced the following enhancement(s):
+- Multiple dependencies updated. You can verify your Jenkins plugins compatibility with the [plugin dependencies](https://plugins.jenkins.io/hp-application-automation-tools-plugin/#dependencies).
+- Certified for Jenkins version 2.249.1.
 
 **ALM Octane**
 
-- Ability to disable configuration.
-- Ability to configure jenkinsUser per ALM Octane workspace and to restrict job visibility during new pipeline creation.
-- Ability to configure ALM Octane allowed storage for logs.
-- Support for base64 encoding for jobIds (relevant for ALM Octane behind an Apache server).
-- New icons indicating the connected workspaces.
-- Bug fix: UFT Discovery job now populates the description of UFT API tests.
-- Bug fix: Connectivity issue where ALM indicated that Jenkins was not connected, was resolved.
-- Bug fix: CI pipeline jobs are automatically updated when you rename or move jobs.
+- Ability to configure folder for UFT Test Runner creation
+- Ability to create auto-generated UFT jobs with SSH credentials
+- Reduced name length of UFT auto-generated Test Runner jobs
+- Added support for Configuration-as-code plugin to ALM Octane configuration
+- collectPullRequestsToAlmOctane pipeline step – now supports environment parameters for all fields (including credentialsId)
 
 **UFT One**
 
-- Support for defining the number of iterations for UFT tests.
+- Migration of ALM credentials from the Task configuration page to global configuration
 
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
@@ -107,7 +107,7 @@ This plugin supports the following Micro Focus product versions:
 | LoadRunner Enterprise (formerly Performance Center) | 12.xx (12.53 or higher required for trend reports), 2020     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/pc/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT One (formerly UFT)                              | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
-| UFT Developer (formerly LeanFT)                     | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/leanft/en/14.50/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrating LeanFT with Jenkins  in just a few simple steps](https://community.softwaregrp.com/t5/Quality-and-Testing-Blog/Integrating-LeanFT-with-Jenkins-in-just-a-few-simple-steps/ba-p/247321#.WpzwYOhubcte%20steps) |
+| UFT Developer (formerly LeanFT)                     | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/leanft/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrating LeanFT with Jenkins  in just a few simple steps](https://community.softwaregrp.com/t5/Quality-and-Testing-Blog/Integrating-LeanFT-with-Jenkins-in-just-a-few-simple-steps/ba-p/247321#.WpzwYOhubcte%20steps) |
 
 ## Prerequisites
 
@@ -304,7 +304,6 @@ The *interactive" flag causes the empty black Java window to be displayed.
 <onfailure action="restart" />
 </service>
 ```
-
 ## Configuration for Java Web Start clients
 
 1. On the Jenkins master machine, go to  **Manage Jenkins --> Manage Nodes**. Click the relevant node or slave. and select  **Slave --> Configure --> Advanced**.
