@@ -786,19 +786,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public boolean isTestRunnerJob(String jobId) {
-		Item item = getItemByRefId(jobId);
-		if (item != null && item instanceof Job) {
-			Job job = (Job) item;
-			if (job.getProperty(ParametersDefinitionProperty.class) != null) {
-				ParametersDefinitionProperty params = ((ParametersDefinitionProperty) job.getProperty(ParametersDefinitionProperty.class));
-				return params.getParameterDefinition(TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER) != null;
-			}
-		}
-		return false;
-	}
-
-	@Override
 	public String getMultibranchParentIfItsChild(String jobId) {
 		Item item = getItemByRefId(jobId);
 		if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME) &&
