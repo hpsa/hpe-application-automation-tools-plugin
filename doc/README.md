@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[What's New in version 6.4](#what's-new-in-version-6.4)
+[New Featues and Enhancements](#new-featues-and-enhancements)
 
 [Changelog](#changelog)
 
@@ -24,7 +24,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Prerequisites](#prerequisites)
 
-[User Guide](#userguide)
+[User Guide](#user-guide)
 
 - [Rebranding Script](#rebranding-script)
 - [Create an execution node](#create-an-execution-node)
@@ -34,7 +34,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [Enable non-English languages](#enable-non-english-languages)
 
-[Configuration for Java Web Start clients](#configuration-for-Java-web-start-clients)
+[Configuration for Java Web Start clients](#configuration-for-java-web-start-clients)
 
 [Tips and Troubleshooting](#tips-and-troubleshooting)
 
@@ -43,7 +43,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 - [Integration Issues](#integration-issues)
 
-- [Workarounds for viewing LoadRunner Performance reports](#workaround-for-viewing-loadrunner-performance-reports)
+- [Workarounds for viewing LoadRunner Performance reports](#workarounds-for-viewing-loadrunner-performance-reports)
 
 
 
@@ -51,20 +51,18 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-
-
-## What&#39;s new in version 6.4
+## New Featues and Enhancements
 
 Version 6.4 introduced the following enhancement(s):
 
 **General**
 
-- Multiple dependencies updated. You can verify your Jenkins plugins compatibility with the [dependencies plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin/#dependencies).
+- Multiple dependencies updated. You can verify your Jenkins plugins compatibility with the [plugin dependencies](https://plugins.jenkins.io/hp-application-automation-tools-plugin/#dependencies).
 - Certified for Jenkins version 2.249.1.
 
 **ALM Octane**
 
-- Ability to choose folder for UFT Test Runner creation
+- Ability to configure folder for UFT Test Runner creation
 - Ability to create auto-generated UFT jobs with SSH credentials
 - Reduced name length of UFT auto-generated Test Runner jobs
 - Added support for Configuration-as-code plugin to ALM Octane configuration
@@ -306,7 +304,6 @@ The *interactive" flag causes the empty black Java window to be displayed.
 <onfailure action="restart" />
 </service>
 ```
-
 ## Configuration for Java Web Start clients
 
 1. On the Jenkins master machine, go to  **Manage Jenkins --> Manage Nodes**. Click the relevant node or slave. and select  **Slave --> Configure --> Advanced**.
