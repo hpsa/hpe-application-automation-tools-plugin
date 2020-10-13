@@ -327,6 +327,7 @@ public class TestExecutionJobCreatorService {
 
 			addExecutionAssignedNode(proj);
 			addTimestamper(proj);
+			addConcurrentBuildFlag(proj);
 
 			//add build action
 			Builder convertedBuilder = new TestsToRunConverterBuilder(TestsToRunFramework.MF_UFT.value());
@@ -352,5 +353,9 @@ public class TestExecutionJobCreatorService {
 			logger.error("Failed to create executor job : " + e.getMessage());
 			return null;
 		}
+	}
+
+	private static void addConcurrentBuildFlag(FreeStyleProject proj) throws IOException {
+		proj.setConcurrentBuild(true);
 	}
 }
