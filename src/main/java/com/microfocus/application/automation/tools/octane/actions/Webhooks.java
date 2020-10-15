@@ -127,34 +127,35 @@ public class Webhooks implements UnprotectedRootAction {
                             res.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
                             return;
                         }
+                        if (!isRunExpectingToGetWebhookCall(run) || isRunAlreadyGotWebhookCall(run)) {
+                            return;
+                        }
 
-                        if (isRunExpectingToGetWebhookCall(run) && !isRunAlreadyGotWebhookCall(run)) {
-                            WebhookAction action = run.getAction(WebhookAction.class);
-                            ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
-                            GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
-                            if (sonarConfiguration != null) {
-                                String parents = BuildHandlerUtils.getRootJobCiIds(run);
-                                String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
-                                HashMap project = (HashMap) inputNotification.get(PROJECT);
-                                String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
-                                String ciJobId = BuildHandlerUtils.translateFolderJobName(jobName);
+                        WebhookAction action = run.getAction(WebhookAction.class);
+                        ExtensionList<GlobalConfiguration> allConfigurations = GlobalConfiguration.all();
+                        GlobalConfiguration sonarConfiguration = allConfigurations.getDynamic(SonarHelper.SONAR_GLOBAL_CONFIG);
+                        if (sonarConfiguration != null) {
+                            String parents = BuildHandlerUtils.getRootJobCiIds(run);
+                            String sonarToken = SonarHelper.getSonarInstallationTokenByUrl(sonarConfiguration, action.getServerUrl(), run);
+                            HashMap project = (HashMap) inputNotification.get(PROJECT);
+                            String sonarProjectKey = (String) project.get(SONAR_PROJECT_KEY_NAME);
+                            String ciJobId = BuildHandlerUtils.translateFolderJobName(jobName);
 
-                                if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
-                                    // use SDK to fetch and push data
-                                    octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildIdStr, sonarProjectKey, action.getServerUrl(), sonarToken, parents);
-                                }
-                                if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
-                                    Map<String, String> additionalProperties = new HashMap<>();
-                                    additionalProperties.put(PROJECT_KEY_KEY, sonarProjectKey);
-                                    additionalProperties.put(SONAR_URL_KEY, action.getServerUrl());
-                                    additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
-                                    additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
-                                    octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildIdStr, ToolType.SONAR, run.getStartTimeInMillis(),
-                                            VulnerabilitiesUtils.getFortifyTimeoutHours(octaneClient.getInstanceId()), additionalProperties, parents);
-
-                                }
-                                res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
+                            if (action.getDataTypeSet().contains(SonarHelper.DataType.COVERAGE)) {
+                                // use SDK to fetch and push data
+                                octaneClient.getSonarService().enqueueFetchAndPushSonarCoverage(ciJobId, buildIdStr, sonarProjectKey, action.getServerUrl(), sonarToken, parents);
                             }
+                            if (action.getDataTypeSet().contains(SonarHelper.DataType.VULNERABILITIES)) {
+                                Map<String, String> additionalProperties = new HashMap<>();
+                                additionalProperties.put(PROJECT_KEY_KEY, sonarProjectKey);
+                                additionalProperties.put(SONAR_URL_KEY, action.getServerUrl());
+                                additionalProperties.put(SONAR_TOKEN_KEY, sonarToken);
+                                additionalProperties.put(REMOTE_TAG_KEY, sonarProjectKey);
+                                octaneClient.getVulnerabilitiesService().enqueueRetrieveAndPushVulnerabilities(ciJobId, buildIdStr, ToolType.SONAR, run.getStartTimeInMillis(),
+                                        VulnerabilitiesUtils.getFortifyTimeoutHours(octaneClient.getInstanceId()), additionalProperties, parents);
+
+                            }
+                            res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
                         }
                     } catch (Exception e) {
                         logger.error("exception occurred while trying to enqueue fetchAndPush task to octane, clientId: " + octaneClient.getInstanceId() + "" +
