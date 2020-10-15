@@ -37,10 +37,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class UftToolUtils {
@@ -185,7 +182,11 @@ public class UftToolUtils {
      */
     private static List<String> getBuildTests(final File folder){
         List<String> buildTests = new ArrayList<>();
-        for (final File fileEntry : folder.listFiles()) {
+        File[] files = folder.listFiles();
+        if (files == null) {
+            return Collections.emptyList();
+        }
+        for (final File fileEntry : files) {
             if (fileEntry.isDirectory()) {
                 if(!fileEntry.getName().contains(ACTION_TAG)){
                     buildTests.add(fileEntry.getPath().trim()); continue;
