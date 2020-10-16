@@ -23,6 +23,8 @@ package com.microfocus.application.automation.tools.octane.tests.build;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -198,21 +200,7 @@ public class BuildHandlerUtils {
 
 	public static String getRootJobCiIds(Run<?, ?> run) {
 		Set<String> parents = new HashSet<>();
-		getRootJobCiIds(CIEventCausesFactory.processCauses(run), BuildHandlerUtils.getJobCiId(run), parents);
-		return String.join(";", parents);
-	}
-
-	private static void getRootJobCiIds(List<CIEventCause> causes, String prevUpstream, Set<String> parents) {
-		if (causes != null) {
-			for (CIEventCause cause : causes) {
-				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
-					getRootJobCiIds(cause.getCauses(), cause.getProject(), parents);
-				} else {
-					if (prevUpstream != null && !prevUpstream.isEmpty()) {
-						parents.add(prevUpstream);
-					}
-				}
-			}
-		}
+		CIPluginSDKUtils.getRootJobCiIds(BuildHandlerUtils.getJobCiId(run), CIEventCausesFactory.processCauses(run), parents);
+		return String.join(SdkConstants.General.JOB_PARENT_DELIMITER, parents);
 	}
 }

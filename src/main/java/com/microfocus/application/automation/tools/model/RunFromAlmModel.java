@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.model;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
