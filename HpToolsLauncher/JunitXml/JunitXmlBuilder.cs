@@ -75,47 +75,26 @@ namespace HpToolsLauncher
                 }
                 else
                 {
-                    //Console.WriteLine("CreateXmlFromRunResults, UFT test");
                     testcase ufttc = CreateXmlFromUFTRunResults(testRes);
                     uftts.AddTestCase(ufttc);
                 }
             }
             if (uftts.testcase.Length > 0)
             {
-                //Console.WriteLine("CreateXmlFromRunResults, add test case to test suite");
                 _testSuites.AddTestsuite(uftts);
             }
-            else
-            {
-                //Console.WriteLine("CreateXmlFromRunResults, no uft test case to write");
-            }
+
 
             if (File.Exists(XmlName))
             {
-                //Console.WriteLine("CreateXmlFromRunResults, file exist - delete file");
                 File.Delete(XmlName);
             }
-            // else
-            //{
-                //Console.WriteLine("CreateXmlFromRunResults, file does not exist");
-           // }
+           
 
             using (Stream s = File.OpenWrite(XmlName))
             {
-               //Console.WriteLine("CreateXmlFromRunResults, write test results to xml file");
-               //Console.WriteLine("_testSuites: " + _testSuites.name + " tests: " + _testSuites.tests);
-               //Console.WriteLine("_testSuites: " + _testSuites.ToString());
                 _serializer.Serialize(s, _testSuites);
             }
-
-            //Console.WriteLine("CreateXmlFromRunResults, XmlName: " + XmlName);
-            /*if (File.Exists(XmlName))
-            {
-                Console.WriteLine("CreateXmlFromRunResults, results file was created");
-            } else
-            {
-                Console.WriteLine("CreateXmlFromRunResults, results file was not created");
-            }*/
         }
 
         private testsuite CreateXmlFromLRRunResults(TestRunResults testRes)
@@ -170,6 +149,7 @@ namespace HpToolsLauncher
 
         private testcase CreateXmlFromUFTRunResults(TestRunResults testRes)
         {
+
             testcase tc = new testcase
             {
                 systemout = testRes.ConsoleOut,

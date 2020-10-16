@@ -30,6 +30,21 @@
         table tr[nameref^="rowSetStart"] {
                     background: none !important;
                 }
+        #clearBtn {
+            background-image: url("${rootURL}/plugin/hp-application-automation-tools-plugin/icons/uft_icons/eraser.png");
+            background-size: 65px;
+            width: 65px;
+            margin-left: 20px;
+            height:40px;
+        }
+
+        #copyPasteBtn {
+            background-image: url("${rootURL}/plugin/hp-application-automation-tools-plugin/icons/uft_icons/copy_paste.png");
+            background-size: 65px;
+            width: 65px;
+            height: 40px;
+            margin-left: 10px;
+        }
     </style>
 
     <f:entry>
@@ -66,7 +81,7 @@
              <f:entry field="numberOfReruns">
                  <f:number name="numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; float: left;"/>
 
-                  <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests"  style="margin-top: 5px; float: left;" onclick="clearRerunSettings()"/>
+                  <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" style="margin-top: 5px; float: left;" onclick="clearRerunSettings()"/>
 
                   <label id="clear" style="margin-right: 5px; margin-left: 5px; margin-top: 5px; float: left;">Clear |</label>
 

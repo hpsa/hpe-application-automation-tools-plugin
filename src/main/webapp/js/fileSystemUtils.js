@@ -139,6 +139,7 @@ function selectValueCombo(selectObj) {
     }
 
     function clearRerunSettings() {
+        alert("clear");
         var checkBoxes = document.getElementsByName("rerunSettingsModels.checked");
         checkBoxes.forEach(function (element) {
             element.checked = false;
