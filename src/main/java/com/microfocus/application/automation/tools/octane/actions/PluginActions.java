@@ -47,9 +47,15 @@ import java.util.Map;
 
 @Extension
 public class PluginActions implements RootAction {
-    private final String API = "/nga/api/v1";
-    private final String STATUS_REQUEST = API + "/status";
-    private final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
+
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String API = "/nga/api/v1";
+    private static final String STATUS_REQUEST = API + "/status";
+    private static final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
+    private static final String CLEAR_JOB_LIST_CACHE = API + "/clear-job-list-cache";
+    private static final String CLEAR_OCTANE_ROOTS_CACHE = API + "/clear-octane-roots-cache";
+
+
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public String getIconFileName() {
@@ -67,22 +73,24 @@ public class PluginActions implements RootAction {
 
     public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException {
 
+        res.setHeader(CONTENT_TYPE, ContentType.TEXT_PLAIN.getMimeType());
+        res.setStatus(200);
         if (req.getRequestURI().toLowerCase().contains(STATUS_REQUEST)) {
             JSONObject result = getStatusResult(req.getParameterMap());
-            res.setHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
-            res.setStatus(200);
+            res.setHeader(CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
             res.getWriter().write(result.toString());
-            return;
         } else if (req.getRequestURI().toLowerCase().contains(REENQUEUE_EVENT_REQUEST)) {
             reEnqueueEvent(req.getParameterMap());
-            res.setHeader("Content-Type", ContentType.TEXT_PLAIN.getMimeType());
-            res.setStatus(200);
             res.getWriter().write("resent");
-            return;
+        } else if (req.getRequestURI().toLowerCase().contains(CLEAR_JOB_LIST_CACHE)) {
+            resetJobListCache();
+            res.getWriter().write("done");
+        } else if (req.getRequestURI().toLowerCase().contains(CLEAR_OCTANE_ROOTS_CACHE)) {
+            resetOctaneRootsCache();
+            res.getWriter().write("done");
         } else {
             res.setStatus(404);
             res.getWriter().write("");
-            return;
         }
     }
 
@@ -118,6 +126,8 @@ public class PluginActions implements RootAction {
                         addMetrics(client.getSonarService().getMetrics(), "sonarService", confJson);
                         addMetrics(client.getCoverageService().getMetrics(), "coverageService", confJson);
                         addMetrics(client.getSCMDataService().getMetrics(), "scmDataService", confJson);
+                        addMetrics(client.getTasksProcessor().getMetrics(), "tasksProcessor", confJson);
+                        addMetrics(client.getConfigurationService().getMetrics(), "configurationService", confJson);
                         addMetrics(client.getRestService().obtainOctaneRestClient().getMetrics(), "restClient", confJson);
 
 
@@ -137,6 +147,18 @@ public class PluginActions implements RootAction {
             metricsJson.put(e.getKey(), value);
         });
         confJson.put(metricsGroup, metricsJson);
+    }
+
+    private void resetJobListCache() {
+        OctaneSDK.getClients().stream().forEach(oc -> {
+            oc.getTasksProcessor().resetJobListCache();
+        });
+    }
+
+    private void resetOctaneRootsCache() {
+        OctaneSDK.getClients().stream().forEach(oc -> {
+            oc.getConfigurationService().resetOctaneRootsCache();
+        });
     }
 
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {
@@ -166,7 +188,7 @@ public class PluginActions implements RootAction {
         if ("tests".equals(eventType.toLowerCase())) {
             octaneClient.getTestsService().enqueuePushTestsResult(jobId, buildId, rootId);
         } else if ("commits".equals(eventType.toLowerCase())) {
-            octaneClient.getSCMDataService().enqueueSCMData(jobId, buildId, null);
+            octaneClient.getSCMDataService().enqueueSCMData(jobId, buildId, null, null);
         }
     }
 }

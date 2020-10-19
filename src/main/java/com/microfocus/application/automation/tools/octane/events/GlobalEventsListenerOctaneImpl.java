@@ -34,7 +34,6 @@ import com.microfocus.application.automation.tools.octane.tests.build.BuildHandl
 import com.microfocus.application.automation.tools.settings.OctaneServerSettingsBuilder;
 import hudson.Extension;
 import hudson.model.Item;
-import hudson.model.Job;
 import hudson.model.listeners.ItemListener;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
@@ -120,6 +119,11 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 					.setPreviousProjectDisplayName(oldFullName);
 
 			CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+			OctaneSDK.getClients().forEach(c -> {
+				if (c.getConfigurationService().removeFromOctaneRoots(event.getPreviousProject())) {
+					c.getConfigurationService().addToOctaneRootsCache(event.getProject());
+				}
+			});
 		} catch (Throwable throwable) {
 			logger.error("failed to build and/or dispatch RENAMED event for " + item, throwable);
 		}

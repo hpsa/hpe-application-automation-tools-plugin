@@ -55,11 +55,13 @@ public class SCMListenerOctaneImpl extends SCMListener {
         String buildCiId = BuildHandlerUtils.getBuildCiId(run);
 
         SCMData scmData = SCMUtils.extractSCMData(run, scm, SCMProcessors.getAppropriate(scm.getClass().getName()));
-        SCMUtils.persistSCMData(run, jobCiId, buildCiId, scmData);
+
 
         if (scmData != null) {
+            String parents = BuildHandlerUtils.getRootJobCiIds(run);
+            SCMUtils.persistSCMData(run, jobCiId, buildCiId, scmData);
             OctaneSDK.getClients().forEach(octaneClient ->
-                    octaneClient.getSCMDataService().enqueueSCMData(jobCiId, buildCiId, scmData));
+                    octaneClient.getSCMDataService().enqueueSCMData(jobCiId, buildCiId, scmData, parents));
         }
     }
 }

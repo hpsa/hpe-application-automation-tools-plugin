@@ -173,6 +173,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					PipelineNode tmpConfig;
 					if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
 						tempJobName = tmpJob.getParent().getFullName();
+						if(jobsMap.containsKey(tempJobName)){
+							continue;//skip redundant creation config for multibranch job
+						}
 						tmpConfig = createPipelineNodeFromJobName(tempJobName);
 					} else {
 						tmpConfig = createPipelineNode(tempJobName, tmpJob, includeParameters);
@@ -780,5 +783,15 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	public static void publishEventToRelevantClients(CIEvent event) {
 		OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
+	}
+
+	@Override
+	public String getMultibranchParentIfItsChild(String jobId) {
+		Item item = getItemByRefId(jobId);
+		if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME) &&
+				item.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+			return BuildHandlerUtils.translateFolderJobName(item.getParent().getFullName());
+		}
+		return null;
 	}
 }

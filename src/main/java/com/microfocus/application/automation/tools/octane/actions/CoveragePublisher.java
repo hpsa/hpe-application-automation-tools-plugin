@@ -129,10 +129,11 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
 	private boolean enqueueReports(Run build, List<String> reportFileNames, CoverageReportType coverageReportType){
 		if (!reportFileNames.isEmpty()) {
+			String parents = BuildHandlerUtils.getRootJobCiIds(build);
 			OctaneSDK.getClients().forEach(octaneClient-> {
 				for (String reportFileName : reportFileNames) {
 					octaneClient.getCoverageService()
-							.enqueuePushCoverage(BuildHandlerUtils.getJobCiId(build), String.valueOf(build.getNumber()), coverageReportType, reportFileName);
+							.enqueuePushCoverage(BuildHandlerUtils.getJobCiId(build), String.valueOf(build.getNumber()), coverageReportType, reportFileName, parents);
 				}
 			});
 			return true;

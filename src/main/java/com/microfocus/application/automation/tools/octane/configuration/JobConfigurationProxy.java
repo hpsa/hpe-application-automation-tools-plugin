@@ -98,6 +98,8 @@ public class JobConfigurationProxy {
 					.setServer(ciServerInfo);
 			PipelineContext createdPipelineContext = octaneClient.getPipelineContextService().createPipeline(octaneClient.getInstanceId(), pipelineNode.getJobCiId(), pipelineContext);
 
+			//update cache that new pipeline root is added
+			octaneClient.getConfigurationService().addToOctaneRootsCache(pipelineNode.getJobCiId());
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API

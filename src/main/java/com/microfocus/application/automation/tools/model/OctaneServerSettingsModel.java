@@ -171,6 +171,7 @@ public class OctaneServerSettingsModel implements Serializable {
                 Objects.equals(impersonatedUser, that.impersonatedUser) &&
                 Objects.equals(location, that.location) &&
                 Objects.equals(workspace2ImpersonatedUserConf, that.workspace2ImpersonatedUserConf) &&
+                Objects.equals(parameters, that.parameters) &&
                 Objects.equals(sharedSpace, that.sharedSpace);
     }
 
