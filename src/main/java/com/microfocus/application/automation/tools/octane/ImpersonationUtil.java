@@ -39,14 +39,15 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
 
-/** *  *
+/**
+ * *
  * util class for user impersonation, to allow internal access on behalf of the Jenkins user associated with an instance of ALM Octane server.
  */
 
 public class ImpersonationUtil {
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(ImpersonationUtil.class);
 
-    public static ACLContext startImpersonation(String instanceId, Long workspaceId) {
+    public static String getUserNameForImpersonation(String instanceId, Long workspaceId) {
         OctaneServerSettingsModel settings = ConfigurationService.getSettings(instanceId);
         if (settings == null) {
             throw new IllegalStateException("failed to retrieve configuration settings by instance ID " + instanceId);
@@ -59,7 +60,12 @@ public class ImpersonationUtil {
         } else {
             userName = settings.getImpersonatedUser();
         }
+        return userName;
+    }
 
+    public static ACLContext startImpersonation(String instanceId, Long workspaceId) {
+
+        String userName = getUserNameForImpersonation(instanceId, workspaceId);
         User jenkinsUser = null;
         if (!StringUtils.isEmpty(userName)) {
             jenkinsUser = User.get(userName, false, Collections.emptyMap());

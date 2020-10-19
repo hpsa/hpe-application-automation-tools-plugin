@@ -189,7 +189,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			if(jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)){
 				//it is possible that user doesn't have general READ permission
 				// but has read permission to specific job, so we postponed this check to end
-				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+				String userName = ImpersonationUtil.getUserNameForImpersonation(getInstanceId(), workspaceId);
+				if(StringUtils.isEmpty(userName)){
+					userName = "anonymous";
+				}
+				String msg = String.format("User %s does not have READ permission",userName);
+				throw new PermissionException(msg, HttpStatus.SC_FORBIDDEN);
 			}
 
 			result.setJobs(jobsMap.values().toArray(new PipelineNode[0]));
