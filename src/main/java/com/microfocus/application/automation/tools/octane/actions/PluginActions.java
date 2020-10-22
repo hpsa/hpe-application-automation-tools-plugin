@@ -29,8 +29,6 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import hudson.Extension;
 import hudson.model.RootAction;
 import net.sf.json.JSONObject;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.http.entity.ContentType;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -60,6 +58,7 @@ public class PluginActions implements RootAction {
     private static final String CLEAR_OCTANE_ROOTS_CACHE = API + "/clear-octane-roots-cache";
     private static final String OCTANE_ROOTS_CACHE = API + "/octane-roots-cache";
 
+    private static final String INSTANCE_ID_PARAM = "instanceId";
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -170,16 +169,16 @@ public class PluginActions implements RootAction {
     }
 
     private String readOctaneRootsCache(Map<String, String[]> parameterMap) {
-        if (!parameterMap.containsKey("instanceId")) {
+        if (!parameterMap.containsKey(INSTANCE_ID_PARAM)) {
             throw new IllegalArgumentException("instanceId parameter is missing");
         }
-        String instanceId = parameterMap.get("instanceId")[0];
+        String instanceId = parameterMap.get(INSTANCE_ID_PARAM)[0];
         Collection<String> coll = OctaneSDK.getClientByInstanceId(instanceId).getConfigurationService().getOctaneRootsCacheCollection();
         return coll.toString();
     }
 
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {
-        if (!parameterMap.containsKey("instanceId")) {
+        if (!parameterMap.containsKey(INSTANCE_ID_PARAM)) {
             throw new IllegalArgumentException("instanceId parameter is missing");
         }
         if (!parameterMap.containsKey("eventType")) {
@@ -192,7 +191,7 @@ public class PluginActions implements RootAction {
             throw new IllegalArgumentException("buildId parameter is missing");
         }
 
-        String instanceId = parameterMap.get("instanceId")[0];
+        String instanceId = parameterMap.get(INSTANCE_ID_PARAM)[0];
         String eventType = parameterMap.get("eventType")[0];
         String jobId = parameterMap.get("jobId")[0];
         String buildId = parameterMap.get("buildId")[0];
