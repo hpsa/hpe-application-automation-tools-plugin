@@ -34,6 +34,7 @@ import org.kohsuke.stapler.StaplerResponse;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -54,7 +55,9 @@ public class PluginActions implements RootAction {
     private static final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
     private static final String CLEAR_JOB_LIST_CACHE = API + "/clear-job-list-cache";
     private static final String CLEAR_OCTANE_ROOTS_CACHE = API + "/clear-octane-roots-cache";
+    private static final String OCTANE_ROOTS_CACHE = API + "/octane-roots-cache";
 
+    private static final String INSTANCE_ID_PARAM = "instanceId";
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -88,6 +91,9 @@ public class PluginActions implements RootAction {
         } else if (req.getRequestURI().toLowerCase().contains(CLEAR_OCTANE_ROOTS_CACHE)) {
             resetOctaneRootsCache();
             res.getWriter().write("done");
+        } else if (req.getRequestURI().toLowerCase().contains(OCTANE_ROOTS_CACHE)) {
+            String result = readOctaneRootsCache(req.getParameterMap());
+            res.getWriter().write(result);
         } else {
             res.setStatus(404);
             res.getWriter().write("");
@@ -161,8 +167,17 @@ public class PluginActions implements RootAction {
         });
     }
 
+    private String readOctaneRootsCache(Map<String, String[]> parameterMap) {
+        if (!parameterMap.containsKey(INSTANCE_ID_PARAM)) {
+            throw new IllegalArgumentException("instanceId parameter is missing");
+        }
+        String instanceId = parameterMap.get(INSTANCE_ID_PARAM)[0];
+        Collection<String> coll = OctaneSDK.getClientByInstanceId(instanceId).getConfigurationService().getOctaneRootsCacheCollection();
+        return coll.toString();
+    }
+
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {
-        if (!parameterMap.containsKey("instanceId")) {
+        if (!parameterMap.containsKey(INSTANCE_ID_PARAM)) {
             throw new IllegalArgumentException("instanceId parameter is missing");
         }
         if (!parameterMap.containsKey("eventType")) {
@@ -175,7 +190,7 @@ public class PluginActions implements RootAction {
             throw new IllegalArgumentException("buildId parameter is missing");
         }
 
-        String instanceId = parameterMap.get("instanceId")[0];
+        String instanceId = parameterMap.get(INSTANCE_ID_PARAM)[0];
         String eventType = parameterMap.get("eventType")[0];
         String jobId = parameterMap.get("jobId")[0];
         String buildId = parameterMap.get("buildId")[0];
