@@ -20,6 +20,7 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
+import com.google.gson.JsonArray;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -28,12 +29,15 @@ import com.microfocus.application.automation.tools.octane.configuration.Configur
 import hudson.Extension;
 import hudson.model.RootAction;
 import net.sf.json.JSONObject;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.http.entity.ContentType;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -54,6 +58,7 @@ public class PluginActions implements RootAction {
     private static final String REENQUEUE_EVENT_REQUEST = API + "/reenqueue";
     private static final String CLEAR_JOB_LIST_CACHE = API + "/clear-job-list-cache";
     private static final String CLEAR_OCTANE_ROOTS_CACHE = API + "/clear-octane-roots-cache";
+    private static final String OCTANE_ROOTS_CACHE = API + "/octane-roots-cache";
 
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -88,6 +93,9 @@ public class PluginActions implements RootAction {
         } else if (req.getRequestURI().toLowerCase().contains(CLEAR_OCTANE_ROOTS_CACHE)) {
             resetOctaneRootsCache();
             res.getWriter().write("done");
+        } else if (req.getRequestURI().toLowerCase().contains(OCTANE_ROOTS_CACHE)) {
+            String result = readOctaneRootsCache(req.getParameterMap());
+            res.getWriter().write(result);
         } else {
             res.setStatus(404);
             res.getWriter().write("");
@@ -159,6 +167,15 @@ public class PluginActions implements RootAction {
         OctaneSDK.getClients().stream().forEach(oc -> {
             oc.getConfigurationService().resetOctaneRootsCache();
         });
+    }
+
+    private String readOctaneRootsCache(Map<String, String[]> parameterMap) {
+        if (!parameterMap.containsKey("instanceId")) {
+            throw new IllegalArgumentException("instanceId parameter is missing");
+        }
+        String instanceId = parameterMap.get("instanceId")[0];
+        Collection<String> coll = OctaneSDK.getClientByInstanceId(instanceId).getConfigurationService().getOctaneRootsCacheCollection();
+        return coll.toString();
     }
 
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {
