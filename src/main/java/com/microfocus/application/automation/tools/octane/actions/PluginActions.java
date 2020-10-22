@@ -20,7 +20,6 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
-import com.google.gson.JsonArray;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
