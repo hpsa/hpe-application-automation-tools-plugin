@@ -60,6 +60,7 @@ import java.util.Set;
 
 public class BuildHandlerUtils {
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(BuildHandlerUtils.class);
+	public static final String JOB_LEVEL_SEPARATOR = "/job/";
 
 	public static BuildDescriptor getBuildType(Run<?, ?> run) {
 		for (BuildHandlerExtension ext : BuildHandlerExtension.all()) {
@@ -145,11 +146,11 @@ public class BuildHandlerUtils {
 	}
 
 	public static String translateFolderJobName(String jobPlainName) {
-		return jobPlainName.replaceAll("/", "/job/");
+		return jobPlainName.replaceAll("/", JOB_LEVEL_SEPARATOR);
 	}
 
 	public static String revertTranslateFolderJobName(String translatedJobName) {
-		return translatedJobName.replaceAll("/job/", "/");
+		return translatedJobName.replaceAll(JOB_LEVEL_SEPARATOR, "/");
 	}
 
 	public static String translateFullDisplayName(String fullDisplayName) {

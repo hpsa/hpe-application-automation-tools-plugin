@@ -791,11 +791,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public String getMultibranchParentIfItsChild(String jobId) {
-		Item item = getItemByRefId(jobId);
-		if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME) &&
-				item.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-			return BuildHandlerUtils.translateFolderJobName(item.getParent().getFullName());
+	public String getParentJobName(String jobId) {
+		if (jobId != null && jobId.contains(BuildHandlerUtils.JOB_LEVEL_SEPARATOR)) {
+			int index = jobId.lastIndexOf(BuildHandlerUtils.JOB_LEVEL_SEPARATOR);
+			String parent = jobId.substring(0, index);
+			return parent;
 		}
 		return null;
 	}
