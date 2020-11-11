@@ -243,7 +243,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public void runPipeline(String jobCiId, String originalBody) {
+	public void runPipeline(String jobCiId, CIParameters ciParameters) {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
@@ -258,7 +258,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-					doRunImpl(job, originalBody);
+					doRunImpl(job, ciParameters);
 				}
 			} else {
 				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
@@ -269,7 +269,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public void stopPipelineRun(String jobCiId, String originalBody) {
+	public void stopPipelineRun(String jobCiId, CIParameters ciParameters) {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
@@ -280,7 +280,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 					throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 				}
 				if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
-					doStopImpl(job, originalBody);
+					doStopImpl(job, ciParameters);
 				}
 			} else {
 				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
@@ -624,21 +624,20 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		return result;
 	}
 
-	private void doRunImpl(Job job, String originalBody) {
+	private void doRunImpl(Job job, CIParameters ciParameters) {
 		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-		doRunStopImpl(jobProcessor::scheduleBuild, "execution", job, originalBody);
+		doRunStopImpl(jobProcessor::scheduleBuild, "execution", job, ciParameters);
 	}
 
-	private void doStopImpl(Job job, String originalBody) {
+	private void doStopImpl(Job job, CIParameters ciParameters) {
 		AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-		doRunStopImpl(jobProcessor::cancelBuild, "stop", job, originalBody);
+		doRunStopImpl(jobProcessor::cancelBuild, "stop", job, ciParameters);
 	}
 
 	//  TODO: the below flow should go via JobProcessor, once scheduleBuild will be implemented for all of them
-	private void doRunStopImpl(BiConsumer<Cause, ParametersAction> method, String methodName, Job job, String originalBody) {
+	private void doRunStopImpl(BiConsumer<Cause, ParametersAction> method, String methodName, Job job, CIParameters ciParameters) {
 		ParametersAction parametersAction = new ParametersAction();
-		if (originalBody != null && !originalBody.isEmpty() && originalBody.contains("parameters")) {
-			CIParameters ciParameters = DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class);
+		if (ciParameters != null) {
 			parametersAction = new ParametersAction(createParameters(job, ciParameters));
 		}
 
@@ -791,11 +790,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public String getMultibranchParentIfItsChild(String jobId) {
-		Item item = getItemByRefId(jobId);
-		if (item != null && item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME) &&
-				item.getParent().getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-			return BuildHandlerUtils.translateFolderJobName(item.getParent().getFullName());
+	public String getParentJobName(String jobId) {
+		if (jobId != null && jobId.contains(BuildHandlerUtils.JOB_LEVEL_SEPARATOR)) {
+			int index = jobId.lastIndexOf(BuildHandlerUtils.JOB_LEVEL_SEPARATOR);
+			String parent = jobId.substring(0, index);
+			return parent;
 		}
 		return null;
 	}
