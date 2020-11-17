@@ -31,7 +31,7 @@
 
         <thead style="background-color: lightgray; font-weight: bold">
         <tr>
-            <td style="width: 250px">Param name</td>
+            <td style="width: 260px">Param name</td>
             <td style="width: 110px">Value</td>
             <td>Description</td>
         </tr>
@@ -55,14 +55,6 @@
             </td>
         </tr>
         <tr>
-            <td>FORTIFY_SSC_TOKEN</td>
-            <td>authentication token</td>
-            <td>
-                Token for integration with Fortify Software Security Center (SSC).
-                See help information in  <a target="_blank" href="https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/how-setup-FoD-integration.htm">ALM Octane Help Center</a>.
-            </td>
-        </tr>
-        <tr>
             <td>JOB_LIST_CACHE_ALLOWED</td>
             <td>true/false</td>
             <td>
@@ -73,6 +65,15 @@
                 For manual update of cache, call to the following URL: &lt;jenkins_url&gt;/nga/api/v1/clear-job-list-cache
                 <br/>
                 The cache cannot be used with the feature "Jenkins user for specific workspaces".
+                <br/>
+                Default is false.
+            </td>
+        </tr>
+        <tr>
+            <td>OCTANE_ROOTS_CACHE_ALLOWED</td>
+            <td>true/false</td>
+            <td>
+                Allow to cache the pipeline root from ALM Octane, to enable the plugin to send to ALM Octane relevant data only.
                 <br/>
                 Default is false.
             </td>
