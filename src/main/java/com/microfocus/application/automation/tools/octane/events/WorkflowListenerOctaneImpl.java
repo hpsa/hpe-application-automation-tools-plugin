@@ -166,10 +166,24 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 
 	private void sendStageStartedEvent(StepStartNode stepStartNode) {
 		logger.debug("node " + stepStartNode + " detected as Stage Start node");
-		CIEvent event;
+		CIEvent event = prepareStageEvent(stepStartNode).setEventType(CIEventType.STARTED);
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+	}
+
+	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
+		logger.debug("node " + stepEndNode + " detected as Stage End node");
+		StepStartNode stepStartNode = stepEndNode.getStartNode();
+		CIEvent event = prepareStageEvent(stepStartNode)
+				.setEventType(CIEventType.FINISHED)
+				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
+				.setResult(extractFlowNodeResult(stepEndNode));
+
+		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
+	}
+
+	private CIEvent prepareStageEvent(StepStartNode stepStartNode) {
 		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepStartNode);
-		event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.STARTED)
+		return dtoFactory.newDTO(CIEvent.class)
 				.setPhaseType(PhaseType.INTERNAL)
 				.setIsVirtualProject(true)
 				.setProject(stepStartNode.getDisplayName())
@@ -177,25 +191,6 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setNumber(String.valueOf(parentRun.getNumber()))
 				.setStartTime(TimingAction.getStartTime(stepStartNode))
 				.setCauses(CIEventCausesFactory.processCauses(stepStartNode));
-		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
-	}
-
-	private void sendStageFinishedEvent(StepEndNode stepEndNode) {
-		logger.debug("node " + stepEndNode + " detected as Stage End node");
-		WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(stepEndNode);
-		StepStartNode stepStartNode = stepEndNode.getStartNode();
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.FINISHED)
-				.setPhaseType(PhaseType.INTERNAL)
-				.setIsVirtualProject(true)
-				.setProject(stepStartNode.getDisplayName())
-				.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
-				.setNumber(String.valueOf(parentRun.getNumber()))
-				.setStartTime(TimingAction.getStartTime(stepStartNode))
-				.setDuration(TimingAction.getStartTime(stepEndNode) - TimingAction.getStartTime(stepStartNode))
-				.setResult(extractFlowNodeResult(stepEndNode))
-				.setCauses(CIEventCausesFactory.processCauses(stepEndNode));
-		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 
 	private CIBuildResult extractFlowNodeResult(FlowNode node) {
