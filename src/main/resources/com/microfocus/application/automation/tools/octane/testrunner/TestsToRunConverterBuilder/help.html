@@ -65,6 +65,10 @@
                     <td>Cucumber-JVM over Maven</td>
                     <td>mvn clean -Dcucumber.options="$testsToRunConverted" test</td>
                 </tr>
+                <tr>
+                    <td>JBehave over Maven</td>
+                    <td>mvn clean -Dfeatures="$testsToRunConverted" test</td>
+                </tr>
                 </tbody>
             </table>
             </br>
@@ -95,6 +99,10 @@
                 <tr>
                     <td>Cucumber-JVM over Maven</td>
                     <td>mvn clean -Dcucumber.options="%testsToRunConverted%" test</td>
+                </tr>
+                <tr>
+                    <td>JBehave over Maven</td>
+                    <td>mvn clean -Dfeatures="%testsToRunConverted%" test</td>
                 </tr>
                 </tbody>
             </table>
@@ -127,6 +135,10 @@
                     <td>Cucumber-JVM over Maven</td>
                     <td>bat(/mvn clean -Dcucumber.options="${params.testsToRunConverted}" test/)</td>
                 </tr>
+                <tr>
+                    <td>JBehave over Maven</td>
+                    <td>bat(/mvn clean -Dfeatures="${testsToRunConverted}" test/)</td>
+                </tr>
                 </tbody>
             </table>
             </br>
@@ -145,6 +157,8 @@
         <li> <b>Cucumber-JVM over Maven</b>: If your project contains several run classes, specify a run class that will
             be used, otherwise all run classes will be executed by Cucumber. You can specify test runner by adding:
             '-Dtest=[runner class name]' to the Maven command
+        </li>
+        <li> <b>JBehave over Maven</b>: read more about integration with JBehave   <a target="_blank" href="https://github.com/MicroFocus/octane-jbehave-gherkin-reporter/blob/main/README.md">here</a>
         </li>
     </ul>
 
