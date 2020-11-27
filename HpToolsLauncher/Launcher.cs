@@ -779,9 +779,20 @@ namespace HpToolsLauncher
                     string reportPath = null;
                     if (_ciParams.ContainsKey("fsReportPath"))
                     {
-                        reportPath = _ciParams["fsReportPath"];
+                        if (Directory.Exists(_ciParams["fsReportPath"]))
+                        {   //path is not parameterized
+                            reportPath = _ciParams["fsReportPath"];
+                        }
+                        else 
+                        {   //path is parameterized
+                            string fsReportPath = _ciParams["fsReportPath"];
+                            //get parameter name
+                            fsReportPath = fsReportPath.Trim(new Char[] { ' ', '$', '{', '}' });
+                            //get parameter value
+                            reportPath = jenkinsEnvVariables[fsReportPath];
+                        }
                     }
-
+                   
                     SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
                     List<ScriptRTSModel> scriptRTSSet = GetScriptRtsSet();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
