@@ -34,8 +34,8 @@ import org.kohsuke.stapler.StaplerResponse;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -92,8 +92,8 @@ public class PluginActions implements RootAction {
             resetOctaneRootsCache();
             res.getWriter().write("done");
         } else if (req.getRequestURI().toLowerCase().contains(OCTANE_ROOTS_CACHE)) {
-            String result = readOctaneRootsCache(req.getParameterMap());
-            res.getWriter().write(result);
+            JSONObject result = readOctaneRootsCache();
+            res.getWriter().write(result.toString());
         } else {
             res.setStatus(404);
             res.getWriter().write("");
@@ -167,13 +167,19 @@ public class PluginActions implements RootAction {
         });
     }
 
-    private String readOctaneRootsCache(Map<String, String[]> parameterMap) {
-        if (!parameterMap.containsKey(INSTANCE_ID_PARAM)) {
-            throw new IllegalArgumentException("instanceId parameter is missing");
-        }
-        String instanceId = parameterMap.get(INSTANCE_ID_PARAM)[0];
-        Collection<String> coll = OctaneSDK.getClientByInstanceId(instanceId).getConfigurationService().getOctaneRootsCacheCollection();
-        return coll.toString();
+    private JSONObject readOctaneRootsCache() {
+        JSONObject result = new JSONObject();
+
+        Map<String, Object> clients = new HashMap<>();
+        OctaneSDK.getClients().forEach(
+
+                client -> {
+                    com.hp.octane.integrations.services.configuration.ConfigurationService cs = client.getConfigurationService();
+                    result.put(cs.getConfiguration().geLocationForLog(), cs.getOctaneRootsCacheCollection());
+                }
+        );
+
+        return result;
     }
 
     private void reEnqueueEvent(Map<String, String[]> parameterMap) {
