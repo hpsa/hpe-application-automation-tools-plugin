@@ -45,6 +45,7 @@ namespace HpToolsLauncher
         {
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
             ConsoleQuickEdit.Disable();
+            Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
             if (args.Count() == 0 || args.Contains("/?"))
             {
                 ShowHelp();
