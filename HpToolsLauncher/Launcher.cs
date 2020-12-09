@@ -782,14 +782,17 @@ namespace HpToolsLauncher
                         if (Directory.Exists(_ciParams["fsReportPath"]))
                         {   //path is not parameterized
                             reportPath = _ciParams["fsReportPath"];
+                            Console.WriteLine("report path is not parameterized: " + reportPath);
                         }
                         else 
                         {   //path is parameterized
                             string fsReportPath = _ciParams["fsReportPath"];
+                            Console.WriteLine("report path is parameterized: " + reportPath);
                             //get parameter name
                             fsReportPath = fsReportPath.Trim(new Char[] { ' ', '$', '{', '}' });
                             //get parameter value
                             reportPath = jenkinsEnvVariables[fsReportPath];
+                            Console.WriteLine("report path is: " + reportPath);
                         }
                     }
                    
