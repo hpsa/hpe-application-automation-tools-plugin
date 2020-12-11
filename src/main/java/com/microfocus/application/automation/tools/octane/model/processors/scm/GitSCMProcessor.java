@@ -98,7 +98,7 @@ class GitSCMProcessor implements SCMProcessor {
 			FilePath workspace = build.getWorkspace();
 			if (workspace != null) {
 				scmData = workspace.act(new LineEnricherCallable(getCheckoutDir(build), scmData));
-				logger.info("Line enricher: process took: " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+				logger.debug("Line enricher: process took: " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 			} else {
 				logger.warn("Line enricher: workspace is null");
 			}
