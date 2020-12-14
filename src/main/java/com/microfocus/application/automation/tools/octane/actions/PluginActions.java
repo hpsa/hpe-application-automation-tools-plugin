@@ -169,10 +169,7 @@ public class PluginActions implements RootAction {
 
     private JSONObject readOctaneRootsCache() {
         JSONObject result = new JSONObject();
-
-        Map<String, Object> clients = new HashMap<>();
         OctaneSDK.getClients().forEach(
-
                 client -> {
                     com.hp.octane.integrations.services.configuration.ConfigurationService cs = client.getConfigurationService();
                     result.put(cs.getConfiguration().geLocationForLog(), cs.getOctaneRootsCacheCollection());
