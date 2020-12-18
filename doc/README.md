@@ -65,7 +65,7 @@ Version 6.5 introduced the following enhancement(s):
 - New option to cache the job list for pipeline creation in ALM Octane
 - Caching of Octane pipeline roots, to avoid sending non-relevant events/tasks/logs to ALM Octane
 - Added ability to execute UFT tests with parameters from ALM Octane
-- Bug fix: UFT test descriptions are properly formatted in ALM Octane (without line separations)
+- Bug fix: UFT test descriptions are properly formatted in ALM Octane
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
