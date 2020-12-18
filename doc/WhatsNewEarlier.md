@@ -5,11 +5,34 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What's New in version 6.4](#what's-new-in-version-6.4)
+
 [What's New in version 6.3](#what's-new-in-version-6.3)
 
 [What's New in version 6.0](#what's-new-in-version-6.0)
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
+
+## What&#39;s New in version 6.4
+
+Version 6.4 introduced the following enhancements:
+
+**General**
+
+- Multiple dependencies updated. You can verify your Jenkins plugins compatibility with the [plugin dependencies](https://plugins.jenkins.io/hp-application-automation-tools-plugin/#dependencies).
+- Certified for Jenkins version 2.249.1.
+
+**ALM Octane**
+
+- Ability to configure folder for UFT Test Runner creation
+- Ability to create auto-generated UFT jobs with SSH credentials
+- Reduced name length of UFT auto-generated Test Runner jobs
+- Added support for Configuration-as-code plugin to ALM Octane configuration
+- collectPullRequestsToAlmOctane pipeline step – now supports environment parameters for all fields (including credentialsId)
+
+**UFT One**
+
+- Migration of ALM credentials from the Task configuration page to global configuration
 
 ## What&#39;s New in version 6.3
 
