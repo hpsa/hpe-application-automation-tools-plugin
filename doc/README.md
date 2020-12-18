@@ -5,7 +5,7 @@ This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.176.1). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.190.1). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[New Featues and Enhancements](#new-featues-and-enhancements)
+[New Features and Enhancements](#new-features-and-enhancements)
 
 [Changelog](#changelog)
 
@@ -51,27 +51,21 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Featues and Enhancements
+## New Features and Enhancements in version 6.5
 
-Version 6.4 introduced the following enhancement(s):
+Version 6.5 introduced the following enhancement(s):
 
 **General**
 
-- Multiple dependencies updated. You can verify your Jenkins plugins compatibility with the [plugin dependencies](https://plugins.jenkins.io/hp-application-automation-tools-plugin/#dependencies).
-- Certified for Jenkins version 2.249.1.
+- “github-branch-source” dependency was removed.
+- Certified for Jenkins version 2.263.1.
 
 **ALM Octane**
 
-- Ability to configure folder for UFT Test Runner creation
-- Ability to create auto-generated UFT jobs with SSH credentials
-- Reduced name length of UFT auto-generated Test Runner jobs
-- Added support for Configuration-as-code plugin to ALM Octane configuration
-- collectPullRequestsToAlmOctane pipeline step – now supports environment parameters for all fields (including credentialsId)
-
-**UFT One**
-
-- Migration of ALM credentials from the Task configuration page to global configuration
-
+- New option to cache the job list for pipeline creation in ALM Octane
+- Caching of Octane pipeline roots, to avoid sending non-relevant events/tasks/logs to ALM Octane
+- Added ability to execute UFT tests with parameters from ALM Octane
+- Bug fix: UFT test descriptions are properly formatted in ALM Octane
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
