@@ -790,10 +790,13 @@ namespace HpToolsLauncher
                         else 
                         {   //path is parameterized
                             string fsReportPath = _ciParams["fsReportPath"];
+
                             //get parameter name
                             fsReportPath = fsReportPath.Trim(new Char[] { ' ', '$', '{', '}' });
+                            
                             //get parameter value
                             reportPath = jenkinsEnvVariables[fsReportPath.Trim(new Char[] { ' ', '\t' })];
+                            reportPath = jenkinsEnvVariables[fsReportPath];
                         }
                     }
                    
