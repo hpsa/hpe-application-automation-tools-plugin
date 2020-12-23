@@ -68,14 +68,6 @@ public class MCServerSettingsGlobalConfiguration extends GlobalConfiguration imp
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-        // To persist global configuration information,
-        // set that to properties and call save().
-        // useFrench = formData.getBoolean("useFrench");
-        // ^Can also use req.bindJSON(this, formData);
-        // (easier when there are many fields; need set* methods for this,
-        // like setUseFrench)
-        // req.bindParameters(this, "locks.");
-
         setInstallations(req.bindParametersToList(MCServerSettingsModel.class, "mc.").toArray(
                 new MCServerSettingsModel[0]));
 

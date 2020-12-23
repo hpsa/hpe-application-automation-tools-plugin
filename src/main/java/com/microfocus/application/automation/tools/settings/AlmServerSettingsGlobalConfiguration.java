@@ -77,14 +77,6 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-        // To persist global configuration information,
-        // set that to properties and call save().
-        // useFrench = formData.getBoolean("useFrench");
-        // ^Can also use req.bindJSON(this, formData);
-        // (easier when there are many fields; need set* methods for this,
-        // like setUseFrench)
-        // req.bindParameters(this, "locks.");
-
         List<AlmServerSettingsModel> models = new ArrayList<>();
         JSONArray jsonArray = new JSONArray();
 
@@ -178,7 +170,7 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         }
 
         // Does the URL ends with a "/" ? if not, add it
-        if (value.lastIndexOf("/") == value.length() - 1) {
+        if (value.lastIndexOf('/') == value.length() - 1) {
             url = value + page;
         } else {
             url = value + "/" + page;
@@ -222,6 +214,7 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         return FormValidation.ok();
     }
 
+    @SuppressWarnings("unused")
     private FormValidation doCheckAlmCredentials(@QueryParameter List<CredentialsModel> almCredentials) {
         if (almCredentials.isEmpty()) {
             return FormValidation.error("Am server does not have credentials defined");

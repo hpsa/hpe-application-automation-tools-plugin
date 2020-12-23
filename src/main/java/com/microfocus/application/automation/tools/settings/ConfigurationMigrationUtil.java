@@ -15,6 +15,10 @@ public class ConfigurationMigrationUtil {
 
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(ConfigurationMigrationUtil.class);
 
+    private ConfigurationMigrationUtil(){
+        //codacy : Add a private constructor to hide the implicit public one.
+    }
+
     public static void migrateConfigurationFileIfRequired(XmlFile xmlFile, String oldFileName, String oldRootElementName, String newRootElementName) {
         if (!xmlFile.exists()) {
             //try to get from old path

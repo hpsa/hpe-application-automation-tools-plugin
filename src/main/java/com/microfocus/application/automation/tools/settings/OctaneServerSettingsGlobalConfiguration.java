@@ -341,7 +341,7 @@ public class OctaneServerSettingsGlobalConfiguration extends GlobalConfiguration
                 listener.onChanged(newConf, oldConf);
             } catch (ThreadDeath t) {
                 throw t;
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 logger.warn(t);
             }
         }
