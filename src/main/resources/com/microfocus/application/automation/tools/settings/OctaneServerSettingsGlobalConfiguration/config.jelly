@@ -74,19 +74,15 @@
                         </f:entry>
 
                         <f:advanced>
-                            <tr>
-                                <td class="setting-leftspace" colspan="3">
-                                    <div style="">
-                                        <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}" field="suspend"/>
-                                        <label>&#160; Disable configuration (Stop sending all data to ALM Octane) </label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <f:optionalBlock name="showIdentity" field="showIdentity" title="${%global.config.dynamic.instanceId.title}" >
-                                <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
-                                    <f:textbox value="${mqm.identity}" />
-                                </f:entry>
-                            </f:optionalBlock>
+                        <f:section title="Advanced">
+                            <f:entry title="Disable configuration" description="If selected - no data is sent to ALM Octane">
+                                <f:checkbox name="suspend" checked="${mqm.suspend}"/>
+                            </f:entry>
+
+                            <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
+                                <f:textbox value="${mqm.identity}" />
+                            </f:entry>
+
 
                             <f:entry/>
                              <f:entry title="${%global.config.workspaceConf.title}" field="workspace2ImpersonatedUserConf" description="${%global.config.workspaceConf.description}">
@@ -96,7 +92,7 @@
                               <f:entry title="${%global.config.parameters.title}" field="parameters" description="${%global.config.parameters.description}">
                                  <f:textarea  class="vertical-resizable"  value="${mqm.parameters}"/>
                               </f:entry>
-
+                        </f:section>
                        </f:advanced>
 
                         <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"

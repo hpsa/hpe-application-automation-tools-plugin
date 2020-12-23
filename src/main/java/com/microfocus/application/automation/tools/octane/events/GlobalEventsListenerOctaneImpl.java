@@ -39,7 +39,7 @@ import com.microfocus.application.automation.tools.octane.configuration.SDKBased
 import com.microfocus.application.automation.tools.octane.executor.UftTestDiscoveryDispatcher;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import com.microfocus.application.automation.tools.settings.OctaneServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.OctaneServerSettingsGlobalConfiguration;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
@@ -68,7 +68,7 @@ public class GlobalEventsListenerOctaneImpl extends ItemListener {
 		logger.info("Plugin version " + ConfigurationService.getPluginVersion());
 		logger.info("CI SDK version " + OctaneSDK.SDK_VERSION);
 
-		OctaneServerSettingsBuilder.getOctaneSettingsManager().initOctaneClients();
+		OctaneServerSettingsGlobalConfiguration.getInstance().initOctaneClients();
 	}
 
 	@Override
