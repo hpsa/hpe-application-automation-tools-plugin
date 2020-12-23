@@ -603,13 +603,11 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
                         string strTimeoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        //ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+ strTimoutInMinutes);
                         if (strTimeoutInMinutes.Trim() != "-1")
                         {
                             int intTimoutInMinutes = 0;
                             if (int.TryParse(strTimeoutInMinutes, out intTimoutInMinutes))
                                 perScenarioTimeOutMinutes = TimeSpan.FromMinutes(intTimoutInMinutes);
-                            //ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
                         }
                     }
                     ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
@@ -785,9 +783,23 @@ namespace HpToolsLauncher
                     string reportPath = null;
                     if (_ciParams.ContainsKey("fsReportPath"))
                     {
-                        reportPath = _ciParams["fsReportPath"];
-                    }
+                        if (Directory.Exists(_ciParams["fsReportPath"]))
+                        {   //path is not parameterized
+                            reportPath = _ciParams["fsReportPath"];
+                        }
+                        else 
+                        {   //path is parameterized
+                            string fsReportPath = _ciParams["fsReportPath"];
 
+                            //get parameter name
+                            fsReportPath = fsReportPath.Trim(new Char[] { ' ', '$', '{', '}' });
+                            
+                            //get parameter value
+                            reportPath = jenkinsEnvVariables[fsReportPath.Trim(new Char[] { ' ', '\t' })];
+                            reportPath = jenkinsEnvVariables[fsReportPath];
+                        }
+                    }
+                   
                     SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
                     List<ScriptRTSModel> scriptRTSSet = GetScriptRtsSet();
                     if (_ciParams.ContainsKey("fsUftRunMode"))
