@@ -33,7 +33,7 @@ import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
-import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
@@ -970,8 +970,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @JavaScriptMethod
         public String getMcServerUrl(String serverName) {
             String serverUrl = "";
-            MCServerSettingsModel[] servers = Jenkins.get().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+            MCServerSettingsModel[] servers = MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
             for (MCServerSettingsModel mcServer : servers) {
                 if (mcServer.getMcServerName().equals(serverName)) {
                     serverUrl = mcServer.getMcServerUrl();
@@ -1039,8 +1038,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @SuppressWarnings("squid:S2259")
         public boolean hasMCServers() {
-            return Jenkins.get().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
+            return MCServerSettingsGlobalConfiguration.getInstance().hasMCServers();
         }
 
         /**
@@ -1051,8 +1049,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
 
         public MCServerSettingsModel[] getMcServers() {
-            return Jenkins.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+            return MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
 
         /**
