@@ -40,7 +40,7 @@ import com.microfocus.application.automation.tools.results.service.AlmRestInfo;
 import com.microfocus.application.automation.tools.results.service.AlmRestTool;
 import com.microfocus.application.automation.tools.results.service.ExternalEntityUploadLogger;
 import com.microfocus.application.automation.tools.results.service.IExternalEntityUploadService;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -349,8 +349,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     }
 
     private String getAlmServerUrl(String almServerName) {
-        AlmServerSettingsModel[] almServers = Hudson.getInstance().getDescriptorByType(
-                AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
+        AlmServerSettingsModel[] almServers = AlmServerSettingsGlobalConfiguration.getInstance().getInstallations();
         if(almServers != null && almServers.length >0) {
             for(AlmServerSettingsModel almServerModel: almServers) {
                 if(almServerName.equalsIgnoreCase(almServerModel.getAlmServerName())) {
@@ -425,13 +424,11 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         }
 
         public boolean hasAlmServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
+            return AlmServerSettingsGlobalConfiguration.getInstance().hasAlmServers();
         }
 
         public AlmServerSettingsModel[] getAlmServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
+            return AlmServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
 
         public FormValidation doCheckAlmUserName(@QueryParameter String value) {

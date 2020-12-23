@@ -32,7 +32,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.Extension;
 import hudson.FilePath;
@@ -71,7 +71,7 @@ public class MigrateAlmCredentialsBuilder extends Recorder implements Serializab
     public static void scanJobs(TaskListener listener) {
         List<Project> jobs = Jenkins.getInstanceOrNull().getAllItems(Project.class);
 
-        List<AlmServerSettingsModel> models = Arrays.asList(Jenkins.getInstanceOrNull().getDescriptorByType(AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations());
+        List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
 
         Multimap<String , String> serverUsernames = ArrayListMultimap.create();
         Multimap<String , String> serverClientIds = ArrayListMultimap.create();
@@ -123,7 +123,7 @@ public class MigrateAlmCredentialsBuilder extends Recorder implements Serializab
     }
 
     public Boolean isMigrationDone(){
-        List<AlmServerSettingsModel> models = Arrays.asList(Jenkins.getInstanceOrNull().getDescriptorByType(AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations());
+        List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
         for(AlmServerSettingsModel model : models){
             if (model != null && (!model.getAlmCredentials().isEmpty() || !model.getAlmSSOCredentials().isEmpty())) {
                 return true;

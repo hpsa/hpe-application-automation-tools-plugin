@@ -43,12 +43,11 @@ import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.CdaDetails;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.SseModel;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testcase;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
-import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
@@ -400,13 +399,11 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 
         public boolean hasAlmServers() {
 
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
+            return AlmServerSettingsGlobalConfiguration.getInstance().hasAlmServers();
         }
 
         public AlmServerSettingsModel[] getAlmServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
+            return AlmServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
 
         public FormValidation doCheckTimeslotDuration(@QueryParameter String value) {

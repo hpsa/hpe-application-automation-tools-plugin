@@ -55,7 +55,6 @@
 
             <f:entry>
                  <f:repeatable var="credentials" items="${inst.almCredentials}" add="Add credentials">
-                    <table>
                          <f:entry title="ALM Username" field="almUsername">
                             <f:textbox value="${credentials.almUsername}" name="almUsername" />
                         </f:entry>
@@ -69,13 +68,11 @@
                                 <f:repeatableDeleteButton value="Delete credentials" />
                             </div>
                         </f:entry>
-                    </table>
                  </f:repeatable>
              </f:entry>
 
            <f:entry>
               <f:repeatable var="ssoCredentials" items="${inst.almSSOCredentials}" add="Add SSO credentials">
-                 <table>
                       <f:entry title="ALM Client ID" field="almClientID">
                          <f:textbox value="${ssoCredentials.almClientID}" name="almClientID" />
                      </f:entry>
@@ -89,7 +86,6 @@
                              <f:repeatableDeleteButton value="Delete  SSO credentials" />
                          </div>
                      </f:entry>
-                 </table>
               </f:repeatable>
           </f:entry>
 
