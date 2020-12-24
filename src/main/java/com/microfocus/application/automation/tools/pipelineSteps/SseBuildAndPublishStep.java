@@ -36,7 +36,7 @@ import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
 import com.microfocus.application.automation.tools.run.SseBuilder;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.model.CdaDetails;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
@@ -198,13 +198,11 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
 
         public boolean hasAlmServers() {
 
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
+            return AlmServerSettingsGlobalConfiguration.getInstance().hasAlmServers();
         }
 
         public AlmServerSettingsModel[] getAlmServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
+            return AlmServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
 
         public FormValidation doCheckTimeslotDuration(@QueryParameter String value) {

@@ -31,7 +31,7 @@ package com.microfocus.application.automation.tools.sv.runner;
 import javax.annotation.Nonnull;
 
 import com.microfocus.application.automation.tools.model.SvServerSettingsModel;
-import com.microfocus.application.automation.tools.settings.SvServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.SvServerSettingsGlobalConfiguration;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -59,8 +59,7 @@ public abstract class AbstractSvRunDescriptor extends BuildStepDescriptor<Builde
     }
 
     public SvServerSettingsModel[] getServers() {
-        Jenkins jenkins = Jenkins.getInstance();
-        return jenkins.getDescriptorByType(SvServerSettingsBuilder.DescriptorImpl.class).getServers();
+        return SvServerSettingsGlobalConfiguration.getInstance().getServers();
     }
 
     @SuppressWarnings("unused")

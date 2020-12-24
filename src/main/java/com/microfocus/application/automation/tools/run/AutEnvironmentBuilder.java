@@ -37,7 +37,7 @@ import java.util.List;
 import com.microfocus.application.automation.tools.model.AUTEnvironmentResolvedModel;
 import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.AutEnvironmentModel;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.sse.autenvironment.AUTEnvironmentBuilderPerformer;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import com.microfocus.application.automation.tools.sse.sdk.Logger;
@@ -209,9 +209,7 @@ public class AutEnvironmentBuilder extends Builder {
         }
 
         public AlmServerSettingsModel[] getAlmServers() {
-
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
+            return AlmServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
 
     }

@@ -28,12 +28,10 @@
 
 package com.microfocus.application.automation.tools.run;
 
-import com.cloudbees.groovy.cps.impl.ListBlock;
 import com.microfocus.application.automation.tools.model.*;
-import com.microfocus.application.automation.tools.octane.JellyUtils;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
-import com.microfocus.application.automation.tools.settings.AlmServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -419,13 +417,12 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
 
         public boolean hasAlmServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    AlmServerSettingsBuilder.DescriptorImpl.class).hasAlmServers();
+            return AlmServerSettingsGlobalConfiguration.getInstance().hasAlmServers();
         }
         
         public Set<AlmServerSettingsModel> getAlmServers() {
             Set<AlmServerSettingsModel> almServers = new HashSet<>();
-            for (AlmServerSettingsModel almServer : Jenkins.getInstanceOrNull().getDescriptorByType(AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations())
+            for (AlmServerSettingsModel almServer : AlmServerSettingsGlobalConfiguration.getInstance().getInstallations())
             {
                 almServers.add(almServer);
             }
@@ -434,7 +431,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
         public Set<String> getAlmServerNames(){
             Set<String> almServers = new HashSet<>();
-            for (AlmServerSettingsModel almServer : Hudson.getInstance().getDescriptorByType(AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations())
+            for (AlmServerSettingsModel almServer : AlmServerSettingsGlobalConfiguration.getInstance().getInstallations())
             {
                 almServers.add(almServer.getAlmServerName());
             }

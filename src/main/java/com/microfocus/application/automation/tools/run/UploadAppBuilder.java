@@ -33,7 +33,7 @@ import com.microfocus.application.automation.tools.model.MCServerSettingsModel;
 import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.model.UploadAppModel;
 import com.microfocus.application.automation.tools.model.UploadAppPathModel;
-import com.microfocus.application.automation.tools.settings.MCServerSettingsBuilder;
+import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.Extension;
 import hudson.Launcher;
@@ -199,13 +199,11 @@ public class UploadAppBuilder extends Builder {
         }
 
         public boolean hasMCServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
+            return MCServerSettingsGlobalConfiguration.getInstance().hasMCServers();
         }
 
         public MCServerSettingsModel[] getMcServers() {
-            return Hudson.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+            return MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
     }
 }

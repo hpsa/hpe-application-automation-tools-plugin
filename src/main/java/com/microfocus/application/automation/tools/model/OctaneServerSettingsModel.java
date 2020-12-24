@@ -120,10 +120,8 @@ public class OctaneServerSettingsModel implements Serializable {
         return identity;
     }
 
+    @DataBoundSetter
     public void setIdentity(String identity) {
-        if (StringUtils.isEmpty(identity)) {
-            throw new IllegalArgumentException("Empty identity is not allowed");
-        }
         this.identity = StringUtils.trim(identity);
         this.setIdentityFrom(new Date().getTime());
     }
