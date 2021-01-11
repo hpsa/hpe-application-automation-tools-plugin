@@ -102,7 +102,24 @@ public class RunUploader {
             Map<String, String> updateRun = new HashMap<>();
             updateRun.put(AlmCommonProperties.ID, createdRun.get(AlmCommonProperties.ID));
             updateRun.put(AlmRun.RUN_STATUS, runstatus);
-            restService.update(RUN_PREFIX, updateRun);
+
+            // Retry update run status 3 times. For some ALM server may has limited DB connections then the update may fail.
+            // Added here because only here uses RestService.update.
+            // Otherwise the retry could be in RestService.update or UpdateAlmEntityEntityRequest.perform
+            // depends on whether the result would be changed if update multiple times.
+            // But this should be fixed at ALM server side to larger the connection number I think.
+
+            Map<String, String> updateResult = restService.update(RUN_PREFIX, updateRun);
+            if (updateResult == null) {
+                for (int i = 0; i < 3; i++) {
+                    if (updateResult == null) {
+                        updateResult = restService.update(RUN_PREFIX, updateRun);
+                    } else {
+                        break;
+                    }
+                }
+            }
+
         } else {
             restService.create(RUN_PREFIX, run);
         }
