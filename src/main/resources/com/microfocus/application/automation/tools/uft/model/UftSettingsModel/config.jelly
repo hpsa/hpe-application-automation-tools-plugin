@@ -41,36 +41,40 @@
             background-size: 65px;
             width: 65px;
             margin-left: 20px;
-            height:40px;
+            height:35px;
         }
 
         #copyPasteBtn {
             background-image: url("${rootURL}/plugin/hp-application-automation-tools-plugin/icons/uft_icons/copy_paste.png");
             background-size: 65px;
             width: 65px;
-            height: 40px;
+            height: 35px;
+            margin-left: 10px;
+        }
+
+        LABEL.attach-previous {
+            margin-left: 0 !important;
+        }
+
+        #checkBox1 {
             margin-left: 10px;
         }
     </style>
 
     <f:entry>
-        <f:entry>
-           <f:checkbox id="checkBox1" title="On failure" field="onCheckFailedTest" name="onCheckFailedTest" class="checbox-align" checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
-           <f:entry field="fsTestType">
-                <select name="fsTestType" style="width: 250px;" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
-                    <j:forEach var="testType" items="${descriptor.fsTestTypes}">
-                        <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
-                            ${testType.description}
-                        </f:option>
-                    </j:forEach>
-                </select>
-            </f:entry>
-        </f:entry>
 
+       <f:entry title="Choose to" field="fsTestType">
+            <select name="fsTestType" style="width: 250px;" disabled="${onCheckFailedTest.checked}" onchange="selectValueCombo(this)">
+                <j:forEach var="testType" items="${descriptor.fsTestTypes}">
+                    <f:option selected="${testType.value == instance.fsTestType}" value="${testType.value}">
+                        ${testType.description}
+                    </f:option>
+                </j:forEach>
+            </select>
+             <f:checkbox id="checkBox1" title="On failure scenario" field="onCheckFailedTest" name="onCheckFailedTest"  checked="${instance.onCheckFailedTest}" onclick="enableCombobox(this)"/>
+       </f:entry>
 
-    <f:entry>
-        <label>Nodes</label>
-        <f:entry field="selectedNode">
+       <f:entry name="selectedNode" title="Nodes" field="selectedNode">
             <select name="selectedNode" style="width: 150px;">
                 <j:forEach var="node" items="${descriptor.nodes}">
                     <f:option selected="${node==instance.selectedNode}" value="${node}">
@@ -78,29 +82,21 @@
                     </f:option>
                 </j:forEach>
             </select>
-        </f:entry>
-    </f:entry>
-
-        <f:entry>
-             <label class="attach-previous">Reruns:</label>
-
-             <f:entry field="numberOfReruns">
-                 <f:number name="numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; float: left;"/>
-
-                  <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" style="margin-top: 5px; float: left;" onclick="clearRerunSettings()"/>
-
-                  <label id="clear" style="margin-right: 5px; margin-left: 5px; margin-top: 5px; float: left;">Clear |</label>
-
-                  <input type="button" id="copyPasteBtn" style="float: left;" title="Copy the rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
-            </f:entry>
-        </f:entry>
+       </f:entry>
 
 
-        <f:entry>
-            <label id="cleanupTestLabel">Cleanup test: </label>
-            <f:entry field="cleanupTest">
-                <f:textbox name="uftSettingsModel.cleanupTest" value="${instance.cleanupTest}" style="width: 100%"/>
-            </f:entry>
+       <f:entry title="Reruns" field="numberOfReruns">
+            <f:number name="numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px; float: left;"/>
+
+            <input type="button" id="clearBtn" title="Clear all the rerun settings applied on tests" style="float: left;" onclick="clearRerunSettings()"/>
+
+            <label id="clear" style="margin-right: 5px; margin-left: 5px; margin-top: 5px; float: left;">Clear |</label>
+
+            <input type="button" id="copyPasteBtn" style="float: left;" title="Copy the rerun settings for the selected tests" onclick="copyPasteRerunSettings()" />
+       </f:entry>
+
+        <f:entry title="Cleanup test" field="cleanupTest">
+            <f:textbox name="uftSettingsModel.cleanupTest" value="${instance.cleanupTest}" style="width: 100%"/>
         </f:entry>
 
         <f:entry>

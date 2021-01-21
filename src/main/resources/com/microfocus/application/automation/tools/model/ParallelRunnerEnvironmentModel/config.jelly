@@ -36,26 +36,19 @@
         div[name="parallelRunnerEnvironments"] {
             background-color: inherit !important;
         }
-
-        input[type=radio] { top : 0 !important; }
     </style>
-
-    <script type="text/javascript">
-
-    </script>
 
     <f:entry>
         <!-- Are we running on web or mobile? -->
-        <div style="display:flex;flex-direction:row;margin-bottom: 5px;">
+        <div style="display:-webkit-inline-box; margin-bottom: 5px;">
             <div title="Environment " class="environment-title" style="margin-right: 5px;">Environment </div>
-
             <f:radio field="environmentType" name="environmentType"
                           value="Mobile" checked="${instance.environmentType == 'Mobile'}"
-                     title="Mobile" inline="true" style="margin-right: 15px;top:0;" class="customRadio"/>
+                     title="Mobile" inline="true" style="margin-right: 15px;" class="customRadio"/>
 
             <f:radio field="environmentType" name="environmentType"
                           value="Web" checked="${instance.environmentType == 'Web' || instance.environmentType == null}"
-                     title="Web" inline="true" style="margin-left:15px;top:0;" class="customRadio"/>
+                     title="Web" inline="true" style="margin-left: 15px;" class="customRadio"/>
         </div>
 
         <div class="myDiv" style="display:flex;flex-direction:row">

@@ -89,38 +89,45 @@
              margin-bottom: 10px;
         }
 
+        .info {
+            margin-left: -15px;
+        }
     </style>
 
 	<j:if test="${empty(descriptor.almServers)}">
-		<tr>
-      <td/>
-      <td colspan="2">
-        <div class="help" style="display:block;">
-          ${%AlmServersAreNotDefined}
-        </div>
-      </td>
-      <td/>
-    </tr>  
+        <tr>
+          <td/>
+          <td colspan="2">
+            <div class="help" style="display:block; margin-left: -10px;">
+              ${%AlmServersAreNotDefined}
+            </div>
+          </td>
+          <td/>
+        </tr>
 	</j:if>
 
     <tr>
       <td/>
       <td colspan="2">
-        <div class="help" style="display:block;">
+        <div class="help" style="display:block; margin-left: -10px;">
           ${%DontForgetThePublisher}
         </div>
       </td>
       <td/>
     </tr>
 
-
-        <f:entry>
-            <div class="info">
-                The credentials for "Run from ALM" tasks have been moved to Jenkins Configure System page. In order to update them please create a new project, add as a
-                "Post build action" in the configuration page the action called "Migrate ALM Credentials" and run the job.
-                In case migration process was accomplised, please add/edit credentials in global configuration page.
+    <tr>
+        <td/>
+        <td colspan="2">
+            <div class="help" style="display:block; margin-left: -10px;">
+                The credentials for <b>"Run from ALM"</b> tasks have been moved to <b>Jenkins Configure System</b> page. In order to update them please create a new project, add as a
+                <b>"Post build action"</b> in the configuration page the action called <b>"Migrate ALM Credentials"</b> and run the job.
+                In case migration process was accomplished, please add/edit credentials in global configuration page.
             </div>
-        </f:entry>
+        </td>
+        <td/>
+    </tr>
+
 
         <f:entry field="almServerName">
           <label>ALM server</label>
