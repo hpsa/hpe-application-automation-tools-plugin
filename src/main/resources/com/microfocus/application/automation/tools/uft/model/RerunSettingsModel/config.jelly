@@ -29,26 +29,28 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
+     <style>
+        .test-class {
+            margin-left: 10px;
+        }
+     </style>
+
     <f:entry>
-        <f:entry>
-            <f:checkbox title="Test" field="checked" name="rerunSettingsModels.checked" style="width: 30px; top: -20px;"/>
-            <f:entry field="test">
-                <f:textbox name="rerunSettingsModels.test" value="${instance.test}" style="width: 85%;" />
-            </f:entry>
+
+        <f:entry title="Test" field="test">
+            <f:textbox name="rerunSettingsModels.test" value="${instance.test}" style="width: 85%;" />
+            <f:checkbox field="checked" name="rerunSettingsModels.checked" class="test-class"/>
         </f:entry>
 
-        <f:entry field="numberOfReruns">
-            <label class="attach-previous">Reruns:</label>
-            <f:entry>
-                <f:number name="rerunSettingsModels.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px;"/>
-            </f:entry>
+
+        <f:entry title="Reruns" field="numberOfReruns">
+            <f:number name="rerunSettingsModels.numberOfReruns" value="${instance.numberOfReruns}" default="0" style="width: 60px;"/>
         </f:entry>
 
-        <f:entry>
-            <label class="attach-previous" style="margin-right: 2px;">Cleanup test:</label>
-            <f:entry>
-                <f:textbox field="cleanupTest" name="rerunSettingsModels.cleanupTest" value="${instance.cleanupTest}" style="width: 85%;"/>
-            </f:entry>
+
+        <f:entry title="Cleanup test" field="cleanupTest">
+            <f:textbox field="cleanupTest" name="rerunSettingsModels.cleanupTest" value="${instance.cleanupTest}" style="width: 85%;"/>
         </f:entry>
+
     </f:entry>
 </j:jelly>
