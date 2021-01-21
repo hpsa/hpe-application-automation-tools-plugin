@@ -26,22 +26,21 @@
  * ___________________________________________________________________
  */
 document.addEventListener('DOMContentLoaded', function() {
+
     var checkbox1 = document.getElementById('checkBox1');
 
-    if(checkbox1.checked){
-         document.getElementsByName("fsTestType")[0].disabled = false;
-         document.getElementsByName("selectedNode")[0].disabled = false;
+    if (checkbox1.checked) {
+        document.getElementsByName("fsTestType")[0].disabled = false;
+        document.getElementsByName("selectedNode")[0].disabled = false;
 
-    }else{
+    } else {
         document.getElementsByName("fsTestType")[0].disabled = true;
         document.getElementsByName("selectedNode")[0].disabled = true;
     }
 
-
-
     var selectIndex = document.getElementsByName("fsTestType")[0].selectedIndex;
     var selectValue = document.getElementsByName("fsTestType")[0].options[selectIndex].text;
-    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+    if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
         selectCleanupTest("none");
     } else {
         selectCleanupTest("block");
@@ -49,62 +48,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
 }, false);
 
-function useAuthentication(obj){
-    if(obj.checked){
-        document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled=null;
-        document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled=null;
-    }else{
-        document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled="true";
-        document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled="true";
-    }
-}
-
-function enableCombobox(object){
-    if (object.checked){
-        document.getElementsByName("fsTestType")[0].disabled = false;
-        document.getElementsByName("selectedNode")[0].disabled = false;
-        document.getElementById("checkBox2").disabled=false;
-    } else {
-        document.getElementsByName("fsTestType")[0].disabled = true;
-        document.getElementsByName("selectedNode")[0].disabled = true;
-        document.getElementById("checkBox2").disabled=true;
-    }
-}
-
-function fileSelected(input){
-    var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
-    var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
-    if(selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
-        document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
-    } else {
-        addCleanupTest(input.files[0].name);
-    }
-}
-
-function selectCleanupTest(displayStyle) {
-    document.getElementById('clearBtn').style.display = displayStyle;
-    document.getElementById('clear').style.display = displayStyle;
-    document.getElementById('copyPasteBtn').style.display = displayStyle;
-    document.getElementById('infoMessage').style.display = displayStyle;
-    document.getElementById('testsTable').style.display = displayStyle;
-}
-
-function selectValueCombo(selectObj) {
-
-    var selectIndex = selectObj.selectedIndex;
-    var selectValue = selectObj.options[selectIndex].text;
-
-    if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
-        selectCleanupTest("none");
-    } else {
-        selectCleanupTest("block");
-
-        if (selectValue === "Of any of the build's tests") {
-            selectCleanupTest("hidden");
-            document.getElementById("checkBox2").disabled = false;
+    function useAuthentication(obj) {
+        if (obj.checked) {
+            document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled = null;
+            document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled = null;
         } else {
-            selectCleanupTest("visible");
-            document.getElementById("checkBox2").disabled = true;
+            document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled = "true";
+            document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled = "true";
+        }
+    }
+
+    function enableCombobox(object) {
+        if (object.checked) {
+            document.getElementsByName("fsTestType")[0].disabled = false;
+            document.getElementsByName("selectedNode")[0].disabled = false;
+            //document.getElementById("checkBox2").disabled=false;
+        } else {
+            document.getElementsByName("fsTestType")[0].disabled = true;
+            document.getElementsByName("selectedNode")[0].disabled = true;
+            //document.getElementById("checkBox2").disabled=true;
+        }
+    }
+
+    function fileSelected(input) {
+        var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
+        var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
+        if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+            document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
+        } else {
+            addCleanupTest(input.files[0].name);
+        }
+    }
+
+    function selectCleanupTest(displayStyle) {
+        document.getElementById('clearBtn').style.display = displayStyle;
+        document.getElementById('clear').style.display = displayStyle;
+        document.getElementById('copyPasteBtn').style.display = displayStyle;
+        document.getElementById('infoMessage').style.display = displayStyle;
+        document.getElementById('testsTable').style.display = displayStyle;
+    }
+
+    function selectValueCombo(selectObj) {
+
+        var selectIndex = selectObj.selectedIndex;
+        var selectValue = selectObj.options[selectIndex].text;
+
+        if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+            selectCleanupTest("none");
+        } else {
+            selectCleanupTest("block");
+
+            if (selectValue === "Of any of the build's tests") {
+                selectCleanupTest("hidden");
+                //document.getElementById("checkBox2").disabled = false;
+            } else {
+                selectCleanupTest("visible");
+                // document.getElementById("checkBox2").disabled = true;
+            }
         }
     }
 
@@ -146,7 +146,6 @@ function selectValueCombo(selectObj) {
     }
 
     function clearRerunSettings() {
-        alert("clear");
         var checkBoxes = document.getElementsByName("rerunSettingsModels.checked");
         checkBoxes.forEach(function (element) {
             element.checked = false;
@@ -162,7 +161,8 @@ function selectValueCombo(selectObj) {
             element.value = "";
         });
     }
-}
+
+
 
 
 
