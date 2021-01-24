@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.executor.scmmanager;
 
+import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -35,14 +36,13 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.EnvVars;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
-import hudson.model.Job;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.plugins.git.*;
 import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
 import hudson.scm.SCM;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.gitclient.Git;
@@ -55,85 +55,129 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GitPluginHandler implements ScmPluginHandler {
-	private static final Logger logger = SDKBasedLoggerProvider.getLogger(GitPluginHandler.class);
+    private static final Logger logger = SDKBasedLoggerProvider.getLogger(GitPluginHandler.class);
 
-	@Override
-	public void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException {
+    @Override
+    public void setScmRepositoryInJob(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj, boolean executorJob) throws IOException {
 
-		List<UserRemoteConfig> repoLists = Collections.singletonList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
-		List<GitSCMExtension> extensions = null;
+        List<UserRemoteConfig> repoLists = Collections.singletonList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
+        List<GitSCMExtension> extensions = null;
 
-		if (executorJob) {
-			String relativeCheckOut = "..\\..\\_test_sources\\" + scmRepository.getUrl().replaceAll("[<>:\"/\\|?*]", "_");
-			RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
-			extensions = Collections.singletonList(targetDirectory);
-		}
+        if (executorJob) {
+            String pathPrefix = "";//its required if job is created in some folder
+            ItemGroup parent = proj.getParent();
+            while (Jenkins.get() != null && !parent.equals(Jenkins.get())) {
+                pathPrefix += "..\\";
+                if (parent instanceof Folder) {
+                    parent = ((Folder) parent).getParent();
+                } else {
+                    break;
+                }
+            }
+            String repoName = buildRepoName(scmRepository.getUrl());
 
-		String branch = "*/master";
-		if (proj.getScm() != null && proj.getScm() instanceof GitSCM) {
-			List<BranchSpec> branches = ((GitSCM) proj.getScm()).getBranches();
-			if (branches.size() > 0) {
-				String existingBrName = branches.get(0).getName();
-				boolean emptyBrName = (existingBrName == null || existingBrName.isEmpty() || existingBrName.equals("**"));
-				if (!emptyBrName) {
-					branch = existingBrName;
-				}
-			}
-		}
+            String relativeCheckOut = pathPrefix + "..\\..\\_test_sources\\" + repoName;
+            RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
+            extensions = Collections.singletonList(targetDirectory);
+        }
 
-		GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.emptyList(), null, null, extensions);
-		proj.setScm(scm);
-	}
+        String branch = "*/master";
+        if (proj.getScm() != null && proj.getScm() instanceof GitSCM) {
+            List<BranchSpec> branches = ((GitSCM) proj.getScm()).getBranches();
+            if (branches.size() > 0) {
+                String existingBrName = branches.get(0).getName();
+                boolean emptyBrName = (existingBrName == null || existingBrName.isEmpty() || existingBrName.equals("**"));
+                if (!emptyBrName) {
+                    branch = existingBrName;
+                }
+            }
+        }
 
-	@Override
-	public String getSharedCheckOutDirectory(Job j) {
-		SCM scm = ((AbstractProject) j).getScm();
+        GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.emptyList(), null, null, extensions);
+        proj.setScm(scm);
+    }
 
-		GitSCM gitScm = (GitSCM) scm;
-		RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
-		if (sharedCheckOutDirectory != null) {
-			return sharedCheckOutDirectory.getRelativeTargetDir();
-		}
-		return null;
-	}
+    private String buildRepoName(String scmRepoUrl) {
+        String temp = scmRepoUrl.replaceAll("[<>:\"/\\|?*]", "_").trim();
+        String GIT_SUFFIX = ".git";
+        String HTTP_PREFIX = "http_";
+        String HTTPS_PREFIX = "https_";
+        String GIT_PREFIX = "git@";
 
-	@Override
-	public void checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, StandardCredentials credentials, OctaneResponse result) {
+        //remove .git from end
+        if (temp.toLowerCase().endsWith(GIT_SUFFIX)) {
+            temp = temp.substring(0, temp.length() - GIT_SUFFIX.length());
+        }
+        //remove git_,https_,http_ from beginning
+        if (temp.toLowerCase().startsWith(GIT_PREFIX)) {
+            temp = temp.substring(GIT_PREFIX.length());
+        } else if (temp.toLowerCase().startsWith(HTTPS_PREFIX)) {
+            temp = temp.substring(HTTPS_PREFIX.length());
+        } else if (temp.toLowerCase().startsWith(HTTP_PREFIX)) {
+            temp = temp.substring(HTTP_PREFIX.length());
+        }
+        temp = StringUtils.strip(temp, "_");
 
-		try {
-			EnvVars environment = new EnvVars(System.getenv());
-			GitClient git = Git.with(TaskListener.NULL, environment).using(GitTool.getDefaultInstallation().getGitExe()).getClient();
-			git.addDefaultCredentials(credentials);
-			git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
+        //restrict size by
+        int CHECK_SIZE = 40;
+        int SPLIT_SIZE = CHECK_SIZE - 4;
+        if (temp.length() > CHECK_SIZE) {
+            String split1 = temp.substring(0, temp.length() - SPLIT_SIZE);
+            String split2 = temp.substring(temp.length() - SPLIT_SIZE);
+            temp = "_" + Math.abs(split1.hashCode() % 1000) + split2;
+        }
+        return temp;
+    }
 
-			result.setStatus(HttpStatus.SC_OK);
+    @Override
+    public String getSharedCheckOutDirectory(Job j) {
+        SCM scm = ((AbstractProject) j).getScm();
 
-		} catch (IOException | InterruptedException e) {
-			logger.error("Failed to connect to git : " + e.getMessage());
-			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-			result.setBody(e.getMessage());
-		} catch (GitException e) {
-			logger.error("Failed to execute getHeadRev : " + e.getMessage());
-			result.setStatus(HttpStatus.SC_NOT_FOUND);
-			result.setBody(e.getMessage());
-		}
+        GitSCM gitScm = (GitSCM) scm;
+        RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
+        if (sharedCheckOutDirectory != null) {
+            return sharedCheckOutDirectory.getRelativeTargetDir();
+        }
+        return null;
+    }
 
-	}
+    @Override
+    public void checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, StandardCredentials credentials, OctaneResponse result) {
 
-	@Override
-	public String getScmRepositoryUrl(SCM scm) {
-		return ((GitSCM) scm).getUserRemoteConfigs().get(0).getUrl();
-	}
+        try {
+            EnvVars environment = new EnvVars(System.getenv());
+            GitClient git = Git.with(TaskListener.NULL, environment).using(GitTool.getDefaultInstallation().getGitExe()).getClient();
+            git.addDefaultCredentials(credentials);
+            git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
 
-	@Override
-	public String getScmRepositoryCredentialsId(SCM scm) {
-		return ((GitSCM) scm).getUserRemoteConfigs().get(0).getCredentialsId();
-	}
+            result.setStatus(HttpStatus.SC_OK);
 
-	@Override
-	public SCMType getScmType() {
-		return SCMType.GIT;
-	}
+        } catch (IOException | InterruptedException e) {
+            logger.error("Failed to connect to git : " + e.getMessage());
+            result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            result.setBody(e.getMessage());
+        } catch (GitException e) {
+            logger.error("Failed to execute getHeadRev : " + e.getMessage());
+            result.setStatus(HttpStatus.SC_NOT_FOUND);
+            result.setBody(e.getMessage());
+        }
+
+    }
+
+    @Override
+    public String getScmRepositoryUrl(SCM scm) {
+        return ((GitSCM) scm).getUserRemoteConfigs().get(0).getUrl();
+    }
+
+    @Override
+    public String getScmRepositoryCredentialsId(SCM scm) {
+        return ((GitSCM) scm).getUserRemoteConfigs().get(0).getCredentialsId();
+    }
+
+    @Override
+    public SCMType getScmType() {
+        return SCMType.GIT;
+    }
 
     @Override
     public String tryExtractUrlShortName(String url) {
