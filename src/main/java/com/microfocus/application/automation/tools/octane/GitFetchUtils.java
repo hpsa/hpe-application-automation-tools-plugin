@@ -29,14 +29,18 @@ public class GitFetchUtils {
         //codacy recommendation : Add a private constructor to hide the implicit public one.
     }
 
-    public static String getFormattedDate(long longTime) {
-        if (updatedDateFormat == null) {
+    /**
+     * Generate date format for template : yyyy-MM-dd HH:mm
+     * @return
+     */
+    public static SimpleDateFormat generateDateFormat() {
+
             SimpleDateFormat temp = new SimpleDateFormat(DATE_TIME_FORMAT);
             TimeZone utc = TimeZone.getTimeZone("UTC");
             temp.setTimeZone(utc);
-            updatedDateFormat = temp;
-        }
-        return updatedDateFormat.format(new Date(longTime));
+            return temp;
+
+
     }
 
     /**

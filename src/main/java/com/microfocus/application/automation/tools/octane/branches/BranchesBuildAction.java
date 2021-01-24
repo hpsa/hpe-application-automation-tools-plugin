@@ -27,6 +27,8 @@ import hudson.model.Action;
 import hudson.model.Run;
 
 import javax.annotation.CheckForNull;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class BranchesBuildAction implements Action {
 
@@ -35,6 +37,8 @@ public class BranchesBuildAction implements Action {
     private final BranchSyncResult branchSyncResult;
     private final String filter;
     private final String repositoryUrl;
+
+    private SimpleDateFormat dateFormat = null;
 
     @CheckForNull
     @Override
@@ -61,7 +65,7 @@ public class BranchesBuildAction implements Action {
         return "branch-report";
     }
 
-    public BranchSyncResult getBranchSyncResult () {
+    public BranchSyncResult getBranchSyncResult() {
         return branchSyncResult;
     }
 
@@ -71,7 +75,10 @@ public class BranchesBuildAction implements Action {
     }
 
     public String getFormattedDate(long longTime) {
-        return GitFetchUtils.getFormattedDate(longTime);
+        if (dateFormat == null) {
+            dateFormat = GitFetchUtils.generateDateFormat();
+        }
+        return dateFormat.format(new Date(longTime));
     }
 
     public String getFilter() {
