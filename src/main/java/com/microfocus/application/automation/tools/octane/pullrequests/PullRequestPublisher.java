@@ -30,10 +30,8 @@ package com.microfocus.application.automation.tools.octane.pullrequests;
 
 import com.cloudbees.plugins.credentials.CredentialsMatcher;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.scm.PullRequest;
@@ -44,10 +42,7 @@ import com.hp.octane.integrations.services.pullrequestsandbranches.factory.Fetch
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.PullRequestFetchParameters;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.ScmTool;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
-import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.BasicAuthenticationStrategy;
-import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.NoCredentialsStrategy;
-import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.PATStrategy;
-import com.microfocus.application.automation.tools.octane.GeneralUtils;
+import com.microfocus.application.automation.tools.octane.GitFetchUtils;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -59,9 +54,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.ListBoxModel;
-import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
@@ -139,15 +132,15 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
         PullRequestFetchParameters fp = createFetchParameters(run, taskListener, myConfigurationId, myWorkspaceId, logConsumer::printLog);
 
-        StandardCredentials credentials = getCredentialsById(myCredentialsId, run, taskListener.getLogger());
-        AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
+        StandardCredentials credentials = GitFetchUtils.getCredentialsById(myCredentialsId, run, taskListener.getLogger());
+        AuthenticationStrategy authenticationStrategy = GitFetchUtils.getAuthenticationStrategy(credentials);
 
         FetchHandler fetchHandler = FetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
         try {
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
             logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.PULL_REQUEST_COLLECTION_SUPPORTED_VERSION);
-            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GeneralUtils::getUserIdForCommit, logConsumer::printLog);
+            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
             PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
             run.addAction(buildAction);
@@ -247,23 +240,6 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
     }
 
-    private AuthenticationStrategy getAuthenticationStrategy(StandardCredentials credentials) {
-        AuthenticationStrategy authenticationStrategy;
-        if (credentials == null) {
-            authenticationStrategy = new NoCredentialsStrategy();
-        } else if (credentials instanceof StringCredentials) {
-            Secret secret = ((StringCredentials) credentials).getSecret();
-            authenticationStrategy = new PATStrategy(secret.getPlainText());
-        } else if (credentials instanceof StandardUsernamePasswordCredentials) {
-            StandardUsernamePasswordCredentials cr = (StandardUsernamePasswordCredentials) credentials;
-            authenticationStrategy = new BasicAuthenticationStrategy(cr.getUsername(), cr.getPassword().getPlainText());
-        } else {
-            throw new IllegalArgumentException("Credentials type is not supported : " + credentials.getClass().getCanonicalName());
-        }
-
-        return authenticationStrategy;
-    }
-
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
@@ -292,25 +268,6 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     public String getScmTool() {
         return scmTool;
-    }
-
-    /**
-     * Get user name password credentials by id.
-     */
-    private StandardCredentials getCredentialsById(String credentialsId, Run<?, ?> run, PrintStream logger) {
-
-        StandardCredentials credentials = null;
-        if (!StringUtils.isEmpty(credentialsId)) {
-            credentials = CredentialsProvider.findCredentialById(credentialsId,
-                    StandardCredentials.class,
-                    run,
-                    URIRequirementBuilder.create().build());
-            if (credentials == null) {
-                logger.println("Can not find credentials with the credentialsId:" + credentialsId);
-            }
-        }
-
-        return credentials;
     }
 
     @Symbol("collectPullRequestsToAlmOctane")
