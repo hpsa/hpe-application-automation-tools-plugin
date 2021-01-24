@@ -7,8 +7,12 @@ import java.util.Collections;
 
 public class GeneralUtils {
 
-    public static CommitUserIdPicker getUserIdForCommit;
-
+    /**
+     * Get user id by email and login. This method is used to return the same user Id for commits/pull request/branches
+     * @param email
+     * @param login
+     * @return
+     */
     public static String getUserIdForCommit(String email, String login) {
         if (login != null) {
             User user = User.get(login, false, Collections.emptyMap());

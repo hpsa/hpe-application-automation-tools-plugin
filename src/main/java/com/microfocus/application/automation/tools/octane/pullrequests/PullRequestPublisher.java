@@ -147,7 +147,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
             logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.PULL_REQUEST_COLLECTION_SUPPORTED_VERSION);
-            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GeneralUtils.getUserIdForCommit, logConsumer::printLog);
+            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GeneralUtils::getUserIdForCommit, logConsumer::printLog);
             PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
                     fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
             run.addAction(buildAction);
