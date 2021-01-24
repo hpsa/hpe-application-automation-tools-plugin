@@ -15,9 +15,29 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class GitFetchUtils {
+
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
+    private static SimpleDateFormat updatedDateFormat = null;
+
+    private GitFetchUtils(){
+        //codacy recommendation : Add a private constructor to hide the implicit public one.
+    }
+
+    public static String getFormattedDate(long longTime) {
+        if (updatedDateFormat == null) {
+            SimpleDateFormat temp = new SimpleDateFormat(DATE_TIME_FORMAT);
+            TimeZone utc = TimeZone.getTimeZone("UTC");
+            temp.setTimeZone(utc);
+            updatedDateFormat = temp;
+        }
+        return updatedDateFormat.format(new Date(longTime));
+    }
 
     /**
      * Get user id by email and login. This method is used to return the same user Id for commits/pull request/branches

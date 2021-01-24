@@ -30,15 +30,13 @@ package com.microfocus.application.automation.tools.octane.pullrequests;
 
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.dto.scm.SCMCommit;
+import com.microfocus.application.automation.tools.octane.GitFetchUtils;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.model.Action;
 import hudson.model.Run;
 
 import javax.annotation.CheckForNull;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 public class PullRequestBuildAction implements Action {
 
@@ -49,9 +47,6 @@ public class PullRequestBuildAction implements Action {
     private final String sourceBranchFilter;
     private final String targetBranchFilter;
     private final String repositoryUrl;
-
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
-    private SimpleDateFormat updatedDateFormat = null;
 
     @CheckForNull
     @Override
@@ -91,12 +86,7 @@ public class PullRequestBuildAction implements Action {
     }
 
     public String getFormattedDate(long longTime) {
-       if (updatedDateFormat == null) {
-            updatedDateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
-            TimeZone utc = TimeZone.getTimeZone("UTC");
-            updatedDateFormat.setTimeZone(utc);
-        }
-        return updatedDateFormat.format(new Date(longTime));
+        return GitFetchUtils.getFormattedDate((longTime));
     }
 
     public String getTopCommits(PullRequest p) {

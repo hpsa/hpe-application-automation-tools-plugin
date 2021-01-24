@@ -21,14 +21,12 @@
 package com.microfocus.application.automation.tools.octane.branches;
 
 import com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult;
+import com.microfocus.application.automation.tools.octane.GitFetchUtils;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.model.Action;
 import hudson.model.Run;
 
 import javax.annotation.CheckForNull;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 public class BranchesBuildAction implements Action {
 
@@ -37,9 +35,6 @@ public class BranchesBuildAction implements Action {
     private final BranchSyncResult branchSyncResult;
     private final String filter;
     private final String repositoryUrl;
-
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
-    private SimpleDateFormat updatedDateFormat = null;
 
     @CheckForNull
     @Override
@@ -76,12 +71,7 @@ public class BranchesBuildAction implements Action {
     }
 
     public String getFormattedDate(long longTime) {
-        if (updatedDateFormat == null) {
-            updatedDateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
-            TimeZone utc = TimeZone.getTimeZone("UTC");
-            updatedDateFormat.setTimeZone(utc);
-        }
-        return updatedDateFormat.format(new Date(longTime));
+        return GitFetchUtils.getFormattedDate(longTime);
     }
 
     public String getFilter() {
