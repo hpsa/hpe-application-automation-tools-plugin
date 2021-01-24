@@ -23,7 +23,6 @@ import java.util.TimeZone;
 public class GitFetchUtils {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
-    private static SimpleDateFormat updatedDateFormat = null;
 
     private GitFetchUtils(){
         //codacy recommendation : Add a private constructor to hide the implicit public one.
