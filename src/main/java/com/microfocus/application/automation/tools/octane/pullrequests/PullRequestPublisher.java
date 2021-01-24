@@ -148,11 +148,12 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             if (!pullRequests.isEmpty()) {
                 octaneClient.getPullRequestAndBranchService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
             }
+        } catch (OctaneValidationException e) {
+            logConsumer.printLog("ALM Octane pull request collector failed on validation : " + e.getMessage());
+            run.setResult(Result.FAILURE);
         } catch (Exception e) {
             logConsumer.printLog("ALM Octane pull request collector failed : " + e.getMessage());
-            if (!(e instanceof OctaneValidationException)) {
-                e.printStackTrace(taskListener.getLogger());
-            }
+            e.printStackTrace(taskListener.getLogger());
             run.setResult(Result.FAILURE);
         }
     }
