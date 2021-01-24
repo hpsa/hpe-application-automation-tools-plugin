@@ -64,19 +64,9 @@ public class GitPluginHandler implements ScmPluginHandler {
         List<GitSCMExtension> extensions = null;
 
         if (executorJob) {
-            String pathPrefix = "";//its required if job is created in some folder
-            ItemGroup parent = proj.getParent();
-            while (Jenkins.get() != null && !parent.equals(Jenkins.get())) {
-                pathPrefix += "..\\";
-                if (parent instanceof Folder) {
-                    parent = ((Folder) parent).getParent();
-                } else {
-                    break;
-                }
-            }
+            String folder = buildRepoFolder(proj);
             String repoName = buildRepoName(scmRepository.getUrl());
-
-            String relativeCheckOut = pathPrefix + "..\\..\\_test_sources\\" + repoName;
+            String relativeCheckOut = folder + repoName;
             RelativeTargetDirectory targetDirectory = new RelativeTargetDirectory(relativeCheckOut);
             extensions = Collections.singletonList(targetDirectory);
         }
@@ -95,6 +85,20 @@ public class GitPluginHandler implements ScmPluginHandler {
 
         GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec(branch)), false, Collections.emptyList(), null, null, extensions);
         proj.setScm(scm);
+    }
+
+    private String buildRepoFolder(FreeStyleProject proj) {
+        String pathPrefix = "";//its required if job is created in some folder
+        ItemGroup parent = proj.getParent();
+        while (Jenkins.get() != null && !parent.equals(Jenkins.get())) {
+            pathPrefix += "..\\";
+            if (parent instanceof Folder) {
+                parent = ((Folder) parent).getParent();
+            } else {
+                break;
+            }
+        }
+        return pathPrefix + "..\\..\\_test_sources\\";
     }
 
     private String buildRepoName(String scmRepoUrl) {
