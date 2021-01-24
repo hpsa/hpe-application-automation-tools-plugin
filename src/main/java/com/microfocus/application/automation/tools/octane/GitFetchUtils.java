@@ -17,29 +17,26 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.TimeZone;
 
 public class GitFetchUtils {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
 
-    private GitFetchUtils(){
+    private GitFetchUtils() {
         //codacy recommendation : Add a private constructor to hide the implicit public one.
     }
 
     /**
      * Generate date format for template : yyyy-MM-dd HH:mm
+     *
      * @return
      */
     public static SimpleDateFormat generateDateFormat() {
-
-            SimpleDateFormat temp = new SimpleDateFormat(DATE_TIME_FORMAT);
-            TimeZone utc = TimeZone.getTimeZone("UTC");
-            temp.setTimeZone(utc);
-            return temp;
-
-
+        SimpleDateFormat temp = new SimpleDateFormat(DATE_TIME_FORMAT);
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        temp.setTimeZone(utc);
+        return temp;
     }
 
     /**
