@@ -7,26 +7,18 @@
  * __________________________________________________________________
  * MIT License
  *
- * (c) Copyright 2012-2021 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
+ * The only warranties for products and services of Micro Focus and its affiliates
+ * and licensors ("Micro Focus") are set forth in the express warranty statements
+ * accompanying such products and services. Nothing herein should be construed as
+ * constituting an additional warranty. Micro Focus shall not be liable for technical
+ * or editorial errors or omissions contained herein.
+ * The information contained herein is subject to change without notice.
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.octane.pullrequests;
+package com.microfocus.application.automation.tools.octane.branches;
 
 import com.cloudbees.plugins.credentials.CredentialsMatcher;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
@@ -36,12 +28,12 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.exceptions.OctaneValidationException;
+import com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult;
 import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
+import com.hp.octane.integrations.services.pullrequestsandbranches.factory.BranchFetchParameters;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchFactory;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchHandler;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.PullRequestFetchParameters;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.ScmTool;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.BasicAuthenticationStrategy;
@@ -71,31 +63,28 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
  * Post-build action of Uft test detection
  */
 
-public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
+public class BranchesPublisher extends Recorder implements SimpleBuildStep {
     private String configurationId;
     private String workspaceId;
     private String repositoryUrl;
     private String credentialsId;
-    private String sourceBranchFilter;
-    private String targetBranchFilter;
+    private String filter;
     private String scmTool;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public PullRequestPublisher(String configurationId, String workspaceId, String scmTool, String repositoryUrl, String credentialsId, String sourceBranchFilter, String targetBranchFilter) {
+    public BranchesPublisher(String configurationId, String workspaceId, String scmTool, String repositoryUrl, String credentialsId, String filter) {
         this.configurationId = JellyUtils.NONE.equalsIgnoreCase(configurationId) ? null : configurationId;
         this.workspaceId = JellyUtils.NONE.equalsIgnoreCase(workspaceId) ? null : workspaceId;
         this.repositoryUrl = repositoryUrl;
         this.credentialsId = credentialsId;
-        this.sourceBranchFilter = sourceBranchFilter;
-        this.targetBranchFilter = targetBranchFilter;
+        this.filter = filter;
         this.scmTool = JellyUtils.NONE.equalsIgnoreCase(scmTool) ? null : scmTool;
     }
 
@@ -112,7 +101,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     public void performInternal(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
         LogConsumer logConsumer = new LogConsumer(taskListener.getLogger());
-        logConsumer.printLog("PullRequestPublisher is started.");
+        logConsumer.printLog("BranchPublisher is started.");
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
@@ -137,68 +126,63 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             taskListener.error("Failed loading build environment " + e);
         }
 
-        PullRequestFetchParameters fp = createFetchParameters(run, taskListener, myConfigurationId, myWorkspaceId, logConsumer::printLog);
+        BranchFetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
 
         StandardCredentials credentials = getCredentialsById(myCredentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = getAuthenticationStrategy(credentials);
 
-        FetchHandler fetchHandler = FetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
         try {
+            //GET BRANCHES FROM CI SERVER
+            FetchHandler fetchHandler = FetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
+
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
             logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
-            octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.PULL_REQUEST_COLLECTION_SUPPORTED_VERSION);
-            List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GeneralUtils.getUserIdForCommit, logConsumer::printLog);
-            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
-                    fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
+            octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.BRANCH_COLLECTION_SUPPORTED_VERSION);
+            BranchSyncResult result = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService()
+                    .syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GeneralUtils::getUserIdForCommit, logConsumer::printLog);
+
+            BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter());
             run.addAction(buildAction);
 
-            if (!pullRequests.isEmpty()) {
-                octaneClient.getPullRequestAndBranchService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
-            }
+
         } catch (Exception e) {
-            logConsumer.printLog("ALM Octane pull request collector failed : " + e.getMessage());
-            if (!(e instanceof OctaneValidationException)) {
+            logConsumer.printLog("ALM Octane branch collector failed : " + e.getMessage());
+            if(!(e instanceof OctaneValidationException)){
                 e.printStackTrace(taskListener.getLogger());
             }
+
             run.setResult(Result.FAILURE);
         }
     }
 
-    private PullRequestFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, String myConfigurationId, String myWorkspaceId, Consumer<String> logConsumer) {
+    private BranchFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, Consumer<String> logConsumer) {
 
-        PullRequestFetchParameters fp;
+        BranchFetchParameters fp;
         try {
             EnvVars env = run.getEnvironment(taskListener);
-            fp = new PullRequestFetchParameters()
+            fp = new BranchFetchParameters()
                     .setRepoUrl(env.expand(repositoryUrl))
-                    .setSourceBranchFilter(env.expand(sourceBranchFilter))
-                    .setTargetBranchFilter(env.expand(targetBranchFilter));
+                    .setFilter(env.expand(filter));
         } catch (IOException | InterruptedException e) {
             taskListener.error("Failed loading build environment " + e);
-            fp = new PullRequestFetchParameters()
+            fp = new BranchFetchParameters()
                     .setRepoUrl(repositoryUrl)
-                    .setSourceBranchFilter(sourceBranchFilter)
-                    .setTargetBranchFilter(targetBranchFilter);
+                    .setFilter(filter);
         }
 
         ParametersAction parameterAction = run.getAction(ParametersAction.class);
         if (parameterAction != null) {
-            fp.setPageSize(getIntegerValueParameter(parameterAction, "pullrequests_page_size"));
-            fp.setMaxPRsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_pr_to_collect"));
-            fp.setMaxCommitsToFetch(getIntegerValueParameter(parameterAction, "pullrequests_max_commits_to_collect"));
-            fp.setMinUpdateTime(getLongValueParameter(parameterAction, "pullrequests_min_update_time"));
-        }
-        if (fp.getMinUpdateTime() == PullRequestFetchParameters.DEFAULT_MIN_UPDATE_DATE) {
-            long lastUpdateTime = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService().getPullRequestLastUpdateTime(myWorkspaceId, fp.getRepoUrl());
-            fp.setMinUpdateTime(lastUpdateTime);
+            fp.setPageSize(getIntegerValueParameter(parameterAction, "branches_page_size"));
+            fp.setActiveBranchDays(getIntegerValueParameter(parameterAction, "branches_active_branch_days"));
+            fp.setMaxBranchesToFill(getIntegerValueParameter(parameterAction, "branches_max_branches_to_fill"));
         }
 
-        logConsumer.accept("Repository URL        : " + fp.getRepoUrl());
-        logConsumer.accept("Min update date       : " + fp.getMinUpdateTime());
-        logConsumer.accept("Source branch filter  : " + fp.getSourceBranchFilter());
-        logConsumer.accept("Target branch filter  : " + fp.getTargetBranchFilter());
-        logConsumer.accept("Max PRs to collect    : " + fp.getMaxPRsToFetch());
-        logConsumer.accept("Max commits to collect: " + fp.getMaxCommitsToFetch());
+        logConsumer.accept("Repository URL       : " + fp.getRepoUrl());
+        logConsumer.accept("Filter               : " + fp.getFilter());
+        logConsumer.accept("Page size            : " + fp.getPageSize());
+        logConsumer.accept("Max branches to fill : " + fp.getMaxBranchesToFill());
+        logConsumer.accept("Branch active days   : " + fp.getActiveBranchDays());
+
         return fp;
     }
 
@@ -207,18 +191,6 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         if (pv != null && pv.getValue() instanceof String) {
             try {
                 return Integer.valueOf((String) pv.getValue());
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private Long getLongValueParameter(ParametersAction parameterAction, String paramValue) {
-        ParameterValue pv = parameterAction.getParameter(paramValue);
-        if (pv != null && pv.getValue() instanceof String) {
-            try {
-                return Long.valueOf((String) pv.getValue());
             } catch (Exception e) {
                 return null;
             }
@@ -243,7 +215,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public void printLog(String msg) {
-            ps.println("PullRequestPublisher : " + msg);
+            ps.println("BranchPublisher : " + msg);
         }
     }
 
@@ -282,12 +254,8 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         return credentialsId;
     }
 
-    public String getSourceBranchFilter() {
-        return sourceBranchFilter;
-    }
-
-    public String getTargetBranchFilter() {
-        return targetBranchFilter;
+    public String getFilter() {
+        return filter;
     }
 
     public String getScmTool() {
@@ -313,7 +281,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         return credentials;
     }
 
-    @Symbol("collectPullRequestsToAlmOctane")
+    @Symbol("collectBranchesToAlmOctane")
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -323,6 +291,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
                                                      @QueryParameter String credentialsId) {
+
             return JellyUtils.fillCredentialsIdItems(project, credentialsId, CREDENTIALS_MATCHER);
         }
 
@@ -348,7 +317,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
 
         public String getDisplayName() {
-            return "ALM Octane pull-request collector";
+            return "ALM Octane branch collector";
         }
     }
 }

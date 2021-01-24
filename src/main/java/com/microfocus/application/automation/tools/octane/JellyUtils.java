@@ -28,12 +28,21 @@
 
 package com.microfocus.application.automation.tools.octane;
 
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+import hudson.model.Item;
+import hudson.model.Queue;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import org.apache.commons.lang.StringUtils;
 
@@ -80,6 +89,24 @@ public class JellyUtils {
             m.add(model.getCaption(), model.getIdentity());
         }
         return m;
+    }
+
+
+    public static ListBoxModel fillCredentialsIdItems(Item project, String credentialsId, CredentialsMatcher credentialsMatcher) {
+
+        if (project == null || !project.hasPermission(Item.CONFIGURE)) {
+            return new StandardUsernameListBoxModel().includeCurrentValue(credentialsId);
+        }
+
+        return new StandardListBoxModel()
+                .includeEmptyValue()
+                .includeMatchingAs(
+                        project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
+                        project,
+                        StandardCredentials.class,
+                        URIRequirementBuilder.create().build(),
+                        credentialsMatcher)
+                .includeCurrentValue(credentialsId);
     }
 
 }

@@ -84,6 +84,7 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
     }
 
     private void setRunnerTypeAsParameter() {
+        listener.getLogger().println("Set HPRunnerType = HPRunnerType.UFT");
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
         List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
         newParams.add(new StringParameterValue(HPRunnerType.class.getSimpleName(), HPRunnerType.UFT.name()));

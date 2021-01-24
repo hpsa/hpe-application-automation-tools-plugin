@@ -57,12 +57,12 @@
     </f:entry>
 
     <f:entry title="Source Branch filter" field="sourceBranchFilter"
-             description="Filter patterns for source branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
+             description="Filter patterns for source branches  (case-insensitive). Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
         <f:textbox/>
     </f:entry>
 
     <f:entry title="Target Branch filter" field="targetBranchFilter"
-             description="Filter patterns for target branches. Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
+             description="Filter patterns for target branches  (case-insensitive). Patterns can be separated by the '|' character. The wildcard '*' can be used. Example: master|Dev*">
         <f:textbox/>
     </f:entry>
 

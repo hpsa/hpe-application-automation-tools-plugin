@@ -1,0 +1,71 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2019 Micro Focus or one of its affiliates.
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors ("Micro Focus") are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  -->
+
+<div>
+    This step is responsible for collecting branches from the SCM tool and injecting them to ALM Octane.
+    <br>
+    <br>
+    <br>
+    Supported version of ALM Octane: 15.1.61 and later.
+
+
+    <br>
+    <br>
+    You can change the behaviour of this step by adding the following parameters to the job:
+    <ul>
+        <li><b>branches_active_branch_days</b>: Only active branches can be added/update to ALM Octane. Default is 90 days.</li><br>
+        <li><b>branches_max_branches_to_fill</b>: Relevant for GitHub repository only. Max branches to fetch info. Branch for which info is not fetched, cannot be added to ALM Octane. Default is 1000.</li><br>
+    </ul>
+
+    <br>
+    <br>
+
+    <b>Supported SCM Tools: </b>
+    <br>
+    <table border="1" width="100%" style="border-collapse: collapse;border: 1px solid black;">
+
+        <thead style="background-color: lightgray; font-weight: bold">
+        <tr>
+            <td>SCM Tool</td>
+            <td>Supported types of authentication</td>
+            <td>How to create PAT (Personal access token)</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Bitbucket Server</td>
+            <td>User/password and PAT</td>
+            <td>Click on your profile icon -> Manage account -> Personal access tokens -> Create a token (Assign Read permissions for both Projects and Repositories)</td>
+        </tr>
+        <tr>
+            <td>Github Cloud</td>
+            <td>PAT only</td>
+            <td rowspan="2">Click on your profile icon -> Settings -> Developer settings -> Personal access tokens -> Generate new token (Uncheck all scopes to grants read-only access)</td>
+        </tr>
+        <tr>
+            <td>Github Server</td>
+            <td>User/password and PAT</td>
+        </tr>
+        </tbody>
+    </table>
+    <br>
+    Note : To create PAT credentials in Jenkins , use "Secret text" kind of credentials in "Add Credentials" dialog
+
+</div>
