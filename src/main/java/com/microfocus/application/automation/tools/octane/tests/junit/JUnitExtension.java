@@ -41,14 +41,19 @@ import com.microfocus.application.automation.tools.octane.tests.detection.MFTool
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsDetectionService;
 import com.microfocus.application.automation.tools.octane.tests.impl.ObjectStreamIterator;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.Run;
+import hudson.model.StringParameterValue;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.test.AbstractTestResultAction;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.remoting.Role;
 import org.jenkinsci.remoting.RoleChecker;
@@ -163,6 +168,12 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.jenkinsRootUrl = jenkinsRootUrl;
 			String buildRootDir = build.getRootDir().getCanonicalPath();
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
+			if (sharedCheckOutDirectory == null && HPRunnerType.UFT.equals(hpRunnerType)) {
+				ParametersAction parameterAction = build.getAction(ParametersAction.class);
+				ParameterValue pv = parameterAction.getParameter("UFT_REPO_ROOT");
+				sharedCheckOutDirectory = pv != null && pv instanceof StringParameterValue ?
+						StringUtils.strip((String) pv.getValue(), "\\/") : "";
+			}
 
 			this.jobName = JobProcessorFactory.getFlowProcessor(build.getParent()).getTranslatedJobName();
 			this.buildId = build.getId();
