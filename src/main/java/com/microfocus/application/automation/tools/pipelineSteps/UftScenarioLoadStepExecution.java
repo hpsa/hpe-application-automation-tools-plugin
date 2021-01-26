@@ -28,6 +28,8 @@
 
 package com.microfocus.application.automation.tools.pipelineSteps;
 
+import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
@@ -84,11 +86,19 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
     }
 
     private void setRunnerTypeAsParameter() {
-        listener.getLogger().println("Set HPRunnerType = HPRunnerType.UFT");
-        ParametersAction parameterAction = build.getAction(ParametersAction.class);
-        List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
-        newParams.add(new StringParameterValue(HPRunnerType.class.getSimpleName(), HPRunnerType.UFT.name()));
-        ParametersAction newParametersAction = new ParametersAction(newParams);
-        build.addOrReplaceAction(newParametersAction);
+        if (OctaneSDK.hasClients()) {
+            listener.getLogger().println("Set HPRunnerType = HPRunnerType.UFT");
+            ParametersAction parameterAction = build.getAction(ParametersAction.class);
+            List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+            newParams.add(new StringParameterValue(HPRunnerType.class.getSimpleName(), HPRunnerType.UFT.name()));
+            ParametersAction newParametersAction = new ParametersAction(newParams);
+            build.addOrReplaceAction(newParametersAction);
+
+            if (parameterAction.getParameter(UftConstants.CUSTOM_REPO_ROOT_PARAMETER) == null) {
+                listener.getLogger().println("NOTE : If you need to integrate test results with an ALM Octane pipeline, and tests are located outside of the job workspace, define a parameter  " + UftConstants.CUSTOM_REPO_ROOT_PARAMETER +
+                        " with the path to the repository root in the file system. This enables ALM Octane to display the test name, rather than the full path to your test.");
+                listener.getLogger().println("");
+            }
+        }
     }
 }

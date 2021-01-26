@@ -32,6 +32,7 @@ import com.google.inject.Inject;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
@@ -170,7 +171,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
 			if (sharedCheckOutDirectory == null && HPRunnerType.UFT.equals(hpRunnerType)) {
 				ParametersAction parameterAction = build.getAction(ParametersAction.class);
-				ParameterValue pv = parameterAction.getParameter("UFT_REPO_ROOT");
+				ParameterValue pv = parameterAction.getParameter(UftConstants.CUSTOM_REPO_ROOT_PARAMETER);
 				sharedCheckOutDirectory = pv != null && pv instanceof StringParameterValue ?
 						StringUtils.strip((String) pv.getValue(), "\\/") : "";
 			}
