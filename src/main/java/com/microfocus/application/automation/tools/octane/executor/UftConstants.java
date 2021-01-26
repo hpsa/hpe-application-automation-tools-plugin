@@ -51,5 +51,5 @@ public class UftConstants {
     public static final String NO_USERNAME_DEFINED = "No username defined in Jenkins Configure System page";
     public static final String NO_CLIENT_ID_DEFINED = "No client ID defined in Jenkins Configure System page";
 
-    public static final String CUSTOM_REPO_ROOT_PARAMETER = "UFT_REPO_ROOT";
+    public static final String UFT_CHECKOUT_FOLDER = "UFT_CHECKOUT_FOLDER";
 }

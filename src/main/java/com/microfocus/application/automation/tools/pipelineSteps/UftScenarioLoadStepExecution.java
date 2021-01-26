@@ -94,8 +94,8 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
             ParametersAction newParametersAction = new ParametersAction(newParams);
             build.addOrReplaceAction(newParametersAction);
 
-            if (parameterAction.getParameter(UftConstants.CUSTOM_REPO_ROOT_PARAMETER) == null) {
-                listener.getLogger().println("NOTE : If you need to integrate test results with an ALM Octane pipeline, and tests are located outside of the job workspace, define a parameter  " + UftConstants.CUSTOM_REPO_ROOT_PARAMETER +
+            if (parameterAction.getParameter(UftConstants.UFT_CHECKOUT_FOLDER) == null) {
+                listener.getLogger().println("NOTE : If you need to integrate test results with an ALM Octane pipeline, and tests are located outside of the job workspace, define a parameter  " + UftConstants.UFT_CHECKOUT_FOLDER +
                         " with the path to the repository root in the file system. This enables ALM Octane to display the test name, rather than the full path to your test.");
                 listener.getLogger().println("");
             }

@@ -42,7 +42,6 @@ import com.microfocus.application.automation.tools.octane.tests.detection.MFTool
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsDetectionService;
 import com.microfocus.application.automation.tools.octane.tests.impl.ObjectStreamIterator;
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
@@ -171,7 +170,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
 			if (sharedCheckOutDirectory == null && HPRunnerType.UFT.equals(hpRunnerType)) {
 				ParametersAction parameterAction = build.getAction(ParametersAction.class);
-				ParameterValue pv = parameterAction.getParameter(UftConstants.CUSTOM_REPO_ROOT_PARAMETER);
+				ParameterValue pv = parameterAction.getParameter(UftConstants.UFT_CHECKOUT_FOLDER);
 				sharedCheckOutDirectory = pv != null && pv instanceof StringParameterValue ?
 						StringUtils.strip((String) pv.getValue(), "\\/") : "";
 			}
