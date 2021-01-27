@@ -30,6 +30,7 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Xml;
 using System;
+using System.Globalization;
 
 namespace HpToolsLauncher
 {
@@ -149,7 +150,7 @@ namespace HpToolsLauncher
             lrts.tests = totalTests.ToString();
             lrts.errors = totalErrors.ToString();
             lrts.failures = totalFailures.ToString();
-            lrts.time = testRes.Runtime.TotalSeconds.ToString();
+            lrts.time = testRes.Runtime.TotalSeconds.ToString(CultureInfo.InvariantCulture);
             return lrts;
         }
 
@@ -164,7 +165,7 @@ namespace HpToolsLauncher
                 classname = "All-Tests." + ((testRes.TestGroup == null) ? "" : testRes.TestGroup.Replace(".", "_")),
                 name = testRes.TestPath,
                 type = testRes.TestType,
-                time = testRes.Runtime.TotalSeconds.ToString()
+                time = testRes.Runtime.TotalSeconds.ToString(CultureInfo.InvariantCulture)
             };
 
             if (!string.IsNullOrWhiteSpace(testRes.FailureDesc))
