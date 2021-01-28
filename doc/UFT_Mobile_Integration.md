@@ -62,7 +62,7 @@ The **Application Automation Tools** Jenkins plugin provides a standalone builde
 6. In the **General** tab, scroll down to the **Build** section.
 7. Expand the **Add build step** drop-down and select **Upload app to UFT Mobile**.
 8. Select your UFT Mobile server from the drop-down list of servers.
-9. Provide your login credentials. If your server has the multiple share spaces enabled, you must also include the nine-digit project ID in the **Tenant ID** field. If the feature is not enabled, you must leave this field empty.
+9. Provide your login credentials. If your server has the multiple shared spaces feature enabled, you must also include the nine-digit project ID in the **Tenant ID** field. If the feature is not enabled, you must leave this field empty.
 10. If you are connecting to a UFT Mobile server through a proxy, select **Use proxy settings** and provide the relevant information.
 11. Click **Add Application** and enter the full path of the **.apk** or **.ipa** package file of the app you want to upload to the UFT Mobile server. Repeat this step for each app you want to upload.
 12. Click **Apply** to save your changes and continue with more build steps.
