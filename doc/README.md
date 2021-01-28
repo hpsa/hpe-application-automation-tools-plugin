@@ -87,7 +87,7 @@ This plugin supports the following Micro Focus product versions:
 | Micro Focus tool                                    | Supported versions                                           | Find more information...                                     |
 | :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md)                  |
-| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
+| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
 | ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
 | LoadRunner Professional                                          | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
 | UFT Mobile (formerly Mobile Center)                 | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
@@ -111,7 +111,7 @@ This plugin supports the following Micro Focus product versions:
    c. In the **Upload Plugin** section, upload the .hpi file.
 4. **For working with ALM and Quality Center,** make sure the ALM/Quality Center client  is installed on the machine that will run the tests. To check if the client installed, follow the instructions on:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
 
-5. **For running UFT One tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
+5. **For running UFT One tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT One  machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
 
 6. **For running file system scenarios with LoadRunner Professional or UFT One**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
 
