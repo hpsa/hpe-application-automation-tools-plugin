@@ -246,7 +246,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             
             mergedProperties.remove(RunFromAlmModel.ALM_PASSWORD_KEY);
             mergedProperties.put(RunFromAlmModel.ALM_PASSWORD_KEY, encAlmPass);
-            
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("problem with qcPassword encryption");
@@ -269,6 +268,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                             EncryptionUtils.getSecretKey());
             mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
             mergedProperties.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
+            mergedProperties.put("almClientID", runFromAlmModel.getAlmClientID());
         }catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("problem with apiKey encryption");
