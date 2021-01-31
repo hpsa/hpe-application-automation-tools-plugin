@@ -259,18 +259,6 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-			boolean isUftJob = false;
-			List<CIParameter> parameters = ParameterProcessors.getConfigs(job);
-			if (parameters != null) {
-				for (CIParameter parameter : parameters) {
-					if (parameter != null && parameter.getName() != null && parameter.getName().equals("suiteId")) {
-						isUftJob = true;
-						break;
-					}
-				}
-			}
-			ret.put("isUftJob", isUftJob);
-
 			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
 			PipelineContextList pipelineContextList = octaneClient.getPipelineContextService().getJobConfiguration(octaneClient.getInstanceId(), jobCiId);
 
