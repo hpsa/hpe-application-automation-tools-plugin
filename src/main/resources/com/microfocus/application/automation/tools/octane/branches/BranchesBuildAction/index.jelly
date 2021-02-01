@@ -1,0 +1,136 @@
+<?jelly escape-by-default='true'?>
+<!--
+  ~
+  ~  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+  ~  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~  marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ © Copyright 2012-2019 Micro Focus or one of its affiliates..
+  ~
+  ~ The only warranties for products and services of Micro Focus and its affiliates
+  ~ and licensors (“Micro Focus”) are set forth in the express warranty statements
+  ~ accompanying such products and services. Nothing herein should be construed as
+  ~ constituting an additional warranty. Micro Focus shall not be liable for technical
+  ~ or editorial errors or omissions contained herein.
+  ~ The information contained herein is subject to change without notice.
+  ~ ___________________________________________________________________
+  ~
+  -->
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
+  <l:layout title="ALM Octane Branch Collect Report">
+    <style type="text/css">
+
+    .myTable {
+        empty-cells: show;
+        border: 1px solid #cbcbcb;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .myTable thead {
+        background-color: #ffedb3;
+        text-align: left;
+        vertical-align: bottom;
+    }
+
+    .myTable th{
+        color: #555753;
+    }
+
+    .myTable caption{
+        font-weight: bold;
+        padding-bottom: 10px;
+    }
+
+    .myTable td, .myTable th {
+        border-left: 1px solid #cbcbcb;
+        border-width: 0 0 0 1px;
+        margin: 0;
+        text-align: left;
+        padding: 8px;
+    }
+
+    .myTable tbody tr:nth-child(even) {
+        background-color: #fff9e6;
+    }
+
+    </style>
+
+    <st:include it="${it.build}" page="sidepanel.jelly" />
+    <l:main-panel>
+       <p>
+       <h1><u>ALM Octane Branch Report</u></h1>
+       </p>
+       <br/>
+       <br/>
+       <div>
+            <div>repositoryUrl : ${it.repositoryUrl}</div>
+            <div>filter : ${it.filter}</div>
+       </div>
+
+        Update : ${it.branchSyncResult.getUpdated().size()};
+        Created : ${it.branchSyncResult.getCreated().size()};
+        Deleted : ${it.branchSyncResult.getDeleted().size()};
+
+       <table class = "myTable" frame="vsides above bottom" >
+        <caption>Branches</caption>
+        <thead>
+
+         <tr>
+             <th>Octane Id</th>
+             <th>Branch</th>
+             <th>Last Commit Revision</th>
+             <th>Last updated</th>
+             <th>Last updater</th>
+             <th>Merged</th>
+             <td >Status</td>
+         </tr>
+         </thead>
+
+         <tbody>
+          <j:forEach var="s" items="${it.branchSyncResult.getUpdated()}">
+                <tr>
+                    <td >${s.octaneId}</td>
+                    <td >${s.name}</td>
+                    <td >${s.lastCommitSHA}</td>
+                    <td >${it.getFormattedDate(s.lastCommitTime)}</td>
+                    <td >${s.lastCommiterName}(${s.lastCommiterEmail})</td>
+                    <td >${s.isMerged}</td>
+                    <td >Updated</td>
+                </tr>
+          </j:forEach>
+           <j:forEach var="s" items="${it.branchSyncResult.getCreated()}">
+                  <tr>
+                      <td ></td>
+                      <td >${s.name}</td>
+                      <td >${s.lastCommitSHA}</td>
+                      <td >${it.getFormattedDate(s.lastCommitTime)}</td>
+                      <td >${s.lastCommiterName}(${s.lastCommiterEmail})</td>
+                      <td >${s.isMerged}</td>
+                      <td >Created</td>
+                  </tr>
+           </j:forEach>
+           <j:forEach var="s" items="${it.branchSyncResult.getDeleted()}">
+                 <tr>
+                     <td >${s.octaneId}</td>
+                     <td >${s.name}</td>
+                     <td ></td>
+                     <td ></td>
+                     <td ></td>
+                     <td ></td>
+                     <td >Deleted</td>
+                 </tr>
+          </j:forEach>
+
+          </tbody>
+       </table>
+
+    </l:main-panel>
+
+  </l:layout>
+</j:jelly>
