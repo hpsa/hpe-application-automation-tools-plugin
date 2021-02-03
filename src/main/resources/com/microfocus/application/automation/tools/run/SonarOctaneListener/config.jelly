@@ -11,4 +11,8 @@
          <f:checkbox name="pushCoverage" checked="${instance.pushCoverage}"/>
      </f:entry>
 
+     <f:entry title="Skip webhook creation" field="skipWebhookCreation" description="Select this option if you created webhooks manually in the Sonar server.">
+              <f:checkbox name="skipWebhookCreation" checked="${instance.skipWebhookCreation}"/>
+     </f:entry>
+
 </j:jelly>
