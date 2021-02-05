@@ -203,10 +203,10 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
             } catch (SonarIntegrationException e) {
                 logger.println("Webhook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
             }
-            run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
         } else {
             logger.println("Webhook creation is skipped. Be sure that Sonar server " + this.sonarServerUrl + " has configured webhook to: " + callbackWebHooksURL);
         }
+        run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
     }
 
     @Override
