@@ -148,6 +148,9 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             if (!pullRequests.isEmpty()) {
                 octaneClient.getPullRequestAndBranchService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
             }
+            //update templates
+            GitFetchUtils.updateRepoTemplates(octaneClient.getPullRequestAndBranchService(), fetchHandler, getRepositoryUrl(),
+                    Long.parseLong(myWorkspaceId), logConsumer::printLog);
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane pull request collector failed on validation : " + e.getMessage());
             run.setResult(Result.FAILURE);

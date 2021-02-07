@@ -4,6 +4,9 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
+import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchHandler;
+import com.hp.octane.integrations.services.pullrequestsandbranches.factory.RepoTemplates;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.BasicAuthenticationStrategy;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.NoCredentialsStrategy;
@@ -18,6 +21,7 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 public class GitFetchUtils {
 
@@ -95,6 +99,18 @@ public class GitFetchUtils {
         }
 
         return authenticationStrategy;
+    }
+
+    public static void updateRepoTemplates(PullRequestAndBranchService pullRequestAndBranchService, FetchHandler fetcherHandler, String repoUrl, Long workspaceId, Consumer<String> logConsumer) {
+        //update repo templates
+        try {
+            RepoTemplates repoTemplates = fetcherHandler.buildRepoTemplates(repoUrl);
+            if (pullRequestAndBranchService.updateRepoTemplates(repoUrl, workspaceId, repoTemplates)) {
+                logConsumer.accept("Repo template are updated successfully in ALM Octane");
+            }
+        } catch (Exception e) {
+            logConsumer.accept("Failed to update repo templates : " + e.getMessage());
+        }
     }
 
 }
