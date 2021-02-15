@@ -167,15 +167,13 @@ public class Webhooks implements UnprotectedRootAction {
 
                         }
                         res.setStatus(HttpStatus.SC_OK); // sonar should get positive feedback for webhook
-
                     } catch (Exception e) {
                         logger.error("exception occurred while trying to enqueue fetchAndPush task to octane, clientId: " + octaneClient.getInstanceId() + "" +
                                 ", jobName: " + jobName + ", build: " + buildIdStr + ",", e);
                     }
-
-                    if (run != null) {
-                        markBuildAsReceivedWebhookCall(run);
-                    }
+                }
+                if (run != null) {
+                    markBuildAsReceivedWebhookCall(run);
                 }
             }
         }
