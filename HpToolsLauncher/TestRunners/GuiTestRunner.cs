@@ -106,7 +106,6 @@ namespace HpToolsLauncher
             
             // default report location is the test path
             runDesc.ReportLocation = testPath;
-
             // check if the report path has been defined
             if (!String.IsNullOrEmpty(testinf.ReportPath))
             {

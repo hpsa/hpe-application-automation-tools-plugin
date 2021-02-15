@@ -28,32 +28,32 @@
 
 package com.microfocus.application.automation.tools.pipelineSteps;
 
+import com.google.common.collect.ImmutableSet;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
 import com.microfocus.application.automation.tools.model.RunFromFileSystemModel;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.model.*;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
+import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * UFT pipeline step
  */
-public class UftScenarioLoadStep extends AbstractStepImpl {
+public class UftScenarioLoadStep extends Step {
 
-    private final RunFromFileBuilder runFromFileBuilder;
-    private final RunResultRecorder runResultRecorder;
+    private RunFromFileBuilder runFromFileBuilder;
+    private RunResultRecorder runResultRecorder;
 
     /**
      * Instantiates a new UFT scenario load step.
@@ -67,6 +67,20 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         this.runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
     }
 
+    @Override
+    public StepExecution start(StepContext stepContext) throws Exception {
+        return new UftScenarioLoadStepExecution(stepContext, this);
+    }
+
+    @DataBoundSetter
+    private void setRunFromFileBuilder(RunFromFileBuilder runFromFileBuilder){
+        this.runFromFileBuilder = runFromFileBuilder;
+    }
+
+    @DataBoundSetter
+    public void setRunResultRecorder(RunResultRecorder runResultRecorder){
+        this.runResultRecorder = runResultRecorder;
+    }
     /**
      * Gets archive test result mode.
      *
@@ -163,18 +177,17 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         return runResultRecorder;
     }
 
+
+
     /**
      * The type Descriptor.
      */
     @Extension
-    @Symbol("UftScenarioLoad")
-    public static class DescriptorImpl extends AbstractStepDescriptorImpl {
+    public static class DescriptorImpl extends StepDescriptor {
 
-        /**
-         * Instantiates a new Descriptor.
-         */
-        public DescriptorImpl() {
-            super(UftScenarioLoadStepExecution.class);
+        @Override
+        public Set<? extends Class<?>> getRequiredContext() {
+            return ImmutableSet.of(Run.class, TaskListener.class, FilePath.class);
         }
 
         @Override

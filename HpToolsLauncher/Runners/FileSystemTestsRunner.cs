@@ -500,6 +500,10 @@ namespace HpToolsLauncher
                 Stopwatch s = Stopwatch.StartNew();
 
                 var results = runner.RunTest(testInfo, ref errorReason, RunCancelled);
+                if (results.ErrorDesc != null && results.ErrorDesc.Equals(TestState.Error))
+                {
+                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                }
 
                 results.Runtime = s.Elapsed;
                 if (type == TestType.LoadRunner)
