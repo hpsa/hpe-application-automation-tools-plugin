@@ -51,21 +51,14 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements in version 6.5
+## New Features and Enhancements in version 6.6
 
-Version 6.5 introduced the following enhancement(s):
+Version 6.6 introduced the following enhancements:
 
 **General**
 
-- “github-branch-source” dependency was removed.
-- Certified for Jenkins version 2.263.1.
-
-**ALM Octane**
-
-- New option to cache the job list for pipeline creation in ALM Octane
-- Caching of Octane pipeline roots, to avoid sending non-relevant events/tasks/logs to ALM Octane
-- Added ability to execute UFT tests with parameters from ALM Octane
-- Bug fix: UFT test descriptions are properly formatted in ALM Octane
+- Compliance with the new Jenkins version 2.264 form layout
+- Certified for Jenkins version 2.264.1
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
@@ -94,10 +87,10 @@ This plugin supports the following Micro Focus product versions:
 | Micro Focus tool                                    | Supported versions                                           | Find more information...                                     |
 | :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md)                  |
-| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
+| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
 | ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
-| LoadRunner                                          | 12.xx, 2020                                                  | [LoadRunner Integration page](LR_Integration.md)             |
-| UFT Mobile (formerly Mobile Center)                 | 2.0 and higher                                               | [UFT Mobile Help Center](https://admhelp.microfocus.com/mobilecenter/en/latest/Content/CI_jenkins.htm) |
+| LoadRunner Professional                                          | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
+| UFT Mobile (formerly Mobile Center)                 | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
 | LoadRunner Enterprise (formerly Performance Center) | 12.xx (12.53 or higher required for trend reports), 2020     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/pc/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT One (formerly UFT)                              | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
@@ -118,16 +111,16 @@ This plugin supports the following Micro Focus product versions:
    c. In the **Upload Plugin** section, upload the .hpi file.
 4. **For working with ALM and Quality Center,** make sure the ALM/Quality Center client  is installed on the machine that will run the tests. To check if the client installed, follow the instructions on:   http://<your\_server>:8080/qcbin/TDConnectivity\_index.html
 
-5. **For running UFT tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
+5. **For running UFT One tests from ALM**  install the ALMClient in common registration mode by accessing the following link from an Internet Explorer browser on the UFT One  machine: http://<your\_server>:8080/qcbin/start\_a.jsp?Common=true
 
-6. **For running file system scenarios with LoadRunner or UFT**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
+6. **For running file system scenarios with LoadRunner Professional or UFT One**  set up a node in Jenkins. For details, see [Create an execution node](#create-an-execution-node).
 
 7. **For building and tracking pipelines on ALM Octane:**
 
    *  JQuery Plugin 1.7.2-1 or later (Required to enable the integration)
    *  A plugin that enables publishing test results. For example, JUnit Plugin 1.10 or later, NUnit plugin, and so on (Required to enable ALM Octane to collect your automated test results).
 
-8. **For ALM Octane integration with UFT**, make sure you have version 2.4.4 or higher of the Git plugin.
+8. **For ALM Octane integration with UFT One**, make sure you have version 2.4.4 or higher of the Git plugin.
 
 # User Guide
 
@@ -151,7 +144,7 @@ Due to rebranding in this version of the plugin to the &quot;Micro Focus&quot; n
 
 
 
-1. Creating an execution node is only required when running scenarios from LoadRunner or UFT, that are stored on the file system. You only need to set an execution node if the Jenkins master machine is  **not**  the executing machine. If you are running LoadRunner or UFT One on the master machine, you do not need to set and select a node.
+1. Creating an execution node is only required when running scenarios from LoadRunner Professional or UFT One, that are stored on the file system. You only need to set an execution node if the Jenkins master machine is  **not**  the executing machine. If you are running LoadRunner Professional or UFT One on the master machine, you do not need to set and select a node.
 
 2. Go to the Jenkins Server home page.
 
@@ -232,7 +225,7 @@ The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromAl
 
 | Product                | Pipeline step name | Description                                                  |
 | ---------------------- | ------------------ | ------------------------------------------------------------ |
-| LoadRunner             | loadRunnerTest     | Run LoadRunner performance tests from a file system scenario file |
+| LoadRunner Professional| loadRunnerTest     | Run LoadRunner Professional tests from a file system scenario file |
 | UFT One                | uftScenarioLoad    | Run a UFT scenario from file system scenario                 |
 | ALM                    | runFromAlmBuilder  | Execute functional tests from ALM                            |
 | ALM Lab Management     | sseBuild           | Execute tests using ALM Lab Management                       |
@@ -243,7 +236,7 @@ The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromAl
 | Service Virtualization | svExportStep       | Export a Virtual Service                                     |
 | Service Virtualization | svUndeployStep     | Undeploy a Virtual Service                                   |
 
-Pipeline jobs are not supported for UFT Mobile (Mobile Center) uploads, ALM test uploader, and ALM AUT job types.
+Pipeline jobs are not supported for UFT Mobile uploads, ALM test uploader, and ALM AUT job types.
 
 
 
@@ -328,15 +321,15 @@ On the Jenkins slave machine, make sure the the Jenkins Slave service is not log
 
 ### Content Security Policy Header
 
-Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This prevents some of the links that appear in the integration to become inoperable. For example, the links to the LoadRunner Performance and UFT HTML reports will not work.
+Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This prevents some of the links that appear in the integration to become inoperable. For example, the links to the LoadRunner Performance and UFT One HTML reports will not work.
 
-For workarounds to enable viewing UFT HTML Reports, see the [UFT Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm#mt-item-5).
+For workarounds to enable viewing UFT One HTML Reports, see the [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm#mt-item-5).
 
 
 
 ### Integration Issues
 
-- If your job includes UFT, QTP, or Service Test tests running on a remote ALM/QC machine (run mode = Run Remotely), you should manually stop the test execution.
+- If your job includes UFT One, QTP, or Service Test tests running on a remote ALM/QC machine (run mode = Run Remotely), you should manually stop the test execution.
 
 - When UFT is installed on the slave machine (node), the LoadRunner test job will fail in the  **Analyze Result**  stage.  **Workaround:**  Add the path of the LoadRunner  **bin**  folder ( **%LR\_PATH%/bin** ) to the  **PATH**  environment variable.
 

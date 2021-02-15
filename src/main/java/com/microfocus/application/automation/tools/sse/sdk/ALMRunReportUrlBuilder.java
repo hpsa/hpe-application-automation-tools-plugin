@@ -62,7 +62,9 @@ public class ALMRunReportUrlBuilder {
 
         ALMVersion version = getALMVersion(client);
 
-        return toInt(version.getMajorVersion()) >= 12 && toInt(version.getMinorVersion()) >= 2;
+        // Newer than 12.2x, including 12.5x, 15.x and later
+        return (toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) >= 2)
+                || toInt(version.getMajorVersion()) > 12;
     }
 
     private int toInt(String str) {

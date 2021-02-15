@@ -194,7 +194,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            return true;
+            return false;
         }
     }
 }

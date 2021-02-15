@@ -30,6 +30,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -56,7 +57,11 @@ final public class JUnitTestResult implements Serializable, TestResult {
         this.moduleName = restrictSize(moduleName, DEFAULT_STRING_SIZE);
         this.packageName = restrictSize(packageName, DEFAULT_STRING_SIZE);
         this.className = restrictSize(className, DEFAULT_STRING_SIZE);
-        this.testName = restrictSize(testName, DEFAULT_STRING_SIZE);
+        if (StringUtils.isEmpty(testName)) {
+            this.testName = "[noName]";
+        } else {
+            this.testName = restrictSize(testName, DEFAULT_STRING_SIZE);
+        }
         this.result = result;
         this.duration = duration;
         this.started = started;

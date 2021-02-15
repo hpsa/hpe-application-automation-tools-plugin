@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What's New in version 6.5](#what's-new-in-version-6.5)
+
 [What's New in version 6.4](#what's-new-in-version-6.4)
 
 [What's New in version 6.3](#what's-new-in-version-6.3)
@@ -12,6 +14,22 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What's New in version 6.0](#what's-new-in-version-6.0)
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
+
+## What&#39;s New in version 6.5
+
+Version 6.5 introduced the following enhancements:
+
+**General**
+
+- “github-branch-source” dependency was removed.
+- Certified for Jenkins version 2.263.1.
+
+**ALM Octane**
+
+- New option to cache the job list for pipeline creation in ALM Octane
+- Caching of Octane pipeline roots, to avoid sending non-relevant events/tasks/logs to ALM Octane
+- Added ability to execute UFT tests with parameters from ALM Octane
+- Bug fix: UFT test descriptions are properly formatted in ALM Octane
 
 ## What&#39;s New in version 6.4
 

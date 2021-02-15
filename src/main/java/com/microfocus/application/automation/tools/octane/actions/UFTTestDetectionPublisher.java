@@ -214,11 +214,11 @@ public class UFTTestDetectionPublisher extends Recorder {
 
         //find branch
         String name = scmPluginHandler.tryExtractUrlShortName(url) + (isGit ? ":master" : "");
-        String branchCondition = QueryHelper.orConditions(QueryHelper.condition(EntityConstants.ScmRepository.BRANCH, "master"),
-                QueryHelper.conditionEmpty(EntityConstants.ScmRepository.BRANCH));
+        String branchCondition = QueryHelper.orConditions(QueryHelper.condition(EntityConstants.ScmRepository.BRANCH_FIELD, "master"),
+                QueryHelper.conditionEmpty(EntityConstants.ScmRepository.BRANCH_FIELD));
         conditions = Collections.singletonList(branchCondition);
         foundEntities = entitiesService.getEntities(workspaceId, branchCollectionName, conditions,
-                Arrays.asList(EntityConstants.ScmRepository.ID_FIELD, EntityConstants.ScmRepository.BRANCH));
+                Arrays.asList(EntityConstants.ScmRepository.ID_FIELD, EntityConstants.ScmRepository.BRANCH_FIELD));
         if (!foundEntities.isEmpty()) {
             scmBranchId = foundEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, String.format("SCM branch %s is already exist in ALM Octane with id=%s", name, scmBranchId));
@@ -228,12 +228,12 @@ public class UFTTestDetectionPublisher extends Recorder {
             newBranch.setName(name);
 
             if (isGit) {
-                newBranch.setField(EntityConstants.ScmRepository.BRANCH, "master");
+                newBranch.setField(EntityConstants.ScmRepository.BRANCH_FIELD, "master");
             }
 
 
             Entity scmRoot = new EntityImpl().setType(EntityConstants.ScmRepositoryRoot.ENTITY_NAME).setId(scmRootId);
-            newBranch.setField(EntityConstants.ScmRepository.PARENT, scmRoot);
+            newBranch.setField(EntityConstants.ScmRepository.PARENT_FIELD, scmRoot);
             List<Entity> createEntities = entitiesService.postEntities(workspaceId, branchCollectionName, Collections.singletonList(newBranch));
             scmBranchId = createEntities.get(0).getId();
             UFTTestDetectionService.printToConsole(listener, String.format("SCM branch %s is created in ALM Octane with id=%s", name, scmBranchId));

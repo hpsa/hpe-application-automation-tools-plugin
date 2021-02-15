@@ -91,6 +91,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                     printToConsole(listener, UftConstants.SUITE_RUN_ID_PARAMETER_NAME + " : " + suiteRunIdParameter.getValue());
                 }
 
+                ParameterValue executionIdParameter = parameterAction.getParameter(UftConstants.EXECUTION_ID_PARAMETER_NAME);
+                if (executionIdParameter != null) {
+                    printToConsole(listener, UftConstants.EXECUTION_ID_PARAMETER_NAME + " : " + executionIdParameter.getValue());
+                }
+
+
                 ParameterValue testsParameter = parameterAction.getParameter(TESTS_TO_RUN_PARAMETER);
                 if (testsParameter != null && testsParameter.getValue() instanceof String) {
                     rawTests = (String) testsParameter.getValue();

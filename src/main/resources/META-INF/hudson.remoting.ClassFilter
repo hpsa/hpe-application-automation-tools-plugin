@@ -18,4 +18,6 @@ com.hp.octane.integrations.dto.scm.impl.SCMDataImpl
 com.hp.octane.integrations.dto.scm.impl.SCMFileBlameImpl
 com.hp.octane.integrations.dto.scm.impl.SCMRepositoryImpl
 com.hp.octane.integrations.dto.scm.impl.PullRequestImpl
+com.hp.octane.integrations.dto.scm.impl.BranchImpl
+com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult
 
