@@ -106,7 +106,7 @@
           </j:forEach>
            <j:forEach var="s" items="${it.branchSyncResult.getCreated()}">
                   <tr>
-                      <td ></td>
+                      <td >${s.octaneId}</td>
                       <td >${s.name}</td>
                       <td >${s.lastCommitSHA}</td>
                       <td >${it.getFormattedDate(s.lastCommitTime)}</td>
