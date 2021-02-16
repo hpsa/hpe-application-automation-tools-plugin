@@ -79,6 +79,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
     private String sourceBranchFilter;
     private String targetBranchFilter;
     private String scmTool;
+    private final Object syncObject = new Object();
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
@@ -142,7 +143,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.PULL_REQUEST_COLLECTION_SUPPORTED_VERSION);
             List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
 
-            synchronized (run) {
+            synchronized (syncObject) {
                 long index = run.getActions(PullRequestBuildAction.class).size();
                 PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
                         fp.getSourceBranchFilter(), fp.getTargetBranchFilter(), index);

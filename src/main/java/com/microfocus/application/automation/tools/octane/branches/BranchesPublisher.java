@@ -69,6 +69,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
     private String credentialsId;
     private String filter;
     private String scmTool;
+    private final Object syncObject = new Object();
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
@@ -136,7 +137,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
 
             GitFetchUtils.updateRepoTemplates(service,fetchHandler,getRepositoryUrl(),Long.parseLong(myWorkspaceId),logConsumer::printLog);
 
-            synchronized (run) {
+            synchronized (syncObject) {
                 long index = run.getActions(BranchesBuildAction.class).size();
                 BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter(), index);
                 run.addAction(buildAction);
