@@ -362,15 +362,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		hudson.model.Node node =  Jenkins.get().getNode(env.get("NODE_NAME"));
 		VirtualChannel channel;
 		if(node != null) {
-			//listener.getLogger().println("Tests are running on node: " + node.getNodeName());
 			channel = node.getChannel();
 		} else{
-			//listener.getLogger().println("Tests are running on master");
 			channel = projectWS.getChannel();
 		}
 		for (String resultsFilePath : resultFiles) {
 			FilePath resultsFile = projectWS.child(resultsFilePath);
-			//listener.getLogger().println("results file path:" + resultsFilePath);
 			List<ReportMetaData> ReportInfoToCollect = new ArrayList<ReportMetaData>();
 
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -378,8 +375,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 			Document doc = dBuilder.parse(resultsFile.read());
 			doc.getDocumentElement().normalize();
-
-			//listener.getLogger().println("Start reading results file");
 
 			Node testSuiteNode = doc.getElementsByTagName("testsuite").item(0);
 			Element testSuiteElement = (Element) testSuiteNode;
@@ -458,7 +453,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						String reportFolderPath = eElement.getAttribute(REPORT_NAME_FIELD); // e.g. "C:\UFTTest\GuiTest1\Report"
 
 						String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
-						//listener.getLogger().println("test folder path: " + testFolderPath);
 						String testStatus = eElement.getAttribute("status"); // e.g. "pass"
 						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
 						String sysInfo = nodeSystemInfo.getFirstChild().getNodeValue();
@@ -466,12 +460,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						String reportIndex = "";
 						FilePath testFileFullName = new FilePath(channel, testFolderPath);
 						if(!testFileFullName.exists()){
-							//listener.getLogger().println("test file does not exist");
 							break;
 						}
 
 						String testName = testFileFullName.getName();
-						//listener.getLogger().println("current test: " + testName);
 						int nameCount = 1;
 						if (fileNameCount.containsKey(testName)) {
 							nameCount = fileNameCount.get(testName) + 1;
@@ -489,7 +481,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							if (!reportFolder.exists()) {
 								reportFolder = new FilePath(channel, reportFolderPath);
 							}
-						    //listener.getLogger().println("report folder name: " + reportFolder.getName());
 							if(!reportFolder.exists()){
 								listener.getLogger().println("report folder does not exist");
 							}
@@ -504,7 +495,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 									isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
 							ReportMetaData reportMetaData = new ReportMetaData();
 							if (htmlReport.exists()) {
-								//listener.getLogger().println("html report exists");
 								reportIsHtml = true;
 								String htmlReportDir = reportFolder.getRemote();
 								reportMetaData.setFolderPath(htmlReportDir);
@@ -527,14 +517,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 							archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
 							if (archiveTestResult) {
-								//listener.getLogger().println("---------------------------------------------------------------------------");
-								//listener.getLogger().println("archive test result");
 								if (reportFolder.exists()) {
-									//listener.getLogger().println("report folder exists");
 									FilePath testFolder = new FilePath(channel, testFolderPath);
 									String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
 									zipFileNames.add(zipFileName);
-									//listener.getLogger().println("zip file name: " + zipFileName);
 									ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
 									// don't use FileFilter for zip, or it will cause bug when files are on slave
@@ -664,26 +650,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo,
 			FilePath runWorkspace) throws IOException, InterruptedException {
-	/*	listener.getLogger().println();
-		listener.getLogger().println("-------------------------------------------- collectAndPrepareHtmlReports -----------------------------------------");
-		listener.getLogger().println();*/
-
 		File reportDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
-		//listener.getLogger().println("reportDir: " + reportDir.getPath());
+
 		FilePath rootTarget = new FilePath(reportDir);
-		//listener.getLogger().println("rootTarget: " + rootTarget);
 
 
 		try {
 			for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
-				//listener.getLogger().println("current test name: " + htmlReportInfo.getDisPlayName());
 				// make sure it's a html report
 				if (!htmlReportInfo.getIsHtmlReport()) {
 					continue;
 				}
 
 				String htmlReportDir = htmlReportInfo.getFolderPath(); // C:\UFTTest\GuiTest1\Report
-				//listener.getLogger().println("htmlReportDir: " + htmlReportDir);
 				try {
 					EnvVars env = build.getEnvironment(listener);
 					long indexFolder = getIndexOfReportFolder(new File(htmlReportDir), EXTERNAL_REPORT_FOLDER, env.get("NODE_NAME"));
@@ -706,15 +685,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				// So at last we got files in C:\Program Files (x86)
 				// \Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
 				String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
-				//listener.getLogger().println("unzippedFileName: " + unzippedFileName);
 				String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
-				//listener.getLogger().println("testName (3): " + testName);
 				String dest = testName;
 
 				FilePath targetPath = new FilePath(rootTarget, dest); // target path is something like "C:\Program Files
-				//listener.getLogger().println("targetPath: " + targetPath);
 				if(targetPath.exists()){
-					//listener.getLogger().println("target path exists");
 					continue;
 				}
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
