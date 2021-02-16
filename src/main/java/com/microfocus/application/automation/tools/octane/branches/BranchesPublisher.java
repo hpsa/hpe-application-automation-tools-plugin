@@ -94,7 +94,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
 
     public void performInternal(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
         LogConsumer logConsumer = new LogConsumer(taskListener.getLogger());
-        logConsumer.printLog("BranchPublisher is started.");
+        logConsumer.printLog("BranchPublisher is started ***********************************************************************");
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
@@ -131,11 +131,16 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
             logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.BRANCH_COLLECTION_SUPPORTED_VERSION);
-            BranchSyncResult result = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService()
-                    .syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
+            PullRequestAndBranchService service = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService();
+            BranchSyncResult result = service.syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
 
-            BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter());
-            run.addAction(buildAction);
+            GitFetchUtils.updateRepoTemplates(service,fetchHandler,getRepositoryUrl(),Long.parseLong(myWorkspaceId),logConsumer::printLog);
+
+            synchronized (BranchesBuildAction.class) {
+                long index = run.getActions(BranchesBuildAction.class).size();
+                BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter(), index);
+                run.addAction(buildAction);
+            }
 
 
         } catch (OctaneValidationException e) {

@@ -109,32 +109,7 @@ public class SonarHelper {
     }
 
     private static String extractAuthenticationToken(SonarInstallation sonarInstallation, Run run) {
-
-        try {
-            String result="";
-            String methodName = "getServerAuthenticationToken";
-            Method method = Arrays.stream(SonarInstallation.class.getDeclaredMethods())
-                    .filter(m->m.getName().equals(methodName))
-                    .findFirst().orElse(null);
-
-            if (method == null) {
-                throw new NoSuchMethodException();
-            } else if (method.getParameterCount() == 1) {//2.9+
-                result = (String) method.invoke(sonarInstallation, run);
-            } else if (method.getReturnType().equals(String.class)) {
-                result = (String) method.invoke(sonarInstallation);//2.6.1 version
-            } else if (method.getReturnType().equals(Secret.class)) {
-                Secret secret = (Secret) method.invoke(sonarInstallation);//2.8.1 version
-                result = Secret.toString(secret);
-            }
-
-            return result;
-
-
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("Not Supported version of Sonar Plugin");
-        }
-
+        return sonarInstallation.getServerAuthenticationToken(run);
     }
 
     private void setSonarDetailsFromMavenEnvironment(AbstractBuild build, TaskListener listener) {

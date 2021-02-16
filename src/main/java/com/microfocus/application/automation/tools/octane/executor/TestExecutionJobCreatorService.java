@@ -121,7 +121,7 @@ public class TestExecutionJobCreatorService {
 				.getConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
 
 		if (uftFolderParameter != null) {
-			Item item = Jenkins.getInstanceOrNull().getItem(uftFolderParameter.getFolder());
+			Item item = Jenkins.getInstanceOrNull().getItemByFullName(uftFolderParameter.getFolder());
 			String errorMsg = null;
 			if (item == null) {
 				errorMsg = UftTestRunnerFolderParameter.KEY + " parameter is defined with '" + uftFolderParameter.getFolder() + "', the folder is not found. Validate that folder exist and jenkins user has READ permission on the folder.";

@@ -30,9 +30,9 @@ package com.microfocus.application.automation.tools.run;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
-import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.octane.actions.WebhookAction;
 import com.microfocus.application.automation.tools.octane.actions.Webhooks;
+import com.microfocus.application.automation.tools.octane.model.SonarHelper;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -64,6 +64,7 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
     public String sonarServerUrl;
     boolean pushVulnerabilities;
     boolean pushCoverage;
+    private boolean skipWebhookCreation;
 
     private Set<SonarHelper.DataType> dataTypeSet = new HashSet<>();
 
@@ -80,6 +81,13 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setSonarServerUrl(String sonarServerUrl) {
         this.sonarServerUrl = sonarServerUrl;
+    }
+
+
+    @DataBoundSetter
+    public void setSkipWebhookCreation(boolean skipWebhookCreation) {
+        this.skipWebhookCreation = skipWebhookCreation;
+
     }
 
     @DataBoundSetter
@@ -178,29 +186,36 @@ public class SonarOctaneListener extends Builder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        if( !OctaneSDK.hasClients()){
+            return;
+        }
         PrintStream logger = listener.getLogger();
         initializeSonarDetails(run, listener);
 
         String jenkinsRoot = Jenkins.get().getRootUrl();
         String callbackWebHooksURL = jenkinsRoot + Webhooks.WEBHOOK_PATH + Webhooks.NOTIFY_METHOD;
         if (StringUtils.isNullOrEmpty(this.sonarServerUrl) || StringUtils.isNullOrEmpty(this.sonarToken)) {
-            logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed, missing sonarQube server url or sonarQube authentication token");
-        } else {
+            logger.println("Webhook registration in sonarQube for build " + getBuildNumber(run) + " failed, missing sonarQube server url or sonarQube authentication token");
+        } else if (!skipWebhookCreation) {
             logger.println("callback URL for jenkins resource will be set to: " + callbackWebHooksURL + " in sonarQube server with URL: " + this.sonarServerUrl);
-            OctaneSDK.getClients().forEach(octaneClient -> {
-                try {
-                    octaneClient.getSonarService().ensureSonarWebhookExist(callbackWebHooksURL, getSonarServerUrl(), getSonarToken());
-                } catch (SonarIntegrationException e) {
-                    logger.println("Web-hook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
-                }
-            });
-            run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
+            try {
+                OctaneSDK.getClients().get(0).getSonarService().ensureSonarWebhookExist(callbackWebHooksURL, getSonarServerUrl(), getSonarToken());
+            } catch (SonarIntegrationException e) {
+                logger.println("Webhook registration in sonarQube for build " + getBuildNumber(run) + " failed: " + e.getMessage());
+            }
+        } else {
+            logger.println("Webhook creation is skipped. Be sure that Sonar server " + this.sonarServerUrl + " has configured webhook to: " + callbackWebHooksURL);
         }
+        run.addAction(new WebhookAction(true, getSonarServerUrl(), dataTypeSet));
     }
 
     @Override
     public SonarDescriptor getDescriptor() {
         return (SonarDescriptor) super.getDescriptor();
+    }
+
+    public boolean isSkipWebhookCreation() {
+        return skipWebhookCreation;
     }
 
     @Symbol("addALMOctaneSonarQubeListener")

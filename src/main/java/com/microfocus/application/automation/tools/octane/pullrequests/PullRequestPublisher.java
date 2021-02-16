@@ -105,7 +105,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     public void performInternal(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
         LogConsumer logConsumer = new LogConsumer(taskListener.getLogger());
-        logConsumer.printLog("PullRequestPublisher is started.");
+        logConsumer.printLog("PullRequestPublisher is started ***********************************************************************");
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
@@ -141,13 +141,20 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.PULL_REQUEST_COLLECTION_SUPPORTED_VERSION);
             List<PullRequest> pullRequests = fetchHandler.fetchPullRequests(fp, GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
-            PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
-                    fp.getSourceBranchFilter(), fp.getTargetBranchFilter());
-            run.addAction(buildAction);
+
+            synchronized (PullRequestBuildAction.class) {
+                long index = run.getActions(PullRequestBuildAction.class).size();
+                PullRequestBuildAction buildAction = new PullRequestBuildAction(run, pullRequests, fp.getRepoUrl(), fp.getMinUpdateTime(),
+                        fp.getSourceBranchFilter(), fp.getTargetBranchFilter(), index);
+                run.addAction(buildAction);
+            }
 
             if (!pullRequests.isEmpty()) {
                 octaneClient.getPullRequestAndBranchService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
             }
+            //update templates
+            GitFetchUtils.updateRepoTemplates(octaneClient.getPullRequestAndBranchService(), fetchHandler, getRepositoryUrl(),
+                    Long.parseLong(myWorkspaceId), logConsumer::printLog);
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane pull request collector failed on validation : " + e.getMessage());
             run.setResult(Result.FAILURE);
