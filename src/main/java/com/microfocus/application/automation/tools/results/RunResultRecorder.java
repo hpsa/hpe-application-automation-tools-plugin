@@ -561,7 +561,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						int index = 1;
 						String reportName = "report_metadata" + "_" + index + ".xml";
 						// serialize report metadata
-						synchronized (build) {
+						synchronized (HtmlBuildReportAction.class) {
 							while (new File(artifactsDir.getParent(), reportName).exists()) {
 								index++;
 								reportName = "report_metadata" + "_" + index + ".xml";
@@ -569,10 +569,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							File reportMetaDataXmlFile = new File(artifactsDir.getParent(), reportName);
 							String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
 							writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml, listener);
-						}
 
 							// Add UFT report action
-
 							try {
 								listener.getLogger().println("Adding a report action to the current build.");
 								HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, reportName, index);
@@ -580,7 +578,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							} catch (IOException | SAXException | ParserConfigurationException ex) {
 								listener.getLogger().println("a problem adding action: " + ex);
 							}
-
+						}
 					}
 				}
 			}
@@ -694,13 +692,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				}
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
 				FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName); // C:\Program Files
-				/*if(unzippedFolderPath.exists()){
-					listener.getLogger().println("unzipped folder path exists: " + unzippedFolderPath);
-				}*/
+
 				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
 				// //C:\Program Files\(x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-
-
 				//rename unzippedFolderPath to targetPath
 				try {
 					unzippedFolderPath.renameTo(targetPath);
