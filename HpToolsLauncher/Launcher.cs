@@ -439,6 +439,11 @@ namespace HpToolsLauncher
                     string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : "");
 
                     List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests, "");
+                    
+                    if(validBuildTests.Count == 0)
+                    {
+                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                    }
 
                     //add build tests and cleanup tests in correct order
                     List<TestData> validTests = new List<TestData>();
@@ -790,13 +795,23 @@ namespace HpToolsLauncher
                         else 
                         {   //path is parameterized
                             string fsReportPath = _ciParams["fsReportPath"];
-
+   
                             //get parameter name
                             fsReportPath = fsReportPath.Trim(new Char[] { ' ', '$', '{', '}' });
-                            
+
                             //get parameter value
-                            reportPath = jenkinsEnvVariables[fsReportPath.Trim(new Char[] { ' ', '\t' })];
-                            reportPath = jenkinsEnvVariables[fsReportPath];
+                            fsReportPath = fsReportPath.Trim(new Char[] { ' ', '\t' });
+                            try
+                            {
+                                reportPath = jenkinsEnvVariables[fsReportPath];
+                            }
+                            catch (KeyNotFoundException ex)
+                            {
+                                Console.WriteLine("============================================================================");
+                                Console.WriteLine("The provided results folder path {0} does not exist.", fsReportPath);
+                                Console.WriteLine("============================================================================");
+                                Environment.Exit((int) Launcher.ExitCodeEnum.Failed);
+                            }
                         }
                     }
                    
@@ -1114,6 +1129,8 @@ namespace HpToolsLauncher
                 List<TestData> validTests = Helper.ValidateFiles(tests);
 
                 if (tests.Count <= 0 || validTests.Count != 0) return validTests;
+               
+                //no valid tests found
                 ConsoleWriter.WriteLine(errorNoValidTests);
             }
 

@@ -35,10 +35,10 @@ import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 
-import javax.inject.Inject;
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,31 +47,38 @@ import java.util.List;
 /**
  * The UFT pipeline step execution.
  */
-public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+public  class UftScenarioLoadStepExecution extends SynchronousNonBlockingStepExecution<Void> {
 
     private static final long serialVersionUID = 1L;
-    @Inject
 
-    private transient UftScenarioLoadStep step;
 
-    @StepContextParameter
+    private transient final UftScenarioLoadStep step;
+
+
     private transient TaskListener listener;
 
-    @StepContextParameter
+
     private transient FilePath ws;
 
-    @StepContextParameter
+
     private transient Run build;
 
-    @StepContextParameter
+
     private transient Launcher launcher;
 
-    public UftScenarioLoadStepExecution() {
-        //no need for actual construction
+    protected UftScenarioLoadStepExecution(@Nonnull StepContext context, UftScenarioLoadStep step) {
+        super(context);
+        this.step = step;
     }
 
+
     @Override
-    protected Void run() throws Exception {
+    protected Void run() throws Exception{
+        ws = getContext().get(FilePath.class);
+        listener = getContext().get(TaskListener.class);
+        build = getContext().get(Run.class);
+        launcher = getContext().get(Launcher.class);
+
         listener.getLogger().println("Running UftScenarioLoadStepExecution");
 
         setRunnerTypeAsParameter();
@@ -80,10 +87,12 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
 
         HashMap<String, String> resultFilename = new HashMap<String, String>(0);
         resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
+
         step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
 
         return null;
     }
+
 
     private void setRunnerTypeAsParameter() {
         if (OctaneSDK.hasClients()) {

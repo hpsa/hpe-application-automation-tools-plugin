@@ -707,7 +707,6 @@ namespace HpToolsLauncher
 
             // set the report location for the run results
             runResults.ReportLocation = reportLocation;
-
             try
             {
                 Directory.CreateDirectory(runResults.ReportLocation);
