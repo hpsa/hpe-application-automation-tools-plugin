@@ -37,6 +37,7 @@ public class BranchesBuildAction implements Action {
     private final BranchSyncResult branchSyncResult;
     private final String filter;
     private final String repositoryUrl;
+    private final Long index;
 
     private SimpleDateFormat dateFormat = null;
 
@@ -46,7 +47,8 @@ public class BranchesBuildAction implements Action {
         return "notepad.png";
     }
 
-    public BranchesBuildAction(final Run<?, ?> build, BranchSyncResult branchSyncResult, String repositoryUrl, String filter) {
+    public BranchesBuildAction(final Run<?, ?> build, BranchSyncResult branchSyncResult, String repositoryUrl, String filter,  long index) {
+        this.index = index;
         this.build = build;
         this.branchSyncResult = branchSyncResult;
         this.filter = filter;
@@ -62,7 +64,7 @@ public class BranchesBuildAction implements Action {
     @CheckForNull
     @Override
     public String getUrlName() {
-        return "branch-report";
+        return "branch-report" + (index == null || index.equals(0l) ? "" : "-" + index);
     }
 
     public BranchSyncResult getBranchSyncResult() {

@@ -49,6 +49,7 @@ public class PullRequestBuildAction implements Action {
     private final String sourceBranchFilter;
     private final String targetBranchFilter;
     private final String repositoryUrl;
+    private final Long index;
 
     private SimpleDateFormat dateFormat = null;
 
@@ -59,8 +60,9 @@ public class PullRequestBuildAction implements Action {
     }
 
     public PullRequestBuildAction(final Run<?, ?> build, List<PullRequest> pullRequests, String repositoryUrl, long minUpdateTime,
-                                  String sourceBranchFilter, String targetBranchFilter) {
+                                  String sourceBranchFilter, String targetBranchFilter, long index) {
         this.build = build;
+        this.index = index;
         this.pullRequests = pullRequests;
         this.minUpdateTime = minUpdateTime;
         this.sourceBranchFilter = sourceBranchFilter;
@@ -77,7 +79,7 @@ public class PullRequestBuildAction implements Action {
     @CheckForNull
     @Override
     public String getUrlName() {
-        return "pull-request-report";
+        return "pull-request-report" + (index == null || index.equals(0l) ? "" : "-" + index);
     }
 
     public List<PullRequest> getPullRequests() {

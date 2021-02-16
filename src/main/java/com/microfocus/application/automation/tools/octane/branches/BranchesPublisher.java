@@ -94,7 +94,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
 
     public void performInternal(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
         LogConsumer logConsumer = new LogConsumer(taskListener.getLogger());
-        logConsumer.printLog("BranchPublisher is started.");
+        logConsumer.printLog("BranchPublisher is started ***********************************************************************");
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
@@ -136,8 +136,11 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
 
             GitFetchUtils.updateRepoTemplates(service,fetchHandler,getRepositoryUrl(),Long.parseLong(myWorkspaceId),logConsumer::printLog);
 
-            BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter());
-            run.addAction(buildAction);
+            synchronized (run) {
+                long index = run.getActions(BranchesBuildAction.class).size();
+                BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter(), index);
+                run.addAction(buildAction);
+            }
 
 
         } catch (OctaneValidationException e) {
