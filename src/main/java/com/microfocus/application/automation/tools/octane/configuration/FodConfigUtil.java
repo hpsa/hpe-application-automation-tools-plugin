@@ -28,16 +28,21 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
+import hudson.security.ACL;
 import hudson.tasks.Publisher;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.IOException;
@@ -71,7 +76,7 @@ public class FodConfigUtil {
             serverConnectConfig.apiUrl = getFieldValue(fodDescriptor, "apiUrl");
             serverConnectConfig.baseUrl = getFieldValue(fodDescriptor, "baseUrl");
             serverConnectConfig.clientId = getFieldValue(fodDescriptor, "clientId");
-            serverConnectConfig.clientSecret = getFieldValue(fodDescriptor, "clientSecret");
+            serverConnectConfig.clientSecret = retrieveSecretDecryptedValue(getFieldValue(fodDescriptor, "clientSecret"));
         }
         return serverConnectConfig;
     }
@@ -92,7 +97,15 @@ public class FodConfigUtil {
     }
 
     private static Long getRelease(AbstractProject project) {
-        Long release = getReleaseVersionBefore12(project);
+        // BSI Token is being deprecated, try to get releaseId directly first then fallback to BSI Token parsing
+        Long release = getReleaseId(project);
+        if (release != null) {
+            return release;
+        } else {
+            logger.debug("Falling back to retrieving release from BSI Token");
+        }
+
+        release = getReleaseVersionBefore12(project);
         if(release != null){
             logger.debug("A Version before 12 is detected.");
             return release;
@@ -105,6 +118,37 @@ public class FodConfigUtil {
         logger.debug("No release was set to this job");
         return release;
     }
+
+    private static Long getReleaseId(AbstractProject project){
+        for (Object publisher : project.getPublishersList()) {
+            if (publisher instanceof Publisher &&
+                    FOD_STATIC_ASSESSMENT_STEP.equals(publisher.getClass().getName())) {
+                Object sharedBuildStep = getFieldValue(publisher, "sharedBuildStep");
+                if (sharedBuildStep != null) {
+                    logger.debug(sharedBuildStep.toString());
+                    return getReleaseIdByReflection(sharedBuildStep);
+                } else {
+                    return getReleaseIdByReflection(publisher);
+                }
+            }
+        }
+        return null;
+    }
+    private static Long getReleaseIdByReflection(Object fodPublisher) {
+
+        Object modelObj = getFieldValue(fodPublisher, "model");
+        if (modelObj == null) {
+            return null;
+        }
+        String releaseId = getFieldValue(modelObj, "releaseId");
+        if (releaseId != null) {
+            return Long.valueOf(releaseId);
+        } else {
+            logger.debug("Unable to find releaseId directly");
+            return null;
+        }
+    }
+
     private static Long getReleaseVersion12(AbstractProject project){
         for (Object publisher : project.getPublishersList()) {
             if (publisher instanceof Publisher &&
@@ -174,4 +218,60 @@ public class FodConfigUtil {
         String releaseString = bsiToken.substring(bsiToken.indexOf('=', pvIndex) + 1, bsiToken.indexOf('&', pvIndex));
         return Long.valueOf(releaseString);
     }
+
+    //
+
+    public static String decrypt(String stringToDecrypt) {
+        Secret decryptedSecret = Secret.decrypt(stringToDecrypt);
+        return  decryptedSecret != null ?  decryptedSecret.getPlainText() : stringToDecrypt;
+    }
+
+    public static String decrypt(Secret stringToDecrypt) {
+        return stringToDecrypt.getPlainText();
+    }
+
+    public static String encrypt(String stringToEncrypt) {
+        String result = stringToEncrypt;
+        if(Secret.decrypt(stringToEncrypt) == null){
+            result = Secret.fromString(stringToEncrypt).getEncryptedValue();
+        }
+        return result;
+    }
+
+    public static boolean isEncrypted(String stringToEncrypt) {
+        return (Secret.decrypt(stringToEncrypt) != null);
+    }
+
+    public static boolean isCredential(String id) {
+        StringCredentials s = CredentialsMatchers.firstOrNull(
+                CredentialsProvider.lookupCredentials(
+                        StringCredentials.class,
+                        Jenkins.get(),
+                        ACL.SYSTEM,
+                        null,
+                        null
+                ),
+                CredentialsMatchers.allOf(
+                        CredentialsMatchers.withId(id)
+                )
+        );
+        return (s != null);
+    }
+
+    public static String retrieveSecretDecryptedValue(String id) {
+        StringCredentials s = CredentialsMatchers.firstOrNull(
+                CredentialsProvider.lookupCredentials(
+                        StringCredentials.class,
+                        Jenkins.get(),
+                        ACL.SYSTEM,
+                        null,
+                        null
+                ),
+                CredentialsMatchers.allOf(
+                        CredentialsMatchers.withId(id)
+                )
+        );
+        return s != null ? decrypt(s.getSecret()) : id;
+    }
+
 }
