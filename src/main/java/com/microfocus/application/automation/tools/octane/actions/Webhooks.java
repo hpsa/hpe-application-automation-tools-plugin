@@ -123,6 +123,7 @@ public class Webhooks implements UnprotectedRootAction {
                     res.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
                     return;
                 }
+                logger.warn(String.format("Got sonarqube webhook for : %s #%s", jobName, buildIdStr));
 
                 Run run = null;
                 for (OctaneClient octaneClient : OctaneSDK.getClients()) {
