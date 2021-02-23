@@ -44,6 +44,7 @@ public abstract class BasicPostEntityRequest {
     private static final String START = "<Title>";
     private static final String END = "</Title>";
     private static final String IGNORE_REQUIRED_FIELDS_VALIDATION = "X-QC-Ignore-Customizable-Required-Fields-Validation";
+    private static final String X_XSRF_TOKEN = "X-XSRF-TOKEN";
 
     protected RestClient client;
     protected CommonUploadLogger logger;
@@ -62,6 +63,7 @@ public abstract class BasicPostEntityRequest {
         ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
         ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
         ret.put(IGNORE_REQUIRED_FIELDS_VALIDATION, "Y");
+        ret.put(X_XSRF_TOKEN, client.getXsrfTokenValue());
         return ret;
     }
 

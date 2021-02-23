@@ -55,7 +55,7 @@ public abstract class GeneralPostRequest extends GeneralRequest {
         Map<String, String> ret = new HashMap<String, String>();
         ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
         ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
-
+        ret.put("X-XSRF-TOKEN", _client.getXsrfTokenValue());
         return ret;
     }
     

@@ -39,6 +39,8 @@ import java.util.Map;
 
 public class UpdateAlmEntityEntityRequest extends BasicPostEntityRequest {
 
+    private static final String X_XSRF_TOKEN = "X-XSRF-TOKEN";
+
     public UpdateAlmEntityEntityRequest(RestClient client, CommonUploadLogger logger) {
         super(client, logger, "Update");
     }
@@ -59,6 +61,7 @@ public class UpdateAlmEntityEntityRequest extends BasicPostEntityRequest {
         Map<String, String> ret = new HashMap<String, String>();
         ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML_BULK);
         ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
+        ret.put(X_XSRF_TOKEN, client.getXsrfTokenValue());
         return ret;
     }
 }

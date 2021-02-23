@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 import com.microfocus.application.automation.tools.sse.sdk.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -64,8 +65,9 @@ public abstract class GeneralRequest {
     }
     
     protected Map<String, String> getHeaders() {
-        
-        return null;
+        Map<String, String> ret = new HashMap<String, String>();
+        ret.put("X-XSRF-TOKEN", _client.getXsrfTokenValue());
+        return ret;
     }
     
     protected String getBody() {
