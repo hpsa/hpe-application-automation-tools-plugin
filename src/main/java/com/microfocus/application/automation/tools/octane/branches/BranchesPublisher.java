@@ -26,6 +26,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.OctaneValidationException;
 import com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult;
 import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
@@ -57,6 +58,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Post-build action of Uft test detection
@@ -145,6 +148,13 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
 
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane branch collector failed on validation : " + e.getMessage());
+            run.setResult(Result.FAILURE);
+        } catch (OctaneBulkException e) {
+            //grouping error messages in format : "exception message (count)
+            String exceptions = e.getData().getErrors().stream().map(m -> m.getDescriptionTranslated()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                    .entrySet().stream().map(entry->entry.getKey() +"(" + entry.getValue() +")")
+                    .collect(Collectors.joining(System.lineSeparator() + "  - ", " Exceptions are : " + System.lineSeparator() + "  - ", ""));
+            logConsumer.printLog("ALM Octane branch collector failed : " + e.getMessage() + exceptions);
             run.setResult(Result.FAILURE);
         } catch (Exception e) {
             logConsumer.printLog("ALM Octane branch collector failed : " + e.getMessage());
