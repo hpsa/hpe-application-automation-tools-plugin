@@ -132,12 +132,12 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
             FetchHandler fetchHandler = FetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
 
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
-            logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog());
+            logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog() + ", workspace - " + myWorkspaceId);
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.BRANCH_COLLECTION_SUPPORTED_VERSION);
             PullRequestAndBranchService service = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService();
             BranchSyncResult result = service.syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
 
-            GitFetchUtils.updateRepoTemplates(service,fetchHandler,getRepositoryUrl(),Long.parseLong(myWorkspaceId),logConsumer::printLog);
+            GitFetchUtils.updateRepoTemplates(service, fetchHandler, getRepositoryUrl(), Long.parseLong(myWorkspaceId), logConsumer::printLog);
 
             synchronized (BranchesBuildAction.class) {
                 long index = run.getActions(BranchesBuildAction.class).size();
@@ -152,7 +152,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
         } catch (OctaneBulkException e) {
             //grouping error messages in format : "exception message (count)
             String exceptions = e.getData().getErrors().stream().map(m -> m.getDescriptionTranslated()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                    .entrySet().stream().map(entry->entry.getKey() +"(" + entry.getValue() +")")
+                    .entrySet().stream().map(entry -> entry.getKey() + "(" + entry.getValue() + ")")
                     .collect(Collectors.joining(System.lineSeparator() + "  - ", " Exceptions are : " + System.lineSeparator() + "  - ", ""));
             logConsumer.printLog("ALM Octane branch collector failed : " + e.getMessage() + exceptions);
             run.setResult(Result.FAILURE);
