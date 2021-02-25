@@ -36,6 +36,7 @@ import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.exceptions.OctaneValidationException;
+import com.hp.octane.integrations.exceptions.ResourceNotFoundException;
 import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchFactory;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchHandler;
@@ -157,6 +158,9 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
                     Long.parseLong(myWorkspaceId), logConsumer::printLog);
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane pull request collector failed on validation : " + e.getMessage());
+            run.setResult(Result.FAILURE);
+        } catch (ResourceNotFoundException e) {
+            logConsumer.printLog(e.getMessage());
             run.setResult(Result.FAILURE);
         } catch (Exception e) {
             logConsumer.printLog("ALM Octane pull request collector failed : " + e.getMessage());
