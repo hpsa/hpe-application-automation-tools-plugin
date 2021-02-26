@@ -27,11 +27,11 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:hp="/lib/hp-application-automation-tools">
 
     <td colspan="2"/>
     <td colspan="2">
-        <table style="width:100%">
+        <hp:blockWrapperTableWidth>
             <f:radioBlock name="${instance.hashCode()}pm.selectionType" value="BY_NAME"
                           checked="true"
                           title="Specific" inline="true">
@@ -53,7 +53,7 @@
                           checked="${instance.isSelected('DEFAULT')}"
                           title="Default (first performance model in alphabetical order)" inline="true">
             </f:radioBlock>
-        </table>
+        </hp:blockWrapperTableWidth>
     </td>
 
 </j:jelly>

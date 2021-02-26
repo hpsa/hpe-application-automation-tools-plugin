@@ -99,6 +99,9 @@
     <st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
     <st:bind var="cleanupTests" value="${instance.runFromFileModel.cleanupTests}"/>
 
+    <!--
+      ~ [JENKINS-64639]: This table is only for drawing information. Also, the tr and td are removed by Jenkins core and the generated HTML doesn't contain it.
+      -->
     <tr>
       <td/>
       <td colspan="2" class="help-text">

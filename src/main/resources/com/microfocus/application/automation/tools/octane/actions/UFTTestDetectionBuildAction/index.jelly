@@ -118,6 +118,9 @@
 
          </p>
        <p>
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
        <table class = "myTable" frame="vsides above bottom" >
         <caption>Tests</caption>
         <thead>

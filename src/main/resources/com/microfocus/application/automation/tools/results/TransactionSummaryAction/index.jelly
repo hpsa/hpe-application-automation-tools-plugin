@@ -31,7 +31,9 @@
     <st:include it="${it.build}" page="sidepanel.jelly" />
     <l:main-panel>
       <h2>Transaction Summary</h2>
-
+      <!--
+        ~ [JENKINS-64639]: This table is only for drawing information.
+        -->
       <table style="font-size:15px;width:100%;max-width:100%;border-left:1px solid #DDD;border-right:1px solid #DDD;border-bottom:1px solid #DDD;">
         <tr style="background-color: #F1F1F1;">
           <th style="padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;">Name</th>

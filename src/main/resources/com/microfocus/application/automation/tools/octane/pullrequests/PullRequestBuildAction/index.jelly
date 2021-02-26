@@ -81,7 +81,9 @@
             <div>targetBranchFilter : ${it.targetBranchFilter}</div>
        </div>
 
-
+        <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
        <table class = "myTable" frame="vsides above bottom" >
         <caption>Pull requests</caption>
         <thead>
