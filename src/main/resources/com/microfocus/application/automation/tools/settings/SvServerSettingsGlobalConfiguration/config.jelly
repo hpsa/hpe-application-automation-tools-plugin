@@ -28,7 +28,8 @@
   -->
 
 <j:jelly xmlns:j="jelly:core"
-         xmlns:f="/lib/form">
+         xmlns:f="/lib/form"
+         xmlns:hp="/lib/hp-application-automation-tools">
     <!--
       This Jelly script is used to produce the global configuration option.
 
@@ -44,8 +45,7 @@
     <f:section title="Service Virtualization">
         <f:entry title="Servers" description="List of Service Virtualization servers">
             <f:repeatable add="Add SV server" var="srv" items="${descriptor.servers}">
-                <table width="100%">
-
+                <hp:blockWrapperTableWidth>
                     <f:entry title="${%Name}" field="name">
                         <f:textbox value="${srv.name}"/>
                     </f:entry>
@@ -71,7 +71,7 @@
                             <f:repeatableDeleteButton value="Delete SV server"/>
                         </div>
                     </f:entry>
-                </table>
+                </hp:blockWrapperTableWidth>
             </f:repeatable>
         </f:entry>
     </f:section>

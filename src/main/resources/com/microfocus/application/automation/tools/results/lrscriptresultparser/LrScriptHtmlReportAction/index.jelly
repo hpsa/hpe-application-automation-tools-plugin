@@ -68,6 +68,9 @@
        <br/>
 
        <p>
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
        <table border="1" cellpadding="0" cellspacing="0" frame="vsides above bottom" >
          <tr>
              <th class = "topNormalCell">Type</th>

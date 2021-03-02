@@ -27,11 +27,11 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:hp="/lib/hp-application-automation-tools">
 
     <td colspan="2"/>
     <td colspan="2">
-        <table style="width:100%">
+        <hp:blockWrapperTableWidth>
             <f:radioBlock name="${instance.hashCode()}s.selectionType" value="SERVICE"
                           checked="true"
                           title="Selected service only" inline="true">
@@ -58,7 +58,7 @@
                           checked="${instance.isSelected('ALL_DEPLOYED')}"
                           title="All services deployed on server" inline="true">
             </f:radioBlock>
-        </table>
+        </hp:blockWrapperTableWidth>
     </td>
 
 </j:jelly>

@@ -77,6 +77,9 @@
         Created : ${it.branchSyncResult.getCreated().size()};
         Deleted : ${it.branchSyncResult.getDeleted().size()};
 
+        <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
        <table class = "myTable" frame="vsides above bottom" >
         <caption>Branches</caption>
         <thead>

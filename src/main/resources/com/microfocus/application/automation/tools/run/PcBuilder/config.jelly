@@ -27,7 +27,7 @@
   -->
 <?jelly escape-by-default='true'?>
 <j:jelly  xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials" >
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials" xmlns:hp="/lib/hp-application-automation-tools" >
 	<f:block>
 	<style>
 	.disabledLine {
@@ -155,7 +155,9 @@
 
 		</script>
 	</f:block>
-	
+	<!--
+      ~ [JENKINS-64639]: This table is only for drawing information. Also, the tr and td are removed by Jenkins core and the generated HTML doesn't contain it.
+      -->
 	<tr>
 		<td />
 		<td colspan="2">
@@ -207,7 +209,7 @@
 	<td class="setting-leftspace">&#160;</td>
     <td>Test Instance ID</td>
     <td colspan="2">
-        <table style="width:100%">
+		<hp:blockWrapperTableWidth>
         <f:radioBlock field="autoTestInstanceID" name="pc.autoTestInstanceID" value="AUTO" checked="${instance.pcModel.autoTestInstanceID=='AUTO' || instance.pcModel.autoTestInstanceID== null}" title="Automatically select existing or create new if none exists (Performance Center 12.55 or later)" inline="true">
        </f:radioBlock>
          <f:radioBlock  field="autoTestInstanceID" name="pc.autoTestInstanceID" value="MANUAL"  checked="${instance.pcModel.autoTestInstanceID=='MANUAL'}" title="Manual selection" inline="true">
@@ -217,7 +219,7 @@
                 </f:entry>
              </f:nested>
          </f:radioBlock>
-        </table>
+        </hp:blockWrapperTableWidth>
     </td>
 
 	<f:block>
@@ -253,7 +255,7 @@
 	    <td class="setting-leftspace">&#160;</td>
         <td>Trending</td>
         <td colspan="2">
-            <table style="width:100%" id="trendReportTable">
+            <hp:blockWrapperTableWidthId id="trendReportTable">
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="NO_TREND" checked="${instance.pcModel.addRunToTrendReport=='NO_TREND'}" title="Do Not Trend" inline="true">
             </f:radioBlock>
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="ASSOCIATED" checked="${instance.pcModel.addRunToTrendReport=='ASSOCIATED'}" title="Use trend report associated with the test (Performance Center 12.55 or later)" inline="true">
@@ -263,7 +265,7 @@
 			        <f:textbox  name="trendReportId" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.trendReportId}" inline="true"/>
                 </f:entry>
             </f:radioBlock>
-            </table>
+			</hp:blockWrapperTableWidthId>
         </td>
 
 
@@ -376,7 +378,7 @@
 	<td class="setting-leftspace">&#160;</td>
     <td>On Timeslot creation failure</td>
     <td colspan="2">
-        <table style="width:100%" id="retryTable">
+		<hp:blockWrapperTableWidthId id="retryTable">
         <f:radioBlock field="retry" name="pc.retry" value="NO_RETRY" checked="${instance.pcModel.retry =='NO_RETRY'}" title="Do Not Repeat" inline="true" />
         <f:radioBlock field="retry" name="pc.retry" value="RETRY" checked="${instance.pcModel.retry=='RETRY'}" title="Repeat with the following parameters" inline="true">
             <f:entry title="Delay between attempts (in minutes):" field="retry">
@@ -386,7 +388,7 @@
                 <f:textbox  name="pc.retryOccurrences" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.retryOccurrences}" inline="true"/>
             </f:entry>
         </f:radioBlock>
-        </table>
+		</hp:blockWrapperTableWidthId>
     </td>
 
   

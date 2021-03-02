@@ -27,7 +27,7 @@
   ~ ___________________________________________________________________
   -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:hp="/lib/hp-application-automation-tools">
   <!--
     This Jelly script is used to produce the global configuration option.
 
@@ -43,8 +43,8 @@
   <f:section title="Application Lifecycle Management">
     <f:entry title="ALM server" description="ALM servers list">
       <f:repeatable var="inst" items="${descriptor.installations}" add="Add ALM server">
-        <table width="100%">
-          
+          <hp:blockWrapperTableWidth>
+
 			<f:entry title="${%ALM server name}" field="almServerName">
 				<f:textbox value="${inst.almServerName}" name="alm.almServerName" />
 			</f:entry>
@@ -138,7 +138,7 @@
 				<f:repeatableDeleteButton value="Delete ALM server" />
 				</div>
 			</f:entry>
-			</table>
+          </hp:blockWrapperTableWidth>
 		</f:repeatable>
 
 		</f:entry>
