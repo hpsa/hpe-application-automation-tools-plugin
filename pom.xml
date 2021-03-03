@@ -357,6 +357,11 @@
 			<id>central</id>
 			<url>https://repo1.maven.org/maven2</url>
 		</repository>
+		<repository>
+			<id>bintray-adm-maven</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/adm/maven</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
