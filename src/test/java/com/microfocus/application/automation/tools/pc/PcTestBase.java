@@ -58,12 +58,13 @@ public interface PcTestBase {
 	public static final String 	  RETRY				= "NO_RETRY";
 	public static final String 	  RETRYDELAY				= "5";
 	public static final String 	  RETRYOCCURRENCES				= "3";
+	public static final boolean       AUTHENTICATE_WITH_TOKEN                       = false;
 
     public static final MockPcModel   pcModel                         = new MockPcModel(SERVER_AND_PORT,PC_SERVER_NAME, CREDENTIALSID, ALM_DOMAIN, ALM_PROJECT,
                                                                           TEST_ID,TESTINSTANCEID, TEST_INSTANCE_ID,
                                                                           TIMESLOT_DURATION_HOURS,
                                                                           TIMESLOT_DURATION_MINUTES, POST_RUN_ACTION,
-                                                                          VUDS_MODE, DESCRIPTION,IS_HTTPS, RETRY, RETRYDELAY, RETRYOCCURRENCES);
+                                                                          VUDS_MODE, DESCRIPTION,IS_HTTPS, RETRY, RETRYDELAY, RETRYOCCURRENCES, AUTHENTICATE_WITH_TOKEN);
     
     public static final String          runResponseEntity  = "<Run xmlns=\"http://www.hp.com/PC/REST/API\">" +
     		                                                    "<TestID>" + TEST_ID + "</TestID>" +

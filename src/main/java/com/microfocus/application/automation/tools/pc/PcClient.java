@@ -78,7 +78,7 @@ public class PcClient {
                         logger.println(String.format("%s - %s %s.", dateFormatter.getDate(), Messages.UsingProxyCredentialsConfiguration(), proxyOutUser));
                 }
             }
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(true), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),proxyOutUser,proxyOutPassword);
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(), model.getPcServerName(true), model.isAuthenticateWithToken(), model.getAlmDomain(true), model.getAlmProject(true), model.getProxyOutURL(true),proxyOutUser,proxyOutPassword);
             this.logger = logger;
         }catch (PcException e){
             logger.println(String.format("%s - %s", dateFormatter.getDate(), e.getMessage()));
@@ -101,11 +101,11 @@ public class PcClient {
                     logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.UsingPCCredentialsBuildParameters()));
                 else
                     logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.UsingPCCredentialsConfiguration()));
-                logger.println(String.format("%s - %s\n[PCServer='%s://%s/loadtest/%s', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), restProxy.GetPcServer(), restProxy.GetTenant(), usernamePCPasswordCredentials.getUsername()));
+                logger.println(String.format("%s - %s\n[LRE Server='%s://%s/loadtest/%s', %s='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), restProxy.GetPcServer(), restProxy.GetTenant(), model.isAuthenticateWithToken() ? "ClientIdKey" : "User", usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(usernamePCPasswordCredentials.getUsername(), usernamePCPasswordCredentials.getPassword().getPlainText());
             }
             else {
-                logger.println(String.format("%s - %s\n[PCServer='%s://%s/loadtest/%s', User='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), restProxy.GetPcServer(), restProxy.GetTenant(), PcBuilder.usernamePCPasswordCredentials.getUsername()));
+                logger.println(String.format("%s - %s\n[LRE Server='%s://%s/loadtest/%s', %s='%s']", dateFormatter.getDate(), Messages.TryingToLogin(), model.isHTTPSProtocol(), restProxy.GetPcServer(), restProxy.GetTenant(), model.isAuthenticateWithToken() ? "ClientIdKey" : "User", PcBuilder.usernamePCPasswordCredentials.getUsername()));
                 loggedIn = restProxy.authenticate(PcBuilder.usernamePCPasswordCredentials.getUsername(), PcBuilder.usernamePCPasswordCredentials.getPassword().getPlainText());
             }
         } catch (PcException e) {

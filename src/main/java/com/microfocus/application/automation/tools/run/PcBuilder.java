@@ -129,6 +129,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private String retry;
     private String retryDelay;
     private String retryOccurrences;
+    private boolean authenticateWithToken;
 
     private int runId;
     private String testName;
@@ -162,7 +163,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String credentialsProxyId,
             String retry,
             String retryDelay,
-            String retryOccurrences) {
+            String retryOccurrences,
+            boolean authenticateWithToken) {
 
         this.serverAndPort = serverAndPort;
         this.pcServerName = pcServerName;
@@ -186,6 +188,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.retry = (retry == null || retry.isEmpty())? "NO_RETRY" : retry;
         this.retryDelay = ("NO_RETRY".equals(this.retry)) ? "0" : (retryDelay == null || retryDelay.isEmpty()) ? "5" : retryDelay;
         this.retryOccurrences = ("NO_RETRY".equals(this.retry)) ? "0" : (retryOccurrences == null || retryOccurrences.isEmpty()) ? "3" : retryOccurrences;
+        this.authenticateWithToken = authenticateWithToken;
     }
 
     @Override
@@ -314,7 +317,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                             credentialsProxyId,
                             retry,
                             retryDelay,
-                            retryOccurrences);
+                            retryOccurrences,
+                            authenticateWithToken);
         }
         return pcModel;
     }
@@ -1060,6 +1064,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     {
         return getPcModel().isVudsMode();
     }
+
+    public boolean isAuthenticateWithToken() { return getPcModel().isAuthenticateWithToken(); }
+
 
     public String getRetry () {
         return getPcModel().getRetry();
