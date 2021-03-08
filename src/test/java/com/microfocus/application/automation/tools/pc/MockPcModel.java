@@ -37,9 +37,9 @@ public class MockPcModel extends PcModel {
 
     public MockPcModel(String serverAndPort, String pcServerName, String credential, String almDomain,
                        String almProject, String testId, String autoTestInstanceID, String testInstanceId, String timeslotDurationHours,
-                       String timeslotDurationMinutes, PostRunAction postRunAction, boolean vudsMode, String description, boolean webProtocol, String retry, String retryDelay, String retryOccurrences) {
+                       String timeslotDurationMinutes, PostRunAction postRunAction, boolean vudsMode, String description, boolean webProtocol, String retry, String retryDelay, String retryOccurrences, boolean authenticateWithToken) {
         super(serverAndPort, pcServerName, credential, almDomain, almProject, testId, autoTestInstanceID, testInstanceId, timeslotDurationHours,
-            timeslotDurationMinutes, postRunAction, vudsMode, description, "NO_TREND", null,false,null,null, retry, retryDelay, retryOccurrences
+            timeslotDurationMinutes, postRunAction, vudsMode, description, "NO_TREND", null,false,null,null, retry, retryDelay, retryOccurrences, authenticateWithToken
         );
     }
 

@@ -58,7 +58,7 @@ public class TestPcClientNegativeScenrios {
     public static void setUp() {
         System.out.println("Starting Performance Center client negative testing scenarios:");
         try {
-            PcRestProxy resetProxy = new MockPcRestProxyBadResponses(PcTestBase.WEB_PROTOCOL,PcTestBase.PC_SERVER_NAME, PcTestBase.ALM_DOMAIN,
+            PcRestProxy resetProxy = new MockPcRestProxyBadResponses(PcTestBase.WEB_PROTOCOL,PcTestBase.PC_SERVER_NAME, PcTestBase.AUTHENTICATE_WITH_TOKEN, PcTestBase.ALM_DOMAIN,
                 PcTestBase.ALM_PROJECT,PcTestBase.LOGGER);
             pcClient = new PcClient(PcTestBase.pcModel, new PrintStream(new OutputStream() {
                 
