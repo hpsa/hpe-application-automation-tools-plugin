@@ -88,6 +88,9 @@ public final class CIEventCausesFactory {
 				tmpResultCause.setUser(tmpUserCause.getUserId());
 				result.put(tmpResultCause.generateKey(), tmpResultCause);
 			} else if (cause instanceof Cause.UpstreamCause) {
+				if("RebuildCause".equals(cause.getClass().getSimpleName())){
+					continue;//rebuild reason have upstream of previous build - its confusing octane.(Part of rebuild plugin)
+				}
 				tmpUpstreamCause = (Cause.UpstreamCause) cause;
 
 				boolean succeededToBuildFlowCauses = false;
