@@ -30,17 +30,14 @@ package com.microfocus.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.Locale;
 
 @SuppressWarnings("squid:S1160")
 public class AlmToolsUtils {
@@ -75,9 +72,14 @@ public class AlmToolsUtils {
                     build.setResult(Result.UNSTABLE);
                 } else if (returnCode == -3) {
                     build.setResult(Result.ABORTED);
+                } else {
+                    listener.getLogger().println("Launch return code " + returnCode);
+                    build.setResult(Result.FAILURE);
+                    if(returnCode == -2146232576 && file.getRemote().toLowerCase(Locale.ROOT).contains("\\system32\\config")) {
+                        listener.getLogger().println("!!! Move 'JENKINS_HOME' out of the 'windows\\\\system32' folder because the plugin may not have permissions to launch tests under this folder.");
+                    }
                 }
             }
-
     }
 
     public static void runHpToolsAborterOnBuildEnv(

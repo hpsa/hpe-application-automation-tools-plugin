@@ -202,6 +202,27 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 	}
 
 	private CIBuildResult extractFlowNodeResult(FlowNode node) {
-		return node.getAction(ErrorAction.class) != null ? CIBuildResult.FAILURE : CIBuildResult.SUCCESS;
+		CIBuildResult result = node.getError() != null ? CIBuildResult.FAILURE : CIBuildResult.SUCCESS;
+		if (CIBuildResult.SUCCESS.equals(result) && isChildNodeFailed(node, 0)) {
+			result = CIBuildResult.FAILURE;
+		}
+		return result;
+	}
+
+	private boolean isChildNodeFailed(FlowNode node, int iteration) {
+		if (iteration >= 2) {
+			return false;
+		}
+		try {
+			for (FlowNode temp : node.getParents()) {
+				boolean isFailed = temp.getError() != null;
+				if (isFailed || isChildNodeFailed(node, iteration + 1))
+					return true;
+			}
+			return false;
+		} catch (Exception e) {
+			return false;
+		}
+
 	}
 }

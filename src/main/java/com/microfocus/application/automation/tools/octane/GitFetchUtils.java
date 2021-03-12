@@ -101,11 +101,11 @@ public class GitFetchUtils {
         return authenticationStrategy;
     }
 
-    public static void updateRepoTemplates(PullRequestAndBranchService pullRequestAndBranchService, FetchHandler fetcherHandler, String repoUrl, Long workspaceId, Consumer<String> logConsumer) {
+    public static void updateRepoTemplates(PullRequestAndBranchService pullRequestAndBranchService, FetchHandler fetcherHandler, String repoHttpUrlForTemplates, String repoUrlForOctane, Long workspaceId, Consumer<String> logConsumer) {
         //update repo templates
         try {
-            RepoTemplates repoTemplates = fetcherHandler.buildRepoTemplates(repoUrl);
-            if (pullRequestAndBranchService.updateRepoTemplates(repoUrl, workspaceId, repoTemplates)) {
+            RepoTemplates repoTemplates = fetcherHandler.buildRepoTemplates(repoHttpUrlForTemplates);
+            if (pullRequestAndBranchService.updateRepoTemplates(repoUrlForOctane, workspaceId, repoTemplates)) {
                 logConsumer.accept("Repo template are updated successfully in ALM Octane");
             }
         } catch (Exception e) {
