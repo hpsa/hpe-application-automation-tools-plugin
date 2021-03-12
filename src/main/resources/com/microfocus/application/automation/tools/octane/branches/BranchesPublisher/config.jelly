@@ -45,6 +45,11 @@
         <f:textbox/>
     </f:entry>
 
+        <f:entry title="Use SSH format" field="useSSHFormat" description="If selected, the SCM repository URL will be sent to ALM Octane in SSH format.">
+               <f:checkbox/>
+        </f:entry>
+
+
     <f:entry title="Credentials" field="credentialsId"
              description="Select credentials to connect to the repository.">
         <c:select/>

@@ -60,6 +60,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
@@ -80,6 +81,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
     private String sourceBranchFilter;
     private String targetBranchFilter;
     private String scmTool;
+    private String useSSHFormat;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
@@ -121,17 +123,20 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         String myConfigurationId = configurationId;
         String myWorkspaceId = workspaceId;
         String myScmTool = scmTool;
+        String myUseSshFormat = useSSHFormat;
         try {
             EnvVars env = run.getEnvironment(taskListener);
             myCredentialsId = env.expand(credentialsId);
             myConfigurationId = env.expand(configurationId);
             myWorkspaceId = env.expand(workspaceId);
             myScmTool = env.expand(scmTool);
+            myUseSshFormat = env.expand(useSSHFormat);
         } catch (IOException | InterruptedException e) {
             taskListener.error("Failed loading build environment " + e);
         }
 
-        PullRequestFetchParameters fp = createFetchParameters(run, taskListener, myConfigurationId, myWorkspaceId, logConsumer::printLog);
+        PullRequestFetchParameters fp = createFetchParameters(run, taskListener, myConfigurationId, myWorkspaceId, myUseSshFormat, logConsumer::printLog);
+        //fp.set
 
         StandardCredentials credentials = GitFetchUtils.getCredentialsById(myCredentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = GitFetchUtils.getAuthenticationStrategy(credentials);
@@ -154,7 +159,8 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
                 octaneClient.getPullRequestAndBranchService().sendPullRequests(pullRequests, myWorkspaceId, fp, logConsumer::printLog);
             }
             //update templates
-            GitFetchUtils.updateRepoTemplates(octaneClient.getPullRequestAndBranchService(), fetchHandler, getRepositoryUrl(),
+            String repoUrlForOctane = fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
+            GitFetchUtils.updateRepoTemplates(octaneClient.getPullRequestAndBranchService(), fetchHandler, fp.getRepoUrl(), repoUrlForOctane,
                     Long.parseLong(myWorkspaceId), logConsumer::printLog);
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane pull request collector failed on validation : " + e.getMessage());
@@ -169,7 +175,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         }
     }
 
-    private PullRequestFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, String myConfigurationId, String myWorkspaceId, Consumer<String> logConsumer) {
+    private PullRequestFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, String myConfigurationId, String myWorkspaceId, String myUseSshFormat, Consumer<String> logConsumer) {
 
         PullRequestFetchParameters fp;
         try {
@@ -177,13 +183,16 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
             fp = new PullRequestFetchParameters()
                     .setRepoUrl(env.expand(repositoryUrl))
                     .setSourceBranchFilter(env.expand(sourceBranchFilter))
-                    .setTargetBranchFilter(env.expand(targetBranchFilter));
+                    .setTargetBranchFilter(env.expand(targetBranchFilter))
+                    .setUseSSHFormat(Boolean.parseBoolean(env.expand(myUseSshFormat)));
+
         } catch (IOException | InterruptedException e) {
             taskListener.error("Failed loading build environment " + e);
             fp = new PullRequestFetchParameters()
                     .setRepoUrl(repositoryUrl)
                     .setSourceBranchFilter(sourceBranchFilter)
-                    .setTargetBranchFilter(targetBranchFilter);
+                    .setTargetBranchFilter(targetBranchFilter)
+                    .setUseSSHFormat(Boolean.parseBoolean(myUseSshFormat));
         }
 
         ParametersAction parameterAction = run.getAction(ParametersAction.class);
@@ -204,6 +213,7 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
         logConsumer.accept("Target branch filter  : " + fp.getTargetBranchFilter());
         logConsumer.accept("Max PRs to collect    : " + fp.getMaxPRsToFetch());
         logConsumer.accept("Max commits to collect: " + fp.getMaxCommitsToFetch());
+        logConsumer.accept("Use ssh format        : " + fp.isUseSSHFormat());
         return fp;
     }
 
@@ -237,6 +247,15 @@ public class PullRequestPublisher extends Recorder implements SimpleBuildStep {
 
     public String getWorkspaceId() {
         return workspaceId;
+    }
+
+    @DataBoundSetter
+    public void setUseSSHFormat(boolean useSSHFormat) {
+        this.useSSHFormat = Boolean.toString(useSSHFormat);
+    }
+
+    public boolean getUseSSHFormat() {
+        return Boolean.parseBoolean(useSSHFormat);
     }
 
     private static class LogConsumer {

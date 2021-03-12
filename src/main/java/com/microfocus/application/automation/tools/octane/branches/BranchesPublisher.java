@@ -52,6 +52,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
@@ -72,6 +73,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
     private String credentialsId;
     private String filter;
     private String scmTool;
+    private String useSSHFormat;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
@@ -112,17 +114,19 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
         String myConfigurationId = configurationId;
         String myWorkspaceId = workspaceId;
         String myScmTool = scmTool;
+        String myUseSshFormat = useSSHFormat;
         try {
             EnvVars env = run.getEnvironment(taskListener);
             myCredentialsId = env.expand(credentialsId);
             myConfigurationId = env.expand(configurationId);
             myWorkspaceId = env.expand(workspaceId);
             myScmTool = env.expand(scmTool);
+            myUseSshFormat = env.expand(useSSHFormat);
         } catch (IOException | InterruptedException e) {
             taskListener.error("Failed loading build environment " + e);
         }
 
-        BranchFetchParameters fp = createFetchParameters(run, taskListener, logConsumer::printLog);
+        BranchFetchParameters fp = createFetchParameters(run, taskListener, myUseSshFormat, logConsumer::printLog);
 
         StandardCredentials credentials = GitFetchUtils.getCredentialsById(myCredentialsId, run, taskListener.getLogger());
         AuthenticationStrategy authenticationStrategy = GitFetchUtils.getAuthenticationStrategy(credentials);
@@ -137,14 +141,14 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
             PullRequestAndBranchService service = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService();
             BranchSyncResult result = service.syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GitFetchUtils::getUserIdForCommit, logConsumer::printLog);
 
-            GitFetchUtils.updateRepoTemplates(service, fetchHandler, getRepositoryUrl(), Long.parseLong(myWorkspaceId), logConsumer::printLog);
+            String repoUrlForOctane =  fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
+            GitFetchUtils.updateRepoTemplates(service, fetchHandler, fp.getRepoUrl(), repoUrlForOctane, Long.parseLong(myWorkspaceId), logConsumer::printLog);
 
             synchronized (BranchesBuildAction.class) {
                 long index = run.getActions(BranchesBuildAction.class).size();
                 BranchesBuildAction buildAction = new BranchesBuildAction(run, result, fp.getRepoUrl(), fp.getFilter(), index);
                 run.addAction(buildAction);
             }
-
 
         } catch (OctaneValidationException e) {
             logConsumer.printLog("ALM Octane branch collector failed on validation : " + e.getMessage());
@@ -163,19 +167,31 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
         }
     }
 
-    private BranchFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, Consumer<String> logConsumer) {
+    @DataBoundSetter
+    public void setUseSSHFormat(boolean useSSHFormat) {
+        this.useSSHFormat = Boolean.toString(useSSHFormat);
+    }
+
+
+    public boolean getUseSSHFormat() {
+        return Boolean.parseBoolean(useSSHFormat);
+    }
+
+    private BranchFetchParameters createFetchParameters(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, String myUseSshFormat, Consumer<String> logConsumer) {
 
         BranchFetchParameters fp;
         try {
             EnvVars env = run.getEnvironment(taskListener);
             fp = new BranchFetchParameters()
                     .setRepoUrl(env.expand(repositoryUrl))
-                    .setFilter(env.expand(filter));
+                    .setFilter(env.expand(filter))
+                    .setUseSSHFormat(Boolean.parseBoolean(env.expand(myUseSshFormat)));
         } catch (IOException | InterruptedException e) {
             taskListener.error("Failed loading build environment " + e);
             fp = new BranchFetchParameters()
                     .setRepoUrl(repositoryUrl)
-                    .setFilter(filter);
+                    .setFilter(filter)
+                    .setUseSSHFormat(Boolean.parseBoolean(myUseSshFormat));
         }
 
         ParametersAction parameterAction = run.getAction(ParametersAction.class);
@@ -190,6 +206,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
         logConsumer.accept("Page size            : " + fp.getPageSize());
         logConsumer.accept("Max branches to fill : " + fp.getMaxBranchesToFill());
         logConsumer.accept("Branch active days   : " + fp.getActiveBranchDays());
+        logConsumer.accept("Use ssh format       : " + fp.isUseSSHFormat());
 
         return fp;
     }
