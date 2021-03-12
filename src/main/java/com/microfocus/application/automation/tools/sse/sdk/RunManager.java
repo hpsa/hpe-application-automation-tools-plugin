@@ -130,7 +130,7 @@ public class RunManager {
                 ret = true;
             }
         }
-        logReportUrl(ret, args);
+        logReportUrl(ret, args, response);
         return ret;
     }
 
@@ -151,7 +151,7 @@ public class RunManager {
     /**
      * Log report url
      */
-    private void logReportUrl(boolean isSucceeded, Args args) {
+    private void logReportUrl(boolean isSucceeded, Args args, Response response) {
         if (isSucceeded) {
             _logger.log(String.format(
                     "%s run report for run id %s is at: %s",
@@ -165,6 +165,7 @@ public class RunManager {
                             + "\nNote: You can run only functional test sets and build verification suites using this plugin. "
                             + "Check to make sure that the configured ID is valid "
                             + "(and that it is not a performance test ID)."));
+            _logger.log(response.toString());
         }
     }
 

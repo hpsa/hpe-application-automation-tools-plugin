@@ -56,6 +56,7 @@ public class CreateAlmEntityRequest extends PostRequest {
         ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
         ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
         ret.put(IGNORE_REQUIRED_FIELDS_VALIDATION, "Y");
+		ret.put("X-XSRF-TOKEN", _client.getXsrfTokenValue());
         return ret;
     }
     

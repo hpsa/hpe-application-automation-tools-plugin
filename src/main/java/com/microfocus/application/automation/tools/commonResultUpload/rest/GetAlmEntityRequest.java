@@ -38,10 +38,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.List;
 import java.util.Map;
 
-public class GetAlmEntityRequest {
-
-    private RestClient client;
-    private CommonUploadLogger logger;
+public class GetAlmEntityRequest extends BaseGetEntityRequest {
 
     public GetAlmEntityRequest(RestClient client, CommonUploadLogger logger) {
         this.client = client;
@@ -56,7 +53,7 @@ public class GetAlmEntityRequest {
         Response response = client.httpGet(
                 url,
                 queryString,
-                null,
+                getHeaders(),
                 ResourceAccessLevel.PROTECTED);
         if (response.isOk() && !response.toString().equals("")) {
             List<Map<String, String>> results = XPathUtils.toEntities(response.toString());

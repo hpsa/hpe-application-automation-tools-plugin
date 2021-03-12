@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -72,6 +73,7 @@ public class RestClient implements Client {
     private final String _restPrefix;
     private final String _webuiPrefix;
     private final String _username;
+    private final String XSRF_TOKEN_VALUE;
 
     /**
      * Configure SSL context for the client.
@@ -131,6 +133,13 @@ public class RestClient implements Client {
                         String.format("domains/%s", domain),
                         String.format("projects/%s", project));
         _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
+
+        XSRF_TOKEN_VALUE = UUID.randomUUID().toString();
+        _cookies.put("XSRF-TOKEN", XSRF_TOKEN_VALUE);
+    }
+
+    public String getXsrfTokenValue() {
+        return XSRF_TOKEN_VALUE;
     }
 
     /**
