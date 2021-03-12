@@ -109,8 +109,7 @@ public final class CIEventCausesFactory {
 					}
 				}
 
-				if (!succeededToBuildFlowCauses) {
-
+				if (upstreamRun != null && !succeededToBuildFlowCauses) {
 					//  proceed with regular UPSTREAM calculation logic as usual
 					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
 					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
