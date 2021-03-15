@@ -415,6 +415,12 @@
 			<artifactId>workflow-basic-steps</artifactId>
 			<version>2.11</version>
 		</dependency-->
+		<!--<dependency>
+			<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>
+			<artifactId>pipeline-stage-view</artifactId>
+			<version>2.19</version>
+		</dependency-->
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-multibranch</artifactId>
