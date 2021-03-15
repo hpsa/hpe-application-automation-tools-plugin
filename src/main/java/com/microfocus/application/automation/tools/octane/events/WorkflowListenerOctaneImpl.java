@@ -225,6 +225,15 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		} catch (Exception e) {
 			return false;
 		}
+		//example of script : in this case second stage is failing but in octane its successful
+		/*node {
+			stage('Build') {}
+			stage('Results') {
+				uftScenarioLoad archiveTestResultsMode: 'ALWAYS_ARCHIVE_TEST_REPORT',testPaths: '''c:\\dev\\plugins\\_uft\\UftTests\\GeneratedResult\\GUITestWithFail'''
+				catchError(stageResult: 'FAILURE') {error 'error message 123'}
+			}
+			stage('Post Results') { }
+		}*/
 
 	}
 }
