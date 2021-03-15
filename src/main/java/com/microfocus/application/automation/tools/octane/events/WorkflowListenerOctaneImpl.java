@@ -209,20 +209,35 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 		return result;
 	}
 
+	/**
+	 * example of script : in this case second stage is failing but in octane its successful
+	 * 		node {
+	 * 			stage('Build') {}
+	 * 			stage('Results') {
+	 * 				uftScenarioLoad archiveTestResultsMode: 'ALWAYS_ARCHIVE_TEST_REPORT',testPaths: '''c:\\dev\\plugins\\_uft\\UftTests\\GeneratedResult\\GUITestWithFail'''
+	 * 				catchError(stageResult: 'FAILURE') {error 'error message 123'}
+	 *                        }
+	 * 			stage('Post Results') { }
+	 * 		}
+	 * @param node
+	 * @param iteration
+	 * @return
+	 */
 	private boolean isChildNodeFailed(FlowNode node, int iteration) {
 		if (iteration >= 2) {
 			return false;
 		}
 		try {
 			for (FlowNode temp : node.getParents()) {
-				boolean isFailed = temp.getError() != null;
-				if (isFailed || isChildNodeFailed(node, iteration + 1))
-					return true;
+				if(temp instanceof StepEndNode) {
+					boolean isFailed = temp.getError() != null;
+					if (isFailed || isChildNodeFailed(temp, iteration + 1))
+						return true;
+				}
 			}
 			return false;
 		} catch (Exception e) {
 			return false;
 		}
-
 	}
 }
