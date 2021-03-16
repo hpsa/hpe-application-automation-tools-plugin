@@ -27,6 +27,11 @@
 
 package com.microfocus.application.automation.tools.sse.result.model.junit;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
+import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -57,13 +62,17 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = { "content" })
 @XmlRootElement(name = "failure")
+@XStreamAlias("failure")
+@XStreamConverter(value= ToAttributedValueConverter.class, strings={"content"})
 public class Failure {
     
     @XmlValue
     protected String content;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String type;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String message;
     
     /**
