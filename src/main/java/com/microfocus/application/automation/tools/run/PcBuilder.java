@@ -63,8 +63,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 import java.beans.IntrospectionException;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -72,7 +70,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.thoughtworks.xstream.XStream;
 
 import hudson.model.Run;
 
@@ -922,9 +920,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         try {
             if (testsuites != null) {
                 StringWriter writer = new StringWriter();
-                JAXBContext context = JAXBContext.newInstance(Testsuites.class);
-                Marshaller marshaller = context.createMarshaller();
-                marshaller.marshal(testsuites, writer);
+                XStream xstream = new XStream();
+                xstream.autodetectAnnotations(true);
+                xstream.toXML(testsuites, writer);
                 filePath.write(writer.toString(), null);
                 if (containsErrorsOrFailures(testsuites.getTestsuite())) {
                     ret = Result.FAILURE;

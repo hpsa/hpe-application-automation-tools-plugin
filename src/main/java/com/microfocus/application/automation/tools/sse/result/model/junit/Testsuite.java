@@ -27,6 +27,10 @@
 
 package com.microfocus.application.automation.tools.sse.result.model.junit;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,35 +79,51 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = { "properties", "testcase", "systemOut", "systemErr" })
 @XmlRootElement(name = "testsuite")
+@XStreamAlias("testsuite")
 public class Testsuite {
     
     protected Properties properties;
+    @XStreamImplicit
     protected List<Testcase> testcase;
     @XmlElement(name = "system-out")
+    @XStreamAlias("system-out")
     protected String systemOut;
     @XmlElement(name = "system-err")
+    @XStreamAlias("system-err")
     protected String systemErr;
     @XmlAttribute(required = true)
+    @XStreamAsAttribute
     protected String name;
     @XmlAttribute(required = true)
+    @XStreamAsAttribute
     protected String tests;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String failures;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String errors;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String time;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String disabled;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String skipped;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String timestamp;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String hostname;
     @XmlAttribute
+    @XStreamAsAttribute
     protected String id;
     @XmlAttribute(name = "package")
+    @XStreamAlias("package")
+    @XStreamAsAttribute
     protected String _package;
     
     /**

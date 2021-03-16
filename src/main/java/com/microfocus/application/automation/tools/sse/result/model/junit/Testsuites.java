@@ -27,6 +27,9 @@
 
 package com.microfocus.application.automation.tools.sse.result.model.junit;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,8 +69,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = { "testsuite" })
 @XmlRootElement(name = "testsuites")
+@XStreamAlias("testsuites")
 public class Testsuites {
-    
+    @XStreamImplicit
     protected List<Testsuite> testsuite;
     @XmlAttribute
     protected String name;
