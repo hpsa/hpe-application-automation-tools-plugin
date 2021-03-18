@@ -49,12 +49,13 @@ import hudson.remoting.VirtualChannel;
 import hudson.tasks.*;
 import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
-import hudson.util.RunList;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.boon.primitive.Int;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -73,12 +74,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -1451,8 +1447,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
         }
 
-        FileFilter fileSystemResultFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
-        List<FilePath> fileSystemResultsPath = workspace.list(fileSystemResultFileFilter);
+		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
+		IOFileFilter byBuildStartedFileFilter = new AgeFileFilter(build.getStartTimeInMillis(), false);
+		IOFileFilter fileFilter = FileFilterUtils.and(byBuildNumberFileFilter, byBuildStartedFileFilter);
+
+        List<FilePath> fileSystemResultsPath = workspace.list(fileFilter);
 		for (FilePath fileSystemResultPath: fileSystemResultsPath)
 		{
 			fileSystemResultNames.add(fileSystemResultPath.getName());
