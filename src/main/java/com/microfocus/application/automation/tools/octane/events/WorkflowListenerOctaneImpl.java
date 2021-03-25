@@ -46,9 +46,10 @@ import com.microfocus.application.automation.tools.octane.model.processors.proje
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
+import hudson.model.Result;
 import org.apache.logging.log4j.Logger;
-import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.actions.TimingAction;
+import org.jenkinsci.plugins.workflow.actions.WarningAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
@@ -210,34 +211,44 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 	}
 
 	/**
-	 * example of script : in this case second stage is failing but in octane its successful
+	 * example of script : in this case second stage is failing but in octane its successful;in third case - error converted to warning
 	 * 		node {
 	 * 			stage('Build') {}
 	 * 			stage('Results') {
 	 * 				uftScenarioLoad archiveTestResultsMode: 'ALWAYS_ARCHIVE_TEST_REPORT',testPaths: '''c:\\dev\\plugins\\_uft\\UftTests\\GeneratedResult\\GUITestWithFail'''
 	 * 				catchError(stageResult: 'FAILURE') {error 'error message 123'}
-	 *                        }
-	 * 			stage('Post Results') { }
-	 * 		}
+	 *           }
+	 *           stage('Post Results') {
+	 * 	           warnError('Script failed!') {//convert error to warning
+	 * 	              error 'err 1'
+	 * 	           }
+	 * 	    }
 	 * @param node
 	 * @param iteration
 	 * @return
 	 */
-	private boolean isChildNodeFailed(FlowNode node, int iteration) {
-		if (iteration >= 2) {
-			return false;
-		}
-		try {
-			for (FlowNode temp : node.getParents()) {
-				if(temp instanceof StepEndNode) {
-					boolean isFailed = temp.getError() != null;
-					if (isFailed || isChildNodeFailed(temp, iteration + 1))
-						return true;
-				}
-			}
-			return false;
-		} catch (Exception e) {
-			return false;
-		}
-	}
+    private boolean isChildNodeFailed(FlowNode node, int iteration) {
+        if (iteration >= 2) { // drill down upto 2 levels
+            return false;
+        }
+        try {
+            for (FlowNode temp : node.getParents()) {
+                if (temp instanceof StepEndNode) {
+                    boolean isFailed = temp.getError() != null;
+                    if (isFailed) {//if failed - validate that maybe error converted to warning of unstable
+                        WarningAction warning = temp.getAction(WarningAction.class);
+                        if (warning != null) {
+                            return warning.getResult().isWorseThan(Result.UNSTABLE);
+                        }
+                        return true;
+                    } else if (isChildNodeFailed(temp, iteration + 1)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
