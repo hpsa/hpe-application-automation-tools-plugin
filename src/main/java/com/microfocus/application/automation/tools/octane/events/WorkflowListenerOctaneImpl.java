@@ -246,9 +246,9 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
                     }
                 }
             }
-            return false;
         } catch (Exception e) {
-            return false;
+			logger.error("failed in isChildNodeFailed " + e.getMessage());
         }
+		return false;
     }
 }
