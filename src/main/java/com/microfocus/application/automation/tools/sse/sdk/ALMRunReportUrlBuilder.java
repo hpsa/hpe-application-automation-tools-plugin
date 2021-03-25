@@ -43,7 +43,7 @@ public class ALMRunReportUrlBuilder {
         String ret = "NA";
         try {
             if (isNewReport(client)) {
-                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#/test-set-report/%s",
+                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#!/test-set-report/%s",
                         serverUrl,
                         domain,
                         project,
