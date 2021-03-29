@@ -41,30 +41,29 @@ public class ALMRunReportUrlBuilder {
     public String build(Client client, String serverUrl, String domain, String project, String runId) {
 
         String ret = "NA";
+        ALMVersion version = getALMVersion(client);
         try {
-            if (isNewReport(client)) {
+            if (toInt(version.getMajorVersion()) < 12 || toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) < 2) {
+                ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
+            } else if (toInt(version.getMajorVersion()) >= 16) {
+                // Url change due to angular js upgrade from ALM16
                 ret = String.format("%sui/?redirected&p=%s/%s&execution-report#!/test-set-report/%s",
                         serverUrl,
                         domain,
                         project,
                         runId);
             } else {
-                ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
+                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#/test-set-report/%s",
+                        serverUrl,
+                        domain,
+                        project,
+                        runId);
             }
         } catch (Exception e) {
             // result url will be NA (in case of failure like getting ALM version, convert ALM version to number)
         }
 
         return ret;
-    }
-
-    public boolean isNewReport(Client client) {
-
-        ALMVersion version = getALMVersion(client);
-
-        // Newer than 12.2x, including 12.5x, 15.x and later
-        return (toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) >= 2)
-                || toInt(version.getMajorVersion()) > 12;
     }
 
     private int toInt(String str) {
