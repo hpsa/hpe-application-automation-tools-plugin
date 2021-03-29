@@ -43,7 +43,7 @@ public class ALMRunReportUrlBuilder {
         String ret = "NA";
         ALMVersion version = getALMVersion(client);
         try {
-            if (toInt(version.getMajorVersion()) < 12 || toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) < 2) {
+            if (toInt(version.getMajorVersion()) < 12 || (toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) < 2)) {
                 ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
             } else if (toInt(version.getMajorVersion()) >= 16) {
                 // Url change due to angular js upgrade from ALM16
