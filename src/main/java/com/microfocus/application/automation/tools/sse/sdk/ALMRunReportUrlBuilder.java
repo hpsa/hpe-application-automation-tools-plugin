@@ -40,10 +40,10 @@ public class ALMRunReportUrlBuilder {
 
     public String build(Client client, String serverUrl, String domain, String project, String runId) {
         String ret = "NA";
-        ALMVersion version = getALMVersion(client);
-        int majorVersion = toInt(version.getMajorVersion());
-        int minorVersion = toInt(version.getMinorVersion());
         try {
+            ALMVersion version = getALMVersion(client);
+            int majorVersion = toInt(version.getMajorVersion());
+            int minorVersion = toInt(version.getMinorVersion());
             if (majorVersion < 12 || (majorVersion == 12 && minorVersion < 2)) {
                 ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
             } else if (majorVersion >= 16) {
