@@ -91,8 +91,8 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         try {
             SvServerSettingsModel serverModel = getSelectedServerSettings();
 
-            logger.printf("%nStarting %s for SV Server '%s' (%s as %s) on %s%n", getDescriptor().getDisplayName(),
-                    serverModel.getName(), serverModel.getUrlObject(), serverModel.getUsername(), startDate);
+            logger.printf("%nStarting %s for SV Server '%s' (%s as %s, ignoreSslErrors=%s) on %s%n", getDescriptor().getDisplayName(),
+                    serverModel.getName(), serverModel.getUrlObject(), serverModel.getUsername(), serverModel.isTrustEveryone(), startDate);
             logConfig(logger, "    ");
             validateServiceSelection();
 

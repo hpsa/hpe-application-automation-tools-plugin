@@ -115,6 +115,7 @@ public abstract class AbstractSvRemoteRunner<T extends AbstractSvRunModel> exten
     }
 
     protected ICommandExecutor createCommandExecutor() throws Exception {
-        return new CommandExecutorFactory().createCommandExecutor(server.getUrlObject(), server.getCredentials());
+        return new CommandExecutorFactory()
+                .createCommandExecutor(server.getUrlObject(), server.isTrustEveryone(), server.getCredentials());
     }
 }

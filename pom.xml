@@ -489,7 +489,7 @@
 		<dependency>
 			<groupId>com.microfocus.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>5.3</version>
+			<version>5.4.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>

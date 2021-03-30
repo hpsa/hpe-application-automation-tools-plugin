@@ -139,12 +139,14 @@ public class SvServerSettingsGlobalConfiguration extends GlobalConfiguration imp
 
     @RequirePOST
     @SuppressWarnings("unused")
-    public FormValidation doTestConnection(@QueryParameter("url") final String url, @QueryParameter("username") final String username,
+    public FormValidation doTestConnection(@QueryParameter("url") final String url,
+                                           @QueryParameter("trustEveryone") final boolean trustEveryone,
+                                           @QueryParameter("username") final String username,
                                            @QueryParameter("password") final String password) {
         try {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
             Credentials credentials = (!StringUtils.isBlank(username)) ? new Credentials(username, password) : null;
-            ICommandExecutor commandExecutor = new CommandExecutorFactory().createCommandExecutor(new URL(url), credentials);
+            ICommandExecutor commandExecutor = new CommandExecutorFactory().createCommandExecutor(new URL(url), trustEveryone, credentials);
             ServerInfo serverInfo = commandExecutor.getClient().getServerInfo();
             return FormValidation.ok("Validation passed. Connected to %s server of version: %s", serverInfo.getServerType(), serverInfo.getProductVersion());
         } catch (Exception e) {
