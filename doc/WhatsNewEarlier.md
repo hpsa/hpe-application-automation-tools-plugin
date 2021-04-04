@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What's New in version 6.6](#what's-new-in-version-6.6)
+
 [What's New in version 6.5](#what's-new-in-version-6.5)
 
 [What's New in version 6.4](#what's-new-in-version-6.4)
@@ -14,6 +16,15 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What's New in version 6.0](#what's-new-in-version-6.0)
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
+
+## What&#39;s New in version 6.6
+
+Version 6.6 introduced the following enhancements:
+
+**General**
+
+- Compliance with the new Jenkins version 2.264 form layout
+- Certified for Jenkins version 2.264.1
 
 ## What&#39;s New in version 6.5
 
