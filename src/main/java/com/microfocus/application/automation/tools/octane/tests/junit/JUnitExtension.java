@@ -170,7 +170,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
 			if (sharedCheckOutDirectory == null && HPRunnerType.UFT.equals(hpRunnerType)) {
 				ParametersAction parameterAction = build.getAction(ParametersAction.class);
-				ParameterValue pv = parameterAction.getParameter(UftConstants.UFT_CHECKOUT_FOLDER);
+				ParameterValue pv = parameterAction != null ? parameterAction.getParameter(UftConstants.UFT_CHECKOUT_FOLDER) : null;
 				sharedCheckOutDirectory = pv != null && pv instanceof StringParameterValue ?
 						StringUtils.strip((String) pv.getValue(), "\\/") : "";
 			}
