@@ -41,13 +41,15 @@ public class SvServerSettingsModel implements Serializable{
 
     private final String name;
     private final String url;
+    private final boolean trustEveryone;
     private final String username;
     private final Secret password;
 
     @DataBoundConstructor
-    public SvServerSettingsModel(String name, String url, String username, Secret password) {
+    public SvServerSettingsModel(String name, String url, boolean trustEveryone, String username, Secret password) {
         this.name = StringUtils.trim(name);
         this.url = StringUtils.trim(url);
+        this.trustEveryone = trustEveryone;
         this.username = username;
         this.password = password;
     }
@@ -62,6 +64,10 @@ public class SvServerSettingsModel implements Serializable{
 
     public URL getUrlObject() throws MalformedURLException {
         return new URL(url);
+    }
+
+    public boolean isTrustEveryone() {
+        return trustEveryone;
     }
 
     public String getUsername() {

@@ -48,6 +48,7 @@ import hudson.XmlFile;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -55,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import java.io.Serializable;
 import java.util.*;
@@ -347,6 +349,7 @@ public class OctaneServerSettingsGlobalConfiguration extends GlobalConfiguration
         }
     }
 
+    @RequirePOST
     @SuppressWarnings("unused")
     public FormValidation doTestConnection(StaplerRequest req,
                                            @QueryParameter("uiLocation") String uiLocation,
@@ -357,6 +360,7 @@ public class OctaneServerSettingsGlobalConfiguration extends GlobalConfiguration
                                            @QueryParameter("workspace2ImpersonatedUserConf") String workspace2ImpersonatedUserConf,
                                            @QueryParameter("parameters") String parameters
     ) {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         String myImpersonatedUser = StringUtils.trim(impersonatedUser);
         String myUsername = StringUtils.trim(username);
         OctaneUrlParser octaneUrlParser;

@@ -37,12 +37,14 @@ import hudson.Extension;
 import hudson.XmlFile;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -125,7 +127,9 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         return super.configure(req, formData);
     }
 
+    @RequirePOST
     public FormValidation doCheckAlmServerUrl(@QueryParameter String value) {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         return checkQcServerURL(value, false);
     }
 

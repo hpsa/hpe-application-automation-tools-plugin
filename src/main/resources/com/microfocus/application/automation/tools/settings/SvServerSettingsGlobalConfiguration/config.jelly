@@ -54,6 +54,10 @@
                         <f:textbox value="${srv.url}"/>
                     </f:entry>
 
+                    <f:entry title="${%Ignore SSL errors}" field="trustEveryone">
+                        <f:checkbox value="${srv.trustEveryone}"/>
+                    </f:entry>
+
                     <f:entry title="${%User name}" field="username">
                         <f:textbox value="${srv.username}"/>
                     </f:entry>
@@ -64,7 +68,7 @@
 
                     <f:validateButton
                             title="${%Test Connection}" progress="${%Testing...}"
-                            method="testConnection" with="url,username,password"/>
+                            method="testConnection" with="url,trustEveryone,username,password"/>
 
                     <f:entry title="">
                         <div align="right">

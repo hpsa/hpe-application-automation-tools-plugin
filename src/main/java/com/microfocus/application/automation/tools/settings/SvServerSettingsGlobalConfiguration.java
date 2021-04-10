@@ -38,10 +38,12 @@ import hudson.Extension;
 import hudson.XmlFile;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -135,12 +137,16 @@ public class SvServerSettingsGlobalConfiguration extends GlobalConfiguration imp
         return FormValidation.ok();
     }
 
+    @RequirePOST
     @SuppressWarnings("unused")
-    public FormValidation doTestConnection(@QueryParameter("url") final String url, @QueryParameter("username") final String username,
+    public FormValidation doTestConnection(@QueryParameter("url") final String url,
+                                           @QueryParameter("trustEveryone") final boolean trustEveryone,
+                                           @QueryParameter("username") final String username,
                                            @QueryParameter("password") final String password) {
         try {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
             Credentials credentials = (!StringUtils.isBlank(username)) ? new Credentials(username, password) : null;
-            ICommandExecutor commandExecutor = new CommandExecutorFactory().createCommandExecutor(new URL(url), credentials);
+            ICommandExecutor commandExecutor = new CommandExecutorFactory().createCommandExecutor(new URL(url), trustEveryone, credentials);
             ServerInfo serverInfo = commandExecutor.getClient().getServerInfo();
             return FormValidation.ok("Validation passed. Connected to %s server of version: %s", serverInfo.getServerType(), serverInfo.getProductVersion());
         } catch (Exception e) {

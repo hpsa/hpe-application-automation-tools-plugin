@@ -39,6 +39,7 @@ import com.microfocus.application.automation.tools.octane.model.processors.proje
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -219,7 +220,8 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
                         .setFormat(format)
                         .convert(rawTests, TestsToRunConverterBuilder.DEFAULT_EXECUTING_DIRECTORY);
-                return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + convertResult.getConvertedTestsString() + "</div>");
+                String result = Util.escape(convertResult.getConvertedTestsString());
+                return ConfigurationValidator.wrapWithFormValidation(true, "Conversion is successful : <div style=\"margin-top:20px\">" + result + "</div>");
             } catch (Exception e) {
                 return ConfigurationValidator.wrapWithFormValidation(false, "Failed to convert : " + e.getMessage());
             }
