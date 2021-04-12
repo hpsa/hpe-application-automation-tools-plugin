@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.xml;
 
+import com.hp.octane.integrations.utils.TestResult;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.OctaneServerMock;
 import com.microfocus.application.automation.tools.octane.OctanePluginTestBase;
@@ -39,7 +40,6 @@ import com.microfocus.application.automation.tools.octane.tests.TestUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitTestResult;
 import com.microfocus.application.automation.tools.octane.tests.junit.TestResultStatus;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;

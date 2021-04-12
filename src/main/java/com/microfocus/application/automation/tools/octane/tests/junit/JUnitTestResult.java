@@ -29,7 +29,7 @@
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
 import com.hp.octane.integrations.utils.SdkStringUtils;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
+import com.hp.octane.integrations.testresults.TestResult;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.stream.XMLStreamException;

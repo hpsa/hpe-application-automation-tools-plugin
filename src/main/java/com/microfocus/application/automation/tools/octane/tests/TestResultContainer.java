@@ -28,8 +28,8 @@
 
 package com.microfocus.application.automation.tools.octane.tests;
 
+import com.hp.octane.integrations.testresults.TestResult;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 
 import java.util.Iterator;
 

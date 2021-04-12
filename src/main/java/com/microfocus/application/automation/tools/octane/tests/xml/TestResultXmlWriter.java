@@ -28,11 +28,11 @@
 
 package com.microfocus.application.automation.tools.octane.tests.xml;
 
+import com.hp.octane.integrations.testresults.TestResult;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildDescriptor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.model.Run;
 import org.apache.commons.io.IOUtils;
