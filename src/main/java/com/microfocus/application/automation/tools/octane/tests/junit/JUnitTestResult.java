@@ -28,8 +28,8 @@
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
+import com.hp.octane.integrations.testresults.XmlWritableTestResult;
 import com.hp.octane.integrations.utils.SdkStringUtils;
-import com.hp.octane.integrations.testresults.TestResult;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.stream.XMLStreamException;
@@ -39,7 +39,7 @@ import java.io.Serializable;
 /**
  * Test Run XML writer to mqmTests.xml
  */
-final public class JUnitTestResult implements Serializable, TestResult {
+final public class JUnitTestResult implements Serializable, XmlWritableTestResult {
 
     private final static int DEFAULT_STRING_SIZE = 255;
     private final String moduleName;

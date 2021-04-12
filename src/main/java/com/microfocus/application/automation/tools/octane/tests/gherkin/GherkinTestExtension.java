@@ -29,7 +29,7 @@
 package com.microfocus.application.automation.tools.octane.tests.gherkin;
 
 import com.hp.octane.integrations.testresults.GherkinUtils;
-import com.hp.octane.integrations.testresults.TestResult;
+import com.hp.octane.integrations.testresults.XmlWritableTestResult;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberResultsService;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
@@ -65,7 +65,7 @@ public class GherkinTestExtension extends OctaneTestsExtension {
 			TestProcessingException, IOException, InterruptedException {
 		try {
 			List<File> gherkinFiles = findGherkinFiles(build.getRootDir());
-			List<TestResult> testResults = GherkinUtils.parseFiles(gherkinFiles);
+			List<XmlWritableTestResult> testResults = GherkinUtils.parseFiles(gherkinFiles);
 			return new TestResultContainer(testResults.iterator(), null);
 		} catch (IOException e) {
 			throw e;
