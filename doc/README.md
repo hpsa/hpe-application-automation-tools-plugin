@@ -56,14 +56,14 @@ Version 6.7 introduced the following enhancements:
 **General**
 
 - Added support for the FOD plugin version 6.1.0.
-- SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions)
+- SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions.)
  - Added XSRF protection for running with Lab, Upload result, and Common result upload for compatibility with new versions of ALM.
 
 **ALM Octane – UFT Integration**
 
-- Reduce the length of the folder name for checkout of auto-generated execution jobs.
-- Ability to execute UFT tests that are not located in job workspace. To show the test name correctly in ALM Octane, define the "UFT_CHECKOUT_FOLDER" parameter.
-- For the Spanish Windows slave: The duration of a UFT test in Jenkins is shown in years instead of seconds.
+- Reduced the length of the folder name for checkout of auto-generated execution jobs.
+- [Bug fix] Ability to execute UFT tests not located in job workspace. To show the test name correctly in ALM Octane, define the "UFT_CHECKOUT_FOLDER" parameter.
+- [Bug fix] For the Spanish Windows slave: The duration of a UFT test in Jenkins now displays correctly, in seconds.
 
 **ALM Octane**
 
