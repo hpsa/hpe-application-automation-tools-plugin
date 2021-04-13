@@ -64,7 +64,8 @@ public class GherkinTestExtension extends OctaneTestsExtension {
 	public TestResultContainer getTestResults(Run<?, ?> build, String jenkinsRootUrl) throws
 			TestProcessingException, IOException, InterruptedException {
 		try {
-			List<File> gherkinFiles = findGherkinFiles(build.getRootDir());
+			List<File> gherkinFiles = GherkinUtils.findGherkinFilesByTemplateWithCounter(build.getRootDir().getAbsolutePath(),
+					CucumberResultsService.GHERKIN_NGA_RESULTS + "%s.xml", 0);
 			List<XmlWritableTestResult> testResults = GherkinUtils.parseFiles(gherkinFiles);
 			return new TestResultContainer(testResults.iterator(), null);
 		} catch (IOException e) {
