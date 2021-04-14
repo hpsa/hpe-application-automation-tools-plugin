@@ -28,11 +28,11 @@
 
 package com.microfocus.application.automation.tools.octane.tests.xml;
 
+import com.hp.octane.integrations.testresults.XmlWritableTestResult;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildDescriptor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.model.Run;
 import org.apache.commons.io.IOUtils;
@@ -72,9 +72,9 @@ public class TestResultXmlWriter {
 			ResultFields resultFields = testResultContainer.getResultFields();
 			initialize(resultFields);
 
-			Iterator<TestResult> testResults = testResultContainer.getIterator();
+			Iterator<XmlWritableTestResult> testResults = testResultContainer.getIterator();
 			while (testResults.hasNext()) {
-				TestResult testResult = testResults.next();
+				XmlWritableTestResult testResult = testResults.next();
 				testResult.writeXmlElement(writer);
 			}
 		}

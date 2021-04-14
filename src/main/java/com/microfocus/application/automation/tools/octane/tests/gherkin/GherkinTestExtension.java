@@ -28,17 +28,21 @@
 
 package com.microfocus.application.automation.tools.octane.tests.gherkin;
 
+import com.hp.octane.integrations.testresults.GherkinUtils;
+import com.hp.octane.integrations.testresults.XmlWritableTestResult;
+import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberResultsService;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.OctaneTestsExtension;
 import com.microfocus.application.automation.tools.octane.tests.TestProcessingException;
 import com.microfocus.application.automation.tools.octane.tests.TestResultContainer;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.Extension;
 import hudson.model.Run;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Extension
@@ -60,14 +64,28 @@ public class GherkinTestExtension extends OctaneTestsExtension {
 	public TestResultContainer getTestResults(Run<?, ?> build, String jenkinsRootUrl) throws
 			TestProcessingException, IOException, InterruptedException {
 		try {
-			List<TestResult> testResults = GherkinTestResultsCollector.collectGherkinTestsResults(build.getRootDir());
+			List<File> gherkinFiles = GherkinUtils.findGherkinFilesByTemplateWithCounter(build.getRootDir().getAbsolutePath(),
+					CucumberResultsService.GHERKIN_NGA_RESULTS + "%s.xml", 0);
+			List<XmlWritableTestResult> testResults = GherkinUtils.parseFiles(gherkinFiles);
 			return new TestResultContainer(testResults.iterator(), null);
 		} catch (IOException e) {
-			throw e;
-		} catch (InterruptedException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new TestProcessingException("Error while processing gherkin test results", e);
 		}
+	}
+
+	private List<File> findGherkinFiles(File buildDir){
+		List<File> result = new ArrayList<>();
+		int i = 0;
+		File gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
+
+		while (gherkinTestResultsFile.exists()) {
+			result.add(gherkinTestResultsFile);
+			i++;
+			gherkinTestResultsFile = new File(buildDir, CucumberResultsService.getGherkinResultFileName(i));
+		}
+
+		return result;
 	}
 }

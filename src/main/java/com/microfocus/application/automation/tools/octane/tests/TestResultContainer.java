@@ -28,22 +28,22 @@
 
 package com.microfocus.application.automation.tools.octane.tests;
 
+import com.hp.octane.integrations.testresults.XmlWritableTestResult;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
-import com.microfocus.application.automation.tools.octane.tests.testResult.TestResult;
 
 import java.util.Iterator;
 
 public class TestResultContainer {
 
-    private Iterator<TestResult> iterator;
+    private Iterator<XmlWritableTestResult> iterator;
     private ResultFields resultFields;
 
-    public TestResultContainer(Iterator<TestResult> iterator, ResultFields resultFields) {
+    public TestResultContainer(Iterator<XmlWritableTestResult> iterator, ResultFields resultFields) {
         this.iterator = iterator;
         this.resultFields = resultFields;
     }
 
-    public Iterator<TestResult> getIterator() {
+    public Iterator<XmlWritableTestResult> getIterator() {
         return iterator;
     }
 
