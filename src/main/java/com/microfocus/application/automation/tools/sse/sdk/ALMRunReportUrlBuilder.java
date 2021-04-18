@@ -39,29 +39,35 @@ import com.microfocus.application.automation.tools.sse.sdk.request.GetALMVersion
 public class ALMRunReportUrlBuilder {
 
     public String build(Client client, String serverUrl, String domain, String project, String runId) {
-
         String ret = "NA";
         try {
-            if (isNewReport(client)) {
-                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#/test-set-report/%s",
+            ALMVersion version = getALMVersion(client);
+            int majorVersion = toInt(version.getMajorVersion());
+            int minorVersion = toInt(version.getMinorVersion());
+            if (majorVersion < 12 || (majorVersion == 12 && minorVersion < 2)) {
+                ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
+            } else if (majorVersion >= 16) {
+                // Url change due to angular js upgrade from ALM16
+                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#!/test-set-report/%s",
                         serverUrl,
                         domain,
                         project,
                         runId);
             } else {
-                ret = client.buildWebUIRequest(String.format("lab/index.jsp?processRunId=%s", runId));
+                ret = String.format("%sui/?redirected&p=%s/%s&execution-report#/test-set-report/%s",
+                        serverUrl,
+                        domain,
+                        project,
+                        runId);
             }
         } catch (Exception e) {
             // result url will be NA (in case of failure like getting ALM version, convert ALM version to number)
         }
-
         return ret;
     }
 
     public boolean isNewReport(Client client) {
-
         ALMVersion version = getALMVersion(client);
-
         // Newer than 12.2x, including 12.5x, 15.x and later
         return (toInt(version.getMajorVersion()) == 12 && toInt(version.getMinorVersion()) >= 2)
                 || toInt(version.getMajorVersion()) > 12;
