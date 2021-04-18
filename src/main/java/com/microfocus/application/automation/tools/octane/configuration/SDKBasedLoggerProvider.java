@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
+import com.hp.octane.integrations.services.logging.CommonLoggerContextUtil;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -56,7 +57,8 @@ public final class SDKBasedLoggerProvider {
     public static Logger getLogger(Class<?> type) {
         try {
             if (!sysParamConfigured) {
-                System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
+                CommonLoggerContextUtil.configureLogger(CIJenkinsServicesImpl.getAllowedStorageFile());
+                //System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
                 sysParamConfigured = true;
             }
             return LogManager.getLogger(type);
