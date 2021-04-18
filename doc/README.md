@@ -26,10 +26,8 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [User Guide](#user-guide)
 
-- [Rebranding Script](#rebranding-script)
 - [Create an execution node](#create-an-execution-node)
 - [Connect an execution node to the Jenkins server](#connect-an-execution-node-to-the-jenkins-server)
-
 - [Support for pipelines](#support-for-pipelines)
 
 [Enable non-English languages](#enable-non-english-languages)
@@ -51,14 +49,31 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements in version 6.6
+## New Features and Enhancements in version 6.7
 
-Version 6.6 introduced the following enhancements:
+Version 6.7 introduced the following enhancements:
 
 **General**
 
-- Compliance with the new Jenkins version 2.264 form layout
-- Certified for Jenkins version 2.264.1
+- Added support for the FOD plugin version 6.1.0.
+- SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions.)
+ - Added XSRF protection for running with Lab, Upload result, and Common result upload for compatibility with new versions of ALM.
+
+**ALM Octane – UFT Integration**
+
+- Reduced the length of the folder name for checkout of auto-generated execution jobs.
+- [Bug fix] Ability to execute UFT tests not located in job workspace. To show the test name correctly in ALM Octane, define the "UFT_CHECKOUT_FOLDER" parameter.
+- [Bug fix] For the Spanish Windows slave: The duration of a UFT test in Jenkins now displays correctly, in seconds.
+
+**ALM Octane**
+
+- Added the option to inject pull requests to ALM Octane with repository in SSH format.
+- Auto-fill: After injection of pull-requests, templates related to SCM repositories are auto-filled in ALM Octane (Settings > Spaces-> DevOps > SCM Repositories).
+
+**LRE (LoadRunner Enterprise)**
+
+- The build step “Execute performance test using LoadRunner Enterprise” can authenticate to LoadRunner Enterprise using an access key (available from LoadRunner Enterprise 2021 R1).
+
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
@@ -91,7 +106,7 @@ This plugin supports the following Micro Focus product versions:
 | ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
 | LoadRunner Professional                                          | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
 | UFT Mobile (formerly Mobile Center)                 | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
-| LoadRunner Enterprise (formerly Performance Center) | 12.xx (12.53 or higher required for trend reports), 2020     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/pc/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
+| LoadRunner Enterprise (formerly Performance Center) | 12.xx (12.53 or higher required for trend reports), 2020 and higher     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/pc/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT One (formerly UFT)                              | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
 | UFT Developer (formerly LeanFT)                     | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/leanft/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrating LeanFT with Jenkins  in just a few simple steps](https://community.softwaregrp.com/t5/Quality-and-Testing-Blog/Integrating-LeanFT-with-Jenkins-in-just-a-few-simple-steps/ba-p/247321#.WpzwYOhubcte%20steps) |
@@ -126,23 +141,8 @@ This plugin supports the following Micro Focus product versions:
 
 You can run client side-or server-side (Default or Functional) test sets and build verification suites from Application Lifecycle Management (ALM) or functional tests from the file system. You can create and configure ALM Octane pipelines from the ALM Octane user interface, or on Jenkins.
 
-## Rebranding script
-
-Due to rebranding in this version of the plugin to the &quot;Micro Focus&quot; name, certain job history and configurations from previous jobs may be not be recognized by Jenkins. Before you use this version of the plugin, back up all projects and jobs, and all job configurations related to the plugin that are included in the General Jenkins configuration. Run the following job to convert your earlier configurations:
-
-- Create a new  **Free-Style**  project.
-
-- Click  **Add build step**  and select  **Fix old Micro Focus Jenkins builds**.
-
-- Run the job.
-
-- Restart the server after the build status is successful. You can restart the server by entering the following URL:  **Jenkins\_URL/safeRestart**
-
-
 
 ## Create an execution node
-
-
 
 1. Creating an execution node is only required when running scenarios from LoadRunner Professional or UFT One, that are stored on the file system. You only need to set an execution node if the Jenkins master machine is  **not**  the executing machine. If you are running LoadRunner Professional or UFT One on the master machine, you do not need to set and select a node.
 
