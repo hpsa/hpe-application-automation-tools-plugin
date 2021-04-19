@@ -76,7 +76,7 @@ public abstract class GeneralPostRequest extends GeneralRequest {
             builder.append(RestXmlUtils.fieldXml(currPair.getFirst(), currPair.getSecond()));
         }
         
-        return builder.append("</Fields></Entity>").toString().getBytes();
+        return builder.append("</Fields></Entity>").toString().getBytes(StandardCharsets.UTF_8);
     }
     
     protected List<Pair<String, String>> getDataFields() {
