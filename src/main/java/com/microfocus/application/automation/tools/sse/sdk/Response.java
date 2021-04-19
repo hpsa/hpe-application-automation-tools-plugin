@@ -122,6 +122,6 @@ public class Response {
     @Override
     public String toString() {
         
-        return new String(_data);
+        return new String(_data, StandardCharsets.UTF_8);
     }
 }
