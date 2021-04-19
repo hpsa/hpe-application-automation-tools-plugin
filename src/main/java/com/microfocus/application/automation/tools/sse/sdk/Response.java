@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.sse.sdk;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This is a naive implementation of an HTTP response. We use it to simplify matters in the
