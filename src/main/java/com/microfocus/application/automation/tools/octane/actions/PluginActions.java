@@ -150,7 +150,7 @@ public class PluginActions implements RootAction {
                         addMetrics(client.getRestService().obtainOctaneRestClient().getMetrics(), "restClient", confJson);
 
 
-                        allMetricsJson.put(client.getConfigurationService().getConfiguration().geLocationForLog(), confJson);
+                        allMetricsJson.put(client.getConfigurationService().getConfiguration().getLocationForLog(), confJson);
                     }
             );
             result.put("metrics", allMetricsJson);
@@ -185,7 +185,7 @@ public class PluginActions implements RootAction {
         OctaneSDK.getClients().forEach(
                 client -> {
                     com.hp.octane.integrations.services.configuration.ConfigurationService cs = client.getConfigurationService();
-                    result.put(cs.getConfiguration().geLocationForLog(), cs.getOctaneRootsCacheCollection());
+                    result.put(cs.getConfiguration().getLocationForLog(), cs.getOctaneRootsCacheCollection());
                 }
         );
 
