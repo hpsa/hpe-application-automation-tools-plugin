@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by barush on 29/10/2014.
@@ -76,7 +77,7 @@ public abstract class GeneralPostRequest extends GeneralRequest {
             builder.append(RestXmlUtils.fieldXml(currPair.getFirst(), currPair.getSecond()));
         }
         
-        return builder.append("</Fields></Entity>").toString().getBytes();
+        return builder.append("</Fields></Entity>").toString().getBytes(StandardCharsets.UTF_8);
     }
     
     protected List<Pair<String, String>> getDataFields() {
