@@ -50,6 +50,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Locale;
@@ -192,7 +193,7 @@ public class UploadAppBuilder extends Builder {
                     return false;
                 } finally {
                     if (tempFile != null) {
-                        tempFile.delete();
+                        Files.delete(tempFile.toPath());
                     }
                 }
             }
