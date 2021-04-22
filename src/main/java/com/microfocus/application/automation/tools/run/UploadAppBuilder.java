@@ -36,19 +36,24 @@ import com.microfocus.application.automation.tools.model.UploadAppPathModel;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import net.minidev.json.JSONObject;
+import org.apache.commons.io.FilenameUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,17 +99,47 @@ public class UploadAppBuilder extends Builder {
         }else{
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
             out.println(String.format("There are %d apps to be uploaded.", paths.size()));
-            String workspace = new File(build.getWorkspace().toURI()).getCanonicalPath();
+            String workspace = build.getWorkspace() == null ? "" : build.getWorkspace().toURI().getPath();
+
             for(int i=1; i<=paths.size(); i++){
                 String path = paths.get(i-1).getMcAppPath();
+                String originPath = path;
                 if(StringUtils.isNullOrEmpty(path)){
                     out.println(String.format("ignore the empty app %d upload", i));
                     continue;
                 }
                 //case insensitive replace of workspace to its real path
-                path = path.replaceAll("(?i)"+ Pattern.quote("${WORKSPACE}"), Matcher.quoteReplacement(workspace));
+                if (path.toUpperCase(Locale.ENGLISH).startsWith("${WORKSPACE}")){
+                    path = path.replaceAll("(?i)"+ Pattern.quote("${WORKSPACE}"), Matcher.quoteReplacement(workspace));
+                    if (!FilenameUtils.normalize(path).startsWith(FilenameUtils.normalize(workspace))){
+                        out.println(String.format("Failed to upload app, Cause invalid application file: %s", path));
+                        build.setResult(Result.FAILURE);
+                        allSuccess = false;
+                        continue;
+                    }
+                }
+                FilePath filePath = new FilePath(build.getWorkspace().getChannel(), path);
+                File tempFile = null;
+                if (filePath.isRemote()){
+                    tempFile = File.createTempFile("uftm", "." + FilenameUtils.getExtension(path));
+                    try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+                        filePath.copyTo(outputStream);
+                        path = tempFile.getCanonicalPath();
+                    } catch (NoSuchFileException noSuchFileException){
+                        out.println(String.format("Failed to upload app, Cause cannot find application file: %s", path));
+                        build.setResult(Result.FAILURE);
+                        allSuccess = false;
+                        continue;
+                    } catch (Exception e){
+                        out.println(String.format("Failed to upload app, Cause failed to copy application file: %s", path));
+                        build.setResult(Result.FAILURE);
+                        allSuccess = false;
+                        continue;
+                    }
+                }
+
                 try{
-                    out.println(String.format("starting to upload app %d %s", i, path));
+                    out.println(String.format("starting to upload app %d %s", i, originPath));
                     if(uploadAppModel.getProxySettings() == null){
                         app = job.upload(mcServerUrl, uploadAppModel.getMcUserName(),uploadAppModel.getMcPassword(), uploadAppModel.getMcTenantId(), null, null, null, path);
                     }else{
@@ -156,6 +191,10 @@ public class UploadAppBuilder extends Builder {
                     }
                     build.setResult(Result.FAILURE);
                     return false;
+                } finally {
+                    if (tempFile != null) {
+                        Files.delete(tempFile.toPath());
+                    }
                 }
             }
         }
