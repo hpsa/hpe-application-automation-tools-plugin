@@ -49,12 +49,13 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements in version 6.7
+## New Features and Enhancements in Versions 6.7, 6.8
 
-Version 6.7 introduced the following enhancements:
+Versions 6.7 and 6.8 introduced the following enhancements:
 
 **General**
 
+- Security fixes: Security issues noted in the *Jenkins Security Advisory 2021-04-07* were addressed. For details, search for SECURITY-2132, SECURITY-2175, and SECURITY-2176 in the [Jenkins Security Advisory 2021-04-07 page](https://www.jenkins.io/security/advisory/2021-04-07/). (Version 6.8)
 - Added support for the FOD plugin version 6.1.0.
 - SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions.)
  - Added XSRF protection for running with Lab, Upload result, and Common result upload for compatibility with new versions of ALM.
