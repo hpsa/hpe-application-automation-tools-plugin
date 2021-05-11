@@ -72,7 +72,6 @@ public class ExecutorConnectivityService {
 	 */
 	public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		logger.info("checkRepositoryConnectivity started to " + testConnectivityInfo.getScmRepository().getUrl());
-		long start = System.currentTimeMillis();
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
 		if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
 
@@ -85,10 +84,8 @@ public class ExecutorConnectivityService {
 				credentials = getCredentialsById(testConnectivityInfo.getCredentialsId());
 			}
 
-			long permValidationStarted = System.currentTimeMillis();
 			List<String> permissionResult = checkCIPermissions(Jenkins.getInstanceOrNull(), needCredentialsPermission);
-			long permValidationEnded = System.currentTimeMillis();
-			logger.info(String.format("checkRepositoryConnectivity : permission check is done in %s ms ", (permValidationEnded - permValidationStarted)));
+
 			if (!permissionResult.isEmpty()) {
 				String user = User.current() != null ? User.current().getId() : Jenkins.ANONYMOUS.getPrincipal().toString();
 				String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
@@ -98,32 +95,22 @@ public class ExecutorConnectivityService {
 				return result;
 			}
 
-			long scmValidationStarted = System.currentTimeMillis();
-			boolean requiredPluginInstalled = ScmPluginFactory.isPluginInstalled(testConnectivityInfo.getScmRepository().getType());
-			if (!requiredPluginInstalled) {
+			if (!ScmPluginFactory.isPluginInstalled(testConnectivityInfo.getScmRepository().getType())) {
 				result.setStatus(HttpStatus.SC_BAD_REQUEST);
 				result.setBody(String.format("%s plugin is not installed.", testConnectivityInfo.getScmRepository().getType().value().toUpperCase()));
 			} else {
-
-				long pluginInstalledValidationStarted = System.currentTimeMillis();
 				ScmPluginHandler handler = ScmPluginFactory.getScmHandler(testConnectivityInfo.getScmRepository().getType());
-				long pluginInstalledValidationEnded = System.currentTimeMillis();
-				logger.info(String.format("checkRepositoryConnectivity : plugin installed check is done in %s ms ", (pluginInstalledValidationEnded - pluginInstalledValidationStarted)));
-
 				handler.checkRepositoryConnectivity(testConnectivityInfo, credentials, result);
-				long scmValidationEnded = System.currentTimeMillis();
-				logger.info(String.format("checkRepositoryConnectivity : scm check is done in %s ms ", (scmValidationEnded - scmValidationStarted)));
 			}
 
 		} else {
 			result.setStatus(HttpStatus.SC_BAD_REQUEST);
 			result.setBody("Missing input for testing");
 		}
-		long end = System.currentTimeMillis();
 		if (result.getStatus() != HttpStatus.SC_OK) {
 			logger.info("checkRepositoryConnectivity failed: " + result.getBody());
-		} else {
-			logger.info(String.format("checkRepositoryConnectivity ok, done in %s ms ", (end - start)));
+		}else{
+			logger.info("checkRepositoryConnectivity ok" );
 		}
 		return result;
 	}
