@@ -507,11 +507,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
+			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo,
+					octaneClient.getConfigurationService().getConfiguration());
 
 			//validate UftTestRunnerFolderParameter
 			if (response.getStatus() == HttpStatus.SC_OK) {
-				OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
 				UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
 						.getConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
 				if (uftFolderParameter != null) {
