@@ -57,6 +57,7 @@ import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.*;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
@@ -102,12 +103,14 @@ import java.util.stream.Collectors;
  */
 
 public class CIJenkinsServicesImpl extends CIPluginServices {
-	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
-	private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	//we going to print octaneAllowedStorage to system log, this flag help to avoid multiple prints
 	private static boolean skipOctaneAllowedStoragePrint = false;
+	private static Object skipOctaneAllowedStoragePrintLock = new Object();//this must be before SDKBasedLoggerProvider.getLogger
+
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
+	private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 
 	@Override
 	public CIServerInfo getServerInfo() {
@@ -507,9 +510,14 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
+			OctaneResponse response;
 			OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
-			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo,
-					octaneClient.getConfigurationService().getConfiguration());
+			if (ConfigurationParameterFactory.isUftTestConnectionDisabled(octaneClient.getConfigurationService().getConfiguration())) {
+				logger.info("checkRepositoryConnectivity : validation disabled");
+				response = DTOFactory.getInstance().newDTO(OctaneResponse.class).setStatus(HttpStatus.SC_OK);
+			} else {
+				response = ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			}
 
 			//validate UftTestRunnerFolderParameter
 			if (response.getStatus() == HttpStatus.SC_OK) {
@@ -754,7 +762,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	private static File getAllowedStorageFileForMasterJenkins(Jenkins jenkins) {
 		boolean allowPrint;
-		synchronized (dtoFactory) {
+		synchronized (skipOctaneAllowedStoragePrintLock) {
+			//do allowPrint only once
 			allowPrint = !skipOctaneAllowedStoragePrint;
 			skipOctaneAllowedStoragePrint = true;
 		}

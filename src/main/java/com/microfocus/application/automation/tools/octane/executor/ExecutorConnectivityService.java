@@ -36,12 +36,10 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginFactory;
 import com.microfocus.application.automation.tools.octane.executor.scmmanager.ScmPluginHandler;
@@ -70,19 +68,11 @@ public class ExecutorConnectivityService {
 	 * Validate that scm repository is valid
 	 *
 	 * @param testConnectivityInfo contains values to check
-	 * @param configuration
 	 * @return OctaneResponse return status code and error to show for client
 	 */
-	public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo, OctaneConfiguration configuration) {
+	public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		logger.info("checkRepositoryConnectivity started to " + testConnectivityInfo.getScmRepository().getUrl());
 		OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
-
-		if (ConfigurationParameterFactory.isUftTestConnectionDisabled(configuration)) {
-			logger.info("checkRepositoryConnectivity : validation disabled");
-			result.setStatus(HttpStatus.SC_OK);
-			return result;
-		}
-
 		if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
 
 			boolean needCredentialsPermission = false;
