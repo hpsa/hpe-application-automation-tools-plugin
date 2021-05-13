@@ -27,15 +27,11 @@
  */
 
 using HpToolsLauncher.ParallelRunner;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Web.Script.Serialization;
 using Environment = System.Environment;
 using Resources = HpToolsLauncher.Properties.Resources;
 namespace HpToolsLauncher.TestRunners

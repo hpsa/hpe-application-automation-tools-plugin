@@ -38,8 +38,6 @@ using System.Threading;
 using HpToolsLauncher.Properties;
 using Mercury.TD.Client.Ota.QC9;
 
-
-
 namespace HpToolsLauncher
 {
     public class AlmTestSetsRunner : RunnerBase, IDisposable
@@ -101,7 +99,7 @@ namespace HpToolsLauncher
 
         public string ApiKey { get; set; }
 
-
+        private const string TEST_DETAILS = "ID = {0}, TestSet = {1}, TestSetFolder = {2}";
 
         /// <summary>
         /// constructor
@@ -401,7 +399,8 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
                     }
                 }
-                else {
+                else
+                {
                     ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, qcServerUrl));
                 }
 
@@ -567,8 +566,9 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="testSetList"></param>
         /// <param name="testSuiteName"></param>
+        /// <param name="tsFolder"></param>
         /// <returns>the target test set</returns>
-        public ITestSet GetTargetTestSet(List testSetList, string testSuiteName)
+        public ITestSet GetTargetTestSet(List testSetList, string testSuiteName, ITestSetFolder tsFolder)
         {
             ITestSet targetTestSet = null;
 
@@ -577,10 +577,18 @@ namespace HpToolsLauncher
                 foreach (ITestSet testSet in testSetList)
                 {
                     string tempName = testSet.Name;
-                    if (tempName.Equals(testSuiteName, StringComparison.InvariantCultureIgnoreCase))
+                    var testSetFolder = testSet.TestSetFolder as ITestSetFolder;
+                    try
                     {
-                        targetTestSet = testSet;
-                        break;
+                        if (tempName.Equals(testSuiteName, StringComparison.OrdinalIgnoreCase) && testSetFolder.NodeID == tsFolder.NodeID)
+                        {
+                            targetTestSet = testSet;
+                            break;
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        ConsoleWriter.WriteLine(ex.Message);
                     }
                 }
             }
@@ -672,7 +680,9 @@ namespace HpToolsLauncher
             if (tsFolder != null)
             {
                 List testList = tsFolder.FindTestSets(testSuiteName);
-                
+                foreach(ITestSet t in testList)
+                    Console.WriteLine(string.Format(TEST_DETAILS, t.ID, t.Name, t.TestSetFolder.Name));
+
                 return testList;
             }
            
@@ -1176,7 +1186,7 @@ namespace HpToolsLauncher
             ITestSet targetTestSet = null;
             try
             {
-                targetTestSet = GetTargetTestSet(testSetList, testSuiteName);
+                targetTestSet = GetTargetTestSet(testSetList, testSuiteName, tsFolder);
             }
             catch (Exception)
             {
