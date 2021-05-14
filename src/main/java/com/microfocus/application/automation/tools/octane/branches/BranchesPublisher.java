@@ -136,7 +136,7 @@ public class BranchesPublisher extends Recorder implements SimpleBuildStep {
             FetchHandler fetchHandler = FetchFactory.getHandler(ScmTool.fromValue(myScmTool), authenticationStrategy);
 
             OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
-            logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().geLocationForLog() + ", workspace - " + myWorkspaceId);
+            logConsumer.printLog("ALM Octane " + octaneClient.getConfigurationService().getConfiguration().getLocationForLog() + ", workspace - " + myWorkspaceId);
             octaneClient.validateOctaneIsActiveAndSupportVersion(PullRequestAndBranchService.BRANCH_COLLECTION_SUPPORTED_VERSION);
             PullRequestAndBranchService service = OctaneSDK.getClientByInstanceId(myConfigurationId).getPullRequestAndBranchService();
             BranchSyncResult result = service.syncBranchesToOctane(fetchHandler, fp, Long.parseLong(myWorkspaceId), GitFetchUtils::getUserIdForCommit, logConsumer::printLog);

@@ -49,6 +49,7 @@ namespace HpToolsLauncher
                 <Parameter Name="mee" Value="12" Type="Integer"/>
                 <Parameter Name="mee1" Value="12.0" Type="Double"/>
                 <Parameter Name="mee2" Value="abc" Type="String"/>
+                <Parameter name="ParamBoolean" type="boolean" value="False"/>
                 <DataTable path="c:\tables\my_data_table.xls"/>
                 <Iterations mode="rngIterations|rngAll|oneIteration" start="2" end="3"/>
             </Test>
@@ -56,6 +57,7 @@ namespace HpToolsLauncher
                 <Parameter Name="mee" Value="12" Type="Integer"/>
                 <Parameter Name="mee1" Value="12.0" Type="Double"/>
                 <Parameter Name="mee2" Value="abc" Type="String"/>
+                <Parameter name="ParamBoolean" type="boolean" value="False"/>
             </Test>
          </Mtbx>
         */
