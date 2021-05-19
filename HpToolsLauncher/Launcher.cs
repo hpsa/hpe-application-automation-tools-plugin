@@ -805,7 +805,7 @@ namespace HpToolsLauncher
                             {
                                 reportPath = jenkinsEnvVariables[fsReportPath];
                             }
-                            catch (KeyNotFoundException ex)
+                            catch (KeyNotFoundException)
                             {
                                 Console.WriteLine("============================================================================");
                                 Console.WriteLine("The provided results folder path {0} does not exist.", fsReportPath);
