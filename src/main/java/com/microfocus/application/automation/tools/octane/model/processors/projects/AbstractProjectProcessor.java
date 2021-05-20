@@ -91,39 +91,58 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
 		String suiteId = (String) parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue();
 		String suiteRunId = (String) parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue();
+		String buildId = (String) parametersAction.getParameter(UftConstants.BUILD_ID_PARAMETER_NAME).getValue();
 		logger.info("cancelBuild for suiteId=" + suiteId +", suiteRunId=" + suiteRunId);
+
+
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
-			Queue queue = Jenkins.get().getQueue();
-			queue.getItems(project).forEach(item -> {
-				item.getActions(ParametersAction.class).forEach(action -> {
-					if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
-						try {
-							logger.info("canceling item in queue : " + item.toString());
-							queue.cancel(item);
-							logger.info("Item in queue is cancelled item : " + item.toString());
-						} catch (Exception e) {
-							logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
-						}
-					}
-				});
-			});
 
-			project.getBuilds().forEach(build -> {
-				if (build instanceof AbstractBuild) {
-					AbstractBuild aBuild = (AbstractBuild) build;
-					aBuild.getActions(ParametersAction.class).forEach(action -> {
+			if (buildId != null) {
+				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
+				if (aBuild == null) {
+					logger.warn(String.format("Cannot stop : build %s is not found"), buildId);
+					return;
+				}
+				try {
+					aBuild.doStop();
+					logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+				} catch (Exception e) {
+					logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
+				}
+			} else {
+
+				Queue queue = Jenkins.get().getQueue();
+				queue.getItems(project).forEach(item -> {
+					item.getActions(ParametersAction.class).forEach(action -> {
 						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
 							try {
-								aBuild.doStop();
-								logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+								logger.info("canceling item in queue : " + item.toString());
+								queue.cancel(item);
+								logger.info("Item in queue is cancelled item : " + item.toString());
 							} catch (Exception e) {
-								logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
+								logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
 							}
 						}
 					});
-				}
-			});
+				});
+
+				project.getBuilds().forEach(build -> {
+					if (build instanceof AbstractBuild) {
+						AbstractBuild aBuild = (AbstractBuild) build;
+						aBuild.getActions(ParametersAction.class).forEach(action -> {
+							if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+								try {
+									aBuild.doStop();
+									logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+								} catch (Exception e) {
+									logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
+								}
+							}
+						});
+					}
+				});
+			}
 		} else {
 			throw new IllegalStateException("unsupported job CAN NOT be stopped");
 		}
