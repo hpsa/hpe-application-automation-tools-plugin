@@ -101,15 +101,10 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			if (buildId != null) {
 				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
 				if (aBuild == null) {
-					logger.warn(String.format("Cannot stop : build %s is not found"), buildId);
+					logger.warn(String.format("Cannot stop : build %s is not found", buildId));
 					return;
 				}
-				try {
-					aBuild.doStop();
-					logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
-				} catch (Exception e) {
-					logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
-				}
+				stopBuild(aBuild);
 			} else {
 
 				Queue queue = Jenkins.get().getQueue();
@@ -132,12 +127,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 						AbstractBuild aBuild = (AbstractBuild) build;
 						aBuild.getActions(ParametersAction.class).forEach(action -> {
 							if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
-								try {
-									aBuild.doStop();
-									logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
-								} catch (Exception e) {
-									logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
-								}
+								stopBuild(aBuild);
 							}
 						});
 					}
@@ -145,6 +135,15 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			}
 		} else {
 			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+		}
+	}
+
+	private void stopBuild(AbstractBuild aBuild) {
+		try {
+			aBuild.doStop();
+			logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+		} catch (Exception e) {
+			logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 		}
 	}
 
