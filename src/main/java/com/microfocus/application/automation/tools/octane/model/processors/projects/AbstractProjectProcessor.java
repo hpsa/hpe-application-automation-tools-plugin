@@ -97,9 +97,9 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			AbstractProject project = (AbstractProject) job;
 
 			if (buildId != null) {
-				logger.info(String.format("cancelBuild for %s, buildId=%s", buildId));
+				logger.info(String.format("cancelBuild for %s, buildId=%s", job.getFullName(), buildId));
 				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
-				logger.info(String.format("cancelBuild for %s, buildId=%s - is done", buildId));
+				logger.info(String.format("cancelBuild for %s, buildId=%s - is done", job.getFullName(), buildId));
 				if (aBuild == null) {
 					logger.warn(String.format("Cannot stop : build %s is not found", buildId));
 					return;
