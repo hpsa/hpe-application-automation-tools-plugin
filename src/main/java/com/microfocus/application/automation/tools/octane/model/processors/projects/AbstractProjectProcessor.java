@@ -138,11 +138,11 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName){
-		ParameterValue pv= parametersAction.getParameter(paramName);
-		if(pv!=null){
-			return (String)pv.getValue();
-		}else{
+	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName) {
+		ParameterValue pv = parametersAction.getParameter(paramName);
+		if (pv != null) {
+			return (String) pv.getValue();
+		} else {
 			return null;
 		}
 	}
