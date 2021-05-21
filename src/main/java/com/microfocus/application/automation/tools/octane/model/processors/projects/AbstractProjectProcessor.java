@@ -89,24 +89,24 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
-		String suiteId = (String) parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue();
-		String suiteRunId = (String) parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue();
-		String buildId = (String) parametersAction.getParameter(UftConstants.BUILD_ID_PARAMETER_NAME).getValue();
-		logger.info("cancelBuild for suiteId=" + suiteId +", suiteRunId=" + suiteRunId);
-
+		String suiteId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_ID_PARAMETER_NAME);
+		String suiteRunId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
 
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
 
 			if (buildId != null) {
+				logger.info(String.format("cancelBuild for %s, buildId=%s", buildId));
 				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
+				logger.info(String.format("cancelBuild for %s, buildId=%s - is done", buildId));
 				if (aBuild == null) {
 					logger.warn(String.format("Cannot stop : build %s is not found", buildId));
 					return;
 				}
 				stopBuild(aBuild);
 			} else {
-
+				logger.info(String.format("cancelBuild for %s, suiteId=%s, suiteRunId=%s", job.getFullName(), suiteId, suiteRunId));
 				Queue queue = Jenkins.get().getQueue();
 				queue.getItems(project).forEach(item -> {
 					item.getActions(ParametersAction.class).forEach(action -> {
@@ -135,6 +135,15 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			}
 		} else {
 			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+		}
+	}
+
+	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName){
+		ParameterValue pv= parametersAction.getParameter(paramName);
+		if(pv!=null){
+			return (String)pv.getValue();
+		}else{
+			return null;
 		}
 	}
 
