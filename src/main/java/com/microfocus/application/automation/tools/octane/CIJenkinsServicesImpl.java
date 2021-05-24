@@ -668,54 +668,57 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		boolean parameterHandled;
 		ParameterValue tmpValue;
 		ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
-		if (paramsDefProperty != null) {
-			Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
-			for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
-				parameterHandled = false;
-				CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
-				if (ciParameter != null) {
-					tmpValue = null;
-					switch (ciParameter.getType()) {
-						case NUMBER:
-						case STRING:
-							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
-							break;
-						case BOOLEAN:
-							tmpValue = new BooleanParameterValue(ciParameter.getName(), Boolean.parseBoolean(ciParameter.getValue().toString()));
-							break;
-						case PASSWORD:
-							tmpValue = new PasswordParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
-							break;
-						default:
-							break;
-					}
-					if (tmpValue != null) {
-						result.add(tmpValue);
-						parameterHandled = true;
-					}
-				}
-				if (!parameterHandled) {
-					if (paramDef instanceof FileParameterDefinition) {
-						FileItemFactory fif = new DiskFileItemFactory();
-						FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
-						try {
-							fi.getOutputStream().write(new byte[0]);
-						} catch (IOException ioe) {
-							logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
-						}
-						tmpValue = new FileParameterValue(paramDef.getName(), fi);
-						result.add(tmpValue);
-					} else {
-						result.add(paramDef.getDefaultParameterValue());
-					}
-				}
-			}
 
-			//add parameters that are not defined in job
-			for (CIParameter notDefinedParameter : ciParametersMap.values()) {
-				tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
-				result.add(tmpValue);
+		if (paramsDefProperty == null) {
+			paramsDefProperty = new ParametersDefinitionProperty();
+		}
+
+		Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
+		for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
+			parameterHandled = false;
+			CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
+			if (ciParameter != null) {
+				tmpValue = null;
+				switch (ciParameter.getType()) {
+					case NUMBER:
+					case STRING:
+						tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+						break;
+					case BOOLEAN:
+						tmpValue = new BooleanParameterValue(ciParameter.getName(), Boolean.parseBoolean(ciParameter.getValue().toString()));
+						break;
+					case PASSWORD:
+						tmpValue = new PasswordParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+						break;
+					default:
+						break;
+				}
+				if (tmpValue != null) {
+					result.add(tmpValue);
+					parameterHandled = true;
+				}
 			}
+			if (!parameterHandled) {
+				if (paramDef instanceof FileParameterDefinition) {
+					FileItemFactory fif = new DiskFileItemFactory();
+					FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
+					try {
+						fi.getOutputStream().write(new byte[0]);
+					} catch (IOException ioe) {
+						logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
+					}
+					tmpValue = new FileParameterValue(paramDef.getName(), fi);
+					result.add(tmpValue);
+				} else {
+					result.add(paramDef.getDefaultParameterValue());
+				}
+			}
+		}
+
+		//add parameters that are not defined in job
+		for (CIParameter notDefinedParameter : ciParametersMap.values()) {
+			tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
+			result.add(tmpValue);
 		}
 		return result;
 	}
