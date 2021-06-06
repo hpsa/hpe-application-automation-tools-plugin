@@ -31,19 +31,20 @@ package com.microfocus.application.automation.tools.octane.testrunner;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
+import com.hp.octane.integrations.executor.converters.MbtTest;
+import com.hp.octane.integrations.executor.converters.MfUftConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.model.TestsFramework;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -51,9 +52,14 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.net.URL;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.microfocus.application.automation.tools.run.RunFromFileBuilder.HP_TOOLS_LAUNCHER_EXE;
 
 /**
  * Builder for available frameworks for converting
@@ -135,6 +141,10 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
                     .setFormat(frameworkFormat)
                     .convert(rawTests, executingDirectory);
+
+            if (convertResult.getMbtTests() != null) {
+                createMTBTests(convertResult.getMbtTests(), build, filePath, launcher, listener);
+            }
             printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
             printToConsole(listener, "Set to parameter : " + convertResult.getTestsToRunConvertedParameterName() + " = " + convertResult.getConvertedTestsString());
             printToConsole(listener, "********************* Convertion is done *********************");
@@ -151,6 +161,82 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             printToConsole(listener, "Failed to convert : " + e.getMessage());
             build.setResult(Result.FAILURE);
 
+            return;
+        }
+    }
+
+    private void createMTBTests(List<MbtTest> tests, @Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException, InterruptedException {
+        build.getRootDir();
+        Properties props = new Properties();
+        props.setProperty("runType", "MBT");
+        props.setProperty("resultsFilename", "must be here");
+
+        props.setProperty("parentFolder", workspace.getRemote() +"\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+        int counter = 1;
+
+        EnvVars env = build.getEnvironment(listener);
+        for (MbtTest mbtTest : tests) {
+            props.setProperty("test" + counter, mbtTest.getName());
+            props.setProperty("package" + counter, "_" + counter);
+            props.setProperty("script" + counter, env.expand(mbtTest.getScript()));
+            props.setProperty("unitIds" + counter, mbtTest.getUnitIds().stream().map( n -> n.toString() ).collect(Collectors.joining(";" ) ));
+            props.setProperty("underlyingTests" + counter, env.expand((String.join(";", mbtTest.getUnderlyingTests()))));
+            counter++;
+        }
+
+        //prepare time
+        Date now = new Date();
+        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+        String time = formatter.format(now);
+
+        // get properties serialized into a stream
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            props.store(stream, "");
+        } catch (IOException e) {
+            listener.error("Storing props failed: " + e);
+            build.setResult(Result.FAILURE);
+        }
+        String propsSerialization = stream.toString();
+        InputStream propsStream = new ByteArrayInputStream(propsSerialization.getBytes());
+        String paramFileName = "mbt_props" + time + ".txt";
+        FilePath propsFileName = workspace.child(paramFileName);
+
+        //HP Tool Launcher
+        URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+        if (cmdExeUrl == null) {
+            listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+            return;
+        }
+        FilePath cmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+
+
+        try {
+            // create a file for the properties file, and save the properties
+            propsFileName.copyFrom(propsStream);
+            printToConsole(listener, "MBT props file saved to " + propsFileName.getRemote());
+
+            // Copy the script to the project workspace
+            if (!cmdLineExe.exists()) {
+                cmdLineExe.copyFrom(cmdExeUrl);
+                printToConsole(listener, "HPToolLauncher copied to " + cmdLineExe.getRemote());
+            } else {
+                printToConsole(listener, "HPToolLauncher already exist in " + cmdLineExe.getRemote());
+            }
+
+        } catch (IOException | InterruptedException e) {
+            build.setResult(Result.FAILURE);
+            listener.error("Copying executable files to executing node " + e);
+        }
+
+        try {
+            // Run the HpToolsLauncher.exe
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, paramFileName);
+            // Has the report been successfully generated?
+        } catch (IOException ioe) {
+            Util.displayIOException(ioe, listener);
+            build.setResult(Result.FAILURE);
+            listener.error("Failed running HpToolsLauncher " + ioe);
             return;
         }
     }
@@ -179,8 +265,8 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         return framework != null && TestsToRunFramework.Custom.value().equals(framework.getFramework().getName());
     }
 
-    private void printToConsole(TaskListener listener, String msg) {
-        listener.getLogger().println(this.getClass().getSimpleName() + " : " + msg);
+    private static void printToConsole(TaskListener listener, String msg) {
+        listener.getLogger().println(TestsToRunConverterBuilder.class.getSimpleName() + " : " + msg);
     }
 
     @Symbol("convertTestsToRun")

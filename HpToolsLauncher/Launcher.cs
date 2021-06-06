@@ -281,9 +281,11 @@ namespace HpToolsLauncher
             }
 
             TestSuiteRunResults results = runner.Run();
-     
-            RunTests(runner, resultsFilename, results);
-            
+
+            if (!_runType.Equals(TestStorageType.MBT))
+            {
+                RunTests(runner, resultsFilename, results);
+            }
 
             if (_runType.Equals(TestStorageType.FileSystem))
             {
@@ -830,6 +832,27 @@ namespace HpToolsLauncher
 
                     break;
 
+                case TestStorageType.MBT:
+                    string parentFolder = _ciParams["parentFolder"];
+
+                    int counter = 1;
+                    string testProp = "test" + counter;
+                    List<MBTTest> tests = new List<MBTTest>();
+                    while (_ciParams.ContainsKey(testProp))
+                    {
+                        MBTTest test = new MBTTest();
+                        tests.Add(test);
+
+                        test.Name = _ciParams[testProp];
+                        test.Script = _ciParams.GetOrDefault("script"  + counter,"");
+                        test.UnitIds = _ciParams.GetOrDefault("unitIds" + counter,"");
+                        test.UnderlyingTests = new List<string>(_ciParams.GetOrDefault("underlyingTests" + counter,"").Split(';'));
+                        test.PackageName = _ciParams.GetOrDefault("package" + counter, ""); ;
+                        testProp = "test" + (++counter);
+                    }
+            
+                    runner = new MBTRunner(parentFolder, tests);
+                    break;
                 default:
                     runner = null;
                     break;
