@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What's New in versions 6.7, 6.8](#what's-new-in-versions-6.7-and-6.8)
+
 [What's New in version 6.6](#what's-new-in-version-6.6)
 
 [What's New in version 6.5](#what's-new-in-version-6.5)
@@ -16,6 +18,32 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What's New in version 6.0](#what's-new-in-version-6.0)
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
+
+## What&#39;s New in versions 6.7 and 6.8
+
+Versions 6.7 and 6.8 introduced the following enhancements:
+
+**General**
+
+- Security fixes: Security issues noted in the *Jenkins Security Advisory 2021-04-07* were addressed. For details, search for SECURITY-2132, SECURITY-2175, and SECURITY-2176 in the [Jenkins Security Advisory 2021-04-07 page](https://www.jenkins.io/security/advisory/2021-04-07/). (Version 6.8)
+- Added support for the FOD plugin version 6.1.0.
+- SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions.)
+ - Added XSRF protection for running with Lab, Upload result, and Common result upload for compatibility with new versions of ALM.
+
+**ALM Octane – UFT Integration**
+
+- Reduced the length of the folder name for checkout of auto-generated execution jobs.
+- [Bug fix] Ability to execute UFT tests not located in job workspace. To show the test name correctly in ALM Octane, define the "UFT_CHECKOUT_FOLDER" parameter.
+- [Bug fix] For the Spanish Windows slave: The duration of a UFT test in Jenkins now displays correctly, in seconds.
+
+**ALM Octane**
+
+- Added the option to inject pull requests to ALM Octane with repository in SSH format.
+- Auto-fill: After injection of pull-requests, templates related to SCM repositories are auto-filled in ALM Octane (Settings > Spaces-> DevOps > SCM Repositories).
+
+**LRE (LoadRunner Enterprise)**
+
+- The build step “Execute performance test using LoadRunner Enterprise” can authenticate to LoadRunner Enterprise using an access key (available from LoadRunner Enterprise 2021 R1).
 
 ## What&#39;s New in version 6.6
 
