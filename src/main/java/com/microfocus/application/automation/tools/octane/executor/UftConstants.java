@@ -35,6 +35,7 @@ public class UftConstants {
 
     public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
     public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
+    public static final String BUILD_ID_PARAMETER_NAME = "buildId";
     public static final String EXECUTION_ID_PARAMETER_NAME = "executionId";
     public static final String FULL_SCAN_PARAMETER_NAME = "Full sync";
 
