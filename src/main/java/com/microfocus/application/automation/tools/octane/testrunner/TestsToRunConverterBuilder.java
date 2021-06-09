@@ -171,10 +171,17 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         props.setProperty("runType", "MBT");
         props.setProperty("resultsFilename", "must be here");
 
+        EnvVars env = build.getEnvironment(listener);
+
         props.setProperty("parentFolder", workspace.getRemote() +"\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        ParameterValue checkoutDirParameter = parameterAction.getParameter(CHECKOUT_DIRECTORY_PARAMETER);
+        if (checkoutDirParameter != null) {
+            props.setProperty("parentFolder", env.expand((String)checkoutDirParameter.getValue()) +"\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+        }
+
         int counter = 1;
 
-        EnvVars env = build.getEnvironment(listener);
         for (MbtTest mbtTest : tests) {
             props.setProperty("test" + counter, mbtTest.getName());
             props.setProperty("package" + counter, "_" + counter);
