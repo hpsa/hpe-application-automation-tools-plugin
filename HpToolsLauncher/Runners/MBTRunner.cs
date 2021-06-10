@@ -84,7 +84,11 @@ namespace HpToolsLauncher
                         {
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
-        
+
+                        //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
+                        //_qtpApplication.Test.DataTable.GetSheet("Action1").AddParameter("Time", "6:46");
+
+
                         string fullPath = fullDir.CreateSubdirectory(test.Name).FullName;
                         _qtpApplication.Test.SaveAs(fullPath);
                         double sec = DateTime.Now.Subtract(startTotal).TotalSeconds;
