@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by gullery on 31/03/2015.
@@ -213,6 +214,12 @@ class GitSCMProcessor implements SCMProcessor {
 					url = (String) buildData.getRemoteUrls().toArray()[0];
 				}
 				if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
+					try {
+						logger.warn("Commits for " + run.getFullDisplayName().replaceAll(" » ", "/") + " - found branches : " + buildData.getLastBuiltRevision().getBranches()
+								.stream().map(b -> b.getName()).collect(Collectors.joining(",")));
+					} catch (Exception e){
+						logger.warn("Failed to take branch names for " + run.getFullDisplayName() +" : " + e.getMessage());
+					}
 					branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
 				}
 				result = dtoFactory.newDTO(SCMRepository.class)
