@@ -109,8 +109,8 @@ public class ExecutorConnectivityService {
 		}
 		if (result.getStatus() != HttpStatus.SC_OK) {
 			logger.info("checkRepositoryConnectivity failed: " + result.getBody());
-		}else{
-			logger.info("checkRepositoryConnectivity ok" );
+		} else {
+			logger.info("checkRepositoryConnectivity ok");
 		}
 		return result;
 	}

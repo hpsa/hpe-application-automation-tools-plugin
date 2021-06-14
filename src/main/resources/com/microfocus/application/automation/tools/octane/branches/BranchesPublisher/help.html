@@ -19,22 +19,22 @@
   -->
 
 <div>
-    This step is responsible for collecting branches from the SCM tool and injecting them to ALM Octane.
+    This step is responsible for collecting branches from the SCM tool and injecting them into ALM Octane.
     <br>
     <br>
-    In addition, this step is used to define the scm repositories templates that are used by ALM Octane to link to your repository viewer. To configure templates in ALM Octane, access Settings > Spaces. Select a workspace and click DevOps > SCM Repositories. Follow the on-screen instructions.
+    In addition, this step is used to define the SCM repository templates that are used by ALM Octane to link to your repository viewer. To configure templates in ALM Octane, access Settings > Spaces. Select a workspace and click DevOps > SCM Repositories. Follow the on-screen instructions.
     <br>
     <br>
     <br>
-    Supported version of ALM Octane: 15.1.74 and later.
+    Supported version of ALM Octane: 15.1.90 and later.
 
 
     <br>
     <br>
     You can change the behaviour of this step by adding the following parameters to the job:
     <ul>
-        <li><b>branches_active_branch_days</b>: Only active branches can be added/update to ALM Octane. Default is 90 days.</li><br>
-        <li><b>branches_max_branches_to_fill</b>: Relevant for GitHub repository only. Max branches to fetch info. Branch for which info is not fetched, cannot be added to ALM Octane. Default is 1000.</li><br>
+        <li><b>branches_active_branch_days</b>: Only active branches can be added/updated to ALM Octane. Default is 60 days.</li><br>
+        <li><b>branches_max_branches_to_fill</b>: Relevant for GitHub repository only. Max branches to collect data. If data is not collected from a branch, it cannot be added to ALM Octane. Default is 1000.</li><br>
     </ul>
 
     <br>

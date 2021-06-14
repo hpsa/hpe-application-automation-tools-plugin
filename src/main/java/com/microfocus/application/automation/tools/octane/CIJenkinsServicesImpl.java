@@ -57,6 +57,7 @@ import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.microfocus.application.automation.tools.model.OctaneServerSettingsModel;
 import com.microfocus.application.automation.tools.octane.configuration.*;
 import com.microfocus.application.automation.tools.octane.executor.ExecutorConnectivityService;
@@ -102,12 +103,14 @@ import java.util.stream.Collectors;
  */
 
 public class CIJenkinsServicesImpl extends CIPluginServices {
-	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
-	private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	//we going to print octaneAllowedStorage to system log, this flag help to avoid multiple prints
 	private static boolean skipOctaneAllowedStoragePrint = false;
+	private static Object skipOctaneAllowedStoragePrintLock = new Object();//this must be before SDKBasedLoggerProvider.getLogger
+
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
+	private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 
 	@Override
 	public CIServerInfo getServerInfo() {
@@ -507,11 +510,17 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		ACLContext securityContext = startImpersonation();
 		try {
-			OctaneResponse response =  ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			OctaneResponse response;
+			OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
+			if (ConfigurationParameterFactory.isUftTestConnectionDisabled(octaneClient.getConfigurationService().getConfiguration())) {
+				logger.info("checkRepositoryConnectivity : validation disabled");
+				response = DTOFactory.getInstance().newDTO(OctaneResponse.class).setStatus(HttpStatus.SC_OK);
+			} else {
+				response = ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+			}
 
 			//validate UftTestRunnerFolderParameter
 			if (response.getStatus() == HttpStatus.SC_OK) {
-				OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
 				UftTestRunnerFolderParameter uftFolderParameter = (UftTestRunnerFolderParameter) octaneClient.getConfigurationService()
 						.getConfiguration().getParameter(UftTestRunnerFolderParameter.KEY);
 				if (uftFolderParameter != null) {
@@ -659,54 +668,57 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		boolean parameterHandled;
 		ParameterValue tmpValue;
 		ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
-		if (paramsDefProperty != null) {
-			Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
-			for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
-				parameterHandled = false;
-				CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
-				if (ciParameter != null) {
-					tmpValue = null;
-					switch (ciParameter.getType()) {
-						case NUMBER:
-						case STRING:
-							tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
-							break;
-						case BOOLEAN:
-							tmpValue = new BooleanParameterValue(ciParameter.getName(), Boolean.parseBoolean(ciParameter.getValue().toString()));
-							break;
-						case PASSWORD:
-							tmpValue = new PasswordParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
-							break;
-						default:
-							break;
-					}
-					if (tmpValue != null) {
-						result.add(tmpValue);
-						parameterHandled = true;
-					}
-				}
-				if (!parameterHandled) {
-					if (paramDef instanceof FileParameterDefinition) {
-						FileItemFactory fif = new DiskFileItemFactory();
-						FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
-						try {
-							fi.getOutputStream().write(new byte[0]);
-						} catch (IOException ioe) {
-							logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
-						}
-						tmpValue = new FileParameterValue(paramDef.getName(), fi);
-						result.add(tmpValue);
-					} else {
-						result.add(paramDef.getDefaultParameterValue());
-					}
-				}
-			}
 
-			//add parameters that are not defined in job
-			for (CIParameter notDefinedParameter : ciParametersMap.values()) {
-				tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
-				result.add(tmpValue);
+		if (paramsDefProperty == null) {
+			paramsDefProperty = new ParametersDefinitionProperty();
+		}
+
+		Map<String, CIParameter> ciParametersMap = ciParameters.getParameters().stream().collect(Collectors.toMap(CIParameter::getName, Function.identity()));
+		for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
+			parameterHandled = false;
+			CIParameter ciParameter = ciParametersMap.remove(paramDef.getName());
+			if (ciParameter != null) {
+				tmpValue = null;
+				switch (ciParameter.getType()) {
+					case NUMBER:
+					case STRING:
+						tmpValue = new StringParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+						break;
+					case BOOLEAN:
+						tmpValue = new BooleanParameterValue(ciParameter.getName(), Boolean.parseBoolean(ciParameter.getValue().toString()));
+						break;
+					case PASSWORD:
+						tmpValue = new PasswordParameterValue(ciParameter.getName(), ciParameter.getValue().toString());
+						break;
+					default:
+						break;
+				}
+				if (tmpValue != null) {
+					result.add(tmpValue);
+					parameterHandled = true;
+				}
 			}
+			if (!parameterHandled) {
+				if (paramDef instanceof FileParameterDefinition) {
+					FileItemFactory fif = new DiskFileItemFactory();
+					FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
+					try {
+						fi.getOutputStream().write(new byte[0]);
+					} catch (IOException ioe) {
+						logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
+					}
+					tmpValue = new FileParameterValue(paramDef.getName(), fi);
+					result.add(tmpValue);
+				} else {
+					result.add(paramDef.getDefaultParameterValue());
+				}
+			}
+		}
+
+		//add parameters that are not defined in job
+		for (CIParameter notDefinedParameter : ciParametersMap.values()) {
+			tmpValue = new StringParameterValue(notDefinedParameter.getName(), notDefinedParameter.getValue().toString());
+			result.add(tmpValue);
 		}
 		return result;
 	}
@@ -753,7 +765,8 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
 	private static File getAllowedStorageFileForMasterJenkins(Jenkins jenkins) {
 		boolean allowPrint;
-		synchronized (dtoFactory) {
+		synchronized (skipOctaneAllowedStoragePrintLock) {
+			//do allowPrint only once
 			allowPrint = !skipOctaneAllowedStoragePrint;
 			skipOctaneAllowedStoragePrint = true;
 		}
