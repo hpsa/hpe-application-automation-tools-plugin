@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -85,9 +86,24 @@ namespace HpToolsLauncher
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
 
-                        //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
-                        //_qtpApplication.Test.DataTable.GetSheet("Action1").AddParameter("Time", "6:46");
+                       //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
 
+                        //Expects to receive params in CSV format, encoded base64
+                        if (!string.IsNullOrEmpty(test.DatableParams))
+                        {
+                            string tempCsvFileName = Path.Combine(parentFolder, "temp.csv");
+                            if (File.Exists(tempCsvFileName))
+                            {
+                                File.Delete(tempCsvFileName);
+                            }
+
+                            byte[] data = Convert.FromBase64String(test.DatableParams);
+                            string decodedParams = Encoding.UTF8.GetString(data);
+
+                            File.WriteAllText(tempCsvFileName, decodedParams);
+                            _qtpApplication.Test.DataTable.Import(tempCsvFileName);
+                            File.Delete(tempCsvFileName);
+                        }
 
                         string fullPath = fullDir.CreateSubdirectory(test.Name).FullName;
                         _qtpApplication.Test.SaveAs(fullPath);
@@ -147,7 +163,7 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine("Loading Addins : " + string.Join(",", addinsArr));
                 DateTime start2 = DateTime.Now;
                 _qtpApplication.SetActiveAddins(addinsArr, out erroDescription);
-                ConsoleWriter.WriteLine(String.Format("SetActiveAddins took {0:0.0} secs", DateTime.Now.Subtract(start2).TotalSeconds));
+                ConsoleWriter.WriteLine(string.Format("SetActiveAddins took {0:0.0} secs", DateTime.Now.Subtract(start2).TotalSeconds));
                 if (!string.IsNullOrEmpty((string)erroDescription))
                 {
                     ConsoleWriter.WriteErrLine("Fail to SetActiveAddins : " + erroDescription);
@@ -168,6 +184,7 @@ namespace HpToolsLauncher
         public string UnitIds { get; set; }
         public List<String> UnderlyingTests { get; set; }
         public string PackageName { get; set; }
+        public string DatableParams { get; set; }
     }
 
 
