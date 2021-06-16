@@ -26,7 +26,6 @@
  * ___________________________________________________________________
  */
 
-
 /**
  * Prototype that represents the modal dialog.
  * @constructor
@@ -222,10 +221,23 @@ function Utils() {}
  * @returns {HTMLElement}
  */
 Utils.findAncestorByTag = function(start,tag) {
-    while((start = start.parentElement) && !(start.tagName.toLowerCase() === tag.toLowerCase())) {}
+    tag = tag.toLowerCase();
+    while((start = start.parentElement) && !(start.tagName.toLowerCase() === tag)) {}
     return start;
 };
 
+/**
+ * Find the ancestor of a control by a given name.
+ * @param start - the node from where to start.
+ * @param tag - the tag of the ancestor to find.
+ * @param name - the name attribute value of the ancestor to find.
+ * @returns {HTMLElement}
+ */
+Utils.findAncestorByTagAndName = function(start,tag,name) {
+    tag = tag.toLowerCase();
+    while((start = start.parentElement) && start != null && !(start.tagName.toLowerCase() === tag && start.getAttribute("name") === name)) {}
+    return start;
+};
 /**
  * Check if a string is empty.
  * @param str the string to check
@@ -397,17 +409,10 @@ function ParallelRunnerEnvironment() {}
  * @returns {*}
  */
 ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
-    // jelly represents each item as a tr
-    // with data inside
-    var parent = Utils.findAncestorByTag(button._button, 'tr');
-
+    // jelly represents each item as a 'div' with data inside
+    var parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
     if (parent == null) return null;
-
-    var settingInput = parent.getElementsByClassName("setting-input   ")[0];
-
-    if(settingInput == null) return null;
-
-    return settingInput;
+    return parent.querySelector(".setting-input");
 };
 
 /**
@@ -432,12 +437,9 @@ ParallelRunnerEnvironment.setEnvironmentSettingsInput = function(button,inputVal
  * @returns {null}
  */
 ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
-    // jelly represents each item as a tr
-    // with data inside
+    // jelly represents each item as a 'div' with data inside
     var settingInput = ParallelRunnerEnvironment.getEnvironmentSettingsInputNode(button);
-
     if(settingInput == null) return null;
-
     return settingInput.value;
 };
 
@@ -449,18 +451,10 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
  * @returns {boolean} true if it succeeded, false otherwise.
  */
 ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
-    var parent = Utils.findAncestorByTag(button._button, 'tr');
-
+    const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
     if(parent == null) return false;
-
-    var errorDiv = parent.querySelector('div[name="mcSettingsError"');
-
-    if(!enable) {
-        errorDiv.style.display = "none"; // hide error
-    }
-    else {
-        errorDiv.style.display = "block"; // display error
-    }
+    const errorDiv = parent.querySelector('div[name="mcSettingsError"]');
+	errorDiv.style.display = enable ? "block" : "none";
 };
 
 /**
@@ -472,7 +466,6 @@ ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
  */
 ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,visible,path) {
     var modal = document.getElementById(modalId);
-
     // it wasn't generated, so we need to generate it
     if(modal == null) {
         // generate it
@@ -519,22 +512,10 @@ ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,v
  * @returns {*}
  */
 ParallelRunnerEnvironment.GetCurrentEnvironmentType = function(button) {
-    var parent = Utils.findAncestorByTag(button._button,"td");
-
+    const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
     if(parent == null) return null;
-
-    var inputs = parent.querySelectorAll('input[type="radio"');
-
-    if(inputs == null) return null;
-
-    // find the checked input and return it's value
-    for(var i = 0; i < inputs.length; i++) {
-        if(inputs[i].checked === true) {
-            return inputs[i].defaultValue;
-        }
-    }
-
-    return null;
+    const input = parent.querySelector('input[type="radio"][name$="environmentType"]:checked');
+    return input ? input.defaultValue : null;
 };
 
 /**
@@ -575,10 +556,8 @@ ParallelRunnerEnvironment.setEnvironmentsVisibility = function(index) {
  * @returns {boolean}
  */
 ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
-    // get the environment type for the current env
-    // could be: 'web' or 'mobile'
+    // get the environment type for the current env, it could be: 'web' or 'mobile'
     var type = ParallelRunnerEnvironment.GetCurrentEnvironmentType(button);
-
     if(type == null) return false;
 
     // if the type is web we need to show the browsers modal
@@ -621,8 +600,7 @@ RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, nam
 
     if(check.checked) {
         parent.style.display = "none";
-    }
-    else {
+    } else {
         parent.style.display = "";
     }
 };
