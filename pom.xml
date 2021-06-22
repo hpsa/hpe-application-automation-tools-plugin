@@ -31,11 +31,11 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-        <version>3.43</version>
+        <version>3.57</version>
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>6.9.1-SNAPSHOT</version>
+	<version>7.0.1-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -513,7 +513,7 @@
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>2.6.9.19</version>
+			<version>2.7.0.1</version>
 		</dependency>
 
 		<!--BUILDER providers integration-->
