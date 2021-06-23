@@ -49,34 +49,21 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements in Versions 6.7, 6.8
+## New Features and Enhancements in Version 6.9
 
-Versions 6.7 and 6.8 introduced the following enhancements:
-
-**General**
-
-- Security fixes: Security issues noted in the *Jenkins Security Advisory 2021-04-07* were addressed. For details, search for SECURITY-2132, SECURITY-2175, and SECURITY-2176 in the [Jenkins Security Advisory 2021-04-07 page](https://www.jenkins.io/security/advisory/2021-04-07/). (Version 6.8)
-- Added support for the FOD plugin version 6.1.0.
-- SonarQube integration: A new option was added to the Sonar pre-build step to skip automatic webhook configuration. (This allows you to run the integration without admin permissions.)
- - Added XSRF protection for running with Lab, Upload result, and Common result upload for compatibility with new versions of ALM.
-
-**ALM Octane – UFT Integration**
-
-- Reduced the length of the folder name for checkout of auto-generated execution jobs.
-- [Bug fix] Ability to execute UFT tests not located in job workspace. To show the test name correctly in ALM Octane, define the "UFT_CHECKOUT_FOLDER" parameter.
-- [Bug fix] For the Spanish Windows slave: The duration of a UFT test in Jenkins now displays correctly, in seconds.
+Version 6.9 introduced the following enhancements:
 
 **ALM Octane**
 
-- Added the option to inject pull requests to ALM Octane with repository in SSH format.
-- Auto-fill: After injection of pull-requests, templates related to SCM repositories are auto-filled in ALM Octane (Settings > Spaces-> DevOps > SCM Repositories).
+- Enabled branch publisher
+- Support added for Java 11
 
-**LRE (LoadRunner Enterprise)**
+**Workarounds**
 
-- The build step “Execute performance test using LoadRunner Enterprise” can authenticate to LoadRunner Enterprise using an access key (available from LoadRunner Enterprise 2021 R1).
+- For running UFTM tests from UFT One: If UFTM tests fail in UFT One after changing the UFTM server version in the Jenkins configuration, manually restart UFT One and run the test again.
 
 
-For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
+For more information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Changelog
 

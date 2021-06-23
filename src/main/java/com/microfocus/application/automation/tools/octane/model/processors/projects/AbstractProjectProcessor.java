@@ -89,43 +89,70 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
-		String suiteId = (String) parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME).getValue();
-		String suiteRunId = (String) parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME).getValue();
-		logger.info("cancelBuild for suiteId=" + suiteId +", suiteRunId=" + suiteRunId);
+		String suiteId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_ID_PARAMETER_NAME);
+		String suiteRunId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
+
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
-			Queue queue = Jenkins.get().getQueue();
-			queue.getItems(project).forEach(item -> {
-				item.getActions(ParametersAction.class).forEach(action -> {
-					if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
-						try {
-							logger.info("canceling item in queue : " + item.toString());
-							queue.cancel(item);
-							logger.info("Item in queue is cancelled item : " + item.toString());
-						} catch (Exception e) {
-							logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
-						}
-					}
-				});
-			});
 
-			project.getBuilds().forEach(build -> {
-				if (build instanceof AbstractBuild) {
-					AbstractBuild aBuild = (AbstractBuild) build;
-					aBuild.getActions(ParametersAction.class).forEach(action -> {
+			if (buildId != null) {
+				logger.info(String.format("cancelBuild for %s, buildId=%s", job.getFullName(), buildId));
+				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
+				logger.info(String.format("cancelBuild for %s, buildId=%s - is done", job.getFullName(), buildId));
+				if (aBuild == null) {
+					logger.warn(String.format("Cannot stop : build %s is not found", buildId));
+					return;
+				}
+				stopBuild(aBuild);
+			} else {
+				logger.info(String.format("cancelBuild for %s, suiteId=%s, suiteRunId=%s", job.getFullName(), suiteId, suiteRunId));
+				Queue queue = Jenkins.get().getQueue();
+				queue.getItems(project).forEach(item -> {
+					item.getActions(ParametersAction.class).forEach(action -> {
 						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
 							try {
-								aBuild.doStop();
-								logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+								logger.info("canceling item in queue : " + item.toString());
+								queue.cancel(item);
+								logger.info("Item in queue is cancelled item : " + item.toString());
 							} catch (Exception e) {
-								logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
+								logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
 							}
 						}
 					});
-				}
-			});
+				});
+
+				project.getBuilds().forEach(build -> {
+					if (build instanceof AbstractBuild) {
+						AbstractBuild aBuild = (AbstractBuild) build;
+						aBuild.getActions(ParametersAction.class).forEach(action -> {
+							if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+								stopBuild(aBuild);
+							}
+						});
+					}
+				});
+			}
 		} else {
 			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+		}
+	}
+
+	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName) {
+		ParameterValue pv = parametersAction.getParameter(paramName);
+		if (pv != null) {
+			return (String) pv.getValue();
+		} else {
+			return null;
+		}
+	}
+
+	private void stopBuild(AbstractBuild aBuild) {
+		try {
+			aBuild.doStop();
+			logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());
+		} catch (Exception e) {
+			logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 		}
 	}
 

@@ -12,6 +12,8 @@ For additional information, see the [UFT Mobile Help Center](https://admhelp.mi
 
 [Define the UFT Mobile server](#define-the-uft-mobile-server)
 
+[Use UFT Mobile with SSL](#use-uft-mobile-with-ssl)
+
 [Upload apps to UFT Mobile](#upload-apps-to-uft-mobile)
 
 
@@ -48,7 +50,17 @@ To configure Jenkins to integrate with UFT Mobile:
 
    d. Save your changes.
 
-      
+## Use UFT Mobile with SSL
+
+If you need to use UFT Mobile securely, with SSL, you must first install the UFTM server certificate. 
+
+1. Copy the UFTM server certificate to the Jenkins server machine.
+2. Import the UFTM server certificate on the Jenkins server machine using the following command: 
+   ```
+    keytool.exe -import -file "<local_path>\<certificate_filename>.cer" 
+     -keystore "C:\Program Files (x86)\Jenkins\jre\lib\security\cacerts" 
+     -alias mc  -storepass changeit -noprompt 
+3. Restart the Jenkins service.     
 
 ## Upload apps to UFT Mobile 
 
