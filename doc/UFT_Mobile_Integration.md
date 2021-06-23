@@ -57,7 +57,7 @@ If you need to use UFT Mobile securely, with SSL, you must first install the UFT
 1. Copy the UFTM server certificate to the Jenkins server machine.
 2. Import the UFTM server certificate on the Jenkins server machine using the following command: 
    ```
-    keytool.exe -import -file "<local_path>\<cetificate_filename>.cer" 
+    keytool.exe -import -file "<local_path>\<certificate_filename>.cer" 
      -keystore "C:\Program Files (x86)\Jenkins\jre\lib\security\cacerts" 
      -alias mc  -storepass changeit -noprompt 
 3. Restart the Jenkins service.     
