@@ -223,9 +223,8 @@ namespace HpToolsLauncher
         /// <returns></returns>
         private static string GetQcCommonInstallationUrl(string qcServerUrl)
         {
-            return $"{qcServerUrl}/TDConnectivity_index.html";
+            return string.Format("{0}/TDConnectivity_index.html", qcServerUrl);
         }
-
 
         /// <summary>
         /// checks Qc version (used for link format, 10 and smaller is old) 
@@ -236,11 +235,12 @@ namespace HpToolsLauncher
             bool oldQc = false;
             if (TdConnection != null)
             {
-                TdConnection.GetTDVersion(out string ver, out string build);
-
+                string ver, build;
+                TdConnection.GetTDVersion(out ver, out build);
                 if (ver != null)
                 {
-                    int.TryParse(ver, out int intver);
+                    int intver;
+                    int.TryParse(ver, out intver);
                     if (intver <= 10)
                         oldQc = true;
                 }
@@ -531,7 +531,7 @@ namespace HpToolsLauncher
                 {
                     string tsPath = childSet.TestSetFolder.Path;
                     tsPath = tsPath.Substring(5).Trim(_backSlash);
-                    string tsFullPath = $@"{tsPath}\{childSet.Name}";
+                    string tsFullPath = string.Format(@"{0}\{1}", tsPath, childSet.Name);
                     retVal.Add(tsFullPath.TrimEnd());
                 }
             }
@@ -1003,7 +1003,7 @@ namespace HpToolsLauncher
         /// <param name="paramsString"></param>
         private void SetGuiTestParameters(ITSTest3 test, string paramsString)
         {
-            string xmlParameters = string.Empty;
+            var xmlParameters = new StringBuilder();
             List<string> parameterNames = new List<string>();
             List<string> parameterValues = new List<string>();
 
@@ -1015,22 +1015,20 @@ namespace HpToolsLauncher
 
                 if (validParameters)
                 {
-                    xmlParameters = "<?xml version=\"1.0\"?><Parameters>";
+                    xmlParameters.Append("<?xml version=\"1.0\"?><Parameters>");
                     for (int i = 0; i < parameters.Length; i++)
                     {
-                        xmlParameters += $"<Parameter><Name><![CDATA[{parameterNames.ElementAt(i)}]]></Name>"
-                                        + $"<Value><![CDATA[{parameterValues.ElementAt(i)}]]>"
-                                        + "</Value></Parameter>";
+                        xmlParameters.Append("<Parameter><Name><![CDATA[{parameterNames.ElementAt(i)}]]></Name>")
+                                     .AppendFormat("<Value><![CDATA[{0}]]>", parameterValues.ElementAt(i))
+                                     .Append("</Value></Parameter>");
                     }
-
-                    xmlParameters += "</Parameters>";
+                    xmlParameters.Append("</Parameters>");
                 }
-
             }
 
-            if (xmlParameters != string.Empty)
+            if (xmlParameters.Length > 0)
             {
-                test["TC_EPARAMS"] = xmlParameters;
+                test["TC_EPARAMS"] = xmlParameters.ToString();
                 test.Post();
             }
         }
@@ -1139,7 +1137,7 @@ namespace HpToolsLauncher
 
             string testSuiteName = tsName.TrimEnd();
             ITestSetFolder tsFolder = null;
-            string tsPath = $@"Root\{tsFolderName}";
+            string tsPath = string.Format(@"Root\{0}", tsFolderName);
             bool isTestPath = false;
             string currentTestSetInstances = string.Empty, testName = string.Empty;
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
@@ -1270,7 +1268,7 @@ namespace HpToolsLauncher
 
             ITSTest prevTest = null;
             ITSTest currentTest = null;
-            string abortFilename = $@"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\stop{Launcher.UniqueTimeStamp}.txt";
+            string abortFilename = string.Format(@"{0}\stop{1}.txt", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Launcher.UniqueTimeStamp);
 
             if (testStorageType == TestStorageType.AlmLabManagement)
             {
@@ -1288,7 +1286,7 @@ namespace HpToolsLauncher
             //done with all tests, stop collecting output in the testRun object.
             ConsoleWriter.ActiveTestRun = null;
 
-            string testPath = $@"Root\{tsFolderName}\{testSuiteName}\";
+            string testPath = string.Format(@"Root\{0}\{1}\", tsFolderName, testSuiteName);
 
             SetTestResults(ref currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
 
@@ -1400,10 +1398,10 @@ namespace HpToolsLauncher
                             qTest.FailureDesc = GenerateFailedLog(currentTest.LastRun);
 
                             if (string.IsNullOrWhiteSpace(qTest.FailureDesc))
-                                qTest.FailureDesc = $"{testExecStatusObj.Status} : {testExecStatusObj.Message}";
+                                qTest.FailureDesc = string.Format("{0} : {1}", testExecStatusObj.Status, testExecStatusObj.Message);
                             break;
                         case TestState.Error:
-                            qTest.ErrorDesc = $"{testExecStatusObj.Status} : {testExecStatusObj.Message}";
+                            qTest.ErrorDesc = string.Format("{0} : {1}", testExecStatusObj.Status, testExecStatusObj.Message);
                             break;
                         case TestState.Waiting:
                         case TestState.Running:
@@ -1518,19 +1516,20 @@ namespace HpToolsLauncher
 
                                     ConsoleWriter.ActiveTestRun = runDesc.TestRuns[testIndex];
 
-                                    ConsoleWriter.WriteLine($"{DateTime.Now.ToString(Launcher.DateFormat)} Running: {currentTest.Name}");
+                                    ConsoleWriter.WriteLine(string.Format("{0} Running: {1}", DateTime.Now.ToString(Launcher.DateFormat), currentTest.Name));
                                     activeTestDesc.TestName = currentTest.Name;
                                     //tell user that the test is running
-                                    ConsoleWriter.WriteLine($"{DateTime.Now.ToString(Launcher.DateFormat)} Running test: {activeTestDesc.TestName}, Test id: {testExecStatusObj.TestId}, Test instance id: {testExecStatusObj.TSTestId}");
+                                    ConsoleWriter.WriteLine(string.Format("{0} Running test: {1}, Test id: {2}, Test instance id: {3}", DateTime.Now.ToString(Launcher.DateFormat), activeTestDesc.TestName, testExecStatusObj.TestId, testExecStatusObj.TSTestId));
 
                                     //start timing the new test run
                                     string folderName = string.Empty;
 
-                                    if (targetTestSet.TestSetFolder is ITestSetFolder folder)
+                                    var folder = targetTestSet.TestSetFolder as ITestSetFolder;
+                                    if (folder != null)
                                         folderName = folder.Name.Replace(".", "_");
 
                                     //the test group is it's test set. (dots are problematic since jenkins parses them as separators between package and class)
-                                    activeTestDesc.TestGroup = $@"{folderName}\{targetTestSet.Name}".Replace(".", "_");
+                                    activeTestDesc.TestGroup = string.Format(@"{0}\{1}", folderName, targetTestSet.Name).Replace(".", "_");
                                 }
 
                                 TestState enmState = GetTsStateFromQcState(testExecStatusObj.Status);
@@ -1600,7 +1599,7 @@ namespace HpToolsLauncher
             var mQcServer = MQcServer.Trim();
             var prefix = mQcServer.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? "tds" : "td";
             mQcServer = Regex.Replace(mQcServer, "^http[s]?://", string.Empty, RegexOptions.IgnoreCase);
-            return $"{prefix}://{MQcProject}.{MQcDomain}.{mQcServer}/TestRunsModule-00000000090859589?EntityType=IRun&EntityID={runId}";
+            return string.Format("{0}://{1}.{2}.{3}/TestRunsModule-00000000090859589?EntityType=IRun&EntityID={4}", prefix, MQcProject, MQcDomain, mQcServer, runId);
         }
 
         /// <summary>
@@ -1682,7 +1681,7 @@ namespace HpToolsLauncher
 
                 if (list == null)
                     return string.Empty;
-                retVal = string.Join(",", list.Cast<ITSTest>().Select(t => $"{t.ID}"));
+                retVal = string.Join(",", list.Cast<ITSTest>().Select(t => t.ID as string));
             }
             catch (Exception ex)
             {
@@ -1762,10 +1761,12 @@ namespace HpToolsLauncher
         {
             try
             {
-                if (!(pTest.StepFactory is StepFactory sf))
+                var sf = pTest.StepFactory as StepFactory;
+;                if (sf == null)
                     return string.Empty;
 
-                if (!(sf.NewList(string.Empty) is IList stepList))
+                var stepList = sf.NewList(string.Empty) as IList;
+                if (stepList == null)
                     return string.Empty;
 
                 string log_szFailedMessage = string.Empty;
@@ -1774,7 +1775,7 @@ namespace HpToolsLauncher
                 foreach (IStep s in stepList)
                 {
                     if (s.Status == "Failed")
-                        log_szFailedMessage += $"{s["ST_DESCRIPTION"]}'\n\r";
+                        log_szFailedMessage += s["ST_DESCRIPTION"] + "'\n\r";
                 }
                 return log_szFailedMessage;
             }
@@ -1801,10 +1802,12 @@ namespace HpToolsLauncher
             {
                 try
                 {
-                    if (lastRun.ExtendedStorage is IExtendedStorage storage)
+                    var storage = lastRun.ExtendedStorage as IExtendedStorage;
+                    if (storage != null)
                     {
                         bool wasFatalError;
-                        var path = storage.LoadEx(testLog, true, out List list, out wasFatalError);
+                        List list;
+                        var path = storage.LoadEx(testLog, true, out list, out wasFatalError);
                         string logPath = Path.Combine(path, testLog);
 
                         if (File.Exists(logPath))

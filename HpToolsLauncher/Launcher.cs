@@ -344,7 +344,8 @@ namespace HpToolsLauncher
                     }
 
                     //parse params that need parsing
-                    if (!double.TryParse(_ciParams["almTimeout"], out double dblQcTimeout))
+                    double dblQcTimeout;
+                    if (!double.TryParse(_ciParams["almTimeout"], out dblQcTimeout))
                     {
                         ConsoleWriter.WriteLine(Resources.LauncherTimeoutNotNumeric);
                         dblQcTimeout = int.MaxValue;
@@ -352,7 +353,8 @@ namespace HpToolsLauncher
 
                     ConsoleWriter.WriteLine(string.Format(Resources.LuancherDisplayTimout, dblQcTimeout));
 
-                    if (!Enum.TryParse(_ciParams["almRunMode"], true, out QcRunMode enmQcRunMode))
+                    QcRunMode enmQcRunMode;
+                    if (!Enum.TryParse(_ciParams["almRunMode"], true, out enmQcRunMode))
                     {
                         ConsoleWriter.WriteLine(Resources.LauncherIncorrectRunmode);
                         enmQcRunMode = QcRunMode.RUN_LOCAL;
@@ -551,7 +553,8 @@ namespace HpToolsLauncher
                         string strTimeoutInSeconds = _ciParams["fsTimeout"];
                         if (strTimeoutInSeconds.Trim() != "-1")
                         {
-                            int.TryParse(strTimeoutInSeconds, out int intTimeoutInSeconds);
+                            int intTimeoutInSeconds;
+                            int.TryParse(strTimeoutInSeconds, out intTimeoutInSeconds);
                             timeout = TimeSpan.FromSeconds(intTimeoutInSeconds);
                         }
                     }
@@ -569,7 +572,8 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
                         string strTimeoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        if (strTimeoutInMinutes.Trim() != "-1" && int.TryParse(strTimeoutInMinutes, out int intTimoutInMinutes))
+                        int intTimoutInMinutes;
+                        if (strTimeoutInMinutes.Trim() != "-1" && int.TryParse(strTimeoutInMinutes, out intTimoutInMinutes))
                             perScenarioTimeOutMinutes = TimeSpan.FromMinutes(intTimoutInMinutes);
                     }
                     ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
@@ -978,7 +982,8 @@ namespace HpToolsLauncher
                 if (summaryDataLogFlags.Length == 4)
                 {
                     //If the polling interval is not a valid number, set it to default (10 seconds)
-                    if (!int.TryParse(summaryDataLogFlags[3], out int summaryDataLoggerPollingInterval))
+                    int summaryDataLoggerPollingInterval;
+                    if (!int.TryParse(summaryDataLogFlags[3], out summaryDataLoggerPollingInterval))
                     {
                         summaryDataLoggerPollingInterval = 10;
                     }

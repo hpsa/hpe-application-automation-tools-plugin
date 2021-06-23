@@ -65,9 +65,11 @@ namespace HpToolsLauncher
                 argsDictionary[key] = val;
             }
             string failOnTestFailed = "N";
-            argsDictionary.TryGetValue("runtype", out string runtype);
-            argsDictionary.TryGetValue("paramfile", out string paramFileName);
-            if (!Enum.TryParse(runtype, true, out TestStorageType enmRuntype))
+            string runtype, paramFileName;
+            TestStorageType enmRuntype;
+            argsDictionary.TryGetValue("runtype", out runtype);
+            argsDictionary.TryGetValue("paramfile", out paramFileName);
+            if (!Enum.TryParse(runtype, true, out enmRuntype))
                 enmRuntype = TestStorageType.Unknown;
 
             if (string.IsNullOrEmpty(paramFileName))
