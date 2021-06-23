@@ -86,7 +86,12 @@ namespace HpToolsLauncher
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
 
-                       //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
+                        //add function library
+                        //_qtpApplication.Test.Settings.Resources.Libraries.Add("c:\\dev\\plugins\\_uft\\UftTests\\FL1.qfl");
+
+                        //add recovery scenario
+                        //_qtpApplication.Test.Settings.Recovery.Add("c:\\dev\\plugins\\_uft\\UftTests\\FL1.qfl");
+
 
                         //Expects to receive params in CSV format, encoded base64
                         if (!string.IsNullOrEmpty(test.DatableParams))
