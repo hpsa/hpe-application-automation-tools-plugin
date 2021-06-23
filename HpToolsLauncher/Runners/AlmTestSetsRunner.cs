@@ -1317,13 +1317,13 @@ namespace HpToolsLauncher
 
             if (activeTestDesc == null) throw new ArgumentNullException("The test run results are empty.");
 
-            if (File.Exists(abortFilename))
-            {
-                return;
-            }
             // write the status for each test
             for (var k = 1; k <= executionStatus.Count; ++k)
             {
+                if (File.Exists(abortFilename))
+                {
+                    break;
+                }
                 TestExecStatus testExecStatusObj = executionStatus[k];
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
@@ -1353,7 +1353,6 @@ namespace HpToolsLauncher
             ITSTest currentTest = null;
             try
             {
-
                 //find the test for the given status object
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
@@ -1474,73 +1473,69 @@ namespace HpToolsLauncher
                         }
                         activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, true);
 
-                        if (activeTestDesc != null)
+                        if (activeTestDesc != null && activeTestDesc.PrevTestState != activeTestDesc.TestState)
                         {
-                            if (activeTestDesc.PrevTestState != activeTestDesc.TestState)
+                            TestState testState = activeTestDesc.TestState;
+                            if (testState == TestState.Running)
                             {
-                                TestState testState = activeTestDesc.TestState;
-                                if (testState == TestState.Running)
+                                int testIndex = GetIndexOfTestIdentifiedByName(currentTest.Name, runDesc);
+                                if (testIndex == -1)
                                 {
-                                    int testIndex = GetIndexOfTestIdentifiedByName(currentTest.Name, runDesc);
-                                    if (testIndex == -1)
-                                    {
-                                        Console.WriteLine("No test index exist for this test");
-                                    }
-                                    int prevRunId = GetTestRunId(currentTest);
-                                    if (prevRunId == -1)
-                                    {
-                                        Console.WriteLine("No test runs exist for this test");
-                                        continue;
-                                    }
-                                    runDesc.TestRuns[testIndex].PrevRunId = prevRunId;
+                                    Console.WriteLine("No test index exist for this test");
+                                }
+                                int prevRunId = GetTestRunId(currentTest);
+                                if (prevRunId == -1)
+                                {
+                                    Console.WriteLine("No test runs exist for this test");
+                                    continue;
+                                }
+                                runDesc.TestRuns[testIndex].PrevRunId = prevRunId;
 
-                                    //closing previous test
-                                    if (prevTest != null)
-                                    {
-                                        WriteTestRunSummary(prevTest);
-                                    }
-
-                                    //starting new test
-                                    prevTest = currentTest;
-                                    //assign the new test the console writer so it will gather the output
-
-                                    ConsoleWriter.ActiveTestRun = runDesc.TestRuns[testIndex];
-
-                                    ConsoleWriter.WriteLine(string.Format("{0} Running: {1}", DateTime.Now.ToString(Launcher.DateFormat), currentTest.Name));
-                                    activeTestDesc.TestName = currentTest.Name;
-                                    //tell user that the test is running
-                                    ConsoleWriter.WriteLine(string.Format("{0} Running test: {1}, Test id: {2}, Test instance id: {3}", DateTime.Now.ToString(Launcher.DateFormat), activeTestDesc.TestName, testExecStatusObj.TestId, testExecStatusObj.TSTestId));
-
-                                    //start timing the new test run
-                                    string folderName = string.Empty;
-
-                                    var folder = targetTestSet.TestSetFolder as ITestSetFolder;
-                                    if (folder != null)
-                                        folderName = folder.Name.Replace(".", "_");
-
-                                    //the test group is it's test set. (dots are problematic since jenkins parses them as separators between package and class)
-                                    activeTestDesc.TestGroup = string.Format(@"{0}\{1}", folderName, targetTestSet.Name).Replace(".", "_");
+                                //closing previous test
+                                if (prevTest != null)
+                                {
+                                    WriteTestRunSummary(prevTest);
                                 }
 
-                                TestState enmState = GetTsStateFromQcState(testExecStatusObj.Status);
-                                string statusString = enmState.ToString();
+                                //starting new test
+                                prevTest = currentTest;
+                                //assign the new test the console writer so it will gather the output
 
-                                if (enmState == TestState.Running)
-                                {
-                                    ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString));
-                                }
-                                else if (enmState != TestState.Waiting)
-                                {
-                                    ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStatWithMessage, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString, testExecStatusObj.Message));
-                                }
-                                if (File.Exists(abortFilename))
-                                {
+                                ConsoleWriter.ActiveTestRun = runDesc.TestRuns[testIndex];
 
-                                    scheduler.Stop(currentTestSetInstances);
-                                    //stop working
-                                    Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
-                                    break;
-                                }
+                                ConsoleWriter.WriteLine(string.Format("{0} Running: {1}", DateTime.Now.ToString(Launcher.DateFormat), currentTest.Name));
+                                activeTestDesc.TestName = currentTest.Name;
+                                //tell user that the test is running
+                                ConsoleWriter.WriteLine(string.Format("{0} Running test: {1}, Test id: {2}, Test instance id: {3}", DateTime.Now.ToString(Launcher.DateFormat), activeTestDesc.TestName, testExecStatusObj.TestId, testExecStatusObj.TSTestId));
+
+                                //start timing the new test run
+                                string folderName = string.Empty;
+
+                                var folder = targetTestSet.TestSetFolder as ITestSetFolder;
+                                if (folder != null)
+                                    folderName = folder.Name.Replace(".", "_");
+
+                                //the test group is it's test set. (dots are problematic since jenkins parses them as separators between package and class)
+                                activeTestDesc.TestGroup = string.Format(@"{0}\{1}", folderName, targetTestSet.Name).Replace(".", "_");
+                            }
+
+                            TestState enmState = GetTsStateFromQcState(testExecStatusObj.Status);
+                            string statusString = enmState.ToString();
+
+                            if (enmState == TestState.Running)
+                            {
+                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString));
+                            }
+                            else if (enmState != TestState.Waiting)
+                            {
+                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStatWithMessage, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString, testExecStatusObj.Message));
+                            }
+                            if (File.Exists(abortFilename))
+                            {
+                                scheduler.Stop(currentTestSetInstances);
+                                //stop working
+                                Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
+                                break;
                             }
                         }
                         else

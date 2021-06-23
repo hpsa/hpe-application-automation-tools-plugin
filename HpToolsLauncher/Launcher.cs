@@ -669,17 +669,7 @@ namespace HpToolsLauncher
 
                             //proxy address
                             string proxyAddress = _ciParams.GetOrDefault("MobileProxySetting_Address");
-                            if (!string.IsNullOrEmpty(proxyAddress))
-                            {
-                                // data is something like "16.105.9.23:8080"
-                                string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
-
-                                if (strArrayForProxyAddress.Length == 2)
-                                {
-                                    mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
-                                    mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
-                                }
-                            }
+                            CheckAndSetMobileProxySettings(ref mcConnectionInfo, proxyAddress);
 
                             //Proxy authentication
                             if (_ciParams.ContainsKey("MobileProxySetting_Authentication"))
@@ -807,6 +797,20 @@ namespace HpToolsLauncher
                     break;
             }
             return runner;
+        }
+
+        private void CheckAndSetMobileProxySettings(ref McConnectionInfo mcConnectionInfo, string proxyAddress)
+        {
+            if (!string.IsNullOrEmpty(proxyAddress))
+            {
+                // data is something like "16.105.9.23:8080"
+                string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
+                if (strArrayForProxyAddress.Length == 2)
+                {
+                    mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
+                    mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
+                }
+            }
         }
 
         private List<string> GetParamsWithPrefix(string prefix)
