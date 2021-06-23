@@ -51,7 +51,7 @@ namespace HpToolsLauncher
 
         }
 
-        public string GetOrDefault(string key, string defaultValue)
+        public string GetOrDefault(string key, string defaultValue = "")
         {
             if (this.ContainsKey(key))
             {

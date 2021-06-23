@@ -838,16 +838,7 @@ namespace HpToolsLauncher
         /// <returns>the test index</returns>
         public int GetIndexOfTestIdentifiedByName(string strName, TestSuiteRunResults results)
         {
-            var retVal = -1;
-
-            for (var i = 0; i < results.TestRuns.Count; ++i)
-            {
-                var res = results.TestRuns[i];
-                if (res == null || res.TestName != strName) continue;
-                retVal = i;
-                break;
-            }
-            return retVal;
+            return results.TestRuns.FindIndex(res => res.TestName == strName);
         }
 
         //------------------------------- Identify and set test parameters --------------------------
@@ -1326,14 +1317,13 @@ namespace HpToolsLauncher
 
             if (activeTestDesc == null) throw new ArgumentNullException("The test run results are empty.");
 
+            if (File.Exists(abortFilename))
+            {
+                return;
+            }
             // write the status for each test
             for (var k = 1; k <= executionStatus.Count; ++k)
             {
-                if (File.Exists(abortFilename))
-                {
-                    break;
-                }
-
                 TestExecStatus testExecStatusObj = executionStatus[k];
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 

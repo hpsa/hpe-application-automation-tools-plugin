@@ -668,19 +668,16 @@ namespace HpToolsLauncher
                             }
 
                             //proxy address
-                            if (_ciParams.ContainsKey("MobileProxySetting_Address"))
+                            string proxyAddress = _ciParams.GetOrDefault("MobileProxySetting_Address");
+                            if (!string.IsNullOrEmpty(proxyAddress))
                             {
-                                string proxyAddress = _ciParams["MobileProxySetting_Address"];
-                                if (!string.IsNullOrEmpty(proxyAddress))
-                                {
-                                    // data is something like "16.105.9.23:8080"
-                                    string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
+                                // data is something like "16.105.9.23:8080"
+                                string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
 
-                                    if (strArrayForProxyAddress.Length == 2)
-                                    {
-                                        mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
-                                        mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
-                                    }
+                                if (strArrayForProxyAddress.Length == 2)
+                                {
+                                    mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
+                                    mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
                                 }
                             }
 
@@ -795,11 +792,11 @@ namespace HpToolsLauncher
                         tests.Add(test);
 
                         test.Name = _ciParams[testProp];
-                        test.Script = _ciParams.GetOrDefault("script" + counter, string.Empty);
-                        test.UnitIds = _ciParams.GetOrDefault("unitIds" + counter, string.Empty);
-                        test.UnderlyingTests = new List<string>(_ciParams.GetOrDefault("underlyingTests" + counter, string.Empty).Split(';'));
-                        test.PackageName = _ciParams.GetOrDefault("package" + counter, string.Empty);
-                        test.DatableParams = _ciParams.GetOrDefault("datableParams" + counter, string.Empty);
+                        test.Script = _ciParams.GetOrDefault("script" + counter);
+                        test.UnitIds = _ciParams.GetOrDefault("unitIds" + counter);
+                        test.UnderlyingTests = new List<string>(_ciParams.GetOrDefault("underlyingTests" + counter).Split(';'));
+                        test.PackageName = _ciParams.GetOrDefault("package" + counter);
+                        test.DatableParams = _ciParams.GetOrDefault("datableParams" + counter);
                         testProp = "test" + (++counter);
                     }
 
