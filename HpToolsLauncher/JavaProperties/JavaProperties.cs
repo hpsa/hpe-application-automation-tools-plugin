@@ -28,10 +28,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Collections;
+using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -465,13 +463,17 @@ namespace HpToolsLauncher
                             outBuffer.Append('\\');
                         outBuffer.Append(' ');
                         break;
-                    case '\t': outBuffer.Append('\\'); outBuffer.Append('t');
+                    case '\t':
+                        outBuffer.Append('\\'); outBuffer.Append('t');
                         break;
-                    case '\n': outBuffer.Append('\\'); outBuffer.Append('n');
+                    case '\n':
+                        outBuffer.Append('\\'); outBuffer.Append('n');
                         break;
-                    case '\r': outBuffer.Append('\\'); outBuffer.Append('r');
+                    case '\r':
+                        outBuffer.Append('\\'); outBuffer.Append('r');
                         break;
-                    case '\f': outBuffer.Append('\\'); outBuffer.Append('f');
+                    case '\f':
+                        outBuffer.Append('\\'); outBuffer.Append('f');
                         break;
                     case '=': // Fall through
                     case ':': // Fall through

@@ -27,12 +27,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -49,10 +46,10 @@ namespace HpToolsLauncher
             int pbiLength = Marshal.SizeOf(pbi);
             int returnLength = 0;
 
-            int status = NativeProcess.NtQueryInformationProcess(hProcess,NativeProcess.PROCESSINFOCLASS.ProcessBasicInformation,
-                ref pbi,pbiLength,out returnLength);
+            int status = NativeProcess.NtQueryInformationProcess(hProcess, NativeProcess.PROCESSINFOCLASS.ProcessBasicInformation,
+                ref pbi, pbiLength, out returnLength);
 
-            if(status != 0)
+            if (status != 0)
             {
                 throw new Win32Exception(status);
             }

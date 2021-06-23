@@ -26,16 +26,16 @@
  * ___________________________________________________________________
  */
 
+using HpToolsLauncher.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using HpToolsLauncher.Properties;
 //using UFT.Runner.Properties;
 
 namespace HpToolsLauncher
 {
-    public class MtbManager 
+    public class MtbManager
     {
         public delegate IEnumerable<string> GetContentDelegate();
 

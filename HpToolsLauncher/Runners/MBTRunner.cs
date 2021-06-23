@@ -86,7 +86,7 @@ namespace HpToolsLauncher
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
 
-                       //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
+                        //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
 
                         //Expects to receive params in CSV format, encoded base64
                         if (!string.IsNullOrEmpty(test.DatableParams))

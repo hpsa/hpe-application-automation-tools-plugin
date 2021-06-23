@@ -169,7 +169,8 @@ namespace HpToolsLauncher.TestRunners
             try
             {
                 Directory.CreateDirectory(runResults.ReportLocation);
-            }catch(Exception)
+            }
+            catch (Exception)
             {
                 errorReason = string.Format(Resources.FailedToCreateTempDirError, runResults.ReportLocation);
                 runResults.TestState = TestState.Error;
@@ -188,9 +189,10 @@ namespace HpToolsLauncher.TestRunners
 
             try
             {
-                configFilePath =  ParallelRunnerEnvironmentUtil.GetConfigFilePath(testInfo,_mcConnectionInfo,_environments);
+                configFilePath = ParallelRunnerEnvironmentUtil.GetConfigFilePath(testInfo, _mcConnectionInfo, _environments);
                 _configFiles.Add(configFilePath);
-            }catch(ParallelRunnerConfigurationException ex) // invalid configuration
+            }
+            catch (ParallelRunnerConfigurationException ex) // invalid configuration
             {
                 errorReason = ex.Message;
                 runResults.ErrorDesc = errorReason;
@@ -207,7 +209,7 @@ namespace HpToolsLauncher.TestRunners
 
             var runTime = new Stopwatch();
             runTime.Start();
-            
+
             string failureReason = null;
             runResults.ErrorDesc = null;
 
@@ -230,13 +232,14 @@ namespace HpToolsLauncher.TestRunners
         public void CleanUp()
         {
             // we need to remove the json config files as they are no longer needed
-            foreach(var configFile in _configFiles)
+            foreach (var configFile in _configFiles)
             {
                 try
                 {
                     File.Delete(configFile);
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     ConsoleWriter.WriteErrLine("Unable to remove configuration file: " + configFile);
                 }
             }
@@ -265,7 +268,7 @@ namespace HpToolsLauncher.TestRunners
             }
 
             // could not retrieve the explorer process
-            if(explorer == null)
+            if (explorer == null)
             {
                 // try to start the process from the current session
                 return false;
@@ -280,7 +283,7 @@ namespace HpToolsLauncher.TestRunners
         /// <param name="fileName">the filename to be ran</param>
         /// <param name="arguments">the arguments for the process</param>
         /// <returns>the corresponding process type, based on the jenkins instance</returns>
-        private object GetProcessTypeForCurrentSession(string fileName,string arguments)
+        private object GetProcessTypeForCurrentSession(string fileName, string arguments)
         {
             try
             {
