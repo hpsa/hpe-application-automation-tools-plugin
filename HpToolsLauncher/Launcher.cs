@@ -847,6 +847,19 @@ namespace HpToolsLauncher
                         test.Script = _ciParams.GetOrDefault("script"  + counter,"");
                         test.UnitIds = _ciParams.GetOrDefault("unitIds" + counter,"");
                         test.UnderlyingTests = new List<string>(_ciParams.GetOrDefault("underlyingTests" + counter,"").Split(';'));
+
+                        string recScenarioValue = _ciParams.GetOrDefault("recoveryScenarios" + counter, "");
+
+                        string funcLibraries = _ciParams.GetOrDefault("functionLibraries" + counter, "");
+                        if (!string.IsNullOrEmpty(funcLibraries))
+                        {
+                            test.FunctionLibraries = new List<string>(funcLibraries.Split(';'));
+                        }
+                        else
+                        {
+                            test.FunctionLibraries = new List<string>();
+                        }
+
                         test.PackageName = _ciParams.GetOrDefault("package" + counter, "");
                         test.DatableParams = _ciParams.GetOrDefault("datableParams" + counter, "");
                         testProp = "test" + (++counter);
