@@ -328,7 +328,10 @@ Utils.loadMC = function(a,button){
 	var proxyUserName = document.getElementsByName("runfromfs.fsProxyUserName")[0].value;
 	var proxyPassword = document.getElementsByName("runfromfs.fsProxyPassword")[0].value;
 	var baseUrl = "";
-	if(mcUserName.trim() == '' || mcPassword.trim() == '' || (useProxy && proxyAddress.trim() == '') || (useAuthentication && (proxyUserName.trim() == '' || proxyPassword.trim() == ''))){
+	const isMcCredentialMissing = mcUserName.trim() == "" || mcPassword.trim() == "";
+	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
+	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
+	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
 		ParallelRunnerEnvironment.setEnvironmentError(button,true);
 		buttonStatus = false;
 		return;
