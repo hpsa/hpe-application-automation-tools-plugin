@@ -390,7 +390,6 @@ Utils.loadMC = function(a,button){
 			var timer = setInterval(checkChild, 500);
 		});
 	});
-
 };
 
 /**
