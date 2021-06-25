@@ -26,7 +26,7 @@
  * ___________________________________________________________________
  */
 
-function load(a,path){
+function loadMobileInfo(a){
     var buttonStatus = false;
     if(buttonStatus) return;
     buttonStatus = true;
@@ -41,7 +41,7 @@ function load(a,path){
     var proxyUserName = document.getElementsByName("runfromfs.fsProxyUserName")[0].value;
     var proxyPassword = document.getElementsByName("runfromfs.fsProxyPassword")[0].value;
     var baseUrl = "";
-    if(mcUserName == '' || mcPassword == ''|| (useProxy && proxyAddress == '') || (useAuthentication && (proxyUserName == '' || proxyPassword == ''))){
+    if(mcUserName.trim() == '' || mcPassword.trim() == '' || (useProxy && proxyAddress.trim() == '') || (useAuthentication && (proxyUserName.trim() == '' || proxyPassword.trim() == ''))){
         document.getElementById("errorMessage").style.display = "block";
         buttonStatus = false;
         return;
@@ -53,16 +53,14 @@ function load(a,path){
     }
 
     if (!useProxy){
-        proxyAddress = "";
-        proxyUserName = "";
-        proxyPassword = "";
+        proxyAddress = proxyUserName = proxyPassword = "";
     }
 
     a.getMcServerUrl(mcUrl, function(r){
         baseUrl = r.responseObject();
         a.getJobId(baseUrl,mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
-            var jobResponse = response.responseObject();
-            if(jobResponse == null){
+            var jobId = response.responseObject();
+            if(jobId == null){
                 document.getElementById("errorMessage").style.display = "block";
                 buttonStatus = false;
                 return;
@@ -71,15 +69,12 @@ function load(a,path){
             document.getElementById("errorMessage").style.display = "none";
             var openedWindow = window.open('/','test parameters','height=820,width=1130');
             openedWindow.location.href = 'about:blank';
-            openedWindow.location.href = baseUrl+path+jobResponse+'&displayUFTMode=true';
+            openedWindow.location.href = baseUrl.trim().replace(/[\/]*$/, "")+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true";
             var messageCallBack = function (event) {
                 if (event && event.data && event.data=="mcCloseWizard") {
-                    a.populateAppAndDevice(baseUrl,mcUserName,mcPassword,mcTenantId, proxyAddress, proxyUserName, proxyPassword,jobResponse, function (app) {
+                    a.populateAppAndDevice(baseUrl,mcUserName,mcPassword,mcTenantId, proxyAddress, proxyUserName, proxyPassword,jobId, function (app) {
                         var jobInfo = app.responseObject();
-                        var deviceId = "";
-                        var OS = "";
-                        var manufacturerAndModel = "";
-                        var targetLab = "";
+                        let deviceId = "", OS = "", manufacturerAndModel = "", targetLab = "";
                         if(jobInfo['deviceJSON']){
                             if(jobInfo['deviceJSON']['deviceId']){
                                 deviceId = jobInfo['deviceJSON']['deviceId'];

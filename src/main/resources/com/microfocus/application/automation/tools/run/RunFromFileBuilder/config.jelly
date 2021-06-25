@@ -27,13 +27,10 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
-         xmlns:cv="/lib/custom">
-
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
      <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
      <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
      <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
-
      <style>
         #testsTable {
             border: 1px;
@@ -257,7 +254,7 @@
                         <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
                 </f:entry>
                 <f:entry>
-                        <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
+                        <input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
                 </f:entry>
                 <f:entry>
                         <div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>

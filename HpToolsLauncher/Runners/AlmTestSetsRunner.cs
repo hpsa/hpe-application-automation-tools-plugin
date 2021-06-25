@@ -851,8 +851,7 @@ namespace HpToolsLauncher
         /// <param name="runMode"></param>
         /// <param name="runDesc"></param>
         /// <param name="scheduler"></param>
-        public void SetTestParameters(IList tList, string testParameters, string runHost, QcRunMode runMode,
-                                        TestSuiteRunResults runDesc, ITSScheduler scheduler)
+        public void SetTestParameters(IList tList, string testParameters, string runHost, QcRunMode runMode, TestSuiteRunResults runDesc, ITSScheduler scheduler)
         {
             var i = 1;
             foreach (ITSTest3 test in tList)
@@ -1164,6 +1163,10 @@ namespace HpToolsLauncher
             {
                 Console.WriteLine("Empty target test set list");
             }
+            if (targetTestSet == null)
+            {
+                return null;
+            }
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
@@ -1176,10 +1179,6 @@ namespace HpToolsLauncher
                 //need to run this to install everything needed http://AlmServer:8080/qcbin/start_a.jsp?common=true
                 //start the scheduler
                 scheduler = targetTestSet.StartExecution(string.Empty);
-                if (targetTestSet == null)
-                {
-                    Console.WriteLine("empty target test set");
-                }
                 currentTestSetInstances = GetTestInstancesString(targetTestSet);
             }
             catch (Exception ex)
@@ -1433,7 +1432,7 @@ namespace HpToolsLauncher
         /// <param name="prevTest"></param>
         /// <param name="currentTest"></param>
         /// <param name="abortFilename"></param>
-        public void UpdateTestsResultsDescription(ref TestRunResults activeTestDesc, TestSuiteRunResults runDesc,
+        private void UpdateTestsResultsDescription(ref TestRunResults activeTestDesc, TestSuiteRunResults runDesc,
                                              ITSScheduler scheduler, ITestSet targetTestSet,
                                              string currentTestSetInstances, double timeout,
                                              IExecutionStatus executionStatus, Stopwatch sw,
