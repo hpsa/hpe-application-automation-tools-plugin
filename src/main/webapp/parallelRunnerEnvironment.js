@@ -543,7 +543,7 @@ ParallelRunnerEnvironment.setUpBrowserEnvironment = function(button,radio,modal)
 ParallelRunnerEnvironment.setEnvironmentsVisibility = function(index) {
 	var fsTests = document.getElementsByName("runfromfs.fsTests")[index];
 	var parent = Utils.findAncestorByTag(fsTests,"tbody");
-	var check = document.getElementsByName("runfromfs.isParallelRunnerEnabled")[index];
+	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
 	var environment = parent.querySelectorAll("div[name='fileSystemTestSet']")[0];
 
 	if(environment == null) return;
@@ -601,13 +601,9 @@ RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, nam
 		parent = Utils.findAncestorByTag(parent,'tr');
 	}
 
-	var check = document.getElementsByName("runfromfs.isParallelRunnerEnabled")[index];
+	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
 
-	if(check.checked) {
-		parent.style.display = "none";
-	} else {
-		parent.style.display = "";
-	}
+	parent.style.display = check.checked ? "none" : "";
 };
 
 /**
@@ -616,7 +612,7 @@ RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, nam
  * @param name the textbox name
  */
 RunFromFileSystemEnvironment.setTextBoxVisibility = function(index, name) {
-	var check = document.getElementsByName("runfromfs.isParallelRunnerEnabled")[index];
+	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
 	var textBox = document.getElementsByName(name)[index];
 
 	Utils.setJenkinsElementVisibility(textBox,!check.checked);
@@ -650,7 +646,7 @@ RunFromFileSystemEnvironment.setTimeoutVisibility = function (index) {
  * Hide/Show the corresponding controls based on the parallel runner checkBox state.
  */
 function setViewVisibility() {
-	var parallelRuns =  document.getElementsByName("runfromfs.isParallelRunnerEnabled");
+	var parallelRuns =  document.getElementsByName("isParallelRunnerEnabled");
 
 	// go over all the available builds and set their corresponding
 	// visibilities based on the parallel runner state
