@@ -61,6 +61,13 @@ function loadMobileInfo(a){
 
 	a.getMcServerUrl(mcUrl, function(r){
 		baseUrl = r.responseObject();
+		if(baseUrl){
+			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
+		} else {
+			ParallelRunnerEnvironment.setEnvironmentError(button,true);
+			buttonStatus = false;
+			return;
+		}
 		a.getJobId(baseUrl,mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null){
@@ -72,7 +79,7 @@ function loadMobileInfo(a){
 			document.getElementById("errorMessage").style.display = "none";
 			var openedWindow = window.open('/','test parameters','height=820,width=1130');
 			openedWindow.location.href = 'about:blank';
-			openedWindow.location.href = baseUrl.trim().replace(/[\/]*$/, "")+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true";
+			openedWindow.location.href = baseUrl+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true";
 			var messageCallBack = function (event) {
 				if (event && event.data && event.data=="mcCloseWizard") {
 					a.populateAppAndDevice(baseUrl,mcUserName,mcPassword,mcTenantId, proxyAddress, proxyUserName, proxyPassword,jobId, function (app) {
