@@ -30,12 +30,7 @@ using HpToolsLauncher;
 using HpToolsLauncher.ParallelRunner;
 using HpToolsLauncher.ParallelTestRunConfiguraion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace HpToolsLauncherTests
 {
@@ -335,7 +330,8 @@ namespace HpToolsLauncherTests
             {
                 configuration = ParallelRunnerEnvironmentUtil.
                         ParseEnvironmentStrings(environments, mockTesInfo);
-            }catch(ParallelRunnerConfigurationException)
+            }
+            catch (ParallelRunnerConfigurationException)
             {
                 Assert.Fail();
             }

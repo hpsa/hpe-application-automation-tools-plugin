@@ -47,7 +47,7 @@ namespace HpToolsLauncher
             get { return m_hasWarnings; }
             set { m_hasWarnings = value; }
         }
-     
+
         public string TestPath { get; set; }
         public string TestName { get; set; }
         public string TestGroup { get; set; }

@@ -26,17 +26,17 @@
  * ___________________________________________________________________
  */
 
-using System;
-using System.Linq;
-using System.IO;
-using System.Xml;
-using QTObjectModelLib;
-using Resources = HpToolsLauncher.Properties.Resources;
-using System.Threading;
-using System.Diagnostics;
-using System.Collections.Generic;
-using Microsoft.Win32;
 using HpToolsLauncher.TestRunners;
+using Microsoft.Win32;
+using QTObjectModelLib;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Xml;
+using Resources = HpToolsLauncher.Properties.Resources;
 
 namespace HpToolsLauncher
 {
@@ -45,11 +45,11 @@ namespace HpToolsLauncher
         // Setting keys for mobile
         private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
         private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
-        private const string MOBILE_USER   = "ALM_MobileUserName";
+        private const string MOBILE_USER = "ALM_MobileUserName";
         private const string MOBILE_PASSWORD = "ALM_MobilePassword";
         private const string MOBILE_TENANT = "EXTERNAL_MobileTenantId";
         private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
-        private const string MOBILE_USE_PROXY= "MobileProxySetting_UseProxy";
+        private const string MOBILE_USE_PROXY = "MobileProxySetting_UseProxy";
         private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
         private const string MOBILE_PROXY_SETTING_PORT = "MobileProxySetting_Port";
         private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
@@ -103,7 +103,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
 
             runDesc.TestPath = testPath;
-            
+
             // default report location is the test path
             runDesc.ReportLocation = testPath;
             // check if the report path has been defined
@@ -226,7 +226,7 @@ namespace HpToolsLauncher
                         }
                         _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, encriptedMcProxyPassword);
                     }
-                    
+
                     // Mc info (device, app, launch and terminate data)
                     if (!string.IsNullOrEmpty(_mobileInfo))
                     {
@@ -670,7 +670,7 @@ namespace HpToolsLauncher
                             }
                             else
                             {
-                                ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ",paramName, paramValue));
+                                ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ", paramName, paramValue));
                                 _qtpParameters[paramName].Value = paramValue;
                             }
                         }

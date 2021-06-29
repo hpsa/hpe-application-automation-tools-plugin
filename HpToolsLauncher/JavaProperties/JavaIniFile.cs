@@ -27,8 +27,8 @@
  */
 
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace HpToolsLauncher
@@ -104,7 +104,7 @@ namespace HpToolsLauncher
                     sb.AppendLine(s.ToString());
                 }
             }
-            File.WriteAllText(fileName,sb.ToString());
+            File.WriteAllText(fileName, sb.ToString());
         }
     }
 }

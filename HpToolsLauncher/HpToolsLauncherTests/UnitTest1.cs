@@ -26,15 +26,10 @@
  * ___________________________________________________________________
  */
 
-using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using HpToolsLauncher;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 using System.IO;
-using System.Xml.Linq;
 
 namespace HpToolsLauncherTests
 {

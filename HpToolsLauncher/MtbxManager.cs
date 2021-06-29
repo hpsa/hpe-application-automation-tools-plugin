@@ -26,6 +26,8 @@
  * ___________________________________________________________________
  */
 
+using HpToolsLauncher.Properties;
+using HpToolsLauncher.TestRunners;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,8 +36,6 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
-using HpToolsLauncher.Properties;
-using HpToolsLauncher.TestRunners;
 
 namespace HpToolsLauncher
 {
@@ -174,7 +174,8 @@ namespace HpToolsLauncher
 
                     XAttribute xname = GetAttribute(test, "name");
                     string name = "Unnamed Test";
-                    if (xname != null && xname.Value != ""){
+                    if (xname != null && xname.Value != "")
+                    {
                         name = xname.Value;
                     }
 

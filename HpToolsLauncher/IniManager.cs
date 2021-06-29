@@ -157,7 +157,7 @@ namespace HpToolsLauncher
             return retval;
         }
 
-        public static Dictionary<string, Dictionary<string,string>> LoadIniFileAsDictionary(string strFileName)
+        public static Dictionary<string, Dictionary<string, string>> LoadIniFileAsDictionary(string strFileName)
         {
             Dictionary<string, Dictionary<string, string>> retVal = new Dictionary<string, Dictionary<string, string>>();
             IniManager man = new IniManager(strFileName);

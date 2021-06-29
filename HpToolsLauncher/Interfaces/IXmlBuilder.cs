@@ -26,11 +26,6 @@
  * ___________________________________________________________________
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace HpToolsLauncher
 {
     public interface IXmlBuilder
