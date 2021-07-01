@@ -358,8 +358,6 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestDone, runResult.TestState));
                     }
 
-                    ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
-
                     UpdateCounters(runResult.TestState);
                     var testTotalTime = (DateTime.Now - testStart).TotalSeconds;
 
@@ -380,7 +378,7 @@ namespace HpToolsLauncher
                     //update report folder
                     String uftReportDir = Path.Combine(test.TestPath, "Report");
                     String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
-
+                    ConsoleWriter.WriteLine("uftReportDir is " + uftReportDirNew);
                     try
                     {
                         if (Directory.Exists(uftReportDir))
@@ -388,16 +386,22 @@ namespace HpToolsLauncher
                             if (Directory.Exists(uftReportDirNew))
                             {
                                 Helper.DeleteDirectory(uftReportDirNew);
+                                ConsoleWriter.WriteLine("uftReportDir is cleaned");
                             }
 
                             Directory.Move(uftReportDir, uftReportDirNew);
+                            ConsoleWriter.WriteLine("uftReportDir is filled");
                         }
                     }
-                    catch
+                    catch(Exception e)
                     {
+                        ConsoleWriter.WriteLine("failed to move uftReportDir : " + e.Message);
                         System.Threading.Thread.Sleep(1000);
                         Directory.Move(uftReportDir, uftReportDirNew);
-                    } 
+                        ConsoleWriter.WriteLine("uftReportDir is filled");
+                    }
+
+                    ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
                 }
 
                 totalTime = (DateTime.Now - start).TotalSeconds;
