@@ -1133,13 +1133,6 @@ namespace HpToolsLauncher
 
         #endregion
 
-        public static void DeleteDirectory(string dirPath)
-        {
-            DirectoryInfo directory = Directory.CreateDirectory(dirPath);
-            foreach (FileInfo file in directory.GetFiles()) file.Delete();
-            foreach (DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-            Directory.Delete(dirPath);
-        }
     }
 
     public class Stopper

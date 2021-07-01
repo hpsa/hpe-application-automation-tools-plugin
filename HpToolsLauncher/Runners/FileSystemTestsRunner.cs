@@ -385,12 +385,13 @@ namespace HpToolsLauncher
                         {
                             if (Directory.Exists(uftReportDirNew))
                             {
-                                Helper.DeleteDirectory(uftReportDirNew);
+                                DirectoryInfo directory = new DirectoryInfo(uftReportDirNew);
+                                directory.Delete(true);
                                 ConsoleWriter.WriteLine("uftReportDir is cleaned");
                             }
 
                             Directory.Move(uftReportDir, uftReportDirNew);
-                            ConsoleWriter.WriteLine("uftReportDir is filled");
+                            ConsoleWriter.WriteLine("uftReportDir is filled from " + uftReportDir);
                         }
                     }
                     catch(Exception e)
