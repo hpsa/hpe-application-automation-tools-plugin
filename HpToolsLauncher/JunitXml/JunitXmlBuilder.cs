@@ -26,11 +26,10 @@
  * ___________________________________________________________________
  */
 
-using System.IO;
-using System.Xml.Serialization;
-using System.Xml;
-using System;
 using System.Globalization;
+using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace HpToolsLauncher
 {
@@ -96,7 +95,7 @@ namespace HpToolsLauncher
             {
                 File.Delete(XmlName);
             }
-           
+
 
             using (Stream s = File.OpenWrite(XmlName))
             {

@@ -26,11 +26,11 @@
  * ___________________________________________________________________
  */
 
+using HpToolsLauncher.Properties;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
 {
@@ -103,7 +103,7 @@ namespace HpToolsLauncher
             // check if the report path has been defined
             if (!String.IsNullOrEmpty(testinf.ReportPath))
             {
-                if(!Helper.TrySetTestReportPath(runDesc, testinf,ref errorReason))
+                if (!Helper.TrySetTestReportPath(runDesc, testinf, ref errorReason))
                 {
                     return runDesc;
                 }
@@ -174,7 +174,7 @@ namespace HpToolsLauncher
                     runDesc.ErrorDesc = "No Results.xml or run_results.html file found";
                 }
             }
-			//File.Delete(paramsFilePath);
+            //File.Delete(paramsFilePath);
             runDesc.Runtime = s.Elapsed;
             return runDesc;
         }

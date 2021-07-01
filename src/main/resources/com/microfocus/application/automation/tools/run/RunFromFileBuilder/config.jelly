@@ -27,129 +27,126 @@
   -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
-         xmlns:cv="/lib/custom">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
+	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
+	 <style>
+		#testsTable {
+			border: 1px;
+			width: 85%;
+		}
 
-     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
-     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
-     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
-
-     <style>
-        #testsTable {
-            border: 1px;
-            width: 85%;
-        }
-
-        .testsDropDown {
-            margin-left: 20px;
-        }
+		.testsDropDown {
+			margin-left: 20px;
+		}
 
 
-        #testsDropDown {
-            width: 85%;
-        }
+		#testsDropDown {
+			width: 85%;
+		}
 
 
 
-        #cleanupTestInput {
-            width: 250px;
-            margin-left: 10px;
-        }
+		#cleanupTestInput {
+			width: 250px;
+			margin-left: 10px;
+		}
 
-        #cleanupTestList {
-            margin-left: 20px;
-        }
+		#cleanupTestList {
+			margin-left: 20px;
+		}
 
 
 
-        td.help-text {
-            padding-left: 15px;
-        }
+		td.help-text {
+			padding-left: 15px;
+		}
 
-        input[name="runfromfs.isParallelRunnerEnabled"]{
-            margin-left: 35px;
-        }
+		input[name="isParallelRunnerEnabled"]{
+			margin-left: 35px;
+		}
 
-        table tr td div.help {
-            margin-left: 12px;
-            background: none;
-            border: none;
-        }
+		table tr td div.help {
+			margin-left: 12px;
+			background: none;
+			border: none;
+		}
 
-        .help {
-            background: none !important;
-        }
+		.help {
+			background: none !important;
+		}
 
-        table td.help {
-            background: none;
-        }
+		table td.help {
+			background: none;
+		}
 
-        table tr[nameref^="rowSetStart"] {
-            background: none;
-        }
+		table tr[nameref^="rowSetStart"] {
+			background: none;
+		}
 
-        textarea.setting-input{
-            resize: vertical;
-        }
+		textarea.setting-input{
+			resize: vertical;
+		}
 
-     </style>
+	 </style>
 
-    <st:bind var="a" value="${descriptor}"/>
+	<st:bind var="a" value="${descriptor}"/>
 
-    <st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
-    <st:bind var="cleanupTests" value="${instance.runFromFileModel.cleanupTests}"/>
+	<st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
+	<st:bind var="cleanupTests" value="${instance.runFromFileModel.cleanupTests}"/>
 
-    <!--
-      ~ [JENKINS-64639]: This table is only for drawing information. Also, the tr and td are removed by Jenkins core and the generated HTML doesn't contain it.
-      -->
-    <tr>
-      <td/>
-      <td colspan="2" class="help-text">
-        <div class="help" style="display:block; margin-left: -15px;">
-          ${%DontForgetThePublisher}
-        </div>
-      </td>
-      <td/>
-    </tr>
+	<!--
+	  ~ [JENKINS-64639]: This table is only for drawing information. Also, the tr and td are removed by Jenkins core and the generated HTML doesn't contain it.
+	  -->
+	<tr>
+	  <td/>
+	  <td colspan="2" class="help-text">
+		<div class="help" style="display:block; margin-left: -15px;">
+		  ${%DontForgetThePublisher}
+		</div>
+	  </td>
+	  <td/>
+	</tr>
 
-    <f:entry title="Tests" field="fsTests">
-        <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
-    </f:entry>
+	<f:entry title="Tests" field="fsTests">
+		<f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
+	</f:entry>
 
-    <f:entry title="Results directory" field="fsReportPath">
-        <f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
-    </f:entry>
+	<f:entry title="Results directory" field="fsReportPath">
+		<f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
+	</f:entry>
 
-    <f:entry title="Timeout" field="fsTimeout" style="display:block">
-        <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
-    </f:entry>
+	<f:entry title="Timeout" field="fsTimeout" style="display:block">
+		<f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+	</f:entry>
 
-   <f:optionalBlock name="isParallelRunnerEnabled" title="UFT parallel running mode" inline="true">
-         <f:entry field="fileSystemTestSetModel">
-            <f:property field="fileSystemTestSetModel"/>
-        </f:entry>
-   </f:optionalBlock>
+	<f:optionalBlock name="isParallelRunnerEnabled" title="UFT parallel running mode" inline="true" checked="${instance.isParallelRunnerEnabled}">
+		<f:entry field="fileSystemTestSetModel">
+			<f:property field="fileSystemTestSetModel"/>
+		</f:entry>
+	</f:optionalBlock>
 
-    <f:advanced title="UFT-Specific Settings">
-    	<f:section title="UFT Settings">
-		    <f:entry title="Run Mode" field="fsUftRunMode">
-                <select name="runPipeline.fsUftRunMode">
-                    <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
-                        <f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
-                            ${runMode.description}
-                        </f:option>
-                    </j:forEach>
-                </select>
-            </f:entry>
+	<f:advanced title="UFT-Specific Settings">
+		<f:section title="UFT Settings">
+			<f:entry title="Run Mode" field="fsUftRunMode">
+				<select name="runPipeline.fsUftRunMode">
+					<j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
+						<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
+							${runMode.description}
+						</f:option>
+					</j:forEach>
+				</select>
+			</f:entry>
 
-             <f:entry>
-                <f:property field="uftSettingsModel"/>
-             </f:entry>
-        </f:section>
-    </f:advanced>
+			 <f:entry>
+				<f:property field="uftSettingsModel"/>
+			 </f:entry>
+		</f:section>
+	</f:advanced>
 
-    <f:advanced title="LoadRunner-Specific Settings">
-    	<f:section title="LoadRunner Settings">
+	<f:advanced title="LoadRunner-Specific Settings">
+		<f:section title="LoadRunner Settings">
 			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
 				<f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
 			</f:entry>
@@ -159,110 +156,110 @@
 			<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
 				<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
 			</f:entry>
-            <f:entry title="Analysis Template" field="analysisTemplate">
-                <f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
-            </f:entry>
-            <f:entry title="Display Controller" field="displayController">
-                <f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
-            </f:entry>
-            <f:section title="${%SummaryDataLog}">
-                <f:entry name="Summary Data Log Model" field="summaryDataLogModel">
-                    <f:property field="summaryDataLogModel" />
-                </f:entry>
-            </f:section>
-            <f:section title="${%RuntimeSettings}">
-                <f:entry name="Runtime Settings" field="scriptRTSSetModel">
-                    <f:property field="scriptRTSSetModel"/>
-                </f:entry>
-            </f:section>
-        </f:section>
-    </f:advanced>
+			<f:entry title="Analysis Template" field="analysisTemplate">
+				<f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
+			</f:entry>
+			<f:entry title="Display Controller" field="displayController">
+				<f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
+			</f:entry>
+			<f:section title="${%SummaryDataLog}">
+				<f:entry name="Summary Data Log Model" field="summaryDataLogModel">
+					<f:property field="summaryDataLogModel" />
+				</f:entry>
+			</f:section>
+			<f:section title="${%RuntimeSettings}">
+				<f:entry name="Runtime Settings" field="scriptRTSSetModel">
+					<f:property field="scriptRTSSetModel"/>
+				</f:entry>
+			</f:section>
+		</f:section>
+	</f:advanced>
 
-    <!-- add MC server and app info starting -->
-     <f:advanced title="UFT Mobile options">
-            <f:section title="UFT Mobile options">
-                <f:entry title="UFT Mobile Server" field="mcServerName">
-                    <select name="runfromfs.mcServerName">
-                        <j:forEach var="mcServer" items="${descriptor.mcServers}">
-                            <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
-                                ${mcServer.mcServerName}
-                            </f:option>
-                        </j:forEach>
-                    </select>
-                </f:entry>
-                <f:entry>
-                    <f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
-                </f:entry>
-                <f:entry title="User name" field="fsUserName">
-                    <f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
-                </f:entry>
-                <f:entry title="Password" field="fsPassword">
-                    <f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
-                </f:entry>
-                <f:entry title="Tenant Id" field="mcTenantId">
-                    <f:textbox name="runfromfs.mcTenantId" value="${instance.runFromFileModel.mcTenantId}"/>
-                </f:entry>
-                <f:entry>
-                    <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
-                        <f:entry title="Address" field="fsProxyAddress">
-                          <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
-                        </f:entry>
-                        <f:entry>
-                            <f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
-                        </f:entry>
-                        <f:entry title="User name" field="fsProxyUserName">
-                          <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
-                        </f:entry>
-                        <f:entry title="Password" field="fsProxyPassword">
-                          <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
-                        </f:entry>
-                    </f:optionalBlock>
-                </f:entry>
-                <f:entry title="DEVICE INFORMATION:"/>
-                <f:entry/>
-                <f:entry title="Device ID" field="fsDeviceId">
-                        <f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
-                </f:entry>
-                <f:entry title="OS" field="fsOs">
-                    <f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
-                </f:entry>
-                <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
-                    <f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
-                </f:entry>
-                <f:entry title="Target lab" field="fsTargetLab">
-                    <f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
-                </f:entry>
-                <f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
-                    <f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
-                </f:entry>
+	<!-- add MC server and app info starting -->
+	 <f:advanced title="UFT Mobile options">
+			<f:section title="UFT Mobile options">
+				<f:entry title="UFT Mobile Server" field="mcServerName">
+					<select name="runfromfs.mcServerName">
+						<j:forEach var="mcServer" items="${descriptor.mcServers}">
+							<f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
+								${mcServer.mcServerName}
+							</f:option>
+						</j:forEach>
+					</select>
+				</f:entry>
+				<f:entry>
+					<f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
+				</f:entry>
+				<f:entry title="User name" field="fsUserName">
+					<f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
+				</f:entry>
+				<f:entry title="Password" field="fsPassword">
+					<f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
+				</f:entry>
+				<f:entry title="Tenant Id" field="mcTenantId">
+					<f:textbox name="runfromfs.mcTenantId" value="${instance.runFromFileModel.mcTenantId}"/>
+				</f:entry>
+				<f:entry>
+					<f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
+						<f:entry title="Address" field="fsProxyAddress">
+						  <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
+						</f:entry>
+						<f:entry>
+							<f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
+						</f:entry>
+						<f:entry title="User name" field="fsProxyUserName">
+						  <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+						</f:entry>
+						<f:entry title="Password" field="fsProxyPassword">
+						  <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+						</f:entry>
+					</f:optionalBlock>
+				</f:entry>
+				<f:entry title="DEVICE INFORMATION:"/>
+				<f:entry/>
+				<f:entry title="Device ID" field="fsDeviceId">
+						<f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
+				</f:entry>
+				<f:entry title="OS" field="fsOs">
+					<f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
+				</f:entry>
+				<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+					<f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+				</f:entry>
+				<f:entry title="Target lab" field="fsTargetLab">
+					<f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
+				</f:entry>
+				<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+					<f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
+				</f:entry>
 
-                <f:entry title="TEST DEFINITIONS:"/>
-                <f:entry/>
-                <f:entry title="Launch on start" field="fsLaunchAppName">
-                    <f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
-                </f:entry>
-                <f:entry title="AUT packaging" field="fsInstrumented">
-                        <f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
-                </f:entry>
-                <f:entry title="AUT actions" field="fsAutActions">
-                        <f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
-                </f:entry>
-                <f:entry title="Device metrics" field="fsDevicesMetrics">
-                        <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
-                </f:entry>
-                <f:entry title="Job Id">
-                        <f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
-                </f:entry>
-                <f:entry>
-                        <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
-                </f:entry>
-                <f:entry>
-                        <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
-                </f:entry>
-                <f:entry>
-                        <div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
-                </f:entry>
+				<f:entry title="TEST DEFINITIONS:"/>
+				<f:entry/>
+				<f:entry title="Launch on start" field="fsLaunchAppName">
+					<f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+				</f:entry>
+				<f:entry title="AUT packaging" field="fsInstrumented">
+						<f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
+				</f:entry>
+				<f:entry title="AUT actions" field="fsAutActions">
+						<f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
+				</f:entry>
+				<f:entry title="Device metrics" field="fsDevicesMetrics">
+						<f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+				</f:entry>
+				<f:entry title="Job Id">
+						<f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
+				</f:entry>
+				<f:entry>
+						<f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+				</f:entry>
+				<f:entry>
+						<input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
+				</f:entry>
+				<f:entry>
+						<div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
+				</f:entry>
 
-            </f:section>
-        </f:advanced>
+			</f:section>
+		</f:advanced>
 </j:jelly>

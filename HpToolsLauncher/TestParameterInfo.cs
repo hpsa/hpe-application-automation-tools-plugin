@@ -27,9 +27,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -56,7 +53,7 @@ namespace HpToolsLauncher
             get { return _type; }
             set { _type = value; }
         }
-        
+
 
         /// <summary>
         /// parses the value string and returns an object of the specified type.
@@ -69,7 +66,7 @@ namespace HpToolsLauncher
             switch (this.Type.ToLower())
             {
                 case "int":
-                
+
                     int v;
                     ok = int.TryParse(this.Value, out v);
                     if (ok)
@@ -93,7 +90,7 @@ namespace HpToolsLauncher
 
                     break;
                 case "double":
-                
+
                     double v2;
                     ok = double.TryParse(this.Value, out v2);
                     if (ok)
@@ -105,7 +102,7 @@ namespace HpToolsLauncher
                 case "date":
                     DateTime v3;
                     ok = DateTime.TryParseExact(this.Value,
-                        new string[] {  
+                        new string[] {
                                             "yyyy-MM-ddTHH:mm:ss",
                                             "dd/MM/yyyy HH:mm:ss.fff",
                                             "dd/M/yyyy HH:mm:ss.fff",

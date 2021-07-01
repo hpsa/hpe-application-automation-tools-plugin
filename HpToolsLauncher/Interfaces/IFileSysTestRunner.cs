@@ -26,7 +26,6 @@
  * ___________________________________________________________________
  */
 
-using System;
 namespace HpToolsLauncher
 {
     public delegate bool RunCancelledDelegate();

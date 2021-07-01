@@ -25,12 +25,10 @@
  *
  * ___________________________________________________________________
  */
- 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using HP.LoadRunner.Interop.Wlrun;
+using System;
+using System.Text;
 
 namespace HpToolsLauncher.TestRunners
 {
@@ -81,7 +79,7 @@ namespace HpToolsLauncher.TestRunners
             {
                 headerBuilder.Append(string.Format("{0, -10}", vuserState.ToString()));
             }
-            
+
             foreach (var vuserState in Enum.GetValues(typeof(VUSERS_STATE)))
             {
                 bodyBuilder.Append(string.Format("{0, -10}", scenario.GetVusersCount((int)vuserState)));
@@ -96,7 +94,7 @@ namespace HpToolsLauncher.TestRunners
 
             int errorsCount = scenario.GetErrorsCount("");
 
-            ConsoleWriter.WriteLine("Error count: "+ errorsCount);
+            ConsoleWriter.WriteLine("Error count: " + errorsCount);
         }
 
         private void LogScenarioDuration(LrScenario scenario)

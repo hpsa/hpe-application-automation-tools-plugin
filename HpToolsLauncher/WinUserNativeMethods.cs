@@ -67,7 +67,7 @@ namespace HpToolsLauncher
                 }
                 catch (DllNotFoundException)
                 {
-                    
+
                 }
             }
 
@@ -87,7 +87,7 @@ namespace HpToolsLauncher
             }
             catch (DllNotFoundException)
             {
-                EncodeUtilsWrapD.UnprotectBSTRFromBase64(protectedData, out result,true);
+                EncodeUtilsWrapD.UnprotectBSTRFromBase64(protectedData, out result, true);
             }
 
             return result;
