@@ -226,6 +226,8 @@ public class JUnitExtension extends OctaneTestsExtension {
 			if(build.getAction(ParametersAction.class) != null && build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME) != null &&
 					build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME).getValue() != null) {
 				try {
+					//\[.*\] - input for testName = testName[parameters]
+					//\[.*\) - input for testName = testName[parameters](more params)
 					this.testParserRegEx = Pattern.compile(Objects.requireNonNull(build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME).getValue()).toString());
 				} catch (IllegalArgumentException e){
 					logger.error("Failed to parse regular expression pattern for test result name extractor.Job name: {}, Build {}, Input: {}, Error massage: {}.",
