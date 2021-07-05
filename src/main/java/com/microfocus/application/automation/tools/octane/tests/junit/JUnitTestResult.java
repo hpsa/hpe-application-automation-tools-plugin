@@ -55,9 +55,9 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
     private final TestError testError;
     private final String externalReportUrl;
     private final HPRunnerType runnerType;
+    private final String externalRunId;
 
-
-    public JUnitTestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String externalReportUrl, String description, HPRunnerType runnerType) {
+    public JUnitTestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String externalReportUrl, String description, HPRunnerType runnerType,String externalRunId) {
         this.moduleName = restrictSize(moduleName, DEFAULT_STRING_SIZE);
         this.packageName = restrictSize(packageName, DEFAULT_STRING_SIZE);
         this.className = restrictSize(className, DEFAULT_STRING_SIZE);
@@ -73,6 +73,7 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
         this.externalReportUrl = externalReportUrl;
         this.description = description;
         this.runnerType = runnerType;
+        this.externalRunId = externalRunId;
     }
 
     private String restrictSize(String value, int size) {
@@ -129,6 +130,9 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
         writer.writeAttribute("started", String.valueOf(started));
         if(externalReportUrl != null && !externalReportUrl.isEmpty()) {
             writer.writeAttribute("external_report_url", externalReportUrl);
+        }
+        if(externalRunId != null && !externalRunId.isEmpty()){
+            writer.writeAttribute("external_run_id", externalRunId);
         }
         if (HPRunnerType.UFT_MBT.equals(runnerType)) {
             writer.writeAttribute("run_type", MFToolsDetectionExtension.UFT_MBT);
