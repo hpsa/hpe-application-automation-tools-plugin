@@ -136,22 +136,59 @@
 		}
 
 		function verifyURLAvailable(){
-
-            var pcServer = document.getElementsByName("pc.pcServerName")[0].value;
+            var pcServerAndTenant = getLreServer(document.getElementsByName("pc.pcServerName")[0].value);
             var scheme = "http";
             if(document.getElementsByName("pc.HTTPSProtocol")[0].checked){
                 scheme = "https"
             }
-            if(pcServer){
-                var popup = window.open(scheme + "://" + pcServer + "/loadtest/");
+            if (pcServerAndTenant.length == 2 &amp;&amp; pcServerAndTenant[0]) {
+                var popup = window.open(scheme + "://" + pcServerAndTenant[0] + "/loadtest/"  + pcServerAndTenant[1]);
                 popup.opener = null;
-            }else{
+            } else {
                 alert("LoadRunner Enterprise Server name is missing.");
             }
             return false;
-		}
+        }
 
-
+        function getLreServer(lreServer){
+            var delimiterSlash = "/";
+            var delimiterQuestionMark = "?";
+            var useDelimiter = delimiterSlash;
+            var strServerAndTenant = [lreServer, ""];
+            var theLreServer = lreServer;
+            if (lreServer != null &amp;&amp; !(lreServer.length === 0)) {
+                theLreServer = /* replace */ lreServer.toLowerCase().split("http://").join("");
+                theLreServer = /* replace */ theLreServer.split("https://").join("");
+                theLreServer = /* replace */ theLreServer.split("/lre").join("");
+                theLreServer = /* replace */ theLreServer.split("/site").join("");
+                theLreServer = /* replace */ theLreServer.split("/loadtest").join("");
+                theLreServer = /* replace */ theLreServer.split("/pcx").join("");
+                theLreServer = /* replace */ theLreServer.split("/adminx").join("");
+                theLreServer = /* replace */ theLreServer.split("/admin").join("");
+                theLreServer = /* replace */ theLreServer.split("/login").join("");
+            }
+            if (theLreServer != null &amp;&amp; !(theLreServer.length === 0)) {
+                if ( /* contains */(theLreServer.indexOf("/") != -1)) {
+                    useDelimiter = delimiterSlash;
+                }
+                else if ( /* contains */(theLreServer.indexOf("?") != -1)) {
+                    useDelimiter = delimiterQuestionMark;
+                }
+                var severTenantArray = theLreServer.split(useDelimiter);
+                if (severTenantArray.length &gt; 0) {
+                    strServerAndTenant[0] = severTenantArray[0];
+                    if (severTenantArray.length &gt; 1) {
+                        if (useDelimiter === delimiterQuestionMark) {
+                            strServerAndTenant[1] = delimiterQuestionMark + severTenantArray[1];
+                        }
+                        else {
+                            strServerAndTenant[1] = severTenantArray[1];
+                        }
+                    }
+                }
+            }
+            return strServerAndTenant;
+        }
 
 		</script>
 	</f:block>
