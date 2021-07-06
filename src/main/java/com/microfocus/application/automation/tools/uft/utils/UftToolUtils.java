@@ -194,7 +194,7 @@ public class UftToolUtils {
                 }
             }
         } catch (IOException | InterruptedException e) {
-            listener.error(String.format("failure in clearing report folders for " + testPath));
+            listener.error("Failure in clearing report folders for " + testPath);
         }
     }
 

@@ -137,9 +137,9 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 printToConsole(listener, "Using format = " + frameworkFormat);
             }
 
-            //MBT needs to know real path to tests and not ${workspace}
+
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
-            if(rawTests.contains("mbtData")) {
+            if(rawTests.contains("mbtData")) { //MBT needs to know real path to tests and not ${workspace}
                 try {
                     EnvVars env = build.getEnvironment(listener);
                     executingDirectory = env.expand(executingDirectory);
