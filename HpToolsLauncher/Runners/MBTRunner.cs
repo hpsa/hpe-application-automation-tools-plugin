@@ -63,11 +63,9 @@ namespace HpToolsLauncher
                     DateTime startTotal = DateTime.Now;
                     ConsoleWriter.WriteLine("Creation of " + test.Name + " *****************************");
                     LoadNeededAddins(_qtpApplication, test.UnderlyingTests);
-
                     try
                     {
                         DateTime startSub1 = DateTime.Now;
-
                         _qtpApplication.New();
                         ConsoleWriter.WriteLine(string.Format("_qtpApplication.New took {0:0.0} secs", DateTime.Now.Subtract(startSub1).TotalSeconds));
                         QTObjectModelLib.Action qtAction1 = _qtpApplication.Test.Actions[1];
@@ -87,16 +85,16 @@ namespace HpToolsLauncher
                         }
 
                         //add function library
-                        foreach(string fl in test.FunctionLibraries)
+                        foreach (string fl in test.FunctionLibraries)
                         {
                             _qtpApplication.Test.Settings.Resources.Libraries.Add(fl);
                         }
 
                         //add recovery scenario
-                        //foreach (string rs in test.RecoveryScenarios)
-                        //{
-                            //_qtpApplication.Test.Settings.Recovery.Add(rs,"");
-                        //}
+                        foreach (RecoveryScenario rs in test.RecoveryScenarios)
+                        {
+                            _qtpApplication.Test.Settings.Recovery.Add(rs.FileName, rs.Name, rs.Position);
+                        }
 
                         //Expects to receive params in CSV format, encoded base64
                         if (!string.IsNullOrEmpty(test.DatableParams))
@@ -187,6 +185,44 @@ namespace HpToolsLauncher
         }
     }
 
+    public class RecoveryScenario
+    {
+        public string FileName { get; set; }
+        public string Name { get; set; }
+        public int Position { get; set; }
+
+        public static RecoveryScenario ParseFromString(string content)
+        {
+            RecoveryScenario rs = new RecoveryScenario();
+            string[] parts = content.Split(',');//expected 3 parts separated by , : location,name,position(default is -1)
+            if (parts.Length < 2)
+            {
+                ConsoleWriter.WriteErrLine("Fail to parse recovery scenario (need at least 2 parts, separated with ,): " + content);
+                return null;
+            }
+            rs.FileName = parts[0];
+            rs.Name = parts[1];
+            if (parts.Length >= 3)
+            {
+                try
+                {
+                    rs.Position = int.Parse(parts[2]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine("Fail to parse position of recovery scenario : " + content + " : " + e.Message);
+                    rs.Position = -1;
+                }
+            }
+            else
+            {
+                rs.Position = -1;
+            }
+
+            return rs;
+        }
+    }
+
     public class MBTTest
     {
         public string Name { get; set; }
@@ -198,7 +234,7 @@ namespace HpToolsLauncher
 
         public List<string> FunctionLibraries { get; set; }
 
-        public List<string> RecoveryScenarios { get; set; }
+        public List<RecoveryScenario> RecoveryScenarios { get; set; }
     }
 
 
