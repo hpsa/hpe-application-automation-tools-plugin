@@ -32,6 +32,7 @@ import com.microfocus.application.automation.tools.results.projectparser.perform
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import hudson.FilePath;
 import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -178,23 +179,23 @@ public class UftToolUtils {
         return tests;
     }
 
-    public static void deleteReportFoldersFromNode(String nodeName, String testPath){
-         FilePath filePath = getFilePath(nodeName, testPath);
-            try {
-                List<FilePath> entries = filePath.list();
-                for (FilePath entry : entries) {
+    public static void deleteReportFoldersFromNode(String nodeName, String testPath, TaskListener listener) {
+        FilePath filePath = getFilePath(nodeName, testPath);
+        try {
+            List<FilePath> entries = filePath.list();
+            for (FilePath entry : entries) {
+                try {
                     if (entry.getName().contains("Report")) {
-                        entry.deleteContents();
-                        entry.delete();
+                        entry.deleteRecursive();
+                        listener.getLogger().println(String.format("Folder %s is deleted", entry.toString()));
                     }
+                } catch (Exception e) {
+                    listener.error(String.format("Failed to delete folder %s : %s", entry.getName(), e.getMessage()));
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
-
-
+        } catch (IOException | InterruptedException e) {
+            listener.error(String.format("failure in clearing report folders for " + testPath));
+        }
     }
 
     public static FilePath getFilePath(String nodeName, String testPath){
