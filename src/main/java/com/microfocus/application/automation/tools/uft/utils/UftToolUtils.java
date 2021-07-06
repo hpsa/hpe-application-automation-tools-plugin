@@ -118,7 +118,7 @@ public class UftToolUtils {
                 String fileContent = new String(Files.readAllBytes(Paths.get(rawTestString)));
                 return getTests(fileContent);
             } catch (IOException e) {
-                logger.info(String.format("Failed to get tests from mtbx file % : %", rawTestString, e.getMessage()));
+                logger.info(String.format("Failed to get tests from mtbx file %s : %s", rawTestString, e.getMessage()));
             }
         } else if (rawTestString != null) {
             List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
