@@ -55,6 +55,8 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
@@ -87,8 +89,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private Object additionalContext;
 	private String filePath;
 	public static final String SRL_REPORT_URL = "reportUrl";
+	private Pattern testParserRegEx;
+	private String externalRunId;
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext) throws XMLStreamException {
+	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext,Pattern testParserRegEx) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -100,6 +104,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		this.hpRunnerType = hpRunnerType;
 		this.jenkinsRootUrl = jenkinsRootUrl;
 		this.additionalContext = additionalContext;
+		this.testParserRegEx = testParserRegEx;
 	}
 
 	private static long parseTime(String timeString) {
@@ -281,13 +286,25 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
 			if ("case".equals(localName)) { // NON-NLS
 				TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
+
+				if(this.testParserRegEx != null){
+					splitTestNameByPattern();
+				}
 				if (stripPackageAndClass) {
 					//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType));
+					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId));
 				} else {
-					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType));
+					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId));
 				}
 			}
+		}
+	}
+
+	private void splitTestNameByPattern(){
+		Matcher matcher = testParserRegEx.matcher(this.testName);
+		if (matcher.find()) {
+			this.externalRunId = this.testName.substring(matcher.start());
+			this.testName = this.testName.substring(0, matcher.start());
 		}
 	}
 

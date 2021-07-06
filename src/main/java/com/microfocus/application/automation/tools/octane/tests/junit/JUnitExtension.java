@@ -65,6 +65,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Converter of Jenkins test report to ALM Octane test report format(junitResult.xml->mqmTests.xml)
@@ -75,6 +76,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
 	public static final String TEMP_TEST_RESULTS_FILE_NAME_PREFIX = "GetJUnitTestResults";
+	private static final String TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME = "octane_test_result_name_run_regex_pattern";
 
 	@Inject
 	private ResultFieldsDetectionService resultFieldsDetectionService;
@@ -164,6 +166,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 		private FilePath workspace;
 		private boolean stripPackageAndClass;
 		private String sharedCheckOutDirectory;
+		private Pattern testParserRegEx;
 
 		//this class is run on master and JUnitXmlIterator is runnning on slave.
 		//this object pass some master2slave data
@@ -220,6 +223,21 @@ public class JUnitExtension extends OctaneTestsExtension {
 					logger.error("Failed to add log file for StormRunnerLoad :" + e.getMessage());
 				}
 			}
+			if(build.getAction(ParametersAction.class) != null && build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME) != null &&
+					build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME).getValue() != null) {
+				try {
+					//\[.*\] - input for testName = testName[parameters]
+					//\[.*\) - input for testName = testName[parameters](more params)
+					this.testParserRegEx = Pattern.compile(Objects.requireNonNull(build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME).getValue()).toString());
+				} catch (IllegalArgumentException e){
+					logger.error("Failed to parse regular expression pattern for test result name extractor.Job name: {}, Build {}, Input: {}, Error massage: {}.",
+							this.jobName,
+							this.buildId,
+							Objects.requireNonNull(build.getAction(ParametersAction.class).getParameter(TEST_RESULT_NAME_REGEX_PATTERN_PARAMETER_NAME).getValue()).toString() +"\n",
+							e.getMessage());
+				}
+			}
+
 		}
 
 		@Override
@@ -230,7 +248,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 			try {
 				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext);
+					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext,testParserRegEx);
 					while (iterator.hasNext()) {
 						oos.writeObject(iterator.next());
 					}

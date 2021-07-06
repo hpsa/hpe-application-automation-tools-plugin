@@ -787,6 +787,21 @@ namespace HpToolsLauncher
                         test.UnderlyingTests = new List<string>(_ciParams.GetOrDefault("underlyingTests" + counter).Split(';'));
                         test.PackageName = _ciParams.GetOrDefault("package" + counter);
                         test.DatableParams = _ciParams.GetOrDefault("datableParams" + counter);
+
+                        string recScenarioValue = _ciParams.GetOrDefault("recoveryScenarios" + counter, "");
+
+                        string funcLibraries = _ciParams.GetOrDefault("functionLibraries" + counter, "");
+                        if (!string.IsNullOrEmpty(funcLibraries))
+                        {
+                            test.FunctionLibraries = new List<string>(funcLibraries.Split(';'));
+                        }
+                        else
+                        {
+                            test.FunctionLibraries = new List<string>();
+                        }
+
+                        test.PackageName = _ciParams.GetOrDefault("package" + counter, "");
+                        test.DatableParams = _ciParams.GetOrDefault("datableParams" + counter, "");
                         testProp = "test" + (++counter);
                     }
 
@@ -854,7 +869,7 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="runner"></param>
         /// <param name="resultsFile"></param>
-        /// 
+        ///
         private void RunTests(IAssetRunner runner, string resultsFile, TestSuiteRunResults results)
         {
             try

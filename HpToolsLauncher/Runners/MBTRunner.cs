@@ -86,7 +86,17 @@ namespace HpToolsLauncher
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
 
-                        //_qtpApplication.Test.DataTable.GlobalSheet.AddParameter("Time", "5:46");
+                        //add function library
+                        foreach(string fl in test.FunctionLibraries)
+                        {
+                            _qtpApplication.Test.Settings.Resources.Libraries.Add(fl);
+                        }
+
+                        //add recovery scenario
+                        //foreach (string rs in test.RecoveryScenarios)
+                        //{
+                            //_qtpApplication.Test.Settings.Recovery.Add(rs,"");
+                        //}
 
                         //Expects to receive params in CSV format, encoded base64
                         if (!string.IsNullOrEmpty(test.DatableParams))
@@ -182,9 +192,13 @@ namespace HpToolsLauncher
         public string Name { get; set; }
         public string Script { get; set; }
         public string UnitIds { get; set; }
-        public List<String> UnderlyingTests { get; set; }
+        public List<string> UnderlyingTests { get; set; }
         public string PackageName { get; set; }
         public string DatableParams { get; set; }
+
+        public List<string> FunctionLibraries { get; set; }
+
+        public List<string> RecoveryScenarios { get; set; }
     }
 
 

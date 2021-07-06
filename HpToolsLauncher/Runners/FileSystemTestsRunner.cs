@@ -26,14 +26,14 @@
  * ___________________________________________________________________
  */
 
-using HpToolsLauncher.Properties;
-using HpToolsLauncher.RTS;
-using HpToolsLauncher.TestRunners;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using HpToolsLauncher.Properties;
+using HpToolsLauncher.TestRunners;
+using HpToolsLauncher.RTS;
 
 
 namespace HpToolsLauncher
@@ -295,6 +295,24 @@ namespace HpToolsLauncher
                     indexList[test.TestPath] = 0;
                 }
 
+                //clean old report folders
+                foreach (var test in _tests)
+                {
+                    IEnumerable<DirectoryInfo> reportFolders = (new DirectoryInfo(test.TestPath)).EnumerateDirectories("Report*");
+                    foreach (DirectoryInfo folder in reportFolders)
+                    {
+                        try
+                        {
+                            folder.Delete(true);
+                            ConsoleWriter.WriteLine("Successfully deleted old report folder : " + folder.FullName);
+                        }
+                        catch(Exception e)
+                        {
+                            ConsoleWriter.WriteLine("Failed to deleted old report folder : " + folder.FullName +" : " + e.Message);
+                        }
+                    }
+                }
+
                 Dictionary<string, int> rerunList = createDictionary(_tests);
 
                 foreach (var test in _tests)
@@ -358,8 +376,6 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestDone, runResult.TestState));
                     }
 
-                    ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
-
                     UpdateCounters(runResult.TestState);
                     var testTotalTime = (DateTime.Now - testStart).TotalSeconds;
 
@@ -380,24 +396,32 @@ namespace HpToolsLauncher
                     //update report folder
                     String uftReportDir = Path.Combine(test.TestPath, "Report");
                     String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
-
+                    ConsoleWriter.WriteLine("uftReportDir is " + uftReportDirNew);
                     try
                     {
                         if (Directory.Exists(uftReportDir))
                         {
                             if (Directory.Exists(uftReportDirNew))
                             {
-                                Helper.DeleteDirectory(uftReportDirNew);
+                                DirectoryInfo directory = new DirectoryInfo(uftReportDirNew);
+                                directory.Delete(true);
+                                ConsoleWriter.WriteLine("uftReportDir is cleaned");
                             }
 
+                            System.Threading.Thread.Sleep(500);
                             Directory.Move(uftReportDir, uftReportDirNew);
+                            ConsoleWriter.WriteLine("uftReportDir is filled from " + uftReportDir);
                         }
                     }
-                    catch
+                    catch(Exception e)
                     {
+                        ConsoleWriter.WriteLine("failed to move uftReportDir : " + e.Message);
                         System.Threading.Thread.Sleep(1000);
                         Directory.Move(uftReportDir, uftReportDirNew);
+                        ConsoleWriter.WriteLine("uftReportDir is filled");
                     }
+
+                    ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
                 }
 
                 totalTime = (DateTime.Now - start).TotalSeconds;
