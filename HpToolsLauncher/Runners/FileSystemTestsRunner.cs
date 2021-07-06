@@ -386,19 +386,15 @@ namespace HpToolsLauncher
                             if (Directory.Exists(uftReportDirNew))
                             {
                                 Helper.DeleteDirectory(uftReportDirNew);
-                                ConsoleWriter.WriteLine("uftReportDir is cleaned");
                             }
 
                             Directory.Move(uftReportDir, uftReportDirNew);
-                            ConsoleWriter.WriteLine("uftReportDir is filled");
                         }
                     }
                     catch(Exception e)
                     {
-                        ConsoleWriter.WriteLine("failed to move uftReportDir : " + e.Message);
                         System.Threading.Thread.Sleep(1000);
                         Directory.Move(uftReportDir, uftReportDirNew);
-                        ConsoleWriter.WriteLine("uftReportDir is filled");
                     }
 
                     ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
