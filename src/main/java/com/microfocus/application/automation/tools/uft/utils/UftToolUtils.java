@@ -45,6 +45,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -81,6 +83,10 @@ public class UftToolUtils {
     public static boolean isMtbxContent(String testContent) {
         return testContent != null && testContent.toLowerCase().contains("<mtbx>");
     }
+    public static boolean isMtbxFile(String testContent) {
+        return testContent != null && testContent.toLowerCase().endsWith(".mtbx");
+    }
+
 
     /**
      * Retrieves the build tests
@@ -106,7 +112,14 @@ public class UftToolUtils {
         List<String> buildTests = new ArrayList<>();
         if (isMtbxContent(rawTestString)) {//mtbx content in the test path
             buildTests = extractTestPathsFromMtbxContent(rawTestString);
-        } else if (rawTestString != null) {
+        }  if (isMtbxFile(rawTestString)) {//mtbx content in the test path
+            try {
+                String fileContent = new String ( Files.readAllBytes( Paths.get(rawTestString) ) );
+                return getTests(fileContent);
+            } catch (IOException e) {
+                logger.info(String.format("Failed to get tests from mtbx file % : %", rawTestString, e.getMessage()));
+            }
+        }else if (rawTestString != null) {
             List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
             File testFolder = new File(rawTestString);
             if (tests.size() == 1 && (testFolder.isDirectory())) {//single test, folder or mtbx file
