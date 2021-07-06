@@ -43,8 +43,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
-
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -112,14 +113,14 @@ public class UftToolUtils {
         List<String> buildTests = new ArrayList<>();
         if (isMtbxContent(rawTestString)) {//mtbx content in the test path
             buildTests = extractTestPathsFromMtbxContent(rawTestString);
-        }  if (isMtbxFile(rawTestString)) {//mtbx content in the test path
+        } else if (isMtbxFile(rawTestString)) {//mtbx file in the test path
             try {
-                String fileContent = new String ( Files.readAllBytes( Paths.get(rawTestString) ) );
+                String fileContent = new String(Files.readAllBytes(Paths.get(rawTestString)));
                 return getTests(fileContent);
             } catch (IOException e) {
                 logger.info(String.format("Failed to get tests from mtbx file % : %", rawTestString, e.getMessage()));
             }
-        }else if (rawTestString != null) {
+        } else if (rawTestString != null) {
             List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
             File testFolder = new File(rawTestString);
             if (tests.size() == 1 && (testFolder.isDirectory())) {//single test, folder or mtbx file
