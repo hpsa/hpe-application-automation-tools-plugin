@@ -295,24 +295,6 @@ namespace HpToolsLauncher
                     indexList[test.TestPath] = 0;
                 }
 
-                //clean old report folders
-                foreach (var test in _tests)
-                {
-                    IEnumerable<DirectoryInfo> reportFolders = (new DirectoryInfo(test.TestPath)).EnumerateDirectories("Report*");
-                    foreach (DirectoryInfo folder in reportFolders)
-                    {
-                        try
-                        {
-                            folder.Delete(true);
-                            ConsoleWriter.WriteLine("Successfully deleted old report folder : " + folder.FullName);
-                        }
-                        catch(Exception e)
-                        {
-                            ConsoleWriter.WriteLine("Failed to deleted old report folder : " + folder.FullName +" : " + e.Message);
-                        }
-                    }
-                }
-
                 Dictionary<string, int> rerunList = createDictionary(_tests);
 
                 foreach (var test in _tests)
@@ -403,22 +385,16 @@ namespace HpToolsLauncher
                         {
                             if (Directory.Exists(uftReportDirNew))
                             {
-                                DirectoryInfo directory = new DirectoryInfo(uftReportDirNew);
-                                directory.Delete(true);
-                                ConsoleWriter.WriteLine("uftReportDir is cleaned");
+                                Helper.DeleteDirectory(uftReportDirNew);
                             }
 
-                            System.Threading.Thread.Sleep(500);
                             Directory.Move(uftReportDir, uftReportDirNew);
-                            ConsoleWriter.WriteLine("uftReportDir is filled from " + uftReportDir);
                         }
                     }
                     catch(Exception e)
                     {
-                        ConsoleWriter.WriteLine("failed to move uftReportDir : " + e.Message);
                         System.Threading.Thread.Sleep(1000);
                         Directory.Move(uftReportDir, uftReportDirNew);
-                        ConsoleWriter.WriteLine("uftReportDir is filled");
                     }
 
                     ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");

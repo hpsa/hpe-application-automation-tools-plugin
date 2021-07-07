@@ -760,7 +760,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                String testPath = mergedProperties.getProperty(("Test" + index));
                List<String> buildTests = UftToolUtils.getBuildTests(selectedNode, testPath);
                for(String test : buildTests) {
-                   UftToolUtils.deleteReportFoldersFromNode(selectedNode, test);
+                   UftToolUtils.deleteReportFoldersFromNode(selectedNode, test, listener);
                }
                index++;
            }

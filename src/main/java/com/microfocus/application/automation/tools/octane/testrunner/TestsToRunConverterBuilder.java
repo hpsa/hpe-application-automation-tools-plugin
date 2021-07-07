@@ -137,7 +137,17 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 printToConsole(listener, "Using format = " + frameworkFormat);
             }
 
+
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
+            if(rawTests.contains("mbtData")) { //MBT needs to know real path to tests and not ${workspace}
+                try {
+                    EnvVars env = build.getEnvironment(listener);
+                    executingDirectory = env.expand(executingDirectory);
+                } catch (IOException | InterruptedException e) {
+                    listener.error("Failed loading build environment " + e);
+                }
+            }
+
             TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
                     .setFormat(frameworkFormat)
                     .convert(rawTests, executingDirectory);
@@ -147,7 +157,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             }
             printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
             printToConsole(listener, "Set to parameter : " + convertResult.getTestsToRunConvertedParameterName() + " = " + convertResult.getConvertedTestsString());
-            printToConsole(listener, "********************* Convertion is done *********************");
+            printToConsole(listener, "********************* Conversion is done *********************");
             if (JobProcessorFactory.WORKFLOW_RUN_NAME.equals(build.getClass().getName())) {
                 List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
                 newParams.add(new StringParameterValue(convertResult.getTestsToRunConvertedParameterName(), convertResult.getConvertedTestsString()));
@@ -174,10 +184,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         EnvVars env = build.getEnvironment(listener);
 
         props.setProperty("parentFolder", workspace.getRemote() +"\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+        props.setProperty("repoFolder", workspace.getRemote());
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
         ParameterValue checkoutDirParameter = parameterAction.getParameter(CHECKOUT_DIRECTORY_PARAMETER);
         if (checkoutDirParameter != null) {
             props.setProperty("parentFolder", env.expand((String)checkoutDirParameter.getValue()) +"\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+            props.setProperty("repoFolder",  env.expand((String)checkoutDirParameter.getValue()));
         }
 
         int counter = 1;
@@ -188,6 +200,8 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             props.setProperty("script" + counter, env.expand(mbtTest.getScript()));
             props.setProperty("unitIds" + counter, mbtTest.getUnitIds().stream().map( n -> n.toString() ).collect(Collectors.joining(";" ) ));
             props.setProperty("underlyingTests" + counter, env.expand((String.join(";", mbtTest.getUnderlyingTests()))));
+            props.setProperty("functionLibraries" + counter, env.expand((String.join(";", mbtTest.getFunctionLibraries()))));
+            props.setProperty("recoveryScenarios" + counter, env.expand((String.join(";", mbtTest.getRecoveryScenarios()))));
 
             if (mbtTest.getEncodedIterations() != null && !mbtTest.getEncodedIterations().isEmpty()) {
                 //Expects to receive params in CSV format, encoded base64, for example Y29sMSxjb2wyCjEsMwoyLDQK
@@ -312,7 +326,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
                 TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(framework);
                 if (TestsToRunFramework.Custom.equals(testsToRunFramework) && StringUtils.isEmpty(format)) {
-                    throw new IllegalArgumentException("'Format' parameter is missing");
+                    throw new IllegalArgumentException("'For.convertmat' parameter is missing");
                 }
 
                 TestsToRunConverterResult convertResult = TestsToRunConvertersFactory.createConverter(testsToRunFramework)
