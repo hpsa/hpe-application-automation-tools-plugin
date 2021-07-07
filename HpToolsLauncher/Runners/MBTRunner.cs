@@ -146,7 +146,6 @@ namespace HpToolsLauncher
             if (!string.IsNullOrEmpty(location))
             {
                 ConsoleWriter.WriteLine(string.Format("Adding resources : {0} - location is already defined in UFT.", fileName));
-                return location;
             }
             else
             {
@@ -190,7 +189,7 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(string.Format("Adding resources : {0} - found more than 1 file in repo. Please define 'Folder location' manually in (Tools->Options->GUI Testing->Folders). Possible values : {1}", fileName, sb.ToString()));
                     }
                 }
-                else
+                else//found ==1
                 {
                     string directoryPath = new FileInfo(allFiles[0]).Directory.FullName;
                     ConsoleWriter.WriteLine(string.Format("Adding resources : {0} - folder {1} is added to settings", fileName, directoryPath.Replace(repoFolder,"")));
