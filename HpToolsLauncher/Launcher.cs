@@ -772,6 +772,7 @@ namespace HpToolsLauncher
 
                 case TestStorageType.MBT:
                     string parentFolder = _ciParams["parentFolder"];
+                    string repoFolder = _ciParams["repoFolder"];
 
                     int counter = 1;
                     string testProp = "test" + counter;
@@ -816,7 +817,7 @@ namespace HpToolsLauncher
                         testProp = "test" + (++counter);
                     }
 
-                    runner = new MBTRunner(parentFolder, tests);
+                    runner = new MBTRunner(parentFolder, repoFolder, tests);
                     break;
                 default:
                     runner = null;
