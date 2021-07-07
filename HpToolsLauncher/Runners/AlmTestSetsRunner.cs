@@ -47,6 +47,11 @@ namespace HpToolsLauncher
 
         private ITDConnection13 _tdConnection;
         private ITDConnection2 _tdConnectionOld;
+        private const string TEST_DETAILS = "ID = {0}, TestSet = {1}, TestSetFolder = {2}";
+        private const string XML_PARAMS_START_TAG = "<?xml version=\"1.0\"?><Parameters>";
+        private const string XML_PARAM_NAME_VALUE = "<Parameter><Name><![CDATA[{0}]]></Name><Value><![CDATA[{1}]]></Value></Parameter>";
+        private const string XML_PARAMS_END_TAG = "</Parameters>";
+        private readonly char[] COMMA = new char[] { ',' };
 
         public ITDConnection13 TdConnection
         {
@@ -85,8 +90,6 @@ namespace HpToolsLauncher
         public bool SSOEnabled { get; set; }
         public string ClientID { get; set; }
         public string ApiKey { get; set; }
-
-        private const string TEST_DETAILS = "ID = {0}, TestSet = {1}, TestSetFolder = {2}";
 
         /// <summary>
         /// constructor
@@ -896,23 +899,23 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="paramsString"></param>
         /// <param name="parameters"></param>
-        /// <param name="parameterNames"></param>
-        /// <param name="parameterValues"></param>
+        /// <param name="paramNames"></param>
+        /// <param name="paramValues"></param>
         /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public bool ValidateListOfParameters(string paramsString, string[] parameters, List<string> parameterNames, List<string> parameterValues)
+        public bool ValidateListOfParams(string paramsString, string[] parameters, ref IList<string> paramNames, ref IList<string> paramValues)
         {
             if (parameters == null) throw new ArgumentNullException("parameters");
 
-            if (!string.IsNullOrEmpty(paramsString))
+            if (!string.IsNullOrWhiteSpace(paramsString))
             {
-                parameters = paramsString.Split(',');
+                parameters = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var parameterPair in parameters)
                 {
-                    if (!string.IsNullOrEmpty(parameterPair))
+                    if (!string.IsNullOrWhiteSpace(parameterPair))
                     {
                         string[] pair = parameterPair.Split(':');
 
-                        bool isValidParameter = ValidateParameters(pair[0], parameterNames, true);
+                        bool isValidParameter = ValidateParams(pair[0], ref paramNames);
 
                         if (!isValidParameter)
                         {
@@ -920,7 +923,7 @@ namespace HpToolsLauncher
                             return false;
                         }
 
-                        isValidParameter = ValidateParameters(pair[1], parameterValues, false);
+                        isValidParameter = ValidateParams(pair[1], ref paramValues);
                         if (!isValidParameter)
                         {
                             Console.WriteLine(Resources.MissingParameterValue);
@@ -938,17 +941,16 @@ namespace HpToolsLauncher
         /// Validates test parameters
         /// </summary>
         /// <param name="param"></param>
-        /// <param name="parameterList"></param>
-        /// <param name="isParameter"></param>
+        /// <param name="paramList"></param>
         /// <returns>true if parameter is valid, false otherwise</returns>
-        public bool ValidateParameters(string param, List<string> parameterList, bool isParameter)
+        public bool ValidateParams(string param, ref IList<string> paramList)
         {
-            if (!string.IsNullOrEmpty(param) && param != " ")
+            if (!string.IsNullOrWhiteSpace(param))
             {
                 param = param.Trim();
                 param = param.Remove(param.Length - 1, 1);
                 param = param.Remove(0, 1);
-                parameterList.Add(param);
+                paramList.Add(param);
             }
             else
             {
@@ -965,22 +967,21 @@ namespace HpToolsLauncher
         /// <param name="paramsString"></param>
         private void SetApiTestParameters(ITSTest3 test, string paramsString)
         {
-            List<string> parameterNames = new List<string>();
-            List<string> parameterValues = new List<string>();
+            IList<string> paramNames = new List<string>(), paramValues = new List<string>();
 
             if (!string.IsNullOrEmpty(paramsString))
             {
-                string[] parameters = paramsString.Split(',');
-                bool validParameters = ValidateListOfParameters(paramsString, parameters, parameterNames, parameterValues);
+                string[] parameters = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
+                ValidateListOfParams(paramsString, parameters, ref paramNames, ref paramValues);
 
                 ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
                 ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
                 List listOfParameters = parameterValueFactory.NewList(string.Empty);
                 var index = 0;
-                if (parameterValues.Count <= 0 || listOfParameters.Count != parameterValues.Count) return;
+                if (paramValues.Count <= 0 || listOfParameters.Count != paramValues.Count) return;
                 foreach (ParameterValue parameter in listOfParameters)
                 {
-                    parameter.ActualValue = parameterValues.ElementAt(index++);
+                    parameter.ActualValue = paramValues.ElementAt(index++);
                     parameter.Post();
                 }
             }
@@ -993,32 +994,29 @@ namespace HpToolsLauncher
         /// <param name="paramsString"></param>
         private void SetGuiTestParameters(ITSTest3 test, string paramsString)
         {
-            var xmlParameters = new StringBuilder();
-            List<string> parameterNames = new List<string>();
-            List<string> parameterValues = new List<string>();
+            var xmlParams = new StringBuilder();
+            IList<string> paramNames = new List<string>(), paramValues = new List<string>();
 
-            if (!string.IsNullOrEmpty(paramsString))
+            if (!string.IsNullOrWhiteSpace(paramsString))
             {
-                string[] parameters = paramsString.Split(',');
+                string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
 
-                bool validParameters = ValidateListOfParameters(paramsString, parameters, parameterNames, parameterValues);
+                bool validParameters = ValidateListOfParams(paramsString, @params, ref paramNames, ref paramValues);
 
-                if (validParameters)
+                if (validParameters && @params.Any())
                 {
-                    xmlParameters.Append("<?xml version=\"1.0\"?><Parameters>");
-                    for (int i = 0; i < parameters.Length; i++)
+                    xmlParams.Append(XML_PARAMS_START_TAG);
+                    for (int i = 0; i < @params.Length; i++)
                     {
-                        xmlParameters.Append("<Parameter><Name><![CDATA[{parameterNames.ElementAt(i)}]]></Name>")
-                                     .AppendFormat("<Value><![CDATA[{0}]]>", parameterValues.ElementAt(i))
-                                     .Append("</Value></Parameter>");
+                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, paramNames[i], paramValues[i]);
                     }
-                    xmlParameters.Append("</Parameters>");
+                    xmlParams.Append(XML_PARAMS_END_TAG);
                 }
             }
 
-            if (xmlParameters.Length > 0)
+            if (xmlParams.Length > 0)
             {
-                test["TC_EPARAMS"] = xmlParameters.ToString();
+                test["TC_EPARAMS"] = xmlParams.ToString();
                 test.Post();
             }
         }
