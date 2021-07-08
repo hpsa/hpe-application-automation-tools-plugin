@@ -36,8 +36,15 @@ import java.io.IOException;
 import java.util.List;
 
 public class UftMasterToSlave extends MasterToSlaveFileCallable<List<String>> {
+
+    private String path;
+
+    public UftMasterToSlave(String path) {
+        this.path = path;
+    }
+
     @Override
     public List<String> invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-        return UftToolUtils.listFilesForFolder(f);
+        return UftToolUtils.getTests(path);
     }
 }

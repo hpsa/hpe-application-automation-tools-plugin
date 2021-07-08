@@ -110,7 +110,7 @@ public class UftToolUtils {
         return buildTests;
     }
 
-    private static List<String> getTests(String rawTestString) {
+    public static List<String> getTests(String rawTestString) {
         List<String> buildTests = new ArrayList<>();
         if (isMtbxContent(rawTestString)) {//mtbx content in the test path
             buildTests = extractTestPathsFromMtbxContent(rawTestString);
@@ -166,10 +166,10 @@ public class UftToolUtils {
     private static List<String> getTestsFromNode(String nodeName, String path) {
         Node node = Jenkins.get().getNode(nodeName);
         FilePath filePath = new FilePath(node.getChannel(), path);
-        UftMasterToSlave uftMasterToSlave = new UftMasterToSlave();
+        UftMasterToSlave uftMasterToSlave = new UftMasterToSlave(path);
         List<String> tests = new ArrayList<>();
         try {
-            tests = filePath.act(uftMasterToSlave);//invoke listFilesForFolder
+            tests = filePath.act(uftMasterToSlave);//
         } catch (IOException e) {
             logger.info(String.format("File path not found %s", e.getMessage()));
         } catch (InterruptedException e) {
@@ -185,16 +185,16 @@ public class UftToolUtils {
             List<FilePath> entries = filePath.list();
             for (FilePath entry : entries) {
                 try {
-                    if (entry.getName().contains("Report")) {
+                    if (entry.getName().startsWith("Report")) {
                         entry.deleteRecursive();
-                        listener.getLogger().println(String.format("Folder %s is deleted", entry.toString()));
+                        listener.getLogger().println(String.format("Folder %s is deleted", entry));
                     }
                 } catch (Exception e) {
                     listener.error(String.format("Failed to delete folder %s : %s", entry.getName(), e.getMessage()));
                 }
             }
         } catch (IOException | InterruptedException e) {
-            listener.error("Failure in clearing report folders for " + testPath);
+            listener.error("Failure in clearing report folders for " + testPath +" : " + e.getMessage());
         }
     }
 
@@ -216,7 +216,7 @@ public class UftToolUtils {
      * @param folder the test path setup in the configuration (can be the an mtbx file, a single test or a folder containing other tests)
      * @return a list of tests
      */
-    public static List<String> listFilesForFolder(final File folder) {
+    private static List<String> listFilesForFolder(final File folder) {
         List<String> buildTests = new ArrayList<>();
 
         if (!folder.isDirectory() && folder.getName().contains("mtbx")) {
