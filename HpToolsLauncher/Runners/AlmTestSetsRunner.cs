@@ -897,38 +897,39 @@ namespace HpToolsLauncher
         /// <summary>
         /// Checks if test parameters list is valid or not
         /// </summary>
-        /// <param name="paramsString"></param>
-        /// <param name="parameters"></param>
+        /// <param name="params"></param>
         /// <param name="paramNames"></param>
         /// <param name="paramValues"></param>
         /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public bool ValidateListOfParams(string paramsString, string[] parameters, ref IList<string> paramNames, ref IList<string> paramValues)
+        public bool ValidateListOfParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
         {
-            if (parameters == null) throw new ArgumentNullException("parameters");
+            if (@params == null) throw new ArgumentNullException("Parameters are missing");
+            paramNames = new List<string>();
+            paramValues = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(paramsString))
+            if (@params.Any())
             {
-                parameters = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var parameterPair in parameters)
+                foreach (var parameterPair in @params)
                 {
                     if (!string.IsNullOrWhiteSpace(parameterPair))
                     {
                         string[] pair = parameterPair.Split(':');
 
-                        bool isValidParameter = ValidateParams(pair[0], ref paramNames);
-
-                        if (!isValidParameter)
+                        string paramName = NormalizeParam(pair[0]);
+                        if (string.IsNullOrWhiteSpace(paramName))
                         {
                             Console.WriteLine(Resources.MissingParameterName);
                             return false;
                         }
+                        paramNames.Add(paramName);
 
-                        isValidParameter = ValidateParams(pair[1], ref paramValues);
-                        if (!isValidParameter)
+                        string paramValue = NormalizeParam(pair[1]);
+                        if (paramValue == null)
                         {
                             Console.WriteLine(Resources.MissingParameterValue);
                             return false;
                         }
+                        paramValues.Add(paramValue);
                     }
                 }
             }
@@ -936,27 +937,22 @@ namespace HpToolsLauncher
             return true;
         }
 
-
         /// <summary>
-        /// Validates test parameters
+        /// Normalizes test parameter
         /// </summary>
         /// <param name="param"></param>
-        /// <param name="paramList"></param>
         /// <returns>true if parameter is valid, false otherwise</returns>
-        public bool ValidateParams(string param, ref IList<string> paramList)
+        public string NormalizeParam(string param)
         {
             if (!string.IsNullOrWhiteSpace(param))
             {
                 param = param.Trim();
-                param = param.Remove(param.Length - 1, 1);
-                param = param.Remove(0, 1);
-                paramList.Add(param);
+                if (param.Length > 1)
+                {
+                    return param.Substring(1, param.Length - 2);
+                }
             }
-            else
-            {
-                return false;
-            }
-            return true;
+            return null;
         }
 
 
@@ -967,12 +963,12 @@ namespace HpToolsLauncher
         /// <param name="paramsString"></param>
         private void SetApiTestParameters(ITSTest3 test, string paramsString)
         {
-            IList<string> paramNames = new List<string>(), paramValues = new List<string>();
+            IList<string> paramNames, paramValues;
 
             if (!string.IsNullOrEmpty(paramsString))
             {
-                string[] parameters = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                ValidateListOfParams(paramsString, parameters, ref paramNames, ref paramValues);
+                string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
+                ValidateListOfParams(@params, out paramNames, out paramValues);
 
                 ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
                 ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
@@ -995,13 +991,12 @@ namespace HpToolsLauncher
         private void SetGuiTestParameters(ITSTest3 test, string paramsString)
         {
             var xmlParams = new StringBuilder();
-            IList<string> paramNames = new List<string>(), paramValues = new List<string>();
+            IList<string> paramNames, paramValues;
 
             if (!string.IsNullOrWhiteSpace(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-
-                bool validParameters = ValidateListOfParams(paramsString, @params, ref paramNames, ref paramValues);
+                bool validParameters = ValidateListOfParams(@params, out paramNames, out paramValues);
 
                 if (validParameters && @params.Any())
                 {
