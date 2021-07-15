@@ -199,7 +199,7 @@ namespace HpToolsLauncher
                 }
             }*/
 
-            return fileName;
+            return filePath;
         }
 
         private void LoadNeededAddins(Application _qtpApplication, IEnumerable<String> fileNames)
