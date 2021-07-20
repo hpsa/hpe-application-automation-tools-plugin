@@ -94,10 +94,15 @@ namespace HpToolsLauncher
                         }
 
                         //add recovery scenario
-                        foreach (RecoveryScenario rs in test.RecoveryScenarios)
+                        if (test.RecoveryScenarios.Count > 0)
                         {
-                            string fileName = GetResourceFileNameAndAddToUftFoldersIfRequired(_qtpApplication, rs.FileName);
-                            _qtpApplication.Test.Settings.Recovery.Add(fileName, rs.Name, rs.Position);
+                            foreach (RecoveryScenario rs in test.RecoveryScenarios)
+                            {
+                                string fileName = GetResourceFileNameAndAddToUftFoldersIfRequired(_qtpApplication, rs.FileName);
+                                _qtpApplication.Test.Settings.Recovery.Add(fileName, rs.Name, rs.Position);
+                            }
+                            _qtpApplication.Test.Settings.Recovery.Enabled = true;
+                            _qtpApplication.Test.Settings.Recovery.SetActivationMode("OnError");
                         }
 
                         //Expects to receive params in CSV format, encoded base64
