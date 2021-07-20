@@ -101,6 +101,10 @@ namespace HpToolsLauncher
                                 string fileName = GetResourceFileNameAndAddToUftFoldersIfRequired(_qtpApplication, rs.FileName);
                                 _qtpApplication.Test.Settings.Recovery.Add(fileName, rs.Name, rs.Position);
                             }
+                            for (int i = 1; i <= _qtpApplication.Test.Settings.Recovery.Count; i++)
+                            {
+                                _qtpApplication.Test.Settings.Recovery[i].Enabled = true;
+                            }
                             _qtpApplication.Test.Settings.Recovery.Enabled = true;
                             _qtpApplication.Test.Settings.Recovery.SetActivationMode("OnError");
                         }
