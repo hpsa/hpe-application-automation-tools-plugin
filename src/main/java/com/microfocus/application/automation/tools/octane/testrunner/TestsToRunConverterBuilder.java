@@ -237,8 +237,6 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             props.setProperty("script" + counter, env.expand(mbtTest.getScript()));
             props.setProperty("unitIds" + counter, mbtTest.getUnitIds().stream().map(n -> n.toString()).collect(Collectors.joining(";")));
             props.setProperty("underlyingTests" + counter, env.expand((String.join(";", mbtTest.getUnderlyingTests()))));
-            props.setProperty("functionLibraries" + counter, env.expand((String.join(";", mbtTest.getFunctionLibraries()))));
-            props.setProperty("recoveryScenarios" + counter, env.expand((String.join(";", mbtTest.getRecoveryScenarios()))));
 
             if (mbtTest.getEncodedIterations() != null && !mbtTest.getEncodedIterations().isEmpty()) {
                 //Expects to receive params in CSV format, encoded base64, for example Y29sMSxjb2wyCjEsMwoyLDQK

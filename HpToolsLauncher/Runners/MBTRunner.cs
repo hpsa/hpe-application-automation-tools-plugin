@@ -86,33 +86,6 @@ namespace HpToolsLauncher
                             fullDir = fullDir.CreateSubdirectory(test.PackageName);
                         }
 
-                        //add function library
-                        foreach (string fl in test.FunctionLibraries)
-                        {
-                            string fileName = GetResourceFileNameAndAddToUftFoldersIfRequired(_qtpApplication, fl);
-                            _qtpApplication.Test.Settings.Resources.Libraries.Add(fileName);
-                        }
-
-                        //add recovery scenario
-                        if (test.RecoveryScenarios.Count > 0)
-                        {
-                            foreach (RecoveryScenario rs in test.RecoveryScenarios)
-                            {
-                                string fileName = GetResourceFileNameAndAddToUftFoldersIfRequired(_qtpApplication, rs.FileName);
-                                _qtpApplication.Test.Settings.Recovery.Add(fileName, rs.Name, rs.Position);
-                            }
-
-                            //disable all RS
-                            for (int i = 1; i <= _qtpApplication.Test.Settings.Recovery.Count; i++)
-                            {
-                                _qtpApplication.Test.Settings.Recovery[i].Enabled = false;
-                            }
-
-                            //activate global Recovery
-                            _qtpApplication.Test.Settings.Recovery.Enabled = true;
-                            _qtpApplication.Test.Settings.Recovery.SetActivationMode("OnError");
-                        }
-
                         //Expects to receive params in CSV format, encoded base64
                         if (!string.IsNullOrEmpty(test.DatableParams))
                         {
@@ -313,10 +286,6 @@ namespace HpToolsLauncher
         public List<string> UnderlyingTests { get; set; }
         public string PackageName { get; set; }
         public string DatableParams { get; set; }
-
-        public List<string> FunctionLibraries { get; set; }
-
-        public List<RecoveryScenario> RecoveryScenarios { get; set; }
     }
 
 
