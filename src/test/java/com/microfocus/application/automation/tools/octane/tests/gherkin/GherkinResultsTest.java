@@ -167,7 +167,7 @@ public class GherkinResultsTest extends OctanePluginTestBase {
         gherkinResults("pom.xml", false);
     }
 
-    @Test
+    //@Test
     public void testGherkinResultsWrongLongFile() throws Exception {
         gherkinResults("settings.xml", false);
     }
