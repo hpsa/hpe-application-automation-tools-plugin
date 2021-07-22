@@ -60,6 +60,8 @@ public class CucumberTestResultsAction implements Action {
                 File resultFile = new File(workspace.child(fileName).toURI());
                 if (run.getStartTimeInMillis() < resultFile.lastModified()) {
                     CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
+                } else {
+                    CucumberResultsService.log("Found outdated file %s", resultFile.getPath());
                 }
             }
 
