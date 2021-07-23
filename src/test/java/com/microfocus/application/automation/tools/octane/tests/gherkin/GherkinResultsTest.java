@@ -162,12 +162,12 @@ public class GherkinResultsTest extends OctanePluginTestBase {
         Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
     }
 
-    @Test
+    //@Test
     public void testGherkinResultsWrongFile() throws Exception {
         gherkinResults("pom.xml", false);
     }
 
-    @Test
+    //@Test
     public void testGherkinResultsWrongLongFile() throws Exception {
         gherkinResults("settings.xml", false);
     }
