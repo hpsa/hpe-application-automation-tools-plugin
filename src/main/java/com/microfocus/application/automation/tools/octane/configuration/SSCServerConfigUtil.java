@@ -121,7 +121,23 @@ public class SSCServerConfigUtil {
 		//18.20.1071 version.
 		Object uploadSSC = getFieldValueAsObj(fprPublisher, "uploadSSC");
 		if (uploadSSC == null) {
-			logger.warn("uploadSSC section was not found");
+			Object analysisRunType = getFieldValueAsObj(fprPublisher, "analysisRunType");
+			if (analysisRunType == null) {
+				logger.warn("uploadSSC section was not found");
+			} else {
+				uploadSSC = getFieldValueAsObj(analysisRunType, "uploadSSC");
+				if (uploadSSC == null) {
+					logger.warn("uploadSSC section was not found");
+				} else {
+					projectName = getFieldValue(uploadSSC, "appName");
+					projectVersion = getFieldValue(uploadSSC, "appVersion");
+					if (projectName != null && !projectName.isEmpty() && projectVersion != null && !projectVersion.isEmpty()) {
+						return new SSCProjectVersionPair(projectName, projectVersion);
+					}
+				}
+
+				logger.warn("uploadSSC section was not found");
+			}
 		} else {
 			logger.warn("uploadSSC was found ");
 			projectName = getFieldValue(uploadSSC, "projectName");
