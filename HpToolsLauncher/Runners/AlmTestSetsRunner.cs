@@ -163,7 +163,6 @@ namespace HpToolsLauncher
             Dispose(false);
         }
 
-
         //------------------------------- Connection to QC --------------------------
 
         /// <summary>
@@ -266,8 +265,7 @@ namespace HpToolsLauncher
         /// <param name="qcProject"></param>
         /// <param name="SSOEnabled"></param>
         /// <returns></returns>
-        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject,
-                                        bool SSOEnabled, string qcClientID, string qcApiKey)
+        public bool ConnectToProject(string qcServerUrl, string qcLogin, string qcPass, string qcDomain, string qcProject, bool SSOEnabled, string qcClientID, string qcApiKey)
         {
             if (string.IsNullOrWhiteSpace(qcServerUrl)
                 || (string.IsNullOrWhiteSpace(qcLogin) && !SSOEnabled)
@@ -396,8 +394,6 @@ namespace HpToolsLauncher
             }
         }
 
-
-
         /// <summary>
         /// Returns error message for incorrect installation of Alm QC.
         /// </summary>
@@ -481,7 +477,8 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to retrieve test set folder: " + ex.Message);
+                // if we are here, then most likely the current testSet is not a folder, so it's not necessary to print the error in release mode
+                Debug.WriteLine("Unable to retrieve test set folder: " + ex.Message);
             }
 
             return tsFolder;
@@ -586,7 +583,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
 
             //this will make sure run will fail at the end. (since there was an error)
-            Console.WriteLine("Null target test set");
+            Debug.WriteLine("Null target test set");
             Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
             return null;
 
@@ -875,7 +872,6 @@ namespace HpToolsLauncher
                     runOnHost = test.HostName; //test["TC_HOST_NAME"]; //runHost;
                 }
 
-
                 //if host isn't taken from QC (PLANNED) and not from the test definition (REMOTE), take it from LOCAL (machineName)
                 var hostName = runOnHost;
                 if (runMode == QcRunMode.RUN_LOCAL)
@@ -955,7 +951,6 @@ namespace HpToolsLauncher
             return null;
         }
 
-
         /// <summary>
         /// Set test parameters for an API test
         /// </summary>
@@ -1030,7 +1025,6 @@ namespace HpToolsLauncher
             return testType;
         }
 
-
         // ------------------------- Run tests and update test results --------------------------------
 
         /// <summary>
@@ -1090,7 +1084,6 @@ namespace HpToolsLauncher
                     }
                 }
 
-
                 TestSuiteRunResults runResults = RunTestSet(testSetDir, tsName, testParameters, Timeout, RunMode, RunHost, IsFilterSelected, FilterByName, FilterByStatuses, Storage);
                 if (runResults != null)
                     activeRunDescription.AppendResults(runResults);
@@ -1098,7 +1091,6 @@ namespace HpToolsLauncher
 
             return activeRunDescription;
         }
-
 
         /// <summary>
         /// Runs a test set with given parameters (and a valid connection to the QC server)
@@ -1599,7 +1591,6 @@ namespace HpToolsLauncher
             return runId;
         }
 
-
         /// <summary>
         /// writes a summary of the test run after it's over
         /// </summary>
@@ -1615,7 +1606,6 @@ namespace HpToolsLauncher
             {
                 _tdConnectionOld.KeepConnection = true;
             }
-
 
             int runId = GetTestRunId(prevTest);
 
@@ -1643,7 +1633,6 @@ namespace HpToolsLauncher
                 ((runId > prevRunId) ? ", " + Resources.AlmRunnerRunIdCaption + " " + runId : string.Empty)
                 + "\n-------------------------------------------------------------------------------------------------------");
         }
-
 
         /// <summary>
         /// Writes a summary of the test run after it's over
@@ -1746,15 +1735,15 @@ namespace HpToolsLauncher
                 if (stepList == null)
                     return string.Empty;
 
-                string log_szFailedMessage = string.Empty;
+                var failedMsg = new StringBuilder();
 
                 //loop on each step in the steps
                 foreach (IStep s in stepList)
                 {
                     if (s.Status == "Failed")
-                        log_szFailedMessage += s["ST_DESCRIPTION"] + "'\n\r";
+                        failedMsg.AppendLine(s["ST_DESCRIPTION"]);
                 }
-                return log_szFailedMessage;
+                return failedMsg.ToString();
             }
             catch (Exception ex)
             {
