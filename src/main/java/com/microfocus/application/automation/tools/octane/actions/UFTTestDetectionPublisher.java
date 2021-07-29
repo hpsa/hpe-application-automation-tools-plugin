@@ -33,6 +33,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.entities.impl.EntityImpl;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
@@ -73,6 +74,7 @@ public class UFTTestDetectionPublisher extends Recorder {
     private String configurationId;
     private String workspaceName;
     private String scmRepositoryId;
+    private TestingToolType testingToolType;
 
     public String getWorkspaceName() {
         return workspaceName;
@@ -88,6 +90,11 @@ public class UFTTestDetectionPublisher extends Recorder {
         this.configurationId = configurationId;
         this.workspaceName = workspaceName;
         this.scmRepositoryId = scmRepositoryId;
+        this.testingToolType = TestingToolType.UFT;
+    }
+
+    public void setTestingToolType(TestingToolType testingToolType) {
+        this.testingToolType = testingToolType;
     }
 
     @Override
@@ -115,8 +122,8 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         try {
-            UftTestDiscoveryResult results = build.getWorkspace().act(new UFTTestDetectionCallable(build, configurationId, workspaceName, getScmRepositoryId(), listener));
-            UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
+            UftTestDiscoveryResult results = build.getWorkspace().act(new UFTTestDetectionCallable(build, configurationId, workspaceName, getScmRepositoryId(), listener, testingToolType));
+            Action buildAction = getBuildAction(testingToolType, build, results);
             build.addAction(buildAction);
 
             if (results.hasChanges()) {
@@ -136,6 +143,14 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         return true;
+    }
+
+    private static Action getBuildAction(TestingToolType testingToolType, final AbstractBuild<?, ?> build, UftTestDiscoveryResult results) {
+        if(TestingToolType.MBT.equals(testingToolType)) {
+            return new UFTActionDetectionBuildAction(build, results);
+        } else {
+            return new UFTTestDetectionBuildAction(build, results);
+        }
     }
 
     private void generateScmRepository(AbstractBuild build, BuildListener listener) {
