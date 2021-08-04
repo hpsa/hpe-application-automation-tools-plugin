@@ -116,7 +116,13 @@ public class JUnitExtension extends OctaneTestsExtension {
 			if (getResultsOnMaster) {
 				filePath = (new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl)).invoke(null, null);
 			} else {
-				filePath = workspace.act(new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl));
+				try {
+					filePath = workspace.act(new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl));
+				} catch (Exception e) {
+					//on some docker/kubernetis environments - workspace folder might not be available after job is finished
+					logger.error("Failed to get test results from workspace, trying to get test results from master : " + e.getMessage(), e);
+					filePath = (new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl)).invoke(null, null);
+				}
 			}
 
 			ResultFields detectedFields = getResultFields(run);
