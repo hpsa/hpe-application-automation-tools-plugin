@@ -210,6 +210,6 @@
             </f:entry>
         </f:advanced>
     <script>
-        isReady(); // defined in almUtils.js, here we know the elements are loaded so we can show/hide SSO credentials based on isSSOEnabled checkbox value
+        setupSSO(); // defined in almUtils.js, here we know the elements are loaded so we can show/hide SSO credentials based on isSSOEnabled checkbox value
     </script>
 </j:jelly>
