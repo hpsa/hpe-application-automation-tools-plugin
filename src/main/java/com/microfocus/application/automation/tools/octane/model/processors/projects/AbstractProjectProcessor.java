@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
@@ -89,8 +90,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
-		String suiteId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_ID_PARAMETER_NAME);
-		String suiteRunId = getParameterValueIfExist(parametersAction, UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+		String suiteId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
+		String suiteRunId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
 		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
 
 		if (job instanceof AbstractProject) {
@@ -157,8 +158,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	private boolean checkSuiteIdParamsExistAndEqual(ParametersAction parametersAction, String suiteId, String suiteRunId) {
-		ParameterValue suiteIdPV = parametersAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME);
-		ParameterValue suiteRunIdPV = parametersAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+		ParameterValue suiteIdPV = parametersAction.getParameter(SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
+		ParameterValue suiteRunIdPV = parametersAction.getParameter(SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
 		return (suiteIdPV != null && suiteRunIdPV != null && suiteIdPV.getValue().equals(suiteId)
 				&& suiteRunIdPV.getValue().equals(suiteRunId));
 	}

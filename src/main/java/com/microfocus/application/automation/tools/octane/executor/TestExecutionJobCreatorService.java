@@ -36,6 +36,7 @@ import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
 import com.microfocus.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
@@ -330,8 +331,8 @@ public class TestExecutionJobCreatorService {
 			addStringParameter(proj, UftConstants.CHECKOUT_DIR_PARAMETER_NAME, "${WORKSPACE}\\${CHECKOUT_SUBDIR}", "Shared UFT directory");
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane test runner ID");
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
-			addStringParameter(proj, UftConstants.SUITE_ID_PARAMETER_NAME, "", "ALM Octane test suite ID");
-			addStringParameter(proj, UftConstants.SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results.");
+			addStringParameter(proj, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME, "", "ALM Octane test suite ID");
+			addStringParameter(proj, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results.");
 
 			addExecutionAssignedNode(proj);
 			addTimestamper(proj);

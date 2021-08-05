@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
@@ -182,7 +183,7 @@ public class UFTTestDetectionService {
                     boolean fileExist = affectedFile.exists();
                     UftTestType uftTestType = UftTestDiscoveryUtils.getUftTestType(affectedFileWrapper.getPath());
 
-                    AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType);
+                    AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType, TestingToolType.UFT);
                     test.setChangeSetSrc(affectedFileWrapper.getGitSrc());
                     test.setChangeSetDst(affectedFileWrapper.getGitDst());
 
