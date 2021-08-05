@@ -143,7 +143,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
             boolean isMbt = rawTests.contains("mbtData");
             TestsToRunConverterResult convertResult = null;
-            Map<String, String> globalParameters = getGlobalParameters(parameterAction, listener);
+            Map<String, String> globalParameters = getGlobalParameters(parameterAction);
             if (isMbt) {
                 //MBT needs to know real path to tests and not ${workspace}
                 //MBT needs to run on slave  to extract function libraries from checked out files
@@ -181,7 +181,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         }
     }
 
-    private Map<String, String> getGlobalParameters(ParametersAction parameterAction, TaskListener listener) {
+    private Map<String, String> getGlobalParameters(ParametersAction parameterAction) {
         Map<String, String> map = new HashMap<>();
         addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM);
         addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
