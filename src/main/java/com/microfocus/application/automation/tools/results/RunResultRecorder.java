@@ -56,6 +56,8 @@ import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1418,34 +1420,47 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
     @Override
-    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        final List<String> mergedResultNames = new ArrayList<String>();
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
+			throws InterruptedException, IOException {
 
-        Project<?, ?> project = RuntimeUtils.cast(build.getParent());
-        List<Builder> builders = project.getBuilders();
-        runReportList = new ArrayList<FilePath>();
+		runReportList = new ArrayList<FilePath>();
+        final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almResultNames = new ArrayList<String>();
         final List<String> fileSystemResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
         final List<String> pcResultNames = new ArrayList<String>();
 
         // Get the TestSet report files names of the current build
-        for (Builder builder : builders) {
-            if (builder instanceof RunFromAlmBuilder) {
-                almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
-            } else if (builder instanceof SseBuilder) {
-                String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
-                if (resultsFileName != null) {
-                    almSSEResultNames.add(resultsFileName);
-                }
-            } else if (builder instanceof PcBuilder) {
-                String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
-                if (resultsFileName != null) {
-                    pcResultNames.add(resultsFileName);
-                }
-            }
-        }
+		if (build instanceof WorkflowRun) { // it comes from a Pipeline build flow
+			ParametersAction paramAction = build.getAction(ParametersAction.class);
+			if (paramAction != null && paramAction.getAllParameters() != null) {
+				ParameterValue buildStepName = paramAction.getParameter("buildStepName");
+				if (buildStepName != null && ((StringParameterValue)buildStepName).getValue().equals("RunFromAlmBuilder")) {
+					ParameterValue resultsFilename = paramAction.getParameter("resultsFilename");
+					if (resultsFilename != null) {
+						almResultNames.add(((StringParameterValue)resultsFilename).getValue());
+					}
+				}
+			}
+		} else { // it comes from a FreeStyle Project build flow
+			Project<?, ?> project = RuntimeUtils.cast(build.getParent());
+			List<Builder> builders = project.getBuilders();
+			for (Builder builder : builders) {
+				if (builder instanceof RunFromAlmBuilder) {
+					almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
+				} else if (builder instanceof SseBuilder) {
+					String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
+					if (resultsFileName != null) {
+						almSSEResultNames.add(resultsFileName);
+					}
+				} else if (builder instanceof PcBuilder) {
+					String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
+					if (resultsFileName != null) {
+						pcResultNames.add(resultsFileName);
+					}
+				}
+			}
+		}
 
 		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
 		IOFileFilter byBuildStartedFileFilter = new AgeFileFilter(build.getStartTimeInMillis(), false);
@@ -1468,9 +1483,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             return;
         }
 
-			recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
-			return;
-		}
+		recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
+		return;
+	}
 	
 
 	@Override
@@ -1501,6 +1516,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/**
 	 * The type Descriptor.
 	 */
+	@Symbol("publishMicroFocusTestResults")
 	@Extension
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
