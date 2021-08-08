@@ -33,11 +33,11 @@ import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.hp.octane.integrations.executor.converters.MbtTest;
 import com.hp.octane.integrations.executor.converters.MfUftConverter;
+import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.model.TestsFramework;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
-import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.*;
 import hudson.model.*;
@@ -91,18 +91,18 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             String rawTests = null;
             String executingDirectory = DEFAULT_EXECUTING_DIRECTORY;
             if (parameterAction != null) {
-                ParameterValue suiteIdParameter = parameterAction.getParameter(UftConstants.SUITE_ID_PARAMETER_NAME);
+                ParameterValue suiteIdParameter = parameterAction.getParameter(SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
                 if (suiteIdParameter != null) {
-                    printToConsole(listener, UftConstants.SUITE_ID_PARAMETER_NAME + " : " + suiteIdParameter.getValue());
+                    printToConsole(listener, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME + " : " + suiteIdParameter.getValue());
                 }
-                ParameterValue suiteRunIdParameter = parameterAction.getParameter(UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
+                ParameterValue suiteRunIdParameter = parameterAction.getParameter(SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
                 if (suiteRunIdParameter != null) {
-                    printToConsole(listener, UftConstants.SUITE_RUN_ID_PARAMETER_NAME + " : " + suiteRunIdParameter.getValue());
+                    printToConsole(listener, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME + " : " + suiteRunIdParameter.getValue());
                 }
 
-                ParameterValue executionIdParameter = parameterAction.getParameter(UftConstants.EXECUTION_ID_PARAMETER_NAME);
+                ParameterValue executionIdParameter = parameterAction.getParameter(SdkConstants.JobParameters.EXECUTION_ID_PARAMETER_NAME);
                 if (executionIdParameter != null) {
-                    printToConsole(listener, UftConstants.EXECUTION_ID_PARAMETER_NAME + " : " + executionIdParameter.getValue());
+                    printToConsole(listener, SdkConstants.JobParameters.EXECUTION_ID_PARAMETER_NAME + " : " + executionIdParameter.getValue());
                 }
 
 
@@ -143,7 +143,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
             boolean isMbt = rawTests.contains("mbtData");
             TestsToRunConverterResult convertResult = null;
-            Map<String, String> globalParameters = getGlobalParameters(parameterAction, listener);
+            Map<String, String> globalParameters = getGlobalParameters(parameterAction);
             if (isMbt) {
                 //MBT needs to know real path to tests and not ${workspace}
                 //MBT needs to run on slave  to extract function libraries from checked out files
@@ -181,27 +181,14 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         }
     }
 
-    private Map<String, String> getGlobalParameters(ParametersAction parameterAction, TaskListener listener) {
-
-        Map<String, String> map = null;
-        ParameterValue param = parameterAction.getParameter(UftConstants.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM);
-        if (param != null) {
-
-            if (!(param instanceof BooleanParameterValue)) {
-                printToConsole(listener, UftConstants.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM + " parameter should be defined as boolean. Skipping.");
-
-            } else if (((BooleanParameterValue) param).getValue()) {
-                printToConsole(listener, "Adding Octane parameters to tests.");
-                map = new HashMap<>();
-                addParameterIfExist(map, parameterAction, UftConstants.SUITE_ID_PARAMETER_NAME);
-                addParameterIfExist(map, parameterAction, UftConstants.SUITE_RUN_ID_PARAMETER_NAME);
-                addParameterIfExist(map, parameterAction, UftConstants.OCTANE_SPACE_PARAMETER_NAME);
-                addParameterIfExist(map, parameterAction, UftConstants.OCTANE_WORKSPACE_PARAMETER_NAME);
-
-
-            }
-
-        }
+    private Map<String, String> getGlobalParameters(ParametersAction parameterAction) {
+        Map<String, String> map = new HashMap<>();
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM);
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_SPACE_PARAMETER_NAME);
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_WORKSPACE_PARAMETER_NAME);
+        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME);
         return map;
     }
 

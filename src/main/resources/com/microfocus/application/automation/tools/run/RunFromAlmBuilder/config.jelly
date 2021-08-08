@@ -130,7 +130,6 @@
         <td/>
     </tr>
 
-
         <f:entry field="almServerName">
           <label>ALM server</label>
           <f:select clazz="servers"/>
@@ -209,5 +208,8 @@
                     <f:textbox name="runfromalm.almRunHost" value="${instance.runFromAlmModel.almRunHost}"/>
                 </f:entry>
             </f:entry>
-        </f:advanced>      
+        </f:advanced>
+    <script>
+        setupSSO(); // defined in almUtils.js, here we know the elements are loaded so we can show/hide SSO credentials based on isSSOEnabled checkbox value
+    </script>
 </j:jelly>

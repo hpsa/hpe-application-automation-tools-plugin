@@ -1,33 +1,25 @@
-$.noConflict();
-jQuery( document ).ready(function($) {
+if (window.NodeList && !NodeList.prototype.forEach) {
+	NodeList.prototype.forEach = Array.prototype.forEach;
+}
+function setupSSO() {
+	setTimeout(function() {
+		prepareTask()}, 200);
+}
+function prepareTask() {
+	const isSSOEnabledNodes = document.querySelectorAll('input[type="checkbox"][name="runfromalm.isSSOEnabled"]');
+	const noSSOCredentialsNodes = document.querySelectorAll('div.noSSOCredentials');
+	const ssoCredentialsNodes = document.querySelectorAll('div.ssoCredentials');
 
-    setTimeout(function () {
-        validateTaskForm()}, 200);
-
-    $('input[name="runfromalm.isSSOEnabled"]').click(function () {
-            selectCredentialsType(this,  $('input[name="runfromalm.isSSOEnabled"]').index(this));
-    });
-
-    function validateTaskForm(){
-
-        var checkBoxList = $('input[name="runfromalm.isSSOEnabled"]');
-
-        for(var i = 0; i < checkBoxList.length; i++){
-            selectCredentialsType(checkBoxList[i], i);
-        }
-
-
-    }
-
-   function selectCredentialsType(element, index){
-        if (element.checked) {//use SSO
-            $('.noSSOCredentials')[index].hide();
-            $('.ssoCredentials')[index].show();
-        } else {//do not use SSO
-
-            $('.noSSOCredentials')[index].show();
-            $('.ssoCredentials')[index].hide();
-        }
-    }
-});
-
+	isSSOEnabledNodes.forEach(function(checkbox, index) {
+		selectCredentialsType(checkbox.checked, index);
+		if (typeof checkbox.onclick !== "function") {
+			checkbox.onclick = function() {
+				selectCredentialsType(this.checked, index);
+			}
+		}
+	});
+	function selectCredentialsType(checked, index) {
+		noSSOCredentialsNodes[index].style.display = checked ? "none" : "block";
+		ssoCredentialsNodes[index].style.display = checked ? "block" : "none";
+	}
+}
