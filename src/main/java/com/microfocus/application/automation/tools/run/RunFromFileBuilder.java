@@ -49,6 +49,7 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -888,6 +889,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     /**
      * The type Descriptor.
      */
+    @Symbol("runFromFSBuilder")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         /**
