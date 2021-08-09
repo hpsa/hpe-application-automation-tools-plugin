@@ -33,6 +33,7 @@ import com.cloudbees.hudson.plugins.folder.Folder;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.executor.TestsToRunFramework;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
@@ -58,6 +59,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.microfocus.application.automation.tools.octane.executor.UftConstants.*;
 
 /**
  * This service is responsible to create jobs (discovery and execution) for execution process.
@@ -154,7 +157,8 @@ public class TestExecutionJobCreatorService {
 
 	private static FreeStyleProject createDiscoveryJob(DiscoveryInfo discoveryInfo) {
 		try {
-			String discoveryJobName = String.format("%s-%s-%s", UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
+			String discoveryJobPrefix = TestingToolType.UFT.equals(discoveryInfo.getTestingToolType()) ? UFT_DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW : MBT_DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW;
+			String discoveryJobName = String.format("%s-%s-%s", discoveryJobPrefix, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
 			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), discoveryJobName);
 
 			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
@@ -165,31 +169,40 @@ public class TestExecutionJobCreatorService {
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
 			addBooleanParameter(proj, UftConstants.FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
 
-			//set polling once in two minutes
-			SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
-			proj.addTrigger(scmTrigger);
-			delayPollingStart(proj, scmTrigger);
-			addDiscoveryAssignedNode(proj);
-			addTimestamper(proj);
+			if(!TestingToolType.MBT.equals(discoveryInfo.getTestingToolType())) { // currently, mbt does not support scm changes
+				//set polling once in two minutes only if not MBT
+				SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
+				proj.addTrigger(scmTrigger);
+				delayPollingStart(proj, scmTrigger);
+				addDiscoveryAssignedNode(proj);
+				addTimestamper(proj);
+			}
 
 			//add post-build action - publisher
-			UFTTestDetectionPublisher uftTestDetectionPublisher = null;
-			List publishers = proj.getPublishersList();
-			for (Object publisher : publishers) {
-				if (publisher instanceof UFTTestDetectionPublisher) {
-					uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
-				}
-			}
-
-			if (uftTestDetectionPublisher == null) {
-				uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getConfigurationId(), discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
-				publishers.add(uftTestDetectionPublisher);
-			}
+			addUFTTestDetectionPublisherIfNeeded(proj.getPublishersList(), discoveryInfo);
 
 			return proj;
 		} catch (IOException | ANTLRException e) {
 			logger.error("Failed to  create DiscoveryJob for test runner: " + e.getMessage());
 			return null;
+		}
+	}
+
+	private static void addUFTTestDetectionPublisherIfNeeded(List publishers, DiscoveryInfo discoveryInfo) {
+		//add post-build action - publisher
+		UFTTestDetectionPublisher uftTestDetectionPublisher = null;
+		for (Object publisher : publishers) {
+			if (publisher instanceof UFTTestDetectionPublisher) {
+				uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+			}
+		}
+
+		if (uftTestDetectionPublisher == null) {
+			uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getConfigurationId(), discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
+			if(TestingToolType.MBT.equals(discoveryInfo.getTestingToolType())) {
+				uftTestDetectionPublisher.setTestingToolType(TestingToolType.MBT);
+			}
+			publishers.add(uftTestDetectionPublisher);
 		}
 	}
 
@@ -320,7 +333,8 @@ public class TestExecutionJobCreatorService {
 
 	public static FreeStyleProject createExecutor(DiscoveryInfo discoveryInfo) {
 		try {
-			String projectName = String.format("%s-%s-%s", UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
+			String exeJobPrefix = TestingToolType.UFT.equals(discoveryInfo.getTestingToolType()) ? UFT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW : MBT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW;
+			String projectName = String.format("%s-%s-%s", exeJobPrefix, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
 			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), projectName);
 
 			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
