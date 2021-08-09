@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.ALM_TEST_FOLDER;
+import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.CREATE_NEW_TEST;
 
 public class TestUploader {
 
@@ -98,12 +99,22 @@ public class TestUploader {
                 } else {
                     // If not, create the test under the folder
                     test.put(AlmCommonProperties.PARENT_ID, folder.get(AlmCommonProperties.ID));
-                    newTest = restService.create(TEST_REST_PREFIX, test);
+                    if (params.get(CREATE_NEW_TEST).equals("true")) {
+                        newTest = restService.create(TEST_REST_PREFIX, test);
+                    } else {
+                        newTest = null;
+                        logger.log("Test not found and not created: " + test.toString());
+                    }
                 }
             } else {
                 // If no path was specified, put test under root
                 test.put(AlmCommonProperties.PARENT_ID, "0");
-                newTest = restService.create(TEST_REST_PREFIX, test);
+                if (params.get(CREATE_NEW_TEST).equals("true")) {
+                    newTest = restService.create(TEST_REST_PREFIX, test);
+                } else {
+                    newTest = null;
+                    logger.log("Test not found and not created: " + test.toString());
+                }
             }
 
             if (newTest == null) {

@@ -46,4 +46,5 @@ public final class ParamConstant {
     public static final String TESTING_RESULT_FILE = "testingResultFile";
     public static final String FIELD_MAPPING = "fieldMapping";
     public static final String ACTUAL_USER = "actualUser";
+    public static final String CREATE_NEW_TEST = "createNewTest";
 }

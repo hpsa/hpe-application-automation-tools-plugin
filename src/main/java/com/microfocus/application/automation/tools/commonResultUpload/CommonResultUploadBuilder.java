@@ -78,7 +78,8 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
             String almServerName, String credentialsId, String almDomain,
             String clientType, String almProject, String almTestFolder,
             String almTestSetFolder, String testingResultFile,
-            String runStatusMapping, String fieldMapping) {
+            String runStatusMapping, String fieldMapping,
+            boolean createNewTest) {
 
         this.almServerName = almServerName;
         this.credentialsId = credentialsId;
@@ -90,6 +91,7 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         this.testingResultFile = testingResultFile;
         this.runStatusMapping = runStatusMapping;
         this.fieldMapping = fieldMapping;
+        this.createNewTest = createNewTest;
     }
 
     @Override
@@ -119,6 +121,7 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         params.put(RUN_STATUS_MAPPING, Util.replaceMacro(runStatusMapping, varResolver));
         params.put(TESTING_RESULT_FILE, Util.replaceMacro(testingResultFile, varResolver));
         params.put(FIELD_MAPPING, Util.replaceMacro(fieldMapping, varResolver));
+        params.put(CREATE_NEW_TEST, String.valueOf(createNewTest));
 
         Uploader uploader = new Uploader(run, workspace, logger, params);
         uploader.upload();
@@ -317,6 +320,7 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
     private String testingResultFile;
     private String runStatusMapping;
     private String fieldMapping;
+    private boolean createNewTest;
 
     public String getAlmServerName() {
         return almServerName;
@@ -397,4 +401,13 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
     public void setFieldMapping(String fieldMapping) {
         this.fieldMapping = fieldMapping;
     }
+
+    public boolean isCreateNewTest() {
+        return createNewTest;
+    }
+
+    public void setCreateNewTest(boolean createNewTest) {
+        this.createNewTest = createNewTest;
+    }
+
 }
