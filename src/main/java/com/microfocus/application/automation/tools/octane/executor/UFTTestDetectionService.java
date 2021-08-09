@@ -114,6 +114,15 @@ public class UFTTestDetectionService {
                     .collect(Collectors.toList());
             // print actions
             printByStatus(buildListener, actions, "Found %s actions with status %s");
+
+            // flatten parameters
+            List<UftTestParameter> parameters = actions.stream()
+                    .filter(action -> !action.getParameters().isEmpty())
+                    .map(action -> action.getParameters())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            // print parameters
+            printByStatus(buildListener, parameters, "Found %s parameters with status %s");
         }
     }
 

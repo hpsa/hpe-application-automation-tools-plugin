@@ -28,19 +28,14 @@
 
 package com.microfocus.application.automation.tools.octane.actions;
 
-import com.hp.octane.integrations.uft.items.AutomatedTest;
-import com.hp.octane.integrations.uft.items.OctaneStatus;
-import com.hp.octane.integrations.uft.items.UftTestAction;
-import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
+import com.hp.octane.integrations.uft.items.*;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.executor.UFTTestDetectionService;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Run;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,15 +49,21 @@ public class UFTActionDetectionBuildAction implements Action {
 
     private List<UftTestAction> actions;
 
+    private Map<String, List<UftTestParameter>> actionToParametersMap;
+
+    private List<UftTestParameter> parameters;
+
     public UFTActionDetectionBuildAction(final AbstractBuild<?, ?> build, UftTestDiscoveryResult results) {
         this.build = build;
         boolean isEmptyResults = results == null;
         this.results = isEmptyResults ? new UftTestDiscoveryResult() : results;
         this.actions = isEmptyResults ? Collections.emptyList() : flattenActions(results);
+        this.actionToParametersMap = isEmptyResults ? new HashMap<>() : setActionToParametersMap();
+        this.parameters = isEmptyResults ? Collections.emptyList() : flattenParameters(actions);
     }
 
-    private List<UftTestAction> getItemsWithStatus(OctaneStatus status) {
-        return actions.stream()
+    private List<? extends SupportsOctaneStatus> getItemsWithStatus(List<? extends SupportsOctaneStatus> entities, OctaneStatus status) {
+        return entities.stream()
                 .filter(item -> status.equals(item.getOctaneStatus()))
                 .collect(Collectors.toList());
     }
@@ -72,6 +73,19 @@ public class UFTActionDetectionBuildAction implements Action {
                 .map(AutomatedTest::getActions)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
+    }
+
+    private List<UftTestParameter> flattenParameters(List<UftTestAction> actions) {
+        return actions.stream()
+                .map(UftTestAction::getParameters)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, List<UftTestParameter>> setActionToParametersMap() {
+        return actions.stream()
+                .filter(action -> !action.getParameters().isEmpty())
+                .collect(Collectors.toMap(UftTestAction::getRepositoryPath, UftTestAction::getParameters));
     }
 
     @Override
@@ -120,7 +134,7 @@ public class UFTActionDetectionBuildAction implements Action {
     }
 
     public List<UftTestAction> getNewActions() {
-        return getItemsWithStatus(OctaneStatus.NEW);
+        return (List<UftTestAction>) getItemsWithStatus(actions, OctaneStatus.NEW);
     }
 
     /**
@@ -133,7 +147,7 @@ public class UFTActionDetectionBuildAction implements Action {
     }
 
     public List<UftTestAction> getDeletedActions() {
-        return getItemsWithStatus(OctaneStatus.DELETED);
+        return (List<UftTestAction>) getItemsWithStatus(actions, OctaneStatus.DELETED);
     }
 
     /**
@@ -146,11 +160,54 @@ public class UFTActionDetectionBuildAction implements Action {
     }
 
     public List<UftTestAction> getUpdatedActions() {
-        return getItemsWithStatus(OctaneStatus.MODIFIED);
+        return (List<UftTestAction>) getItemsWithStatus(actions, OctaneStatus.MODIFIED);
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTActionDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasNewParameters() {
+        return getNewParameters().size() > 0;
+    }
+
+    public List<UftTestParameter> getNewParameters() {
+        return (List<UftTestParameter>) getItemsWithStatus(parameters, OctaneStatus.NEW);
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTActionDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasDeletedParameters() {
+        return getDeletedParameters().size() > 0;
+    }
+
+    public List<UftTestParameter> getDeletedParameters() {
+        return (List<UftTestParameter>) getItemsWithStatus(parameters, OctaneStatus.DELETED);
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTActionDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasUpdatedParameters() {
+        return getUpdatedParameters().size() > 0;
+    }
+
+    public List<UftTestParameter> getUpdatedParameters() {
+        return (List<UftTestParameter>) getItemsWithStatus(parameters, OctaneStatus.MODIFIED);
     }
 
     public boolean getHasQuotedPaths() {
         return results.isHasQuotedPaths();
+    }
+
+    public Map<String, List<UftTestParameter>> getActionToParametersMap() {
+        return actionToParametersMap;
     }
 
 }

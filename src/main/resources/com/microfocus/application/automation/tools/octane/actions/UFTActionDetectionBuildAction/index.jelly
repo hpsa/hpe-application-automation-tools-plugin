@@ -95,6 +95,21 @@
                 <br/>
                 <br/>
             </j:if>
+            <j:if test="${it.hasNewParameters}">
+                New parameters : ${it.getNewParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasDeletedParameters}">
+                Deleted parameters :  ${it.getDeletedParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasUpdatedParameters}">
+                Updated parameters :  ${it.getUpdatedParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
 
          </p>
        <p>
@@ -126,6 +141,44 @@
           </tbody>
        </table>
        </p>
+       <br/>
+       <p>
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
+       <table class = "myTable" frame="vsides above bottom" >
+        <caption>Parameters</caption>
+        <thead>
+
+         <tr>
+             <th class = "firstColumn">Action path</th>
+             <th>Parameter name</th>
+             <th>Input/Output</th>
+             <th>Status</th>
+         </tr>
+         </thead>
+
+         <tbody>
+          <j:forEach var="key" items="${it.getActionToParametersMap().keySet()}">
+                <tr>
+                    <td style="color:#0000ff">${key}</td>
+                    <td/>
+                    <td/>
+                    <td/>
+                </tr>
+                <j:forEach var="p" items="${it.getActionToParametersMap().get(key)}">
+                    <tr>
+                        <td/>
+                        <td>${p.name}</td>
+                        <td>${p.direction}</td>
+                        <td>${p.octaneStatus}</td>
+                    </tr>
+                </j:forEach>
+          </j:forEach>
+
+          </tbody>
+       </table>
+       </p>
 
        <br/><br/>
         <br/><br/>
@@ -139,7 +192,6 @@
         <br/><br/><br/>
 
         This report contains items that were discovered in SCM repository. Final list of  dispatched items can be found <a href="../../ws/_Final_Detection_Results/final_detection_result_build_${it.build.id}.json">here</a> after dispatching.
-
 
     </l:main-panel>
 
