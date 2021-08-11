@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
@@ -55,15 +56,17 @@ public class UFTTestDetectionCallable extends MasterToSlaveFileCallable<UftTestD
     private String workspaceId;
     private String scmRepositoryId;
     private BuildListener buildListener;
+    private TestingToolType testingToolType;
     private String testRunnerId;
     private boolean fullScan = false;
     private ScmChangesWrapper scmChangesWrapper;
 
-    public UFTTestDetectionCallable(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
+    public UFTTestDetectionCallable(AbstractBuild<?, ?> build, String configurationId, String workspaceId, String scmRepositoryId, BuildListener buildListener, TestingToolType testingToolType) {
         this.configurationId = configurationId;
         this.workspaceId = workspaceId;
         this.scmRepositoryId = scmRepositoryId;
         this.buildListener = buildListener;
+        this.testingToolType = testingToolType;
 
         extractParameterValues(build);
         wrapScmChanges(build);
@@ -141,7 +144,7 @@ public class UFTTestDetectionCallable extends MasterToSlaveFileCallable<UftTestD
 
     @Override
     public UftTestDiscoveryResult invoke(File file, VirtualChannel virtualChannel) {
-        UftTestDiscoveryResult results = UFTTestDetectionService.startScanning(file, buildListener, configurationId, workspaceId, scmRepositoryId, testRunnerId, scmChangesWrapper, fullScan);
+        UftTestDiscoveryResult results = UFTTestDetectionService.startScanning(file, buildListener, configurationId, workspaceId, scmRepositoryId, testRunnerId, scmChangesWrapper, fullScan, testingToolType);
         return results;
     }
 
