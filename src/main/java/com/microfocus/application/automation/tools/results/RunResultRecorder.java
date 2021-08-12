@@ -1451,6 +1451,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								almSSEResultNames.add(((StringParameterValue)resFileParam).getValue());
 							}
 							break;
+						default:
+							// default case should not be used, if necessary to handle a new builder,  please create a specific case
+							break;
 					}
 				}
 			}
