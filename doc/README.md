@@ -5,7 +5,7 @@ This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.
 
 ### Jenkins versions
 
-Beginning version 5.5, this plugin only supports the latest five LTS versions of Jenkins (minimum version is 2.190.1). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+This plugin requires one of the five latest [LTS versions](https://jenkins.io/changelog-stable/) of Jenkins (minimum version is 2.264). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -92,16 +92,16 @@ This plugin supports the following Micro Focus product versions:
 | ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md)                  |
 | ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
 | ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
-| LoadRunner Professional                                          | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
-| UFT Mobile (formerly Mobile Center)                 | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
-| LoadRunner Enterprise (formerly Performance Center) | 12.xx (12.53 or higher required for trend reports), 2020 and higher     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/pc/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
+| LoadRunner Professional                             | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
+| UFT Mobile                                           | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
+| LoadRunner Enterprise                               | 12.xx (12.53 or higher required for trend reports), 2020 and higher     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/lre/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
-| UFT One (formerly UFT)                              | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
-| UFT Developer (formerly LeanFT)                     | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/leanft/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrating LeanFT with Jenkins  in just a few simple steps](https://community.softwaregrp.com/t5/Quality-and-Testing-Blog/Integrating-LeanFT-with-Jenkins-in-just-a-few-simple-steps/ba-p/247321#.WpzwYOhubcte%20steps) |
+| UFT One                                            | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
+| UFT Developer                                      | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/uftdev/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrating LeanFT with Jenkins in just a few simple steps](https://community.microfocus.com/adtd/b/sws-alm/posts/integrating-leanft-with-jenkins-in-just-a-few-simple-steps) |
 
 ## Prerequisites
 
-1. Install one of the five latest LTS versions of Jenkins, [(Click here for a list.](https://jenkins.io/changelog-stable/))
+1. Install one of the five latest LTS versions of Jenkins. For details, see the [LTS Changelog](https://jenkins.io/changelog-stable/). **Note:** The plugin may not operate properly with earlier versions of Jenkins.
 
 2. **Java version 8 or higher.**  To verify your Java version, go to [http://www.java.com/en/download/installed.jsp](http://www.java.com/en/download/installed.jsp).
 
