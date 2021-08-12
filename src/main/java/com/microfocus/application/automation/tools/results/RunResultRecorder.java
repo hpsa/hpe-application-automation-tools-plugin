@@ -1434,11 +1434,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		if (build instanceof WorkflowRun) { // it comes from a Pipeline build flow
 			ParametersAction paramAction = build.getAction(ParametersAction.class);
 			if (paramAction != null && paramAction.getAllParameters() != null) {
-				ParameterValue buildStepName = paramAction.getParameter("buildStepName");
-				if (buildStepName != null && ((StringParameterValue)buildStepName).getValue().equals("RunFromAlmBuilder")) {
-					ParameterValue resultsFilename = paramAction.getParameter("resultsFilename");
-					if (resultsFilename != null) {
-						almResultNames.add(((StringParameterValue)resultsFilename).getValue());
+				ParameterValue buildStepNameParam = paramAction.getParameter("buildStepName");
+				if (buildStepNameParam != null) {
+					String buildStepName = ((StringParameterValue)buildStepNameParam).getValue();
+					ParameterValue resFileParam;
+					switch (buildStepName) {
+						case "RunFromAlmBuilder":
+							resFileParam = paramAction.getParameter("resultsFilename");
+							if (resFileParam != null) {
+								almResultNames.add(((StringParameterValue)resFileParam).getValue());
+							}
+							break;
+						case "RunFromAlmLabManagementBuilder":
+							resFileParam = paramAction.getParameter("resultsFilename");
+							if (resFileParam != null) {
+								almSSEResultNames.add(((StringParameterValue)resFileParam).getValue());
+							}
+							break;
 					}
 				}
 			}

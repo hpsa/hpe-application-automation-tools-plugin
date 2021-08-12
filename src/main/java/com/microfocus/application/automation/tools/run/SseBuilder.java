@@ -33,6 +33,7 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -164,8 +165,8 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
 	}
 
     @Override
-    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
-            TaskListener listener) throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+            throws InterruptedException, IOException {
 
         PrintStream logger = listener.getLogger();
 
@@ -186,15 +187,22 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 environmentConfigurationId,
                 cdaDetails);
 
-
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
 
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         Testsuites testsuites = execute(build, logger, varResolver);
 
-        FilePath resultsFilePath = workspace.child(getFileName());
+        String resultsFilename = generateResultsFilename();
+        FilePath resultsFilePath = workspace.child(resultsFilename);
         Result resultStatus = createRunResults(resultsFilePath, testsuites, logger);
         provideStepResultStatus(resultStatus, build, logger);
+
+        //params used when run with Pipeline
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+        newParams.add(new StringParameterValue("buildStepName", "RunFromAlmLabManagementBuilder"));
+        newParams.add(new StringParameterValue("resultsFilename", resultsFilename));
+        build.addOrReplaceAction(new ParametersAction(newParams));
     }
 
     /**
@@ -302,7 +310,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         return ret;
     }
 
-    private String getFileName() {
+    private String generateResultsFilename() {
 
         Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
         String time = formatter.format(new Date());
