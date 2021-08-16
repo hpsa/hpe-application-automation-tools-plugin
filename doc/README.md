@@ -1,7 +1,7 @@
 # Micro Focus Application Automation Tools
 
 
-This  [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner Professional tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
+This [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner Professional tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
 
 ### Jenkins versions
 
@@ -49,19 +49,26 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements in Version 6.9
+## New Features and Enhancements
 
-Version 6.9 introduced the following enhancements:
+Version 7.0 introduced the following enhancements:
 
 **ALM Octane**
 
-- Enabled branch publisher
-- Support added for Java 11
+- Support for pipeline stop
+- Support for BDD scenarios in test runners
+- Support for version 21.1.36 of the Fortify SSC plugin  
+- Defect fix - Octane builds no longer point to obsolete UFTOne run results
 
-**Workarounds**
+**UFT One**
 
-- For running UFTM tests from UFT One: If UFTM tests fail in UFT One after changing the UFTM server version in the Jenkins configuration, manually restart UFT One and run the test again.
+- Ability to use the Micro Focus plugin on an air-gap network (not connected to the Internet) for ALM executions
+- Run Results enhancements, including the use of MTBX files for test execution
+- Defect fix - Layout issues were handled
 
+**LoadRunner Enterprise**
+
+- Defect fix - It is now possible to browse for the Test ID in the Jenkins plugin.
 
 For more information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
