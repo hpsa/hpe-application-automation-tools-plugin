@@ -5,7 +5,7 @@ This [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.i
 
 ### Jenkins versions
 
-This plugin requires one of the five latest [LTS versions](https://jenkins.io/changelog-stable/) of Jenkins (minimum version is 2.264). This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+This plugin requires one of the five latest [LTS versions](https://jenkins.io/changelog-stable/) of Jenkins. This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -16,7 +16,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 ## Table of Contents
 
-[New Features and Enhancements](#new-features-and-enhancements)
+[New Features and Enhancements for 7.0]((#new-features-and-enhancements-for-7.0))
 
 [Changelog](#changelog)
 
@@ -49,7 +49,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Security-Policy**  header. This causes some of the integration links, such as links to reports, to become inoperable. For details, see [Configuring Content Security Policy](https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy) and [Jenkins Security Advisory ](https://jenkins.io/security/advisory/2015-12-09/). For suggested workarounds until the issue is resolved, see [Content Security Policy Header](#content-security-policy-header).
 
-## New Features and Enhancements
+## New Features and Enhancements for 7.0
 
 Version 7.0 introduced the following enhancements:
 
