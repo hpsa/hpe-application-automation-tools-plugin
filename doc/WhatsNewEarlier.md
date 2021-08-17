@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What's New in version 6.9](#what's-new-in-version-6.9)
+
 [What's New in versions 6.7, 6.8](#what's-new-in-versions-6.7-and-6.8)
 
 [What's New in version 6.6](#what's-new-in-version-6.6)
@@ -18,6 +20,19 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What's New in version 6.0](#what's-new-in-version-6.0)
 
 [What's New in version 5.9](#what's-new-in-version-5.9)
+
+## What&#39;s New in version 6.9
+
+Version 6.9 introduced the following enhancements:
+
+**ALM Octane**
+
+- Enabled branch publisher
+- Support added for Java 11
+
+**Workarounds**
+
+- For running UFTM tests from UFT One: If UFTM tests fail in UFT One after changing the UFTM server version in the Jenkins configuration, manually restart UFT One and run the test again.
 
 ## What&#39;s New in versions 6.7 and 6.8
 
