@@ -44,10 +44,7 @@ import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.general.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
@@ -296,6 +293,27 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			} else {
 				throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
 			}
+		} finally {
+			stopImpersonation(securityContext);
+		}
+	}
+
+	@Override
+	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, CIParameters ciParameters) {
+		ACLContext securityContext = startImpersonation();
+		try {
+			Job job = getJobByRefId(jobCiId);
+			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
+			if (!hasRead) {
+				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+			}
+			AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
+			ParametersAction parametersAction = new ParametersAction();
+			if (ciParameters != null) {
+				parametersAction = new ParametersAction(createParameters(job, ciParameters));
+			}
+
+			return jobProcessor.getBuildStatus(parametersAction);
 		} finally {
 			stopImpersonation(securityContext);
 		}

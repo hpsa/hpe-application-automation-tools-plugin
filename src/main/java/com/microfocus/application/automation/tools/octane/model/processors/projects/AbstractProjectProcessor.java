@@ -28,24 +28,26 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.general.CIBuildStatusInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import hudson.model.Queue;
 import hudson.model.*;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -90,9 +92,12 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 	}
 
 	public void cancelBuild(Cause cause, ParametersAction parametersAction) {
+		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
+
 		String suiteId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
 		String suiteRunId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
-		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
+
+		String releaseExecutionId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
 
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
@@ -107,28 +112,43 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				}
 				stopBuild(aBuild);
 			} else {
-				logger.info(String.format("cancelBuild for %s, suiteId=%s, suiteRunId=%s", job.getFullName(), suiteId, suiteRunId));
+				FoundInfo foundInfo = new FoundInfo();
+				String paramToSearch;
+				String paramValueToSearch;
+				if (SdkStringUtils.isNotEmpty(releaseExecutionId)) {
+					paramToSearch = SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME;
+					paramValueToSearch = releaseExecutionId;
+				} else if (SdkStringUtils.isNotEmpty(suiteRunId)) {
+					paramToSearch = SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME;
+					paramValueToSearch = suiteRunId;
+				} else {
+					throw new IllegalArgumentException("Cannot cancel job as no identification parameters was passed");
+				}
+
+				logger.info(String.format("cancelBuild for %s, %s=%s", job.getFullName(), paramToSearch, paramValueToSearch));
 				Queue queue = Jenkins.get().getQueue();
 				queue.getItems(project).forEach(item -> {
 					item.getActions(ParametersAction.class).forEach(action -> {
-						if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+						if (!foundInfo.found && checkIfParamExistAndEqual(action, suiteId, suiteRunId)) {
 							try {
-								logger.info("canceling item in queue : " + item.toString());
+								logger.info("canceling item in queue : " + item);
 								queue.cancel(item);
-								logger.info("Item in queue is cancelled item : " + item.toString());
+								logger.info("Item in queue is cancelled item : " + item);
+								foundInfo.found = true;
 							} catch (Exception e) {
-								logger.warn("Failed to cancel '" + item.toString() + "' in queue : " + e.getMessage(), e);
+								logger.warn("Failed to cancel '" + item + "' in queue : " + e.getMessage(), e);
 							}
 						}
 					});
 				});
 
 				project.getBuilds().forEach(build -> {
-					if (build instanceof AbstractBuild) {
+					if (!foundInfo.found && build instanceof AbstractBuild) {
 						AbstractBuild aBuild = (AbstractBuild) build;
 						aBuild.getActions(ParametersAction.class).forEach(action -> {
-							if (checkSuiteIdParamsExistAndEqual(action, suiteId, suiteRunId)) {
+							if (checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
 								stopBuild(aBuild);
+								foundInfo.found = true;
 							}
 						});
 					}
@@ -138,6 +158,66 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			throw new IllegalStateException("unsupported job CAN NOT be stopped");
 		}
 	}
+
+	public CIBuildStatusInfo getBuildStatus(ParametersAction parametersAction) {
+		CIBuildStatusInfo status = DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class).setBuildStatus(CIBuildStatus.UNAVAILABLE);
+		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
+		String releaseExecutionId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
+		if (SdkStringUtils.isEmpty(releaseExecutionId) && SdkStringUtils.isEmpty(buildId)) {
+			List<String> required = Arrays.asList(UftConstants.BUILD_ID_PARAMETER_NAME, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
+			throw new IllegalArgumentException("One of parameters is required :" + required);
+		}
+
+		if (job instanceof AbstractProject) {
+			if (buildId != null) {
+				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
+				if (aBuild == null) {
+					status.setBuildStatus(CIBuildStatus.UNAVAILABLE);
+				} else {
+					status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
+					if (aBuild.isBuilding()) {
+						status.setBuildStatus(CIBuildStatus.RUNNING);
+					} else {
+						status.setBuildStatus(CIBuildStatus.FINISHED);
+						status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
+					}
+				}
+			} else {
+				AbstractProject project = (AbstractProject) job;
+				FoundInfo foundInfo = new FoundInfo();
+				Queue queue = Jenkins.get().getQueue();
+				queue.getItems(project).forEach(item -> {
+					item.getActions(ParametersAction.class).forEach(action -> {
+						if (!foundInfo.found && checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
+							status.setBuildStatus(CIBuildStatus.QUEUED);
+							foundInfo.found = true;
+						}
+					});
+				});
+
+				project.getBuilds().forEach(build -> {
+					if (!foundInfo.found && build instanceof AbstractBuild) {
+						AbstractBuild aBuild = (AbstractBuild) build;
+						aBuild.getActions(ParametersAction.class).forEach(action -> {
+							if (checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
+								if (aBuild.isBuilding()) {
+									status.setBuildStatus(CIBuildStatus.RUNNING);
+								} else {
+									status.setBuildStatus(CIBuildStatus.FINISHED);
+									status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
+								}
+								foundInfo.found = true;
+							}
+						});
+					}
+				});
+			}
+		} else {
+			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+		}
+		return status;
+	}
+
 
 	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName) {
 		ParameterValue pv = parametersAction.getParameter(paramName);
@@ -157,11 +237,9 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	private boolean checkSuiteIdParamsExistAndEqual(ParametersAction parametersAction, String suiteId, String suiteRunId) {
-		ParameterValue suiteIdPV = parametersAction.getParameter(SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
-		ParameterValue suiteRunIdPV = parametersAction.getParameter(SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
-		return (suiteIdPV != null && suiteRunIdPV != null && suiteIdPV.getValue().equals(suiteId)
-				&& suiteRunIdPV.getValue().equals(suiteRunId));
+	private boolean checkIfParamExistAndEqual(ParametersAction parametersAction, String paramName, String expectedValue) {
+		ParameterValue pv = parametersAction.getParameter(paramName);
+		return (SdkStringUtils.isNotEmpty(expectedValue) && pv != null && pv.getValue().equals(expectedValue));
 	}
 
 	/**
@@ -270,5 +348,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 			}
 			processedJobs.remove(job);
 		}
+	}
+	private static class FoundInfo{
+		public boolean found;
 	}
 }
