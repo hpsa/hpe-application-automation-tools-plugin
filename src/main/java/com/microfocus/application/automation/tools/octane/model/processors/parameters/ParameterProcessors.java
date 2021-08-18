@@ -140,15 +140,15 @@ public enum ParameterProcessors {
 						result.add(new UnsupportedParameterProcessor().createParameterInstance(pd, pv));
 					}
 				}
-				//go over parameters that are not defined in definitions
-				for (ParameterValue notDefinedParameter : parametersValues.values()) {
-					if (notDefinedParameter.getValue() != null) {
-						CIParameter param = dtoFactory.newDTO(CIParameter.class)
-								.setType(CIParameterType.STRING)
-								.setName(notDefinedParameter.getName())
-								.setValue(notDefinedParameter.getValue());
-						result.add(param);
-					}
+			}
+			//go over parameters that are not defined in definitions
+			for (ParameterValue notDefinedParameter : parametersValues.values()) {
+				if (notDefinedParameter.getValue() != null) {
+					CIParameter param = dtoFactory.newDTO(CIParameter.class)
+							.setType(CIParameterType.STRING)
+							.setName(notDefinedParameter.getName())
+							.setValue(notDefinedParameter.getValue());
+					result.add(param);
 				}
 			}
 		} catch (Exception e) {

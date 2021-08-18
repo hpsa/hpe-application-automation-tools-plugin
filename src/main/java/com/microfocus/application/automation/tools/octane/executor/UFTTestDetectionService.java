@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
@@ -42,6 +43,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service is responsible to detect changes according to SCM change and to put it to queue of UftTestDiscoveryDispatcher
@@ -52,14 +54,15 @@ public class UFTTestDetectionService {
     private static final String DETECTION_RESULT_FILE = "detection_result.json";
 
     public static UftTestDiscoveryResult startScanning(File rootDir, BuildListener buildListener, String configurationId, String workspaceId, String scmRepositoryId,
-                                                       String testRunnerId, UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, boolean fullScan) {
+                                                       String testRunnerId, UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, boolean fullScan, TestingToolType testingToolType) {
         UftTestDiscoveryResult result = null;
         try {
 
             boolean myFullScan = fullScan || !initialDetectionFileExist(rootDir);
             if (myFullScan) {
                 printToConsole(buildListener, "Executing full sync");
-                result = UftTestDiscoveryUtils.doFullDiscovery(rootDir);
+                // only full scan flow is supported in MBT
+                result = UftTestDiscoveryUtils.doFullDiscovery(rootDir, testingToolType);
             } else {
                 printToConsole(buildListener, "Executing changeSet sync. For full sync - define in job boolean parameter 'Full sync' with value 'true'.");
                 result = doChangeSetDetection(scmChangesWrapper, rootDir);
@@ -68,15 +71,7 @@ public class UFTTestDetectionService {
                 removeFalsePositiveDataTables(result, result.getNewTests(), result.getNewScmResourceFiles());
             }
 
-            Map<OctaneStatus, Integer> testStatusMap = computeStatusMap(result.getAllTests());
-            for (Map.Entry<OctaneStatus, Integer> entry : testStatusMap.entrySet()) {
-                printToConsole(buildListener, String.format("Found %s tests with status %s", entry.getValue(), entry.getKey()));
-            }
-
-            Map<OctaneStatus, Integer> resourceFilesStatusMap = computeStatusMap(result.getAllScmResourceFiles());
-            for (Map.Entry<OctaneStatus, Integer> entry : resourceFilesStatusMap.entrySet()) {
-                printToConsole(buildListener, String.format("Found %s data tables with status %s", entry.getValue(), entry.getKey()));
-            }
+            printResults(buildListener, result);
 
             if (result.isHasQuotedPaths()) {
                 printToConsole(buildListener, "This run may not have discovered all updated tests. \n" +
@@ -103,6 +98,39 @@ public class UFTTestDetectionService {
         }
 
         return result;
+    }
+
+    private static void printResults(BuildListener buildListener, UftTestDiscoveryResult result) {
+        if (TestingToolType.UFT.equals(result.getTestingToolType())) {
+            // print tables
+            printByStatus(buildListener, result.getAllTests(), "Found %s tests with status %s");
+            // print data tables
+            printByStatus(buildListener, result.getAllScmResourceFiles(), "Found %s data tables with status %s");
+        } else {
+            // flatten action lists
+            List<UftTestAction> actions = result.getAllTests().stream()
+                    .map(AutomatedTest::getActions)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            // print actions
+            printByStatus(buildListener, actions, "Found %s actions with status %s");
+
+            // flatten parameters
+            List<UftTestParameter> parameters = actions.stream()
+                    .filter(action -> !action.getParameters().isEmpty())
+                    .map(action -> action.getParameters())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            // print parameters
+            printByStatus(buildListener, parameters, "Found %s parameters with status %s");
+        }
+    }
+
+    private static void printByStatus(BuildListener buildListener, List<? extends SupportsOctaneStatus> entities, String messageTemplate) {
+        Map<OctaneStatus, Integer> testStatusMap = computeStatusMap(entities);
+        for (Map.Entry<OctaneStatus, Integer> entry : testStatusMap.entrySet()) {
+            printToConsole(buildListener, String.format(messageTemplate, entry.getValue(), entry.getKey()));
+        }
     }
 
     private static Map<OctaneStatus, Integer> computeStatusMap(List<? extends SupportsOctaneStatus> entities) {
@@ -182,7 +210,7 @@ public class UFTTestDetectionService {
                     boolean fileExist = affectedFile.exists();
                     UftTestType uftTestType = UftTestDiscoveryUtils.getUftTestType(affectedFileWrapper.getPath());
 
-                    AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType);
+                    AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType, TestingToolType.UFT);
                     test.setChangeSetSrc(affectedFileWrapper.getGitSrc());
                     test.setChangeSetDst(affectedFileWrapper.getGitDst());
 
@@ -291,4 +319,5 @@ public class UFTTestDetectionService {
     public static File getDetectionResultFile(Run run) {
         return new File(run.getRootDir(), DETECTION_RESULT_FILE);
     }
+
 }

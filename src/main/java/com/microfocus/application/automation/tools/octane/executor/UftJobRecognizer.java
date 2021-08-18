@@ -55,7 +55,8 @@ public class UftJobRecognizer {
      */
     public static boolean isExecutorJob(FreeStyleProject job) {
         return (job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS) ||
-                job.getName().startsWith(UftConstants.EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
+                job.getName().startsWith(UftConstants.UFT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW) ||
+                job.getName().startsWith(UftConstants.MBT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
     }
 
     /**
@@ -66,7 +67,8 @@ public class UftJobRecognizer {
      */
     public static boolean isDiscoveryJob(FreeStyleProject job) {
         return (job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS) ||
-                job.getName().startsWith(UftConstants.DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
+                job.getName().startsWith(UftConstants.UFT_DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW) ||
+                job.getName().startsWith(UftConstants.MBT_DISCOVERY_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW));
     }
 
     /**

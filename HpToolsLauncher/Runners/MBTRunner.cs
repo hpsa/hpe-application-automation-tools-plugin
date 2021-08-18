@@ -69,6 +69,17 @@ namespace HpToolsLauncher
                     {
                         DateTime startSub1 = DateTime.Now;
                         _qtpApplication.New();
+
+                        try
+                        {
+                            //The test is set to record and run on any open Web application. 
+                            _qtpApplication.Test.Settings.Launchers["Web"].Active = false;
+                        }
+                        catch (Exception e)
+                        {
+                            ConsoleWriter.WriteLine("Failed to set .Launchers[Web].Active = false : " + e.Message);
+                        }
+
                         ConsoleWriter.WriteLine(string.Format("_qtpApplication.New took {0:0.0} secs", DateTime.Now.Subtract(startSub1).TotalSeconds));
                         QTObjectModelLib.Action qtAction1 = _qtpApplication.Test.Actions[1];
                         qtAction1.Description = "unitIds=" + string.Join(",", test.UnitIds);
