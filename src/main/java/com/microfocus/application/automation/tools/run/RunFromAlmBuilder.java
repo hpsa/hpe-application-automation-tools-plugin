@@ -30,6 +30,7 @@ package com.microfocus.application.automation.tools.run;
 
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import hudson.EnvVars;
@@ -199,8 +200,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
-                        TaskListener listener) throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+            throws InterruptedException, IOException {
 
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
@@ -208,8 +209,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         if (almServerSettingsModel == null) {
             listener.fatalError("An ALM server is not defined. Go to Manage Jenkins->Configure System and define your ALM server under Application Lifecycle Management");
             
-	    // set pipeline stage as failure in case if ALM server was not configured
-	    build.setResult(Result.FAILURE);
+            // set pipeline stage as failure in case if ALM server was not configured
+            build.setResult(Result.FAILURE);
 		
             return;
         }
@@ -288,7 +289,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         ParamFileName = "props" + time + ".txt";
         ResultFilename = "Results" + time + ".xml";
         //KillFileName = "stop" + time + ".txt";
-        
+
+        //params used when run with Pipeline
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+        newParams.add(new StringParameterValue("buildStepName", "RunFromAlmBuilder"));
+        newParams.add(new StringParameterValue("resultsFilename", ResultFilename));
+        build.addOrReplaceAction(new ParametersAction(newParams));
+
         mergedProperties.put("runType", RunType.Alm.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
         
