@@ -31,17 +31,17 @@ package com.microfocus.application.automation.tools.run;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
+import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
+import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
-import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
-import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
 import hudson.model.*;
-import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
@@ -755,6 +755,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            }
            //cleanup report folders before running the build
            String selectedNode = env.get("NODE_NAME");
+            if (selectedNode == null) {//if slave is given in the pipeline and not as part of build step
+                try {
+                    selectedNode = launcher.getComputer().getName();
+                } catch (Exception e) {
+                    listener.error("Failed to get selected node for UFT execution : " + e.getMessage());
+                }
+            }
            int index = 1;
            while (mergedProperties.getProperty("Test" + index) != null) {
                String testPath = mergedProperties.getProperty(("Test" + index));

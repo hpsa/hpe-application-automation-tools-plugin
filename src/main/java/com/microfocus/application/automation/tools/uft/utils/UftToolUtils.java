@@ -183,18 +183,23 @@ public class UftToolUtils {
         FilePath filePath = getFilePath(nodeName, testPath);
         try {
             List<FilePath> entries = filePath.list();
+            boolean isDeleted = false;
             for (FilePath entry : entries) {
                 try {
                     if (entry.getName().startsWith("Report")) {
                         entry.deleteRecursive();
                         listener.getLogger().println(String.format("Folder %s is deleted", entry));
+                        isDeleted = true;
                     }
                 } catch (Exception e) {
                     listener.error(String.format("Failed to delete folder %s : %s", entry.getName(), e.getMessage()));
                 }
             }
+            if (!isDeleted) {
+                listener.getLogger().println(String.format("No report folder was deleted"));
+            }
         } catch (IOException | InterruptedException e) {
-            listener.error("Failure in clearing report folders for " + testPath +" : " + e.getMessage());
+            listener.error("Failure in clearing report folders for " + testPath + " : " + e.getMessage());
         }
     }
 
