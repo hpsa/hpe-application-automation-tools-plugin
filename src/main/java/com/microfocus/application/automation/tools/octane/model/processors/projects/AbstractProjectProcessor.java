@@ -206,6 +206,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 									status.setBuildStatus(CIBuildStatus.FINISHED);
 									status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
 								}
+								status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
 								foundInfo.found = true;
 							}
 						});
