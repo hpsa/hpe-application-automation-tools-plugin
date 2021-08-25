@@ -129,7 +129,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				Queue queue = Jenkins.get().getQueue();
 				queue.getItems(project).forEach(item -> {
 					item.getActions(ParametersAction.class).forEach(action -> {
-						if (!foundInfo.found && checkIfParamExistAndEqual(action, suiteId, suiteRunId)) {
+						if (!foundInfo.found && checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
 							try {
 								logger.info("canceling item in queue : " + item);
 								queue.cancel(item);
