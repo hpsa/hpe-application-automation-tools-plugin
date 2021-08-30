@@ -158,6 +158,30 @@ public enum ParameterProcessors {
 		return result;
 	}
 
+	public static List<CIParameter> getInstances(ParametersAction parametersAction) {
+		List<CIParameter> result = new ArrayList<>();
+
+		try {
+			Map<String, ParameterValue> parametersValues = parametersAction.getAllParameters().stream().collect(
+					Collectors.toMap(ParameterValue::getName, Function.identity(), (v1, v2) -> v1));
+
+			//go over parameters that are not defined in definitions
+			for (ParameterValue notDefinedParameter : parametersValues.values()) {
+				if (notDefinedParameter.getValue() != null) {
+					CIParameter param = dtoFactory.newDTO(CIParameter.class)
+							.setType(CIParameterType.STRING)
+							.setName(notDefinedParameter.getName())
+							.setValue(notDefinedParameter.getValue());
+					result.add(param);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("failed to process parameters :" + e.getMessage(), e);
+		}
+
+		return result;
+	}
+
 	private static AbstractParametersProcessor getAppropriate(String className) {
 		for (ParameterProcessors p : values()) {
 			if (className.startsWith(p.targetPluginClassName)) {
