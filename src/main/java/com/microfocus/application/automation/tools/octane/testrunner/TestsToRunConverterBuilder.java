@@ -28,11 +28,9 @@
 
 package com.microfocus.application.automation.tools.octane.testrunner;
 
-import com.hp.octane.integrations.executor.TestsToRunConverterResult;
-import com.hp.octane.integrations.executor.TestsToRunConvertersFactory;
-import com.hp.octane.integrations.executor.TestsToRunFramework;
+import com.hp.octane.integrations.executor.*;
 import com.hp.octane.integrations.executor.converters.MbtTest;
-import com.hp.octane.integrations.executor.converters.MfUftConverter;
+import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
@@ -142,8 +140,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
             TestsToRunFramework testsToRunFramework = TestsToRunFramework.fromValue(frameworkName);
             boolean isMbt = rawTests.contains("mbtData");
-            TestsToRunConverterResult convertResult = null;
+            TestsToRunConverterResult convertResult;
             Map<String, String> globalParameters = getGlobalParameters(parameterAction);
+
+            List<TestToRunData> testsData = TestsToRunConverter.parse(rawTests);
+            TestsToRunConvertersFactory.createConverter(testsToRunFramework).enrichTestsData(testsData, globalParameters);
+
             if (isMbt) {
                 //MBT needs to know real path to tests and not ${workspace}
                 //MBT needs to run on slave  to extract function libraries from checked out files
@@ -153,9 +155,9 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 } catch (IOException | InterruptedException e) {
                     listener.error("Failed loading build environment " + e);
                 }
-                convertResult = filePath.act(new GetConvertResult(testsToRunFramework, frameworkFormat, rawTests, executingDirectory, globalParameters));
+                convertResult = filePath.act(new GetConvertResult(testsToRunFramework, frameworkFormat, testsData, executingDirectory, globalParameters));
             } else {
-                convertResult = (new GetConvertResult(testsToRunFramework, frameworkFormat, rawTests, executingDirectory, globalParameters)).invoke(null, null);
+                convertResult = (new GetConvertResult(testsToRunFramework, frameworkFormat, testsData, executingDirectory, globalParameters)).invoke(null, null);
             }
 
             if (convertResult.getMbtTests() != null) {
@@ -207,12 +209,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         EnvVars env = build.getEnvironment(listener);
 
-        props.setProperty("parentFolder", workspace.getRemote() + "\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+        props.setProperty("parentFolder", workspace.getRemote() + "\\" + MfMBTConverter.MBT_PARENT_SUB_DIR);
         props.setProperty("repoFolder", workspace.getRemote());
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
         ParameterValue checkoutDirParameter = parameterAction.getParameter(CHECKOUT_DIRECTORY_PARAMETER);
         if (checkoutDirParameter != null) {
-            props.setProperty("parentFolder", env.expand((String) checkoutDirParameter.getValue()) + "\\" + MfUftConverter.MBT_PARENT_SUB_DIR);
+            props.setProperty("parentFolder", env.expand((String) checkoutDirParameter.getValue()) + "\\" + MfMBTConverter.MBT_PARENT_SUB_DIR);
             props.setProperty("repoFolder", env.expand((String) checkoutDirParameter.getValue()));
         }
 
@@ -318,14 +320,14 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
     private static class GetConvertResult implements FilePath.FileCallable<TestsToRunConverterResult> {
 
         private TestsToRunFramework framework;
-        private String rawTests;
+        private List<TestToRunData> testData;
         private String executingDirectory;
         private String format;
         private Map<String, String> globalParameters;
 
-        public GetConvertResult(TestsToRunFramework framework, String format, String rawTests, String executingDirectory, Map<String, String> globalParameters) {
+        public GetConvertResult(TestsToRunFramework framework, String format, List<TestToRunData> testData, String executingDirectory, Map<String, String> globalParameters) {
             this.framework = framework;
-            this.rawTests = rawTests;
+            this.testData = testData;
             this.format = format;
             this.executingDirectory = executingDirectory;
             this.globalParameters = globalParameters;
@@ -335,7 +337,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         public TestsToRunConverterResult invoke(File file, VirtualChannel virtualChannel) throws IOException, InterruptedException {
             return TestsToRunConvertersFactory.createConverter(framework)
                     .setFormat(format)
-                    .convert(rawTests, executingDirectory, globalParameters);
+                    .convert(testData, executingDirectory, globalParameters);
         }
 
         @Override

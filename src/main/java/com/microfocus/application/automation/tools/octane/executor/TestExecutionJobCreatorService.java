@@ -353,7 +353,8 @@ public class TestExecutionJobCreatorService {
 			addConcurrentBuildFlag(proj);
 
 			//add build action
-			Builder convertedBuilder = new TestsToRunConverterBuilder(TestsToRunFramework.MF_UFT.value());
+			TestsToRunFramework framework = TestingToolType.UFT.equals(discoveryInfo.getTestingToolType()) ? TestsToRunFramework.MF_UFT : TestsToRunFramework.MF_MBT;
+			Builder convertedBuilder = new TestsToRunConverterBuilder(framework.value());
 			Builder uftRunner = new RunFromFileBuilder("${testsToRunConverted}");
 			proj.getBuildersList().add(convertedBuilder);
 			proj.getBuildersList().add(uftRunner);
