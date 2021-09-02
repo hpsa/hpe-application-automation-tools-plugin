@@ -159,14 +159,14 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	public CIBuildStatusInfo getBuildStatus(ParametersAction parametersAction) {
-		CIBuildStatusInfo status = DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class).setBuildStatus(CIBuildStatus.UNAVAILABLE);
-		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
-		String releaseExecutionId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
-		if (SdkStringUtils.isEmpty(releaseExecutionId) && SdkStringUtils.isEmpty(buildId)) {
-			List<String> required = Arrays.asList(UftConstants.BUILD_ID_PARAMETER_NAME, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
-			throw new IllegalArgumentException("One of parameters is required :" + required);
-		}
+	public CIBuildStatusInfo getBuildStatus(String paramName, String paramValue) {
+		CIBuildStatusInfo status = DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class)
+				.setBuildStatus(CIBuildStatus.UNAVAILABLE)
+				.setJobCiId(this.getTranslatedJobName())
+				.setParamName(paramName)
+				.setParamValue(paramValue);
+		String buildId = UftConstants.BUILD_ID_PARAMETER_NAME.equals(paramName)?paramValue:null;
+
 
 		if (job instanceof AbstractProject) {
 			if (buildId != null) {
@@ -188,7 +188,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				Queue queue = Jenkins.get().getQueue();
 				queue.getItems(project).forEach(item -> {
 					item.getActions(ParametersAction.class).forEach(action -> {
-						if (!foundInfo.found && checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
+						if (!foundInfo.found && checkIfParamExistAndEqual(action, paramName, paramValue)) {
 							status.setBuildStatus(CIBuildStatus.QUEUED);
 							foundInfo.found = true;
 						}
@@ -199,7 +199,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 					if (!foundInfo.found && build instanceof AbstractBuild) {
 						AbstractBuild aBuild = (AbstractBuild) build;
 						aBuild.getActions(ParametersAction.class).forEach(action -> {
-							if (checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
+							if (checkIfParamExistAndEqual(action, paramName, paramValue)) {
 								if (aBuild.isBuilding()) {
 									status.setBuildStatus(CIBuildStatus.RUNNING);
 								} else {

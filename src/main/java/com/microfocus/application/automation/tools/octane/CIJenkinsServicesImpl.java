@@ -299,7 +299,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, CIParameters ciParameters) {
+	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, String parameterName, String parameterValue) {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
@@ -308,12 +308,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
 			}
 			AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-			ParametersAction parametersAction = new ParametersAction();
-			if (ciParameters != null) {
-				parametersAction = new ParametersAction(createParameters(job, ciParameters));
-			}
-
-			return jobProcessor.getBuildStatus(parametersAction);
+			return jobProcessor.getBuildStatus(parameterName, parameterValue);
 		} finally {
 			stopImpersonation(securityContext);
 		}
