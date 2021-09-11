@@ -40,10 +40,17 @@
         <tbody>
         <tr>
             <td>Execute suite runs in ALM Octane</td>
-            <td>Execute suites according to specified suite IDs. Suites are
-                triggered in ALM Octane, and the job is finished after triggering the suite runs. The job does not wait
+            <td>Execute suites according to specified suite IDs. New suite runs will be created and executed in ALM Octane.
+                Jenkins job is finished after triggering the suite runs. The job does not wait
                 until the suite runs are finished. This method is useful if you want to schedule suite execution in ALM
-                Octane. Suite runs will be triggered with default release.
+                Octane. 
+                <br>
+                By default, newly created suite runs will have name of suite and will be assigned to default release.
+                In order to override this default behaviour, add following parameters (one or more) to job with your desired values:
+                <ul>
+                    <li>octane_release_id</li>
+                    <li>octane_new_suite_run_name</li>
+                </ul>
             </td>
         </tr>
         <tr>

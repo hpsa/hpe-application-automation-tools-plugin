@@ -30,25 +30,44 @@ package com.microfocus.application.automation.tools.octane.octaneExecution;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
+import com.hp.octane.integrations.exceptions.ConfigurationException;
+import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.octaneExecution.ExecutionMode;
+import com.hp.octane.integrations.services.SupportsConsoleLog;
+import com.hp.octane.integrations.services.testexecution.TestExecutionContext;
 import com.hp.octane.integrations.services.testexecution.TestExecutionService;
+import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
+import com.microfocus.application.automation.tools.octane.executor.TriggeredByOctanePlugin;
+import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunConverterBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.model.queue.QueueTaskFuture;
+import hudson.security.ACLContext;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.apache.http.HttpStatus;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,6 +91,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
 
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        SupportsConsoleLog supportsConsoleLog = new SupportsConsoleLogImpl(listener);
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
@@ -93,7 +113,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
             listener.error("Failed loading build environment " + e);
         }
 
-        Long myWorkspaceIdAsLong = null;
+        Long myWorkspaceIdAsLong;
         try {
             myWorkspaceIdAsLong = Long.parseLong(myWorkspaceId);
         } catch (Exception e) {
@@ -105,16 +125,85 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
         List<Long> suiteIds = Arrays.stream(myIds.split(",")).map(str -> Long.parseLong(str.trim())).collect(Collectors.toList());
 
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
-        Long optionalReleaseId = null;
-        String optionalSuiteRunName = null;
-        if (parameterAction != null) {
-            optionalReleaseId = getLongValueParameter(parameterAction, "octane_release_id");
-            optionalSuiteRunName = getStringValueParameter(parameterAction, "octane_new_suite_run_name");
+
+        switch (ExecutionMode.fromValue(myExecutionMode)) {
+            case SUITE_RUNS_IN_OCTANE:
+
+                Long optionalReleaseId = getLongValueParameter(parameterAction, "octane_release_id");
+                String optionalSuiteRunName = getStringValueParameter(parameterAction, "octane_new_suite_run_name");
+                testExecutionService.executeSuiteRuns(myWorkspaceIdAsLong, suiteIds, optionalReleaseId, optionalSuiteRunName, supportsConsoleLog);
+                break;
+
+            case SUITE_IN_CI:
+                List<TestExecutionContext> testExecutions = testExecutionService.prepareTestExecutionForSuites(myWorkspaceIdAsLong, suiteIds, supportsConsoleLog);
+                ACLContext securityContext = ImpersonationUtil.startImpersonation(myConfigurationId, null);
+                List<QueueTaskFuture> futures = new ArrayList<>();
+                try {
+
+                    testExecutions.forEach(testExecution -> {
+                        AbstractProject project = getJobFromTestRunner(testExecution);
+                        supportsConsoleLog.addLogMessage(String.format("Trigger %s", project.getFullName()));
+                        int delay = project.getQuietPeriod();
+                        Cause cause = TriggeredByOctanePlugin.create(testExecution.getIdentifierType().getName(), testExecution.getIdentifier());
+
+                        CIParameter testsToRunParam = DTOFactory.getInstance().newDTO(CIParameter.class)
+                                .setName(TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER)
+                                .setValue(testExecution.getTestsToRun())
+                                .setType(CIParameterType.STRING);
+                        CIParameters ciParams = DTOFactory.getInstance().newDTO(CIParameters.class);
+                        ciParams.setParameters(Collections.singletonList(testsToRunParam));
+                        ParametersAction parametersAction = new ParametersAction(CIJenkinsServicesImpl.createParameters(project, ciParams));
+
+                        QueueTaskFuture future = project.scheduleBuild2(delay, cause, parametersAction);
+                        futures.add(future);
+                    });
+                } finally {
+                    ImpersonationUtil.stopImpersonation(securityContext);
+                }
+
+                //WAIT UNTIL ALL JOBS ARE FINISHED
+                futures.forEach(f -> {
+                    try {
+                        f.get();
+                    } catch (Exception e) {
+                        //TODO CHECK WHAT TO DO HERE
+                        throw new RuntimeException("Failed in waiting for job finishing : " + e.getMessage());
+                    }
+                });
+
+
+                break;
+            default:
+                throw new RuntimeException("not supported execution mode");
         }
-        testExecutionService.executeSuiteRuns(myWorkspaceIdAsLong, suiteIds, optionalReleaseId, optionalSuiteRunName);
+    }
+
+    private AbstractProject getJobFromTestRunner(TestExecutionContext testExecution) {
+        String ciJobName = testExecution.getTestRunner().getEntityValue("ci_job").getName();
+        Job job = (Job) Jenkins.get().getItemByFullName(ciJobName);
+        if (job != null) {
+            if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
+                //disabled job is not runnable and in this context we will handle it as 404
+                throw new ConfigurationException("Job is disabled " + ciJobName, HttpStatus.SC_NOT_FOUND);
+            }
+            boolean hasBuildPermission = job.hasPermission(Item.BUILD);
+            if (!hasBuildPermission) {
+                throw new PermissionException("No permission to run job " + ciJobName, HttpStatus.SC_FORBIDDEN);
+            }
+            if (job instanceof AbstractProject || job.getClass().getName().equals(JobProcessorFactory.WORKFLOW_JOB_NAME)) {
+
+            }
+        } else {
+            throw new ConfigurationException("Job is not found " + ciJobName, HttpStatus.SC_NOT_FOUND);
+        }
+
+        return (AbstractProject) job;
     }
 
     private Long getLongValueParameter(ParametersAction parameterAction, String paramName) {
+        if (parameterAction == null) {
+            return null;
+        }
         ParameterValue pv = parameterAction.getParameter(paramName);
         if (pv != null && pv.getValue() instanceof String) {
             try {
@@ -127,15 +216,14 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
     }
 
     private String getStringValueParameter(ParametersAction parameterAction, String paramName) {
+        if (parameterAction == null) {
+            return null;
+        }
         ParameterValue pv = parameterAction.getParameter(paramName);
         if (pv != null && pv.getValue() instanceof String) {
             return (String) pv.getValue();
         }
         return null;
-    }
-
-    private static void printToConsole(TaskListener listener, String msg) {
-        listener.getLogger().println(ExecuteTestsInOctaneBuilder.class.getSimpleName() + " : " + msg);
     }
 
     public String getConfigurationId() {
@@ -154,6 +242,17 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
         return ids;
     }
 
+    public static class SupportsConsoleLogImpl implements SupportsConsoleLog {
+        TaskListener listener;
+
+        public SupportsConsoleLogImpl(TaskListener listener) {
+            this.listener = listener;
+        }
+
+        public void addLogMessage(String msg) {
+            listener.getLogger().println(ExecuteTestsInOctaneBuilder.class.getSimpleName() + " : " + msg);
+        }
+    }
 
     @Symbol("executeTestsFromAlmOctane")
     @Extension
@@ -161,7 +260,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return false;//FreeStyleProject.class.isAssignableFrom(jobType);
+            return true;//FreeStyleProject.class.isAssignableFrom(jobType);
         }
 
         @Override

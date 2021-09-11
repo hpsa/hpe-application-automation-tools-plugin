@@ -676,7 +676,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		method.accept(cause, parametersAction);
 	}
 
-	private List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
+	public static List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
 		List<ParameterValue> result = new ArrayList<>();
 		boolean parameterHandled;
 		ParameterValue tmpValue;

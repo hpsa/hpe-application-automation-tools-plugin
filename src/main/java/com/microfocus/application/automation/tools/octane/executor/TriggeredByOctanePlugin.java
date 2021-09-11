@@ -31,23 +31,24 @@ package com.microfocus.application.automation.tools.octane.executor;
 import hudson.model.Cause;
 
 /**
- * Representing job trigger by Octane suite run
+ * Representing job trigger by Octane plugin
  */
-public class TriggeredBySuiteRunCause extends Cause {
+public class TriggeredByOctanePlugin extends Cause {
 
-    String suiteRunId;
+    String identifier;
+    String identifierType;
 
-
-    public TriggeredBySuiteRunCause(String suiteRunId) {
-        this.suiteRunId = suiteRunId;
+    public TriggeredByOctanePlugin(String identifierType, String identifier) {
+        this.identifier = identifier;
+        this.identifierType = identifierType;
     }
 
-    public static TriggeredBySuiteRunCause create(String suiteRunId){
-        return new TriggeredBySuiteRunCause(suiteRunId);
+    public static TriggeredByOctanePlugin create(String identifierType, String identifier) {
+        return new TriggeredByOctanePlugin(identifierType, identifier);
     }
 
     @Override
     public String getShortDescription() {
-        return "Triggered by ALM Octane suite run #" + suiteRunId;
+        return String.format("Triggered by ALM Octane plugin for %s #%s ", identifierType, identifier);
     }
 }
