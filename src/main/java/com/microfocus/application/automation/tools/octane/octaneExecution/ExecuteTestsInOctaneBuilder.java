@@ -43,7 +43,6 @@ import com.hp.octane.integrations.services.testexecution.TestExecutionService;
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.ImpersonationUtil;
 import com.microfocus.application.automation.tools.octane.JellyUtils;
-import com.microfocus.application.automation.tools.octane.executor.TriggeredByOctanePlugin;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunConverterBuilder;
 import hudson.EnvVars;
@@ -65,10 +64,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,12 +88,15 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         SupportsConsoleLog supportsConsoleLog = new SupportsConsoleLogImpl(listener);
+        supportsConsoleLog.println("Start **********************************************************************************************");
+        supportsConsoleLog.println("");
         if (configurationId == null) {
             throw new IllegalArgumentException("ALM Octane configuration is not defined.");
         }
         if (workspaceId == null) {
             throw new IllegalArgumentException("ALM Octane workspace is not defined.");
         }
+
 
         String myConfigurationId = configurationId;
         String myWorkspaceId = workspaceId;
@@ -137,15 +136,26 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
             case SUITE_IN_CI:
                 List<TestExecutionContext> testExecutions = testExecutionService.prepareTestExecutionForSuites(myWorkspaceIdAsLong, suiteIds, supportsConsoleLog);
                 ACLContext securityContext = ImpersonationUtil.startImpersonation(myConfigurationId, null);
-                List<QueueTaskFuture> futures = new ArrayList<>();
+                Map<TestExecutionContext, QueueTaskFuture<AbstractBuild>> futures = new HashMap<>();
                 try {
 
                     testExecutions.forEach(testExecution -> {
                         AbstractProject project = getJobFromTestRunner(testExecution);
-                        supportsConsoleLog.addLogMessage(String.format("Trigger %s", project.getFullName()));
-                        int delay = project.getQuietPeriod();
-                        Cause cause = TriggeredByOctanePlugin.create(testExecution.getIdentifierType().getName(), testExecution.getIdentifier());
+                        try {
+                            supportsConsoleLog.print(String.format("%s %s, triggering test runner '%s' (%s tests): "
+                                    , testExecution.getIdentifierType().getName()
+                                    , testExecution.getIdentifier()
+                                    , testExecution.getTestRunner().getName()
+                                    , testExecution.getTests().size()
+                            ));
+                            listener.hyperlink("/job/" + project.getFullName().replace("/", "/job/"), project.getFullName());
+                            supportsConsoleLog.newLine();
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to print link to triggered job : " + e.getMessage());
+                        }
+                        int delay = 0;
 
+                        Cause cause = new Cause.UpstreamCause(build);
                         CIParameter testsToRunParam = DTOFactory.getInstance().newDTO(CIParameter.class)
                                 .setName(TestsToRunConverterBuilder.TESTS_TO_RUN_PARAMETER)
                                 .setValue(testExecution.getTestsToRun())
@@ -154,24 +164,43 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
                         ciParams.setParameters(Collections.singletonList(testsToRunParam));
                         ParametersAction parametersAction = new ParametersAction(CIJenkinsServicesImpl.createParameters(project, ciParams));
 
-                        QueueTaskFuture future = project.scheduleBuild2(delay, cause, parametersAction);
-                        futures.add(future);
+                        QueueTaskFuture<AbstractBuild> future = project.scheduleBuild2(delay, cause, parametersAction);
+                        futures.put(testExecution, future);
                     });
                 } finally {
                     ImpersonationUtil.stopImpersonation(securityContext);
                 }
 
-                //WAIT UNTIL ALL JOBS ARE FINISHED
-                futures.forEach(f -> {
+                //WAIT UNTIL ALL JOBS ARE FINISHED and set build result based on worse result
+                supportsConsoleLog.print("Waiting for test runners are finished ... ");
+                Result buildResult = Result.SUCCESS;
+                for (Map.Entry<TestExecutionContext, QueueTaskFuture<AbstractBuild>> entry : futures.entrySet()) {
                     try {
-                        f.get();
+
+                        //TODO check status
+                        AbstractBuild buildFromFuture = entry.getValue().get();
+                        try {
+                            supportsConsoleLog.print("Build ");
+                            String url = "/job/" + buildFromFuture.getProject().getFullName().replace("/", "/job/") + "/" + buildFromFuture.getNumber();
+                            listener.hyperlink(url, buildFromFuture.getProject().getFullName() + " " + buildFromFuture.getDisplayName());
+                            supportsConsoleLog.append(" - " + buildFromFuture.getResult());
+                            supportsConsoleLog.newLine();
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to print link to triggered job : " + e.getMessage());
+                        }
+
+                        if (buildFromFuture.getResult().isWorseThan(buildResult)) {
+                            buildResult = buildFromFuture.getResult();
+                        }
+
                     } catch (Exception e) {
                         //TODO CHECK WHAT TO DO HERE
                         throw new RuntimeException("Failed in waiting for job finishing : " + e.getMessage());
                     }
-                });
-
-
+                }
+                if (buildResult.isWorseThan(Result.SUCCESS)) {
+                    build.setResult(buildResult);
+                }
                 break;
             default:
                 throw new RuntimeException("not supported execution mode");
@@ -249,8 +278,20 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
             this.listener = listener;
         }
 
-        public void addLogMessage(String msg) {
+        public void println(String msg) {
             listener.getLogger().println(ExecuteTestsInOctaneBuilder.class.getSimpleName() + " : " + msg);
+        }
+
+        public void print(String msg) {
+            listener.getLogger().print(ExecuteTestsInOctaneBuilder.class.getSimpleName() + " : " + msg);
+        }
+
+        public void append(String msg) {
+            listener.getLogger().print(msg);
+        }
+
+        public void newLine() {
+            listener.getLogger().println();
         }
     }
 
