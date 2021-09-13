@@ -65,7 +65,7 @@ public class UFTTestDetectionService {
                 result = UftTestDiscoveryUtils.doFullDiscovery(rootDir, testingToolType);
             } else {
                 printToConsole(buildListener, "Executing changeSet sync. For full sync - define in job boolean parameter 'Full sync' with value 'true'.");
-                result = doChangeSetDetection(scmChangesWrapper, rootDir);
+                result = doChangeSetDetection(scmChangesWrapper, rootDir, testingToolType);
                 removeTestDuplicatedForUpdateTests(result);
                 removeFalsePositiveDataTables(result, result.getDeletedTests(), result.getDeletedScmResourceFiles());
                 removeFalsePositiveDataTables(result, result.getNewTests(), result.getNewScmResourceFiles());
@@ -193,67 +193,25 @@ public class UFTTestDetectionService {
         }
     }
 
-    private static UftTestDiscoveryResult doChangeSetDetection(UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, File workspace) {
+    private static UftTestDiscoveryResult doChangeSetDetection(UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, File workspace, TestingToolType testingToolType) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
-
+        result.setTestingToolType(testingToolType);
 
         for (UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper : scmChangesWrapper.getAffectedFiles()) {
-
             if (affectedFileWrapper.getPath().startsWith("\"")) {
                 result.setHasQuotedPaths(true);
             }
             String affectedFileFullPath = workspace + File.separator + affectedFileWrapper.getPath();
             if (!affectedFileWrapper.isSvnDirType()) {
                 if (UftTestDiscoveryUtils.isTestMainFilePath(affectedFileWrapper.getPath())) {
-                    File testFolder = UftTestDiscoveryUtils.getTestFolderForTestMainFile(affectedFileFullPath);
-                    File affectedFile = new File(affectedFileFullPath);
-                    boolean fileExist = affectedFile.exists();
-                    UftTestType uftTestType = UftTestDiscoveryUtils.getUftTestType(affectedFileWrapper.getPath());
-
-                    AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType, TestingToolType.UFT);
-                    test.setChangeSetSrc(affectedFileWrapper.getGitSrc());
-                    test.setChangeSetDst(affectedFileWrapper.getGitDst());
-
-
-                    if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.ADD.equals(affectedFileWrapper.getEditType())) {
-                        if (fileExist) {
-                            result.getAllTests().add(test);
-                        }
-                    } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
-                        if (!fileExist) {
-                            test.setOctaneStatus(OctaneStatus.DELETED);
-                            test.setExecutable(false);
-                            result.getAllTests().add(test);
-                        }
-                    } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.EDIT.equals(affectedFileWrapper.getEditType())) {
-                        if (fileExist) {
-                            test.setOctaneStatus(OctaneStatus.MODIFIED);
-                            result.getAllTests().add(test);
-                        }
-                    }
-                } else if (UftTestDiscoveryUtils.isUftDataTableFile(affectedFileWrapper.getPath())) {
-                    File affectedFile = new File(affectedFileFullPath);
-                    ScmResourceFile resourceFile = UftTestDiscoveryUtils.createDataTable(workspace, affectedFile);
-                    resourceFile.setChangeSetSrc(affectedFileWrapper.getGitSrc());
-                    resourceFile.setChangeSetDst(affectedFileWrapper.getGitDst());
-
-                    if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.ADD.equals(affectedFileWrapper.getEditType())) {
-                        UftTestType testType = UftTestDiscoveryUtils.isUftTestFolder(affectedFile.getParentFile().listFiles());
-                        if (testType.isNone()) {
-                            if (affectedFile.exists()) {
-                                result.getAllScmResourceFiles().add(resourceFile);
-                            }
-                        }
-                    } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
-                        if (!affectedFile.exists()) {
-                            resourceFile.setOctaneStatus(OctaneStatus.DELETED);
-                            result.getAllScmResourceFiles().add(resourceFile);
-                        }
-                    }
+                    handleUftTestChanges(workspace, testingToolType, result, affectedFileWrapper, affectedFileFullPath);
+                } else if (TestingToolType.UFT.equals(testingToolType) && UftTestDiscoveryUtils.isUftDataTableFile(affectedFileWrapper.getPath())) {
+                    handleUftDataTableChanges(workspace, result, affectedFileWrapper, affectedFileFullPath);
+                } else if (TestingToolType.MBT.equals(testingToolType) && UftTestDiscoveryUtils.isUftActionFile(affectedFileWrapper.getPath())) {
+                    handleUftActionChanges(workspace, result, affectedFileWrapper, affectedFileFullPath);
                 }
             } else { //isDir
                 if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
-
                     FilePath filePath = new FilePath(new File(affectedFileWrapper.getPath()));
                     String deletedFolder = filePath.getRemote().replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
                     result.getDeletedFolders().add(deletedFolder);
@@ -262,6 +220,59 @@ public class UFTTestDetectionService {
         }
 
         return result;
+    }
+
+    private static void handleUftTestChanges(File workspace, TestingToolType testingToolType, UftTestDiscoveryResult result, UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper, String affectedFileFullPath) {
+        File testFolder = UftTestDiscoveryUtils.getTestFolderForTestMainFile(affectedFileFullPath);
+        File affectedFile = new File(affectedFileFullPath);
+        boolean fileExist = affectedFile.exists();
+        UftTestType uftTestType = UftTestDiscoveryUtils.getUftTestType(affectedFileWrapper.getPath());
+
+        AutomatedTest test = UftTestDiscoveryUtils.createAutomatedTest(workspace, testFolder, uftTestType, testingToolType);
+        test.setChangeSetSrc(affectedFileWrapper.getGitSrc());
+        test.setChangeSetDst(affectedFileWrapper.getGitDst());
+
+        if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.ADD.equals(affectedFileWrapper.getEditType())) {
+            if (fileExist) { // uft and mbt behave the same
+                result.getAllTests().add(test);
+            }
+        } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
+            if (!fileExist) {
+                test.setOctaneStatus(OctaneStatus.DELETED);
+                test.setExecutable(false);
+                result.getAllTests().add(test);
+            }
+        } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.EDIT.equals(affectedFileWrapper.getEditType())) {
+            if (fileExist) {
+                test.setOctaneStatus(OctaneStatus.MODIFIED);
+                result.getAllTests().add(test);
+            }
+        }
+    }
+
+    private static void handleUftDataTableChanges(File workspace, UftTestDiscoveryResult result, UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper, String affectedFileFullPath) {
+        File affectedFile = new File(affectedFileFullPath);
+        ScmResourceFile resourceFile = UftTestDiscoveryUtils.createDataTable(workspace, affectedFile);
+        resourceFile.setChangeSetSrc(affectedFileWrapper.getGitSrc());
+        resourceFile.setChangeSetDst(affectedFileWrapper.getGitDst());
+
+        if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.ADD.equals(affectedFileWrapper.getEditType())) {
+            UftTestType testType = UftTestDiscoveryUtils.isUftTestFolder(affectedFile.getParentFile().listFiles());
+            if (testType.isNone()) {
+                if (affectedFile.exists()) {
+                    result.getAllScmResourceFiles().add(resourceFile);
+                }
+            }
+        } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
+            if (!affectedFile.exists()) {
+                resourceFile.setOctaneStatus(OctaneStatus.DELETED);
+                result.getAllScmResourceFiles().add(resourceFile);
+            }
+        }
+    }
+
+    private static void handleUftActionChanges(File workspace, UftTestDiscoveryResult result, UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper, String affectedFileFullPath) {
+        // currently do nothing. to be implemented
     }
 
     private static boolean initialDetectionFileExist(File rootFile) {
