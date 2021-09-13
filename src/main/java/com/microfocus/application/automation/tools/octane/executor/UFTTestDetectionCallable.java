@@ -132,8 +132,9 @@ public class UFTTestDetectionCallable extends MasterToSlaveFileCallable<UftTestD
                     }
 
                     if(fileWrapper.isSvnDirType()||
-                            UftTestDiscoveryUtils.isUftDataTableFile(fileWrapper.getPath())||
-                            UftTestDiscoveryUtils.isTestMainFilePath(fileWrapper.getPath())){
+                            UftTestDiscoveryUtils.isTestMainFilePath(fileWrapper.getPath())||
+                            (TestingToolType.UFT.equals(testingToolType) && UftTestDiscoveryUtils.isUftDataTableFile(fileWrapper.getPath())) ||
+                            (TestingToolType.MBT.equals(testingToolType) && UftTestDiscoveryUtils.isUftActionFile(fileWrapper.getPath()))){
                         //add to list
                         scmChangesWrapper.getAffectedFiles().add(fileWrapper);
                     }

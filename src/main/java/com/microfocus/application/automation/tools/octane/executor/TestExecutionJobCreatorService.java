@@ -169,14 +169,12 @@ public class TestExecutionJobCreatorService {
 			addConstantParameter(proj, UftConstants.TEST_RUNNER_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane test runner logical name");
 			addBooleanParameter(proj, UftConstants.FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
 
-			if(!TestingToolType.MBT.equals(discoveryInfo.getTestingToolType())) { // currently, mbt does not support scm changes
-				//set polling once in two minutes only if not MBT
-				SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
-				proj.addTrigger(scmTrigger);
-				delayPollingStart(proj, scmTrigger);
-				addDiscoveryAssignedNode(proj);
-				addTimestamper(proj);
-			}
+			//set polling once in two minutes
+			SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
+			proj.addTrigger(scmTrigger);
+			delayPollingStart(proj, scmTrigger);
+			addDiscoveryAssignedNode(proj);
+			addTimestamper(proj);
 
 			//add post-build action - publisher
 			addUFTTestDetectionPublisherIfNeeded(proj.getPublishersList(), discoveryInfo);
