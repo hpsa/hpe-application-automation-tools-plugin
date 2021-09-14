@@ -305,7 +305,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 			Job job = getJobByRefId(jobCiId);
 			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
 			if (!hasRead) {
-				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+				throw new PermissionException("Missing READ permission to job " + jobCiId,  HttpStatus.SC_FORBIDDEN);
 			}
 			AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
 			return jobProcessor.getBuildStatus(parameterName, parameterValue);
