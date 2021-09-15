@@ -570,7 +570,7 @@ public class PcClient {
                 } else {
                     Thread.sleep(5000);
                     counterPublishStarted++;
-                    if(counterPublishStarted >= 120){
+                    if(counterPublishStarted >= 360){ //waiting 30 minutes for timeout
                         String msg = String.format("%s: %s",
                                 Messages.Error(),
                                 Messages.PublishingEndTimeout());
@@ -581,7 +581,7 @@ public class PcClient {
              if (!publishEnded && resultNotFound) {
                 Thread.sleep(5000);
                  counterPublishNotStarted++;
-                 if(counterPublishNotStarted >= 120){ //waiting 10 minutes for timeout
+                 if(counterPublishNotStarted >= 180){ //waiting 15 minutes for timeout
                      String msg = String.format("%s",
                              Messages.PublishingStartTimeout());
                      throw new PcException(msg);
