@@ -57,8 +57,8 @@ public final class SDKBasedLoggerProvider {
     public static Logger getLogger(Class<?> type) {
         try {
             if (!sysParamConfigured) {
-                CommonLoggerContextUtil.configureLogger(CIJenkinsServicesImpl.getAllowedStorageFile());
-                //System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
+                System.setProperty("octaneAllowedStorage", CIJenkinsServicesImpl.getAllowedStorageFile().getAbsolutePath() + File.separator);
+                //CommonLoggerContextUtil.configureLogger(CIJenkinsServicesImpl.getAllowedStorageFile());
                 sysParamConfigured = true;
             }
             return LogManager.getLogger(type);
