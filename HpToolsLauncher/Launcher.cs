@@ -879,7 +879,8 @@ namespace HpToolsLauncher
 
                 if (results.TestRuns.Count == 0)
                 {
-                    Console.WriteLine("No tests were run");
+                    ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+                    ConsoleWriter.WriteLine("No tests were run");
                     _exitCode = ExitCodeEnum.Failed;
                     Environment.Exit((int)_exitCode);
                 }
@@ -890,9 +891,9 @@ namespace HpToolsLauncher
                     _exitCode = ExitCodeEnum.Failed;
                 }
 
-                int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
+                int numFailures = results.NumFailures;
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
-                int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
+                int numErrors = results.NumErrors;
                 int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
 
                 if ((numErrors <= 0) && (numFailures > 0))

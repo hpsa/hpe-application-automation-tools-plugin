@@ -580,7 +580,7 @@ namespace HpToolsLauncher
 
             if (targetTestSet != null) { return targetTestSet; }
 
-            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
+            ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
 
             //this will make sure run will fail at the end. (since there was an error)
             Debug.WriteLine("Null target test set");
@@ -665,7 +665,7 @@ namespace HpToolsLauncher
                 List testList = tsFolder.FindTestSets(testSuiteName);
                 if (testList == null)
                 {
-                    ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
                     //this will make sure run will fail at the end. (since there was an error)
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                     return null;
@@ -1119,6 +1119,8 @@ namespace HpToolsLauncher
             TestRunResults activeTestDesc = null;
             List testSetList;
 
+            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+
             //get list of test sets
             try
             {
@@ -1127,15 +1129,18 @@ namespace HpToolsLauncher
             catch (Exception ex)
             {
                 Console.WriteLine("Unable to retrieve the list of tests");
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
                 Console.WriteLine(ex.Message);
+
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                return null;
+                runDesc.NumErrors++;
+                return runDesc;
             }
             if (testSetList == null)
             {
-                return null;
+                runDesc.NumErrors++;
+                return runDesc;
             }
 
             //get target test set
@@ -1150,10 +1155,10 @@ namespace HpToolsLauncher
             }
             if (targetTestSet == null)
             {
-                return null;
+                runDesc.NumErrors++;
+                return runDesc;
             }
 
-            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, testSuiteName, targetTestSet.ID));
 
