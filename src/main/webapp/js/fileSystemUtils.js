@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         selectCleanupTest("block");
     }
-
 }, false);
 
     function useAuthentication(obj) {
@@ -162,6 +161,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    (function () {
+        // sets the proper publish message to visible
+        // the type is decided by the build type
+        function displayProperPublishMessage() {
+            function isPipelineJob() {
+                var urlStringSeparated = (window.location.href).split("/").filter(function (elem) { return elem; });
+                return urlStringSeparated[urlStringSeparated.length - 1] === "pipeline-syntax";
+            }
+
+            isPipelineJob() ? document.querySelector("#help-text-pipeline").style.display = "block" : document.querySelector("#help-text-freestyle").style.display = "block";
+        }
+
+        // This makes sure that the two elements are always visible
+        // If we put the callback call to the DomContentLoaded none of the messages will be visible, after loading the page
+        waitForElementToDisplay("#help-text-pipeline", "#help-text-freestyle", displayProperPublishMessage, 500, 9000);
+
+        // periodically checks if selector1 and selector2 are visible,
+        // the search stops after a specified timeout
+        function waitForElementToDisplay(selector1, selector2, callback, checkFrequencyInMs, timeoutInMs) {
+            var startTimeInMs = Date.now();
+            (function loopSearch() {
+                if (document.querySelector(selector1) && document.querySelector(selector2)) {
+                    callback();
+                }
+                else {
+                    setTimeout(function () {
+                        if (timeoutInMs && Date.now() - startTimeInMs > timeoutInMs)
+                            return;
+                        loopSearch();
+                    }, checkFrequencyInMs);
+                }
+            })();
+        }
+    })();
 
 
 

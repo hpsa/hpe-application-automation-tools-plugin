@@ -103,7 +103,8 @@
 	  <td/>
 	  <td colspan="2" class="help-text">
 		<div class="help" style="display:block; margin-left: -15px;">
-		  ${%DontForgetThePublisher}
+			<div id="help-text-pipeline" style="display: none;">${%DontForgetThePublisherPipeline}</div>
+			<div id="help-text-freestyle" style="display: none;">${%DontForgetThePublisherFreestyle}</div>
 		</div>
 	  </td>
 	  <td/>
