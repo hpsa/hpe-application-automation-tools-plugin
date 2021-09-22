@@ -44,6 +44,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.IOUtils;
+import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
@@ -666,7 +667,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
            if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
                try {
-                   String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),
+                   String encPassword = EncryptionUtils.Encrypt(Secret.fromString(runFromFileModel.getFsPassword()).getPlainText(),
                            EncryptionUtils.getSecretKey());
                    mergedProperties.put("MobilePassword", encPassword);
                } catch (Exception e) {
