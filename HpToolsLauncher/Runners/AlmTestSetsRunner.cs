@@ -1134,13 +1134,11 @@ namespace HpToolsLauncher
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                runDesc.NumErrors++;
-                return runDesc;
+                return null;
             }
             if (testSetList == null)
             {
-                runDesc.NumErrors++;
-                return runDesc;
+                return null;
             }
 
             //get target test set
@@ -1151,12 +1149,13 @@ namespace HpToolsLauncher
             }
             catch (Exception)
             {
-                Console.WriteLine("Empty target test set list");
+                ConsoleWriter.WriteErrLine("Empty target test set list");
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                return null;
             }
             if (targetTestSet == null)
             {
-                runDesc.NumErrors++;
-                return runDesc;
+                return null;
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
@@ -1178,7 +1177,7 @@ namespace HpToolsLauncher
 
             if (scheduler == null)
             {
-                Console.WriteLine(GetAlmNotInstalledError());
+                ConsoleWriter.WriteErrLine(GetAlmNotInstalledError());
 
                 //proceeding with program execution is tasteless, since nothing will run without a properly installed QC.
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
@@ -1210,7 +1209,7 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
             }
 
             //set test parameters
@@ -1222,10 +1221,9 @@ namespace HpToolsLauncher
             //start test runner
             if (filteredTestList.Count == 0)
             {
-                //ConsoleWriter.WriteErrLine("Specified test not found on ALM, please check your test path.");
                 //this will make sure run will fail at the end. (since there was an error)
-                //Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 Console.WriteLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 return null;
             }
 
@@ -1238,7 +1236,8 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteLine(Resources.AlmRunnerRunError + ex.Message);
+                ConsoleWriter.WriteErrLine(Resources.AlmRunnerRunError + ex.Message);
+                return null;
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerSchedStarted + DateTime.Now.ToString(Launcher.DateFormat));
@@ -1287,6 +1286,7 @@ namespace HpToolsLauncher
 
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
             }
+
             return runDesc;
         }
 

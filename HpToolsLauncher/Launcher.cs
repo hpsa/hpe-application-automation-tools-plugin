@@ -896,12 +896,12 @@ namespace HpToolsLauncher
                 int numErrors = results.NumErrors;
                 int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
 
-                if ((numErrors <= 0) && (numFailures > 0))
+                if ((numErrors <= 0) && (numFailures > 0) && _exitCode != ExitCodeEnum.Failed)
                 {
                     _exitCode = ExitCodeEnum.Failed;
                 }
 
-                if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
+                if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0) && _exitCode != ExitCodeEnum.Failed)
                 {
                     _exitCode = ExitCodeEnum.Unstable;
                 }

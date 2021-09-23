@@ -158,7 +158,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>No Micro Focus testing tool is installed on {0}</value>
   </data>
   <data name="AlmRunnerCantFindTestSet" xml:space="preserve">
-    <value>Could not find TestSet {0}</value>
+    <value>Could not find TestSet {0}; setting final run status to Failed</value>
   </data>
   <data name="AlmRunnerConnParamEmpty" xml:space="preserve">
     <value>One or more of the required connection parameters is empty.</value>

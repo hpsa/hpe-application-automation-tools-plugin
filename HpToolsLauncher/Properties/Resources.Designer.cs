@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,7 +61,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find TestSet {0}.
+        ///   Looks up a localized string similar to Could not find TestSet {0}; setting final run status to Failed.
         /// </summary>
         internal static string AlmRunnerCantFindTestSet {
             get {
@@ -358,7 +358,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ===============================\nThere are no valid tests to run!\n===============================.
+        ///   Looks up a localized string similar to =============================== There are no valid tests to run! ===============================.
         /// </summary>
         internal static string FsRunnerNoValidTests {
             get {
