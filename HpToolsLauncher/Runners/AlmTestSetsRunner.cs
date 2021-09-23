@@ -1117,7 +1117,7 @@ namespace HpToolsLauncher
             string currentTestSetInstances = string.Empty, testName = string.Empty;
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
             TestRunResults activeTestDesc = null;
-            List testSetList;
+            List testSetList = null;
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
 
@@ -1134,8 +1134,8 @@ namespace HpToolsLauncher
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                return null;
             }
+
             if (testSetList == null)
             {
                 return null;
@@ -1151,8 +1151,8 @@ namespace HpToolsLauncher
             {
                 ConsoleWriter.WriteErrLine("Empty target test set list");
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                return null;
             }
+
             if (targetTestSet == null)
             {
                 return null;
