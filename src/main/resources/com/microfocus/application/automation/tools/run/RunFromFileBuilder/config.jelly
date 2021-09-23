@@ -103,8 +103,7 @@
 	  <td/>
 	  <td colspan="2" class="help-text">
 		<div class="help" style="display:block; margin-left: -15px;">
-			<div id="help-text-pipeline" style="display: none;">${%DontForgetThePublisherPipeline}</div>
-			<div id="help-text-freestyle" style="display: none;">${%DontForgetThePublisherFreestyle}</div>
+			<div id="helpTextMsg">${%DontForgetThePublisherFreestyle}</div>
 		</div>
 	  </td>
 	  <td/>
@@ -263,4 +262,8 @@
 
 			</f:section>
 		</f:advanced>
+
+	<script type="text/javascript">
+		displayProperPublisherMessage("${%DontForgetThePublisherPipeline}");
+	</script>
 </j:jelly>
