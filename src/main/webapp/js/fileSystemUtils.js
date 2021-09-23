@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function displayProperPublisherMessage(msg) {
+    function checkIfPipelineAndUpdateHelpMsg(msg) {
         setTimeout(function () {
             if (window.location.href.indexOf("pipeline-syntax") > 0) {
                 let helpText = document.getElementById("helpTextMsg");

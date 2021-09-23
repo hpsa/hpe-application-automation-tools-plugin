@@ -102,8 +102,8 @@
 	<tr>
 	  <td/>
 	  <td colspan="2" class="help-text">
-		<div class="help" style="display:block; margin-left: -15px;">
-			<div id="helpTextMsg">${%DontForgetThePublisherFreestyle}</div>
+		<div id="helpTextMsg" class="help" style="display:block; margin-left: -15px;">
+			${%DontForgetThePublisherFreestyle}
 		</div>
 	  </td>
 	  <td/>
@@ -264,6 +264,6 @@
 		</f:advanced>
 
 	<script type="text/javascript">
-		displayProperPublisherMessage("${%DontForgetThePublisherPipeline}");
+		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
 	</script>
 </j:jelly>
