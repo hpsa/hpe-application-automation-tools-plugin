@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         selectCleanupTest("block");
     }
-
 }, false);
 
     function useAuthentication(obj) {
@@ -162,6 +161,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function checkIfPipelineAndUpdateHelpMsg(msg) {
+        setTimeout(function () {
+            if (window.location.href.indexOf("pipeline-syntax") > 0) {
+                let helpText = document.getElementById("helpTextMsg");
+
+                // verify if the element is found, otherwise an exception will occur which blocks the page loading
+                if (helpText) {
+                    helpText.innerHTML = msg;
+                }
+            }
+        }, 200);
+    }
 
 
 
