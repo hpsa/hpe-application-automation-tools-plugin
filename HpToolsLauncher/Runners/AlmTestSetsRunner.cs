@@ -636,7 +636,7 @@ namespace HpToolsLauncher
             {
                 //not found
                 tsFolder = null;
-                Console.WriteLine(ex.Message);
+                ConsoleWriter.WriteLine(ex.Message + " Trying to find specific test(s) with the given name(s) on the defined path, optionally applying the set filters");
             }
 
             // test set not found, try to find specific test by path
@@ -716,10 +716,11 @@ namespace HpToolsLauncher
         public IList FilterTests(ITestSet targetTestSet, bool isTestPath, string testName, bool isFilterSelected, List<string> filterByStatuses, string filterByName)
         {
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
-
             ITDFilter2 tdFilter = tsTestFactory.Filter;
 
-            tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
+            // DEF-673012 - causes problems when a non-existing and an existing specific test is given by the user, the list appears empty
+            // tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
+            // with commented out TC_CYCLE_ID, we get the initial testList by applying an empty filter
             IList testList = tsTestFactory.NewList(tdFilter.Text);
 
             List<ITSTest> testsFilteredByStatus = new List<ITSTest>();
@@ -785,6 +786,7 @@ namespace HpToolsLauncher
                 {
                     string tListIndexName = testList[index].Name;
                     string tListIndexTestName = testList[index].TestName;
+
                     if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexTestName))
                     {
                         testList.Remove(index);
@@ -1109,7 +1111,6 @@ namespace HpToolsLauncher
         public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string testParameters, double timeout, QcRunMode runMode, string runHost,
                                               bool isFilterSelected, string filterByName, List<string> filterByStatuses, TestStorageType testStorageType)
         {
-
             string testSuiteName = tsName.TrimEnd();
             ITestSetFolder tsFolder = null;
             string tsPath = string.Format(@"Root\{0}", tsFolderName);
@@ -1222,7 +1223,7 @@ namespace HpToolsLauncher
             if (filteredTestList.Count == 0)
             {
                 //this will make sure run will fail at the end. (since there was an error)
-                Console.WriteLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);
+                ConsoleWriter.WriteErrLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 return null;
             }

@@ -277,7 +277,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No test meets the filtering criteria..
+        ///   Looks up a localized string similar to No test meets the filtering criteria; setting final run status to Failed.
         /// </summary>
         internal static string AlmTestSetsRunnerNoTestAfterApplyingFilters {
             get {
