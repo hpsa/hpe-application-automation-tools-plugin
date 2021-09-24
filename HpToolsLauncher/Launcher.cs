@@ -886,7 +886,7 @@ namespace HpToolsLauncher
                 }
 
                 //if there is an error
-                if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))
+                if (results.TestRuns.Any(tr => tr.TestState == TestState.Error))
                 {
                     _exitCode = ExitCodeEnum.Failed;
                 }
@@ -894,16 +894,22 @@ namespace HpToolsLauncher
                 int numFailures = results.NumFailures;
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.NumErrors;
-                int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
+                int numWarnings = results.NumWarnings;
 
-                if ((numErrors <= 0) && (numFailures > 0) && _exitCode != ExitCodeEnum.Failed)
-                {
-                    _exitCode = ExitCodeEnum.Failed;
-                }
-
-                if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0) && _exitCode != ExitCodeEnum.Failed)
-                {
-                    _exitCode = ExitCodeEnum.Unstable;
+                if (_exitCode != ExitCodeEnum.Failed && _exitCode != ExitCodeEnum.Aborted)
+				{
+                    if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Unstable;
+                    }
+                    else if ((numErrors <= 0) && (numFailures > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Failed;
+                    }
+                    else if ((numErrors <= 0) && (numWarnings > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Unstable;
+                    }
                 }
 
                 foreach (var testRun in results.TestRuns)
@@ -925,8 +931,22 @@ namespace HpToolsLauncher
                         runStatus = "Job succeeded";
                         break;
                     case ExitCodeEnum.Unstable:
-                        runStatus = "Job unstable (Passed with failed tests)";
-                        break;
+						{
+                            if (numFailures > 0 && numWarnings > 0)
+                            {
+                                runStatus = "Job unstable (Passed with failed tests and generated warnings)";
+                            }
+                            else if (numFailures > 0)
+                            {
+                                runStatus = "Job unstable (Passed with failed tests)";
+                            }
+                            else if (numWarnings > 0)
+                            {
+                                runStatus = "Job unstable (Generated warnings)";
+                            }
+
+                            break;
+                        }
                     case ExitCodeEnum.Aborted:
                         runStatus = "Job failed due to being Aborted";
                         break;

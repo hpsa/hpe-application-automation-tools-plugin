@@ -1357,7 +1357,7 @@ namespace HpToolsLauncher
 
                 //update the state
                 qTest.PrevTestState = qTest.TestState;
-                qTest.TestState = GetTsStateFromQcState(testExecStatusObj.Status);
+                qTest.TestState = GetTsStateFromQcState(testExecStatusObj);
 
                 if (!onlyUpdateState)
                 {
@@ -1382,11 +1382,13 @@ namespace HpToolsLauncher
                         case TestState.Error:
                             qTest.ErrorDesc = string.Format("{0} : {1}", testExecStatusObj.Status, testExecStatusObj.Message);
                             break;
+                        case TestState.Warning:
+                            qTest.HasWarnings = true;
+                            break;
                         case TestState.Waiting:
                         case TestState.Running:
                         case TestState.NoRun:
                         case TestState.Passed:
-                        case TestState.Warning:
                         case TestState.Unknown:
                         default:
                             break;
@@ -1395,7 +1397,7 @@ namespace HpToolsLauncher
                     var runId = GetTestRunId(currentTest);
                     string linkStr = GetTestRunLink(runId);
 
-                    string statusString = GetTsStateFromQcState(testExecStatusObj.Status).ToString();
+                    string statusString = GetTsStateFromQcState(testExecStatusObj).ToString();
                     ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestStat, currentTest.Name, statusString, testExecStatusObj.Message, linkStr));
                     runResults.TestRuns[testIndex] = qTest;
                 }
@@ -1509,7 +1511,7 @@ namespace HpToolsLauncher
                                 activeTestDesc.TestGroup = string.Format(@"{0}\{1}", folderName, targetTestSet.Name).Replace(".", "_");
                             }
 
-                            TestState enmState = GetTsStateFromQcState(testExecStatusObj.Status);
+                            TestState enmState = GetTsStateFromQcState(testExecStatusObj);
                             string statusString = enmState.ToString();
 
                             if (enmState == TestState.Running)
@@ -1683,6 +1685,9 @@ namespace HpToolsLauncher
                 case TestState.Error:
                     ++testSuite.NumErrors;
                     break;
+                case TestState.Warning:
+                    ++testSuite.NumWarnings;
+                    break;
             }
         }
 
@@ -1691,7 +1696,7 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="qcTestStatus"></param>
         /// <returns></returns>
-        private TestState GetTsStateFromQcState(string qcTestStatus)
+        private TestState GetTsStateFromQcState(TestExecStatus qcTestStatus)
         {
             if (TdConnection == null && TdConnectionOld == null)
             {
@@ -1700,7 +1705,7 @@ namespace HpToolsLauncher
 
             if (qcTestStatus == null)
                 return TestState.Unknown;
-            switch (qcTestStatus)
+            switch (qcTestStatus.Status)
             {
                 case "Waiting":
                     return TestState.Waiting;
@@ -1714,7 +1719,14 @@ namespace HpToolsLauncher
                 case "Success":
                 case "Finished":
                 case "FinishedPassed":
-                    return TestState.Passed;
+					{
+                        if (qcTestStatus.Message.Contains("warning"))
+						{
+                            return TestState.Warning;
+						}
+
+                        return TestState.Passed;
+                    }
                 case "FinishedFailed":
                     return TestState.Failed;
             }
