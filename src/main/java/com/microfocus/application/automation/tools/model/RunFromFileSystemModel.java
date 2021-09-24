@@ -405,7 +405,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         {
             return null;
         }
-        return fsPassword.getPlainText();
+        return fsPassword.getEncryptedValue();
     }
 
     public String getMcTenantId() {
