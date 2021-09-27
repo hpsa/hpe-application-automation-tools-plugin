@@ -1220,7 +1220,10 @@ namespace HpToolsLauncher
             }
 
             //start test runner
-            if (filteredTestList.Count == 0)
+            // If a filter is selected, we should not set the job failed when it doesn't find any matching tests within the test set
+            // or in the specified test paths
+            // if no filter is selected, and on the specified test path no test exists the job should fail
+            if (filteredTestList.Count == 0 && IsFilterSelected.Equals(false))
             {
                 //this will make sure run will fail at the end. (since there was an error)
                 ConsoleWriter.WriteErrLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);

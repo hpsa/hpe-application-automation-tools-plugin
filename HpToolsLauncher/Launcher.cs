@@ -896,7 +896,7 @@ namespace HpToolsLauncher
                 int numErrors = results.NumErrors;
                 int numWarnings = results.NumWarnings;
 
-                if (_exitCode != ExitCodeEnum.Failed && _exitCode != ExitCodeEnum.Aborted)
+                if (_exitCode != ExitCodeEnum.Aborted)
 				{
                     if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
                     {
