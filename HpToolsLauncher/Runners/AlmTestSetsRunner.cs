@@ -611,8 +611,6 @@ namespace HpToolsLauncher
                 tsTreeManager = (ITestSetTreeManager)_tdConnectionOld.TestSetTreeManager;
             }
 
-            string initialFullPath = string.Format(@"{0}\{1}", tsPath, tsName);
-
             try
             {
                 //check test storage type
@@ -663,7 +661,6 @@ namespace HpToolsLauncher
                 if (testList == null)
                 {
                     // this means, there was no test sets with the specified name, we treat it as a single test, as if a user specified it
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullPath));
                     return null;
                 }
                 foreach (ITestSet t in testList)
@@ -673,7 +670,6 @@ namespace HpToolsLauncher
             }
 
             //node wasn't found, folder = null
-            ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerNoSuchFolder, testSuiteName));
 
             return null;
         }
@@ -1131,6 +1127,7 @@ namespace HpToolsLauncher
 
             if (testSetList == null)
             {
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
                 UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
 
                 return runDesc;
