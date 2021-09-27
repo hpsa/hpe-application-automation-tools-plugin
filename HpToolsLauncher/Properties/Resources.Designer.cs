@@ -61,7 +61,16 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find TestSet {0}; setting final run status to Failed.
+        ///   Looks up a localized string similar to Could not find Test {0}.
+        /// </summary>
+        internal static string AlmRunnerCantFindTest {
+            get {
+                return ResourceManager.GetString("AlmRunnerCantFindTest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find TestSet {0}.
         /// </summary>
         internal static string AlmRunnerCantFindTestSet {
             get {
@@ -277,7 +286,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No test meets the filtering criteria; setting final run status to Failed.
+        ///   Looks up a localized string similar to No test meets the filtering criteria.
         /// </summary>
         internal static string AlmTestSetsRunnerNoTestAfterApplyingFilters {
             get {

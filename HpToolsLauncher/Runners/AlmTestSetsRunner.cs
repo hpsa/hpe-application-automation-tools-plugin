@@ -580,13 +580,7 @@ namespace HpToolsLauncher
 
             if (targetTestSet != null) { return targetTestSet; }
 
-            ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
-
-            //this will make sure run will fail at the end. (since there was an error)
-            Debug.WriteLine("Null target test set");
-            Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
             return null;
-
         }
 
 
@@ -616,6 +610,8 @@ namespace HpToolsLauncher
                 _tdConnectionOld.KeepConnection = true;
                 tsTreeManager = (ITestSetTreeManager)_tdConnectionOld.TestSetTreeManager;
             }
+
+            string initialFullPath = string.Format(@"{0}\{1}", tsPath, tsName);
 
             try
             {
@@ -657,17 +653,17 @@ namespace HpToolsLauncher
                 catch (COMException ex)
                 {
                     tsFolder = null;
-                    Console.WriteLine("Exception: " + ex.Message);
+                    ConsoleWriter.WriteLine(ex.Message);
                 }
             }
+
             if (tsFolder != null)
             {
                 List testList = tsFolder.FindTestSets(testSuiteName);
                 if (testList == null)
                 {
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
-                    //this will make sure run will fail at the end. (since there was an error)
-                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                    // this means, there was no test sets with the specified name, we treat it as a single test, as if a user specified it
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullPath));
                     return null;
                 }
                 foreach (ITestSet t in testList)
@@ -677,10 +673,8 @@ namespace HpToolsLauncher
             }
 
             //node wasn't found, folder = null
-            ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerNoSuchFolder, tsFolder));
+            ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerNoSuchFolder, testSuiteName));
 
-            //this will make sure run will fail at the end. (since there was an error)
-            Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
             return null;
         }
 
@@ -1114,10 +1108,11 @@ namespace HpToolsLauncher
             string testSuiteName = tsName.TrimEnd();
             ITestSetFolder tsFolder = null;
             string tsPath = string.Format(@"Root\{0}", tsFolderName);
+            string initialFullTsPath = string.Format(@"{0}\{1}", tsPath, tsName);
             bool isTestPath = false;
             string currentTestSetInstances = string.Empty, testName = string.Empty;
             TestSuiteRunResults runDesc = new TestSuiteRunResults();
-            TestRunResults activeTestDesc = null;
+            TestRunResults activeTestDesc = new TestRunResults();
             List testSetList = null;
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
@@ -1129,17 +1124,16 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to retrieve the list of tests");
-                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTestSet, testSuiteName));
-                Console.WriteLine(ex.Message);
-
-                //this will make sure run will fail at the end. (since there was an error)
-                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                ConsoleWriter.WriteErrLine("Unable to retrieve the list of tests");
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
+                ConsoleWriter.WriteLine(ex.Message);
             }
 
             if (testSetList == null)
             {
-                return null;
+                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+
+                return runDesc;
             }
 
             //get target test set
@@ -1151,12 +1145,14 @@ namespace HpToolsLauncher
             catch (Exception)
             {
                 ConsoleWriter.WriteErrLine("Empty target test set list");
-                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
             }
 
             if (targetTestSet == null)
             {
-                return null;
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
+                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+
+                return runDesc;
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
@@ -1219,18 +1215,22 @@ namespace HpToolsLauncher
                 SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler);
             }
 
-            //start test runner
-            // If a filter is selected, we should not set the job failed when it doesn't find any matching tests within the test set
-            // or in the specified test paths
-            // if no filter is selected, and on the specified test path no test exists the job should fail
-            if (filteredTestList.Count == 0 && IsFilterSelected.Equals(false))
+            // isTestPath is only true, if a specific test was given by the user,
+            // if, the filteredTestList is empty, because of the filtering, we should not set the job status to failed
+            if (filteredTestList.Count == 0 && isTestPath)
             {
                 //this will make sure run will fail at the end. (since there was an error)
-                ConsoleWriter.WriteErrLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);
-                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                return null;
-            }
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
 
+                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+                return runDesc;
+            } else if (filteredTestList.Count == 0)
+			{
+                ConsoleWriter.WriteLine(Resources.AlmTestSetsRunnerNoTestAfterApplyingFilters);
+                return null;
+			}
+
+            //start test runner
             Stopwatch sw = Stopwatch.StartNew();
 
             try
@@ -1269,7 +1269,14 @@ namespace HpToolsLauncher
             //done with all tests, stop collecting output in the testRun object.
             ConsoleWriter.ActiveTestRun = null;
 
-            string testPath = string.Format(@"Root\{0}\{1}\", tsFolderName, testSuiteName);
+            string testPath;
+            if (isTestPath)
+			{
+                testPath = string.Format(@"Root\{0}\", tsFolderName);
+            } else
+			{
+                testPath = string.Format(@"Root\{0}\{1}\", tsFolderName, testSuiteName);
+            }
 
             SetTestResults(ref currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
 
@@ -1295,16 +1302,40 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// 
+        /// Updates the runDesc run results by describing the non-existing test error as a testDesc
         /// </summary>
-        /// <param name="currentTest"></param>
-        /// <param name="executionStatus"></param>
-        /// <param name="targetTestSet"></param>
-        /// <param name="activeTestDesc"></param>
-        /// <param name="runDesc"></param>
-        /// <param name="testPath"></param>
-        /// <param name="abortFilename"></param>
-        private void SetTestResults(ref ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
+        /// <param name="runDesc">run results to be updated</param>
+        /// <param name="activeTestDesc">the non-existing test's description</param>
+        /// <param name="tsFolder">test's folder</param>
+        /// <param name="testSuiteName">test's name</param>
+		private void UpdateTestResultsIfNonExistingTestSpecified(ref TestSuiteRunResults runDesc, ref TestRunResults activeTestDesc, string tsPath)
+		{
+            runDesc.NumTests++;
+            runDesc.TotalRunTime = System.TimeSpan.Zero;
+            runDesc.NumErrors++;
+
+            activeTestDesc.TestState = TestState.Error;
+            activeTestDesc.TestPath = tsPath;
+            int pos = tsPath.LastIndexOf("\\", StringComparison.Ordinal) + 1;
+            activeTestDesc.TestName = tsPath.Substring(pos);
+            activeTestDesc.ErrorDesc = string.Format(Resources.AlmRunnerCantFindTest, activeTestDesc.TestPath);
+            activeTestDesc.FatalErrors = 1;
+            activeTestDesc.Runtime = System.TimeSpan.Zero;
+
+            runDesc.TestRuns.Add(activeTestDesc);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="currentTest"></param>
+		/// <param name="executionStatus"></param>
+		/// <param name="targetTestSet"></param>
+		/// <param name="activeTestDesc"></param>
+		/// <param name="runDesc"></param>
+		/// <param name="testPath"></param>
+		/// <param name="abortFilename"></param>
+		private void SetTestResults(ref ITSTest currentTest, IExecutionStatus executionStatus, ITestSet targetTestSet, TestRunResults activeTestDesc, TestSuiteRunResults runDesc, string testPath, string abortFilename)
         {
             if (currentTest == null) throw new ArgumentNullException("Current test set is null.");
 

@@ -910,14 +910,14 @@ namespace HpToolsLauncher
                     {
                         _exitCode = ExitCodeEnum.Unstable;
                     }
-                }
 
-                foreach (var testRun in results.TestRuns)
-                {
-                    if (testRun.FatalErrors > 0 && !string.IsNullOrWhiteSpace(testRun.TestPath))
+                    foreach (var testRun in results.TestRuns)
                     {
-                        _exitCode = ExitCodeEnum.Failed;
-                        break;
+                        if (testRun.FatalErrors > 0 && !string.IsNullOrWhiteSpace(testRun.TestPath))
+                        {
+                            _exitCode = ExitCodeEnum.Failed;
+                            break;
+                        }
                     }
                 }
 
