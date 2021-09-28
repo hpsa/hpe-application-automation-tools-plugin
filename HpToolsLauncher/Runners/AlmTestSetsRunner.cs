@@ -703,7 +703,7 @@ namespace HpToolsLauncher
         /// <param name="filterByStatuses"></param>
         /// <param name="filterByName"></param>
         /// <returns>the filtered list of tests</returns>
-        public IList FilterTests(ITestSet targetTestSet, bool isTestPath, string testName, bool isFilterSelected, List<string> filterByStatuses, string filterByName)
+        public IList FilterTests(ITestSet targetTestSet, bool isTestPath, string testName, bool isFilterSelected, List<string> filterByStatuses, string filterByName, ref bool testExisted)
         {
             TSTestFactory tsTestFactory = targetTestSet.TSTestFactory;
             ITDFilter2 tdFilter = tsTestFactory.Filter;
@@ -743,6 +743,11 @@ namespace HpToolsLauncher
                             !tListIndexTestName.ToLower().Contains(filterByName.ToLower()))
                             {
                                 testList.Remove(index);
+
+                                if (isTestPath && testName.Equals(tListIndexTestName))
+								{
+                                    testExisted = true;
+								}
                             }
                         }
                         else //by name and statuses
@@ -752,6 +757,11 @@ namespace HpToolsLauncher
                                 !ListContainsTest(testsFilteredByStatus, testList[index]))
                             {
                                 testList.Remove(index);
+
+                                if (isTestPath && testName.Equals(tListIndexTestName))
+                                {
+                                    testExisted = true;
+                                }
                             }
                         }
                     }
@@ -760,6 +770,11 @@ namespace HpToolsLauncher
                         if (!ListContainsTest(testsFilteredByStatus, testList[index]))
                         {
                             testList.Remove(index);
+
+                            if (isTestPath && testName.Equals(tListIndexTestName))
+                            {
+                                testExisted = true;
+                            }
                         }
                     }
                 }
@@ -780,6 +795,9 @@ namespace HpToolsLauncher
                     if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexTestName))
                     {
                         testList.Remove(index);
+                    } else if (testName.Equals(tListIndexTestName))
+                    {
+                        testExisted = true;
                     }
                 }
             }
@@ -1178,7 +1196,8 @@ namespace HpToolsLauncher
             }
 
             //filter tests
-            var filteredTestList = FilterTests(targetTestSet, isTestPath, testName, isFilterSelected, filterByStatuses, filterByName);
+            bool testExisted = false;
+            var filteredTestList = FilterTests(targetTestSet, isTestPath, testName, isFilterSelected, filterByStatuses, filterByName, ref testExisted);
 
             //set run host
             try
@@ -1212,9 +1231,10 @@ namespace HpToolsLauncher
                 SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler);
             }
 
-            // isTestPath is only true, if a specific test was given by the user,
+            // isTestPath is only true, if a specific test was given by the user
             // if, the filteredTestList is empty, because of the filtering, we should not set the job status to failed
-            if (filteredTestList.Count == 0 && isTestPath)
+            // only if, the specific given test was not found
+            if (filteredTestList.Count == 0 && isTestPath && !testExisted)
             {
                 //this will make sure run will fail at the end. (since there was an error)
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
