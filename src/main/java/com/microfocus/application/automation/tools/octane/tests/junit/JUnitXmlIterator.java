@@ -31,7 +31,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.octane.integrations.executor.converters.MfUftConverter;
+import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
@@ -198,9 +198,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					int uftTextIndexStart = getUftTestIndexStart(workspace, sharedCheckOutDirectory, testName);
 					if (uftTextIndexStart != -1) {
 						String path = testName.substring(uftTextIndexStart).replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);;
-						if(path.startsWith(MfUftConverter.MBT_PARENT_SUB_DIR)){//remove MBT prefix
+						if(path.startsWith(MfMBTConverter.MBT_PARENT_SUB_DIR)){//remove MBT prefix
 							//mbt test located in two level folder : ___mbt/_order
-							path = path.substring(MfUftConverter.MBT_PARENT_SUB_DIR.length()+1);//remove ___mbt
+							path = path.substring(MfMBTConverter.MBT_PARENT_SUB_DIR.length() + 1);//remove ___mbt
 							path = path.substring(path.indexOf(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER));//remove order part
 						}
 

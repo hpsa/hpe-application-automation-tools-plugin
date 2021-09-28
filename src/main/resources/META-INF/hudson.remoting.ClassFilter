@@ -24,4 +24,5 @@ com.hp.octane.integrations.executor.converters.MbtTest
 com.hp.octane.integrations.executor.TestsToRunConverterResult
 com.hp.octane.integrations.executor.TestToRunData
 com.hp.octane.integrations.executor.TestsToRunFramework
+com.hp.octane.integrations.executor.TestsToRunConverter
 

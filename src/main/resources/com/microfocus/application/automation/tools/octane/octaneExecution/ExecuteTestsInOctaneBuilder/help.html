@@ -1,0 +1,69 @@
+<!--
+  ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
+  ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+  ~ the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+  ~ and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+  ~ marks are the property of their respective owners.
+  ~ __________________________________________________________________
+  ~ MIT License
+  ~
+  ~ (c) Copyright 2012-2021 Micro Focus or one of its affiliates.
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+  ~ documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+  ~ the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+  ~ and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all copies or
+  ~ substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+  ~ THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  ~ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  ~
+  ~ ___________________________________________________________________
+  -->
+
+<div>
+    This build step is intended to support execution of automated tests from Micro Focus ALM Octane.</br>
+    There are several modes of execution :
+
+    <table border="1" width="100%" style="border-collapse: collapse;border: 1px solid black;">
+        <thead style="background-color: lightgray; font-weight: bold">
+        <tr>
+            <td width="30%">Mode</td>
+            <td>Explanation</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Execute suite runs in ALM Octane</td>
+            <td>Execute suites according to specified suite IDs. New suite runs will be created and executed in ALM Octane.
+                Jenkins job is finished after triggering the suite runs. The job does not wait
+                until the suite runs are finished. This method is useful if you want to schedule suite execution in ALM
+                Octane. 
+                <br>
+                By default, newly created suite runs will have name of suite and will be assigned to default release.
+                In order to override this default behaviour, add following parameters (one or more) to job with your desired values:
+                <ul>
+                    <li>octane_release_id</li>
+                    <li>octane_new_suite_run_name</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Get tests from suites and trigger execution jobs</td>
+            <td>Get tests from suites and trigger execution jobs</b> : Get tests from specified suite IDs. (This method
+                assumes that tests are assigned to test runner jobs from the current Jenkins.) Tests are send to
+                execution by their assigned test runner jobs. The main job is finished after the test runner jobs are
+                finished.
+                This method is useful if you intend to add your job to the ALM Octane Pipeline module.
+            </td>
+        </tr>
+        </tbody>
+
+
+    </table>
+</div>

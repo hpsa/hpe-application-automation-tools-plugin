@@ -299,21 +299,16 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 	}
 
 	@Override
-	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, CIParameters ciParameters) {
+	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, String parameterName, String parameterValue) {
 		ACLContext securityContext = startImpersonation();
 		try {
 			Job job = getJobByRefId(jobCiId);
 			boolean hasRead = Jenkins.get().hasPermission(Item.READ);
 			if (!hasRead) {
-				throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+				throw new PermissionException("Missing READ permission to job " + jobCiId,  HttpStatus.SC_FORBIDDEN);
 			}
 			AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-			ParametersAction parametersAction = new ParametersAction();
-			if (ciParameters != null) {
-				parametersAction = new ParametersAction(createParameters(job, ciParameters));
-			}
-
-			return jobProcessor.getBuildStatus(parametersAction);
+			return jobProcessor.getBuildStatus(parameterName, parameterValue);
 		} finally {
 			stopImpersonation(securityContext);
 		}
@@ -681,7 +676,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 		method.accept(cause, parametersAction);
 	}
 
-	private List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
+	public static List<ParameterValue> createParameters(Job project, CIParameters ciParameters) {
 		List<ParameterValue> result = new ArrayList<>();
 		boolean parameterHandled;
 		ParameterValue tmpValue;

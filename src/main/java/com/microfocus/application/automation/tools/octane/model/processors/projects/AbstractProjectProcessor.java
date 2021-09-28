@@ -40,14 +40,16 @@ import com.microfocus.application.automation.tools.octane.model.processors.build
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Queue;
 import hudson.model.*;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -159,18 +161,18 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	public CIBuildStatusInfo getBuildStatus(ParametersAction parametersAction) {
-		CIBuildStatusInfo status = DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class).setBuildStatus(CIBuildStatus.UNAVAILABLE);
-		String buildId = getParameterValueIfExist(parametersAction, UftConstants.BUILD_ID_PARAMETER_NAME);
-		String releaseExecutionId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
-		if (SdkStringUtils.isEmpty(releaseExecutionId) && SdkStringUtils.isEmpty(buildId)) {
-			List<String> required = Arrays.asList(UftConstants.BUILD_ID_PARAMETER_NAME, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
-			throw new IllegalArgumentException("One of parameters is required :" + required);
-		}
+	public CIBuildStatusInfo getBuildStatus(String paramName, String paramValue) {
+		CIBuildStatusInfo status = DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class)
+				.setBuildStatus(CIBuildStatus.UNAVAILABLE)
+				.setJobCiId(this.getTranslatedJobName())
+				.setParamName(paramName)
+				.setParamValue(paramValue);
+		String buildId = UftConstants.BUILD_ID_PARAMETER_NAME.equals(paramName) ? paramValue : null;
 
-		if (job instanceof AbstractProject) {
-			if (buildId != null) {
-				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
+		if (buildId != null) {
+			try {
+				int buildNum = Integer.parseInt(buildId);
+				Run aBuild = job.getBuildByNumber(buildNum);
 				if (aBuild == null) {
 					status.setBuildStatus(CIBuildStatus.UNAVAILABLE);
 				} else {
@@ -182,43 +184,45 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 						status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
 					}
 				}
-			} else {
-				AbstractProject project = (AbstractProject) job;
-				FoundInfo foundInfo = new FoundInfo();
+			} catch (NumberFormatException e) {
+				throw new RuntimeException("Failed to parse build id " + buildId);
+			}
+		} else {
+			FoundInfo foundInfo = new FoundInfo();
+			if (job instanceof Queue.Task) {
+				Queue.Task queueTaskJob = (Queue.Task) job;
 				Queue queue = Jenkins.get().getQueue();
-				queue.getItems(project).forEach(item -> {
+				queue.getItems(queueTaskJob).forEach(item -> {
 					item.getActions(ParametersAction.class).forEach(action -> {
-						if (!foundInfo.found && checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
+						if (!foundInfo.found && checkIfParamExistAndEqual(action, paramName, paramValue)) {
 							status.setBuildStatus(CIBuildStatus.QUEUED);
 							foundInfo.found = true;
 						}
 					});
 				});
-
-				project.getBuilds().forEach(build -> {
-					if (!foundInfo.found && build instanceof AbstractBuild) {
-						AbstractBuild aBuild = (AbstractBuild) build;
-						aBuild.getActions(ParametersAction.class).forEach(action -> {
-							if (checkIfParamExistAndEqual(action, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME, releaseExecutionId)) {
-								if (aBuild.isBuilding()) {
-									status.setBuildStatus(CIBuildStatus.RUNNING);
-								} else {
-									status.setBuildStatus(CIBuildStatus.FINISHED);
-									status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
-								}
-								status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
-								foundInfo.found = true;
-							}
-						});
-					}
-				});
 			}
-		} else {
-			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+
+			job.getBuilds().forEach(build -> {
+				if (!foundInfo.found) {
+					Run aBuild = (Run) build;
+					aBuild.getActions(ParametersAction.class).forEach(action -> {
+						if (checkIfParamExistAndEqual(action, paramName, paramValue)) {
+							if (aBuild.isBuilding()) {
+								status.setBuildStatus(CIBuildStatus.RUNNING);
+							} else {
+								status.setBuildStatus(CIBuildStatus.FINISHED);
+								status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
+							}
+							status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
+							foundInfo.found = true;
+						}
+					});
+				}
+			});
 		}
+
 		return status;
 	}
-
 
 	private String getParameterValueIfExist(ParametersAction parametersAction, String paramName) {
 		ParameterValue pv = parametersAction.getParameter(paramName);
