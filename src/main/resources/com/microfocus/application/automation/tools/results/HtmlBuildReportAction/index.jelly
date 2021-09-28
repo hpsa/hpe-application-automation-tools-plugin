@@ -140,7 +140,7 @@
 
              <td class = "bodycell"><a href="../${s.resourceURL}">Open</a></td>
              <td class = "bodycell">
-                <j:if test="${s.hasArchiveUrl}">
+                <j:if test="${s.hasArchiveUrl()}">
                     <a href="../${s.archiveUrl}">Download</a>
                 </j:if>
              </td>
