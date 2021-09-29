@@ -485,6 +485,9 @@ Save the test in QuickTest and then run it again.</value>
     <value>Cannot find the test folder.</value>
   </data>
   <data name="AlmTestSetsRunnerNoTestAfterApplyingFilters" xml:space="preserve">
-    <value>No test meets the filtering criteria.</value>
+    <value>No test meets the filtering criteria</value>
+  </data>
+  <data name="AlmRunnerCantFindTest" xml:space="preserve">
+    <value>Could not find Test {0}</value>
   </data>
 </root>
