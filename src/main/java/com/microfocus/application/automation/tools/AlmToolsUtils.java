@@ -56,7 +56,7 @@ public class AlmToolsUtils {
             ArgumentListBuilder args = new ArgumentListBuilder();
             PrintStream out = listener.getLogger();
 
-            //// Use script to run the cmdLine and get the console output
+            // Use script to run the cmdLine and get the console output
             args.add(file);
             args.add("-paramfile");
             args.add(paramFileName);
