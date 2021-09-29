@@ -780,7 +780,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             // clean actual tests' report folders
             index = 1;
-
            while (mergedProperties.getProperty("Test" + index) != null) {
                String testPath = mergedProperties.getProperty(("Test" + index));
                List<String> buildTests = UftToolUtils.getBuildTests(selectedNode, testPath);
