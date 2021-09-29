@@ -6,7 +6,7 @@
 Project status:
 [![Build status](https://ci.appveyor.com/api/projects/status/gqd0x8ov1ebqjjcu?svg=true)](https://ci.appveyor.com/project/HPEbot/hp-application-automation-tools-plugin)
 
-Latest release branch status1:
+Latest release branch status:
 [![Build status](https://ci.appveyor.com/api/projects/status/gqd0x8ov1ebqjjcu/branch/latest?svg=true)](https://ci.appveyor.com/project/HPEbot/hp-application-automation-tools-plugin/branch/latest)
 
 
