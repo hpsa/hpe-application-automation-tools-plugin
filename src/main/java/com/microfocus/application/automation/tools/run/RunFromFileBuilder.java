@@ -755,6 +755,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            if (uftSettingsModel != null) {
                uftSettingsModel.addToProperties(mergedProperties);
            }
+
            //cleanup report folders before running the build
            String selectedNode = env.get("NODE_NAME");
             if (selectedNode == null) {//if slave is given in the pipeline and not as part of build step
@@ -764,11 +765,25 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                     listener.error("Failed to get selected node for UFT execution : " + e.getMessage());
                 }
             }
-           int index = 1;
+
+            // clean cleanuptests' report folders
+            int index = 1;
+            while (mergedProperties.getProperty("CleanupTest" + index) != null) {
+                String testPath = mergedProperties.getProperty("CleanupTest" + index);
+                List<String> cleanupTests = UftToolUtils.getBuildTests(selectedNode, testPath);
+                for (String test : cleanupTests) {
+                    UftToolUtils.deleteReportFoldersFromNode(selectedNode, test, listener);
+                }
+
+                index++;
+            }
+
+            // clean actual tests' report folders
+            index = 1;
            while (mergedProperties.getProperty("Test" + index) != null) {
                String testPath = mergedProperties.getProperty(("Test" + index));
                List<String> buildTests = UftToolUtils.getBuildTests(selectedNode, testPath);
-               for(String test : buildTests) {
+               for (String test : buildTests) {
                    UftToolUtils.deleteReportFoldersFromNode(selectedNode, test, listener);
                }
                index++;
