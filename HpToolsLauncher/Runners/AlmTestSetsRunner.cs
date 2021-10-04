@@ -1718,10 +1718,17 @@ namespace HpToolsLauncher
             {
                 return string.Empty;
             }
+
             var mQcServer = MQcServer.Trim();
             var prefix = mQcServer.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? "tds" : "td";
             mQcServer = Regex.Replace(mQcServer, "^http[s]?://", string.Empty, RegexOptions.IgnoreCase);
-            return string.Format("{0}://{1}.{2}.{3}/TestRunsModule-00000000090859589?EntityType=IRun&EntityID={4}", prefix, MQcProject, MQcDomain, mQcServer, runId);
+
+            if (!mQcServer.EndsWith("/"))
+			{
+                mQcServer += "/";
+			}
+
+            return string.Format("{0}://{1}.{2}.{3}TestRunsModule-00000000090859589?EntityType=IRun&EntityID={4}", prefix, MQcProject, MQcDomain, mQcServer, runId);
         }
 
         /// <summary>
