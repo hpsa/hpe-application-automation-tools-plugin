@@ -76,11 +76,16 @@ public class LabPollHandler extends PollHandler {
     }
 
     private boolean isTestsetEmpty(Response response, Logger logger) {
-        String xml = response.toString();
-        String testSetNames = XPathUtils.getAttributeValue(xml, "test-set-names");
-        String name = XPathUtils.getAttributeValue(xml, "name");
+        try {
+            String xml = response.toString();
+            String testSetNames = XPathUtils.getAttributeValue(xml, "test-set-names");
+            String name = XPathUtils.getAttributeValue(xml, "name");
 
-        return testSetNames.equals("Error") && name.startsWith("Error");
+            return testSetNames.equals("Error") && name.startsWith("Error");
+        } catch (Throwable cause) {
+            logger.log(String.format("Failed to parse response: %s", response));
+            return false;
+        }
     }
 
     @Override
