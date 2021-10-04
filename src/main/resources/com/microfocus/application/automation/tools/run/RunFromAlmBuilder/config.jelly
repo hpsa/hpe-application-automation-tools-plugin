@@ -27,8 +27,9 @@
   -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/almUtils.js"/>
+    <st:once>
+        <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/almUtils.js"/>
+    </st:once>
 
     <style>
         #testName {
@@ -78,16 +79,6 @@
             top: 2px;
         }
 
-        [name="runfromalm.almClientID"] {
-             margin-bottom: 10px;
-        }
-        [name="runfromalm.almApiKey"] {
-             margin-bottom: 10px;
-        }
-        [name="runfromalm.almUserName"] {
-             margin-bottom: 10px;
-        }
-
         .info {
             margin-left: -15px;
         }
@@ -130,86 +121,135 @@
         <td/>
     </tr>
 
-        <f:entry field="almServerName">
-          <label>ALM server</label>
-          <f:select clazz="servers"/>
+    <f:entry field="almServerName">
+      <label>ALM server</label>
+      <f:select clazz="servers"/>
+    </f:entry>
+
+    <f:entry>
+        <label>ALM Credentials Scope</label>
+        <f:entry field="almCredentialsScope">
+            <select name="almCredentialsScope">
+                <j:forEach var="scope" items="${descriptor.almCredentialScopes}">
+                    <f:option selected="${scope == instance.runFromAlmModel.credentialsScope}" value="${scope.value}">
+                        ${scope.description}
+                    </f:option>
+                </j:forEach>
+            </select>
         </f:entry>
+    </f:entry>
 
-        <f:entry field="isSSOEnabled">
-            <f:checkbox id="ssoCheckbox" title="SSO enabled" name="runfromalm.isSSOEnabled" checked="${instance.runFromAlmModel.isSSOEnabled}"
-                    value="${instance.runFromAlmModel.isSSOEnabled}"/>
+    <f:entry field="isSSOEnabled">
+        <f:checkbox title="SSO enabled" name="runfromalm.isSSOEnabled" checked="${instance.runFromAlmModel.isSSOEnabled}"
+                value="${instance.runFromAlmModel.isSSOEnabled}"/>
+    </f:entry>
+
+     <f:entry field="almUserName">
+          <div class="sys-alm-username">
+            <label>ALM username</label>
+            <f:select clazz="usernameList" />
+          </div>
+     </f:entry>
+
+    <f:entry field="almClientID">
+         <div class="sys-alm-client-id">
+            <label>ALM Client ID</label>
+            <f:select clazz="clientIDList" />
+         </div>
+    </f:entry>
+
+    <f:entry>
+        <div class="job-alm-client-id">
+            <label>Client ID</label>
+            <f:entry field="almClientID">
+                <f:textbox clazz="required" checkMessage="Client ID must be set"/>
+            </f:entry>
+        </div>
+    </f:entry>
+
+    <f:entry>
+        <div class="job-alm-secret">
+            <label>API key secret</label>
+            <f:entry field="almApiKey">
+                <f:password clazz="required" checkMessage="API key secret must be set"/>
+            </f:entry>
+        </div>
+    </f:entry>
+
+    <f:entry>
+        <div class="job-alm-username">
+            <label>User name</label>
+            <f:entry field="almUserName">
+                <f:textbox clazz="required" checkMessage="User name must be set"/>
+            </f:entry>
+        </div>
+    </f:entry>
+
+    <f:entry>
+        <div class="job-alm-password">
+            <label>Password</label>
+            <f:entry field="almPassword">
+                <f:password />
+            </f:entry>
+        </div>
+    </f:entry>
+
+    <f:entry>
+        <label>Domain</label>
+        <f:entry field="almDomain">
+            <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}" />
         </f:entry>
+    </f:entry>
 
-         <f:entry field="almUserName">
-              <div class="noSSOCredentials">
-                <label>ALM username</label>
-                <f:select clazz="usernameList" />
-              </div>
-         </f:entry>
+    <f:entry>
+        <label>Project</label>
+        <f:entry field="almProject">
+            <f:textbox name="runfromalm.almProject" value="${instance.runFromAlmModel.almProject}"/>
+        </f:entry>
+    </f:entry>
 
-        <f:entry field="almClientID">
-             <div class="ssoCredentials">
-                <label>ALM Client ID</label>
-                <f:select clazz="clientIDList" />
-             </div>
+    <f:entry>
+        <label>Test sets</label>
+        <f:entry field="almTestSets">
+            <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
+        </f:entry>
+    </f:entry>
+
+    <f:entry>
+        <label>Timeout</label>
+        <f:entry field="almTimeout">
+            <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
+        </f:entry>
+    </f:entry>
+
+    <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
+        <f:entry field="filterTestsModel">
+            <f:property field="filterTestsModel" />
+        </f:entry>
+    </f:optionalBlock>
+
+    <f:advanced>
+        <f:entry>
+            <label>Run mode</label>
+            <f:entry field="almRunMode">
+                <select name="runfromalm.almRunMode" >
+                    <j:forEach var="runMode" items="${descriptor.almRunModes}">
+                        <f:option selected="${runMode.value == instance.runFromAlmModel.almRunMode}" value="${runMode.value}">
+                          ${runMode.description}
+                        </f:option>
+                    </j:forEach>
+                </select>
+            </f:entry>
         </f:entry>
 
         <f:entry>
-            <label>Domain</label>
-            <f:entry field="almDomain">
-                <f:textbox name="runfromalm.almDomain" value="${instance.runFromAlmModel.almDomain}" />
+            <label>Testing Tool host</label>
+            <f:entry field="almRunHost">
+                <f:textbox name="runfromalm.almRunHost" value="${instance.runFromAlmModel.almRunHost}"/>
             </f:entry>
         </f:entry>
-
-        <f:entry>
-            <label>Project</label>
-            <f:entry field="almProject">
-                <f:textbox name="runfromalm.almProject" value="${instance.runFromAlmModel.almProject}"/>
-            </f:entry>
-        </f:entry>
-
-        <f:entry>
-            <label>Test sets</label>
-            <f:entry field="almTestSets">
-                <f:expandableTextbox name="runfromalm.almTestSets" value="${instance.runFromAlmModel.almTestSets}"/>
-            </f:entry>
-        </f:entry>
-
-        <f:entry>
-            <label>Timeout</label>
-            <f:entry field="almTimeout">
-                <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
-            </f:entry>
-        </f:entry>
-
-        <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
-            <f:entry field="filterTestsModel">
-                <f:property field="filterTestsModel" />
-            </f:entry>
-        </f:optionalBlock>
-
-        <f:advanced>
-            <f:entry>
-                <label>Run mode</label>
-                <f:entry field="almRunMode">
-                    <select name="runfromalm.almRunMode" >
-                        <j:forEach var="runMode" items="${descriptor.almRunModes}">
-                            <f:option selected="${runMode.value == instance.runFromAlmModel.almRunMode}" value="${runMode.value}">
-                              ${runMode.description}
-                            </f:option>
-                        </j:forEach>
-                    </select>
-                </f:entry>
-            </f:entry>
-
-            <f:entry>
-                <label>Testing Tool host</label>
-                <f:entry field="almRunHost">
-                    <f:textbox name="runfromalm.almRunHost" value="${instance.runFromAlmModel.almRunHost}"/>
-                </f:entry>
-            </f:entry>
-        </f:advanced>
+    </f:advanced>
     <script>
-        setupSSO(); // defined in almUtils.js, here we know the elements are loaded so we can show/hide SSO credentials based on isSSOEnabled checkbox value
+        setupAlmCredentials(); // defined in almUtils.js, here we know the elements are loaded so we can show/hide credentials based on isSSOEnabled and Scope
     </script>
 </j:jelly>
