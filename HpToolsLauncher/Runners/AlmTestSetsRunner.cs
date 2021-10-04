@@ -658,13 +658,12 @@ namespace HpToolsLauncher
             if (tsFolder != null)
             {
                 List testList = tsFolder.FindTestSets(testSuiteName);
+
                 if (testList == null)
                 {
                     // this means, there was no test sets with the specified name, we treat it as a single test, as if a user specified it
                     return null;
                 }
-                foreach (ITestSet t in testList)
-                    Console.WriteLine(string.Format(TEST_DETAILS, t.ID, t.Name, t.TestSetFolder.Name));
 
                 return testList;
             }
