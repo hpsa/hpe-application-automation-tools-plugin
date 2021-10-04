@@ -490,4 +490,10 @@ Save the test in QuickTest and then run it again.</value>
   <data name="AlmRunnerCantFindTest" xml:space="preserve">
     <value>Could not find Test {0}</value>
   </data>
+  <data name="AlmRunnerTestsetAborted" xml:space="preserve">
+    <value>Test set: {0}, aborted at {1}</value>
+  </data>
+  <data name="AlmRunnerUpdateStateAfterAbort" xml:space="preserve">
+    <value>Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}</value>
+  </data>
 </root>

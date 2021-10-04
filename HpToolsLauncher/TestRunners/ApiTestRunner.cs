@@ -209,8 +209,7 @@ namespace HpToolsLauncher
                     //before we could handle the cancel request
                     if (_runCancelled())
                     {
-                        failureReason = "Process was stopped since job has timed out!";
-                        ConsoleWriter.WriteLine(failureReason);
+                        ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
 
                         if (!proc.HasExited)
                         {

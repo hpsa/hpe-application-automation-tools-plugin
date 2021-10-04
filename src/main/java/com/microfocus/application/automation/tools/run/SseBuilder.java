@@ -268,7 +268,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     }
 
     private Result createRunResults(FilePath filePath, Testsuites testsuites, PrintStream logger) {
-
         Result ret = Result.SUCCESS;
         try {
             if (testsuites != null) {
@@ -282,14 +281,14 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 }
             } else {
                 logger.println("Empty Results");
-                ret = Result.UNSTABLE;
+                ret = Result.FAILURE;
             }
 
         } catch (Exception cause) {
             logger.print(String.format(
                     "Failed to create run results, Exception: %s",
                     cause.getMessage()));
-            ret = Result.UNSTABLE;
+            ret = Result.FAILURE;
         }
 
         return ret;

@@ -849,7 +849,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                build.setResult(Result.ABORTED);
                PrintStream out = listener.getLogger();
                listener.error("Failed running HpToolsLauncher - build aborted " + e);
-
                try {
                    AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
                } catch (IOException e1) {
@@ -859,7 +858,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                } catch (InterruptedException e1) {
                    listener.error("Failed running HpToolsAborter " + e1);
                }
-               out.println("Operation Was aborted by user.");
            }
        //}
     }
