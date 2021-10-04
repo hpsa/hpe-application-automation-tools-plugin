@@ -185,12 +185,19 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
     private Map<String, String> getGlobalParameters(ParametersAction parameterAction) {
         Map<String, String> map = new HashMap<>();
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM);
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME);
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME);
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_SPACE_PARAMETER_NAME);
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_WORKSPACE_PARAMETER_NAME);
-        addParameterIfExist(map, parameterAction, SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME);
+        Set<String> predefinedParams = new HashSet<>(Arrays.asList(
+                SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM,
+                SdkConstants.JobParameters.SUITE_ID_PARAMETER_NAME,
+                SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME,
+                SdkConstants.JobParameters.OCTANE_SPACE_PARAMETER_NAME,
+                SdkConstants.JobParameters.OCTANE_WORKSPACE_PARAMETER_NAME,
+                SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME,
+                SdkConstants.JobParameters.OCTANE_URL_PARAMETER_NAME));
+
+        parameterAction.getAllParameters().stream()
+                .filter(p->predefinedParams.contains(p.getName()) ||  p.getName().toLowerCase(Locale.ROOT).contains("octane"))
+                .forEach(param->addParameterIfExist(map, parameterAction, param.getName()));
+
         return map;
     }
 
