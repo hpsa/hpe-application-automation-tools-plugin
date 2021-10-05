@@ -96,18 +96,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         this.isFilterTestsEnabled = isFilterTestsEnabled;
         this.filterTestsModel = filterTestsModel;
         this.almServerSettingsModel = almServerSettingsModel;
-        CredentialsScope almCredScope = CredentialsScope.JOB;
-        if (StringUtils.isBlank(almCredentialsScope)) {
-            if (isSSOEnabled) {
-                if (StringUtils.isBlank(almApiKey) && isClientIdDefinedAtSystemLevel(almServerName, almClientID)) {
-                    almCredScope = CredentialsScope.SYSTEM;
-                }
-            } else if (StringUtils.isBlank(almPassword) && isUserNameDefinedAtSystemLevel(almServerName, almUserName)) {
-                almCredScope = CredentialsScope.SYSTEM;
-            }
-        } else {
-            almCredScope = CredentialsScope.valueOf(almCredentialsScope);
-        }
+        CredentialsScope almCredScope = StringUtils.isBlank(almCredentialsScope) ?
+            (((isSSOEnabled && isClientIdDefinedAtSystemLevel(almServerName, almClientID)) || (!isSSOEnabled && isUserNameDefinedAtSystemLevel(almServerName, almUserName))) ? CredentialsScope.SYSTEM : CredentialsScope.JOB) :
+            CredentialsScope.valueOf(almCredentialsScope);
 
         runFromAlmModel =
                 new RunFromAlmModel(
@@ -130,10 +121,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     private boolean isUserNameDefinedAtSystemLevel(String almServerName, String almUsername) {
         List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
         for (AlmServerSettingsModel model : models) {
-            if (model.getAlmServerName().equals(almServerName)) {
-                if (model.getAlmCredentials().stream().anyMatch(c -> c.getAlmUsername().equals(almUsername))) {
+            if (model.getAlmServerName().equals(almServerName) &&
+                model.getAlmCredentials().stream().anyMatch(c -> c.getAlmUsername().equals(almUsername))) {
                     return true;
-                }
             }
         }
         return false;
@@ -142,10 +132,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     private boolean isClientIdDefinedAtSystemLevel(String almServerName, String almClientId) {
         List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
         for (AlmServerSettingsModel model : models) {
-            if (model.getAlmServerName().equals(almServerName)) {
-                if (model.getAlmSSOCredentials().stream().anyMatch(c -> c.getAlmClientID().equals(almClientId))) {
+            if (model.getAlmServerName().equals(almServerName) &&
+                model.getAlmSSOCredentials().stream().anyMatch(c -> c.getAlmClientID().equals(almClientId))) {
                     return true;
-                }
             }
         }
         return false;
@@ -160,6 +149,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     public void setIsSSOEnabled(Boolean isSSOEnabled) { runFromAlmModel.setIsSSOEnabled(isSSOEnabled);}
 
     /* This setter seems to be useless, it only seems to generate an unnecessary object in pipeline script, of type RunFromAlmModel
+    Also, it is already set in the constructor above
     @DataBoundSetter
     public void setRunFromAlmModel(RunFromAlmModel runFromAlmModel){
         this.runFromAlmModel = runFromAlmModel;
@@ -168,12 +158,12 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setAlmServerSettingsModel(AlmServerSettingsModel almServerSettingsModel) { this.almServerSettingsModel = almServerSettingsModel; }
 
-    //NOTE most properties are used by config.jelly and also by pipeline-syntax generator
-    public String getAlmCredentialsScope() { return runFromAlmModel.getCredentialsScope() == null ? null : runFromAlmModel.getCredentialsScope().getValue(); }
+    //IMPORTANT: most properties are used by config.jelly and / or by pipeline-syntax generator
+    public String getAlmCredentialsScope() { return runFromAlmModel.getCredentialsScopeValue(); }
     public String getAlmUserName() { return runFromAlmModel.getAlmUserName(); }
-    public String getAlmPassword() { return runFromAlmModel.getAlmPassword() == null ? null : runFromAlmModel.getAlmPassword().getEncryptedValue(); }
+    public String getAlmPassword() { return runFromAlmModel.getPasswordEncryptedValue(); }
     public String getAlmClientID() { return runFromAlmModel.getAlmClientID(); }
-    public String getAlmApiKey() { return StringUtils.isBlank(runFromAlmModel.getAlmApiKey().getPlainText()) ? null : runFromAlmModel.getAlmApiKey().getEncryptedValue(); }
+    public String getAlmApiKey() { return runFromAlmModel.getApiKeyEncryptedValue(); }
 
     public String getAlmDomain(){
         return runFromAlmModel.getAlmDomain();
@@ -253,18 +243,16 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         mergedProperties.putAll(almServerSettingsModel.getProperties());
         mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
 
+        CredentialsScope scope = runFromAlmModel.getCredentialsScope();
         String encAlmPass = "";
         try {
-            String almPassword = runFromAlmModel.getAlmPassword().getPlainText();
-            if (runFromAlmModel.getCredentialsScope() == CredentialsScope.SYSTEM) {
-                List<CredentialsModel> credentials = almServerSettingsModel.getAlmCredentials();
-                for (CredentialsModel model : credentials) {
-                    if (model.getAlmUsername().equals(runFromAlmModel.getAlmUserName())) {
-                        almPassword = model.getAlmPassword();
-                        break;
-                    }
+            String almPassword = runFromAlmModel.getPasswordPlainText();
+            if (scope == CredentialsScope.SYSTEM || (scope == null && isUserNameDefinedAtSystemLevel(getAlmServerName(), getAlmUserName()))) {
+                Optional<CredentialsModel> cred = almServerSettingsModel.getAlmCredentials().stream().filter(c -> c.getAlmUsername().equals(runFromAlmModel.getAlmUserName())).findFirst();
+                if (cred.isPresent()) {
+                    almPassword = cred.get().getAlmPassword();
                 }
-            } // else {} TODO handle the case when
+            }
             encAlmPass = EncryptionUtils.Encrypt(almPassword, EncryptionUtils.getSecretKey());
             
             mergedProperties.remove(RunFromAlmModel.ALM_PASSWORD_KEY);
@@ -276,14 +264,11 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
         String encAlmApiKey = "";
         try{
-            String almApiKeySecret = runFromAlmModel.getAlmApiKey().getPlainText();
-            if (runFromAlmModel.getCredentialsScope() == CredentialsScope.SYSTEM) {
-                List<SSOCredentialsModel> ssoCredentials = almServerSettingsModel.getAlmSSOCredentials();
-                for(SSOCredentialsModel model : ssoCredentials){
-                    if(model.getAlmClientID().equals(runFromAlmModel.getAlmClientID())){
-                        almApiKeySecret = model.getAlmApiKeySecret();
-                        break;
-                    }
+            String almApiKeySecret = runFromAlmModel.getApiKeyPlainText();
+            if (scope == CredentialsScope.SYSTEM || (scope == null && isClientIdDefinedAtSystemLevel(getAlmServerName(), getAlmClientID()))) {
+                Optional<SSOCredentialsModel> cred = almServerSettingsModel.getAlmSSOCredentials().stream().filter(c -> c.getAlmClientID().equals(runFromAlmModel.getAlmClientID())).findFirst();
+                if (cred.isPresent()) {
+                    almApiKeySecret = cred.get().getAlmApiKeySecret();
                 }
             }
 

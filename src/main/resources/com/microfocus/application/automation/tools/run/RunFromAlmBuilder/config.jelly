@@ -171,7 +171,7 @@
         <div class="job-alm-secret">
             <label>API key secret</label>
             <f:entry field="almApiKey">
-                <f:password clazz="required" checkMessage="API key secret must be set"/>
+                <f:password clazz="required" checkMessage="API key secret must be set" value="${instance.runFromAlmModel.almApiKey}"/>
             </f:entry>
         </div>
     </f:entry>
@@ -189,7 +189,7 @@
         <div class="job-alm-password">
             <label>Password</label>
             <f:entry field="almPassword">
-                <f:password />
+                <f:password value="${instance.runFromAlmModel.almPassword}"/>
             </f:entry>
         </div>
     </f:entry>

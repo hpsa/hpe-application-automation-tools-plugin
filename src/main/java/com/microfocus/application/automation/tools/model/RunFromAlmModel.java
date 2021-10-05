@@ -88,7 +88,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.almServerName = almServerName;
         this.credentialsScope = credentialsScope;
 
-        this.almUserName = almUserName;
+        this.almUserName = StringUtils.defaultString(almUserName);
         this.almPassword = StringUtils.isBlank(almUserName) ? null : Secret.fromString(almPassword);
         this.almDomain = almDomain;
         this.almProject = almProject;
@@ -104,7 +104,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.almRunHost = almRunHost;
 
         this.isSSOEnabled = isSSOEnabled;
-        this.almClientID = almClientID;
+        this.almClientID = StringUtils.defaultString(almClientID);
         this.almApiKey = StringUtils.isBlank(almClientID) ? null : Secret.fromString(almApiKey);
     }
 
@@ -167,6 +167,12 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     public Properties getProperties(EnvVars envVars, VariableResolver<String> varResolver) {
         return CreateProperties(envVars, varResolver);
     }
+
+    public String getCredentialsScopeValue() { return credentialsScope == null ? "" : credentialsScope.getValue(); }
+    public String getPasswordEncryptedValue() { return almPassword == null ? "" : almPassword.getEncryptedValue(); }
+    public String getApiKeyEncryptedValue() { return almApiKey == null || StringUtils.isBlank(almApiKey.getPlainText()) ? "" : almApiKey.getEncryptedValue(); }
+    public String getPasswordPlainText() { return almPassword == null ? "" : almPassword.getPlainText(); }
+    public String getApiKeyPlainText() { return almApiKey == null ? "" : almApiKey.getPlainText(); }
 
     public Properties getProperties() {
         return CreateProperties(null, null);
