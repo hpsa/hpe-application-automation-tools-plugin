@@ -97,8 +97,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         this.filterTestsModel = filterTestsModel;
         this.almServerSettingsModel = almServerSettingsModel;
         CredentialsScope almCredScope = StringUtils.isBlank(almCredentialsScope) ?
-            (((isSSOEnabled && isClientIdDefinedAtSystemLevel(almServerName, almClientID)) || (!isSSOEnabled && isUserNameDefinedAtSystemLevel(almServerName, almUserName))) ? CredentialsScope.SYSTEM : CredentialsScope.JOB) :
-            CredentialsScope.valueOf(almCredentialsScope);
+                                        findMostSuitableCredentialsScope(almServerName, almUserName, almClientID, isSSOEnabled) :
+                                        CredentialsScope.valueOf(almCredentialsScope);
 
         runFromAlmModel =
                 new RunFromAlmModel(
@@ -118,26 +118,33 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almCredScope);
     }
 
-    private boolean isUserNameDefinedAtSystemLevel(String almServerName, String almUsername) {
+    private Optional<AlmServerSettingsModel> findAlmServerSettingsModel(String serverName) {
         List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
-        for (AlmServerSettingsModel model : models) {
-            if (model.getAlmServerName().equals(almServerName) &&
-                model.getAlmCredentials().stream().anyMatch(c -> c.getAlmUsername().equals(almUsername))) {
-                    return true;
-            }
+        return models.stream().filter(m -> m.getAlmServerName().equals(serverName)).findFirst();
+    }
+
+    private boolean isUserNameDefinedAtSystemLevel(String serverName, String userName) {
+        Optional<AlmServerSettingsModel> model = findAlmServerSettingsModel(serverName);
+        if (model.isPresent()) {
+            return model.get().getAlmCredentials().stream().anyMatch(c -> c.getAlmUsername().equals(userName));
         }
         return false;
     }
 
-    private boolean isClientIdDefinedAtSystemLevel(String almServerName, String almClientId) {
-        List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
-        for (AlmServerSettingsModel model : models) {
-            if (model.getAlmServerName().equals(almServerName) &&
-                model.getAlmSSOCredentials().stream().anyMatch(c -> c.getAlmClientID().equals(almClientId))) {
-                    return true;
-            }
+    private boolean isClientIdDefinedAtSystemLevel(String serverName, String clientId) {
+        Optional<AlmServerSettingsModel> model = findAlmServerSettingsModel(serverName);
+        if (model.isPresent()) {
+            return model.get().getAlmSSOCredentials().stream().anyMatch(c -> c.getAlmClientID().equals(clientId));
         }
         return false;
+    }
+
+    private CredentialsScope findMostSuitableCredentialsScope(String serverName, String userName, String clientId, boolean isSSOEnabled) {
+        if (isSSOEnabled) {
+            return isClientIdDefinedAtSystemLevel(serverName, clientId) ? CredentialsScope.SYSTEM : CredentialsScope.JOB;
+        } else {
+            return isUserNameDefinedAtSystemLevel(serverName, userName) ? CredentialsScope.SYSTEM : CredentialsScope.JOB;
+        }
     }
 
     public String getAlmServerName(){
