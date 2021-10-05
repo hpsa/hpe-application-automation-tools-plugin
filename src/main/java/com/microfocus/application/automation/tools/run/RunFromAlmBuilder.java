@@ -48,6 +48,7 @@ import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Stream;
 
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
@@ -119,8 +120,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     }
 
     private Optional<AlmServerSettingsModel> findAlmServerSettingsModel(String serverName) {
-        List<AlmServerSettingsModel> models = Arrays.asList(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
-        return models.stream().filter(m -> m.getAlmServerName().equals(serverName)).findFirst();
+        Stream<AlmServerSettingsModel> models = Arrays.stream(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
+        return models.filter(m -> m.getAlmServerName().equals(serverName)).findFirst();
     }
 
     private boolean isUserNameDefinedAtSystemLevel(String serverName, String userName) {
@@ -402,8 +403,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     public AlmServerSettingsModel getAlmServerSettingsModel() {
         for (AlmServerSettingsModel almServer : getDescriptor().getAlmServers()) {
             if (runFromAlmModel != null && runFromAlmModel.getAlmServerName().equals(almServer.getAlmServerName())) {
-                    return almServer;
-                }
+                return almServer;
+            }
         }
 
         return null;
@@ -455,31 +456,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                 almServers.add(almServer.getAlmServerName());
             }
             return almServers;
-        }
-
-        public List<String> getAlmUsernames(String almServerName) {
-            List<String> usernames = new ArrayList<>();
-            Set<AlmServerSettingsModel> serverList = getAlmServers();
-            for (AlmServerSettingsModel model: serverList) {
-                if (model.getAlmCredentials().get(0).getAlmUsername() != null && model.getAlmCredentials().get(0).getAlmUsername() != "" && model.getAlmServerName().equals(almServerName)) {
-                    usernames.add(model.getAlmCredentials().get(0).getAlmUsername());
-                }
-            }
-
-            return usernames;
-        }
-        public List<String> getAlmClientIds(String almServerName) {
-            List<String> clientIDList = new ArrayList<>();
-            Set<AlmServerSettingsModel> serverList = getAlmServers();
-            for (AlmServerSettingsModel model: serverList) {
-                if(!model.getAlmCredentials().isEmpty()  && model.getAlmServerName().equals(almServerName)){
-                    for(SSOCredentialsModel ssoCredentialsModel : model.getAlmSSOCredentials()) {
-                        clientIDList.add(ssoCredentialsModel.getAlmClientID());
-                    }
-                }
-            }
-
-            return clientIDList;
         }
 
         public ListBoxModel doFillAlmServerNameItems() {
