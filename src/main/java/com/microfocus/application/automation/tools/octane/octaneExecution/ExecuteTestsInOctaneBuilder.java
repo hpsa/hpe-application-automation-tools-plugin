@@ -181,7 +181,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
                 }
 
                 //WAIT UNTIL ALL JOBS ARE FINISHED and set build result based on worse result
-                supportsConsoleLog.println("Waiting for test runners are finished ... ");
+                supportsConsoleLog.println("Waiting for test runners to finish ... ");
                 Result buildResult = Result.SUCCESS;
                 for (Map.Entry<TestExecutionContext, QueueTaskFuture<AbstractBuild>> entry : futures.entrySet()) {
                     try {
