@@ -192,7 +192,9 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 SdkConstants.JobParameters.OCTANE_SPACE_PARAMETER_NAME,
                 SdkConstants.JobParameters.OCTANE_WORKSPACE_PARAMETER_NAME,
                 SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME,
-                SdkConstants.JobParameters.OCTANE_URL_PARAMETER_NAME));
+                SdkConstants.JobParameters.OCTANE_URL_PARAMETER_NAME,
+                SdkConstants.JobParameters.OCTANE_RUN_BY_USERNAME
+        ));
 
         parameterAction.getAllParameters().stream()
                 .filter(p->predefinedParams.contains(p.getName()) ||  p.getName().toLowerCase(Locale.ROOT).contains("octane"))
