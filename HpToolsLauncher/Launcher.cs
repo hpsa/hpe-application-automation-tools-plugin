@@ -236,7 +236,6 @@ namespace HpToolsLauncher
         /// </summary>
         public void Run()
         {
-
             _ciRun = true;
             if (_runType == TestStorageType.Unknown)
                 Enum.TryParse(_ciParams["runType"], true, out _runType);
@@ -315,6 +314,7 @@ namespace HpToolsLauncher
 
                     results.AppendResults(rerunResults);
                     RunTests(runner, resultsFilename, results);
+                    Environment.Exit((int)_exitCode);
                 }
             }
         }
@@ -982,9 +982,10 @@ namespace HpToolsLauncher
                     {
                         Environment.Exit((int)_exitCode);
                     }
+                } else
+				{
+                    Environment.Exit((int)_exitCode);
                 }
-
-                Environment.Exit((int)_exitCode);
             }
             finally
             {
