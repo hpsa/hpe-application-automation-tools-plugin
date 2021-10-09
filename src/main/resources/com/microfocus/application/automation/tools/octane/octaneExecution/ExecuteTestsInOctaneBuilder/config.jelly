@@ -45,8 +45,8 @@
         <f:select/>
     </f:entry>
 
-    <f:entry title="Suite ids names" field="ids"
-             description="Specify suites ids or favorites names, separated by comma (,)">
+    <f:entry title="Suite ids" field="ids"
+             description="Specify suites ids separated by comma (,)">
         <f:textbox/>
     </f:entry>
 

@@ -60,22 +60,26 @@ public abstract class AbstractBuilderProcessor {
 	public static void processInternalBuilders(Builder builder, Job job, String phasesName, List<PipelinePhase> internalPhases, Set<Job> processedJobs) {
 		processedJobs.add(job);
 		AbstractBuilderProcessor builderProcessor = null;
-		switch (builder.getClass().getName()) {
-			case JobProcessorFactory.CONDITIONAL_BUILDER_NAME:
-				builderProcessor = new ConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
-				break;
-			case JobProcessorFactory.SINGLE_CONDITIONAL_BUILDER_NAME:
-				builderProcessor = new SingleConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
-				break;
-			case JobProcessorFactory.PARAMETRIZED_TRIGGER_BUILDER:
-				builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
-				break;
-			case JobProcessorFactory.MULTIJOB_BUILDER:
-				builderProcessor = new MultiJobBuilderProcessor(builder, job, processedJobs);
-				break;
-			default:
-				logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
-				break;
+		try {
+			switch (builder.getClass().getName()) {
+				case JobProcessorFactory.CONDITIONAL_BUILDER_NAME:
+					builderProcessor = new ConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
+					break;
+				case JobProcessorFactory.SINGLE_CONDITIONAL_BUILDER_NAME:
+					builderProcessor = new SingleConditionalBuilderProcessor(builder, job, phasesName, internalPhases, processedJobs);
+					break;
+				case JobProcessorFactory.PARAMETRIZED_TRIGGER_BUILDER:
+					builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
+					break;
+				case JobProcessorFactory.MULTIJOB_BUILDER:
+					builderProcessor = new MultiJobBuilderProcessor(builder, job, processedJobs);
+					break;
+				default:
+					logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
+					break;
+			}
+		} catch (Throwable e) {
+			logger.info("Failed to load build processor for build " + builder.getClass().getName() + ",  " + e.getClass().getName() + " : " + e.getMessage());
 		}
 
 		if (builderProcessor != null) {
