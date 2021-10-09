@@ -259,6 +259,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test set: {0}, aborted at {1}.
+        /// </summary>
+        internal static string AlmRunnerTestsetAborted {
+            get {
+                return ResourceManager.GetString("AlmRunnerTestsetAborted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Test set: {0}, finished at {1}.
         /// </summary>
         internal static string AlmRunnerTestsetDone {
@@ -273,6 +282,15 @@ namespace HpToolsLauncher.Properties {
         internal static string AlmRunnerTestStat {
             get {
                 return ResourceManager.GetString("AlmRunnerTestStat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}.
+        /// </summary>
+        internal static string AlmRunnerUpdateStateAfterAbort {
+            get {
+                return ResourceManager.GetString("AlmRunnerUpdateStateAfterAbort", resourceCulture);
             }
         }
         

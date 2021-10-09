@@ -128,140 +128,214 @@
 	</f:optionalBlock>
 
 	<f:advanced title="UFT-Specific Settings">
-		<f:section title="UFT Settings">
-			<f:entry title="Run Mode" field="fsUftRunMode">
-				<select name="runPipeline.fsUftRunMode">
-					<j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
-						<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
-							${runMode.description}
-						</f:option>
-					</j:forEach>
-				</select>
-			</f:entry>
-
-			 <f:entry>
-				<f:property field="uftSettingsModel"/>
-			 </f:entry>
-		</f:section>
-	</f:advanced>
-
-	<f:advanced title="LoadRunner-Specific Settings">
-		<f:section title="LoadRunner Settings">
-			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
-				<f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
-			</f:entry>
-			<f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
-				<f:textbox name="runfromfs.perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
-			</f:entry>
-			<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
-				<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
-			</f:entry>
-			<f:entry title="Analysis Template" field="analysisTemplate">
-				<f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
-			</f:entry>
-			<f:entry title="Display Controller" field="displayController">
-				<f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
-			</f:entry>
-			<f:section title="${%SummaryDataLog}">
-				<f:entry name="Summary Data Log Model" field="summaryDataLogModel">
-					<f:property field="summaryDataLogModel" />
-				</f:entry>
-			</f:section>
-			<f:section title="${%RuntimeSettings}">
-				<f:entry name="Runtime Settings" field="scriptRTSSetModel">
-					<f:property field="scriptRTSSetModel"/>
-				</f:entry>
-			</f:section>
-		</f:section>
-	</f:advanced>
-
-	<!-- add MC server and app info starting -->
-	 <f:advanced title="UFT Mobile options">
-			<f:section title="UFT Mobile options">
-				<f:entry title="UFT Mobile Server" field="mcServerName">
-					<select name="runfromfs.mcServerName">
-						<j:forEach var="mcServer" items="${descriptor.mcServers}">
-							<f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
-								${mcServer.mcServerName}
+		<div id="uftSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>UFT-Specific Settings</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Run Mode" field="fsUftRunMode">
+					<select name="runPipeline.fsUftRunMode">
+						<j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
+							<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
+								${runMode.description}
 							</f:option>
 						</j:forEach>
 					</select>
 				</f:entry>
-				<f:entry>
-					<f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
-				</f:entry>
-				<f:entry title="User name" field="fsUserName">
-					<f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
-				</f:entry>
-				<f:entry title="Password" field="fsPassword">
-					<f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
-				</f:entry>
-				<f:entry title="Tenant Id" field="mcTenantId">
-					<f:textbox name="runfromfs.mcTenantId" value="${instance.runFromFileModel.mcTenantId}"/>
-				</f:entry>
-				<f:entry>
-					<f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
-						<f:entry title="Address" field="fsProxyAddress">
-						  <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
-						</f:entry>
-						<f:entry>
-							<f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
-						</f:entry>
-						<f:entry title="User name" field="fsProxyUserName">
-						  <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
-						</f:entry>
-						<f:entry title="Password" field="fsProxyPassword">
-						  <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
-						</f:entry>
-					</f:optionalBlock>
-				</f:entry>
-				<f:entry title="DEVICE INFORMATION:"/>
-				<f:entry/>
-				<f:entry title="Device ID" field="fsDeviceId">
-						<f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
-				</f:entry>
-				<f:entry title="OS" field="fsOs">
-					<f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
-				</f:entry>
-				<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
-					<f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
-				</f:entry>
-				<f:entry title="Target lab" field="fsTargetLab">
-					<f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
-				</f:entry>
-				<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
-					<f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
-				</f:entry>
 
-				<f:entry title="TEST DEFINITIONS:"/>
-				<f:entry/>
-				<f:entry title="Launch on start" field="fsLaunchAppName">
-					<f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
-				</f:entry>
-				<f:entry title="AUT packaging" field="fsInstrumented">
-						<f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
-				</f:entry>
-				<f:entry title="AUT actions" field="fsAutActions">
-						<f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
-				</f:entry>
-				<f:entry title="Device metrics" field="fsDevicesMetrics">
-						<f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
-				</f:entry>
-				<f:entry title="Job Id">
-						<f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
-				</f:entry>
 				<f:entry>
-						<f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+					<f:property field="uftSettingsModel"/>
 				</f:entry>
-				<f:entry>
-						<input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
-				</f:entry>
-				<f:entry>
-						<div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
-				</f:entry>
+			</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide UFT-Specific Settings" onclick="hideAndMoveAdvancedBody('uftSpecificSection')">
+									Hide UFT-Specific Settings
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
 
-			</f:section>
-		</f:advanced>
+	<f:advanced title="LoadRunner-Specific Settings">
+		<div id="loadRunnerSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>LoadRunner-Specific Settings</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+					<f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
+				</f:entry>
+				<f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+					<f:textbox name="runfromfs.perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
+				</f:entry>
+				<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
+					<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
+				</f:entry>
+				<f:entry title="Analysis Template" field="analysisTemplate">
+					<f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
+				</f:entry>
+				<f:entry title="Display Controller" field="displayController">
+					<f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
+				</f:entry>
+				<f:section title="${%SummaryDataLog}">
+					<f:entry name="Summary Data Log Model" field="summaryDataLogModel">
+						<f:property field="summaryDataLogModel" />
+					</f:entry>
+				</f:section>
+				<f:section title="${%RuntimeSettings}">
+					<f:entry name="Runtime Settings" field="scriptRTSSetModel">
+						<f:property field="scriptRTSSetModel"/>
+					</f:entry>
+				</f:section>
+			</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide LoadRunner-Specific Settings" onclick="hideAndMoveAdvancedBody('loadRunnerSpecificSection')">
+									Hide LoadRunner-Specific Settings
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
+
+	<!-- add MC server and app info starting -->
+	 <f:advanced title="UFT-Mobile Options">
+		 <div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			 <div class="repeated-chunk">
+				 <div style="width: 100%">
+					 <div class="tr help-sibling config-table-top-row">
+						 <div colspan="3">
+							 <div>
+								 <b>UFT-Mobile Options</b>
+							 </div>
+							 <span class="setting-no-help"></span>
+						 </div>
+					 </div>
+				 </div>
+				 <f:entry title="UFT Mobile Server" field="mcServerName">
+					 <select name="runfromfs.mcServerName">
+						 <j:forEach var="mcServer" items="${descriptor.mcServers}">
+							 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
+								 ${mcServer.mcServerName}
+							 </f:option>
+						 </j:forEach>
+					 </select>
+				 </f:entry>
+				 <f:entry>
+					 <f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
+				 </f:entry>
+				 <f:entry title="User name" field="fsUserName">
+					 <f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
+				 </f:entry>
+				 <f:entry title="Password" field="fsPassword">
+					 <f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
+				 </f:entry>
+				 <f:entry title="Tenant Id" field="mcTenantId">
+					 <f:textbox name="runfromfs.mcTenantId" value="${instance.runFromFileModel.mcTenantId}"/>
+				 </f:entry>
+				 <f:entry>
+					 <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
+						 <f:entry title="Address" field="fsProxyAddress">
+							 <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
+						 </f:entry>
+						 <f:entry>
+							 <f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
+						 </f:entry>
+						 <f:entry title="User name" field="fsProxyUserName">
+							 <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+						 </f:entry>
+						 <f:entry title="Password" field="fsProxyPassword">
+							 <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+						 </f:entry>
+					 </f:optionalBlock>
+				 </f:entry>
+				 <f:entry title="DEVICE INFORMATION:"/>
+				 <f:entry/>
+				 <f:entry title="Device ID" field="fsDeviceId">
+					 <f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
+				 </f:entry>
+				 <f:entry title="OS" field="fsOs">
+					 <f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
+				 </f:entry>
+				 <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+					 <f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+				 </f:entry>
+				 <f:entry title="Target lab" field="fsTargetLab">
+					 <f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
+				 </f:entry>
+				 <f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+					 <f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
+				 </f:entry>
+
+				 <f:entry title="TEST DEFINITIONS:"/>
+				 <f:entry/>
+				 <f:entry title="Launch on start" field="fsLaunchAppName">
+					 <f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+				 </f:entry>
+				 <f:entry title="AUT packaging" field="fsInstrumented">
+					 <f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
+				 </f:entry>
+				 <f:entry title="AUT actions" field="fsAutActions">
+					 <f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
+				 </f:entry>
+				 <f:entry title="Device metrics" field="fsDevicesMetrics">
+					 <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+				 </f:entry>
+				 <f:entry title="Job Id">
+					 <f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
+				 </f:entry>
+				 <f:entry>
+					 <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+				 </f:entry>
+				 <f:entry>
+					 <input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
+				 </f:entry>
+				 <f:entry>
+					 <div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
+				 </f:entry>
+			 </div>
+			 <div class="tr config-table-top-row">
+				 <div colspan="4">
+					 <div align="right">
+						 <span class="yui-button yui-push-button repeatable-delete danger">
+							 <span class="first-child">
+								 <button type="button" tabindex="0" title="Hide UFT-Mobile Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
+									 Hide UFT-Mobile Options
+								 </button>
+							 </span>
+						 </span>
+					 </div>
+				 </div>
+			 </div>
+		 </div>
+	 </f:advanced>
 
 	<script type="text/javascript">
 		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");

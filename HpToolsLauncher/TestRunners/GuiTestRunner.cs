@@ -248,7 +248,6 @@ namespace HpToolsLauncher
                         // Launch application after set Addins
                         _qtpApplication.Launch();
                         _qtpApplication.Visible = false;
-
                     }
                 }
             }
@@ -299,7 +298,6 @@ namespace HpToolsLauncher
             }
 
             QTPTestCleanup();
-
 
             return runDesc;
         }
@@ -449,10 +447,13 @@ namespace HpToolsLauncher
                 //Check for cancel before executing
                 if (_runCancelled())
                 {
+                    QTPTestCleanup();
+                    KillQtp();
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = Resources.GeneralTestCanceled;
                     ConsoleWriter.WriteLine(Resources.GeneralTestCanceled);
                     result.IsSuccess = false;
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                     return result;
                 }
                 ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerRunningTest, testResults.TestPath));
@@ -473,11 +474,12 @@ namespace HpToolsLauncher
                     Thread.Sleep(200);
                     if (_timeLeftUntilTimeout - _stopwatch.Elapsed <= TimeSpan.Zero)
                     {
-                        _qtpApplication.Test.Stop();
+                        QTPTestCleanup();
+                        KillQtp();
                         testResults.TestState = TestState.Error;
                         testResults.ErrorDesc = Resources.GeneralTimeoutExpired;
                         ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
-
+                        Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                         result.IsSuccess = false;
                         return result;
                     }
@@ -568,7 +570,9 @@ namespace HpToolsLauncher
             Process[] processes = Process.GetProcessesByName("qtpAutomationAgent");
             Process qtpAuto = processes.Where(p => p.SessionId == Process.GetCurrentProcess().SessionId).FirstOrDefault();
             if (qtpAuto != null)
+		    {
                 qtpAuto.Kill();
+		    }
         }
 
         private bool HandleOutputArguments(ref string errorReason)
@@ -748,6 +752,7 @@ namespace HpToolsLauncher
                             try
                             {
                                 _qtpApplication.Test.Stop();
+                                _qtpApplication.Test.Close();
                             }
                             catch (Exception)
                             {

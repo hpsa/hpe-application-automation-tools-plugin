@@ -236,7 +236,6 @@ namespace HpToolsLauncher
         /// </summary>
         public void Run()
         {
-
             _ciRun = true;
             if (_runType == TestStorageType.Unknown)
                 Enum.TryParse(_ciParams["runType"], true, out _runType);
@@ -315,6 +314,7 @@ namespace HpToolsLauncher
 
                     results.AppendResults(rerunResults);
                     RunTests(runner, resultsFilename, results);
+                    Environment.Exit((int)_exitCode);
                 }
             }
         }
@@ -885,12 +885,6 @@ namespace HpToolsLauncher
                     Environment.Exit((int)_exitCode);
                 }
 
-                //if there is an error
-                if (results.TestRuns.Any(tr => tr.TestState == TestState.Error))
-                {
-                    _exitCode = ExitCodeEnum.Failed;
-                }
-
                 int numFailures = results.NumFailures;
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.NumErrors;
@@ -898,6 +892,12 @@ namespace HpToolsLauncher
 
                 if (_exitCode != ExitCodeEnum.Aborted)
 				{
+                    //if there is an error
+                    if (numErrors > 0)
+                    {
+                        _exitCode = ExitCodeEnum.Failed;
+                    }
+
                     if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
                     {
                         _exitCode = ExitCodeEnum.Unstable;
@@ -982,6 +982,9 @@ namespace HpToolsLauncher
                     {
                         Environment.Exit((int)_exitCode);
                     }
+                } else
+				{
+                    Environment.Exit((int)_exitCode);
                 }
             }
             finally
