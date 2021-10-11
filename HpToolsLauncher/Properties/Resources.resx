@@ -496,4 +496,10 @@ Save the test in QuickTest and then run it again.</value>
   <data name="AlmRunnerUpdateStateAfterAbort" xml:space="preserve">
     <value>Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}</value>
   </data>
+  <data name="AlmRunnerErrorParameterFormat" xml:space="preserve">
+    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}.</value>
+  </data>
+  <data name="MissingQuotesInParamFormat" xml:space="preserve">
+    <value>Missing quotes for {0} in parameter definition.</value>
+  </data>
 </root>

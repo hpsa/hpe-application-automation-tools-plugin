@@ -747,21 +747,13 @@ namespace HpToolsLauncher
                     var qtpTest = _qtpApplication.Test;
                     if (qtpTest != null)
                     {
-                        if (_qtpApplication.GetStatus().Equals("Running") || _qtpApplication.GetStatus().Equals("Busy"))
+                        try
                         {
-                            try
-                            {
-                                _qtpApplication.Test.Stop();
-                                _qtpApplication.Test.Close();
-                            }
-                            catch (Exception)
-                            {
-                            }
-                            finally
-                            {
-
-                            }
+                            _qtpApplication.Test.Stop();
+                            _qtpApplication.Test.Close();
                         }
+                        catch (Exception)
+                        {}
                     }
                 }
             }

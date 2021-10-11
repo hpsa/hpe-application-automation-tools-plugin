@@ -151,6 +151,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}..
+        /// </summary>
+        internal static string AlmRunnerErrorParameterFormat {
+            get {
+                return ResourceManager.GetString("AlmRunnerErrorParameterFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;Unable to login. Please check username and password.&quot;.
         /// </summary>
         internal static string AlmRunnerIncorectCredentials {
@@ -1065,6 +1074,15 @@ namespace HpToolsLauncher.Properties {
         internal static string MissingParameterValue {
             get {
                 return ResourceManager.GetString("MissingParameterValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing quotes for {0} in parameter definition..
+        /// </summary>
+        internal static string MissingQuotesInParamFormat {
+            get {
+                return ResourceManager.GetString("MissingQuotesInParamFormat", resourceCulture);
             }
         }
         
