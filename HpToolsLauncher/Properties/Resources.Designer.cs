@@ -19,7 +19,7 @@ namespace HpToolsLauncher.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,6 +57,15 @@ namespace HpToolsLauncher.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find Test {0}.
+        /// </summary>
+        internal static string AlmRunnerCantFindTest {
+            get {
+                return ResourceManager.GetString("AlmRunnerCantFindTest", resourceCulture);
             }
         }
         
@@ -250,6 +259,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test set: {0}, aborted at {1}.
+        /// </summary>
+        internal static string AlmRunnerTestsetAborted {
+            get {
+                return ResourceManager.GetString("AlmRunnerTestsetAborted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Test set: {0}, finished at {1}.
         /// </summary>
         internal static string AlmRunnerTestsetDone {
@@ -268,6 +286,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}.
+        /// </summary>
+        internal static string AlmRunnerUpdateStateAfterAbort {
+            get {
+                return ResourceManager.GetString("AlmRunnerUpdateStateAfterAbort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find the test folder..
         /// </summary>
         internal static string AlmTestSetsRunnerGetFolderError {
@@ -277,7 +304,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No test meets the filtering criteria..
+        ///   Looks up a localized string similar to No test meets the filtering criteria.
         /// </summary>
         internal static string AlmTestSetsRunnerNoTestAfterApplyingFilters {
             get {
@@ -358,7 +385,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ===============================\nThere are no valid tests to run!\n===============================.
+        ///   Looks up a localized string similar to =============================== There are no valid tests to run! ===============================.
         /// </summary>
         internal static string FsRunnerNoValidTests {
             get {

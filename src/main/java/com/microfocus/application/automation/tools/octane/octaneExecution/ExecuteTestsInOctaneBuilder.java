@@ -57,6 +57,7 @@ import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -121,8 +122,16 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
 
         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(myConfigurationId);
         TestExecutionService testExecutionService = octaneClient.getTestExecutionService();
-        List<Long> suiteIds = Arrays.stream(myIds.split(",")).map(str -> Long.parseLong(str.trim())).collect(Collectors.toList());
-
+        List<Long> suiteIds = Arrays.stream(myIds.split(","))
+                .map(str -> str.trim()).filter(str -> StringUtils.isNotEmpty(str) && StringUtils.isNumeric(str))
+                .map(str -> Long.parseLong(str.trim())).distinct().collect(Collectors.toList());
+        try {
+            testExecutionService.validateAllSuiteIdsExistAndReturnSuiteNames(myWorkspaceIdAsLong, suiteIds);
+        } catch (IllegalArgumentException e) {
+            listener.error(e.getMessage());
+            build.setResult(Result.FAILURE);
+            return;
+        }
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
 
         switch (ExecutionMode.fromValue(myExecutionMode)) {
@@ -172,7 +181,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
                 }
 
                 //WAIT UNTIL ALL JOBS ARE FINISHED and set build result based on worse result
-                supportsConsoleLog.print("Waiting for test runners are finished ... ");
+                supportsConsoleLog.println("Waiting for test runners to finish ... ");
                 Result buildResult = Result.SUCCESS;
                 for (Map.Entry<TestExecutionContext, QueueTaskFuture<AbstractBuild>> entry : futures.entrySet()) {
                     try {

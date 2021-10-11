@@ -113,7 +113,7 @@ public class ReportMetaData {
         this.archiveUrl = archiveUrl;
     }
 
-    public boolean getHasArchiveUrl() {
-        return archiveUrl != null;
+    public boolean hasArchiveUrl() {
+        return archiveUrl != null && !archiveUrl.equals("");
     }
 }

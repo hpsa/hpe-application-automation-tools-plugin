@@ -60,9 +60,9 @@ public abstract class PollHandler extends Handler {
     }
     
     protected boolean doPoll(Logger logger) throws InterruptedException {
-        
         boolean ret = false;
         int failures = 0;
+
         while (failures < 3) {
             Response response = getResponse();
             if (isOk(response, logger)) {

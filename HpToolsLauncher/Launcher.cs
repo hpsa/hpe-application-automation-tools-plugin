@@ -236,7 +236,6 @@ namespace HpToolsLauncher
         /// </summary>
         public void Run()
         {
-
             _ciRun = true;
             if (_runType == TestStorageType.Unknown)
                 Enum.TryParse(_ciParams["runType"], true, out _runType);
@@ -315,6 +314,7 @@ namespace HpToolsLauncher
 
                     results.AppendResults(rerunResults);
                     RunTests(runner, resultsFilename, results);
+                    Environment.Exit((int)_exitCode);
                 }
             }
         }
@@ -879,38 +879,45 @@ namespace HpToolsLauncher
 
                 if (results.TestRuns.Count == 0)
                 {
-                    Console.WriteLine("No tests were run");
+                    ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+                    ConsoleWriter.WriteLine("No tests were run");
                     _exitCode = ExitCodeEnum.Failed;
                     Environment.Exit((int)_exitCode);
                 }
 
-                //if there is an error
-                if (results.TestRuns.Any(tr => tr.TestState == TestState.Failed || tr.TestState == TestState.Error))
-                {
-                    _exitCode = ExitCodeEnum.Failed;
-                }
-
-                int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
+                int numFailures = results.NumFailures;
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
-                int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
-                int numWarnings = results.TestRuns.Count(t => t.TestState == TestState.Warning);
+                int numErrors = results.NumErrors;
+                int numWarnings = results.NumWarnings;
 
-                if ((numErrors <= 0) && (numFailures > 0))
-                {
-                    _exitCode = ExitCodeEnum.Failed;
-                }
-
-                if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
-                {
-                    _exitCode = ExitCodeEnum.Unstable;
-                }
-
-                foreach (var testRun in results.TestRuns)
-                {
-                    if (testRun.FatalErrors > 0 && !string.IsNullOrWhiteSpace(testRun.TestPath))
+                if (_exitCode != ExitCodeEnum.Aborted)
+				{
+                    //if there is an error
+                    if (numErrors > 0)
                     {
                         _exitCode = ExitCodeEnum.Failed;
-                        break;
+                    }
+
+                    if ((numErrors <= 0) && (numFailures > 0) && (numSuccess > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Unstable;
+                    }
+                    else if ((numErrors <= 0) && (numFailures > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Failed;
+                    }
+                    else if ((numErrors <= 0) && (numWarnings > 0))
+                    {
+                        _exitCode = ExitCodeEnum.Unstable;
+                    }
+
+                    foreach (var testRun in results.TestRuns)
+                    {
+                        if (testRun.FatalErrors > 0 && !string.IsNullOrWhiteSpace(testRun.TestPath))
+                        {
+                            _exitCode = ExitCodeEnum.Failed;
+                            break;
+                        }
                     }
                 }
 
@@ -924,8 +931,22 @@ namespace HpToolsLauncher
                         runStatus = "Job succeeded";
                         break;
                     case ExitCodeEnum.Unstable:
-                        runStatus = "Job unstable (Passed with failed tests)";
-                        break;
+						{
+                            if (numFailures > 0 && numWarnings > 0)
+                            {
+                                runStatus = "Job unstable (Passed with failed tests and generated warnings)";
+                            }
+                            else if (numFailures > 0)
+                            {
+                                runStatus = "Job unstable (Passed with failed tests)";
+                            }
+                            else if (numWarnings > 0)
+                            {
+                                runStatus = "Job unstable (Generated warnings)";
+                            }
+
+                            break;
+                        }
                     case ExitCodeEnum.Aborted:
                         runStatus = "Job failed due to being Aborted";
                         break;
@@ -961,6 +982,9 @@ namespace HpToolsLauncher
                     {
                         Environment.Exit((int)_exitCode);
                     }
+                } else
+				{
+                    Environment.Exit((int)_exitCode);
                 }
             }
             finally

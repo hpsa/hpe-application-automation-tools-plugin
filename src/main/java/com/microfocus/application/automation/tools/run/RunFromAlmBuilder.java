@@ -387,41 +387,34 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             PrintStream out = listener.getLogger();
-            // kill processes
-            //FilePath killFile = projectWS.child(KillFileName);
-            /* try {
-                out.println("Sending abort command");
-                killFile.write("\n", "UTF-8");
-                while (!killFile.exists())
-                    Thread.sleep(1000);
-                Thread.sleep(1500);
-                
-            } catch (IOException e1) {
-                //build.setResult(Result.FAILURE);
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (InterruptedException e1) {
-                //build.setResult(Result.FAILURE);
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }*/
-
+            
             try {
                 AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
                 return;
-            } catch (InterruptedException e1) {
+    		} catch (InterruptedException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+
+                try {
+                    AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
+                } catch (IOException e1) {
+                    Util.displayIOException(e1, listener);
+                    build.setResult(Result.FAILURE);
+                    return;
+                } catch (InterruptedException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+
+                out.println("Operation was aborted by user.");
+                //build.setResult(Result.FAILURE);
             }
-
-            out.println("Operation was aborted by user.");
-            //build.setResult(Result.FAILURE);
         }
-        return;
 
+        return;
     }
 
     public AlmServerSettingsModel getAlmServerSettingsModel() {

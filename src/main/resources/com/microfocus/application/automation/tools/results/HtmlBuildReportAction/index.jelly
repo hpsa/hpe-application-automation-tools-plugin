@@ -66,6 +66,14 @@
         display: block;
         overflow: auto;
     }
+
+    .disabledLink {
+      cursor: not-allowed;
+      opacity: 0.5;
+      text-decoration: none;
+      color: currentColor;
+      display: inline-block;
+    }
     </style>
 
     <st:include it="${it.build}" page="sidepanel.jelly" />
@@ -140,9 +148,14 @@
 
              <td class = "bodycell"><a href="../${s.resourceURL}">Open</a></td>
              <td class = "bodycell">
-                <j:if test="${s.hasArchiveUrl}">
-                    <a href="../${s.archiveUrl}">Download</a>
-                </j:if>
+                 <j:choose>
+                     <j:when test="${s.hasArchiveUrl()}">
+                         <a href="../${s.archiveUrl}">Download</a>
+                     </j:when>
+                     <j:otherwise>
+                         <a class="disabledLink" aria-disabled="true">Download</a>
+                     </j:otherwise>
+                 </j:choose>
              </td>
            </tr>
          </j:forEach>

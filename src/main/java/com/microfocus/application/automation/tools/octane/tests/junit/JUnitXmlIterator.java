@@ -198,7 +198,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					int uftTextIndexStart = getUftTestIndexStart(workspace, sharedCheckOutDirectory, testName);
 					if (uftTextIndexStart != -1) {
 						String path = testName.substring(uftTextIndexStart).replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);;
-						if(path.startsWith(MfMBTConverter.MBT_PARENT_SUB_DIR)){//remove MBT prefix
+						boolean isMBT = path.startsWith(MfMBTConverter.MBT_PARENT_SUB_DIR);
+						if(isMBT){//remove MBT prefix
 							//mbt test located in two level folder : ___mbt/_order
 							path = path.substring(MfMBTConverter.MBT_PARENT_SUB_DIR.length() + 1);//remove ___mbt
 							path = path.substring(path.indexOf(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER));//remove order part
@@ -214,6 +215,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 							packageName = path.substring(0, testNameStartIndex);
 						} else {
 							testName = path;
+							if (isMBT) {
+								testName = MfMBTConverter.decodeTestNameIfRequired(testName);
+							}
 						}
 					}
 

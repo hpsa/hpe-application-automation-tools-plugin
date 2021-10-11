@@ -58,7 +58,7 @@
     </f:entry>
 
     <f:entry field="passedCheckbox">
-     <f:checkbox id="checkboxStatus" checked="${instance.blockedCheckbox}" title="Passed"/>
+     <f:checkbox id="checkboxStatus" checked="${instance.passedCheckbox}" title="Passed"/>
     </f:entry>
 
 </j:jelly>

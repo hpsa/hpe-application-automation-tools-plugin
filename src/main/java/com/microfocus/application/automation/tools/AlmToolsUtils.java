@@ -72,6 +72,8 @@ public class AlmToolsUtils {
                     build.setResult(Result.UNSTABLE);
                 } else if (returnCode == -3) {
                     build.setResult(Result.ABORTED);
+                    // throwing this exception ensures we enter into the respective catch branch in the callstack
+                    throw new InterruptedException();
                 } else {
                     listener.getLogger().println("Launch return code " + returnCode);
                     build.setResult(Result.FAILURE);

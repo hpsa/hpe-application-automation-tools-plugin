@@ -58,21 +58,36 @@ public class LabPollHandler extends PollHandler {
     
     @Override
     protected boolean doPoll(Logger logger) throws InterruptedException {
-        
         boolean ret = false;
         
         Response runEntityResponse = getRunEntityData();
         if (isOk(runEntityResponse, logger)) {
-            setTimeslotId(runEntityResponse, logger);
-            _eventLogHandler = new EventLogHandler(_client, _timeslotId);
-            if (!StringUtils.isNullOrEmpty(_timeslotId)) {
-                ret = super.doPoll(logger);
+            if (!isTestsetEmpty(runEntityResponse, logger)) {
+                setTimeslotId(runEntityResponse, logger);
+                _eventLogHandler = new EventLogHandler(_client, _timeslotId);
+                if (!StringUtils.isNullOrEmpty(_timeslotId)) {
+                    ret = super.doPoll(logger);
+                }
+            } else {
+                logger.log(String.format("Testset %s is empty.", _entityId));
             }
         }
         return ret;
-        
     }
-    
+
+    private boolean isTestsetEmpty(Response response, Logger logger) {
+        try {
+            String xml = response.toString();
+            String testSetNames = XPathUtils.getAttributeValue(xml, "test-set-names");
+            String name = XPathUtils.getAttributeValue(xml, "name");
+
+            return testSetNames.equals("Error") && name.startsWith("Error");
+        } catch (Throwable cause) {
+            logger.log(String.format("Failed to parse response: %s", response));
+            return false;
+        }
+    }
+
     @Override
     protected Response getResponse() {
         
