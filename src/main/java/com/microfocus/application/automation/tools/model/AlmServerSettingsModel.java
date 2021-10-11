@@ -42,7 +42,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
 
-public class AlmServerSettingsModel extends AbstractDescribableImpl<AlmServerSettingsModel> {
+public class AlmServerSettingsModel extends AbstractDescribableImpl<AlmServerSettingsModel> implements Comparable<AlmServerSettingsModel>{
     
     private final String _almServerName;
     private final String _almServerUrl;
@@ -110,6 +110,11 @@ public class AlmServerSettingsModel extends AbstractDescribableImpl<AlmServerSet
             prop.put("almServerUrl", "");
         }
         return prop;
+    }
+
+    @Override
+    public int compareTo(AlmServerSettingsModel model) {
+        return _almServerName.compareTo(model._almServerName);
     }
 
 
