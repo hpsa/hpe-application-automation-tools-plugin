@@ -397,20 +397,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     		} catch (InterruptedException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
-
-                try {
-                    AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
-                } catch (IOException ioe) {
-                    Util.displayIOException(ioe, listener);
-                    build.setResult(Result.FAILURE);
-                    return;
-                } catch (InterruptedException ie) {
-                    // TODO Auto-generated catch block
-                    ie.printStackTrace();
-                }
-
-                out.println("Operation was aborted by user.");
-                //build.setResult(Result.FAILURE);
             }
         }
 
