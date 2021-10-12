@@ -123,7 +123,7 @@
 
     <f:entry field="almServerName">
       <label>ALM server</label>
-      <f:select clazz="servers"/>
+      <f:select clazz="alm-server-name"/>
     </f:entry>
 
     <f:entry>
@@ -178,7 +178,7 @@
 
     <f:entry>
         <div class="job-alm-username">
-            <label>User name</label>
+            <label>Username</label>
             <f:entry field="almUserName">
                 <f:textbox clazz="required" checkMessage="User name must be set"/>
             </f:entry>
