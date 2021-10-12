@@ -1,21 +1,26 @@
 if (window.NodeList && !NodeList.prototype.forEach) {
 	NodeList.prototype.forEach = Array.prototype.forEach;
 }
-const CredScope = {JOB : "JOB", SYSTEM : "SYSTEM"};
-
+if (typeof CredScope == "undefined") {
+	CredScope = {JOB : "JOB", SYSTEM : "SYSTEM"};
+}
+if (typeof RUN_FROM_ALM_BUILDER_SELECTOR == "undefined") {
+	RUN_FROM_ALM_BUILDER_SELECTOR = 'div[name="builder"][descriptorid="com.microfocus.application.automation.tools.run.RunFromAlmBuilder"]';
+}
 function setupAlmCredentials() {
 	let divMain = null;
-	const selector = 'div[name="builder"][descriptorid="com.microfocus.application.automation.tools.run.RunFromAlmBuilder"]';
-	if (document.currentScript) {
-		divMain = document.currentScript.parentElement.closest(selector);
-	} else { // IE does not support document.currentScript
-		let divs = document.querySelectorAll(selector);
-		divMain = divs[divs.length-1];
+	if (document.currentScript) { // this block is used for non-IE browsers, for the first ALM build step only, it finds very fast the parent DIV (containing all ALM controls)
+		divMain = document.currentScript.parentElement.closest(RUN_FROM_ALM_BUILDER_SELECTOR);
 	}
 	setTimeout( function() {
 		prepareTask(divMain)}, 200);
 }
 function prepareTask(divMain) {
+	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one ALM build step
+		let divs = document.querySelectorAll(RUN_FROM_ALM_BUILDER_SELECTOR);
+		divMain = divs[divs.length-1];
+	}
+
 	const lstServerName = divMain.querySelector('select.alm-server-name');
 	const lstCredentialsScope = divMain.querySelector('select[name="almCredentialsScope"]');
 	const chkSsoEnabled = divMain.querySelector('input[type="checkbox"][name="runfromalm.isSSOEnabled"]');
