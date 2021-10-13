@@ -282,7 +282,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             if (scope == CredentialsScope.SYSTEM || (scope == null && isUserNameDefinedAtSystemLevel(getAlmServerName(), getAlmUserName()))) {
                 Optional<CredentialsModel> cred = almServerSettingsModel.getAlmCredentials().stream().filter(c -> c.getAlmUsername().equals(runFromAlmModel.getAlmUserName())).findFirst();
                 if (cred.isPresent()) {
-                    almPassword = cred.get().getAlmPassword();
+                    almPassword = cred.get().getAlmPasswordPlainText();
                 }
             }
             encAlmPass = EncryptionUtils.Encrypt(almPassword, EncryptionUtils.getSecretKey());
@@ -300,7 +300,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             if (scope == CredentialsScope.SYSTEM || (scope == null && isClientIdDefinedAtSystemLevel(getAlmServerName(), getAlmClientID()))) {
                 Optional<SSOCredentialsModel> cred = almServerSettingsModel.getAlmSSOCredentials().stream().filter(c -> c.getAlmClientID().equals(runFromAlmModel.getAlmClientID())).findFirst();
                 if (cred.isPresent()) {
-                    almApiKeySecret = cred.get().getAlmApiKeySecret();
+                    almApiKeySecret = cred.get().getAlmApiKeySecretPlainText();
                 }
             }
 
