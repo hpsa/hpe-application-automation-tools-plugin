@@ -36,6 +36,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by franksha on 07/12/2016.
@@ -61,7 +63,12 @@ public class CucumberTestResultsAction implements Action {
                 if (run.getStartTimeInMillis() < resultFile.lastModified()) {
                     CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
                 } else {
-                    CucumberResultsService.log("Found outdated file %s", resultFile.getPath());
+                    String pattern = "yyyy-MM-dd HH:mm:ss";
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+
+                    CucumberResultsService.log("Found outdated file %s, build started at %s (%s), while file last update time is %s (%s) ",
+                            resultFile.getPath(), dateFormat.format(new Date(run.getStartTimeInMillis())), String.valueOf(run.getStartTimeInMillis()),
+                            dateFormat.format(new Date(resultFile.lastModified())), String.valueOf(resultFile.lastModified()));
                 }
             }
 
