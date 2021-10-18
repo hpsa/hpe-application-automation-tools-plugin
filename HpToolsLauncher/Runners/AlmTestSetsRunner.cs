@@ -920,18 +920,32 @@ namespace HpToolsLauncher
                     {
                         string[] pair = parameterPair.Split(':');
 
-                        string paramName = NormalizeParam(pair[0]);
+                        string paramName = pair[0].Trim();
+                        if (!CheckParamFormat(paramName))
+						{
+                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter name"));
+                            return false;
+						}
+
+                        paramName = NormalizeParam(paramName);
                         if (string.IsNullOrWhiteSpace(paramName))
                         {
-                            Console.WriteLine(Resources.MissingParameterName);
+                            ConsoleWriter.WriteLine(Resources.MissingParameterName);
                             return false;
                         }
                         paramNames.Add(paramName);
 
-                        string paramValue = NormalizeParam(pair[1]);
+                        string paramValue = pair[1].Trim();
+                        if (!CheckParamFormat(paramValue))
+                        {
+                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter value"));
+                            return false;
+                        }
+
+                        paramValue = NormalizeParam(paramValue);
                         if (paramValue == null)
                         {
-                            Console.WriteLine(Resources.MissingParameterValue);
+                            ConsoleWriter.WriteLine(Resources.MissingParameterValue);
                             return false;
                         }
                         paramValues.Add(paramValue);
@@ -943,15 +957,30 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// Normalizes test parameter
+        /// 
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private bool CheckParamFormat(string param)
+		{
+            // must be at least 2 characters wide, containing at least 2 double quotes
+            if (param.Length < 2) return false;
+
+            // first and at last characters have to be double quotes
+            if (!param.StartsWith("\"") && !param.EndsWith("\"")) return false;
+
+            return true;
+		}
+
+        /// <summary>
+        /// Normalizes test parameter, by removing the double quotes
         /// </summary>
         /// <param name="param"></param>
         /// <returns>true if parameter is valid, false otherwise</returns>
-        public string NormalizeParam(string param)
+        private string NormalizeParam(string param)
         {
             if (!string.IsNullOrWhiteSpace(param))
             {
-                param = param.Trim();
                 if (param.Length > 1)
                 {
                     return param.Substring(1, param.Length - 2);
@@ -972,7 +1001,10 @@ namespace HpToolsLauncher
             if (!string.IsNullOrEmpty(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                ValidateListOfParams(@params, out paramNames, out paramValues);
+                if (!ValidateListOfParams(@params, out paramNames, out paramValues))
+				{
+                    throw new ArgumentException();
+                }
 
                 ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
                 ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
@@ -1011,6 +1043,11 @@ namespace HpToolsLauncher
                     }
                     xmlParams.Append(XML_PARAMS_END_TAG);
                 }
+
+                if (!validParameters)
+				{
+                    throw new ArgumentException();
+				}
             }
 
             if (xmlParams.Length > 0)
@@ -1152,7 +1189,7 @@ namespace HpToolsLauncher
             if (testSetList == null)
             {
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
-                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+                UpdateTestResultsIfTestErrorAppearedBeforeRun(ref runDesc, ref activeTestDesc, initialFullTsPath, string.Format(Resources.AlmRunnerCantFindTest, activeTestDesc.TestPath));
 
                 return runDesc;
             }
@@ -1171,7 +1208,7 @@ namespace HpToolsLauncher
             if (targetTestSet == null)
             {
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
-                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+                UpdateTestResultsIfTestErrorAppearedBeforeRun(ref runDesc, ref activeTestDesc, initialFullTsPath, string.Format(Resources.AlmRunnerCantFindTest, activeTestDesc.TestPath));
 
                 return runDesc;
             }
@@ -1234,7 +1271,19 @@ namespace HpToolsLauncher
             //set test parameters
             if (filteredTestList.Count > 0)
             {
-                SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler);
+				try
+				{
+                    SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler);
+                } catch (ArgumentException)
+				{
+                    string message = string.Format(Resources.AlmRunnerErrorParameterFormat, initialFullTsPath);
+                    ConsoleWriter.WriteErrLine(message);
+
+                    // this means that the user configured parameters are invalid, we should set the testset status to failed and interrupt the execution
+                    UpdateTestResultsIfTestErrorAppearedBeforeRun(ref runDesc, ref activeTestDesc, initialFullTsPath, message);
+
+                    return runDesc;
+				}
             }
 
             // isTestPath is only true, if a specific test was given by the user
@@ -1245,7 +1294,7 @@ namespace HpToolsLauncher
                 //this will make sure run will fail at the end. (since there was an error)
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerCantFindTest, initialFullTsPath));
 
-                UpdateTestResultsIfNonExistingTestSpecified(ref runDesc, ref activeTestDesc, initialFullTsPath);
+                UpdateTestResultsIfTestErrorAppearedBeforeRun(ref runDesc, ref activeTestDesc, initialFullTsPath, string.Format(Resources.AlmRunnerCantFindTest, activeTestDesc.TestPath));
                 return runDesc;
             } else if (filteredTestList.Count == 0)
 			{
@@ -1286,8 +1335,8 @@ namespace HpToolsLauncher
             //done with all tests, stop collecting output in the testRun object.
             ConsoleWriter.ActiveTestRun = null;
 
-            string testPath;
-            if (isTestPath)
+			string testPath;
+			if (isTestPath)
 			{
                 testPath = string.Format(@"Root\{0}\", tsFolderName);
             } else
@@ -1410,9 +1459,9 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="runDesc">run results to be updated</param>
         /// <param name="activeTestDesc">the non-existing test's description</param>
-        /// <param name="tsFolder">test's folder</param>
-        /// <param name="testSuiteName">test's name</param>
-		private void UpdateTestResultsIfNonExistingTestSpecified(ref TestSuiteRunResults runDesc, ref TestRunResults activeTestDesc, string tsPath)
+        /// <param name="tsPath"></param>
+        /// <param name="errMessage"></param>
+		private void UpdateTestResultsIfTestErrorAppearedBeforeRun(ref TestSuiteRunResults runDesc, ref TestRunResults activeTestDesc, string tsPath, string errMessage)
 		{
             runDesc.NumTests++;
             runDesc.TotalRunTime = System.TimeSpan.Zero;
@@ -1422,9 +1471,14 @@ namespace HpToolsLauncher
             activeTestDesc.TestPath = tsPath;
             int pos = tsPath.LastIndexOf("\\", StringComparison.Ordinal) + 1;
             activeTestDesc.TestName = tsPath.Substring(pos);
-            activeTestDesc.ErrorDesc = string.Format(Resources.AlmRunnerCantFindTest, activeTestDesc.TestPath);
+            activeTestDesc.ErrorDesc = errMessage;
             activeTestDesc.FatalErrors = 1;
             activeTestDesc.Runtime = System.TimeSpan.Zero;
+
+            if (activeTestDesc.TestGroup == null)
+            {
+                activeTestDesc.TestGroup = tsPath;
+            }
 
             runDesc.TestRuns.Add(activeTestDesc);
         }
