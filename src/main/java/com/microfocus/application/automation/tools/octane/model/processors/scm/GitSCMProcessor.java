@@ -111,7 +111,7 @@ class GitSCMProcessor implements SCMProcessor {
 				logger.warn("Line enricher: workspace is null");
 			}
 		} catch (Exception e1) {
-			logger.error("Line enricher: FAILED. could not enrich lines on SCM Data ", e1);
+			logger.error("Line enricher: FAILED. could not enrich lines on SCM Data : " + e1.getMessage());
 		}
 		return scmData;
 	}
