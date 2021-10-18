@@ -52,10 +52,12 @@ public class CredentialsModel extends AbstractDescribableImpl<CredentialsModel> 
         return almUsername;
     }
 
-    public String getAlmPassword(){
+    public Secret getAlmPassword(){
+        return almPassword;
+    }
+    public String getAlmPasswordPlainText(){
         return almPassword.getPlainText();
     }
-
     @Extension
     public static class DescriptorImpl extends Descriptor<CredentialsModel> {
         @Nonnull

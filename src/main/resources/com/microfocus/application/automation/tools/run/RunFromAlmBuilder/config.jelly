@@ -113,9 +113,7 @@
         <td/>
         <td colspan="2">
             <div class="help" style="display:block; margin-left: -10px;">
-                The credentials for <b>"Run from ALM"</b> tasks have been moved to <b>Jenkins Configure System</b> page. In order to update them please create a new project, add as a
-                <b>"Post build action"</b> in the configuration page the action called <b>"Migrate ALM Credentials"</b> and run the job.
-                In case migration process was accomplished, please add/edit credentials in global configuration page.
+                The credentials for <b>"Run from ALM"</b> can be configured at global level from <b>Jenkins Configure System</b> page, or at job level for each job.
             </div>
         </td>
         <td/>
@@ -123,7 +121,7 @@
 
     <f:entry field="almServerName">
       <label>ALM server</label>
-      <f:select clazz="servers"/>
+      <f:select clazz="alm-server-name"/>
     </f:entry>
 
     <f:entry>
@@ -178,7 +176,7 @@
 
     <f:entry>
         <div class="job-alm-username">
-            <label>User name</label>
+            <label>Username</label>
             <f:entry field="almUserName">
                 <f:textbox clazz="required" checkMessage="User name must be set"/>
             </f:entry>
