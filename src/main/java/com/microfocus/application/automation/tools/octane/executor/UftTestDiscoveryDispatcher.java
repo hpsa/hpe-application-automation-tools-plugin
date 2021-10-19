@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.octane.executor;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.UftTestDispatchUtils;
@@ -38,6 +39,7 @@ import com.hp.octane.integrations.uft.items.JobRunContext;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.ResultQueue;
+import com.microfocus.application.automation.tools.octane.actions.UFTActionDetectionBuildAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
@@ -49,6 +51,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -87,6 +90,15 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         //dispatch
         JobRunContext jobRunContext = JobRunContext.create(item.getProjectName(), item.getBuildNumber());
         UftTestDispatchUtils.dispatchDiscoveryResult(entitiesService, result, jobRunContext, null);
+        if (result.getTestingToolType().equals(TestingToolType.MBT)) {
+            UFTActionDetectionBuildAction action = build.getAction(UFTActionDetectionBuildAction.class);
+            action.setResults(result);
+            try {
+                build.save(); // save build in order to update the discovery report (build.xml in jenkins)
+            } catch (IOException e) {
+                logger.info("Failed to save build: " + e.getMessage());
+            }
+        }
     }
 
     @Override

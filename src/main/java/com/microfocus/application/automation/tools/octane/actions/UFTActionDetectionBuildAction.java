@@ -34,8 +34,12 @@ import com.microfocus.application.automation.tools.octane.executor.UFTTestDetect
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Run;
+import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -55,11 +59,8 @@ public class UFTActionDetectionBuildAction implements Action {
 
     public UFTActionDetectionBuildAction(final AbstractBuild<?, ?> build, UftTestDiscoveryResult results) {
         this.build = build;
-        boolean isEmptyResults = results == null;
-        this.results = isEmptyResults ? new UftTestDiscoveryResult() : results;
-        this.actions = isEmptyResults ? Collections.emptyList() : flattenActions(results);
-        this.actionToParametersMap = isEmptyResults ? new HashMap<>() : setActionToParametersMap();
-        this.parameters = isEmptyResults ? Collections.emptyList() : flattenParameters(actions);
+
+        setResults(results);
     }
 
     private List<? extends SupportsOctaneStatus> getItemsWithStatus(List<? extends SupportsOctaneStatus> entities, OctaneStatus status) {
@@ -72,6 +73,7 @@ public class UFTActionDetectionBuildAction implements Action {
         return results.getAllTests().stream()
                 .map(AutomatedTest::getActions)
                 .flatMap(Collection::stream)
+                .filter(action -> !action.getOctaneStatus().equals(OctaneStatus.NONE))
                 .collect(Collectors.toList());
     }
 
@@ -79,12 +81,13 @@ public class UFTActionDetectionBuildAction implements Action {
         return actions.stream()
                 .map(UftTestAction::getParameters)
                 .flatMap(Collection::stream)
+                .filter(parameter -> !parameter.getOctaneStatus().equals(OctaneStatus.NONE))
                 .collect(Collectors.toList());
     }
 
     private Map<String, List<UftTestParameter>> setActionToParametersMap() {
         return actions.stream()
-                .filter(action -> !action.getParameters().isEmpty())
+                .filter(action -> CollectionUtils.isNotEmpty(action.getParameters()))
                 .collect(Collectors.toMap(UftTestAction::getRepositoryPath, UftTestAction::getParameters));
     }
 
@@ -114,6 +117,7 @@ public class UFTActionDetectionBuildAction implements Action {
 
     public void setResults(UftTestDiscoveryResult results) {
         this.results = results;
+        init(results);
     }
 
     public List<UftTestAction> getActions() {
@@ -208,6 +212,20 @@ public class UFTActionDetectionBuildAction implements Action {
 
     public Map<String, List<UftTestParameter>> getActionToParametersMap() {
         return actionToParametersMap;
+    }
+
+    private void init(UftTestDiscoveryResult results) {
+        boolean isEmptyResults = results == null;
+        if (isEmptyResults) {
+            this.results = new UftTestDiscoveryResult();
+            this.actions = Collections.emptyList();
+            this.actionToParametersMap = Collections.emptyMap();
+            this.parameters = Collections.emptyList();
+        } else {
+            this.actions = flattenActions(results);
+            this.actionToParametersMap = setActionToParametersMap();
+            this.parameters = flattenParameters(actions);
+        }
     }
 
 }
