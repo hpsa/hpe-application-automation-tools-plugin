@@ -9,7 +9,9 @@ if (typeof RUN_FROM_ALM_BUILDER_SELECTOR == "undefined") {
 }
 function setupAlmCredentials() {
 	let divMain = null;
-	if (document.currentScript) { // this block is used for non-IE browsers, for the first ALM build step only, it finds very fast the parent DIV (containing all ALM controls)
+	if (document.location.href.indexOf("pipeline-syntax")>0) { // we are on pipeline-syntax page, where runFromAlmBuilder step can be selected only once, so it's ok to use document
+		divMain = document;
+	} else if (document.currentScript) { // this block is used for non-IE browsers, for the first ALM build step only, it finds very fast the parent DIV (containing all ALM controls)
 		divMain = document.currentScript.parentElement.closest(RUN_FROM_ALM_BUILDER_SELECTOR);
 	}
 	setTimeout( function() {

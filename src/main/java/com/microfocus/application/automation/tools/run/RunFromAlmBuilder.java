@@ -474,7 +474,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             ListBoxModel m = new ListBoxModel();
             if (hasAlmServers()) {
                 AlmServerSettingsModel model = findAlmServer(almServerName);
-                if (model != null && !model.getAlmCredentials().isEmpty()) {
+                if (model != null && !model.getAlmSSOCredentials().isEmpty()) {
                     model.getAlmSSOCredentials().forEach(cm -> m.add(cm.getAlmClientID()));
                 } else {
                     m.add(UftConstants.NO_CLIENT_ID_DEFINED);
