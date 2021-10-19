@@ -60,7 +60,8 @@ public class CucumberTestResultsAction implements Action {
 
             for (String fileName : files) {
                 File resultFile = new File(workspace.child(fileName).toURI());
-                if (run.getStartTimeInMillis() < resultFile.lastModified()) {
+                if (resultFile.lastModified() == 0 || run.getStartTimeInMillis() < resultFile.lastModified()) {
+                    // for some reason , on some linux machines last modified time for newly create gherkin result file is 0 - lets consider it as valid
                     CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
                 } else {
                     String pattern = "yyyy-MM-dd HH:mm:ss";
