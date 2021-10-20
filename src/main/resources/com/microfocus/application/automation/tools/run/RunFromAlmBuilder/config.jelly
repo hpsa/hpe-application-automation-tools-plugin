@@ -124,12 +124,13 @@
       <f:select clazz="alm-server-name"/>
     </f:entry>
 
+    <j:set var="expectedScope" value="${instance.credentialsScopeOrDefault}"/>
     <f:entry>
         <label>ALM Credentials Scope</label>
         <f:entry field="almCredentialsScope">
             <select name="almCredentialsScope">
                 <j:forEach var="scope" items="${descriptor.almCredentialScopes}">
-                    <f:option selected="${scope == instance.runFromAlmModel.credentialsScope}" value="${scope.value}">
+                    <f:option selected="${scope == expectedScope}" value="${scope.value}">
                         ${scope.description}
                     </f:option>
                 </j:forEach>
