@@ -28,11 +28,10 @@
 
 package com.microfocus.application.automation.tools.sse.common;
 
+import java.io.ByteArrayInputStream;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,6 +40,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import com.microfocus.application.automation.tools.common.SSEException;
+import org.apache.poi.util.ArrayUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -181,5 +181,31 @@ public class XPathUtils {
         }
         
         return ret;
+    }
+
+    public static boolean hasResults(String xml) {
+        boolean ok = false;
+
+        try {
+            Document doc = getDocument(xml);
+            if (doc == null) {
+                return ok;
+            }
+
+            Node root = doc.getDocumentElement();
+            if (root == null) {
+                return ok;
+            }
+
+            if (root.hasAttributes() && Integer.parseInt(root.getAttributes().getNamedItem("TotalResults").getNodeValue()) > 0) {
+                ok = true;
+            } else if (doc.hasChildNodes() && doc.getElementsByTagName("Entity").getLength() > 0) {
+                ok = true;
+            }
+        } catch (SSEException cause) {
+            throw new SSEException(cause);
+        } catch (NumberFormatException ignored) {}
+
+        return ok;
     }
 }

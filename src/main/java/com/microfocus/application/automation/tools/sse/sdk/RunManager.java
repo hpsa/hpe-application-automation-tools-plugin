@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.sse.sdk;
 import com.microfocus.application.automation.tools.common.SSEException;
 import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
+import com.microfocus.application.automation.tools.sse.common.XPathUtils;
 import com.microfocus.application.automation.tools.sse.result.PublisherFactory;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
@@ -38,6 +39,12 @@ import com.microfocus.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
+import com.microfocus.application.automation.tools.sse.sdk.request.GetTestInstancesRequest;
+import org.w3c.dom.Document;
+
+import javax.xml.xpath.XPath;
+
+import static com.microfocus.application.automation.tools.sse.common.XPathUtils.getDocument;
 
 /**
  * @author Effi Bar-She'an
@@ -61,25 +68,36 @@ public class RunManager {
         _running = true;
         if (AuthenticationTool.getInstance().authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), args.getClientType(), logger)) {
             initialize(args, client);
-            if (start(args)) {
-                _polling = true;
-                if (poll()) {
-                    ret =
-                            new PublisherFactory().create(
-                                    client,
-                                    args.getRunType(),
-                                    args.getEntityId(),
-                                    _runHandler.getRunId()).publish(
-                                    _runHandler.getNameSuffix(),
-                                    args.getUrl(),
-                                    args.getDomain(),
-                                    args.getProject(),
-                                    logger);
+
+            if (hasTestInstances(client, args)) {
+                if (start(args)) {
+                    _polling = true;
+                    if (poll()) {
+                        ret =
+                                new PublisherFactory().create(
+                                        client,
+                                        args.getRunType(),
+                                        args.getEntityId(),
+                                        _runHandler.getRunId()).publish(
+                                        _runHandler.getNameSuffix(),
+                                        args.getUrl(),
+                                        args.getDomain(),
+                                        args.getProject(),
+                                        logger);
+                    }
+                    _polling = false;
                 }
-                _polling = false;
+            } else {
+                logger.error(String.format("Testset %s is empty!", args.getEntityId()));
             }
         }
+
         return ret;
+    }
+
+    private boolean hasTestInstances(RestClient client, Args args) {
+        Response res = new GetTestInstancesRequest(client, args.getEntityId()).execute();
+        return res.isOk() && XPathUtils.hasResults(res.toString());
     }
 
     /**

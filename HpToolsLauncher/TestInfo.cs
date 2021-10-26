@@ -80,12 +80,16 @@ namespace HpToolsLauncher
                 });
 
                 if (!string.IsNullOrWhiteSpace(validationMessages))
-                    ConsoleWriter.WriteLine("parameter schema validation errors: \n" + validationMessages);
+				{
+                    ConsoleWriter.WriteErrLine("Parameter schema validation errors, falling back to default parameter definitions: \n" + validationMessages);
+                    return "";
+                }
             }
             catch (Exception)
             {
                 ConsoleWriter.WriteErrLine("An error occured while creating ST parameter file, check the validity of TestInputParameters.xml in your test directory and of your mtbx file");
             }
+
             return doc.ToString();
         }
 

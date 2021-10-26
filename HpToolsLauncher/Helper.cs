@@ -116,6 +116,8 @@ namespace HpToolsLauncher
         public const string STFileExtention = ".st";
         public const string QTPFileExtention = ".tsp";
         public const string LoadRunnerFileExtention = ".lrs";
+        public const string MtbFileExtension = ".mtb";
+        public const string MtbxFileExtension = ".mtbx";
 
         #endregion
 
@@ -200,17 +202,21 @@ namespace HpToolsLauncher
             return directoryPath;
         }
 
-        //verify that files/folders exist (does not recurse into folders)
+        // verify that files/folders exist (does not recurse into folders)
         public static List<TestData> ValidateFiles(IEnumerable<TestData> tests)
         {
-            //Console.WriteLine("[ValidateFiles]");
             List<TestData> validTests = new List<TestData>();
+            string testPath = string.Empty;
+
             foreach (TestData test in tests)
             {
-                //Console.WriteLine("ValidateFiles, test Id: " + test.Id +  ", test path " + test.Tests);
-                if (!File.Exists(test.Tests) && !Directory.Exists(test.Tests))
+                // If for FS tests params are specified, it should like this: <testPath> <paramList> separated by one or more spaces,
+                // we should only validate the path, otherwise failure
+                testPath = GetTestPathWithoutParams(test.Tests);
+
+                if (!File.Exists(testPath) && !Directory.Exists(testPath))
                 {
-                    ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test.Tests));
+                    ConsoleWriter.WriteErrLine(string.Format("File/Folder not found: '{0}'", test.Tests));
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 }
                 else
@@ -219,6 +225,12 @@ namespace HpToolsLauncher
                 }
             }
             return validTests;
+        }
+
+        public static string GetTestPathWithoutParams(string test)
+		{
+            int quotationMarkIndex = test.IndexOf("\"", StringComparison.Ordinal);
+            return quotationMarkIndex == -1 ? test : test.Substring(0, quotationMarkIndex).Trim();
         }
 
         public static bool FileExists(string filePath)
@@ -232,6 +244,113 @@ namespace HpToolsLauncher
             }
 
             return isFileValid;
+        }
+
+        /// <summary>
+        /// Checks if test parameters list is valid or not
+        /// </summary>
+        /// <param name="params"></param>
+        /// <param name="paramNames"></param>
+        /// <param name="paramValues"></param>
+        /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
+        public static bool ValidateListOfParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
+        {
+            if (@params == null) throw new ArgumentNullException("Parameters are missing");
+            paramNames = new List<string>();
+            paramValues = new List<string>();
+
+            if (@params.Any())
+            {
+                foreach (var parameterPair in @params)
+                {
+                    if (!string.IsNullOrWhiteSpace(parameterPair))
+                    {
+                        string[] pair = parameterPair.Split(':');
+
+                        string paramName = pair[0].Trim();
+                        if (!CheckParamFormat(paramName))
+                        {
+                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter name"));
+                            return false;
+                        }
+
+                        paramName = NormalizeParam(paramName);
+                        if (string.IsNullOrWhiteSpace(paramName))
+                        {
+                            ConsoleWriter.WriteLine(Resources.MissingParameterName);
+                            return false;
+                        }
+                        paramNames.Add(paramName);
+
+                        string paramValue = pair[1].Trim();
+                        if (!CheckParamFormat(paramValue))
+                        {
+                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter value"));
+                            return false;
+                        }
+
+                        paramValue = NormalizeParam(paramValue);
+                        if (paramValue == null)
+                        {
+                            ConsoleWriter.WriteLine(Resources.MissingParameterValue);
+                            return false;
+                        }
+                        paramValues.Add(paramValue);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private static bool CheckParamFormat(string param)
+        {
+            long _unused;
+            if (!string.IsNullOrEmpty(param) && long.TryParse(param, out _unused))
+			{
+                return true;
+			} else
+			{
+                // must be at least 2 characters wide, containing at least 2 double quotes
+                if (param.Length < 2) return false;
+
+                // first and at last characters have to be double quotes
+                if (!param.StartsWith("\"") && !param.EndsWith("\"")) return false;
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Normalizes test parameter, by removing the double quotes
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns>true if parameter is valid, false otherwise</returns>
+        private static string NormalizeParam(string param)
+        {
+            if (!string.IsNullOrWhiteSpace(param))
+            {
+                long n = long.MaxValue;
+                bool isNumeric = !string.IsNullOrEmpty(param) && long.TryParse(param, out n);
+
+                if (isNumeric)
+				{
+                    return n.ToString();
+				} else
+				{
+                    if (param.Length >= 2)
+                    {
+                        return param.Substring(1, param.Length - 2);
+                    }
+                }
+            }
+
+            return null;
         }
 
         public static bool IsTestingToolsInstalled(TestStorageType type)

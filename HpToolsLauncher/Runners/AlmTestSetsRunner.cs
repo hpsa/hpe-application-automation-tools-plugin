@@ -52,7 +52,7 @@ namespace HpToolsLauncher
         private const string XML_PARAM_NAME_VALUE = "<Parameter><Name><![CDATA[{0}]]></Name><Value><![CDATA[{1}]]></Value></Parameter>";
         private const string XML_PARAMS_END_TAG = "</Parameters>";
         private readonly char[] COMMA = new char[] { ',' };
-
+        
         public ITDConnection13 TdConnection
         {
             get
@@ -860,19 +860,25 @@ namespace HpToolsLauncher
         /// <param name="runMode"></param>
         /// <param name="runDesc"></param>
         /// <param name="scheduler"></param>
-        public void SetTestParameters(IList tList, string testParameters, string runHost, QcRunMode runMode, TestSuiteRunResults runDesc, ITSScheduler scheduler)
+        public void SetTestParameters(IList tList, string testParameters, string runHost, QcRunMode runMode, TestSuiteRunResults runDesc, ITSScheduler scheduler, String initialFullTsPath)
         {
             var i = 1;
             foreach (ITSTest3 test in tList)
             {
-                if (test.Type.Equals("SERVICE-TEST") && !string.IsNullOrEmpty(testParameters)) //API test
-                {
-                    SetApiTestParameters(test, testParameters);
-                }
+                try
+				{
+                    if (test.Type.Equals("SERVICE-TEST") && !string.IsNullOrEmpty(testParameters)) //API test
+                    {
+                        SetApiTestParameters(test, testParameters);
+                    }
 
-                if (test.Type.Equals("QUICKTEST_TEST") && !string.IsNullOrEmpty(testParameters)) //GUI test
-                {
-                    SetGuiTestParameters(test, testParameters);
+                    if (test.Type.Equals("QUICKTEST_TEST") && !string.IsNullOrEmpty(testParameters)) //GUI test
+                    {
+                        SetGuiTestParameters(test, testParameters);
+                    }
+                } catch (ArgumentException)
+				{
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerErrorParameterFormat, initialFullTsPath));
                 }
 
                 var runOnHost = runHost;
@@ -900,96 +906,6 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// Checks if test parameters list is valid or not
-        /// </summary>
-        /// <param name="params"></param>
-        /// <param name="paramNames"></param>
-        /// <param name="paramValues"></param>
-        /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public bool ValidateListOfParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
-        {
-            if (@params == null) throw new ArgumentNullException("Parameters are missing");
-            paramNames = new List<string>();
-            paramValues = new List<string>();
-
-            if (@params.Any())
-            {
-                foreach (var parameterPair in @params)
-                {
-                    if (!string.IsNullOrWhiteSpace(parameterPair))
-                    {
-                        string[] pair = parameterPair.Split(':');
-
-                        string paramName = pair[0].Trim();
-                        if (!CheckParamFormat(paramName))
-						{
-                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter name"));
-                            return false;
-						}
-
-                        paramName = NormalizeParam(paramName);
-                        if (string.IsNullOrWhiteSpace(paramName))
-                        {
-                            ConsoleWriter.WriteLine(Resources.MissingParameterName);
-                            return false;
-                        }
-                        paramNames.Add(paramName);
-
-                        string paramValue = pair[1].Trim();
-                        if (!CheckParamFormat(paramValue))
-                        {
-                            ConsoleWriter.WriteLine(string.Format(Resources.MissingQuotesInParamFormat, "parameter value"));
-                            return false;
-                        }
-
-                        paramValue = NormalizeParam(paramValue);
-                        if (paramValue == null)
-                        {
-                            ConsoleWriter.WriteLine(Resources.MissingParameterValue);
-                            return false;
-                        }
-                        paramValues.Add(paramValue);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        private bool CheckParamFormat(string param)
-		{
-            // must be at least 2 characters wide, containing at least 2 double quotes
-            if (param.Length < 2) return false;
-
-            // first and at last characters have to be double quotes
-            if (!param.StartsWith("\"") && !param.EndsWith("\"")) return false;
-
-            return true;
-		}
-
-        /// <summary>
-        /// Normalizes test parameter, by removing the double quotes
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns>true if parameter is valid, false otherwise</returns>
-        private string NormalizeParam(string param)
-        {
-            if (!string.IsNullOrWhiteSpace(param))
-            {
-                if (param.Length > 1)
-                {
-                    return param.Substring(1, param.Length - 2);
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Set test parameters for an API test
         /// </summary>
         /// <param name="test"></param>
@@ -1001,7 +917,7 @@ namespace HpToolsLauncher
             if (!string.IsNullOrEmpty(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                if (!ValidateListOfParams(@params, out paramNames, out paramValues))
+                if (!Helper.ValidateListOfParams(@params, out paramNames, out paramValues))
 				{
                     throw new ArgumentException();
                 }
@@ -1032,7 +948,7 @@ namespace HpToolsLauncher
             if (!string.IsNullOrWhiteSpace(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                bool validParameters = ValidateListOfParams(@params, out paramNames, out paramValues);
+                bool validParameters = Helper.ValidateListOfParams(@params, out paramNames, out paramValues);
 
                 if (validParameters && @params.Any())
                 {
@@ -1271,19 +1187,7 @@ namespace HpToolsLauncher
             //set test parameters
             if (filteredTestList.Count > 0)
             {
-				try
-				{
-                    SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler);
-                } catch (ArgumentException)
-				{
-                    string message = string.Format(Resources.AlmRunnerErrorParameterFormat, initialFullTsPath);
-                    ConsoleWriter.WriteErrLine(message);
-
-                    // this means that the user configured parameters are invalid, we should set the testset status to failed and interrupt the execution
-                    UpdateTestResultsIfTestErrorAppearedBeforeRun(ref runDesc, ref activeTestDesc, initialFullTsPath, message);
-
-                    return runDesc;
-				}
+                SetTestParameters(filteredTestList, testParameters, runHost, runMode, runDesc, scheduler, initialFullTsPath);
             }
 
             // isTestPath is only true, if a specific test was given by the user
