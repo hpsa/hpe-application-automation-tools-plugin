@@ -197,14 +197,13 @@ public class XPathUtils {
                 return ok;
             }
 
-            if (root.hasAttributes() && Integer.parseInt(root.getAttributes().getNamedItem("TotalResults").getNodeValue()) > 0) {
-                ok = true;
-            } else if (doc.hasChildNodes() && doc.getElementsByTagName("Entity").getLength() > 0) {
+            if ((root.hasAttributes() && Integer.parseInt(root.getAttributes().getNamedItem("TotalResults").getNodeValue()) > 0)
+                || (doc.hasChildNodes() && doc.getElementsByTagName("Entity").getLength() > 0)) {
                 ok = true;
             }
-        } catch (SSEException cause) {
+        } catch (SSEException | NumberFormatException cause) {
             throw new SSEException(cause);
-        } catch (NumberFormatException ignored) {}
+        }
 
         return ok;
     }

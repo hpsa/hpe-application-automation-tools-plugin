@@ -88,7 +88,9 @@ public class RunManager {
                     _polling = false;
                 }
             } else {
+                ret = new Testsuites();
                 logger.error(String.format("Testset %s is empty!", args.getEntityId()));
+                this.stop();
             }
         }
 
@@ -97,7 +99,7 @@ public class RunManager {
 
     private boolean hasTestInstances(RestClient client, Args args) {
         Response res = new GetTestInstancesRequest(client, args.getEntityId()).execute();
-        return res.isOk() && XPathUtils.hasResults(res.toString());
+        return res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
     }
 
     /**

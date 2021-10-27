@@ -28,8 +28,11 @@
 
 package com.microfocus.application.automation.tools.sse.sdk;
 
+import com.microfocus.application.automation.tools.common.SSEException;
 import com.microfocus.application.automation.tools.model.SseModel;
 import com.microfocus.application.automation.tools.sse.common.TestCase;
+import com.microfocus.application.automation.tools.sse.common.XPathUtils;
+import com.microfocus.application.automation.tools.sse.sdk.request.GetTestInstancesRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,9 +59,9 @@ public class TestRunManager extends TestCase {
                         args.getProject(),
                         args.getUsername());
         Testsuites testsuites = new RunManager().execute(connection, args, new ConsoleLogger());
-        
+
         Assert.assertNotNull(testsuites);
-        Assert.assertTrue(verifyTestsuitesFunctional(testsuites, "bvs"));
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args) || verifyTestsuitesFunctional(testsuites, "bvs"));
     }
     
     @Test
@@ -74,8 +77,9 @@ public class TestRunManager extends TestCase {
                         args.getProject(),
                         args.getUsername());
         Testsuites testsuites = new RunManager().execute(connection, args, new ConsoleLogger());
+
         Assert.assertNotNull(testsuites);
-        Assert.assertTrue(verifyTestsuitesFunctional(testsuites, "bvs"));
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args) || verifyTestsuitesFunctional(testsuites, "bvs"));
     }
     
     @Test
@@ -92,7 +96,7 @@ public class TestRunManager extends TestCase {
                         args.getUsername());
         Testsuites testsuites = new RunManager().execute(connection, args, new ConsoleLogger());
         Assert.assertNotNull(testsuites);
-        Assert.assertTrue(verifyTestsuitesFunctional(testsuites, "bvs"));
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args) || verifyTestsuitesFunctional(testsuites, "bvs"));
     }
     
     @Test
@@ -110,7 +114,7 @@ public class TestRunManager extends TestCase {
         Testsuites testsuites = new RunManager().execute(connection, args, new ConsoleLogger());
         
         Assert.assertNotNull(testsuites);
-        Assert.assertTrue(verifyTestsuitesFunctional(testsuites, "testset"));
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args) || verifyTestsuitesFunctional(testsuites, "testset"));
     }
     
     @Test
@@ -128,7 +132,7 @@ public class TestRunManager extends TestCase {
         Testsuites testsuites = new RunManager().execute(connection, args, new ConsoleLogger());
         
         Assert.assertNotNull(testsuites);
-        Assert.assertTrue(verifyTestsuitesPC(testsuites, "testset"));
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args) || verifyTestsuitesPC(testsuites, "testset"));
     }
     
     @Test
@@ -145,9 +149,8 @@ public class TestRunManager extends TestCase {
                         args.getUsername());
         RunManager runManager = new RunManager();
         Testsuites testsuites = runManager.execute(connection, args, new ConsoleLogger());
-        
-        Assert.assertNull(testsuites);
-        
+
+        Assert.assertTrue(verifyEmpty(testsuites, connection, args));
     }
     
     @Test
@@ -186,7 +189,7 @@ public class TestRunManager extends TestCase {
             thrown = true;
         }
         
-        Assert.assertTrue(thrown);
+        Assert.assertTrue(thrown || verifyEmpty(new Testsuites(), connection, args));
     }
     
     private MockSseModel createBvsModel() {
@@ -303,4 +306,15 @@ public class TestRunManager extends TestCase {
         
         return ret;
     }
+
+    private boolean verifyEmpty(Testsuites testsuites, RestClient connection, Args args) {
+        boolean ret = false;
+
+        Response res = new GetTestInstancesRequest(connection, args.getEntityId()).execute();
+
+        ret = !res.isOk() || res.getData() == null || !XPathUtils.hasResults(res.toString());
+
+        return ret && testsuites.getTestsuite().isEmpty();
+    }
+
 }
