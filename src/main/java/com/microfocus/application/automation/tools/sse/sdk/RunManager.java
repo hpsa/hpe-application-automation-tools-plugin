@@ -40,11 +40,6 @@ import com.microfocus.application.automation.tools.sse.sdk.handler.PollHandlerFa
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 import com.microfocus.application.automation.tools.sse.sdk.request.GetTestInstancesRequest;
-import org.w3c.dom.Document;
-
-import javax.xml.xpath.XPath;
-
-import static com.microfocus.application.automation.tools.sse.common.XPathUtils.getDocument;
 
 /**
  * @author Effi Bar-She'an
