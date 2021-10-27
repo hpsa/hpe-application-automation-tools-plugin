@@ -88,7 +88,7 @@ public class RunManager {
                     _polling = false;
                 }
             } else {
-                ret = new Testsuites();
+                ret = new Testsuites(); // empty test suite, containing no tests at all
                 logger.error(String.format("Testset %s is empty!", args.getEntityId()));
                 this.stop();
             }
