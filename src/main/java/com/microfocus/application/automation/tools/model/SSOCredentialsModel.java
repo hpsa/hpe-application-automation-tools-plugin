@@ -51,10 +51,13 @@ public class SSOCredentialsModel extends AbstractDescribableImpl<SSOCredentialsM
         return almClientID;
     }
 
-    public String getAlmApiKeySecret(){
-        return almApiKeySecret.getPlainText();
+    public Secret getAlmApiKeySecret(){
+        return almApiKeySecret;
     }
 
+    public String getAlmApiKeySecretPlainText(){
+        return almApiKeySecret.getPlainText();
+    }
     @Extension
     public static class DescriptorImpl extends Descriptor<SSOCredentialsModel> {
         @Nonnull

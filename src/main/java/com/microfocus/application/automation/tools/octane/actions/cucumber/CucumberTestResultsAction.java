@@ -36,6 +36,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by franksha on 07/12/2016.
@@ -58,10 +60,16 @@ public class CucumberTestResultsAction implements Action {
 
             for (String fileName : files) {
                 File resultFile = new File(workspace.child(fileName).toURI());
-                if (run.getStartTimeInMillis() < resultFile.lastModified()) {
+                if (resultFile.lastModified() == 0 || run.getStartTimeInMillis() < resultFile.lastModified()) {
+                    // for some reason , on some linux machines last modified time for newly create gherkin result file is 0 - lets consider it as valid
                     CucumberResultsService.copyResultFile(resultFile, build.getRootDir(), workspace);
                 } else {
-                    CucumberResultsService.log("Found outdated file %s", resultFile.getPath());
+                    String pattern = "yyyy-MM-dd HH:mm:ss";
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+
+                    CucumberResultsService.log("Found outdated file %s, build started at %s (%s), while file last update time is %s (%s) ",
+                            resultFile.getPath(), dateFormat.format(new Date(run.getStartTimeInMillis())), String.valueOf(run.getStartTimeInMillis()),
+                            dateFormat.format(new Date(resultFile.lastModified())), String.valueOf(resultFile.lastModified()));
                 }
             }
 

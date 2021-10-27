@@ -76,17 +76,20 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
     private String almRunHost;
     private Boolean isSSOEnabled;
     private String almClientID;
-    private String almApiKey;
+    private Secret almApiKey;
+    private CredentialsScope credentialsScope;
 
     @DataBoundConstructor
     public RunFromAlmModel(String almServerName, String almUserName, String almPassword, String almDomain, String almProject,
                            String almTestSets, String almRunResultsMode, String almTimeout,
                            String almRunMode, String almRunHost, Boolean isSSOEnabled,
-                           String almClientID, String almApiKey) {
+                           String almClientID, String almApiKey, CredentialsScope credentialsScope) {
 
         this.almServerName = almServerName;
-        this.almUserName = almUserName;
-        this.almPassword = Secret.fromString(almPassword);
+        this.credentialsScope = credentialsScope;
+
+        this.almUserName = StringUtils.defaultString(almUserName);
+        this.almPassword = StringUtils.isBlank(almUserName) ? null : Secret.fromString(almPassword);
         this.almDomain = almDomain;
         this.almProject = almProject;
         this.almTestSets = almTestSets;
@@ -101,8 +104,8 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         this.almRunHost = almRunHost;
 
         this.isSSOEnabled = isSSOEnabled;
-        this.almClientID = almClientID;
-        this.almApiKey = almApiKey;
+        this.almClientID = StringUtils.defaultString(almClientID);
+        this.almApiKey = StringUtils.isBlank(almClientID) ? null : Secret.fromString(almApiKey);
     }
 
     public String getAlmUserName() {
@@ -113,8 +116,8 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         return almDomain;
     }
 
-    public String getAlmPassword() {
-        return almPassword.getPlainText();
+    public Secret getAlmPassword() {
+        return almPassword;
     }
 
     public String getAlmProject() {
@@ -145,6 +148,10 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
         return almServerName;
     }
 
+    public CredentialsScope getCredentialsScope() {
+        return credentialsScope;
+    }
+
     public Boolean isSSOEnabled() {
         return isSSOEnabled;
     }
@@ -155,20 +162,23 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
     public String getAlmClientID() { return almClientID; }
 
-    public String getAlmApiKey() { return almApiKey; }
+    public Secret getAlmApiKey() { return almApiKey; }
 
-    public Properties getProperties(EnvVars envVars,
-                                    VariableResolver<String> varResolver) {
+    public Properties getProperties(EnvVars envVars, VariableResolver<String> varResolver) {
         return CreateProperties(envVars, varResolver);
     }
+
+    public String getCredentialsScopeValue() { return credentialsScope == null ? "" : credentialsScope.getValue(); }
+    public String getPasswordEncryptedValue() { return almPassword == null ? "" : almPassword.getEncryptedValue(); }
+    public String getApiKeyEncryptedValue() { return almApiKey == null || StringUtils.isBlank(almApiKey.getPlainText()) ? "" : almApiKey.getEncryptedValue(); }
+    public String getPasswordPlainText() { return almPassword == null ? "" : almPassword.getPlainText(); }
+    public String getApiKeyPlainText() { return almApiKey == null ? "" : almApiKey.getPlainText(); }
 
     public Properties getProperties() {
         return CreateProperties(null, null);
     }
 
-
-    private Properties CreateProperties(EnvVars envVars,
-                                        VariableResolver<String> varResolver) {
+    private Properties CreateProperties(EnvVars envVars, VariableResolver<String> varResolver) {
         Properties props = new Properties();
 
         if(isSSOEnabled != null){
@@ -182,7 +192,7 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
             props.put("almDomain", almDomain);
             props.put("almProject", almProject);
         } else {
-           props.put("almUsername",
+            props.put("almUsername",
                     Util.replaceMacro(envVars.expand(almUserName), varResolver));
             props.put("almDomain",
                     Util.replaceMacro(envVars.expand(almDomain), varResolver));
@@ -219,7 +229,6 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
 
         return props;
     }
-
 
     @Extension
     public static class DescriptorImpl extends Descriptor<RunFromAlmModel> {

@@ -89,7 +89,6 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
             jsonArray.addAll((JSONArray) data);
         }
 
-
         for (Object jsonObject : jsonArray) {
             JSONObject json = (JSONObject) jsonObject;
             Object credentialsObj = json.get("credentials");
@@ -149,13 +148,6 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
             return FormValidation.error("ALM server name cannot be empty");
         }
 
-        List<AlmServerSettingsModel> models = Arrays.asList(getInstallations());
-        for (AlmServerSettingsModel model : models) {
-            if (model.getAlmServerName().equals(value) && model.getAlmCredentials().isEmpty() && model.getAlmSSOCredentials().isEmpty()) {
-                return FormValidation.error("Alm server does not have credentials defined");
-            }
-        }
-
         return FormValidation.ok();
     }
 
@@ -201,7 +193,6 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         return FormValidation.ok();
     }
 
-
     public FormValidation doCheckAlmUsername(@QueryParameter String value) {
         if (StringUtils.isBlank(value)) {
             return FormValidation.error("Username must be set");
@@ -218,16 +209,7 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         return FormValidation.ok();
     }
 
-    @SuppressWarnings("unused")
-    private FormValidation doCheckAlmCredentials(@QueryParameter List<CredentialsModel> almCredentials) {
-        if (almCredentials.isEmpty()) {
-            return FormValidation.error("Am server does not have credentials defined");
-        }
-        return FormValidation.ok();
-    }
-
     public Boolean hasAlmServers() {
         return installations.length > 0;
     }
-
 }

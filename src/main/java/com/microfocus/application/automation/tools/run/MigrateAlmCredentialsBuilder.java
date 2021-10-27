@@ -42,6 +42,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 
@@ -82,24 +83,24 @@ public class MigrateAlmCredentialsBuilder extends Recorder implements Serializab
                 for (Builder builder : builders) {
                     if (builder instanceof RunFromAlmBuilder) {
                         RunFromAlmBuilder almBuilder = (RunFromAlmBuilder) builder;
-                        String almUsername = almBuilder.getAlmUserName();
-                        String almPassword = almBuilder.getAlmPassword();
-                        String almClientID = almBuilder.getAlmClientID();
-                        String almApiKeySecret = almBuilder.getAlmApiKey();
+                        String almUsername = almBuilder.runFromAlmModel.getAlmUserName();
+                        String almClientID = almBuilder.runFromAlmModel.getAlmClientID();
                         if(!StringUtils.isNullOrEmpty(almUsername) || !StringUtils.isNullOrEmpty(almClientID)) {
                             listener.getLogger().println("Migrating credentials from task " + job.getDisplayName());
 
                             for (AlmServerSettingsModel model : models) {
                                 if (model.getAlmServerName().equals(almBuilder.getAlmServerName())) {
                                     if (!StringUtils.isNullOrEmpty(almUsername) && !serverUsernames.get(model.getAlmServerName()).contains(almUsername) &&
-                                        !almUsername.equals(UftConstants.NO_USERNAME_DEFINED)) {
+                                        !almUsername.equals(UftConstants.NO_USERNAME_DEFINED) && almBuilder.runFromAlmModel.getAlmPassword() != null) {
+                                        String almPassword = almBuilder.runFromAlmModel.getAlmPassword().getPlainText();
                                         serverUsernames.put(model.getAlmServerName(), almUsername);
                                         model.set_almCredentials(Arrays.asList(new CredentialsModel(almUsername, almPassword)));
                                         listener.getLogger().println("Migrating username '" + almUsername + "' 'for server: " + model.getAlmServerName() + ", " + model.getAlmServerUrl());
                                     }
 
                                     if (!StringUtils.isNullOrEmpty(almClientID) && !serverClientIds.get(model.getAlmServerName()).contains(almClientID) &&
-                                        !almClientID.equals(UftConstants.NO_CLIENT_ID_DEFINED)) {
+                                        !almClientID.equals(UftConstants.NO_CLIENT_ID_DEFINED) && almBuilder.runFromAlmModel.getAlmApiKey() != null) {
+                                        String almApiKeySecret = almBuilder.runFromAlmModel.getAlmApiKey().getPlainText();
                                         serverClientIds.put(model.getAlmServerName(), almClientID);
                                         model.set_almSSOCredentials(Arrays.asList(new SSOCredentialsModel(almClientID, almApiKeySecret)));
                                         listener.getLogger().println("Migrating client ID '" + almClientID + "' for server: " + model.getAlmServerName() + ", " + model.getAlmServerUrl());
