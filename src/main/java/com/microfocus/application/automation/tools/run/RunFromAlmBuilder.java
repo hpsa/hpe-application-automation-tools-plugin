@@ -119,6 +119,13 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                         almCredScope);
     }
 
+    public CredentialsScope getCredentialsScopeOrDefault() {
+        CredentialsScope scope = runFromAlmModel.getCredentialsScope();
+        return scope == null ?
+                findMostSuitableCredentialsScope(getAlmServerName(), getAlmUserName(), getAlmClientID(), getIsSSOEnabled()) :
+                scope;
+    }
+
     private AlmServerSettingsModel findAlmServerSettingsModel(String serverName) {
         Stream<AlmServerSettingsModel> models = Arrays.stream(AlmServerSettingsGlobalConfiguration.getInstance().getInstallations());
         return models.filter(m -> m.getAlmServerName().equals(serverName)).findFirst().orElse(null);
@@ -275,11 +282,11 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         mergedProperties.putAll(almServerSettingsModel.getProperties());
         mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
 
-        CredentialsScope scope = runFromAlmModel.getCredentialsScope();
+        CredentialsScope scope = getCredentialsScopeOrDefault();
         String encAlmPass = "";
         try {
             String almPassword = runFromAlmModel.getPasswordPlainText();
-            if (scope == CredentialsScope.SYSTEM || (scope == null && isUserNameDefinedAtSystemLevel(getAlmServerName(), getAlmUserName()))) {
+            if (scope == CredentialsScope.SYSTEM) {
                 Optional<CredentialsModel> cred = almServerSettingsModel.getAlmCredentials().stream().filter(c -> c.getAlmUsername().equals(runFromAlmModel.getAlmUserName())).findFirst();
                 if (cred.isPresent()) {
                     almPassword = cred.get().getAlmPasswordPlainText();
@@ -297,7 +304,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         String encAlmApiKey = "";
         try {
             String almApiKeySecret = runFromAlmModel.getApiKeyPlainText();
-            if (scope == CredentialsScope.SYSTEM || (scope == null && isClientIdDefinedAtSystemLevel(getAlmServerName(), getAlmClientID()))) {
+            if (scope == CredentialsScope.SYSTEM) {
                 Optional<SSOCredentialsModel> cred = almServerSettingsModel.getAlmSSOCredentials().stream().filter(c -> c.getAlmClientID().equals(runFromAlmModel.getAlmClientID())).findFirst();
                 if (cred.isPresent()) {
                     almApiKeySecret = cred.get().getAlmApiKeySecretPlainText();
