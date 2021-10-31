@@ -31,21 +31,24 @@
 * */
 package com.microfocus.application.automation.tools.run;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import com.microfocus.adm.performancecenter.plugins.common.pcentities.*;
 import com.microfocus.application.automation.tools.pc.PcClient;
 import com.microfocus.application.automation.tools.pc.PcModel;
 import com.microfocus.application.automation.tools.pc.helper.DateFormatter;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Error;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Failure;
-import com.microfocus.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
-import com.microfocus.application.automation.tools.sse.result.model.junit.Testcase;
-import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuite;
-import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
-
+import com.microfocus.application.automation.tools.sse.result.model.junit.*;
+import com.thoughtworks.xstream.XStream;
 import hudson.*;
 import hudson.console.HyperlinkNote;
-import hudson.model.*;
 import hudson.model.Queue;
+import hudson.model.*;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
@@ -64,22 +67,15 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.beans.IntrospectionException;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
-import com.thoughtworks.xstream.XStream;
-
-import hudson.model.Run;
-
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.FINISHED;
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.RUN_FAILURE;
@@ -992,6 +988,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         FilePath resultsFilePath = workspace.child(getJunitResultsFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites);
         provideStepResultStatus(resultStatus, build);
+
+
+        //add info for execution in pipeline mode
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
+        newParams.add(new StringParameterValue("buildStepName", "PcBuilder"));
+        newParams.add(new StringParameterValue("resultsFilename", this.getRunResultsFileName()));
+
+        if (parameterAction instanceof AdditionalParametersAction) {
+            build.addOrReplaceAction(new AdditionalParametersAction(newParams));
+        } else {
+            build.addOrReplaceAction(new ParametersAction(newParams));
+        }
+
 
         if (!Result.SUCCESS.equals(resultStatus) && !Result.FAILURE.equals(resultStatus)) {
             return;

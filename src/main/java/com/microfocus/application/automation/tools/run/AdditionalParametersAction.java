@@ -54,10 +54,13 @@ public class AdditionalParametersAction  extends ParametersAction{
         this.parameters = Collections.unmodifiableList(cparameters);
     }
 
-
-
     @Override
     public List<ParameterValue> getParameters() {
+        return Collections.unmodifiableList(parameters);
+    }
+
+    @Override
+    public List<ParameterValue> getAllParameters() {
         return Collections.unmodifiableList(parameters);
     }
 
