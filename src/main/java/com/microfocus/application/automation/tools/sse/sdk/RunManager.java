@@ -42,9 +42,7 @@ import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 import com.microfocus.application.automation.tools.sse.sdk.request.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * @author Effi Bar-She'an
@@ -98,16 +96,13 @@ public class RunManager {
         boolean ok = false;
 
         if (isExisting(client, args)) {
-            // If it is a test set, verify if it contains at least on test instance
             if (args.getRunType().equals(SseModel.TEST_SET) && hasTestInstances(client, Collections.singletonList(args.getEntityId()).listIterator())) {
                 ok = true;
             } else if (args.getRunType().equals(SseModel.BVS)) {
-                List<String> ids = getTestSetsForBVS(client, args);
+                List<String> ids = getTestSetsForBvs(client, args);
 
                 if (!ids.isEmpty()) {
-                    ListIterator<String> it = ids.listIterator();
-
-                    if (hasTestInstances(client, it)) {
+                    if (hasTestInstances(client, ids.iterator())) {
                         ok = true;
                     }
                 }
@@ -127,7 +122,7 @@ public class RunManager {
         Response res = null;
 
         if (args.getRunType().equals(SseModel.BVS)) {
-            res = new GetBVSRequest(client, args.getEntityId()).execute();
+            res = new GetBvsRequest(client, args.getEntityId()).execute();
         } else if (args.getRunType().equals(SseModel.TEST_SET)) {
             res = new GetTestSetsRequest(client, args.getEntityId()).execute();
         }
@@ -135,24 +130,24 @@ public class RunManager {
         return res != null && res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
     }
 
-    private List<String> getTestSetsForBVS(RestClient client, Args args) {
-        Response res = new GetBVSTestSetsRequest(client, args.getEntityId()).execute();
+    private List<String> getTestSetsForBvs(RestClient client, Args args) {
+        Response res = new GetBvsTestSetsRequest(client, args.getEntityId()).execute();
         List<String> ids = Collections.emptyList();
 
         if (res == null || !res.isOk() || res.getData() == null) {
             return ids;
         }
 
-        ids = XPathUtils.getIdsOfSetsFromBVSReq(res.toString());
+        ids = XPathUtils.getTestSetIdsFromReq(res.toString());
 
         return ids;
     }
 
-    private boolean hasTestInstances(RestClient client, ListIterator<String> it) {
+    private boolean hasTestInstances(RestClient client, Iterator<String> it) {
         GetTestInstancesRequest req = new GetTestInstancesRequest(client);
         req.addIds(it);
         Response res = req.execute();
-        return res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
+        return res.isOk() && res.getData() != null && XPathUtils.verifySetsContainInstance(req.getIds(), res.toString());
     }
 
     /**

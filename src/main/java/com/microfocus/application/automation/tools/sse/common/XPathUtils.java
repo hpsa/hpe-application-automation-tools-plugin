@@ -205,14 +205,28 @@ public class XPathUtils {
         return ok;
     }
 
-    public static List<String> getIdsOfSetsFromBVSReq(String xml) {
-        Document document = getDocument(xml);
-        NodeList entities = document.getElementsByTagName("Field");
+    public static boolean verifySetsContainInstance(Set<String> setIds, String xml) {
+        List<String> instanceIds = getTestSetIdsFromReq(xml);
+        Iterator<String> itSets = setIds.iterator();
+        boolean ok = true;
+
+        while (itSets.hasNext() && ok) {
+            if (!instanceIds.contains(itSets.next())) {
+                ok = false;
+            }
+        }
+
+        return ok;
+    }
+
+    public static List<String> getTestSetIdsFromReq(String xml) {
+        Document doc = getDocument(xml);
+        NodeList entities = doc.getElementsByTagName("Fields");
 
         List<String> ids = new LinkedList<>();
 
         for (int i = 0; i < entities.getLength(); i++) {
-            Element element = ((Element) entities.item(i));
+            Element element = (Element) (entities.item(i)).getFirstChild();
 
             if (element.getAttribute("Name").equals("cycle-id")) {
                 ids.add(getFieldValue(element));

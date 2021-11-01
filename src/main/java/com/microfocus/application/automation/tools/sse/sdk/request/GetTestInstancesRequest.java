@@ -30,13 +30,11 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 public class GetTestInstancesRequest extends GetRequest {
 
-    List<String> bulkIds = new LinkedList<>();
+    Set<String> bulkIds = new HashSet<>();
 
     public GetTestInstancesRequest(Client client) {
         super(client, "");
@@ -56,9 +54,14 @@ public class GetTestInstancesRequest extends GetRequest {
         return String.format("query={cycle-id[%s]}&fields=cycle-id", String.join("%20OR%20", bulkIds));
     }
 
-    public void addIds(ListIterator<String> it) {
+    public void addIds(Iterator<String> it) {
         while (it.hasNext()) {
             this.addId(it.next());
         }
     }
+
+    public Set<String> getIds() {
+        return bulkIds;
+    }
+
 }
