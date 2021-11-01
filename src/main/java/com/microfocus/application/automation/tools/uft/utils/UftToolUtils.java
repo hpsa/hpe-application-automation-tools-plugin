@@ -123,21 +123,31 @@ public class UftToolUtils {
             }
         } else if (rawTestString != null) {
             List<String> tests = Arrays.asList(rawTestString.split("\\r?\\n"));
-            File testFolder = new File(rawTestString);
+
+            String paramFilteredTestPath = filterParamFromPath(rawTestString);
+
+            File testFolder = new File(paramFilteredTestPath);
+
             if (tests.size() == 1 && (testFolder.isDirectory())) {//single test, folder or mtbx file
                 if(testFolder.exists()){
-                    buildTests = listFilesForFolder(new File(rawTestString));
+                    buildTests = listFilesForFolder(new File(paramFilteredTestPath));
                 }
             } else {//list of tests/folders
                 for (String test : tests) {
-                    File testFile = new File(test.trim());
+                    File testFile = new File(filterParamFromPath(test).trim());
                     if(testFile.exists()) {
                         buildTests = getBuildTests(testFile);
                     }
                 }
             }
         }
+
         return buildTests;
+    }
+
+    private static String filterParamFromPath(String testPath) {
+        int firstIndexOfParam = testPath.indexOf(" \"");
+        return firstIndexOfParam == -1 ? testPath : testPath.substring(0, firstIndexOfParam);
     }
 
     public static List<String> extractTestPathsFromMtbxContent(String mtbxContent) {

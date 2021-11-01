@@ -229,7 +229,7 @@ namespace HpToolsLauncher
 
         public static string GetTestPathWithoutParams(string test)
 		{
-            int quotationMarkIndex = test.IndexOf("\"", StringComparison.Ordinal);
+            int quotationMarkIndex = test.IndexOf(" \"", StringComparison.Ordinal);
             return quotationMarkIndex == -1 ? test : test.Substring(0, quotationMarkIndex).Trim();
         }
 
