@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools.sse.sdk;
 
 import com.microfocus.application.automation.tools.common.SSEException;
+import com.microfocus.application.automation.tools.model.SseModel;
 import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import com.microfocus.application.automation.tools.sse.common.XPathUtils;
@@ -39,7 +40,11 @@ import com.microfocus.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.microfocus.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
-import com.microfocus.application.automation.tools.sse.sdk.request.GetTestInstancesRequest;
+import com.microfocus.application.automation.tools.sse.sdk.request.*;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Effi Bar-She'an
@@ -64,27 +69,24 @@ public class RunManager {
         if (AuthenticationTool.getInstance().authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), args.getClientType(), logger)) {
             initialize(args, client);
 
-            if (hasTestInstances(client, args)) {
-                if (start(args)) {
-                    _polling = true;
-                    if (poll()) {
-                        ret =
-                                new PublisherFactory().create(
-                                        client,
-                                        args.getRunType(),
-                                        args.getEntityId(),
-                                        _runHandler.getRunId()).publish(
-                                        _runHandler.getNameSuffix(),
-                                        args.getUrl(),
-                                        args.getDomain(),
-                                        args.getProject(),
-                                        logger);
-                    }
-                    _polling = false;
+            if (isValid(client, args) && start(args)) {
+                _polling = true;
+                if (poll()) {
+                    ret =
+                            new PublisherFactory().create(
+                                    client,
+                                    args.getRunType(),
+                                    args.getEntityId(),
+                                    _runHandler.getRunId()).publish(
+                                    _runHandler.getNameSuffix(),
+                                    args.getUrl(),
+                                    args.getDomain(),
+                                    args.getProject(),
+                                    logger);
                 }
+                _polling = false;
             } else {
                 ret = new Testsuites(); // empty test suite, containing no tests at all
-                logger.error(String.format("Testset %s is empty!", args.getEntityId()));
                 this.stop();
             }
         }
@@ -92,8 +94,64 @@ public class RunManager {
         return ret;
     }
 
-    private boolean hasTestInstances(RestClient client, Args args) {
-        Response res = new GetTestInstancesRequest(client, args.getEntityId()).execute();
+    private boolean isValid(RestClient client, Args args) {
+        boolean ok = false;
+
+        if (isExisting(client, args)) {
+            // If it is a test set, verify if it contains at least on test instance
+            if (args.getRunType().equals(SseModel.TEST_SET) && hasTestInstances(client, Collections.singletonList(args.getEntityId()).listIterator())) {
+                ok = true;
+            } else if (args.getRunType().equals(SseModel.BVS)) {
+                List<String> ids = getTestSetsForBVS(client, args);
+
+                if (!ids.isEmpty()) {
+                    ListIterator<String> it = ids.listIterator();
+
+                    if (hasTestInstances(client, it)) {
+                        ok = true;
+                    }
+                }
+            }
+
+            if (!ok) {
+                _logger.error(String.format("%s %s is empty!", args.getRunType(), args.getEntityId()));
+            }
+        } else {
+            _logger.error(String.format("%s %s does not exist!", args.getRunType(), args.getEntityId()));
+        }
+
+        return ok;
+    }
+
+    private boolean isExisting(RestClient client, Args args) {
+        Response res = null;
+
+        if (args.getRunType().equals(SseModel.BVS)) {
+            res = new GetBVSRequest(client, args.getEntityId()).execute();
+        } else if (args.getRunType().equals(SseModel.TEST_SET)) {
+            res = new GetTestSetsRequest(client, args.getEntityId()).execute();
+        }
+
+        return res != null && res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
+    }
+
+    private List<String> getTestSetsForBVS(RestClient client, Args args) {
+        Response res = new GetBVSTestSetsRequest(client, args.getEntityId()).execute();
+        List<String> ids = Collections.emptyList();
+
+        if (res == null || !res.isOk() || res.getData() == null) {
+            return ids;
+        }
+
+        ids = XPathUtils.getIdsOfSetsFromBVSReq(res.toString());
+
+        return ids;
+    }
+
+    private boolean hasTestInstances(RestClient client, ListIterator<String> it) {
+        GetTestInstancesRequest req = new GetTestInstancesRequest(client);
+        req.addIds(it);
+        Response res = req.execute();
         return res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
     }
 

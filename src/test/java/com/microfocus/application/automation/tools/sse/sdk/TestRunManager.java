@@ -43,6 +43,8 @@ import com.microfocus.application.automation.tools.sse.result.model.junit.JUnitT
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testcase;
 import com.microfocus.application.automation.tools.sse.result.model.junit.Testsuites;
 
+import java.util.Collections;
+
 @SuppressWarnings({"squid:S2698","squid:S2699"})
 public class TestRunManager extends TestCase {
     
@@ -310,7 +312,9 @@ public class TestRunManager extends TestCase {
     private boolean verifyEmpty(Testsuites testsuites, RestClient connection, Args args) {
         boolean ret = false;
 
-        Response res = new GetTestInstancesRequest(connection, args.getEntityId()).execute();
+        GetTestInstancesRequest req = new GetTestInstancesRequest(connection);
+        req.addIds(Collections.singletonList(args.getEntityId()).listIterator());
+        Response res = req.execute();
 
         ret = !res.isOk() || res.getData() == null || !XPathUtils.hasResults(res.toString());
 

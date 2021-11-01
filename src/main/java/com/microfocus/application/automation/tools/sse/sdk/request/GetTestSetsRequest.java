@@ -30,35 +30,20 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
+public class GetTestSetsRequest extends GetRequest {
 
-public class GetTestInstancesRequest extends GetRequest {
-
-    List<String> bulkIds = new LinkedList<>();
-
-    public GetTestInstancesRequest(Client client) {
-        super(client, "");
-    }
-
-    public void addId(String id) {
-        bulkIds.add(id);
+    public GetTestSetsRequest(Client client, String entityId) {
+        super(client, entityId);
     }
 
     @Override
     protected String getSuffix() {
-        return "test-instances";
+        return "test-sets";
     }
 
     @Override
     protected String getQueryString() {
-        return String.format("query={cycle-id[%s]}&fields=cycle-id", String.join("%20OR%20", bulkIds));
+        return String.format("query={id[%s]}&fields=id,name,subtype-id&page-size=1&subtype-id=hp.sse.test-set.process", super._runId);
     }
 
-    public void addIds(ListIterator<String> it) {
-        while (it.hasNext()) {
-            this.addId(it.next());
-        }
-    }
 }
