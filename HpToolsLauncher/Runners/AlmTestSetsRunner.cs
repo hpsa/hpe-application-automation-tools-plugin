@@ -955,7 +955,7 @@ namespace HpToolsLauncher
                     xmlParams.Append(XML_PARAMS_START_TAG);
                     for (int i = 0; i < @params.Length; i++)
                     {
-                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, paramNames[i], paramValues[i]);
+                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, System.Security.SecurityElement.Escape(paramNames[i]), System.Security.SecurityElement.Escape(paramValues[i]));
                     }
                     xmlParams.Append(XML_PARAMS_END_TAG);
                 }
