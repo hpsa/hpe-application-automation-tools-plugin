@@ -97,32 +97,32 @@ public class RunManager {
 
     private boolean isValidBvsOrTestSet(RestClient client, Args args) {
         if (args.getRunType().equals(SseModel.BVS)) {
-            if (isExisting(client, args)) {
+            if (isExistingBvs(client, args)) {
                 return isValidBvs(client, args);
             } else {
                 _logger.error(String.format("No %s could be found by ID %s!", BVS, args.getEntityId()));
             }
         } else if (args.getRunType().equals(SseModel.TEST_SET)) {
-            if (isExisting(client, args)) {
+            if (isExistingTestSet(client, args)) {
                 return hasTestInstances(client, args.getEntityId());
             } else {
                 _logger.error(String.format("No %s of Functional type could be found by ID %s! " +
                         "\nNote: You can run only functional test sets and build verification suites using this task. Check to make sure that the configured ID is valid (and that it is not a performance test ID).", TESTSET, args.getEntityId()));
             }
+        } else {
+            _logger.error("Unknown run type, please check the configuration.");
         }
 
         return false;
     }
 
-    private boolean isExisting(RestClient client, Args args) {
-        Response res = null;
+    private boolean isExistingBvs(RestClient client, Args args) {
+        Response res = new GetBvsRequest(client, args.getEntityId()).execute();
+        return res != null && res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
+    }
 
-        if (args.getRunType().equals(SseModel.BVS)) {
-            res = new GetBvsRequest(client, args.getEntityId()).execute();
-        } else if (args.getRunType().equals(SseModel.TEST_SET)) {
-            res = new GetTestSetRequest(client, args.getEntityId()).execute();
-        }
-
+    private boolean isExistingTestSet(RestClient client, Args args) {
+        Response res = new GetTestSetRequest(client, args.getEntityId()).execute();
         return res != null && res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
     }
 

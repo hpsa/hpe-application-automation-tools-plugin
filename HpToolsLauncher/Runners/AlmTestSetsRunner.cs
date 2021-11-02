@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Security;
 
 namespace HpToolsLauncher
 {
@@ -955,7 +956,7 @@ namespace HpToolsLauncher
                     xmlParams.Append(XML_PARAMS_START_TAG);
                     for (int i = 0; i < @params.Length; i++)
                     {
-                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, System.Security.SecurityElement.Escape(paramNames[i]), System.Security.SecurityElement.Escape(paramValues[i]));
+                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, SecurityElement.Escape(paramNames[i]), SecurityElement.Escape(paramValues[i]));
                     }
                     xmlParams.Append(XML_PARAMS_END_TAG);
                 }
