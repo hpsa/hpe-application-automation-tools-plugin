@@ -50,6 +50,9 @@ import java.util.*;
  */
 public class RunManager {
 
+    private static final String BVS = "Business Verification Suite";
+    private static final String TESTSET = "Test Set";
+
     private RunHandler _runHandler;
     private PollHandler _pollHandler;
     private Logger _logger;
@@ -67,7 +70,7 @@ public class RunManager {
         if (AuthenticationTool.getInstance().authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), args.getClientType(), logger)) {
             initialize(args, client);
 
-            if (isValid(client, args) && start(args)) {
+            if (isValidBvsOrTestSet(client, args) && start(args)) {
                 _polling = true;
                 if (poll()) {
                     ret =
@@ -92,30 +95,23 @@ public class RunManager {
         return ret;
     }
 
-    private boolean isValid(RestClient client, Args args) {
-        boolean ok = false;
-
-        if (isExisting(client, args)) {
-            if (args.getRunType().equals(SseModel.TEST_SET) && hasTestInstances(client, Collections.singletonList(args.getEntityId()).listIterator())) {
-                ok = true;
-            } else if (args.getRunType().equals(SseModel.BVS)) {
-                List<String> ids = getTestSetsForBvs(client, args);
-
-                if (!ids.isEmpty()) {
-                    if (hasTestInstances(client, ids.iterator())) {
-                        ok = true;
-                    }
-                }
+    private boolean isValidBvsOrTestSet(RestClient client, Args args) {
+        if (args.getRunType().equals(SseModel.BVS)) {
+            if (isExisting(client, args)) {
+                return isValidBvs(client, args);
+            } else {
+                _logger.error(String.format("No %s could be found by ID %s!", BVS, args.getEntityId()));
             }
-
-            if (!ok) {
-                _logger.error(String.format("%s %s is empty!", args.getRunType(), args.getEntityId()));
+        } else if (args.getRunType().equals(SseModel.TEST_SET)) {
+            if (isExisting(client, args)) {
+                return hasTestInstances(client, args.getEntityId());
+            } else {
+                _logger.error(String.format("No %s of Functional type could be found by ID %s! " +
+                        "\nNote: You can run only functional test sets and build verification suites using this task. Check to make sure that the configured ID is valid (and that it is not a performance test ID).", TESTSET, args.getEntityId()));
             }
-        } else {
-            _logger.error(String.format("%s %s does not exist!", args.getRunType(), args.getEntityId()));
         }
 
-        return ok;
+        return false;
     }
 
     private boolean isExisting(RestClient client, Args args) {
@@ -124,30 +120,57 @@ public class RunManager {
         if (args.getRunType().equals(SseModel.BVS)) {
             res = new GetBvsRequest(client, args.getEntityId()).execute();
         } else if (args.getRunType().equals(SseModel.TEST_SET)) {
-            res = new GetTestSetsRequest(client, args.getEntityId()).execute();
+            res = new GetTestSetRequest(client, args.getEntityId()).execute();
         }
 
         return res != null && res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
     }
 
-    private List<String> getTestSetsForBvs(RestClient client, Args args) {
-        Response res = new GetBvsTestSetsRequest(client, args.getEntityId()).execute();
-        List<String> ids = Collections.emptyList();
+    private boolean isValidBvs(RestClient client, Args args) {
+        List<String> ids = getBvsTestSetsIds(client, args);
+        boolean ok = !ids.isEmpty();
 
-        if (res == null || !res.isOk() || res.getData() == null) {
-            return ids;
+        if (ok) {
+            Response res = new GetTestInstancesRequest(client, ids).execute();
+
+            if (res != null && res.isOk() && res.getData() != null) {
+                List<String> nonEmptyIds = XPathUtils.getTestSetIds(res.toString());
+                ids.removeAll(nonEmptyIds);
+
+                if (!ids.isEmpty()) {
+                    ok = false;
+                    _logger.error(String.format("%s with ID %s is invalid, the following test sets contain no tests or are not type of functional: %s", BVS, args.getEntityId(), Arrays.toString(ids.toArray())));
+                }
+            } else {
+                ok = false;
+                _logger.error(String.format("Cannot get the test sets of %s with ID %s!", BVS, args.getEntityId()));
+            }
+        } else {
+            _logger.error(String.format("%s with ID %s is empty or contains no test sets of type functional!", BVS, args.getEntityId()));
         }
 
-        ids = XPathUtils.getTestSetIdsFromReq(res.toString());
-
-        return ids;
+        return ok;
     }
 
-    private boolean hasTestInstances(RestClient client, Iterator<String> it) {
-        GetTestInstancesRequest req = new GetTestInstancesRequest(client);
-        req.addIds(it);
-        Response res = req.execute();
-        return res.isOk() && res.getData() != null && XPathUtils.verifySetsContainInstance(req.getIds(), res.toString());
+    private List<String> getBvsTestSetsIds(RestClient client, Args args) {
+        Response res = new GetBvsTestSetsRequest(client, args.getEntityId()).execute();
+
+        if (res == null || !res.isOk() || res.getData() == null) {
+            return Collections.emptyList();
+        }
+
+        return XPathUtils.getTestSetIds(res.toString());
+    }
+
+    private boolean hasTestInstances(RestClient client, String id) {
+        Response res = new GetTestInstancesRequest(client, id).execute();
+        boolean ok = res.isOk() && res.getData() != null && XPathUtils.hasResults(res.toString());
+
+        if (!ok) {
+            _logger.error(String.format("%s with ID %s is empty or is not of type functional!", TESTSET, id));
+        }
+
+        return ok;
     }
 
     /**

@@ -32,16 +32,18 @@ import com.microfocus.application.automation.tools.sse.sdk.Client;
 
 import java.util.*;
 
-public class GetTestInstancesRequest extends GetRequest {
+public class GetTestInstancesRequest extends GeneralGetRequest {
 
-    Set<String> bulkIds = new HashSet<>();
+    private String _bulkIds;
 
-    public GetTestInstancesRequest(Client client) {
-        super(client, "");
+    public GetTestInstancesRequest(Client client, String setId) {
+        super(client);
+        _bulkIds = setId;
     }
 
-    public void addId(String id) {
-        bulkIds.add(id);
+    public GetTestInstancesRequest(Client client, List<String> setIds) {
+        super(client);
+        _bulkIds = String.join("%20OR%20", setIds);
     }
 
     @Override
@@ -51,17 +53,7 @@ public class GetTestInstancesRequest extends GetRequest {
 
     @Override
     protected String getQueryString() {
-        return String.format("query={cycle-id[%s]}&fields=cycle-id", String.join("%20OR%20", bulkIds));
-    }
-
-    public void addIds(Iterator<String> it) {
-        while (it.hasNext()) {
-            this.addId(it.next());
-        }
-    }
-
-    public Set<String> getIds() {
-        return bulkIds;
+        return String.format("query={cycle-id[%s]}&fields=cycle-id&page-size=max", _bulkIds);
     }
 
 }

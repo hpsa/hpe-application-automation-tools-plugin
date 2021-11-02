@@ -38,6 +38,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import com.microfocus.application.automation.tools.common.SSEException;
+import com.microfocus.application.automation.tools.sse.sdk.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -205,21 +206,7 @@ public class XPathUtils {
         return ok;
     }
 
-    public static boolean verifySetsContainInstance(Set<String> setIds, String xml) {
-        List<String> instanceIds = getTestSetIdsFromReq(xml);
-        Iterator<String> itSets = setIds.iterator();
-        boolean ok = true;
-
-        while (itSets.hasNext() && ok) {
-            if (!instanceIds.contains(itSets.next())) {
-                ok = false;
-            }
-        }
-
-        return ok;
-    }
-
-    public static List<String> getTestSetIdsFromReq(String xml) {
+    public static List<String> getTestSetIds(String xml) {
         Document doc = getDocument(xml);
         NodeList entities = doc.getElementsByTagName("Fields");
 

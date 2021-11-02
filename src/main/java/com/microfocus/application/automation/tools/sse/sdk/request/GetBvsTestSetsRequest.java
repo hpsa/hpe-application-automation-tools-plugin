@@ -30,10 +30,13 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 
-public class GetBvsTestSetsRequest extends GetRequest {
+public class GetBvsTestSetsRequest extends GeneralGetRequest {
 
-    public GetBvsTestSetsRequest(Client client, String entityId) {
-        super(client, entityId);
+    private final String _bvsId;
+
+    public GetBvsTestSetsRequest(Client client, String bvsId) {
+        super(client);
+        _bvsId = bvsId;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class GetBvsTestSetsRequest extends GetRequest {
 
     @Override
     protected String getQueryString() {
-        return String.format("query={parent-id[%s]}&fields=cycle-id", super._runId);
+        return String.format("query={parent-id[%s]}&fields=cycle-id", _bvsId);
     }
 
 }

@@ -312,9 +312,7 @@ public class TestRunManager extends TestCase {
     private boolean verifyEmpty(Testsuites testsuites, RestClient connection, Args args) {
         boolean ret = false;
 
-        GetTestInstancesRequest req = new GetTestInstancesRequest(connection);
-        req.addIds(Collections.singletonList(args.getEntityId()).listIterator());
-        Response res = req.execute();
+        Response res = new GetTestInstancesRequest(connection, args.getEntityId()).execute();
 
         ret = !res.isOk() || res.getData() == null || !XPathUtils.hasResults(res.toString());
 

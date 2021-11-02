@@ -30,10 +30,13 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 
-public class GetBvsRequest extends GetRequest {
+public class GetBvsRequest extends GeneralGetRequest {
 
-    public GetBvsRequest(Client client, String entityId) {
-        super(client, entityId);
+    private final String _bvsId;
+
+    public GetBvsRequest(Client client, String bvsId) {
+        super(client);
+        _bvsId = bvsId;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class GetBvsRequest extends GetRequest {
 
     @Override
     protected String getQueryString() {
-        return String.format("query={id[%s]}&fields=id,name&page-size=1", super._runId);
+        return String.format("query={id[%s]}&fields=id,name&page-size=1", _bvsId);
     }
 
 }

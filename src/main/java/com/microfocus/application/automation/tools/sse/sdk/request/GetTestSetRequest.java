@@ -30,10 +30,13 @@ package com.microfocus.application.automation.tools.sse.sdk.request;
 
 import com.microfocus.application.automation.tools.sse.sdk.Client;
 
-public class GetTestSetsRequest extends GetRequest {
+public class GetTestSetRequest extends GeneralGetRequest {
 
-    public GetTestSetsRequest(Client client, String entityId) {
-        super(client, entityId);
+    private String _id;
+
+    public GetTestSetRequest(Client client, String id) {
+        super(client);
+        _id = id;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class GetTestSetsRequest extends GetRequest {
 
     @Override
     protected String getQueryString() {
-        return String.format("query={id[%s]}&fields=id,name,subtype-id&page-size=1&subtype-id=hp.sse.test-set.process", super._runId);
+        return String.format("query={id[%s];subtype-id[\"hp.sse.test-set.process\"]}&fields=id,name&page-size=1", _id);
     }
 
 }
