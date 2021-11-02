@@ -155,8 +155,6 @@ public class JUnitParser {
         String ret = entity.get("duration");
         if (StringUtils.isNullOrEmpty(ret)) {
             ret = "0";
-        } else {
-            ret = String.valueOf(Double.parseDouble(ret) * 1000);
         }
         
         return ret;
