@@ -39,6 +39,7 @@ import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
+import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import hudson.tasks.Builder;
@@ -177,6 +178,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 					status.setBuildStatus(CIBuildStatus.UNAVAILABLE);
 				} else {
 					status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
+					status.setAllBuildParams(ParameterProcessors.getInstances(aBuild));
 					if (aBuild.isBuilding()) {
 						status.setBuildStatus(CIBuildStatus.RUNNING);
 					} else {
