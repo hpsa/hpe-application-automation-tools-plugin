@@ -40,18 +40,16 @@ public class CommonUploadLogger implements Logger {
     private static final String INFO_PREFIX = "INFO: ";
     private static final String WARN_PREFIX = "WARN: ";
 
-    private int errorCount;
-    private List<String> failedEntityNames;
+    private List<String> failedMessages;
     private PrintStream printStream;
 
     public CommonUploadLogger(PrintStream printStream) {
         this.printStream = printStream;
-        failedEntityNames = new ArrayList<>();
+        failedMessages = new ArrayList<>();
     }
 
     public void error(String message) {
-        errorCount++;
-        storeError(message);
+        failedMessages.add(message);
         message = ERR_PREFIX + message;
         log(message);
     }
@@ -73,19 +71,8 @@ public class CommonUploadLogger implements Logger {
         }
     }
 
-    public List<String> getFailedEntityNames() {
-        return failedEntityNames;
+    public List<String> getFailedMessages() {
+        return failedMessages;
     }
 
-    public int getErrorCount() {
-        return errorCount;
-    }
-
-    private void storeError(String message) {
-        if (message.indexOf('(') > -1 && message.indexOf(')') > message.indexOf('(')) {
-            failedEntityNames.add(
-                    message.substring(message.indexOf('(') + 1, message.indexOf(')'))
-            );
-        }
-    }
 }
