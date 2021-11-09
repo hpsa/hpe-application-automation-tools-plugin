@@ -191,13 +191,23 @@ namespace HpToolsLauncher
                 try
                 {
                     //--handle directories which contain test subdirectories (recursively)
-                    if (Helper.IsDirectory(source.Tests))
+                    if (Helper.IsDirectory(Helper.GetTestPathWithoutParams(source.Tests)))
                     {
+                        string testPath = Helper.GetTestPathWithoutParams(source.Tests);
+                        var testsLocations = Helper.GetTestsLocations(testPath);
 
-                        var testsLocations = Helper.GetTestsLocations(source.Tests);
                         foreach (var loc in testsLocations)
                         {
-                            var test = new TestInfo(loc, loc, source.Tests, source.Id);
+                            var test = new TestInfo(loc, loc, testPath, source.Id);
+                            
+                            try
+							{
+                                SetParams(source.Tests, ref test);
+                            } catch (ArgumentException)
+							{
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.FsRunnerErrorParameterFormat, testPath));
+							}
+
                             testGroup.Add(test);
                         }
                     }
@@ -211,7 +221,7 @@ namespace HpToolsLauncher
                         FileInfo fi = new FileInfo(source.Tests);
                         if (fi.Extension == Helper.LoadRunnerFileExtention)
                             testGroup.Add(new TestInfo(source.Tests, source.Tests, source.Tests, source.Id));
-                        else if (fi.Extension == ".mtb")
+                        else if (fi.Extension == Helper.MtbFileExtension)
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
                             MtbManager manager = new MtbManager();
@@ -221,7 +231,7 @@ namespace HpToolsLauncher
                                 testGroup.Add(new TestInfo(p, p, source.Tests, source.Id));
                             }
                         }
-                        else if (fi.Extension == ".mtbx")
+                        else if (fi.Extension == Helper.MtbxFileExtension)
                         {
                             testGroup = MtbxManager.Parse(source.Tests, _jenkinsEnvVariables, source.Tests);
 
@@ -436,6 +446,42 @@ namespace HpToolsLauncher
             }
 
             return rerunList;
+        }
+
+        public static void SetParams(string testPath, ref TestInfo test)
+        {
+            if (testPath.IndexOf("\"") == -1) return;
+
+            string paramString = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
+            string[] paramList = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (paramList == null || paramList.Length == 0) return;
+
+            IList<string> paramNames, paramValues;
+
+            if (!Helper.ValidateListOfParams(paramList, out paramNames, out paramValues))
+			{
+                throw new ArgumentException();
+			}
+
+            TestParameterInfo placeholderParam;
+            string placeholderType = "string";
+            long _unused;
+            for (int i = 0; i < paramNames.Count; ++i)
+            {
+                if (long.TryParse(paramValues[i], out _unused))
+				{
+                    placeholderType = "number";
+				} else
+				{
+                    placeholderType = "string";
+				}
+
+                placeholderParam = new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] };
+                test.ParameterList.Add(placeholderParam);
+            }
+
+            return;
         }
 
         /// <summary>

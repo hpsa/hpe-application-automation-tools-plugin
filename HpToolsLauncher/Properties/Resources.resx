@@ -176,13 +176,16 @@ Save the test in QuickTest and then run it again.</value>
     <value>Cannot Login to QC: Authorization failed.</value>
   </data>
   <data name="AlmRunnerErrorBadQcInstallation" xml:space="preserve">
-    <value>Check that your QC client is installed properly\n {0} \n{1}.</value>
+    <value>Check that your QC client is installed properly 
+{0} 
+{1}.</value>
   </data>
   <data name="AlmRunnerErrorConnectToProj" xml:space="preserve">
     <value>Cannot connect to QC: Project / Domain does not exist.</value>
   </data>
   <data name="AlmRunnerErrorGettingStat" xml:space="preserve">
-    <value>Problem in updating tests status for test: {0}\n {1}</value>
+    <value>Problem in updating tests status for test: {0} 
+{1}</value>
   </data>
   <data name="AlmRunnerNoSuchFolder" xml:space="preserve">
     <value>folder {0} cannot be found in ALM</value>
@@ -497,9 +500,12 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}</value>
   </data>
   <data name="AlmRunnerErrorParameterFormat" xml:space="preserve">
-    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}.</value>
+    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default parameter definitions.</value>
   </data>
   <data name="MissingQuotesInParamFormat" xml:space="preserve">
     <value>Missing quotes for {0} in parameter definition.</value>
+  </data>
+  <data name="FsRunnerErrorParameterFormat" xml:space="preserve">
+    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test.</value>
   </data>
 </root>

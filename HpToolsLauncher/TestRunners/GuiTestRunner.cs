@@ -674,8 +674,15 @@ namespace HpToolsLauncher
                             }
                             else
                             {
-                                ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ", paramName, paramValue));
-                                _qtpParameters[paramName].Value = paramValue;
+                                // second-check
+                                try
+								{
+                                    _qtpParameters[paramName].Value = paramValue;
+                                    ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ", paramName, paramValue));
+                                } catch (Exception)
+								{
+                                    ConsoleWriter.WriteErrLine(string.Format("Input parameter type mismatch (skipped), check your test configuration in UFT. param: '{0}'", paramName));
+                                }
                             }
                         }
                     }

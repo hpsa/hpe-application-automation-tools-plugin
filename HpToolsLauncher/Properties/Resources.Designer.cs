@@ -124,7 +124,9 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check that your QC client is installed properly\n {0} \n{1}..
+        ///   Looks up a localized string similar to Check that your QC client is installed properly 
+        ///{0} 
+        ///{1}..
         /// </summary>
         internal static string AlmRunnerErrorBadQcInstallation {
             get {
@@ -142,7 +144,8 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Problem in updating tests status for test: {0}\n {1}.
+        ///   Looks up a localized string similar to Problem in updating tests status for test: {0} 
+        ///{1}.
         /// </summary>
         internal static string AlmRunnerErrorGettingStat {
             get {
@@ -151,7 +154,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}..
+        ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default parameter definitions..
         /// </summary>
         internal static string AlmRunnerErrorParameterFormat {
             get {
@@ -390,6 +393,15 @@ namespace HpToolsLauncher.Properties {
         internal static string FileSystemTestsRunner_No_HP_testing_tool_is_installed_on {
             get {
                 return ResourceManager.GetString("FileSystemTestsRunner_No_HP_testing_tool_is_installed_on", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test..
+        /// </summary>
+        internal static string FsRunnerErrorParameterFormat {
+            get {
+                return ResourceManager.GetString("FsRunnerErrorParameterFormat", resourceCulture);
             }
         }
         
