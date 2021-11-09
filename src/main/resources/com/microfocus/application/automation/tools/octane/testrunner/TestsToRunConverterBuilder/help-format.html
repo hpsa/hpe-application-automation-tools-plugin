@@ -86,7 +86,7 @@
     "target": "$package|$class|$testName",
     "regex": "aaa",
     "replacement": "bbb",
-    "description": "Replaces the first substring that matches the given regex with the given replacement."
+    "description": "Replaces the first substring that matches the given regex with the given replacement. For example, given regex '@(.*)@.*' , replacement '$1', and test name '@myTag@ my test name' - will replace test name by the content located between @, that is - 'myTag'."
 },{
     "type": "<b>replaceString</b>",
     "target": "$package|$class|$testName",

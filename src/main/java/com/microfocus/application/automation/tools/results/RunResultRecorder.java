@@ -1432,28 +1432,37 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         // Get the TestSet report files names of the current build
 		if (build instanceof WorkflowRun) { // it comes from a Pipeline build flow
-			ParametersAction paramAction = build.getAction(ParametersAction.class);
-			if (paramAction != null && paramAction.getAllParameters() != null) {
-				ParameterValue buildStepNameParam = paramAction.getParameter("buildStepName");
-				if (buildStepNameParam != null) {
-					String buildStepName = ((StringParameterValue)buildStepNameParam).getValue();
-					ParameterValue resFileParam;
-					switch (buildStepName) {
-						case "RunFromAlmBuilder":
-							resFileParam = paramAction.getParameter("resultsFilename");
-							if (resFileParam != null) {
-								almResultNames.add(((StringParameterValue)resFileParam).getValue());
-							}
-							break;
-						case "RunFromAlmLabManagementBuilder":
-							resFileParam = paramAction.getParameter("resultsFilename");
-							if (resFileParam != null) {
-								almSSEResultNames.add(((StringParameterValue)resFileParam).getValue());
-							}
-							break;
-						default:
-							// default case should not be used, if necessary to handle a new builder,  please create a specific case
-							break;
+			List<ParametersAction> paramActions = build.getActions(ParametersAction.class);
+			for(ParametersAction paramAction : paramActions){
+				if (paramAction != null && paramAction.getAllParameters() != null) {
+					ParameterValue buildStepNameParam = paramAction.getParameter("buildStepName");
+					if (buildStepNameParam != null) {
+						String buildStepName = ((StringParameterValue)buildStepNameParam).getValue();
+						ParameterValue resFileParam;
+						switch (buildStepName) {
+							case "RunFromAlmBuilder":
+								resFileParam = paramAction.getParameter("resultsFilename");
+								if (resFileParam != null) {
+									almResultNames.add(((StringParameterValue)resFileParam).getValue());
+								}
+								break;
+							case "RunFromAlmLabManagementBuilder":
+								resFileParam = paramAction.getParameter("resultsFilename");
+								if (resFileParam != null) {
+									almSSEResultNames.add(((StringParameterValue)resFileParam).getValue());
+								}
+								break;
+							case "PcBuilder":
+								resFileParam = paramAction.getParameter("resultsFilename");
+								if (resFileParam != null) {
+									pcResultNames.add(((StringParameterValue)resFileParam).getValue());
+								}
+								break;
+
+							default:
+								// default case should not be used, if necessary to handle a new builder,  please create a specific case
+								break;
+						}
 					}
 				}
 			}

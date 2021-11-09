@@ -28,12 +28,12 @@
 
 package com.microfocus.application.automation.tools.octane.model.processors.projects;
 
+import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Job;
-import hudson.model.ParametersAction;
+import hudson.model.*;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 /**
  * Created with IntelliJ IDEA.
@@ -44,6 +44,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
  */
 
 public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> {
+	private static final Logger logger = SDKBasedLoggerProvider.getLogger(WorkFlowJobProcessor.class);
 	WorkFlowJobProcessor(Job job) {
 		super((WorkflowJob) job);
 	}
@@ -60,6 +61,16 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 			return BuildHandlerUtils.translateFolderJobName(job.getFullName());
 		} else {
 			return super.getTranslatedJobName();
+		}
+	}
+
+	protected void stopBuild(Run run) {
+		WorkflowRun aBuild = (WorkflowRun)run;
+		try {
+			aBuild.doStop();
+			logger.info("Build is stopped : " + aBuild.getParent().getDisplayName() + aBuild.getDisplayName());
+		} catch (Exception e) {
+			logger.warn("Failed to stop build '" + aBuild.getDisplayName() + "' :" + e.getMessage(), e);
 		}
 	}
 }

@@ -39,6 +39,7 @@ import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
+import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.*;
 import hudson.tasks.Builder;
@@ -101,63 +102,58 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 
 		String releaseExecutionId = getParameterValueIfExist(parametersAction, SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME);
 
-		if (job instanceof AbstractProject) {
-			AbstractProject project = (AbstractProject) job;
-
-			if (buildId != null) {
-				logger.info(String.format("cancelBuild for %s, buildId=%s", job.getFullName(), buildId));
-				AbstractBuild aBuild = ((AbstractProject) job).getBuild(buildId);
-				logger.info(String.format("cancelBuild for %s, buildId=%s - is done", job.getFullName(), buildId));
-				if (aBuild == null) {
-					logger.warn(String.format("Cannot stop : build %s is not found", buildId));
-					return;
-				}
-				stopBuild(aBuild);
+		if (buildId != null) {
+			logger.info(String.format("cancelBuild for %s, buildId=%s", job.getFullName(), buildId));
+			Run aBuild = (job).getBuild(buildId);
+			logger.info(String.format("cancelBuild for %s, buildId=%s - is done", job.getFullName(), buildId));
+			if (aBuild == null) {
+				logger.warn(String.format("Cannot stop : build %s is not found", buildId));
+				return;
+			}
+			stopBuild(aBuild);
+		} else {
+			FoundInfo foundInfo = new FoundInfo();
+			String paramToSearch;
+			String paramValueToSearch;
+			if (SdkStringUtils.isNotEmpty(releaseExecutionId)) {
+				paramToSearch = SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME;
+				paramValueToSearch = releaseExecutionId;
+			} else if (SdkStringUtils.isNotEmpty(suiteRunId)) {
+				paramToSearch = SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME;
+				paramValueToSearch = suiteRunId;
 			} else {
-				FoundInfo foundInfo = new FoundInfo();
-				String paramToSearch;
-				String paramValueToSearch;
-				if (SdkStringUtils.isNotEmpty(releaseExecutionId)) {
-					paramToSearch = SdkConstants.JobParameters.OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME;
-					paramValueToSearch = releaseExecutionId;
-				} else if (SdkStringUtils.isNotEmpty(suiteRunId)) {
-					paramToSearch = SdkConstants.JobParameters.SUITE_RUN_ID_PARAMETER_NAME;
-					paramValueToSearch = suiteRunId;
-				} else {
-					throw new IllegalArgumentException("Cannot cancel job as no identification parameters was passed");
-				}
+				throw new IllegalArgumentException("Cannot cancel job as no identification parameters was passed");
+			}
 
-				logger.info(String.format("cancelBuild for %s, %s=%s", job.getFullName(), paramToSearch, paramValueToSearch));
-				Queue queue = Jenkins.get().getQueue();
-				queue.getItems(project).forEach(item -> {
-					item.getActions(ParametersAction.class).forEach(action -> {
-						if (!foundInfo.found && checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
-							try {
-								logger.info("canceling item in queue : " + item);
-								queue.cancel(item);
-								logger.info("Item in queue is cancelled item : " + item);
-								foundInfo.found = true;
-							} catch (Exception e) {
-								logger.warn("Failed to cancel '" + item + "' in queue : " + e.getMessage(), e);
-							}
+			logger.info(String.format("cancelBuild for %s, %s=%s", job.getFullName(), paramToSearch, paramValueToSearch));
+			Queue queue = Jenkins.get().getQueue();
+			Queue.Task queueTaskJob = (Queue.Task) job;
+			queue.getItems(queueTaskJob).forEach(item -> {
+				item.getActions(ParametersAction.class).forEach(action -> {
+					if (!foundInfo.found && checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
+						try {
+							logger.info("canceling item in queue : " + item);
+							queue.cancel(item);
+							logger.info("Item in queue is cancelled item : " + item);
+							foundInfo.found = true;
+						} catch (Exception e) {
+							logger.warn("Failed to cancel '" + item + "' in queue : " + e.getMessage(), e);
 						}
-					});
-				});
-
-				project.getBuilds().forEach(build -> {
-					if (!foundInfo.found && build instanceof AbstractBuild) {
-						AbstractBuild aBuild = (AbstractBuild) build;
-						aBuild.getActions(ParametersAction.class).forEach(action -> {
-							if (checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
-								stopBuild(aBuild);
-								foundInfo.found = true;
-							}
-						});
 					}
 				});
-			}
-		} else {
-			throw new IllegalStateException("unsupported job CAN NOT be stopped");
+			});
+
+			job.getBuilds().forEach(build -> {
+				if (!foundInfo.found) {
+					Run run = (Run)build;
+					run.getActions(ParametersAction.class).forEach(action -> {
+						if (checkIfParamExistAndEqual(action, paramToSearch, paramValueToSearch)) {
+							stopBuild(run);
+							foundInfo.found = true;
+						}
+					});
+				}
+			});
 		}
 	}
 
@@ -177,6 +173,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 					status.setBuildStatus(CIBuildStatus.UNAVAILABLE);
 				} else {
 					status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
+					status.setAllBuildParams(ParameterProcessors.getInstances(aBuild));
 					if (aBuild.isBuilding()) {
 						status.setBuildStatus(CIBuildStatus.RUNNING);
 					} else {
@@ -213,6 +210,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 								status.setBuildStatus(CIBuildStatus.FINISHED);
 								status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
 							}
+							status.setAllBuildParams(ParameterProcessors.getInstances(aBuild));
 							status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
 							foundInfo.found = true;
 						}
@@ -233,7 +231,8 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	private void stopBuild(AbstractBuild aBuild) {
+	protected void stopBuild(Run run) {
+		AbstractBuild aBuild = (AbstractBuild)run;
 		try {
 			aBuild.doStop();
 			logger.info("Build is stopped : " + aBuild.getProject().getDisplayName() + aBuild.getDisplayName());

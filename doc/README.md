@@ -243,7 +243,7 @@ The available archive modes are:
 
 - Always archive test reports
 
-- Always archive and publish test reports (LR only)
+- Always archive and publish test reports (LRP only)
 
 - Do not archive test reports
 
