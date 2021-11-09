@@ -84,19 +84,19 @@ public abstract class BasicPostEntityRequest {
         return builder.toString().getBytes();
     }
 
-    private String getResultNameOrId(Map<String, String> result) {
-        return result.get("name") != null ? result.get("name") : result.get("id");
+    private String getResultNameAndId(Map<String, String> result) {
+        return "id:" + result.get("id") + ", " + "name:" + result.get("name");
     }
 
     protected Map<String, String> handleResult(Response response, Map<String, String> valueMap, String restPrefix) {
         if (response.isOk() && !response.toString().equals("")) {
             Map<String, String> result = XPathUtils.toEntities(response.toString()).get(0);
             logger.info(String.format("%s entity success. %s(%s)", operation, restPrefix,
-                    getResultNameOrId(result)));
+                    getResultNameAndId(result)));
             return result;
         } else {
             logger.error(String.format("%s entity failed. %s(%s)", operation, restPrefix,
-                    getResultNameOrId(valueMap)));
+                    getResultNameAndId(valueMap)));
             logger.error(response.getFailure().toString());
             logger.error(getRestErrorMessage(response.toString()));
             return null;

@@ -42,7 +42,6 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Queue;
 import hudson.model.Result;
@@ -127,12 +126,11 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
         uploader.upload();
 
         // Output failed uploaded entities.
-        if (logger.getErrorCount() > 0) {
-            if (!logger.getFailedEntityNames().isEmpty()) {
-                logger.log("Failed upload summary:");
-                for (String failedEntityName : logger.getFailedEntityNames()) {
-                    logger.log("Upload (" + failedEntityName + ") failed.");
-                }
+        if (logger.getFailedMessages().size() > 0) {
+            logger.log("----------------------------------------------------------------");
+            logger.log("Failed upload summary:");
+            for (String failedMessage : logger.getFailedMessages()) {
+                logger.log(failedMessage);
             }
             run.setResult(Result.UNSTABLE);
         }
