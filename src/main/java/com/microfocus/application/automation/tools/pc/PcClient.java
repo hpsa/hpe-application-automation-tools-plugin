@@ -252,11 +252,11 @@ public class PcClient {
             try {
                 pcTestInstances = restProxy.getTestInstancesByTestId(testID);
             } catch (PcException ex) {
-                logger.println(String.format("%s - getTestInstancesByTestId %s. Error: %s",
+                logger.println(String.format("%s - getTestInstancesByTestId %s. %s: %s",
                         dateFormatter.getDate(),
                         Messages.Failure(),
-                        Messages.Error(),
-                        ex.getMessage()));
+						Messages.Error(),
+						ex.getMessage()));
             }
 
             int testInstanceID;
@@ -683,7 +683,7 @@ public class PcClient {
                   //  logger.println("No such method exception: " + e);
                 }
                 catch (Exception e){
-                    logger.println(String.format("%s - Error on getTrendReportByXML: %s ", dateFormatter.getDate(), e));
+                    // logger.println(String.format("%s - Error on getTrendReportByXML: %s ", dateFormatter.getDate(), e));
                 }
             }
 
