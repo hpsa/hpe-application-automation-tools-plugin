@@ -97,6 +97,13 @@ public class TestUploader {
                 if (existsTest != null) {
                     newTest = existsTest;
                 } else {
+                    logger.log("Test not found by criteria:");
+                    for (Map.Entry<String, String> entry : test.entrySet()) {
+                        if (entry.getKey().equals("name") || entry.getKey().startsWith(CriteriaTranslator.CRITERIA_PREFIX)) {
+                            logger.log("----" + entry.getKey() + "=" + entry.getValue());
+                        }
+                    }
+
                     // If not, create the test under the folder
                     test.put(AlmCommonProperties.PARENT_ID, folder.get(AlmCommonProperties.ID));
                     if (params.get(CREATE_NEW_TEST).equals("true")) {
