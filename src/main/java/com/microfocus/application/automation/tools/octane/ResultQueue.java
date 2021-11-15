@@ -39,6 +39,8 @@ public interface ResultQueue {
 
 	void remove();
 
+	void add(QueueItem item);
+
 	void add(String projectName, int buildNumber);
 
 	void add(String projectName, String type, int buildNumber);
@@ -59,6 +61,7 @@ public interface ResultQueue {
 		int buildNumber;
 		String workspace;
 		int failCount;
+		long sendAfter;
 
 		public void setInstanceId(String instanceId) {
 			this.instanceId = instanceId;
@@ -121,6 +124,14 @@ public interface ResultQueue {
 
 		public String getWorkspace() {
 			return workspace;
+		}
+
+		public long getSendAfter() {
+			return sendAfter;
+		}
+
+		public void setSendAfter(long sendAfter) {
+			this.sendAfter = sendAfter;
 		}
 	}
 }

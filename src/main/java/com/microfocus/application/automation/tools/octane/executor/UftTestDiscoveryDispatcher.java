@@ -111,8 +111,6 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             return;
         }
 
-        logger.warn("Queue size  " + queue.size());
-
         if (OctaneSDK.getClients().isEmpty()) {
             logger.warn("There are pending discovered UFT tests, but no Octane configuration is found, results can't be submitted");
             return;
@@ -121,6 +119,10 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         ResultQueue.QueueItem item = null;
         try {
             while ((item = queue.peekFirst()) != null) {
+                if (queueContainsPostponedItems(item)) {
+                    //all postponed items are in the end of queue, so it we encountered one postponed item, other postponed items will come after it, so we do break
+                    break;
+                }
 
                 Job project = (Job) Jenkins.get().getItemByFullName(item.getProjectName());
                 if (project == null) {
@@ -152,6 +154,16 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                     continue;
                 }
 
+                if (!client.getConfigurationService().isConnected()) {
+                    logger.info(client.getConfigurationService().getConfiguration().getLocationForLog() +
+                            " - Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] - octane is down , postponing sending UFT tests ");
+                    //if octane is down - put current item to the end of queue and try wth other items (that might be from another octane)
+                    item.setSendAfter(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
+                    queue.remove();
+                    queue.add(item);
+                    continue;
+                }
+
                 logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
                 dispatchDetectionResults(item, client.getEntitiesService(), result, build);
                 queue.remove();
@@ -173,6 +185,14 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 }
             }
         }
+    }
+
+    private boolean queueContainsPostponedItems(ResultQueue.QueueItem queueItem) {
+        if (queueItem.getSendAfter() > 0 && queueItem.getSendAfter() > System.currentTimeMillis()) {
+            //all postponed items are in the end of queue, so it we encountered one postponed item, other postponed items will come after it, so we do break
+            return true;
+        }
+        return false;
     }
 
     public void close() {

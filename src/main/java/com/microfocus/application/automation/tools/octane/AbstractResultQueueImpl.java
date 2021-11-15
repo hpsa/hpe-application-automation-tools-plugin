@@ -100,6 +100,11 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 	}
 
 	@Override
+	public synchronized void add(QueueItem item) {
+		queue.add(item);
+	}
+
+	@Override
 	public synchronized void add(String projectName, int buildNumber) {
 		queue.add(new QueueItem(projectName, buildNumber));
 	}
@@ -172,6 +177,9 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			if (json.containsKey("type")) {
 				queueItem.setType(json.getString("type"));
 			}
+			if (json.containsKey("sendAfter")) {
+				queueItem.setSendAfter(json.getLong("sendAfter"));
+			}
 			if (json.containsKey(INSTANCE_ID)) {
 				queueItem.setInstanceId(json.getString(INSTANCE_ID));
 			}
@@ -185,6 +193,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 			json.put("count", item.failCount);
 			json.put("workspace", item.workspace);
 			json.put("type", item.type);
+			json.put("sendAfter", item.sendAfter);
             json.put(INSTANCE_ID, item.instanceId);
 			return json;
 		}
