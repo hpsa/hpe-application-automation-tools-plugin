@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UftOctaneUtils {
+
+    private UftOctaneUtils(){
+        //for codeclimate
+    }
+
     /**
      * This step is important for integration with Octane when job is executed as workflow job.
      * Our plugin can recognize UFT build step when its executed in context of freeStyle job, but its not possible to do it
