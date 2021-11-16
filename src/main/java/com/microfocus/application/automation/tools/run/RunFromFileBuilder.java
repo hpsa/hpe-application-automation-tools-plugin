@@ -223,6 +223,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         FilePath remoteFile = workspace.child(fileName);
 
         String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+        if(mtbxContent.contains("${workspace}")){
+            mtbxContentUpdated = mtbxContent.replace("${workspace}", workspace.getRemote());
+        }
         InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
         remoteFile.copyFrom(in);
 
@@ -630,6 +633,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             throws IOException {
        //synchronized (this) {
 
+           UftOctaneUtils.setUFTRunnerTypeAsParameter(build, listener);
            // get the mc server settings
            MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
@@ -861,7 +865,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
            }
        //}
     }
-
 
     /**
      * Gets mc server settings model.
