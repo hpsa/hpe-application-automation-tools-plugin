@@ -315,7 +315,7 @@ public class ExecuteTestsInOctaneBuilder extends Builder implements SimpleBuildS
 
         @Override
         public String getDisplayName() {
-            return "Execute tests from Alm Octane (Tech Preview)";
+            return "Execute tests from ALM Octane (Tech Preview)";
         }
 
 

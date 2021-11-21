@@ -36,7 +36,7 @@
     </f:entry>
 
     <f:entry title="ALM Octane workspace" field="workspaceId"
-             description="Select the workspace where you want pull requests sent.">
+             description="Select the workspace to work with.">
         <f:select/>
     </f:entry>
 
@@ -45,8 +45,8 @@
         <f:select/>
     </f:entry>
 
-    <f:entry title="Suite ids" field="ids"
-             description="Specify suites ids separated by comma (,)">
+    <f:entry title="Suite IDs" field="ids"
+             description="Specify suites IDs separated by comma (,)">
         <f:textbox/>
     </f:entry>
 
