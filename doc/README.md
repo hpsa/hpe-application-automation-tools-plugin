@@ -43,7 +43,7 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 - [Workarounds for viewing LoadRunner Performance reports](#workarounds-for-viewing-loadrunner-performance-reports)
 
-
+[Limitations](#limitations)
 
 ### Content Security Policy
 
@@ -51,24 +51,20 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.0 introduced the following enhancements:
+Version 7.1 introduced the following enhancements:
 
-**ALM Octane**
+**General**
 
-- Support for pipeline stop
-- Support for BDD scenarios in test runners
-- Support for version 21.1.36 of the Fortify SSC plugin  
-- Defect fix - Octane builds no longer point to obsolete UFTOne run results
+- More user-friendly layout
 
 **UFT One**
 
-- Ability to use the Micro Focus plugin on an air-gap network (not connected to the Internet) for ALM executions
-- Run Results enhancements, including the use of MTBX files for test execution
-- Defect fix - Layout issues were handled
-
-**LoadRunner Enterprise**
-
-- Defect fix - It is now possible to browse for the Test ID in the Jenkins plugin.
+- Parsing test parameters enhancement for UFT One Tests through Jenkins, for file system executions. For limitations, see [Limitations in Test Parameters syntax](#test-parameters-syntax).
+- The *Warning* test status is now handled for tests executed from ALM
+- Final job status improvements for jobs exceeding the specified timeout
+- More secure credential handling with the introduction of Job level and Global level credential handling
+- Defect fix: Handling of special characters and the NULL value for test parameters
+- Defect fix: Non-existent test sets are now handled and taken into consideration in the job execution
 
 For more information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
@@ -347,3 +343,14 @@ Follow these workarounds to enable the viewing LoadRunner Performance reports:
   - Another option that is more secure, but it disables the left pane menu and embedded Javascript:
      `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox; default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; child-src 'self';")` 
 
+## Limitations
+
+### Test Parameters syntax
+
+The following limitations apply to the inline parameter specification feature of the **Test Sets** input field:
+
+   - The double quote and space character sequence (` "`) is used to separate the path and parameter list specification.  As a result, if you specify the test set path with double quotes, the line won't parse correctly. **Tip:** never specify paths with double quotes when using inline parameters. **Note:** If the path contains whitespaces, the path will be parsed correctly without the quotes.
+   - The parameter list's delimiter is a comma. Therefore, neither the path, nor the parameter names or values should contain commas. **Tip:** if you have a complex parameter value (e.g. `"param1"="value1,value2"`), specify separate parameters for this within the respective UFT One test.
+   - The parameter-value key-value pair is separated by a colon. Therefore, neither the parameter name, nor the value should contain a colon. **Note:** Currently, due to this limitation, **links** cannot be used in the inline parameter definitions.
+
+**Note**: If any of the above limitations appears within your inline parameter definition, the line will not be parsed correctly, resulting in unexpected behavior in the job execution.
