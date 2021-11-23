@@ -12,9 +12,7 @@ If you are working with Quality Center 10.00 or earlier, and QuickTest Professio
 
 [Run Server Side tests using ALM Lab Management](#run-server-side-tests-using-alm-lab-management)
 
-[Create or update the AUT Environment Configuration using ALM Lab Management](#create-or-update-the-aut-environment-configuration-using-ALM-Lab-Management)
-
-
+[Create or update the AUT Environment Configuration using ALM Lab Management](#create-or-update-the-aut-environment-configuration-using-alm-lab-management)
 
 ## Configure the connection to ALM
 
@@ -32,7 +30,10 @@ To configure the connection to your ALM Server.
 5.  Click **Add ALM server**, if no server is currently configured.
 
 6.  Specify a meaningful server name and URL. When specifying an ALM
-    Server URL, use the full string: `http:/myserver.mydomain/qcbin`.
+    Server URL, use the full string, e.g.: `http:/myserver.mydomain/qcbin`.
+
+7.  Specify global credentials, if you plan to use them within jobs, by clicking **Add credentials** and entering a username and password. To use SSO authentification click **Add SSO credentials** and specify the API Key Client ID and Secret obtained from your ALM site administrator.
+       -    **Note:** *Credentials specified here will be available for all ALM jobs.*
 
 ## Run Test Sets from ALM
 
@@ -50,29 +51,48 @@ To configure the connection to your ALM Server.
     the **Build** section.
 
 6.  Expand the **Add build** **step** drop-down and select **Execute
-    functional tests from ALM**.
+    functional tests from Micro Focus ALM**.
 
 7.  Select one of the ALM servers that you configured in the previous
     step.
 
-8.  Enter the server credentials, project and domain. For ALM 14, use the API Key client ID and secret as the username and password. **Note:** If you are using the ALM scheduler, it will run
+8.  Enter the server credentials by selecting from the **Credential Scope** dropdown the desired credential handling mode. By selecting **System (global) credentials** mode, credentials from the global scope will be available, otherwise by selecting **Job (local) credentials** mode you will have to specify the currently preferred user's identifying information. **Note:** If you are using the ALM scheduler, it will run
     under the Jenkins agent user. For example, if Jenkins is running as a **System** user, the scheduler will run the tests as a **System** user. This will not affect test execution. 
+
+9.  Enter the current domain and project in which your tests reside. 
     
-9.  Add the test set folders or specific test sets that you want to include, using the ALM path. To add a specific test, add the test name after the test set path. To add multiple entries, click the down arrow on the right of the field and enter each item on a separate line. See the example below.
-    
-10. Optionally, indicate a timeout in seconds after which the job will fail.
-    
-11. Click **Advanced** to indicate a Run mode (local, remote, or planned host) If you specify a remote host mode, specify a host name. This must be a machine with a valid installation of the testing tool.
-    
-12. Click **Apply** to save your changes and continue with more build
-    steps. Click **Save** when you are finished adding build steps.
-    
-    ```
+10. Add the test set folders or specific test sets that you want to include, using the ALM path. To add a specific test, add the test name after the test set path. To add multiple entries, click the down arrow on the right of the field and enter each item on a separate line. See the example below.
+
+```
     Root\testfolder1\testset_a
     Root\testfolder1\testset_b
     Root\testlab_folder
     Root\testlab_folder\testset_a\test-name
-    ```
+```
+12.  Optionally, add test parameters to use for the tests, using the following syntax: 
+
+```
+<test or test set path> "<parameter name>":"<string value>", "<parameter name>": <number value>
+```
+- Where:
+  - **&lt;test or test set path&gt;** is the path to the test or test set. **Note:** If you specify a test, the specified parameters are used for that test only. If you specify a test set, the specified parameters are used for all of the tests in that test set. When the test set runs, each test uses the parameters it requires and ignores any others.
+  -  **&lt;parameter name&gt;** is the name of your test parameter.
+  -  **&lt;string value&gt;** is a string value for your parameter, in quotes.
+  -  **&lt;number value&gt;** is a number value for your parameter, without quotes. 
+- **Tip:** Specify values for all test parameters required by your tests, or make sure that the parameters have default values defined in UFT One or ALM.  
+ - **Note:** for the limitations of this syntax see [Limitations of Test Parameters syntax](README.md#test-parameters-syntax)
+  
+13.  Optionally, indicate a timeout in seconds after which the job will fail.
+    
+14.  Optionally, set up a filter for your ALM test set, instructing Jenkins to run only part of the test in the test set. Select **Filter ALM test sets**, and filter the tests to run by name or status or both. 
+        - In **Run tests with names containing**, specify a string to find within the test names.
+        - In **Run tests with status**, specify the statuses of the tests you want to run. E.g., if you don't want to rerun tests that already passed, don't select the **Passed** status.
+    
+16.  Click **Advanced** to indicate a Run mode (local, remote, or planned host) If you specify a remote host mode, specify a host name. This must be a machine with a valid installation of the testing tool.
+    
+17.  Click **Apply** to save your changes and continue with more build
+    steps. Click **Save** when you are finished adding build steps.
+
 
 #### **Set up the Post Build actions**
 
@@ -97,18 +117,31 @@ If you have Lab Management activated in ALM, you can run server-side tests from 
 #### **Set up a job**
 
 1.  Go to the Jenkins Server home page.
+ 
 2.  Click the **New Job** link or select an existing job.
+  
 3.  Enter a Job name (for a new job).
+ 
 4.  Select **Build a free-style software project** and click **OK**.
+  
 5.  In the Project Configuration section scroll down to the **Build** section.
+  
 6.  Expand the **Add build** **step** drop-down and select **Execute tests using ALM Lab Management**.
+  
 7.  Select one of the ALM servers that you configured in the previous step.
+ 
 8.  Enter the server credentials, project, and domain. 
+  
 9.  If your ALM server version is 12.60 or higher, enter the **Client type**.
+
 10.  Select a Run Type from the drop down menu (functional test set or build verification suite).
+  
 11.  Enter the ID of your run entity (either the test set ID or the build verification suite ID).
+
 12.  **Optional:** Enter a description of the build step.
+ 
 13.  Enter a duration (in minutes) for the timeslot. The minimum time is 30 minutes.
+  
 14. **Optional**: If you have defined an AUT environment configuration in ALM, you can enter the ID here in order to execute your timeslot with specific AUT parameters.
     If you have CDA configured in ALM and want to implement it for this time slot, select the **Use CDA for provisioning and deployment** checkbox and enter your CDA details.
     
