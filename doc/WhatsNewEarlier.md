@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 7.0](#what&#39;s-new-in-version-7&#46;0)
+
 [What&#39;s New in version 6.9](#what&#39;s-new-in-version-6&#46;9)
 
 [What&#39;s New in versions 6.7 and 6.8](#what&#39;s-new-in-versions-6&#46;7-and-6&#39;8)
@@ -20,6 +22,27 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;0
+
+Version 7.0 introduced the following enhancements:
+
+**ALM Octane**
+
+- Support for pipeline stop
+- Support for BDD scenarios in test runners
+- Support for version 21.1.36 of the Fortify SSC plugin  
+- Defect fix - Octane builds no longer point to obsolete UFTOne run results
+
+**UFT One**
+
+- Ability to use the Micro Focus plugin on an air-gap network (not connected to the Internet) for ALM executions
+- Run Results enhancements, including the use of MTBX files for test execution
+- Defect fix - Layout issues were handled
+
+**LoadRunner Enterprise**
+
+- Defect fix - It is now possible to browse for the Test ID in the Jenkins plugin.
 
 ## What&#39;s New in version 6&#46;9
 
