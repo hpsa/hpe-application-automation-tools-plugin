@@ -77,8 +77,6 @@ public  class UftScenarioLoadStepExecution extends SynchronousNonBlockingStepExe
 
         listener.getLogger().println("Running UftScenarioLoadStepExecution");
 
-        UftOctaneUtils.setUFTRunnerTypeAsParameter(build, listener);
-
         step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
 
         HashMap<String, String> resultFilename = new HashMap<String, String>(0);
