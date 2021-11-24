@@ -207,7 +207,7 @@ To set up a pipeline test job for your Micro Focus testing tool:
 
          a. Click the **Pipeline Syntax** link.
          b. In the Snippet Generator drop down, select the desired step, for example,  **uftScenarioLoad: Run UFT scenario**.
-         c. Fill in the fields as required. Fields marked in red are mandatory. **Note:**   For fields that take multiple values, such as in the **Tests** field, separate multiple entries with a line break.
+         c. Fill in the fields as required. Fields marked in red are mandatory. **Note:**  For fields that take multiple values, such as in the **Tests** field, separate multiple entries with a line break.
          d. If relevant, select one of the [Report archive modes](#report-archive-modes).
          e. Click  **Generate Pipeline Script**. Copy the code to the clipboard.
 
@@ -217,26 +217,28 @@ To set up a pipeline test job for your Micro Focus testing tool:
 
 8. Save the script and run or schedule the job as you would with any standard Jenkins job.
 
-9. After the test run, click the  **Console**  link on the dashboard to see a link to your results. Copy the link to your browser (Internet Explorer required to view ALM test sets in ALM).
+9. After the test run, click the **Console** link on the dashboard to see a link to your results. Copy the link to your browser (Internet Explorer required to view ALM test sets in ALM).
 
 
 
 ### Supported Pipeline job types
 
-The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromAlmBuilder, sseBuild, sseBuildAndPublish, pcBuild, svChangeModeStep, svDeployStep, svExportStep, and svUndeployStep.
+The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromFSBuilder, runFromAlmBuilder, sseBuild, sseBuildAndPublish, pcBuild, svChangeModeStep, svDeployStep, svExportStep, svUndeployStep, and publishMFTestResults
 
-| Product                | Pipeline step name | Description                                                  |
-| ---------------------- | ------------------ | ------------------------------------------------------------ |
-| LoadRunner Professional| loadRunnerTest     | Run LoadRunner Professional tests from a file system scenario file |
-| UFT One                | uftScenarioLoad    | Run a UFT scenario from file system scenario                 |
-| ALM                    | runFromAlmBuilder  | Execute functional tests from ALM                            |
-| ALM Lab Management     | sseBuild           | Execute tests using ALM Lab Management                       |
-| ALM Lab Management     | sseBuildAndPublish | Execute tests using ALM Lab Management and publish test results |
-| LoadRunner Enterprise  | pcBuild            | Execute tests using LoadRunner Enterprise                    |
-| Service Virtualization | svChangeModeStep   | Change the mode of a Virtual Service                         |
-| Service Virtualization | svDeployStep       | Deploy a Virtual Service                                     |
-| Service Virtualization | svExportStep       | Export a Virtual Service                                     |
-| Service Virtualization | svUndeployStep     | Undeploy a Virtual Service                                   |
+| Product                | Pipeline step name           | Description                                                        |
+| ---------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| LoadRunner Professional| loadRunnerTest               | Run LoadRunner Professional tests from a file system scenario file |
+| UFT One                | uftScenarioLoad              | Run a UFT scenario from file system scenario                       |
+| UFT One                | runFromFSBuilder             | Execute UFT Tests from file system                                 |
+| ALM                    | runFromAlmBuilder            | Execute functional tests from ALM                                  |
+| ALM Lab Management     | sseBuild                     | Execute tests using ALM Lab Management                             |
+| ALM Lab Management     | sseBuildAndPublish           | Execute tests using ALM Lab Management and publish test results    |
+| LoadRunner Enterprise  | pcBuild                      | Execute tests using LoadRunner Enterprise                          |
+| Service Virtualization | svChangeModeStep             | Change the mode of a virtual service                               |
+| Service Virtualization | svDeployStep                 | Deploy a virtual service                                           |
+| Service Virtualization | svExportStep                 | Export a virtual service                                           |
+| Service Virtualization | svUndeployStep               | Undeploy a virtual service                                         |
+| UFT One, ALM, ALM LM   | publishMicroFocusTestResults | Publish Test Results for FS, ALM and ALM Lab Management executions |                                   |
 
 Pipeline jobs are not supported for UFT Mobile uploads, ALM test uploader, and ALM AUT job types.
 
