@@ -38,6 +38,7 @@ import com.microfocus.application.automation.tools.octane.configuration.SDKBased
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -184,7 +185,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
                 if (hpRunnerType.equals(HPRunnerType.UFT)|| hpRunnerType.equals(HPRunnerType.UFT_MBT)) {
 					if (testName != null && testName.contains("..")) { //resolve existence of ../ - for example c://a/../b => c://b
-						testName = new File(testName).getCanonicalPath();
+						testName = new File(FilenameUtils.separatorsToSystem(testName)).getCanonicalPath();
 					}
 
                     String myPackageName = packageName;
@@ -384,7 +385,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 			} else {
 				pathToTest = Paths.get(sharedCheckOutDirectory).isAbsolute() ?
 						sharedCheckOutDirectory :
-						Paths.get(workspace.getRemote(), sharedCheckOutDirectory).toFile().getCanonicalPath();
+						Paths.get(FilenameUtils.separatorsToSystem(workspace.getRemote()),
+								FilenameUtils.separatorsToSystem(sharedCheckOutDirectory))
+							 .toFile().getCanonicalPath();
 			}
 
 
