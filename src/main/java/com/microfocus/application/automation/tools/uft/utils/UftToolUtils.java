@@ -267,11 +267,9 @@ public class UftToolUtils {
                 }
                 buildTests.add(folder.getPath().trim());//single test
                 break;
-            } else if (fileEntry.isFile()) {
-                if (fileEntry.getName().contains(ACTION_XML_TAG)) {
-                    buildTests.add(folder.getPath().trim()); // it is an api test, which contains Actions.xml, which contains all the test Actions
-                    break;
-                }
+            } else if (fileEntry.isFile() && fileEntry.getName().contains(ACTION_XML_TAG)) {
+                buildTests.add(folder.getPath().trim()); // it is an api test, which contains Actions.xml, which contains all the test Actions
+                break;
             }
         }
 
