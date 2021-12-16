@@ -263,7 +263,8 @@ public class UftToolUtils {
         for (final File fileEntry : files) {
             if (fileEntry.isDirectory()) {
                 if(!fileEntry.getName().contains(ACTION_TAG)){
-                    buildTests.add(fileEntry.getPath().trim()); continue;
+                    buildTests.add(fileEntry.getPath().trim());
+                    continue;
                 }
                 buildTests.add(folder.getPath().trim());//single test
                 break;
