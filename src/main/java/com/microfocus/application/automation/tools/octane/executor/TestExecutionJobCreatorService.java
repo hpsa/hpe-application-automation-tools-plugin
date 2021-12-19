@@ -46,6 +46,7 @@ import com.microfocus.application.automation.tools.octane.executor.scmmanager.Sc
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunConverterBuilder;
 import com.microfocus.application.automation.tools.results.RunResultRecorder;
+import com.microfocus.application.automation.tools.run.RunFromCodelessBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
 import hudson.model.*;
 import hudson.tasks.BuildWrapper;
@@ -331,7 +332,8 @@ public class TestExecutionJobCreatorService {
 
 	public static FreeStyleProject createExecutor(DiscoveryInfo discoveryInfo) {
 		try {
-			String exeJobPrefix = TestingToolType.UFT.equals(discoveryInfo.getTestingToolType()) ? UFT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW : MBT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW;
+			TestingToolType testingToolType = discoveryInfo.getTestingToolType();
+			String exeJobPrefix = TestingToolType.UFT.equals(testingToolType) ? UFT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW : MBT_EXECUTION_JOB_MIDDLE_NAME_WITH_TEST_RUNNERS_NEW;
 			String projectName = String.format("%s-%s-%s", exeJobPrefix, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
 			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), projectName);
 
@@ -351,12 +353,20 @@ public class TestExecutionJobCreatorService {
 			addConcurrentBuildFlag(proj);
 
 			//add build action
-			TestsToRunFramework framework = TestingToolType.UFT.equals(discoveryInfo.getTestingToolType()) ? TestsToRunFramework.MF_UFT : TestsToRunFramework.MF_MBT;
-			Builder convertedBuilder = new TestsToRunConverterBuilder(framework.value());
+			TestsToRunFramework framework = TestingToolType.UFT.equals(testingToolType) ? TestsToRunFramework.MF_UFT : TestsToRunFramework.MF_MBT;
+			Builder converterBuilder = new TestsToRunConverterBuilder(framework.value()); // uft or mbt converter
 			Builder uftRunner = new RunFromFileBuilder("${testsToRunConverted}");
-			proj.getBuildersList().add(convertedBuilder);
+			boolean isMbt = testingToolType.equals(TestingToolType.MBT);
+			Builder codelessRunner = null;
+			if (isMbt) { // in case of MBT add a second runner for codeless
+				codelessRunner = new RunFromCodelessBuilder();
+			}
+			// add steps to project
+			proj.getBuildersList().add(converterBuilder);
 			proj.getBuildersList().add(uftRunner);
-
+			if(codelessRunner != null) {
+				proj.getBuildersList().add(codelessRunner);
+			}
 
 			//add post-build action - publisher
 			RunResultRecorder runResultRecorder = null;
