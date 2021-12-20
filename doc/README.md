@@ -51,31 +51,15 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.1 introduced the following enhancements:
+Version 7.2 introduced the following enhancements:
 
 **General**
 
-- More user-friendly layout
+- Updated plugin to handle log4j security issue.
 
-**LoadRunner Entrerprise**
-
-- Security fix: Beginning with Jenkins version 2.303.3, the LoadRunner Enterprise build step requires the security fix introduced in this release
-
-**ALM Octane**
-
-- Support execution of BDD tests in testing framework
-- UFT One test runner can inject Octane details as test parameters. (This requires you to define the global parameter ADD_GLOBAL_PARAMETERS_TO_TESTS.)
-- Support for the Fortify SSC plugin version 21.1.36 
-- Supports triggering test suites from Jenkins, from the Execute tests build step
- 
 **UFT One**
 
-- Parsing test parameters enhancement for UFT One Tests through Jenkins, for file system executions. For limitations, see [Limitations in Test Parameters syntax](#test-parameters-syntax).
-- The **Warning** test status is now handled for tests executed from ALM
-- Final job status improvements for jobs exceeding the specified timeout
-- More secure credential handling with the introduction of Job level and Global level credential handling
-- Defect fix: Handling of special characters and the NULL value for test parameters
-- Defect fix: Non-existent test sets are now handled and taken into consideration in the job execution
+- Parsing of UFT test names by Jenkins.
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
