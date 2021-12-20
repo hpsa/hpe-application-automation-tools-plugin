@@ -94,7 +94,7 @@ public class UFTTestDetectionService {
             createInitialDetectionFile(rootDir);
 
         } catch (Exception e) {
-            logger.error("Fail in startScanning : " + e.getMessage());
+            logger.error("Fail in startScanning : " + e.getMessage(),e);
         }
 
         return result;
