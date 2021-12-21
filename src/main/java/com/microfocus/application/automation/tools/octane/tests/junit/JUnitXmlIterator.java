@@ -33,6 +33,7 @@ import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
 import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
@@ -92,8 +93,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	public static final String SRL_REPORT_URL = "reportUrl";
 	private Pattern testParserRegEx;
 	private String externalRunId;
+	private List<UftResultIterationData> uftResultData;
+	private boolean octaneSupportsSteps;
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext,Pattern testParserRegEx) throws XMLStreamException {
+	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -106,6 +109,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		this.jenkinsRootUrl = jenkinsRootUrl;
 		this.additionalContext = additionalContext;
 		this.testParserRegEx = testParserRegEx;
+		this.octaneSupportsSteps = octaneSupportsSteps;
 	}
 
 	private static long parseTime(String timeString) {
@@ -151,6 +155,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				description = "";
 				uftResultFilePath = "";
 				moduleName = moduleNameFromFile;
+				uftResultData = null;
 			} else if ("className".equals(localName)) { // NON-NLS
 				String fqn = readNextValue();
 				int moduleIndex = fqn.indexOf("::");
@@ -295,11 +300,18 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				if(this.testParserRegEx != null){
 					splitTestNameByPattern();
 				}
+				if (hpRunnerType.equals(HPRunnerType.UFT_MBT) && StringUtils.isNotEmpty(uftResultFilePath)) {
+					try {
+						uftResultData = UftTestResultsUtils.getMBTData(new File(uftResultFilePath));
+					} catch (Exception e) {
+						logger.error("Failed to get MBT Data which includes steps results", e);
+					}
+				}
 				if (stripPackageAndClass) {
 					//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId));
+					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId, uftResultData, octaneSupportsSteps));
 				} else {
-					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId));
+					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId, uftResultData, octaneSupportsSteps));
 				}
 			}
 		}
