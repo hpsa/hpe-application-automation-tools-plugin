@@ -32,4 +32,6 @@ com.hp.octane.integrations.executor.TestsToRunConverterResult
 com.hp.octane.integrations.executor.TestToRunData
 com.hp.octane.integrations.executor.TestsToRunFramework
 com.hp.octane.integrations.executor.TestsToRunConverter
-
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter

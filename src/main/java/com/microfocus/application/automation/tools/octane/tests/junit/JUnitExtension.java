@@ -29,6 +29,8 @@
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
 import com.google.inject.Inject;
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneSDK;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
@@ -66,6 +68,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static com.hp.octane.integrations.utils.SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME;
 
 /**
  * Converter of Jenkins test report to ALM Octane test report format(junitResult.xml->mqmTests.xml)
@@ -173,6 +177,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 		private boolean stripPackageAndClass;
 		private String sharedCheckOutDirectory;
 		private Pattern testParserRegEx;
+		private boolean octaneSupportsSteps;
 
 		//this class is run on master and JUnitXmlIterator is runnning on slave.
 		//this object pass some master2slave data
@@ -243,7 +248,17 @@ public class JUnitExtension extends OctaneTestsExtension {
 							e.getMessage());
 				}
 			}
-
+			if (hpRunnerType.equals(HPRunnerType.UFT_MBT)) {
+				try {
+					ParametersAction parameterAction = build.getAction(ParametersAction.class);
+					ParameterValue pv = parameterAction != null ? parameterAction.getParameter(OCTANE_CONFIG_ID_PARAMETER_NAME) : null;
+					String instanceId = pv instanceof StringParameterValue ? StringUtils.strip((String) pv.getValue(), "\\/") : "";
+					OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
+					octaneSupportsSteps = octaneClient.getConfigurationService().isOctaneVersionGreaterOrEqual("16.0.217");
+				} catch (Exception e) {
+					logger.error("Failed to check octane version to know whether octaneSupportsSteps", e);
+				}
+			}
 		}
 
 		@Override
@@ -254,7 +269,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 			try {
 				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext,testParserRegEx);
+					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext,testParserRegEx, octaneSupportsSteps);
 					while (iterator.hasNext()) {
 						oos.writeObject(iterator.next());
 					}

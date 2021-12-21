@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 7.1](#what&#39;s-new-in-version-7&#46;1)
+
 [What&#39;s New in version 7.0](#what&#39;s-new-in-version-7&#46;0)
 
 [What&#39;s New in version 6.9](#what&#39;s-new-in-version-6&#46;9)
@@ -22,6 +24,34 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;1
+
+Version 7.1 introduced the following enhancements:
+
+**General**
+
+- More user-friendly layout
+
+**LoadRunner Entrerprise**
+
+- Security fix: Beginning with Jenkins version 2.303.3, the LoadRunner Enterprise build step requires the security fix introduced in this release
+
+**ALM Octane**
+
+- Support execution of BDD tests in testing framework
+- UFT One test runner can inject Octane details as test parameters. (This requires you to define the global parameter ADD_GLOBAL_PARAMETERS_TO_TESTS.)
+- Support for the Fortify SSC plugin version 21.1.36 
+- Supports triggering test suites from Jenkins, from the Execute tests build step
+ 
+**UFT One**
+
+- Parsing test parameters enhancement for UFT One Tests through Jenkins, for file system executions. For limitations, see [Limitations in Test Parameters syntax](#test-parameters-syntax).
+- The **Warning** test status is now handled for tests executed from ALM
+- Final job status improvements for jobs exceeding the specified timeout
+- More secure credential handling with the introduction of Job level and Global level credential handling
+- Defect fix: Handling of special characters and the NULL value for test parameters
+- Defect fix: Non-existent test sets are now handled and taken into consideration in the job execution
 
 ## What&#39;s New in version 7&#46;0
 
