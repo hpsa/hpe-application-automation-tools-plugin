@@ -98,6 +98,15 @@ public abstract class AbstractXmlIterator<E> {
         }
     }
 
+    protected String peekNextValue() throws XMLStreamException {
+        XMLEvent event = reader.peek();
+        if(event instanceof EndElement){
+            return "";
+        } else {
+            return ((Characters)event).getData();
+        }
+    }
+
     private static XMLInputFactory createXmlInputFactory() {
         XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
         xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
