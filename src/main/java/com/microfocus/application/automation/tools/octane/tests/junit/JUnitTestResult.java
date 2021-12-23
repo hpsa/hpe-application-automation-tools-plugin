@@ -55,10 +55,10 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
     private final String className;
     private final String testName;
     private final String description;
-    private final TestResultStatus result;
-    private final long duration;
+    private TestResultStatus result;
+    private long duration;
     private final long started;
-    private final TestError testError;
+    private TestError testError;
     private final String externalReportUrl;
     private final HPRunnerType runnerType;
     private final String externalRunId;
@@ -110,8 +110,16 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
         return testName;
     }
 
+    public void setResult(TestResultStatus result) {
+        this.result = result;
+    }
+
     public TestResultStatus getResult() {
         return result;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
     public long getDuration() {
@@ -122,12 +130,20 @@ final public class JUnitTestResult implements Serializable, XmlWritableTestResul
         return started;
     }
 
+    public void setTestError(TestError testError) {
+        this.testError = testError;
+    }
+
     public TestError getTestError() {
         return testError;
     }
 
     public String getExternalReportUrl() {
         return externalReportUrl;
+    }
+
+    public List<UftResultIterationData> getUftResultData() {
+        return uftResultData;
     }
 
     @Override
