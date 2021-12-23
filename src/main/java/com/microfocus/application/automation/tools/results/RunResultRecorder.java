@@ -88,30 +88,30 @@ import static com.microfocus.application.automation.tools.results.projectparser.
  */
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
 
-    public static final String REPORT_NAME_FIELD = "report";
-    public static final int SECS_IN_DAY = 86400;
-    public static final int SECS_IN_HOUR = 3600;
-    public static final int SECS_IN_MINUTE = 60;
-    public static final String SLA_ULL_NAME = "FullName";
-    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
-            "Archiving test reports failed due to xml parsing error: ";
-    private static final long serialVersionUID = 1L;
-    private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
-    private static final String IE_REPORT_FOLDER = "IE";
-    private static final String HTML_REPORT_FOLDER = "HTML";
-    private static final String LRA_FOLDER = "LRA";
-    private static final String INDEX_HTML_NAME = "index.html";
-    private static final String REPORT_INDEX_NAME = "report.index";
-    private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-    private static final String RICH_REPORT_FOLDER = "RichReport";
-    private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
-    private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
-    private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
-    private static final String NO_RICH_REPORTS_ERROR = "Template contains no rich reports.";
-    private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
-            "report.";
-    private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
-    private static final String REPORT_ARCHIVE_SUFFIX = "_Report.zip";
+	public static final String REPORT_NAME_FIELD = "report";
+	public static final int SECS_IN_DAY = 86400;
+	public static final int SECS_IN_HOUR = 3600;
+	public static final int SECS_IN_MINUTE = 60;
+	public static final String SLA_ULL_NAME = "FullName";
+	public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
+			"Archiving test reports failed due to xml parsing error: ";
+	private static final long serialVersionUID = 1L;
+	private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
+	private static final String IE_REPORT_FOLDER = "IE";
+	private static final String HTML_REPORT_FOLDER = "HTML";
+	private static final String LRA_FOLDER = "LRA";
+	private static final String INDEX_HTML_NAME = "index.html";
+	private static final String REPORT_INDEX_NAME = "report.index";
+	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
+	private static final String RICH_REPORT_FOLDER = "RichReport";
+	private static final String TRANSACTION_REPORT_NAME = "TransactionReport";
+	private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
+	private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
+	private static final String NO_RICH_REPORTS_ERROR = "Template contains no rich reports.";
+	private static final String NO_TRANSACTION_SUMMARY_REPORT_ERROR = "Template contains no transaction summary " +
+			"report.";
+	private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
+	private static final String REPORT_ARCHIVE_SUFFIX = "_Report.zip";
 	private static final String EXTERNAL_REPORT_FOLDER = "StRes";
 
 	private final ResultsPublisherModel _resultsPublisherModel;
@@ -181,7 +181,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	// of passing file name from builder.
 	@SuppressWarnings("squid:S1160")
 	public void pipelinePerform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-			@Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
+	                            @Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
 			throws IOException, InterruptedException {
 		final List<String> mergedResultNames = new ArrayList<String>();
 		runReportList = new ArrayList<FilePath>();
@@ -212,7 +212,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 * @throws IOException
 	 */
 	private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-			@Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames)
+	                              @Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames)
 			throws InterruptedException, IOException {
 
 		for (String resultFile : mergedResultNames) {
@@ -224,10 +224,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 		final TestResultAction tempAction = build.getAction(TestResultAction.class);
 
-		 if (tempAction == null || tempAction.getResult() == null) {
-		  	listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
-		  	return;
-		 }
+		if (tempAction == null || tempAction.getResult() == null) {
+			listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
+			return;
+		}
 
 
 		TestResult result = tempAction.getResult();
@@ -318,7 +318,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 */
 	@SuppressWarnings({ "squid:S134", "squid:S135" })
 	private void archiveTestsReport(Run<?, ?> build, TaskListener listener, List<String> resultFiles,
-			TestResult testResult, FilePath runWorkspace)
+	                                TestResult testResult, FilePath runWorkspace)
 			throws ParserConfigurationException, SAXException, IOException, InterruptedException {
 
 		if ((resultFiles == null) || (resultFiles.isEmpty())) { return; }
@@ -476,110 +476,110 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						}
 
 						FilePath reportFolder = new FilePath(channel, reportFolderPath + reportIndex);
-							if (!reportFolder.exists()) {
-								reportFolder = new FilePath(channel, reportFolderPath);
-							}
-							if(!reportFolder.exists()){
-								listener.getLogger().println("report folder does not exist");
-							}
-							boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
-							reportFolders.add(reportFolder);
-
-							String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
-							boolean archiveTestResult;
-
-							// check for the new html report
-							FilePath htmlReport = new FilePath(reportFolder,
-									isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
-							ReportMetaData reportMetaData = new ReportMetaData();
-							if (htmlReport.exists()) {
-								reportIsHtml = true;
-								String htmlReportDir = reportFolder.getRemote();
-								reportMetaData.setFolderPath(htmlReportDir);
-								reportMetaData.setIsHtmlReport(true);
-								reportMetaData.setDateTime(testDateTime);
-								reportMetaData.setStatus(testStatus);
-								reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
-								// the type for this report
-								testFileFullName = new FilePath(channel, testFolderPath);
-								testName = testFileFullName.getName();
-								testName += "[" + nameCount + "]";
-								String resourceUrl = "artifact/UFTReport/" + testName;
-
-								reportMetaData.setResourceURL(resourceUrl);
-								reportMetaData.setDisPlayName(testName); // use the name, not the full path
-
-								// don't know reportMetaData's URL path yet, we will generate it later.
-								ReportInfoToCollect.add(reportMetaData);
-							}
-
-							archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
-							if (archiveTestResult) {
-								if (reportFolder.exists()) {
-									FilePath testFolder = new FilePath(channel, testFolderPath);
-									String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
-									zipFileNames.add(zipFileName);
-									ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-
-									// don't use FileFilter for zip, or it will cause bug when files are on slave
-									reportFolder.zip(outstr);
-
-									/*
-									 * I did't use copyRecursiveTo or copyFrom due to bug in
-									 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
-									 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
-									 * it to the master.
-									 */
-
-									ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
-
-									FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
-									archivedFile.copyFrom(instr);
-
-									outstr.close();
-									instr.close();
-
-									// add to Report list
-									String zipFileUrlName = "artifact/" + zipFileName;
-									reportMetaData.setArchiveUrl(zipFileUrlName);
-
-								} else {
-									listener.getLogger().println("No report folder was found in: " + reportFolderPath);
-								}
-							}
-
+						if (!reportFolder.exists()) {
+							reportFolder = new FilePath(channel, reportFolderPath);
 						}
-					}
+						if(!reportFolder.exists()){
+							listener.getLogger().println("report folder does not exist");
+						}
+						boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
+						reportFolders.add(reportFolder);
 
-					if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
-						collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
-					}
+						String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
+						boolean archiveTestResult;
 
-					if (!ReportInfoToCollect.isEmpty()) {
-						int index = 1;
-						String reportName = "report_metadata" + "_" + index + ".xml";
-						// serialize report metadata
-						synchronized (HtmlBuildReportAction.class) {
-							while (new File(artifactsDir.getParent(), reportName).exists()) {
-								index++;
-								reportName = "report_metadata" + "_" + index + ".xml";
+						// check for the new html report
+						FilePath htmlReport = new FilePath(reportFolder,
+								isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
+						ReportMetaData reportMetaData = new ReportMetaData();
+						if (htmlReport.exists()) {
+							reportIsHtml = true;
+							String htmlReportDir = reportFolder.getRemote();
+							reportMetaData.setFolderPath(htmlReportDir);
+							reportMetaData.setIsHtmlReport(true);
+							reportMetaData.setDateTime(testDateTime);
+							reportMetaData.setStatus(testStatus);
+							reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
+							// the type for this report
+							testFileFullName = new FilePath(channel, testFolderPath);
+							testName = testFileFullName.getName();
+							testName += "[" + nameCount + "]";
+							String resourceUrl = "artifact/UFTReport/" + testName;
+
+							reportMetaData.setResourceURL(resourceUrl);
+							reportMetaData.setDisPlayName(testName); // use the name, not the full path
+
+							// don't know reportMetaData's URL path yet, we will generate it later.
+							ReportInfoToCollect.add(reportMetaData);
+						}
+
+						archiveTestResult = isArchiveTestResult(testStatus, archiveTestResultMode);
+						if (archiveTestResult) {
+							if (reportFolder.exists()) {
+								FilePath testFolder = new FilePath(channel, testFolderPath);
+								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
+								zipFileNames.add(zipFileName);
+								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+
+								// don't use FileFilter for zip, or it will cause bug when files are on slave
+								reportFolder.zip(outstr);
+
+								/*
+								 * I did't use copyRecursiveTo or copyFrom due to bug in
+								 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
+								 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
+								 * it to the master.
+								 */
+
+								ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
+
+								FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
+								archivedFile.copyFrom(instr);
+
+								outstr.close();
+								instr.close();
+
+								// add to Report list
+								String zipFileUrlName = "artifact/" + zipFileName;
+								reportMetaData.setArchiveUrl(zipFileUrlName);
+
+							} else {
+								listener.getLogger().println("No report folder was found in: " + reportFolderPath);
 							}
-							File reportMetaDataXmlFile = new File(artifactsDir.getParent(), reportName);
-							String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
-							writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml, listener);
+						}
 
-							// Add UFT report action
-							try {
-								listener.getLogger().println("Adding a report action to the current build.");
-								HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, reportName, index);
-								build.addAction(reportAction);
-							} catch (IOException | SAXException | ParserConfigurationException ex) {
-								listener.getLogger().println("a problem adding action: " + ex);
-							}
+					}
+				}
+
+				if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
+					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
+				}
+
+				if (!ReportInfoToCollect.isEmpty()) {
+					int index = 1;
+					String reportName = "report_metadata" + "_" + index + ".xml";
+					// serialize report metadata
+					synchronized (HtmlBuildReportAction.class) {
+						while (new File(artifactsDir.getParent(), reportName).exists()) {
+							index++;
+							reportName = "report_metadata" + "_" + index + ".xml";
+						}
+						File reportMetaDataXmlFile = new File(artifactsDir.getParent(), reportName);
+						String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
+						writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml, listener);
+
+						// Add UFT report action
+						try {
+							listener.getLogger().println("Adding a report action to the current build.");
+							HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, reportName, index);
+							build.addAction(reportAction);
+						} catch (IOException | SAXException | ParserConfigurationException ex) {
+							listener.getLogger().println("a problem adding action: " + ex);
 						}
 					}
 				}
 			}
+		}
 	}
 
 	private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile, TaskListener _logger) {
@@ -645,7 +645,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo,
-			FilePath runWorkspace) throws IOException, InterruptedException {
+	                                             FilePath runWorkspace) throws IOException, InterruptedException {
 		File reportDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
 
 		FilePath rootTarget = new FilePath(reportDir);
@@ -758,7 +758,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		FilePath testFilePath = UftToolUtils.getFilePath(nodeName, testFolderPath);
 		for (FilePath file : testFilePath.listDirectories()) {
 			if (file.isDirectory() && file.getName().startsWith(fileName) && index < Integer.parseInt(file.getName().substring(5))) {
-					index = Integer.parseInt(file.getName().substring(5));
+				index = Integer.parseInt(file.getName().substring(5));
 			}
 		}
 
@@ -806,7 +806,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 	private boolean archiveFolder(FilePath reportFolder, String testStatus, FilePath archivedFile,
-			TaskListener listener) throws IOException, InterruptedException {
+	                              TaskListener listener) throws IOException, InterruptedException {
 		String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
 		boolean archiveTestResult;
 
@@ -870,7 +870,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 */
 	@SuppressWarnings("squid:S134")
 	private void createHtmlReport(FilePath reportFolder, String testFolderPath, File artifactsDir,
-			List<String> reportNames, TestResult testResult) throws IOException, InterruptedException {
+	                              List<String> reportNames, TestResult testResult) throws IOException, InterruptedException {
 		String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
 		boolean createReport = archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue());
 
@@ -909,7 +909,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 * files from slave LRA folder
 	 */
 	private void createRichReports(FilePath reportFolder, String testFolderPath, File artifactsDir,
-			List<String> reportNames, TestResult testResult, TaskListener listener) {
+	                               List<String> reportNames, TestResult testResult, TaskListener listener) {
 		try {
 			File testFolderPathFile = new File(testFolderPath);
 			FilePath htmlReportPath = new FilePath(reportFolder, LRA_FOLDER);
@@ -986,7 +986,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 * @throws IOException
 	 */
 	private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult, String title,
-			String htmlFileName) throws IOException {
+	                               String htmlFileName) throws IOException {
 		if (reportNames.isEmpty()) {
 			return;
 		}
@@ -1089,7 +1089,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	 * @throws InterruptedException
 	 */
 	private void createTransactionSummary(FilePath reportFolder, String testFolderPath, File artifactsDir,
-			List<String> reportNames, TestResult testResult) throws IOException, InterruptedException {
+	                                      List<String> reportNames, TestResult testResult) throws IOException, InterruptedException {
 
 		File testFolderPathFile = new File(testFolderPath);
 		String subFolder = HTML_REPORT_FOLDER + File.separator + IE_REPORT_FOLDER + File.separator + HTML_REPORT_FOLDER;
@@ -1259,13 +1259,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 	private void extractConnectionsScenarioResult(JobLrScenarioResult jobLrScenarioResult,
-			NodeList generalNodeChildren) {
+	                                              NodeList generalNodeChildren) {
 		Node connections = getNode("Connections", generalNodeChildren);
 		jobLrScenarioResult.setConnectionMax(Integer.valueOf(getNodeAttr("MaxCount", connections)));
 	}
 
 	private void extractTransactionScenarioResult(JobLrScenarioResult jobLrScenarioResult,
-			NodeList generalNodeChildren) {
+	                                              NodeList generalNodeChildren) {
 		int atrrCount;
 		Node transactions = getNode("Transactions", generalNodeChildren);
 		atrrCount = transactions.getAttributes().getLength();
@@ -1322,115 +1322,115 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 	private void processSlaRule(JobLrScenarioResult jobLrScenarioResult, Element slaRuleElement,
-			LrTest.SLA_GOAL slaGoal) {
+	                            LrTest.SLA_GOAL slaGoal) {
 		switch (slaGoal) {
-		case AverageThroughput:
-			WholeRunResult averageThroughput = new WholeRunResult();
-			averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
-			averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
-			averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
-			averageThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			averageThroughput
-					.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
-			jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
-			break;
-		case TotalThroughput:
-			WholeRunResult totalThroughput = new WholeRunResult();
-			totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
-			totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
-			totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
-			totalThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			totalThroughput
-					.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
-			jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
+			case AverageThroughput:
+				WholeRunResult averageThroughput = new WholeRunResult();
+				averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
+				averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+				averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+				averageThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				averageThroughput
+						.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
+				jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
+				break;
+			case TotalThroughput:
+				WholeRunResult totalThroughput = new WholeRunResult();
+				totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
+				totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+				totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+				totalThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				totalThroughput
+						.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
+				jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
 
-			break;
-		case AverageHitsPerSecond:
-			WholeRunResult averageHitsPerSecond = new WholeRunResult();
-			averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
-			averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
-			averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
-			averageHitsPerSecond.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			averageHitsPerSecond
-					.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
-			jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
+				break;
+			case AverageHitsPerSecond:
+				WholeRunResult averageHitsPerSecond = new WholeRunResult();
+				averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
+				averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+				averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+				averageHitsPerSecond.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				averageHitsPerSecond
+						.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
+				jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
 
-			break;
-		case TotalHits:
-			WholeRunResult totalHits = new WholeRunResult();
-			totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
-			totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
-			totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
-			totalHits.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
-			jobLrScenarioResult.scenarioSlaResults.add(totalHits);
+				break;
+			case TotalHits:
+				WholeRunResult totalHits = new WholeRunResult();
+				totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
+				totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+				totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+				totalHits.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
+				jobLrScenarioResult.scenarioSlaResults.add(totalHits);
 
-			break;
-		case ErrorsPerSecond:
-			TimeRangeResult errPerSec = new AvgTransactionResponseTime();
-			errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
-			errPerSec.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
-			errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim())); // Might
-																														// not
-																														// work
-																														// due
-																														// to
-																														// time
-																														// ranges
-			addTimeRanges(errPerSec, slaRuleElement);
-			jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
+				break;
+			case ErrorsPerSecond:
+				TimeRangeResult errPerSec = new AvgTransactionResponseTime();
+				errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
+				errPerSec.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
+				errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim())); // Might
+				// not
+				// work
+				// due
+				// to
+				// time
+				// ranges
+				addTimeRanges(errPerSec, slaRuleElement);
+				jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
 
-			break;
-		case PercentileTRT:
-			PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
-			percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
-			percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName"));
-			percentileTransactionWholeRun
-					.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
-			percentileTransactionWholeRun
-					.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
-			percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
-			percentileTransactionWholeRun
-					.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
-			jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
+				break;
+			case PercentileTRT:
+				PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+				percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
+				percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName"));
+				percentileTransactionWholeRun
+						.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+				percentileTransactionWholeRun
+						.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+				percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+				percentileTransactionWholeRun
+						.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
+				jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
 
-			break;
-		case AverageTRT:
-			AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
-			transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
-			transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName"));
-			transactionTimeRange.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-			transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
-			transactionTimeRange
-					.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim())); // Might
-																														// not
-																														// work
-																														// due
-																														// to
-																														// time
-																														// ranges
-			addTimeRanges(transactionTimeRange, slaRuleElement);
-			jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
-			break;
-		case Bad:
-			break;
+				break;
+			case AverageTRT:
+				AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
+				transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
+				transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName"));
+				transactionTimeRange.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+				transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
+				transactionTimeRange
+						.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim())); // Might
+				// not
+				// work
+				// due
+				// to
+				// time
+				// ranges
+				addTimeRanges(transactionTimeRange, slaRuleElement);
+				jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
+				break;
+			case Bad:
+				break;
 		}
 	}
 
-    @Override
-    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
+	@Override
+	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
 			throws InterruptedException, IOException {
 
 		runReportList = new ArrayList<FilePath>();
-        final List<String> mergedResultNames = new ArrayList<String>();
-        final List<String> almResultNames = new ArrayList<String>();
-        final List<String> fileSystemResultNames = new ArrayList<String>();
-        final List<String> almSSEResultNames = new ArrayList<String>();
-        final List<String> pcResultNames = new ArrayList<String>();
+		final List<String> mergedResultNames = new ArrayList<String>();
+		final List<String> almResultNames = new ArrayList<String>();
+		final List<String> fileSystemResultNames = new ArrayList<String>();
+		final List<String> almSSEResultNames = new ArrayList<String>();
+		final List<String> pcResultNames = new ArrayList<String>();
 
-        // Get the TestSet report files names of the current build
+		// Get the TestSet report files names of the current build
 		if (build instanceof WorkflowRun) { // it comes from a Pipeline build flow
 			List<ParametersAction> paramActions = build.getActions(ParametersAction.class);
 			for(ParametersAction paramAction : paramActions){
@@ -1486,31 +1486,37 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			}
 		}
 
-		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(String.format("*_%d.xml", build.getNumber()));
+		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(Arrays.asList(String.format("*_%d.xml", build.getNumber()), String.format("*%d", build.getNumber()), "*json-Report.xml"));
 		IOFileFilter byBuildStartedFileFilter = new AgeFileFilter(build.getStartTimeInMillis(), false);
 		IOFileFilter fileFilter = FileFilterUtils.and(byBuildNumberFileFilter, byBuildStartedFileFilter);
 
-        List<FilePath> fileSystemResultsPath = workspace.list(fileFilter);
-		for (FilePath fileSystemResultPath: fileSystemResultsPath)
-		{
-			fileSystemResultNames.add(fileSystemResultPath.getName());
+		listFilesWithFilterRecursive(workspace, "", fileFilter, fileSystemResultNames);
+
+		mergedResultNames.addAll(almResultNames);
+		mergedResultNames.addAll(fileSystemResultNames);
+		mergedResultNames.addAll(almSSEResultNames);
+		mergedResultNames.addAll(pcResultNames);
+
+		// Has any QualityCenter builder been set up?
+		if (mergedResultNames.isEmpty()) {
+			listener.getLogger().println("RunResultRecorder: no results xml File provided");
+			return;
 		}
-
-        mergedResultNames.addAll(almResultNames);
-        mergedResultNames.addAll(fileSystemResultNames);
-        mergedResultNames.addAll(almSSEResultNames);
-        mergedResultNames.addAll(pcResultNames);
-
-        // Has any QualityCenter builder been set up?
-        if (mergedResultNames.isEmpty()) {
-            listener.getLogger().println("RunResultRecorder: no results xml File provided");
-            return;
-        }
 
 		recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
 		return;
 	}
-	
+
+	private void listFilesWithFilterRecursive(FilePath path, String basePath, IOFileFilter fileFilter, List<String> fileSystemResultNames) throws IOException, InterruptedException {
+		List<FilePath> fileSystemResultsPath = path.list(fileFilter);
+		for (FilePath fileSystemResultPath : fileSystemResultsPath) {
+			if (!fileSystemResultPath.isDirectory()) {
+				fileSystemResultNames.add(basePath + fileSystemResultPath.getName());
+			} else {
+				listFilesWithFilterRecursive(fileSystemResultPath, fileSystemResultPath.getName() + File.separator, fileFilter, fileSystemResultNames);
+			}
+		}
+	}
 
 	@Override
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
@@ -1520,8 +1526,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	@Override
 	public BuildStepMonitor getRequiredMonitorService() {
-        return BuildStepMonitor.NONE;
-    }
+		return BuildStepMonitor.NONE;
+	}
 
 	/**
 	 * Gets results publisher model.
