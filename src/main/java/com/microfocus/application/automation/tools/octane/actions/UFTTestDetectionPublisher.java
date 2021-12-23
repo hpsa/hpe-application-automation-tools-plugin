@@ -122,6 +122,11 @@ public class UFTTestDetectionPublisher extends Recorder {
         }
 
         try {
+            // backward compatibility
+            if(testingToolType == null || TestingToolType.UNKNOWN.equals(testingToolType)) {
+                testingToolType = TestingToolType.UFT;
+            }
+
             UftTestDiscoveryResult results = build.getWorkspace().act(new UFTTestDetectionCallable(build, configurationId, workspaceName, getScmRepositoryId(), listener, testingToolType));
             Action buildAction = getBuildAction(testingToolType, build, results);
             build.addAction(buildAction);
