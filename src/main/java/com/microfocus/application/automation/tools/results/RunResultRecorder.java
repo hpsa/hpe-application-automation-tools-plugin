@@ -1486,7 +1486,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			}
 		}
 
-		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(Arrays.asList(String.format("*_%d.xml", build.getNumber()), String.format("*%d", build.getNumber()), "*json-Report.xml"));
+		IOFileFilter byBuildNumberFileFilter = new WildcardFileFilter(Arrays.asList(String.format("*_%d.xml", build.getNumber()), String.format("*%d", build.getNumber()), "*-Report.xml"));
 		IOFileFilter byBuildStartedFileFilter = new AgeFileFilter(build.getStartTimeInMillis(), false);
 		IOFileFilter fileFilter = FileFilterUtils.and(byBuildNumberFileFilter, byBuildStartedFileFilter);
 
