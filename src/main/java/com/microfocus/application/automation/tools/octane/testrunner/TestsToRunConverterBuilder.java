@@ -204,12 +204,12 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         // first handle uft tests if exist
         if (CollectionUtils.isNotEmpty(mbtTestsByType.get(TestingToolType.UFT))) {
-            createMTBTests((List<MbtUftTest>)(List<?>)mbtTestsByType.get(TestingToolType.UFT), build, filePath, launcher, listener);
+            prepareUftTests((List<MbtUftTest>)(List<?>)mbtTestsByType.get(TestingToolType.UFT), build, filePath, launcher, listener);
         }
 
         // handle codeless tests
         if (CollectionUtils.isNotEmpty(mbtTestsByType.get(TestingToolType.CODELESS))) {
-            processCodelessTests((List<MbtCodelessTest>)(List<?>)mbtTestsByType.get(TestingToolType.CODELESS), build, filePath);
+            prepareCodelessTests((List<MbtCodelessTest>)(List<?>)mbtTestsByType.get(TestingToolType.CODELESS), build, filePath);
         }
     }
 
@@ -240,7 +240,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         }
     }
 
-    private void createMTBTests(List<MbtUftTest> tests, @Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException, InterruptedException {
+    private void prepareUftTests(List<MbtUftTest> tests, @Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException, InterruptedException {
         build.getRootDir();
         Properties props = new Properties();
         props.setProperty("runType", "MBT");
@@ -327,7 +327,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         }
     }
 
-    private void processCodelessTests(List<MbtCodelessTest> tests, Run<?, ?> build, FilePath workspace) throws IOException, InterruptedException {
+    private void prepareCodelessTests(List<MbtCodelessTest> tests, Run<?, ?> build, FilePath workspace) throws IOException, InterruptedException {
         FilePath parentFolder = workspace.child(String.format(CODELESS_FOLDER_TEMPLATE, build.getNumber()));
         parentFolder.mkdirs();
 
