@@ -357,15 +357,11 @@ public class TestExecutionJobCreatorService {
 			Builder converterBuilder = new TestsToRunConverterBuilder(framework.value()); // uft or mbt converter
 			Builder uftRunner = new RunFromFileBuilder("${testsToRunConverted}");
 			boolean isMbt = testingToolType.equals(TestingToolType.MBT);
-			Builder codelessRunner = null;
-			if (isMbt) { // in case of MBT add a second runner for codeless
-				codelessRunner = new RunFromCodelessBuilder();
-			}
 			// add steps to project
 			proj.getBuildersList().add(converterBuilder);
 			proj.getBuildersList().add(uftRunner);
-			if(codelessRunner != null) {
-				proj.getBuildersList().add(codelessRunner);
+			if(isMbt) { // in case of mbt, add a second runner for codeless
+				proj.getBuildersList().add(new RunFromCodelessBuilder());
 			}
 
 			//add post-build action - publisher
