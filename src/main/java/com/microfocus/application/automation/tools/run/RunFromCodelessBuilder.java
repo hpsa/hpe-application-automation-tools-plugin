@@ -44,11 +44,13 @@ public class RunFromCodelessBuilder extends Builder implements SimpleBuildStep {
     public void perform(@NonNull Run<?, ?> build, @NonNull FilePath workspace, @NonNull Launcher launcher, @NonNull TaskListener taskListener) throws InterruptedException, IOException {
         FilePath parentFolder = workspace.child(String.format(CODELESS_FOLDER_TEMPLATE, build.getNumber()));
         if (!parentFolder.exists()) { // no codeless tests to run
+            taskListener.getLogger().println(RunFromCodelessBuilder.class.getSimpleName() + " : No codeless tests were found");
             return;
         }
 
         FilePath[] list = parentFolder.list("mbt.json");
         if (list.length == 0) {
+            taskListener.getLogger().println(RunFromCodelessBuilder.class.getSimpleName() + " : mbt.json file was not found");
             return;
         }
         FilePath mbtJsonFile = list[0];
