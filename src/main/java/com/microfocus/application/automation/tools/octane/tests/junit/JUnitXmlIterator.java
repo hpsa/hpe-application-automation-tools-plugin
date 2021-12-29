@@ -488,7 +488,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
     // codeless test result file path is in the form of c:\Jenkins\workspace\MBT-test-runner-1001-8xepv\codeless_17\1_Codeless Model_00002.json-Report.xml
     private boolean checkIsCodelessTestResult(String resultFilePath) {
         String codelessFolderName = String.format(UftConstants.CODELESS_FOLDER_TEMPLATE, buildId);
-        return resultFilePath.contains(File.separator + codelessFolderName + File.separator);
+        return resultFilePath.contains(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + codelessFolderName + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
     }
 
     private void splitTestNameByPattern(){
