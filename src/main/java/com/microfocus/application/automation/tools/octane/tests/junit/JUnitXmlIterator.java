@@ -353,7 +353,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                 } else { // start of a new iteration
                     filePath = readNextValue();
                     testingToolType = TestingToolType.CODELESS;
-                    testName = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.lastIndexOf(".json-Report"));
+                    testName = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.lastIndexOf("-Report"));
                     currentIterationSteps = new ArrayList<>();
                     currentJUnitTestResult = testNameToJunitResultMap.get(testName);
                 }
