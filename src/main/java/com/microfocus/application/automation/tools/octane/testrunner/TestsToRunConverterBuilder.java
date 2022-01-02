@@ -487,7 +487,8 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
             valueJsonObj.put("name", linkedParamUnit.getOrder() + ":" + outputParameter.getUnitParameterName());
         } else { // value should be taken from iteration both for regular parameter and merged parameter by the merged parameter name
             valueJsonObj.put("type", "literal");
-            valueJsonObj.put("value", currentIteration.get(iterationParams.indexOf(currentParameter.getName()))); // get value by index in iteration parameters list
+            String value = currentIteration.get(iterationParams.indexOf(currentParameter.getName())); // get value by index in iteration parameters list
+            valueJsonObj.put("value", value != null ? value : "");
         }
         parameterJsonObj.put("value", valueJsonObj);
         return parameterJsonObj;
