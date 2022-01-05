@@ -28,6 +28,8 @@
 
 package com.microfocus.application.automation.tools.octane.tests.junit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.tests.Property;
@@ -36,12 +38,17 @@ import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
+import com.microfocus.application.automation.tools.octane.tests.junit.codeless.CodelessResult;
+import com.microfocus.application.automation.tools.octane.tests.junit.codeless.CodelessResultParameter;
+import com.microfocus.application.automation.tools.octane.tests.junit.codeless.CodelessResultUnit;
 import com.microfocus.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -105,8 +112,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
     private List<UftResultStepData> currentIterationSteps;
     private Map<String, JUnitTestResult> testNameToJunitResultMap = new HashMap<>();
     private String stepName;
+    private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private Map<String, CodelessResult> testNameToCodelessResultMap = new HashMap<>();
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps) throws XMLStreamException {
+    public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -327,9 +336,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                     addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, testDuration, buildStarted, testError, externalURL, description, hpRunnerType,this.externalRunId, uftResultData, octaneSupportsSteps));
                 }
             } else if ("suites".equals(localName)) {
-                if (!testNameToJunitResultMap.isEmpty()) {
-                    testNameToJunitResultMap.values().forEach(this::addItem);
-                }
+                finalizeCodelessTests();
             }
         }
     }
@@ -353,7 +360,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                 } else { // start of a new iteration
                     filePath = readNextValue();
                     testingToolType = TestingToolType.CODELESS;
-                    testName = filePath.substring(filePath.lastIndexOf("\\") + 1, filePath.lastIndexOf("-Report"));
+                    String fileName = filePath.substring(filePath.lastIndexOf("\\") + 1);
+                    testName = fileName.substring(0, fileName.lastIndexOf("-Report"));
+                    readCodelessTestJsonResult(testName, filePath);
                     currentIterationSteps = new ArrayList<>();
                     currentJUnitTestResult = testNameToJunitResultMap.get(testName);
                 }
@@ -433,10 +442,16 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                 }
                 testingToolType = TestingToolType.UFT;
             } else if ("suites".equals(localName)) {
-                if (!testNameToJunitResultMap.isEmpty()) {
-                    testNameToJunitResultMap.values().forEach(this::addItem);
-                }
+                finalizeCodelessTests();
             }
+        }
+    }
+
+    private void finalizeCodelessTests() {
+        if (!testNameToJunitResultMap.isEmpty()) {
+            // add parameters to all the units
+            addParametersToUnitsResponse();
+            testNameToJunitResultMap.values().forEach(this::addItem);
         }
     }
 
@@ -491,6 +506,73 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
         return resultFilePath.contains(SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + codelessFolderName + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
     }
 
+    private void readCodelessTestJsonResult(String testName, String testFilePath) {
+        if(testNameToCodelessResultMap.get(testName) != null) { // codeless json result was already read for a previous iteration
+            return;
+        }
+        String jsonFileName = testFilePath.replace("xml", "json");
+        FilePath jsonFilePath = workspace.child(jsonFileName);
+        try {
+            if(jsonFilePath.exists()) {
+                String jsonResult = jsonFilePath.readToString();
+                CodelessResult codelessResult = mapper.readValue(jsonResult, CodelessResult.class);
+                testNameToCodelessResultMap.put(testName, codelessResult);
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.warn("Failed to read codeless json result file {}", jsonFileName, e);
+        }
+    }
+
+    private void addParametersToUnitsResponse() {
+        testNameToJunitResultMap.entrySet().forEach(entry -> {
+            String testName = entry.getKey();
+            JUnitTestResult testResult = entry.getValue();
+            CodelessResult codelessResult = testNameToCodelessResultMap.get(testName);
+            if(codelessResult != null) {
+                List<UftResultIterationData> resultIterations = testResult.getUftResultData();
+                List<List<CodelessResultUnit>> codelessIterations = codelessResult.getIterations();
+                // assume that lists have the same size and iterations are equally ordered
+                if(resultIterations.size() == codelessIterations.size()) {
+                    for(int i = 0; i < resultIterations.size(); i++) {
+                        List<UftResultStepData> steps = resultIterations.get(i).getSteps();
+                        List<CodelessResultUnit> currentCodelessUnits = codelessIterations.get(i);
+                        // assume that the iterations have the same units size and units are equally ordered
+                        if(steps.size() == currentCodelessUnits.size()) {
+                            for(int k = 0; k < steps.size(); k++) {
+                                UftResultStepData currentStep = steps.get(k);
+                                CodelessResultUnit currentUnit = currentCodelessUnits.get(k);
+                                mergeParameters(currentStep, currentUnit);
+                            }
+                        } else {
+                            logger.warn("Codeless response for {} iteration {} is inconsistent- # of units does not match", testName, i);
+                        }
+                    }
+                } else {
+                    logger.warn("Codeless response for {} is inconsistent- # of iterations does not match", testName);
+                }
+            }
+        });
+    }
+
+    private void mergeParameters(UftResultStepData stepData, CodelessResultUnit codelessResultUnit) {
+        if(CollectionUtils.isEmpty(codelessResultUnit.getParameters())) {
+            return;
+        }
+
+        codelessResultUnit.getParameters().forEach(parameter -> {
+            UftResultStepParameter uftResultStepParameter = convertParameter(parameter);
+            if(parameter.getType().equals("input")) {
+                stepData.getInputParameters().add(uftResultStepParameter);
+            } else {
+                stepData.getOutputParameters().add(uftResultStepParameter);
+            }
+        });
+    }
+
+    private UftResultStepParameter convertParameter(CodelessResultParameter parameter) {
+        return new UftResultStepParameter(parameter.getName(), parameter.getValue(), "");
+    }
+
     private void splitTestNameByPattern(){
 		Matcher matcher = testParserRegEx.matcher(this.testName);
 		if (matcher.find()) {
@@ -538,7 +620,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					if (property.getPropertyName().equals(SRL_REPORT_URL)) {
 						srUrl = property.getPropertyValue();
 						break;
-					}
+					};
 				}
 			}
 			return srUrl;
