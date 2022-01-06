@@ -56,6 +56,7 @@ public class UftToolUtils {
 
     private static final Logger logger = Logger.getLogger(UftToolUtils.class.getName());
     private static final String ACTION_TAG = "Action";
+    private static final String ACTIONS_XML_TAG = "Actions.xml";
 
     private UftToolUtils() {
     }
@@ -262,9 +263,13 @@ public class UftToolUtils {
         for (final File fileEntry : files) {
             if (fileEntry.isDirectory()) {
                 if(!fileEntry.getName().contains(ACTION_TAG)){
-                    buildTests.add(fileEntry.getPath().trim()); continue;
+                    buildTests.add(fileEntry.getPath().trim());
+                    continue;
                 }
                 buildTests.add(folder.getPath().trim());//single test
+                break;
+            } else if (fileEntry.isFile() && fileEntry.getName().endsWith(ACTIONS_XML_TAG)) {
+                buildTests.add(folder.getPath().trim()); // it is an api test, which contains Actions.xml, which contains all the test Actions
                 break;
             }
         }
