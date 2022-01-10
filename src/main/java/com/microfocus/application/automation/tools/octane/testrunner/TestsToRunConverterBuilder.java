@@ -176,7 +176,9 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
                 convertResult = (new GetConvertResult(testsToRunFramework, frameworkFormat, testsData, executingDirectory, globalParameters)).invoke(null, null);
             }
             // process tests by type
-            processTests(build, filePath, launcher, listener, convertResult);
+            if (convertResult.getMbtTests() != null) {
+                processTests(build, filePath, launcher, listener, convertResult);
+            }
 
             printToConsole(listener, "Found #tests : " + convertResult.getTestsData().size());
             printToConsole(listener, "Set to parameter : " + convertResult.getTestsToRunConvertedParameterName() + " = " + convertResult.getConvertedTestsString());
