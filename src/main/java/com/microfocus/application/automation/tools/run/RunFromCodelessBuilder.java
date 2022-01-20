@@ -36,9 +36,9 @@ public class RunFromCodelessBuilder extends Builder implements SimpleBuildStep {
 
     private static final String CODELESS_BATCH_FILE = "CodelessExecuter.bat";
 
-    //empty default constructor
     @DataBoundConstructor
     public RunFromCodelessBuilder() {
+        //for codeclimate
     }
 
     @Override
