@@ -30,12 +30,13 @@ import static com.microfocus.application.automation.tools.octane.executor.UftCon
  */
 public class RunFromCodelessBuilder extends Builder implements SimpleBuildStep {
 
-    private static final String RUN_MSG_TEMPLATE = "Running codeless for test: %s, path: %s";
+    private static final String RUN_MSG_TEMPLATE = "Running codeless for test: %s, path: %s%n";
 
-    private static final String RESULT_MSG_TEMPLATE = "Codeless returned code: %d";
+    private static final String RESULT_MSG_TEMPLATE = "Codeless returned code: %d%n";
 
     private static final String CODELESS_BATCH_FILE = "CodelessExecuter.bat";
 
+    //empty default constructor
     @DataBoundConstructor
     public RunFromCodelessBuilder() {
     }
@@ -70,9 +71,9 @@ public class RunFromCodelessBuilder extends Builder implements SimpleBuildStep {
             // Run the script on node
             // Execution result should be 0
             try {
-                out.printf((RUN_MSG_TEMPLATE) + "%n", testName, filePath);
+                out.printf(RUN_MSG_TEMPLATE, testName, filePath);
                 int returnCode = launcher.launch().cmds(args).stdout(out).pwd(parentFolder).join();
-                out.printf((RESULT_MSG_TEMPLATE) + "%n", returnCode);
+                out.printf(RESULT_MSG_TEMPLATE, returnCode);
                 currentResult = getResultFromCodeless(returnCode, currentResult);
             } catch (IOException e) {
                 Util.displayIOException(e, taskListener);
