@@ -82,6 +82,7 @@ public class RunFromCodelessBuilder extends Builder implements SimpleBuildStep {
             } catch (InterruptedException e) {
                 build.setResult(Result.ABORTED);
                 taskListener.error("Failed running {} - build aborted {}", CODELESS_BATCH_FILE, e);
+                Thread.currentThread().interrupt();//for codeclimate
             }
         }
 
