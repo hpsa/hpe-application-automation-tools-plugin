@@ -90,7 +90,6 @@ namespace HpToolsLauncher
 
                     break;
                 case "double":
-
                     double v2;
                     ok = double.TryParse(this.Value, out v2);
                     if (ok)

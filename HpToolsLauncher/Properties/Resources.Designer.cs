@@ -397,6 +397,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate parameter name entry found, please check the parameters&apos; specification..
+        /// </summary>
+        internal static string FsDuplicateParamNames {
+            get {
+                return ResourceManager.GetString("FsDuplicateParamNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test..
         /// </summary>
         internal static string FsRunnerErrorParameterFormat {

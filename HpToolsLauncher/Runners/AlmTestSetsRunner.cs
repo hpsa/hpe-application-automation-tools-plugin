@@ -918,7 +918,7 @@ namespace HpToolsLauncher
             if (!string.IsNullOrEmpty(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                if (!Helper.ValidateListOfParams(@params, out paramNames, out paramValues))
+                if (!Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues))
 				{
                     throw new ArgumentException();
                 }
@@ -949,7 +949,7 @@ namespace HpToolsLauncher
             if (!string.IsNullOrWhiteSpace(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                bool validParameters = Helper.ValidateListOfParams(@params, out paramNames, out paramValues);
+                bool validParameters = Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues);
 
                 if (validParameters && @params.Any())
                 {

@@ -253,7 +253,7 @@ namespace HpToolsLauncher
         /// <param name="paramNames"></param>
         /// <param name="paramValues"></param>
         /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public static bool ValidateListOfParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
+        public static bool ValidateListOfParamsForInline(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
         {
             if (@params == null) throw new ArgumentNullException("Parameters are missing");
             paramNames = new List<string>();

@@ -48,7 +48,10 @@ import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
+import net.minidev.json.parser.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -65,6 +68,7 @@ import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Describes a regular jenkins build step from UFT or LR
@@ -77,6 +81,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private RunFromFileSystemModel runFromFileModel;
     private FileSystemTestSetModel fileSystemTestSetModel;
     private boolean isParallelRunnerEnabled;
+    private boolean areParametersEnabled;
     private SummaryDataLogModel summaryDataLogModel;
     private ScriptRTSSetModel scriptRTSSetModel;
     private UftSettingsModel uftSettingsModel;
@@ -90,13 +95,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests,
                               boolean isParallelRunnerEnabled,
+                              boolean areParametersEnabled,
+                              String fsParameterJson,
                               FileSystemTestSetModel fileSystemTestSetModel,
                               SummaryDataLogModel summaryDataLogModel,
                               ScriptRTSSetModel scriptRTSSetModel,
                               UftSettingsModel uftSettingsModel) {
-        this.runFromFileModel = new RunFromFileSystemModel(fsTests);
+        this.runFromFileModel = new RunFromFileSystemModel(fsTests, fsParameterJson);
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+        this.areParametersEnabled = areParametersEnabled;
         this.summaryDataLogModel = summaryDataLogModel;
         this.scriptRTSSetModel = scriptRTSSetModel;
         this.uftSettingsModel = uftSettingsModel;
@@ -158,13 +166,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath){
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, String fsParameters){
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL, fsReportPath);
+                proxySettings, useSSL, fsReportPath, fsParameters);
     }
 
     /**
@@ -691,12 +699,42 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                mergedProperties.putAll(runFromFileModel.getProperties(env));
            }
 
-           int idx = 0;
-           for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
-               String key = iterator.next();
-               idx++;
-               mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
+            JSONArray testParameters = (JSONArray) JSONValue.parse("[]");
+           if (areParametersEnabled) {
+               // add to properties all the test parameters
+               String fsParameterJson = runFromFileModel.getFsParameterJson();
+
+               try {
+                   testParameters = (JSONArray) JSONValue.parseStrict(fsParameterJson);
+               } catch (ParseException | NullPointerException e) {
+                   listener.error(String.format("Failed to parse parameter JSON input: %s, reverting to empty array.", fsParameterJson));
+               }
            }
+
+            int pidx = 1;
+            while (mergedProperties.getProperty("Test" + pidx) != null) {
+                final int currPidx = pidx;
+
+                List<Object> relevant = testParameters.stream().filter(elem -> Integer.parseInt((String) (((JSONObject) elem).get("index"))) == currPidx).collect(Collectors.toList());
+
+                for (int i = 0; i < relevant.size(); ++i) {
+                    JSONObject curr = ((JSONObject) relevant.get(i));
+
+                    mergedProperties.setProperty(String.format("Param%d_Name_%d", currPidx, i + 1), curr.get("name").toString());
+                    mergedProperties.setProperty(String.format("Param%d_Value_%d", currPidx, i + 1), curr.get("value").toString());
+                    mergedProperties.setProperty(String.format("Param%d_Type_%d", currPidx, i + 1), curr.get("type").toString());
+                }
+
+                ++pidx;
+            }
+
+            mergedProperties.setProperty("numOfTests", String.valueOf(pidx - 1));
+
+           int idx = 0;
+            for (String key : env.keySet()) {
+                idx++;
+                mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
+            }
 
            Date now = new Date();
            Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
@@ -908,6 +946,22 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             String fileName = resultFileNames.get(threadId);
             return fileName;
         }
+    }
+
+    public boolean isAreParametersEnabled() {
+        return areParametersEnabled;
+    }
+
+    public void setAreParametersEnabled(boolean areParametersEnabled) {
+        this.areParametersEnabled = areParametersEnabled;
+    }
+
+    public String getFsParameterJson() {
+        return runFromFileModel.getFsParameterJson();
+    }
+
+    public void setFsParameterJson(String fsParameterJson) {
+        runFromFileModel.setFsParameterJson(fsParameterJson);
     }
 
     /**
@@ -1128,6 +1182,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         public List<EnumDescription> getFsUftRunModes() {
             return RunFromFileSystemModel.fsUftRunModes;
+        }
+
+        public List<EnumDescription> getFsParamTypes() {
+            return RunFromFileSystemModel.fsParamTypes;
         }
 
         public List<EnumDescription> getFsTestTypes() {

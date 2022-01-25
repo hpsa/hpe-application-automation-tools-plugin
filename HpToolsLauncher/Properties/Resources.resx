@@ -508,4 +508,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="FsRunnerErrorParameterFormat" xml:space="preserve">
     <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test.</value>
   </data>
+  <data name="FsDuplicateParamNames" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
+  </data>
 </root>

@@ -174,6 +174,183 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 200);
     }
 
+    // holder, which contain all the valid parameter input types
+    let selectableTypeList = '';
 
+    function startListenersForParameterInputs() {
+        const inputs = document.getElementsByName("fsTestParameter");
+        if (inputs) {
+            inputs.forEach(elem => elem.addEventListener("change", generateAndPutJSONResult));
+        } else {
+            console.warn("Test parameter input fields are missing.");
+        }
 
+        const delBtns = document.getElementsByName("fsDelParameter");
+        if (delBtns) {
+            delBtns.forEach(elem => elem.addEventListener("click", deleteParameter));
+        } else {
+            console.warn("Delete buttons for input fields are missing.");
+        }
 
+        let testInput = document.getElementsByName("runfromfs.fsTests")[0];
+        if (testInput) {
+            const rowInputs = document.querySelectorAll(".testParameter > div > input[type='number']");
+            rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
+
+            testInput.addEventListener("change", () => {
+                const rowInputs = document.querySelectorAll(".testParameter > div > input[type='number']");
+                rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
+            });
+        } else {
+            console.warn("Test input text area is missing.");
+        }
+    }
+
+    function startListenerForParameterBlock() {
+        let specifyParametersCheckbox = document.getElementsByName("areParametersEnabled");
+
+        if (specifyParametersCheckbox) {
+            specifyParametersCheckbox = specifyParametersCheckbox[0];
+            specifyParametersCheckbox.addEventListener("click", cleanParameterInput);
+        }
+    }
+
+    function generateAndPutJSONResult() {
+        const inputs = document.getElementsByName("fsTestParameter");
+        let inputJSON = [];
+        const parameterResultStr = document.getElementsByName("fsParameterJson")[0];
+
+        if (parameterResultStr.length === 0) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+
+        inputs.forEach(elem => {
+            let curr = {};
+            const testIdx = curr["index"] = elem.querySelector(`#parameterInputRow${elem.dataset.index}`).value;
+            const name = curr["name"] = elem.querySelector(`#parameterInputName${elem.dataset.index}`).value;
+
+            if (name !== "") {
+                curr["type"] = elem.querySelector(`#parameterInputType${elem.dataset.index}`).value;
+
+                const val = elem.querySelector(`#parameterInputValue${elem.dataset.index}`);
+                if (curr["type"] === "Boolean") {
+                    curr["value"] = val.checked;
+                } else if (curr["type"] === "Date") {
+                    const date = new Date(val.value);
+                    curr["value"] = `${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}/${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth()}/${date.getFullYear()}`;
+                } else {
+                    curr["value"] = val.value;
+                }
+
+                inputJSON.push(curr);
+            }
+        });
+
+        console.log(inputJSON);
+        parameterResultStr.value = JSON.stringify(inputJSON);
+    }
+
+    function cleanParameterInput() {
+        if (this.checked) {
+            loadParameterInputs();
+        } else {
+            const parameterResultStr = document.getElementsByName("fsParameterJson")[0];
+            parameterResultStr.value = JSON.stringify([]);
+        }
+    }
+
+    function addNewParameter() {
+        const parametersContainer = document.querySelector("ul[name='fsTestParameters']");
+        const parameters = document.getElementsByName("fsTestParameter") || [];
+        const nextIdx = parameters.length !== 0 ? parseInt(Array.from(parameters).reduce((prev, curr) => {
+            if (parseInt(prev.dataset.index) > parseInt(curr.dataset.index)) return prev;
+
+            return curr;
+        }).dataset.index) + 1 : 1;
+
+        const elem = `
+        <li class="testParameter" name="fsTestParameter" data-index="${nextIdx}">
+            <div>
+                <input class="setting-input" name="fsParameterInput" id="parameterInputRow${nextIdx}" min="1" type="number" required="required" />
+            </div>
+            <div>
+                <input class="setting-input" name="fsParameterInput" id="parameterInputName${nextIdx}" type="text" required="required" />
+            </div>
+            <div>
+                <input class="setting-input" name="fsParameterInput" id="parameterInputValue${nextIdx}" type="text"/>
+            </div>
+            <div>
+                <select name="fsParameterInput" id="parameterInputType${nextIdx}">
+                    ${selectableTypeList}
+                </select>
+            </div>  
+            <span class="yui-button danger" id="delParameterInput${nextIdx}" name="fsDelParameter">
+                <span class="first-child">
+                    <button type="button" tabindex="0" >&#9747;</button>
+                </span>
+            </span>
+        </li>
+        `;
+
+        parametersContainer.insertAdjacentHTML("beforeend", elem);
+
+        const typeField = document.querySelector(`#parameterInputType${nextIdx}`);
+        const valueField = document.querySelector(`#parameterInputValue${nextIdx}`);
+
+        typeField.addEventListener("change", () => {
+            valueField.value = "";
+            valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
+        });
+
+        startListenersForParameterInputs();
+    }
+
+    function deleteParameter(e) {
+        this.parentNode.remove();
+        startListenersForParameterInputs();
+        generateAndPutJSONResult();
+    }
+
+    const mapForTypeAssociations = {
+        String: 'text',
+        Number: 'number',
+        Boolean: 'checkbox',
+        Password: 'password',
+        Date: 'date',
+        Any: 'text'
+    };
+
+    function loadParameterInputs() {
+        const parameterResultStr = document.getElementsByName("fsParameterJson")[0];
+
+        if (parameterResultStr.value === "") return;
+
+        const json = JSON.parse(parameterResultStr.value);
+
+        for (let i = 0; i < json.length; ++i) addNewParameter();
+
+        const parameters = document.getElementsByName("fsTestParameter");
+
+        for (let i = 0; i < json.length; ++i) {
+            const currElem = parameters[i];
+            const currElemVal = json[i];
+
+            currElem.querySelector(`#parameterInputRow${currElem.dataset.index}`).value = currElemVal["index"] || 1;
+            currElem.querySelector(`#parameterInputName${currElem.dataset.index}`).value = currElemVal["name"] || "";
+            const valueField = currElem.querySelector(`#parameterInputValue${currElem.dataset.index}`)
+            const typeField = currElem.querySelector(`#parameterInputType${currElem.dataset.index}`);
+            typeField.value = currElemVal["type"] || "String";
+
+            valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
+            if (typeField.value === "Boolean") {
+                valueField.checked = currElemVal["value"] || false;
+            } else if (typeField.value === "Date") {
+                const date = new Date(currElemVal["value"].split("/").reverse().join("-")) || Date.now();
+                valueField.value = `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)}-${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}`;
+            } else {
+                valueField.value = currElemVal["value"] || "";
+            }
+        }
+    }
+
+    function addToSelectableTypeList(type) {
+        selectableTypeList += `<option value="${type}">${type}</option>`;
+    }
