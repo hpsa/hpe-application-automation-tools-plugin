@@ -113,6 +113,9 @@
 		 .testParameter > div,
 		 .testParameter > div > select {
 		 	width: 100%;
+		 }
+
+		 .testParameter > div > select {
 		 	height: 100%;
 		 }
 
