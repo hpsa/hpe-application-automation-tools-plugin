@@ -46,13 +46,13 @@ function startListenersForParameterInputs() {
 
     let testInput = document.getElementsByName("runfromfs.fsTests")[0] || document.getElementsByName("runfromalm.almTestSets")[0];
     if (testInput) {
-        const rowInputs = document.querySelectorAll(".testParameter > div > input[type='number']");
-        rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
-
-        testInput.addEventListener("change", () => {
-            const rowInputs = document.querySelectorAll(".testParameter > div > input[type='number']");
+        const updateMaxNumberForSpinner = () => {
+            const rowInputs = document.querySelectorAll(".testParameter + div > input[type='number']");
             rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
-        });
+        }
+
+        updateMaxNumberForSpinner();
+        testInput.addEventListener("change", updateMaxNumberForSpinner);
     } else {
         console.warn("Test input text area is missing.");
     }
