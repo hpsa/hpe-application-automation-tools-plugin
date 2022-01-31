@@ -23,8 +23,15 @@ com.hp.octane.integrations.dto.scm.impl.PullRequestImpl
 com.hp.octane.integrations.dto.scm.impl.BranchImpl
 com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult
 com.hp.octane.integrations.executor.converters.MbtTest
+com.hp.octane.integrations.executor.converters.MbtUftTest
+com.hp.octane.integrations.executor.converters.MbtCodelessTest
+com.hp.octane.integrations.executor.converters.MbtCodelessUnit
+com.hp.octane.integrations.dto.general.impl.MbtDataTableImpl
+com.hp.octane.integrations.dto.general.impl.MbtUnitParameterImpl
 com.hp.octane.integrations.executor.TestsToRunConverterResult
 com.hp.octane.integrations.executor.TestToRunData
 com.hp.octane.integrations.executor.TestsToRunFramework
 com.hp.octane.integrations.executor.TestsToRunConverter
-
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter

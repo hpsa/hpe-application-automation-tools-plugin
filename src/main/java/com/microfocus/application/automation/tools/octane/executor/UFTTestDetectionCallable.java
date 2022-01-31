@@ -66,7 +66,7 @@ public class UFTTestDetectionCallable extends MasterToSlaveFileCallable<UftTestD
         this.workspaceId = workspaceId;
         this.scmRepositoryId = scmRepositoryId;
         this.buildListener = buildListener;
-        this.testingToolType = testingToolType;
+        this.testingToolType = testingToolType == null || TestingToolType.UNKNOWN.equals(testingToolType) ? TestingToolType.UFT : testingToolType;
 
         extractParameterValues(build);
         wrapScmChanges(build);
