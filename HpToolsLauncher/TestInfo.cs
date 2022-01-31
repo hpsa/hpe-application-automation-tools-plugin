@@ -34,6 +34,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
 {
@@ -46,10 +47,20 @@ namespace HpToolsLauncher
         public string GenerateAPITestXmlForTest()
         {
             Dictionary<string, TestParameterInfo> paramDict = new Dictionary<string, TestParameterInfo>();
+
             foreach (var param in ParameterList)
             {
-                paramDict.Add(param.Name.ToLower(), param);
+                try
+                {
+                    paramDict.Add(param.Name.ToLower(), param);
+                }
+                catch (ArgumentException e)
+                {
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
+                    throw e;
+                }
             }
+
             string paramXmlFileName = Path.Combine(TestPath, "TestInputParameters.xml");
             XDocument doc = XDocument.Load(paramXmlFileName);
             string schemaStr = doc.Descendants("Schema").First().Elements().First().ToString();

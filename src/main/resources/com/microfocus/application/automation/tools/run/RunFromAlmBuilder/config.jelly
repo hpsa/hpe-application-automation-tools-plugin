@@ -43,7 +43,8 @@
             border: none;
         }
 
-        input[name="runfromAlm.isFilterTestsEnabled"]{
+        input[name="runfromAlm.isFilterTestsEnabled"],
+        input[name="areParametersEnabled"] {
             margin-left: 35px;
         }
 
@@ -220,6 +221,12 @@
             <f:textbox name="runfromalm.almTimeout" value="${instance.runFromAlmModel.almTimeout}"/>
         </f:entry>
     </f:entry>
+
+    <f:optionalBlock name="areParametersEnabled" title="Specify test parameters" inline="true" checked="${instance.areParametersEnabled}">
+        <f:entry field="specifyParametersModel">
+            <f:property field="specifyParametersModel"/>
+        </f:entry>
+    </f:optionalBlock>
 
     <f:optionalBlock title="Filter ALM test sets" name="runfromAlm.isFilterTestsEnabled" field="isFilterTestsEnabled" inline="true">
         <f:entry field="filterTestsModel">

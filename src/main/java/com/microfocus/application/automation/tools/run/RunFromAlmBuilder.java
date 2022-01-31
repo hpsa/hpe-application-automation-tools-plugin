@@ -32,6 +32,7 @@ import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
+import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
 import hudson.*;
 
 import hudson.model.*;
@@ -68,7 +69,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
     public RunFromAlmModel runFromAlmModel;
     private boolean isFilterTestsEnabled;
+    private boolean areParametersEnabled;
     private FilterTestsModel filterTestsModel;
+    private SpecifyParametersModel specifyParametersModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
@@ -91,11 +94,15 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             String almApiKey,
             boolean isSSOEnabled,
             boolean isFilterTestsEnabled,
+            boolean areParametersEnabled,
             FilterTestsModel filterTestsModel,
+            SpecifyParametersModel specifyParametersModel,
             AlmServerSettingsModel almServerSettingsModel) {
 
         this.isFilterTestsEnabled = isFilterTestsEnabled;
+        this.areParametersEnabled = areParametersEnabled;
         this.filterTestsModel = filterTestsModel;
+        this.specifyParametersModel = specifyParametersModel;
         this.almServerSettingsModel = almServerSettingsModel;
         CredentialsScope almCredScope = StringUtils.isBlank(almCredentialsScope) ?
                 findMostSuitableCredentialsScope(almServerName, almUserName, almClientID, isSSOEnabled) :
@@ -345,6 +352,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         mergedProperties.put("runType", RunType.Alm.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
 
+        if (areParametersEnabled) {
+            try {
+                specifyParametersModel.addProperties(mergedProperties, "TestSet");
+            } catch (Exception e) {
+                listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
+            }
+        }
+
         // get properties serialized into a stream
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
@@ -419,6 +434,18 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
     public RunFromAlmModel getRunFromAlmModel() {
         return runFromAlmModel;
+    }
+
+    public boolean isAreParametersEnabled() {
+        return areParametersEnabled;
+    }
+
+    public void setAreParametersEnabled(boolean areParametersEnabled) {
+        this.areParametersEnabled = areParametersEnabled;
+    }
+
+    public SpecifyParametersModel getSpecifyParametersModel() {
+        return specifyParametersModel;
     }
 
     // This indicates to Jenkins that this is an implementation of an extension

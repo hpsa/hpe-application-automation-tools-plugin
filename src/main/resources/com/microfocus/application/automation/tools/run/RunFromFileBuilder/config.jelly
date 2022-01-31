@@ -46,8 +46,6 @@
 			width: 85%;
 		}
 
-
-
 		#cleanupTestInput {
 			width: 250px;
 			margin-left: 10px;
@@ -65,10 +63,6 @@
 		 input[name="areParametersEnabled"] {
 			margin-left: 35px;
 		}
-
-		 input[name="fsParameterJson"] {
-		 	display: none;
-		 }
 
 		table tr td div.help {
 			margin-left: 12px;
@@ -91,46 +85,6 @@
 		textarea.setting-input{
 			resize: vertical;
 		}
-
-		 .testParameters {
-			list-style-type: none;
-		 }
-
-		 .testParameter:not(:last-of-type) {
-		 	margin-bottom: .5rem;
-		 }
-
-		 .testParameter,
-		 .testParameter--heading {
-		 	display: grid;
-		 	grid-template-columns: repeat(3, 1fr) .5fr 10%;
-		 	align-items: center;
-		 	justify-items: center;
-		 	grid-gap: .5rem;
-		 }
-
-		 .testParameter,
-		 .testParameter > div,
-		 .testParameter > div > select {
-		 	width: 100%;
-		 }
-
-		 .testParameter > div > select {
-		 	height: 100%;
-		 }
-
-		 .testParameter--heading {
-		 	border-bottom: solid 1px var(--medium-grey);
-		 	margin-bottom: .5rem;
-		 	height: 40px;
-		 }
-
-		 .testParameter--heading p {
-		 	text-align: center;
-		 	font-weight: 500;
-		 	margin: 0;
-		 }
-
 	 </style>
 
 	<st:bind var="a" value="${descriptor}"/>
@@ -164,22 +118,8 @@
 	</f:entry>
 
 	<f:optionalBlock name="areParametersEnabled" title="Specify test parameters" inline="true" checked="${instance.areParametersEnabled}">
-		<ul class="testParameters" name="fsTestParameters">
-			<li class="testParameter--heading pane-header">
-				<p># of test</p>
-				<p>Name</p>
-				<p>Value</p>
-				<p>Type</p>
-				<span> </span>
-			</li>
-		</ul>
-		<span class="yui-button yui-push-button repeatable-add">
-			<span class="first-child">
-				<button type="button" tabindex="0" onclick="addNewParameter()">+ PARAMETER</button>
-			</span>
-		</span>
-		<f:entry field="fsParameterJson">
-			<f:readOnlyTextbox name="fsParameterJson" value="${instance.fsParameterJson}" />
+		<f:entry field="specifyParametersModel">
+			<f:property field="specifyParametersModel"/>
 		</f:entry>
 	</f:optionalBlock>
 
@@ -399,15 +339,7 @@
 		 </div>
 	 </f:advanced>
 
-	<j:forEach var="paramType" items="${descriptor.fsParamTypes}">
-		<script>
-			addToSelectableTypeList('${paramType.value}');
-		</script>
-	</j:forEach>
 	<script type="text/javascript">
 		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
-		startListenerForParameterBlock();
-		loadParameterInputs();
-		startListenersForParameterInputs();
 	</script>
 </j:jelly>

@@ -36,6 +36,7 @@ import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
+import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
@@ -51,7 +52,6 @@ import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import net.minidev.json.parser.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -68,7 +68,6 @@ import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Describes a regular jenkins build step from UFT or LR
@@ -80,6 +79,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private String ParamFileName = "ApiRun.txt";
     private RunFromFileSystemModel runFromFileModel;
     private FileSystemTestSetModel fileSystemTestSetModel;
+    private SpecifyParametersModel specifyParametersModel;
     private boolean isParallelRunnerEnabled;
     private boolean areParametersEnabled;
     private SummaryDataLogModel summaryDataLogModel;
@@ -96,12 +96,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public RunFromFileBuilder(String fsTests,
                               boolean isParallelRunnerEnabled,
                               boolean areParametersEnabled,
-                              String fsParameterJson,
+                              SpecifyParametersModel specifyParametersModel,
                               FileSystemTestSetModel fileSystemTestSetModel,
                               SummaryDataLogModel summaryDataLogModel,
                               ScriptRTSSetModel scriptRTSSetModel,
                               UftSettingsModel uftSettingsModel) {
-        this.runFromFileModel = new RunFromFileSystemModel(fsTests, fsParameterJson);
+        this.runFromFileModel = new RunFromFileSystemModel(fsTests);
+        this.specifyParametersModel = specifyParametersModel;
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         this.areParametersEnabled = areParametersEnabled;
@@ -166,13 +167,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, String fsParameters){
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath){
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL, fsReportPath, fsParameters);
+                proxySettings, useSSL, fsReportPath);
     }
 
     /**
@@ -699,36 +700,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                mergedProperties.putAll(runFromFileModel.getProperties(env));
            }
 
-            JSONArray testParameters = (JSONArray) JSONValue.parse("[]");
-           if (areParametersEnabled) {
-               // add to properties all the test parameters
-               String fsParameterJson = runFromFileModel.getFsParameterJson();
-
-               try {
-                   testParameters = (JSONArray) JSONValue.parseStrict(fsParameterJson);
-               } catch (ParseException | NullPointerException e) {
-                   listener.error(String.format("Failed to parse parameter JSON input: %s, reverting to empty array.", fsParameterJson));
-               }
-           }
-
-            int pidx = 1;
-            while (mergedProperties.getProperty("Test" + pidx) != null) {
-                final int currPidx = pidx;
-
-                List<Object> relevant = testParameters.stream().filter(elem -> Integer.parseInt((String) (((JSONObject) elem).get("index"))) == currPidx).collect(Collectors.toList());
-
-                for (int i = 0; i < relevant.size(); ++i) {
-                    JSONObject curr = ((JSONObject) relevant.get(i));
-
-                    mergedProperties.setProperty(String.format("Param%d_Name_%d", currPidx, i + 1), curr.get("name").toString());
-                    mergedProperties.setProperty(String.format("Param%d_Value_%d", currPidx, i + 1), curr.get("value").toString());
-                    mergedProperties.setProperty(String.format("Param%d_Type_%d", currPidx, i + 1), curr.get("type").toString());
+            if (areParametersEnabled) {
+                try {
+                    specifyParametersModel.addProperties(mergedProperties, "Test");
+                } catch (Exception e) {
+                    listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
                 }
-
-                ++pidx;
             }
-
-            mergedProperties.setProperty("numOfTests", String.valueOf(pidx - 1));
 
            int idx = 0;
             for (String key : env.keySet()) {
@@ -830,6 +808,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                }
                index++;
            }
+
+        mergedProperties.setProperty("numOfTests", String.valueOf(index - 1));
 
            // get properties serialized into a stream
            ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -956,12 +936,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         this.areParametersEnabled = areParametersEnabled;
     }
 
-    public String getFsParameterJson() {
-        return runFromFileModel.getFsParameterJson();
-    }
-
-    public void setFsParameterJson(String fsParameterJson) {
-        runFromFileModel.setFsParameterJson(fsParameterJson);
+    public SpecifyParametersModel getSpecifyParametersModel() {
+        return specifyParametersModel;
     }
 
     /**
@@ -1182,10 +1158,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         public List<EnumDescription> getFsUftRunModes() {
             return RunFromFileSystemModel.fsUftRunModes;
-        }
-
-        public List<EnumDescription> getFsParamTypes() {
-            return RunFromFileSystemModel.fsParamTypes;
         }
 
         public List<EnumDescription> getFsTestTypes() {

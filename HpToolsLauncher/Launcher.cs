@@ -370,6 +370,8 @@ namespace HpToolsLauncher
                         return null;
                     }
 
+                    List<TestParameter> parameters = GetValidParams();
+
                     //check if filterTests flag is selected; if yes apply filters on the list
                     bool isFilterSelected;
                     string filter = _ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : string.Empty;
@@ -409,6 +411,7 @@ namespace HpToolsLauncher
                                      enmQcRunMode,
                                      almRunHost,
                                      sets,
+                                     parameters,
                                      isFilterSelected,
                                      filterByName,
                                      filterByStatuses,

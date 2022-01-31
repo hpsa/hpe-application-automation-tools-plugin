@@ -59,15 +59,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
 
-    private final static EnumDescription STRING_TYPE = new EnumDescription("String", "String");
-    private final static EnumDescription NUMBER_TYPE = new EnumDescription("Number", "Number");
-    private final static EnumDescription DATE_TYPE = new EnumDescription("Date", "Date");
-    private final static EnumDescription BOOL_TYPE = new EnumDescription("Boolean", "Boolean");
-    private final static EnumDescription ANY_TYPE = new EnumDescription("Any", "Any");
-    public final static List<EnumDescription> fsParamTypes = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE);
-
     private String fsTests;
-    private String fsParameterJson;
     private String fsTimeout;
     private String fsUftRunMode;
     private String controllerPollingInterval;
@@ -125,9 +117,8 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath, String fsParameters) {
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath) {
         this.setFsTests(fsTests);
-        this.fsParameterJson = fsParameters;
 
         this.fsTimeout = fsTimeout;
         this.fsReportPath = fsReportPath;
@@ -164,6 +155,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      *
      * @param fsTests the fs tests
      */
+    @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests) {
         this.setFsTests(fsTests);
 
@@ -176,12 +168,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.displayController = "false";
         this.analysisTemplate = "";
         this.fsReportPath = ""; // no custom report path by default
-    }
-
-    @DataBoundConstructor
-    public RunFromFileSystemModel(String fsTests, String fsParameterJson) {
-        this(fsTests);
-        this.fsParameterJson = fsParameterJson;
     }
 
     /**
@@ -781,15 +767,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         return JobConfigurationProxy
                 .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
-
-    public String getFsParameterJson() {
-        return fsParameterJson;
-    }
-
-    public void setFsParameterJson(String fsParameterJson) {
-        this.fsParameterJson = fsParameterJson;
-    }
-
 
     @Extension
     public static class DescriptorImpl extends Descriptor<RunFromFileSystemModel> {
