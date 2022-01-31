@@ -876,7 +876,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
             listener.error("Failed running HpToolsLauncher " + ioe);
-            return;
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             PrintStream out = listener.getLogger();
@@ -886,7 +885,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
-                return;
             } catch (InterruptedException e1) {
                 listener.error("Failed running HpToolsAborter " + e1);
             }
