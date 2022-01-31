@@ -863,7 +863,7 @@ namespace HpToolsLauncher
         /// <param name="testParameters"></param>
         /// <param name="runDesc"></param>
         /// <param name="scheduler"></param>
-        public void SetInlineTestParameters(IList tList, string testParameters, TestSuiteRunResults runDesc, ITSScheduler scheduler, String initialFullTsPath)
+        public void SetInlineTestParameters(IList tList, string testParameters, TestSuiteRunResults runDesc, string initialFullTsPath)
         {
             foreach (ITSTest3 test in tList)
             {
@@ -883,27 +883,20 @@ namespace HpToolsLauncher
             }
         }
 
-        public void SetPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc, ITSScheduler scheduler, string initialFullTsPath)
+        public void SetPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc)
         {
             int i = 1;
 
             foreach (ITSTest3 test in filteredTestList)
             {
-                try
+                switch (test.Type)
                 {
-                    switch (test.Type)
-                    {
-                        case "SERVICE-TEST":
-                            SetPropsApiTestParameters(test, i);
-                            break;
-                        case "QUICKTEST_TEST":
-                            SetPropsGuiTestParameters(test, i);
-                            break;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerErrorParameterFormat, initialFullTsPath));
+                    case "SERVICE-TEST":
+                        SetPropsApiTestParameters(test, i);
+                        break;
+                    case "QUICKTEST_TEST":
+                        SetPropsGuiTestParameters(test, i);
+                        break;
                 }
 
                 ++i;
@@ -1267,8 +1260,8 @@ namespace HpToolsLauncher
             //set test parameters
             if (filteredTestList.Count > 0)
             {
-                SetInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, scheduler, initialFullTsPath);
-                SetPropsTestParameters(filteredTestList, runDesc, scheduler, initialFullTsPath);
+                SetInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, initialFullTsPath);
+                SetPropsTestParameters(filteredTestList, runDesc);
 
                 int index = 1;
                 foreach (ITSTest3 test in filteredTestList)
