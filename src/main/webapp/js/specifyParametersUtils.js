@@ -59,10 +59,9 @@ function startListenersForParameterInputs() {
 }
 
 function startListenerForParameterBlock() {
-    let specifyParametersCheckbox = document.getElementsByName("areParametersEnabled");
+    let specifyParametersCheckbox = document.getElementsByName("areParametersEnabled")[0];
 
     if (specifyParametersCheckbox) {
-        specifyParametersCheckbox = specifyParametersCheckbox[0];
         specifyParametersCheckbox.addEventListener("click", cleanParameterInput);
     }
 }
@@ -72,7 +71,7 @@ function generateAndPutJSONResult() {
     let inputJSON = [];
     const parameterResultStr = document.getElementsByName("parameterJson")[0];
 
-    if (parameterResultStr.length === 0) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+    if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
     inputs.forEach(elem => {
         let curr = {};
@@ -104,6 +103,9 @@ function cleanParameterInput() {
         loadParameterInputs();
     } else {
         const parameterResultStr = document.getElementsByName("parameterJson")[0];
+
+        if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+
         parameterResultStr.value = JSON.stringify([]);
     }
 }
