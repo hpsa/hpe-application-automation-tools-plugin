@@ -26,50 +26,85 @@
  * ___________________________________________________________________
  */
 
+// has to be declared like this, because it has to be globally accessible and multiple steps can be added in a single job, which would throw duplicate exception
 // holder, which contain all the valid parameter input types
-let selectableTypeList = '';
+if (typeof selectableTypeList === "undefined") {
+    selectableTypeList = '';
+}
 
-function startListenersForParameterInputs() {
-    const inputs = document.getElementsByName("testParameter");
-    if (inputs) {
-        inputs.forEach(elem => elem.addEventListener("change", generateAndPutJSONResult));
-    } else {
-        console.warn("Test parameter input fields are missing.");
+if (typeof BUILDER_SELECTOR === "undefined") {
+    BUILDER_SELECTOR = "div[name='builder'][descriptorid*='com.microfocus.application.automation.tools.run.RunFrom']";
+}
+
+function setupParameterSpecification() {
+    let main = null;
+    if (document.location.href.indexOf("pipeline-syntax") > 0) {
+        main = document;
+    } else if (document.currentScript) {
+        main = document.currentScript.parentElement.closest(BUILDER_SELECTOR);
     }
 
-    const delBtns = document.getElementsByName("delParameter");
-    if (delBtns) {
-        delBtns.forEach(elem => elem.addEventListener("click", deleteParameter));
-    } else {
-        console.warn("Delete buttons for input fields are missing.");
+    setTimeout(() => {
+        startListeningForParameters(main);
+    }, 200);
+}
+
+function startListeningForParameters(mainContainer) {
+    let main = mainContainer;
+    if (mainContainer == null) {
+        let divs = document.querySelectorAll(BUILDER_SELECTOR);
+        main = divs[divs.length - 1];
     }
 
-    let testInput = document.getElementsByName("runfromfs.fsTests")[0] || document.getElementsByName("runfromalm.almTestSets")[0];
+    loadParameterInputs(main);
+
+    const addNewParameterBtn = main.querySelector("button[name='addNewParameterBtn']");
+    if (addNewParameterBtn) {
+        addNewParameterBtn.addEventListener('click', () => {
+            addNewParameter(main);
+        });
+    } else {
+        console.warn("Add parameter button is missing.");
+    }
+
+    const updateMaxNumberForSpinner = () => {
+        const rowInputs = main.querySelectorAll(".testParameter > div > .numOfTestSpinner");
+        rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
+    }
+    const queryTestInput = () => main.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests']") || main.querySelector("textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+
+    let testInput = queryTestInput();
     if (testInput) {
-        const updateMaxNumberForSpinner = () => {
-            const rowInputs = document.querySelectorAll(".testParameter + div > input[type='number']");
-            rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
-        }
-
         updateMaxNumberForSpinner();
         testInput.addEventListener("change", updateMaxNumberForSpinner);
     } else {
         console.warn("Test input text area is missing.");
     }
-}
 
-function startListenerForParameterBlock() {
-    let specifyParametersCheckbox = document.getElementsByName("areParametersEnabled")[0];
-
-    if (specifyParametersCheckbox) {
-        specifyParametersCheckbox.addEventListener("click", cleanParameterInput);
+    const areParametersEnabledCheckbox = main.querySelector("input[name='areParametersEnabled']");
+    if (areParametersEnabledCheckbox) {
+        areParametersEnabledCheckbox.addEventListener("click", () => cleanParameterInput(main));
     }
+
+    const expandTestsFieldButton = main.querySelector(".expanding-input__button input[type='button']");
+    expandTestsFieldButton && expandTestsFieldButton.addEventListener("click", () => {
+        testInput = queryTestInput();
+
+        if (testInput) {
+            testInput.addEventListener("change", updateMaxNumberForSpinner);
+        } else {
+            console.warn("Test input text area is missing.");
+        }
+    })
 }
 
-function generateAndPutJSONResult() {
-    const inputs = document.getElementsByName("testParameter");
+function generateAndPutJSONResult(container) {
+    const parametersContainer = container.querySelector("ul[name='testParameters']");
+
+    const inputs = parametersContainer.querySelectorAll("li[name='testParameter']");
     let inputJSON = [];
-    const parameterResultStr = document.getElementsByName("parameterJson")[0];
+
+    const parameterResultStr = parametersContainer.parentElement.querySelector("input[name='parameterJson']");
 
     if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
@@ -98,11 +133,11 @@ function generateAndPutJSONResult() {
     parameterResultStr.value = JSON.stringify(inputJSON);
 }
 
-function cleanParameterInput() {
+function cleanParameterInput(container) {
     if (this.checked) {
-        loadParameterInputs();
+        loadParameterInputs(container);
     } else {
-        const parameterResultStr = document.getElementsByName("parameterJson")[0];
+        const parameterResultStr = container.querySelector("input[name='parameterJson']");
 
         if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
@@ -110,19 +145,27 @@ function cleanParameterInput() {
     }
 }
 
-function addNewParameter() {
-    const parametersContainer = document.querySelector("ul[name='testParameters']");
-    const parameters = document.getElementsByName("testParameter") || [];
+function addNewParameter(container) {
+    const parameterContainer = container.querySelector("ul[name='testParameters']");
+    const parameters = parameterContainer.querySelectorAll("li[name='testParameter']") || [];
     const nextIdx = parameters.length !== 0 ? parseInt(Array.from(parameters).reduce((prev, curr) => {
         if (parseInt(prev.dataset.index) > parseInt(curr.dataset.index)) return prev;
 
         return curr;
     }).dataset.index) + 1 : 1;
 
+    let maxNumOfTests = 1;
+    const testInput = container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests']") || container.querySelector("textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    if (testInput) {
+        maxNumOfTests = testInput.value.split("\n").filter(row => row !== "").length.toString();
+    } else {
+        console.warn("Test input field is missing.");
+    }
+
     const elem = `
         <li class="testParameter" name="testParameter" data-index="${nextIdx}">
             <div>
-                <input class="setting-input" name="parameterInput" id="parameterInputRow${nextIdx}" min="1" type="number" required="required" />
+                <input class="setting-input numOfTestSpinner" name="parameterInput" id="parameterInputRow${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
                 <input class="setting-input" name="parameterInput" id="parameterInputName${nextIdx}" type="text" required="required" />
@@ -137,50 +180,58 @@ function addNewParameter() {
             </div>  
             <span class="yui-button danger" id="delParameterInput${nextIdx}" name="delParameter">
                 <span class="first-child">
-                    <button type="button" tabindex="0" >&#9747;</button>
+                    <button type="button" tabindex="0">&#9747;</button>
                 </span>
             </span>
         </li>
         `;
 
-    parametersContainer.insertAdjacentHTML("beforeend", elem);
+    parameterContainer.insertAdjacentHTML("beforeend", elem);
 
-    const typeField = document.querySelector(`#parameterInputType${nextIdx}`);
-    const valueField = document.querySelector(`#parameterInputValue${nextIdx}`);
+    const rowNumber = parameterContainer.querySelector(`#parameterInputRow${nextIdx}`);
+    rowNumber.addEventListener("change", () => generateAndPutJSONResult(container));
+    const nameField = parameterContainer.querySelector(`#parameterInputName${nextIdx}`);
+    nameField.addEventListener("change", () => generateAndPutJSONResult(container));
+    const typeField = parameterContainer.querySelector(`#parameterInputType${nextIdx}`);
+    typeField.addEventListener("change", () => generateAndPutJSONResult(container));
+    const valueField = parameterContainer.querySelector(`#parameterInputValue${nextIdx}`);
+    valueField.addEventListener("change", () => generateAndPutJSONResult(container));
+    const delButton = parameterContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
+    delButton.addEventListener("click", () => deleteParameter(delButton, container));
 
     typeField.addEventListener("change", () => {
         valueField.value = "";
         valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
     });
-
-    startListenersForParameterInputs();
 }
 
-function deleteParameter(e) {
-    this.parentNode.remove();
-    startListenersForParameterInputs();
-    generateAndPutJSONResult();
+function deleteParameter(elem, container) {
+    elem.parentNode.parentNode.parentNode.remove();
+    generateAndPutJSONResult(container);
 }
 
-const mapForTypeAssociations = {
-    String: 'text',
-    Number: 'number',
-    Boolean: 'checkbox',
-    Password: 'password',
-    Date: 'date',
-    Any: 'text'
-};
+// has to be declared like this, because it has to be globally accessible and multiple steps can be added in a single job, which would throw duplicate exception
+if (typeof mapForTypeAssociations === "undefined") {
+    mapForTypeAssociations = {
+        String: 'text',
+        Number: 'number',
+        Boolean: 'checkbox',
+        Password: 'password',
+        Date: 'date',
+        Any: 'text'
+    };
+}
 
-function loadParameterInputs() {
-    const parameterResultStr = document.getElementsByName("parameterJson")[0];
+function loadParameterInputs(container) {
+    const parameterResultStr = container.querySelector("input[name='parameterJson']");
 
     if (parameterResultStr.value === "") return;
 
     const json = JSON.parse(parameterResultStr.value);
 
-    for (let i = 0; i < json.length; ++i) addNewParameter();
+    for (let i = 0; i < json.length; ++i) addNewParameter(container);
 
-    const parameters = document.getElementsByName("testParameter");
+    const parameters = container.querySelectorAll("li[name='testParameter']");
 
     for (let i = 0; i < json.length; ++i) {
         const currElem = parameters[i];
@@ -204,6 +255,10 @@ function loadParameterInputs() {
     }
 }
 
-function addToSelectableTypeList(type) {
+function addToSelectableTypeList(type, typeListLength) {
+    // if there are more build steps than one, do not populate the dropdown
+    // if the dropdown is already populated, do not populate it again
+    if (selectableTypeList.split("</option>").length - 1 >= typeListLength) return;
+
     selectableTypeList += `<option value="${type}">${type}</option>`;
 }

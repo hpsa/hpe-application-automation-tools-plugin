@@ -75,8 +75,6 @@
         }
     </style>
 
-    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
-
     <ul class="testParameters" name="testParameters">
         <li class="testParameter--heading pane-header">
             <p># of test</p>
@@ -88,22 +86,22 @@
     </ul>
     <span class="yui-button yui-push-button repeatable-add">
         <span class="first-child">
-            <button type="button" tabindex="0" onclick="addNewParameter()">+ PARAMETER</button>
+            <button type="button" tabindex="0" name="addNewParameterBtn">+ PARAMETER</button>
         </span>
     </span>
     <f:entry field="parameterJson">
         <f:readOnlyTextbox name="parameterJson" value="${instance.parameterJson}" />
     </f:entry>
 
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
+
     <j:forEach var="paramType" items="${descriptor.paramTypes}">
         <script type="text/javascript">
-            addToSelectableTypeList('${paramType.value}');
+            addToSelectableTypeList('${paramType.value}', ${size(descriptor.paramTypes)});
         </script>
     </j:forEach>
     <script type="text/javascript">
-        startListenerForParameterBlock();
-        loadParameterInputs();
-        startListenersForParameterInputs();
+        setupParameterSpecification();
     </script>
 
 </j:jelly>
