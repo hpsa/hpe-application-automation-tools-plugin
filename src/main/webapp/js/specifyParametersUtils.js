@@ -58,9 +58,9 @@ function startListeningForParameters(mainContainer) {
 
     loadParameterInputs(main);
 
-    const addNewParameterBtn = main.querySelector("button[name='addNewParameterBtn']");
-    if (addNewParameterBtn) {
-        addNewParameterBtn.addEventListener('click', () => {
+    const btnAddNewParam = main.querySelector("button[name='addNewParameterBtn']");
+    if (btnAddNewParam) {
+        btnAddNewParam.addEventListener('click', () => {
             addNewParameter(main);
         });
     } else {
@@ -81,9 +81,9 @@ function startListeningForParameters(mainContainer) {
         console.warn("Test input text area is missing.");
     }
 
-    const areParametersEnabledCheckbox = main.querySelector("input[name='areParametersEnabled']");
-    if (areParametersEnabledCheckbox) {
-        areParametersEnabledCheckbox.addEventListener("click", () => cleanParameterInput(main));
+    const chkAreParametersEnabled = main.querySelector("input[name='areParametersEnabled']");
+    if (chkAreParametersEnabled) {
+        chkAreParametersEnabled.addEventListener("click", () => cleanParameterInput(main));
     }
 
     const expandTestsFieldButton = main.querySelector(".expanding-input__button input[type='button']");
@@ -99,14 +99,14 @@ function startListeningForParameters(mainContainer) {
 }
 
 function generateAndPutJSONResult(container) {
-    const parametersContainer = container.querySelector("ul[name='testParameters']");
+    const paramsContainer = container.querySelector("ul[name='testParameters']");
 
-    const inputs = parametersContainer.querySelectorAll("li[name='testParameter']");
+    const inputs = paramsContainer.querySelectorAll("li[name='testParameter']");
     let inputJSON = [];
 
-    const parameterResultStr = parametersContainer.parentElement.querySelector("input[name='parameterJson']");
+    const strParamRes = paramsContainer.parentElement.querySelector("input[name='parameterJson']");
 
-    if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+    if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
     inputs.forEach(elem => {
         let curr = {};
@@ -130,25 +130,25 @@ function generateAndPutJSONResult(container) {
         }
     });
 
-    parameterResultStr.value = JSON.stringify(inputJSON);
+    strParamRes.value = JSON.stringify(inputJSON);
 }
 
 function cleanParameterInput(container) {
     if (this.checked) {
         loadParameterInputs(container);
     } else {
-        const parameterResultStr = container.querySelector("input[name='parameterJson']");
+        const strParamRes = container.querySelector("input[name='parameterJson']");
 
-        if (!parameterResultStr) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+        if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
-        parameterResultStr.value = JSON.stringify([]);
+        strParamRes.value = JSON.stringify([]);
     }
 }
 
 function addNewParameter(container) {
-    const parameterContainer = container.querySelector("ul[name='testParameters']");
-    const parameters = parameterContainer.querySelectorAll("li[name='testParameter']") || [];
-    const nextIdx = parameters.length !== 0 ? parseInt(Array.from(parameters).reduce((prev, curr) => {
+    const paramContainer = container.querySelector("ul[name='testParameters']");
+    const params = paramContainer.querySelectorAll("li[name='testParameter']") || [];
+    const nextIdx = params.length !== 0 ? parseInt(Array.from(params).reduce((prev, curr) => {
         if (parseInt(prev.dataset.index) > parseInt(curr.dataset.index)) return prev;
 
         return curr;
@@ -186,17 +186,17 @@ function addNewParameter(container) {
         </li>
         `;
 
-    parameterContainer.insertAdjacentHTML("beforeend", elem);
+    paramContainer.insertAdjacentHTML("beforeend", elem);
 
-    const rowNumber = parameterContainer.querySelector(`#parameterInputRow${nextIdx}`);
+    const rowNumber = paramContainer.querySelector(`#parameterInputRow${nextIdx}`);
     rowNumber.addEventListener("change", () => generateAndPutJSONResult(container));
-    const nameField = parameterContainer.querySelector(`#parameterInputName${nextIdx}`);
+    const nameField = paramContainer.querySelector(`#parameterInputName${nextIdx}`);
     nameField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const typeField = parameterContainer.querySelector(`#parameterInputType${nextIdx}`);
+    const typeField = paramContainer.querySelector(`#parameterInputType${nextIdx}`);
     typeField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const valueField = parameterContainer.querySelector(`#parameterInputValue${nextIdx}`);
+    const valueField = paramContainer.querySelector(`#parameterInputValue${nextIdx}`);
     valueField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const delButton = parameterContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
+    const delButton = paramContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
     delButton.addEventListener("click", () => deleteParameter(delButton, container));
 
     typeField.addEventListener("change", () => {
