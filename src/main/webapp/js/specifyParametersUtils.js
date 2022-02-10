@@ -56,12 +56,12 @@ function startListeningForParameters(mainContainer) {
         main = divs[divs.length - 1];
     }
 
-    loadParameterInputs(main);
+    loadParamInputs(main);
 
     const btnAddNewParam = main.querySelector("button[name='addNewParameterBtn']");
     if (btnAddNewParam) {
         btnAddNewParam.addEventListener('click', () => {
-            addNewParameter(main);
+            addNewParam(main);
         });
     } else {
         console.warn("Add parameter button is missing.");
@@ -81,13 +81,13 @@ function startListeningForParameters(mainContainer) {
         console.warn("Test input text area is missing.");
     }
 
-    const chkAreParametersEnabled = main.querySelector("input[name='areParametersEnabled']");
-    if (chkAreParametersEnabled) {
-        chkAreParametersEnabled.addEventListener("click", () => cleanParameterInput(main));
+    const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
+    if (chkAreParamsEnabled) {
+        chkAreParamsEnabled.addEventListener("click", () => cleanParamInput(main));
     }
 
-    const expandTestsFieldButton = main.querySelector(".expanding-input__button input[type='button']");
-    expandTestsFieldButton && expandTestsFieldButton.addEventListener("click", () => {
+    const expandTestsFieldBtn = main.querySelector(".expanding-input__button input[type='button']");
+    expandTestsFieldBtn && expandTestsFieldBtn.addEventListener("click", () => {
         testInput = queryTestInput();
 
         if (testInput) {
@@ -133,9 +133,9 @@ function generateAndPutJSONResult(container) {
     strParamRes.value = JSON.stringify(inputJSON);
 }
 
-function cleanParameterInput(container) {
+function cleanParamInput(container) {
     if (this.checked) {
-        loadParameterInputs(container);
+        loadParamInputs(container);
     } else {
         const strParamRes = container.querySelector("input[name='parameterJson']");
 
@@ -145,7 +145,7 @@ function cleanParameterInput(container) {
     }
 }
 
-function addNewParameter(container) {
+function addNewParam(container) {
     const paramContainer = container.querySelector("ul[name='testParameters']");
     const params = paramContainer.querySelectorAll("li[name='testParameter']") || [];
     const nextIdx = params.length !== 0 ? parseInt(Array.from(params).reduce((prev, curr) => {
@@ -188,24 +188,21 @@ function addNewParameter(container) {
 
     paramContainer.insertAdjacentHTML("beforeend", elem);
 
-    const rowNumber = paramContainer.querySelector(`#parameterInputRow${nextIdx}`);
-    rowNumber.addEventListener("change", () => generateAndPutJSONResult(container));
-    const nameField = paramContainer.querySelector(`#parameterInputName${nextIdx}`);
-    nameField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const typeField = paramContainer.querySelector(`#parameterInputType${nextIdx}`);
-    typeField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const valueField = paramContainer.querySelector(`#parameterInputValue${nextIdx}`);
-    valueField.addEventListener("change", () => generateAndPutJSONResult(container));
-    const delButton = paramContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
-    delButton.addEventListener("click", () => deleteParameter(delButton, container));
+    Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").includes(nextIdx.toString()))
+        .forEach(input => input.addEventListener("change", () => generateAndPutJSONResult(container)));
 
+    const delButton = paramContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
+    delButton.addEventListener("click", () => deleteParam(delButton, container));
+
+    const typeField = paramContainer.querySelector(`#parameterInputType${nextIdx}`);
+    const valueField = paramContainer.querySelector(`#parameterInputValue${nextIdx}`);
     typeField.addEventListener("change", () => {
         valueField.value = "";
         valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
     });
 }
 
-function deleteParameter(elem, container) {
+function deleteParam(elem, container) {
     elem.parentNode.parentNode.parentNode.remove();
     generateAndPutJSONResult(container);
 }
@@ -222,14 +219,14 @@ if (typeof mapForTypeAssociations === "undefined") {
     };
 }
 
-function loadParameterInputs(container) {
+function loadParamInputs(container) {
     const parameterResultStr = container.querySelector("input[name='parameterJson']");
 
     if (parameterResultStr.value === "") return;
 
     const json = JSON.parse(parameterResultStr.value);
 
-    for (let i = 0; i < json.length; ++i) addNewParameter(container);
+    for (let i = 0; i < json.length; ++i) addNewParam(container);
 
     const parameters = container.querySelectorAll("li[name='testParameter']");
 

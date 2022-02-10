@@ -84,6 +84,7 @@
             <span> </span>
         </li>
     </ul>
+    <f:entry field="__emptyForHelp"/>
     <span class="yui-button yui-push-button repeatable-add">
         <span class="first-child">
             <button type="button" tabindex="0" name="addNewParameterBtn">+ PARAMETER</button>
