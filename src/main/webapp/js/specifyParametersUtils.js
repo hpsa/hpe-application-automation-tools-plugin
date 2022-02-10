@@ -71,7 +71,7 @@ function startListeningForParameters(mainContainer) {
         const rowInputs = main.querySelectorAll(".testParameter > div > .numOfTestSpinner");
         rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
     }
-    const queryTestInput = () => main.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests']") || main.querySelector("textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    const queryTestInput = () => main.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
 
     let testInput = queryTestInput();
     if (testInput) {
@@ -110,13 +110,13 @@ function generateAndPutJSONResult(container) {
 
     inputs.forEach(elem => {
         let curr = {};
-        const testIdx = curr["index"] = elem.querySelector(`#parameterInputRow${elem.dataset.index}`).value;
-        const name = curr["name"] = elem.querySelector(`#parameterInputName${elem.dataset.index}`).value;
+        const testIdx = curr["index"] = elem.querySelector(`#parameterInputRow_${elem.dataset.index}`).value;
+        const name = curr["name"] = elem.querySelector(`#parameterInputName_${elem.dataset.index}`).value;
 
         if (name !== "") {
-            curr["type"] = elem.querySelector(`#parameterInputType${elem.dataset.index}`).value;
+            curr["type"] = elem.querySelector(`#parameterInputType_${elem.dataset.index}`).value;
 
-            const val = elem.querySelector(`#parameterInputValue${elem.dataset.index}`);
+            const val = elem.querySelector(`#parameterInputValue_${elem.dataset.index}`);
             if (curr["type"] === "Boolean") {
                 curr["value"] = val.checked;
             } else if (curr["type"] === "Date") {
@@ -155,7 +155,7 @@ function addNewParam(container) {
     }).dataset.index) + 1 : 1;
 
     let maxNumOfTests = 1;
-    const testInput = container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests']") || container.querySelector("textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    const testInput = container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
     if (testInput) {
         maxNumOfTests = testInput.value.split("\n").filter(row => row !== "").length.toString();
     } else {
@@ -165,20 +165,20 @@ function addNewParam(container) {
     const elem = `
         <li class="testParameter" name="testParameter" data-index="${nextIdx}">
             <div>
-                <input class="setting-input numOfTestSpinner" name="parameterInput" id="parameterInputRow${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
+                <input class="setting-input numOfTestSpinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
-                <input class="setting-input" name="parameterInput" id="parameterInputName${nextIdx}" type="text" required="required" />
+                <input class="setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
             </div>
             <div>
-                <input class="setting-input" name="parameterInput" id="parameterInputValue${nextIdx}" type="text"/>
+                <input class="setting-input" name="parameterInput" id="parameterInputValue_${nextIdx}" type="text"/>
             </div>
             <div>
-                <select name="parameterInput" id="parameterInputType${nextIdx}">
+                <select name="parameterInput" id="parameterInputType_${nextIdx}">
                     ${selectableTypeList}
                 </select>
             </div>  
-            <span class="yui-button danger" id="delParameterInput${nextIdx}" name="delParameter">
+            <span class="yui-button danger" id="delParameterInput_${nextIdx}" name="delParameter">
                 <span class="first-child">
                     <button type="button" tabindex="0">&#9747;</button>
                 </span>
@@ -188,14 +188,14 @@ function addNewParam(container) {
 
     paramContainer.insertAdjacentHTML("beforeend", elem);
 
-    Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").includes(nextIdx.toString()))
+    Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").endsWith("_" + nextIdx.toString()))
         .forEach(input => input.addEventListener("change", () => generateAndPutJSONResult(container)));
 
-    const delButton = paramContainer.querySelector(`#delParameterInput${nextIdx} > span > button`);
+    const delButton = paramContainer.querySelector(`#delParameterInput_${nextIdx} > span > button`);
     delButton.addEventListener("click", () => deleteParam(delButton, container));
 
-    const typeField = paramContainer.querySelector(`#parameterInputType${nextIdx}`);
-    const valueField = paramContainer.querySelector(`#parameterInputValue${nextIdx}`);
+    const typeField = paramContainer.querySelector(`#parameterInputType_${nextIdx}`);
+    const valueField = paramContainer.querySelector(`#parameterInputValue_${nextIdx}`);
     typeField.addEventListener("change", () => {
         valueField.value = "";
         valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
@@ -234,10 +234,10 @@ function loadParamInputs(container) {
         const currElem = parameters[i];
         const currElemVal = json[i];
 
-        currElem.querySelector(`#parameterInputRow${currElem.dataset.index}`).value = currElemVal["index"] || 1;
-        currElem.querySelector(`#parameterInputName${currElem.dataset.index}`).value = currElemVal["name"] || "";
-        const valueField = currElem.querySelector(`#parameterInputValue${currElem.dataset.index}`)
-        const typeField = currElem.querySelector(`#parameterInputType${currElem.dataset.index}`);
+        currElem.querySelector(`#parameterInputRow_${currElem.dataset.index}`).value = currElemVal["index"] || 1;
+        currElem.querySelector(`#parameterInputName_${currElem.dataset.index}`).value = currElemVal["name"] || "";
+        const valueField = currElem.querySelector(`#parameterInputValue_${currElem.dataset.index}`)
+        const typeField = currElem.querySelector(`#parameterInputType_${currElem.dataset.index}`);
         typeField.value = currElemVal["type"] || "String";
 
         valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
