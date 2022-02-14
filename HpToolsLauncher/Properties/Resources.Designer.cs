@@ -61,6 +61,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate parameter name entry found, please check the parameters&apos; specification, falling back to default parameters for {0}. test or testset..
+        /// </summary>
+        internal static string AlmDuplicateParameter {
+            get {
+                return ResourceManager.GetString("AlmDuplicateParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find Test {0}.
         /// </summary>
         internal static string AlmRunnerCantFindTest {

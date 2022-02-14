@@ -1110,6 +1110,11 @@ namespace HpToolsLauncher
             return new List<TestData>();
         }
 
+
+        /// <summary>
+        /// Returns all the valid parameters from the props file (CI args).
+        /// </summary>
+        /// <returns></returns>
         private List<TestParameter> GetValidParams()
         {
             List<TestParameter> parameters = new List<TestParameter>();

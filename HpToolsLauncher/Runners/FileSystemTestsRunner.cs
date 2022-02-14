@@ -458,6 +458,12 @@ namespace HpToolsLauncher
             return rerunList;
         }
 
+        /// <summary>
+        /// Sets the test's inline parameters.
+        /// </summary>
+        /// <param name="testPath"></param>
+        /// <param name="test"></param>
+        /// <exception cref="ArgumentException"></exception>
         private void SetInlineParams(string testPath, ref TestInfo test)
         {
             // the inline test path does not contain any parameter specification
@@ -495,6 +501,11 @@ namespace HpToolsLauncher
             }
         }
 
+        /// <summary>
+        /// Sets the test's parameters from the props (CI args).
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <param name="test"></param>
         private void SetPropsParams(int idx, ref TestInfo test)
         {
             // all the parameters that belong to this test
@@ -502,8 +513,7 @@ namespace HpToolsLauncher
 
             foreach (TestParameter param in relevant)
             {
-                TestParameterInfo placeholderParam;
-                placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
+                TestParameterInfo placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
                 test.ParameterList.Add(placeholderParam);
             }
 

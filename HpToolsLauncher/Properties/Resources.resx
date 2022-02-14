@@ -511,4 +511,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="FsDuplicateParamNames" xml:space="preserve">
     <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
   </data>
+  <data name="AlmDuplicateParameter" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification, falling back to default parameters for {0}. test or testset.</value>
+  </data>
 </root>

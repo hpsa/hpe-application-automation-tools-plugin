@@ -54,7 +54,9 @@ namespace HpToolsLauncher
         private const string XML_PARAM_NAME_VALUE_TYPE = "<Parameter><Name><![CDATA[{0}]]></Name><Value><![CDATA[{1}]]></Value><Type><![CDATA[{2}]]></Type></Parameter>";
         private const string XML_PARAMS_END_TAG = "</Parameters>";
         private readonly char[] COMMA = new char[] { ',' };
-        
+        private const string API_TEST = "SERVICE-TEST";
+        private const string GUI_TEST = "QUICKTEST_TEST";
+
         public ITDConnection13 TdConnection
         {
             get
@@ -857,96 +859,61 @@ namespace HpToolsLauncher
 
         //------------------------------- Identify and set test parameters --------------------------
         /// <summary>
-        /// Set the parameters for a list of tests
+        /// Collect the inline parameters for the tests.
         /// </summary>
         /// <param name="tList"></param>
         /// <param name="testParameters"></param>
         /// <param name="runDesc"></param>
-        /// <param name="scheduler"></param>
-        public void SetInlineTestParameters(IList tList, string testParameters, TestSuiteRunResults runDesc, string initialFullTsPath)
+        /// <param name="initialFullTsPath"></param>
+        /// <param name="parametersPlaceholder"></param>
+        public void CollectInlineTestParameters(IList tList, string testParameters, TestSuiteRunResults runDesc, string initialFullTsPath, List<TestParameter> parametersPlaceholder)
         {
+            int idx = 1;
+
             foreach (ITSTest3 test in tList)
             {
                 try
 				{
-                    if (test.Type.Equals("SERVICE-TEST") && !string.IsNullOrEmpty(testParameters)) //API test
+                    if (test.Type.Equals(API_TEST) && !string.IsNullOrEmpty(testParameters)) //API test
                     {
-                        SetInlineApiTestParameters(test, testParameters);
-                    } else if (test.Type.Equals("QUICKTEST_TEST") && !string.IsNullOrEmpty(testParameters)) //GUI test
+                        CollectInlineApiTestParameters(test, testParameters, parametersPlaceholder, idx);
+                    } else if (test.Type.Equals(GUI_TEST) && !string.IsNullOrEmpty(testParameters)) //GUI test
                     {
-                        SetInlineGuiTestParameters(test, testParameters);
+                        CollectInlineGuiTestParameters(test, testParameters, parametersPlaceholder, idx);
                     }
                 } catch (ArgumentException)
 				{
                     ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerErrorParameterFormat, initialFullTsPath));
                 }
+
+                ++idx;
             }
         }
 
-        public void SetPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc)
+        /// <summary>
+        /// Collect the parameters for the tests from the props (CI args).
+        /// </summary>
+        /// <param name="filteredTestList"></param>
+        /// <param name="runDesc"></param>
+        /// <param name="parametersPlaceholder"></param>
+        public void CollectPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc, List<TestParameter> parametersPlaceholder)
         {
             int i = 1;
-
             foreach (ITSTest3 test in filteredTestList)
             {
-                switch (test.Type)
-                {
-                    case "SERVICE-TEST":
-                        SetPropsApiTestParameters(test, i);
-                        break;
-                    case "QUICKTEST_TEST":
-                        SetPropsGuiTestParameters(test, i);
-                        break;
-                }
-
+                List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(i));
+                parametersPlaceholder.AddRange(relevant);
                 ++i;
             }
         }
 
-        private void SetPropsApiTestParameters(ITSTest3 test, int idx)
-        {
-            // all the parameters that belong to this test
-            List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(idx));
-            ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
-            ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
-            List listOfParameters = parameterValueFactory.NewList(string.Empty);
-
-            int index = 0;
-            foreach (ParameterValue parameter in listOfParameters)
-            {
-                if (index >= relevant.Count) break;
-
-                parameter.ActualValue = relevant.ElementAt(index++).ParamVal;
-                parameter.Post();
-            }
-        }
-
-        private void SetPropsGuiTestParameters(ITSTest3 test, int idx)
-        {
-            // all the parameters that belong to this test
-            List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(idx));
-            var xmlParams = new StringBuilder();
-
-            if (relevant.Count > 0)
-            {
-                xmlParams.Append(XML_PARAMS_START_TAG);
-
-                foreach (var parameter in relevant)
-                {
-                    xmlParams.AppendFormat(XML_PARAM_NAME_VALUE_TYPE, SecurityElement.Escape(parameter.ParamName), SecurityElement.Escape(parameter.ParamVal), parameter.ParamType);
-                }
-
-                xmlParams.Append(XML_PARAMS_END_TAG);
-            }
-
-            
-            if (xmlParams.Length > 0)
-            {
-                test["TC_EPARAMS"] = xmlParams.ToString();
-                test.Post();
-            }
-        }
-
+        /// <summary>
+        /// Schedule test instances to run.
+        /// </summary>
+        /// <param name="runDesc"></param>
+        /// <param name="scheduler"></param>
+        /// <param name="test"></param>
+        /// <param name="idx"></param>
         private void ScheduleTest(TestSuiteRunResults runDesc, ITSScheduler scheduler, ITSTest3 test, int idx)
         {
             var runOnHost = RunHost;
@@ -976,31 +943,23 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="test"></param>
         /// <param name="paramsString"></param>
-        private void SetInlineApiTestParameters(ITSTest3 test, string paramsString)
+        /// <param name="parametersPlaceholder"></param>
+        /// <param name="idx"></param>
+        private void CollectInlineApiTestParameters(ITSTest3 test, string paramsString, IList<TestParameter> parametersPlaceholder, int idx)
         {
-            IList<string> paramNames, paramValues;
-
             if (!string.IsNullOrEmpty(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
+                IList<string> paramNames, paramValues;
+
                 if (!Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues))
 				{
                     throw new ArgumentException();
                 }
 
-                ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
-                ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
-                List listOfParameters = parameterValueFactory.NewList(string.Empty);
-                var index = 0;
-
-                if (paramValues.Count <= 0) return;
-
-                foreach (ParameterValue parameter in listOfParameters)
+                for (int i = 0; i < @params.Length; ++i)
                 {
-                    if (index >= paramValues.Count()) break;
-
-                    parameter.ActualValue = paramValues.ElementAt(index++);
-                    parameter.Post();
+                    parametersPlaceholder.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
                 }
             }
         }
@@ -1010,36 +969,26 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="test"></param>
         /// <param name="paramsString"></param>
-        private void SetInlineGuiTestParameters(ITSTest3 test, string paramsString)
+        /// <param name="parametersPlaceholder"></param>
+        /// <param name="idx"></param>
+        private void CollectInlineGuiTestParameters(ITSTest3 test, string paramsString, IList<TestParameter> parametersPlaceholder, int idx)
         {
             var xmlParams = new StringBuilder();
-            IList<string> paramNames, paramValues;
 
             if (!string.IsNullOrWhiteSpace(paramsString))
             {
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
-                bool validParameters = Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues);
+                IList<string> paramNames, paramValues;
 
-                if (validParameters && @params.Any())
+                if (!Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues))
                 {
-                    xmlParams.Append(XML_PARAMS_START_TAG);
-                    for (int i = 0; i < @params.Length; i++)
-                    {
-                        xmlParams.AppendFormat(XML_PARAM_NAME_VALUE, SecurityElement.Escape(paramNames[i]), SecurityElement.Escape(paramValues[i]));
-                    }
-                    xmlParams.Append(XML_PARAMS_END_TAG);
+                    throw new ArgumentException();
                 }
 
-                if (!validParameters)
-				{
-                    throw new ArgumentException();
-				}
-            }
-
-            if (xmlParams.Length > 0)
-            {
-                test["TC_EPARAMS"] = xmlParams.ToString();
-                test.Post();
+                for (int i = 0; i < @params.Length; ++i)
+                {
+                    parametersPlaceholder.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
+                }
             }
         }
 
@@ -1052,7 +1001,7 @@ namespace HpToolsLauncher
         {
             string testType = currentTest.Test.Type;
 
-            testType = testType.ToUpper() == "SERVICE-TEST" ? TestType.ST.ToString() : TestType.QTP.ToString();
+            testType = testType.ToUpper() == API_TEST ? TestType.ST.ToString() : TestType.QTP.ToString();
 
             return testType;
         }
@@ -1260,12 +1209,35 @@ namespace HpToolsLauncher
             //set test parameters
             if (filteredTestList.Count > 0)
             {
-                SetInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, initialFullTsPath);
-                SetPropsTestParameters(filteredTestList, runDesc);
+                // placeholder list for test parameters
+                List<TestParameter> testParameters = new List<TestParameter>();
+
+                CollectInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, initialFullTsPath, testParameters);
+                CollectPropsTestParameters(filteredTestList, runDesc, testParameters);
+
+                // we prepare individual lists for the tests
+                // while we check for duplicates
+                // and then we set the test parameters
 
                 int index = 1;
                 foreach (ITSTest3 test in filteredTestList)
                 {
+                    List<TestParameter> relevant = testParameters.FindAll(elem => elem.TestIdx.Equals(index));
+
+                    try
+                    {
+                        CheckForDuplicateParametersForTest(relevant);
+
+                        relevant.ForEach(elem => ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1}", elem.ParamName, elem.ParamVal)));
+
+                        SetParameters(test, relevant);
+                    }
+                    catch (ArgumentException)
+                    {
+                        ConsoleWriter.WriteErrLine(string.Format(Resources.AlmDuplicateParameter, index));
+                    }
+                    
+
                     ScheduleTest(runDesc, scheduler, test, index);
                     ++index;
                 }
@@ -1367,6 +1339,87 @@ namespace HpToolsLauncher
             }
 
             return runDesc;
+        }
+
+        /// <summary>
+        /// Sets the Test's parameters.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="relevant"></param>
+        private static void SetParameters(ITSTest3 test, List<TestParameter> relevant)
+        {
+            switch (test.Type)
+            {
+                case API_TEST:
+                    SetAPITestParameters(test, relevant);
+                    break;
+                case GUI_TEST:
+                    SetGUITestParameters(test, relevant);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sets the GUI Test's parameters.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="relevant"></param>
+        private static void SetGUITestParameters(ITSTest3 test, List<TestParameter> relevant)
+        {
+            var xmlParams = new StringBuilder();
+
+            if (relevant.Count > 0)
+            {
+                xmlParams.Append(XML_PARAMS_START_TAG);
+
+                foreach (var parameter in relevant)
+                {
+                    xmlParams.AppendFormat(XML_PARAM_NAME_VALUE_TYPE, SecurityElement.Escape(parameter.ParamName), SecurityElement.Escape(parameter.ParamVal), parameter.ParamType);
+                }
+
+                xmlParams.Append(XML_PARAMS_END_TAG);
+            }
+
+            if (xmlParams.Length <= 0) return;
+
+            test["TC_EPARAMS"] = xmlParams.ToString();
+            test.Post();
+        }
+
+        /// <summary>
+        /// Sets the API Test's parameters.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="relevant"></param>
+        private static void SetAPITestParameters(ITSTest3 test, List<TestParameter> relevant)
+        {
+            ISupportParameterValues paramTestValues = (ISupportParameterValues) test;
+            ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
+            List listOfParameters = parameterValueFactory.NewList(string.Empty);
+
+            foreach (ParameterValue parameter in listOfParameters)
+            {
+                // we search for the paramter by name in the relevant list, if found we set it, otherwise skip this parameter from the factory
+
+                string name = parameter.Name;
+                TestParameter tmpParam = relevant.Find(elem => elem.ParamName.Equals(name));
+
+                if (tmpParam == null) continue;
+
+                parameter.ActualValue = tmpParam.ParamVal;
+                parameter.Post();
+            }
+        }
+
+        /// <summary>
+        /// Checks if the parameter list contains duplicates, throws ArgumentException because uses a Dictionary internally.
+        /// </summary>
+        /// <param name="relevant"></param>
+        private static void CheckForDuplicateParametersForTest(List<TestParameter> relevant)
+        {
+            // throws argumentexception if duplicate found
+            Dictionary<string, object> tmpParams = new Dictionary<string, object>();
+            relevant.ForEach(param => tmpParams.Add(param.ParamName, param.ParamVal));
         }
 
         /// <summary>
