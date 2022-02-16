@@ -130,7 +130,7 @@ function generateAndPutJSONResult(container) {
         }
     });
 
-    strParamRes.value = JSON.stringify(inputJSON);
+    strParamRes.value = verifyJsonFormat(JSON.stringify(inputJSON));
 }
 
 function cleanParamInput(container) {
@@ -141,7 +141,7 @@ function cleanParamInput(container) {
 
         if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
-        strParamRes.value = JSON.stringify([]);
+        strParamRes.value = verifyJsonFormat(JSON.stringify([]));
     }
 }
 
@@ -227,9 +227,7 @@ function loadParamInputs(container) {
 
     if (params === "" || params === "[]" || params === "\"[]\"") return;
 
-    if (params.endsWith("\"")) params = params.substring(1, params.length - 1).replace(/\\"/g, '"');
-
-    const json = JSON.parse(params);
+    const json = JSON.parse(verifyJsonFormat(params));
 
     for (let i = 0; i < json.length; ++i) addNewParam(container);
 
@@ -263,4 +261,10 @@ function addToSelectableTypeList(type, typeListLength) {
     if (selectableTypeList.split("</option>").length - 1 >= typeListLength) return;
 
     selectableTypeList += `<option value="${type}">${type}</option>`;
+}
+
+function verifyJsonFormat(str) {
+    let ret = str;
+    if (str.endsWith("\"")) ret = ret.substring(1, ret.length - 1).replace(/\\"/g, '"');
+    return ret;
 }
