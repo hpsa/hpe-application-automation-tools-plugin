@@ -35,16 +35,16 @@
             display: none;
         }
 
-        .testParameters {
+        .test-params {
             list-style-type: none;
         }
 
-        .testParameter:not(:last-of-type) {
+        .test-parameter:not(:last-of-type) {
             margin-bottom: .5rem;
         }
 
-        .testParameter,
-        .testParameter--heading {
+        .test-param,
+        .test-param--heading {
             display: grid;
             grid-template-columns: 7.5% repeat(3, 1fr) .25fr 10%;
             align-items: center;
@@ -52,39 +52,39 @@
             grid-gap: .5rem;
         }
 
-        .testParameter,
-        .testParameter > div,
-        .testParameter > div > select {
+        .test-param,
+        .test-param > div,
+        .test-param > div > select {
             width: 100%;
         }
 
-        .testParameter > div > input {
+        .test-param > div > input {
             box-shadow: none !important;
         }
 
-        .testParameter > div > select {
+        .test-param > div > select {
             height: 100%;
         }
 
-        .testParameter--heading {
+        .test-param--heading {
             border-bottom: solid 1px var(--medium-grey);
             margin-bottom: .5rem;
             height: 40px;
         }
 
-        .testParameter--heading p {
+        .test-param--heading p {
             text-align: center;
             font-weight: 500;
             margin: 0;
         }
 
-        .testLabel {
+        .test-label {
             color: #999;
         }
     </style>
 
-    <ul class="testParameters" name="testParameters">
-        <li class="testParameter--heading pane-header">
+    <ul class="test-params" name="testParameters">
+        <li class="test-param--heading pane-header">
             <p># of test</p>
             <p>Test name</p>
             <p>Parameter name</p>

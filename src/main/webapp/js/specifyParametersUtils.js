@@ -67,13 +67,12 @@ function startListeningForParameters(mainContainer) {
         console.warn("Add parameter button is missing.");
     }
 
-    const updateMaxNumberForSpinner = () => {
-        const rowInputs = main.querySelectorAll(".testParameter > div > .numOfTestSpinner");
+    const updateMaxNumberForSpinner = (testInput) => {
+        const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
         rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
     }
-    const queryTestInput = () => main.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
-    const updateTest = (container, spinner) => {
-        const testLabel = spinner.parentElement.nextElementSibling.querySelector(".testLabel");
+    const updateTest = (container, spinner, testInput) => {
+        const testLabel = spinner.parentElement.nextElementSibling.querySelector(".test-label");
         if (spinner.value === '') {
             testLabel.value = "";
             return;
@@ -81,24 +80,28 @@ function startListeningForParameters(mainContainer) {
         testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1];
     }
 
-    const rowInputs = main.querySelectorAll(".testParameter > div > .numOfTestSpinner");
+    let testInput;
 
-    let testInput = queryTestInput();
-    if (testInput) {
-        testInput.addEventListener("change", () => {
-            updateMaxNumberForSpinner();
+    const prepareTestInput = () => {
+        testInput = queryTestInput(main);
+        if (testInput) {
+            testInput.addEventListener("change", () => {
+                updateMaxNumberForSpinner(testInput);
 
-            rowInputs.forEach((rowInput) => {
-                updateTest(main, rowInput);
+                rowInputs.forEach((rowInput) => {
+                    updateTest(main, rowInput, testInput);
+                });
             });
-        });
-        testInput.dispatchEvent(new Event("change"));
-    } else {
-        console.warn("Test input text area is missing.");
+            testInput.dispatchEvent(new Event("change"));
+        } else {
+            console.warn("Test input text area is missing.");
+        }
     }
 
+    const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
+    prepareTestInput();
     rowInputs.forEach(rowInput => rowInput.addEventListener("change", () => {
-        updateTest(main, rowInput);
+        updateTest(main, rowInput, testInput);
     }));
 
     const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
@@ -108,20 +111,12 @@ function startListeningForParameters(mainContainer) {
 
     const expandTestsFieldBtn = main.querySelector(".expanding-input__button input[type='button']");
     expandTestsFieldBtn && expandTestsFieldBtn.addEventListener("click", () => {
-        testInput = queryTestInput();
-
-        if (testInput) {
-            testInput.addEventListener("change", () => {
-                updateMaxNumberForSpinner();
-
-                rowInputs.forEach((rowInput) => {
-                   updateTest(main, rowInput);
-                });
-            });
-        } else {
-            console.warn("Test input text area is missing.");
-        }
+        prepareTestInput();
     });
+}
+
+function queryTestInput(container) {
+    return container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
 }
 
 function generateAndPutJSONResult(container) {
@@ -164,9 +159,7 @@ function cleanParamInput(container) {
         loadParamInputs(container);
     } else {
         const strParamRes = container.querySelector("input[name='parameterJson']");
-
         if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
-
         strParamRes.value = normalizeJsonFormat(JSON.stringify([]));
     }
 }
@@ -181,21 +174,20 @@ function addNewParam(container) {
     }).dataset.index) + 1 : 1;
 
     let maxNumOfTests = 1;
-    const testInput = container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
-    const testInputVal = testInput.value
+    let testInput = queryTestInput(container);
     if (testInput) {
-        maxNumOfTests = testInputVal.split("\n").filter(row => row !== "").length.toString();
+        maxNumOfTests = testInput.value.split("\n").filter(row => row !== "").length.toString();
     } else {
         console.warn("Test input field is missing.");
     }
 
     const elem = `
-        <li class="testParameter" name="testParameter" data-index="${nextIdx}">
+        <li class="test-param" name="testParameter" data-index="${nextIdx}">
             <div>
-                <input class="setting-input numOfTestSpinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
+                <input class="setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
-                <input class="setting-input testLabel" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
+                <input class="setting-input test-label" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
             </div>
             <div>
                 <input class="setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
@@ -221,11 +213,14 @@ function addNewParam(container) {
     const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
     const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
     spinner.addEventListener("change", () => {
+        if (!testInput) testInput = queryTestInput(container);
+
         if (spinner.value === '') {
             testLabel.value = "";
             return;
         }
-        testLabel.value = testInputVal.split("\n")[parseInt(spinner.value) - 1];
+
+        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1];
     });
     spinner.dispatchEvent(new Event("change"));
 
@@ -274,6 +269,9 @@ function loadParamInputs(container) {
     } catch (e) {
         json = JSON.parse("[]");
     }
+
+    // has to be an object to be valid JSON input, otherwise because of security policies the JSON was altered
+    if (typeof(json) === "string") json = JSON.parse("[]");
 
     for (let i = 0; i < json.length; ++i) addNewParam(container);
 
