@@ -220,11 +220,16 @@ if (typeof mapForTypeAssociations === "undefined") {
 }
 
 function loadParamInputs(container) {
-    const parameterResultStr = container.querySelector("input[name='parameterJson']");
+    const paramResultStr = container.querySelector("input[name='parameterJson']");
 
-    if (parameterResultStr.value === "") return;
+    // one some browsers the value attribute may return with extraneous quotes
+    let params = paramResultStr.value;
 
-    const json = JSON.parse(parameterResultStr.value);
+    if (params === "" || params === "[]" || params === "\"[]\"") return;
+
+    if (params.endsWith("\"")) params = params.substring(1, params.length - 1).replace(/\\"/g, '"');
+
+    const json = JSON.parse(params);
 
     for (let i = 0; i < json.length; ++i) addNewParam(container);
 
