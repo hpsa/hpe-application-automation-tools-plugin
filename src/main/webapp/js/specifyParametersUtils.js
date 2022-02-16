@@ -213,14 +213,12 @@ function addNewParam(container) {
     const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
     const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
     spinner.addEventListener("change", () => {
-        if (!testInput) testInput = queryTestInput(container);
-
         if (spinner.value === '') {
             testLabel.value = "";
             return;
         }
 
-        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1];
+        testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1];
     });
     spinner.dispatchEvent(new Event("change"));
 
