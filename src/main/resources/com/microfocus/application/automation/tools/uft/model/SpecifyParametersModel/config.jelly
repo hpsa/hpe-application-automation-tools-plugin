@@ -46,7 +46,7 @@
         .testParameter,
         .testParameter--heading {
             display: grid;
-            grid-template-columns: repeat(3, 1fr) .5fr 10%;
+            grid-template-columns: 7.5% repeat(3, 1fr) .25fr 10%;
             align-items: center;
             justify-items: center;
             grid-gap: .5rem;
@@ -56,6 +56,10 @@
         .testParameter > div,
         .testParameter > div > select {
             width: 100%;
+        }
+
+        .testParameter > div > input {
+            box-shadow: none !important;
         }
 
         .testParameter > div > select {
@@ -73,12 +77,17 @@
             font-weight: 500;
             margin: 0;
         }
+
+        .testLabel {
+            color: #999;
+        }
     </style>
 
     <ul class="testParameters" name="testParameters">
         <li class="testParameter--heading pane-header">
             <p># of test</p>
-            <p>Name</p>
+            <p>Test name</p>
+            <p>Parameter name</p>
             <p>Value</p>
             <p>Type</p>
             <span> </span>

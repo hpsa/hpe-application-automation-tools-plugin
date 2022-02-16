@@ -72,14 +72,34 @@ function startListeningForParameters(mainContainer) {
         rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
     }
     const queryTestInput = () => main.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    const updateTest = (container, spinner) => {
+        const testLabel = spinner.parentElement.nextElementSibling.querySelector(".testLabel");
+        if (spinner.value === '') {
+            testLabel.value = "";
+            return;
+        }
+        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1];
+    }
+
+    const rowInputs = main.querySelectorAll(".testParameter > div > .numOfTestSpinner");
 
     let testInput = queryTestInput();
     if (testInput) {
-        updateMaxNumberForSpinner();
-        testInput.addEventListener("change", updateMaxNumberForSpinner);
+        testInput.addEventListener("change", () => {
+            updateMaxNumberForSpinner();
+
+            rowInputs.forEach((rowInput) => {
+                updateTest(main, rowInput);
+            });
+        });
+        testInput.dispatchEvent(new Event("change"));
     } else {
         console.warn("Test input text area is missing.");
     }
+
+    rowInputs.forEach(rowInput => rowInput.addEventListener("change", () => {
+        updateTest(main, rowInput);
+    }));
 
     const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
     if (chkAreParamsEnabled) {
@@ -91,11 +111,17 @@ function startListeningForParameters(mainContainer) {
         testInput = queryTestInput();
 
         if (testInput) {
-            testInput.addEventListener("change", updateMaxNumberForSpinner);
+            testInput.addEventListener("change", () => {
+                updateMaxNumberForSpinner();
+
+                rowInputs.forEach((rowInput) => {
+                   updateTest(main, rowInput);
+                });
+            });
         } else {
             console.warn("Test input text area is missing.");
         }
-    })
+    });
 }
 
 function generateAndPutJSONResult(container) {
@@ -130,7 +156,7 @@ function generateAndPutJSONResult(container) {
         }
     });
 
-    strParamRes.value = verifyJsonFormat(JSON.stringify(inputJSON));
+    strParamRes.value = normalizeJsonFormat(JSON.stringify(inputJSON));
 }
 
 function cleanParamInput(container) {
@@ -141,7 +167,7 @@ function cleanParamInput(container) {
 
         if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
 
-        strParamRes.value = verifyJsonFormat(JSON.stringify([]));
+        strParamRes.value = normalizeJsonFormat(JSON.stringify([]));
     }
 }
 
@@ -156,8 +182,9 @@ function addNewParam(container) {
 
     let maxNumOfTests = 1;
     const testInput = container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    const testInputVal = testInput.value
     if (testInput) {
-        maxNumOfTests = testInput.value.split("\n").filter(row => row !== "").length.toString();
+        maxNumOfTests = testInputVal.split("\n").filter(row => row !== "").length.toString();
     } else {
         console.warn("Test input field is missing.");
     }
@@ -166,6 +193,9 @@ function addNewParam(container) {
         <li class="testParameter" name="testParameter" data-index="${nextIdx}">
             <div>
                 <input class="setting-input numOfTestSpinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
+            </div>
+            <div>
+                <input class="setting-input testLabel" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
             </div>
             <div>
                 <input class="setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
@@ -187,6 +217,17 @@ function addNewParam(container) {
         `;
 
     paramContainer.insertAdjacentHTML("beforeend", elem);
+
+    const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
+    const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
+    spinner.addEventListener("change", () => {
+        if (spinner.value === '') {
+            testLabel.value = "";
+            return;
+        }
+        testLabel.value = testInputVal.split("\n")[parseInt(spinner.value) - 1];
+    });
+    spinner.dispatchEvent(new Event("change"));
 
     Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").endsWith("_" + nextIdx.toString()))
         .forEach(input => input.addEventListener("change", () => generateAndPutJSONResult(container)));
@@ -227,7 +268,12 @@ function loadParamInputs(container) {
 
     if (params === "" || params === "[]" || params === "\"[]\"") return;
 
-    const json = JSON.parse(verifyJsonFormat(params));
+    let json;
+    try {
+        json = JSON.parse(normalizeJsonFormat(params));
+    } catch (e) {
+        json = JSON.parse("[]");
+    }
 
     for (let i = 0; i < json.length; ++i) addNewParam(container);
 
@@ -263,8 +309,9 @@ function addToSelectableTypeList(type, typeListLength) {
     selectableTypeList += `<option value="${type}">${type}</option>`;
 }
 
-function verifyJsonFormat(str) {
+function normalizeJsonFormat(str) {
+    // because of certain security policies, on some servers the special characters could be escaped twice, we need to parse them twice
     let ret = str;
-    if (str.endsWith("\"")) ret = ret.substring(1, ret.length - 1).replace(/\\"/g, '"');
+    if (str.endsWith("\"")) ret = JSON.parse(ret);
     return ret;
 }
