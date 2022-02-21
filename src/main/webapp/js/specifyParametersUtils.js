@@ -77,7 +77,7 @@ function startListeningForParameters(mainContainer) {
             testLabel.value = "";
             return;
         }
-        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1];
+        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1] || "";
     }
 
     let testInput;
@@ -218,7 +218,7 @@ function addNewParam(container) {
             return;
         }
 
-        testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1];
+        testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1] || "";
     });
     spinner.dispatchEvent(new Event("change"));
 
