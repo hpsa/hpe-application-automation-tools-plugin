@@ -69,7 +69,8 @@ function startListeningForParameters(mainContainer) {
 
     const updateMaxNumberForSpinner = (testInput) => {
         const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
-        rowInputs.forEach(rowInput => rowInput.setAttribute("max", testInput.value.split("\n").filter(row => row !== "").length.toString()));
+        const newMax = testInput.value.split("\n").filter(row => row !== "").length;
+        rowInputs.forEach(rowInput => rowInput.setAttribute("max", newMax === 0 ? 1 : newMax.toString()));
     }
     const updateTest = (container, spinner, testInput) => {
         const testLabel = spinner.parentElement.nextElementSibling.querySelector(".test-label");
@@ -77,7 +78,7 @@ function startListeningForParameters(mainContainer) {
             testLabel.value = "";
             return;
         }
-        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1] || "";
+        testLabel.value = testInput.value.split("\n")[parseInt(spinner.value) - 1] || "Please, specify tests first";
     }
 
     let testInput;
@@ -100,7 +101,7 @@ function startListeningForParameters(mainContainer) {
 
     const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
     prepareTestInput();
-    rowInputs.forEach(rowInput => rowInput.addEventListener("change", () => {
+    rowInputs.forEach(rowInput => rowInput.addEventListener("click", () => {
         updateTest(main, rowInput, testInput);
     }));
 
@@ -184,7 +185,7 @@ function addNewParam(container) {
     const elem = `
         <li class="test-param" name="testParameter" data-index="${nextIdx}">
             <div>
-                <input class="setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests}" type="number" required="required" />
+                <input class="setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests === 0 ? 1 : maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
                 <input class="setting-input test-label" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
@@ -212,13 +213,13 @@ function addNewParam(container) {
 
     const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
     const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
-    spinner.addEventListener("change", () => {
+    spinner.addEventListener("click", () => {
         if (spinner.value === '') {
             testLabel.value = "";
             return;
         }
 
-        testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1] || "";
+        testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1] || "Please, specify tests first";
     });
     spinner.dispatchEvent(new Event("change"));
 
