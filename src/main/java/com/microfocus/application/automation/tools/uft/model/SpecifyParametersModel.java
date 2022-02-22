@@ -64,7 +64,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE);
 
     public final static Map<String, List<EnumDescription>> mapping = new HashMap<>();
-    public final static int numOfTypes = paramTypesAPI.size() + paramTypesGUI.size();
+    public final static int NUM_OF_TYPES = paramTypesAPI.size() + paramTypesGUI.size();
 
     static {
         mapping.put("GUI", paramTypesGUI);
@@ -127,7 +127,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
         }
 
         public int getNumOfTypes() {
-            return numOfTypes;
+            return NUM_OF_TYPES;
         }
     }
 
