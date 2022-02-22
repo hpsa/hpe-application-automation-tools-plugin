@@ -101,9 +101,14 @@ function startListeningForParameters(mainContainer) {
 
     const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
     prepareTestInput();
-    rowInputs.forEach(rowInput => rowInput.addEventListener("click", () => {
-        updateTest(main, rowInput, testInput);
-    }));
+    rowInputs.forEach(rowInput => {
+        rowInput.addEventListener("click", () => {
+            updateTest(main, rowInput, testInput);
+        });
+        rowInput.addEventListener("change", () => {
+            updateTest(main, rowInput, testInput);
+        })
+    });
 
     const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
     if (chkAreParamsEnabled) {
@@ -141,7 +146,7 @@ function generateAndPutJSONResult(container) {
             const val = elem.querySelector(`#parameterInputValue_${elem.dataset.index}`);
             if (curr["type"] === "Boolean") {
                 curr["value"] = val.checked;
-            } else if (curr["type"] === "Date") {
+            } else if (curr["type"] === "Date" || curr["type"] === "DateTime") {
                 const date = new Date(val.value);
                 curr["value"] = `${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}/${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth()}/${date.getFullYear()}`;
             } else {
@@ -213,14 +218,22 @@ function addNewParam(container) {
 
     const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
     const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
-    spinner.addEventListener("click", () => {
+
+    const handleSpinner = () => {
         if (spinner.value === '') {
             testLabel.value = "";
             return;
         }
 
         testLabel.value = queryTestInput(container).value.split("\n")[parseInt(spinner.value) - 1] || "Please, specify tests first";
+    };
+    spinner.addEventListener("click", () => {
+        handleSpinner();
     });
+    spinner.addEventListener("change", () => {
+        handleSpinner();
+    });
+
     spinner.dispatchEvent(new Event("change"));
 
     Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").endsWith("_" + nextIdx.toString()))
@@ -250,7 +263,13 @@ if (typeof mapForTypeAssociations === "undefined") {
         Boolean: 'checkbox',
         Password: 'password',
         Date: 'date',
-        Any: 'text'
+        Any: 'text',
+        Float: 'number',
+        Double: 'number',
+        Decimal: 'number',
+        Long: 'number',
+        DateTime: 'date',
+        Int: 'number'
     };
 }
 
@@ -289,7 +308,7 @@ function loadParamInputs(container) {
         valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
         if (typeField.value === "Boolean") {
             valueField.checked = currElemVal["value"] || false;
-        } else if (typeField.value === "Date") {
+        } else if (typeField.value === "Date" || typeField.value === "DateTime") {
             const date = new Date(currElemVal["value"].split("/").reverse().join("-")) || Date.now();
             valueField.value = `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)}-${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}`;
         } else {
@@ -304,6 +323,13 @@ function addToSelectableTypeList(type, typeListLength) {
     if (selectableTypeList.split("</option>").length - 1 >= typeListLength) return;
 
     selectableTypeList += `<option value="${type}">${type}</option>`;
+}
+
+function addSeparatorToTypeList(group, idx) {
+    if (idx > 1) {
+        selectableTypeList += '</optgroup>';
+    }
+    selectableTypeList += `<optgroup label="${group}">`;
 }
 
 function normalizeJsonFormat(str) {

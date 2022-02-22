@@ -46,12 +46,24 @@ import java.util.stream.Collectors;
 
 public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParametersModel> {
 
+    // FOR GUI
     private final static EnumDescription STRING_TYPE = new EnumDescription("String", "String");
     private final static EnumDescription NUMBER_TYPE = new EnumDescription("Number", "Number");
     private final static EnumDescription DATE_TYPE = new EnumDescription("Date", "Date");
     private final static EnumDescription BOOL_TYPE = new EnumDescription("Boolean", "Boolean");
     private final static EnumDescription ANY_TYPE = new EnumDescription("Any", "Any");
-    public final static List<EnumDescription> paramTypes = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE);
+
+    public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE);
+
+    // FOR API
+    private final static EnumDescription INT_TYPE = new EnumDescription("Int", "Int");
+    private final static EnumDescription FLOAT_TYPE = new EnumDescription("Float", "Float");
+    private final static EnumDescription DATETIME_TYPE = new EnumDescription("DateTime", "DateTime");
+    private final static EnumDescription LONG_TYPE = new EnumDescription("Long", "Long");
+    private final static EnumDescription DOUBLE_TYPE = new EnumDescription("Double", "Double");
+    private final static EnumDescription DECIMAL_TYPE = new EnumDescription("Decimal", "Decimal");
+
+    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE);
 
     private String parameterJson;
 
@@ -96,8 +108,12 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
             return "Specify test parameters model";
         }
 
-        public List<EnumDescription> getParamTypes() {
-            return paramTypes;
+        public List<EnumDescription> getParamTypesGUI() {
+            return paramTypesGUI;
+        }
+
+        public List<EnumDescription> getParamTypesAPI() {
+            return paramTypesAPI;
         }
     }
 

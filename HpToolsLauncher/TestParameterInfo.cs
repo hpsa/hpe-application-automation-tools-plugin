@@ -66,7 +66,6 @@ namespace HpToolsLauncher
             switch (this.Type.ToLower())
             {
                 case "int":
-
                     int v;
                     ok = int.TryParse(this.Value, out v);
                     if (ok)
@@ -74,7 +73,6 @@ namespace HpToolsLauncher
                         val = v;
                     }
                     break;
-                case "number":
                 case "password":
                 case "string":
                 case "any":
@@ -170,6 +168,7 @@ namespace HpToolsLauncher
                         val = v5;
                     }
                     break;
+                case "number":
                 case "decimal":
                     decimal v6;
                     ok = decimal.TryParse(this.Value, out v6);

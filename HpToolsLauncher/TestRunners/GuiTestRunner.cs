@@ -273,17 +273,17 @@ namespace HpToolsLauncher
                                                  ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
                                                  : tagUnifiedLicenseType.qtNonUnified);
 
-            Dictionary<string, object> paramList;
+            Dictionary<string, object> paramDict;
             try
             {
-                paramList = testinf.GetParameterDictionaryForQTP();
-            } catch (ArgumentException e)
+                paramDict = testinf.GetParameterDictionaryForQTP();
+            } catch (ArgumentException)
             {
                 ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
-                throw e;
+                throw;
             }
 
-            if (!HandleInputParameters(testPath, ref errorReason, paramList, testinf))
+            if (!HandleInputParameters(testPath, ref errorReason, paramDict, testinf))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -630,10 +630,8 @@ namespace HpToolsLauncher
                     break;
 
                 case qtParameterType.qtParamTypePassword:
-                    legal = paramValue is string;
-                    break;
-
                 case qtParameterType.qtParamTypeString:
+                case qtParameterType.qtParamTypeAny:
                     legal = paramValue is string;
                     break;
 
@@ -680,11 +678,11 @@ namespace HpToolsLauncher
                         {
                             try
                             {
-                                ConsoleWriter.WriteErrLine(string.Format("Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: '{2}'", paramName, Enum.GetName(typeof(qtParameterType), type), paramValue.GetType()));
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith2Types, paramName, Enum.GetName(typeof(qtParameterType), type), paramValue.GetType()));
                             }
                             catch (Exception)
                             {
-                                ConsoleWriter.WriteErrLine(string.Format("Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: 'null'", paramName, Enum.GetName(typeof(qtParameterType), type)));
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith2Types, paramName, Enum.GetName(typeof(qtParameterType), type), null));
                             }
                         }
                         else
@@ -693,10 +691,10 @@ namespace HpToolsLauncher
                             try
                             {
                                 _qtpParameters[paramName].Value = paramValue;
-                                ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ", paramName, paramValue));
+                                ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime) paramValue).ToShortDateString()));
                             } catch (Exception)
                             {
-                                ConsoleWriter.WriteErrLine(string.Format("Input parameter type mismatch (skipped), check your test configuration in UFT. param: '{0}'", paramName));
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith1Type, paramName));
                             }
                         }
                     }

@@ -896,15 +896,11 @@ namespace HpToolsLauncher
         /// <param name="filteredTestList"></param>
         /// <param name="runDesc"></param>
         /// <param name="parametersPlaceholder"></param>
-        public void CollectPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc, List<TestParameter> parametersPlaceholder)
+        /// <param name="testIdx"></param>
+        public void CollectPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc, List<TestParameter> parametersPlaceholder, int testIdx)
         {
-            int i = 1;
-            foreach (ITSTest3 test in filteredTestList)
-            {
-                List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(i));
-                parametersPlaceholder.AddRange(relevant);
-                ++i;
-            }
+            List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(testIdx));
+            parametersPlaceholder.AddRange(relevant);
         }
 
         /// <summary>
@@ -1071,7 +1067,7 @@ namespace HpToolsLauncher
                     }
                 }
 
-                TestSuiteRunResults runResults = RunTestSet(testSetDir, tsName, inlineTestParameters, swForTimeout);
+                TestSuiteRunResults runResults = RunTestSet(testSetDir, tsName, inlineTestParameters, swForTimeout, idx);
                 if (runResults != null)
                     activeRunDescription.AppendResults(runResults);
 
@@ -1090,15 +1086,10 @@ namespace HpToolsLauncher
         /// <param name="tsFolderName">testSet folder name</param>
         /// <param name="tsName">testSet name</param>
         /// <param name="inlineTestParameters"></param>
-        /// <param name="timeout">-1 for unlimited, or number of milliseconds</param>
-        /// <param name="runMode">run on LocalMachine or remote</param>
-        /// <param name="runHost">if run on remote machine - remote machine name</param>
-        /// <param name="isFilterSelected"></param>
-        /// <param name="filterByName"></param>
-        /// <param name="filterByStatuses"></param>
-        /// <param name="testStorageType"></param>
+        /// <param name="swForTimeout"></param>
+        /// <param name="testIdx"></param>
         /// <returns></returns>
-        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string inlineTestParameters, Stopwatch swForTimeout)
+        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string inlineTestParameters, Stopwatch swForTimeout, int testIdx)
         {
             string testSuiteName = tsName.TrimEnd();
             ITestSetFolder tsFolder = null;
@@ -1213,7 +1204,17 @@ namespace HpToolsLauncher
                 List<TestParameter> testParameters = new List<TestParameter>();
 
                 CollectInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, initialFullTsPath, testParameters);
-                CollectPropsTestParameters(filteredTestList, runDesc, testParameters);
+                CollectPropsTestParameters(filteredTestList, runDesc, testParameters, testIdx);
+
+                try
+                {
+                    CheckForDuplicateParametersForTest(testParameters);
+                }
+                catch (ArgumentException)
+                {
+                    ConsoleWriter.WriteErrLine(Resources.AlmDuplicateParameter);
+                    throw;
+                }
 
                 // we prepare individual lists for the tests
                 // while we check for duplicates
@@ -1222,21 +1223,7 @@ namespace HpToolsLauncher
                 int index = 1;
                 foreach (ITSTest3 test in filteredTestList)
                 {
-                    List<TestParameter> relevant = testParameters.FindAll(elem => elem.TestIdx.Equals(index));
-
-                    try
-                    {
-                        CheckForDuplicateParametersForTest(relevant);
-
-                        relevant.ForEach(elem => ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1}", elem.ParamName, elem.ParamVal)));
-
-                        SetParameters(test, relevant);
-                    }
-                    catch (ArgumentException)
-                    {
-                        ConsoleWriter.WriteErrLine(string.Format(Resources.AlmDuplicateParameter, index));
-                    }
-                    
+                    SetParameters(test, testParameters);
 
                     ScheduleTest(runDesc, scheduler, test, index);
                     ++index;
@@ -1331,7 +1318,7 @@ namespace HpToolsLauncher
                 UpdateTestResultsAfterAbort(executionStatus, targetTestSet, runDesc, testPath);
 
                 // scheduler process may not be terminated - this process is not terminated by the aborter
-                terminateSchedulerIfNecessary();
+                TerminateSchedulerIfNecessary();
 
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
 
@@ -1371,16 +1358,16 @@ namespace HpToolsLauncher
             if (relevant.Count > 0)
             {
                 xmlParams.Append(XML_PARAMS_START_TAG);
-
                 foreach (var parameter in relevant)
                 {
                     xmlParams.AppendFormat(XML_PARAM_NAME_VALUE_TYPE, SecurityElement.Escape(parameter.ParamName), SecurityElement.Escape(parameter.ParamVal), parameter.ParamType);
                 }
-
                 xmlParams.Append(XML_PARAMS_END_TAG);
             }
 
             if (xmlParams.Length <= 0) return;
+
+            relevant.ForEach(elem => ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, elem.ParamName, elem.ParamVal)));
 
             test["TC_EPARAMS"] = xmlParams.ToString();
             test.Post();
@@ -1393,14 +1380,13 @@ namespace HpToolsLauncher
         /// <param name="relevant"></param>
         private static void SetAPITestParameters(ITSTest3 test, List<TestParameter> relevant)
         {
-            ISupportParameterValues paramTestValues = (ISupportParameterValues) test;
+            ISupportParameterValues paramTestValues = (ISupportParameterValues)test;
             ParameterValueFactory parameterValueFactory = paramTestValues.ParameterValueFactory;
             List listOfParameters = parameterValueFactory.NewList(string.Empty);
 
             foreach (ParameterValue parameter in listOfParameters)
             {
                 // we search for the paramter by name in the relevant list, if found we set it, otherwise skip this parameter from the factory
-
                 string name = parameter.Name;
                 TestParameter tmpParam = relevant.Find(elem => elem.ParamName.Equals(name));
 
@@ -1408,6 +1394,8 @@ namespace HpToolsLauncher
 
                 parameter.ActualValue = tmpParam.ParamVal;
                 parameter.Post();
+
+                ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, tmpParam.ParamName, tmpParam.ParamVal));
             }
         }
 
@@ -1425,7 +1413,7 @@ namespace HpToolsLauncher
         /// <summary>
         /// Terminates wexectrl process which belongs to the current HpToolsLauncher process
         /// </summary>
-        private void terminateSchedulerIfNecessary()
+        private void TerminateSchedulerIfNecessary()
 		{
             Process exeCtrl = Process.GetProcessesByName("wexectrl").Where(p => p.SessionId == Process.GetCurrentProcess().SessionId).FirstOrDefault();
 
