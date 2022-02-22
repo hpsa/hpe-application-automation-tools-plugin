@@ -39,9 +39,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import net.minidev.json.parser.ParseException;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParametersModel> {
@@ -64,6 +62,14 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DECIMAL_TYPE = new EnumDescription("Decimal", "Decimal");
 
     public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE);
+
+    public final static Map<String, List<EnumDescription>> mapping = new HashMap<>();
+    public final static int numOfTypes = paramTypesAPI.size() + paramTypesGUI.size();
+
+    static {
+        mapping.put("GUI", paramTypesGUI);
+        mapping.put("API", paramTypesAPI);
+    }
 
     private String parameterJson;
 
@@ -114,6 +120,14 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
 
         public List<EnumDescription> getParamTypesAPI() {
             return paramTypesAPI;
+        }
+
+        public Map<String, List<EnumDescription>> getMapping() {
+            return mapping;
+        }
+
+        public int getNumOfTypes() {
+            return numOfTypes;
         }
     }
 

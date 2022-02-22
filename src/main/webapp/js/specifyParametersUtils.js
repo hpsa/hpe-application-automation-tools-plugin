@@ -325,10 +325,17 @@ function addToSelectableTypeList(type, typeListLength) {
     selectableTypeList += `<option value="${type}">${type}</option>`;
 }
 
-function addSeparatorToTypeList(group, idx) {
-    if (idx > 1) {
+function addSeparatorToTypeList(group, idx, groupsLength) {
+    // do not populate the list again, if already populated
+    // happens when multiple jobs with parameters table is added to the base job
+    if (selectableTypeList.split("</optgroup>").length - 1 >= groupsLength) return;
+
+    // special command, called with idx of -1 and group of null if separator needed
+    if (idx === -1 && group === null) {
         selectableTypeList += '</optgroup>';
+        return;
     }
+
     selectableTypeList += `<optgroup label="${group}">`;
 }
 

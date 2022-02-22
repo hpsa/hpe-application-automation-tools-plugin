@@ -105,23 +105,19 @@
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
 
-    <script>
-        addSeparatorToTypeList('GUI', 1);
-    </script>
-
-    <j:forEach var="paramType" items="${descriptor.paramTypesGUI}">
+    <j:forEach var="paramGroup" items="${descriptor.mapping}" indexVar="i">
         <script type="text/javascript">
-            addToSelectableTypeList('${paramType.value}', ${size(descriptor.paramTypesGUI) + size(descriptor.paramTypesAPI)});
+            addSeparatorToTypeList('${paramGroup.key}', ${i}, ${size(descriptor.mapping)});
         </script>
-    </j:forEach>
 
-    <script>
-        addSeparatorToTypeList('API', 2);
-    </script>
+        <j:forEach var="paramType" items="${paramGroup.value}">
+            <script type="text/javascript">
+                addToSelectableTypeList('${paramType.value}', ${descriptor.numOfTypes});
+            </script>
+        </j:forEach>
 
-    <j:forEach var="paramType" items="${descriptor.paramTypesAPI}">
         <script type="text/javascript">
-            addToSelectableTypeList('${paramType.value}', ${size(descriptor.paramTypesGUI) + size(descriptor.paramTypesAPI)});
+            addSeparatorToTypeList(null, -1, ${size(descriptor.mapping)});
         </script>
     </j:forEach>
 
