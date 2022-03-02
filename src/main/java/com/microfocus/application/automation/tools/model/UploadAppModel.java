@@ -28,7 +28,6 @@
 
 package com.microfocus.application.automation.tools.model;
 
-import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -43,36 +42,20 @@ import java.util.List;
  */
 public class UploadAppModel {
     private String mcServerName;
-    private String mcUserName;
-    private Secret mcPassword;
-    private String mcTenantId;
+    private AuthModel authModel;
     private ProxySettings proxySettings;
     private List<UploadAppPathModel> applicationPaths;
 
     @DataBoundConstructor
-    public UploadAppModel(String mcServerName, String mcUserName, String mcPassword, String mcTenantId, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
+    public UploadAppModel(String mcServerName, AuthModel authModel, ProxySettings proxySettings, List<UploadAppPathModel> applicationPaths) {
         this.mcServerName = mcServerName;
-        this.mcUserName = mcUserName;
-        this.mcPassword = Secret.fromString(mcPassword);
-        this.mcTenantId = mcTenantId;
+        this.authModel = authModel;
         this.proxySettings = proxySettings;
         this.applicationPaths = applicationPaths;
     }
 
     public String getMcServerName() {
         return mcServerName;
-    }
-
-    public String getMcUserName() {
-        return mcUserName;
-    }
-
-    public String getMcPassword() {
-        return mcPassword.getPlainText();
-    }
-
-    public String getMcTenantId() {
-        return mcTenantId;
     }
 
     public ProxySettings getProxySettings() {
@@ -89,5 +72,13 @@ public class UploadAppModel {
 
     public List<UploadAppPathModel> getApplicationPaths() {
         return applicationPaths;
+    }
+
+    public AuthModel getAuthModel() {
+        return authModel;
+    }
+
+    public String getAuthType() {
+        return authModel == null ? "base" : authModel.getValue();
     }
 }

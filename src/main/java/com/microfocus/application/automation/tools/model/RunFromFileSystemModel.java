@@ -29,24 +29,21 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
-import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
-import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.TaskListener;
-import hudson.util.Secret;
-import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Holds the data for RunFromFile build type.
@@ -73,9 +70,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private String analysisTemplate;
     private String displayController;
     private String mcServerName;
-    private String fsUserName;
-    private Secret fsPassword;
-    private String mcTenantId;
     private String fsReportPath;
 
     private String fsDeviceId;
@@ -90,6 +84,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private String fsJobId;
     private ProxySettings proxySettings;
     private boolean useSSL;
+    private AuthModel authModel;
 
     /**
      * Instantiates a new Run from file system model.
@@ -102,8 +97,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @param analysisTemplate          the analysis template
      * @param displayController         the display controller
      * @param mcServerName              the mc server name
-     * @param fsUserName                the fs user name
-     * @param fsPassword                the fs password
      * @param fsDeviceId                the fs device id
      * @param fsTargetLab               the fs target lab
      * @param fsManufacturerAndModel    the fs manufacturer and model
@@ -118,11 +111,11 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @param useSSL                    the use ssl
      */
     @SuppressWarnings("squid:S00107")
-    public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,String perScenarioTimeOut,
-                                  String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
+    public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval, String perScenarioTimeOut,
+                                  String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, AuthModel authModel,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath){
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath) {
 
         this.setFsTests(fsTests);
 
@@ -137,9 +130,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.displayController = displayController;
 
         this.mcServerName = mcServerName;
-        this.fsUserName = fsUserName;
-        this.fsPassword = Secret.fromString(fsPassword);
-        this.mcTenantId = mcTenantId;
 
         this.fsDeviceId = fsDeviceId;
         this.fsOs = fsOs;
@@ -154,6 +144,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.fsJobId = fsJobId;
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
+        this.authModel = authModel;
     }
 
     /**
@@ -216,23 +207,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.mcServerName = mcServerName;
     }
 
-    /**
-     * Sets fs user name.
-     *
-     * @param fsUserName the fs user name
-     */
-    public void setFsUserName(String fsUserName) {
-        this.fsUserName = fsUserName;
-    }
-
-    /**
-     * Sets fs password.
-     *
-     * @param fsPassword the fs password
-     */
-    public void setFsPassword(String fsPassword) {
-        this.fsPassword = Secret.fromString(fsPassword);
-    }
 
     /**
      * Sets fs device id.
@@ -374,7 +348,9 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      *
      * @return the fs runModes
      */
-    public List<EnumDescription> getFsUftRunModes() { return fsUftRunModes; }
+    public List<EnumDescription> getFsUftRunModes() {
+        return fsUftRunModes;
+    }
 
     /**
      * Gets mc server name.
@@ -386,41 +362,26 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     }
 
     /**
-     * Gets fs user name.
-     *
-     * @return the fs user name
-     */
-    public String getFsUserName() {
-        return fsUserName;
-    }
-
-    /**
-     * Gets fs password.
-     *
-     * @return the fs password
-     */
-    public String getFsPassword() {
-        //Temp fix till supported in pipeline module in LR
-        if(fsPassword == null)
-        {
-            return null;
-        }
-        return fsPassword.getEncryptedValue();
-    }
-
-    public String getMcTenantId() {
-        return mcTenantId;
-    }
-
-    public void setMcTenantId(String mcTenantId) {
-        this.mcTenantId = mcTenantId;
-    }
-
-    /**
      * Sets the report path for the given tests.
      */
     public void setFsReportPath(String fsReportPath) {
         this.fsReportPath = fsReportPath;
+    }
+
+    public String getMcPassword() {
+        //Temp fix till supported in pipeline module in LR
+        if (authModel.getMcPassword() == null) {
+            return null;
+        }
+        return authModel.getMcEncryptedPassword();
+    }
+
+    public String getMcExecToken() {
+        //Temp fix till supported in pipeline module in LR
+        if (authModel.getMcExecToken() == null) {
+            return null;
+        }
+        return authModel.getMcEncryptedExecToken();
     }
 
     /**
@@ -649,14 +610,24 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.perScenarioTimeOut = perScenarioTimeOut;
     }
 
+    public AuthModel getAuthModel() {
+        return authModel;
+    }
+
+    public void setAuthModel(AuthModel authModel) {
+        this.authModel = authModel;
+    }
+    public String getAuthType() {
+        return authModel == null ? "base" : authModel.getValue();
+    }
     /**
      * Gets properties.
      *
      * @param envVars the env vars
      * @return the properties
      */
-	@Nullable
-	public Properties getProperties(EnvVars envVars) {
+    @Nullable
+    public Properties getProperties(EnvVars envVars) {
         return createProperties(envVars);
     }
 
@@ -701,79 +672,72 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         String perScenarioTimeOutVal = StringUtils.isEmpty(perScenarioTimeOut) ? "10" : envVars.expand(perScenarioTimeOut);
         props.put("PerScenarioTimeOut", perScenarioTimeOutVal);
 
-        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
-            props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
+        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))) {
+            props.put("ignoreErrorStrings", "" + ignoreErrorStrings.replaceAll("\r", ""));
         }
 
-        if (StringUtils.isNotBlank(fsUserName)){
-            props.put("MobileUserName", fsUserName);
-        }
-        if (StringUtils.isNotBlank(mcTenantId)){
-            props.put("MobileTenantId", mcTenantId);
-        }
-
-        if(StringUtils.isNotBlank(fsReportPath)) {
+        if (StringUtils.isNotBlank(fsReportPath)) {
             props.put("fsReportPath", fsReportPath);
         }
 
-        if(isUseProxy()){
+        if (isUseProxy()) {
             props.put("MobileUseProxy", "1");
-            props.put("MobileProxyType","2");
+            props.put("MobileProxyType", "2");
             props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
 
-            if(isUseAuthentication()){
-                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
-                props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
+            if (isUseAuthentication()) {
+                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION, "1");
+                props.put(MOBILE_PROXY_SETTING_USER_NAME, proxySettings.getFsProxyUserName());
                 String encryptedPassword;
 
                 try {
                     encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
                             EncryptionUtils.getSecretKey());
-                }catch (Exception ex) {
+                } catch (Exception ex) {
                     return null; // cannot continue without proper config
                 }
 
                 props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
-            }else{
-                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
-                props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
-                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
+            } else {
+                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION, "0");
+                props.put(MOBILE_PROXY_SETTING_USER_NAME, "");
+                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, "");
             }
-        }else{
+        } else {
             props.put("MobileUseProxy", "0");
-            props.put("MobileProxyType","0");
-            props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
+            props.put("MobileProxyType", "0");
+            props.put(MOBILE_PROXY_SETTING_AUTHENTICATION, "0");
             props.put("MobileProxySetting_Address", "");
-            props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
-            props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
+            props.put(MOBILE_PROXY_SETTING_USER_NAME, "");
+            props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, "");
         }
 
-        if(useSSL){
-            props.put(MOBILE_USE_SSL,"1");
-        }else{
-            props.put(MOBILE_USE_SSL,"0");
+        if (useSSL) {
+            props.put(MOBILE_USE_SSL, "1");
+        } else {
+            props.put(MOBILE_USE_SSL, "0");
         }
 
+        if (authModel.getValue().equals("base")) {
+            if (StringUtils.isNotBlank(authModel.getMcUserName())) {
+                props.put("MobileUserName", authModel.getMcUserName());
+            }
+            if (StringUtils.isNotBlank(authModel.getMcTenantId())) {
+                props.put("MobileTenantId", authModel.getMcTenantId());
+            }
+        }
         return props;
     }
 
     /**
      * Get proxy details json object.
      *
-     * @param mcUrl         the mc url
-     * @param proxyAddress  the proxy address
-     * @param proxyUserName the proxy user name
-     * @param proxyPassword the proxy password
+     * @param mcUrl the mc url
      * @return the json object
      */
-    public JSONObject getJobDetails(String mcUrl, String proxyAddress, String proxyUserName, String proxyPassword){
-        if(StringUtils.isBlank(fsUserName) || StringUtils.isBlank(fsPassword.getPlainText())){
-            return null;
-        }
-        return JobConfigurationProxy
-                .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
+    public JSONObject getJobDetails(String mcUrl, ProxySettings proxy) {
+        return JobConfigurationProxy.getInstance().getJobById(mcUrl, authModel, proxy, fsJobId);
     }
-
 
     @Extension
     public static class DescriptorImpl extends Descriptor<RunFromFileSystemModel> {
