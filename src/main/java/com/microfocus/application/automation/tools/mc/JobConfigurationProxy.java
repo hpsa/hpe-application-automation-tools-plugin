@@ -80,15 +80,19 @@ public class JobConfigurationProxy {
                 sendObject.put("name", authModel.getMcUserName());
                 sendObject.put("password", authModel.getMcPassword());
                 sendObject.put("accountName", "default");
-                response = HttpUtils.post(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
+                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
             } else {
                 headers.put(Constants.ACCEPT, "application/json");
                 headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
-                Oauth2TokenUtil.validate(authModel.getMcExecToken());
-                sendObject.put("client", Oauth2TokenUtil.getClient());
-                sendObject.put("secret", Oauth2TokenUtil.getSecret());
-                sendObject.put("tenant", Oauth2TokenUtil.getTenant());
-                response = HttpUtils.post(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes());
+                if(Oauth2TokenUtil.validate(authModel.getMcExecToken())) {
+                    sendObject.put("client", Oauth2TokenUtil.getClient());
+                    sendObject.put("secret", Oauth2TokenUtil.getSecret());
+                    sendObject.put("tenant", Oauth2TokenUtil.getTenant());
+                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes());
+                }else {
+                    System.out.println("ERROR:: oauth token is invalid.");
+                    return returnObject;
+                }
             }
             return parseLoginResponse(response);
         } catch (Exception e) {
@@ -203,7 +207,7 @@ public class JobConfigurationProxy {
         headers.put(Constants.FILENAME, appFile.getName());
 
         HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
-        HttpResponse response = HttpUtils.post(proxyInfo, uploadUrl, headers, bytes);
+        HttpResponse response = HttpUtils.doPost(proxyInfo, uploadUrl, headers, bytes);
 
         if (response != null && response.getJsonObject() != null) {
             json = response.getJsonObject();
@@ -243,7 +247,7 @@ public class JobConfigurationProxy {
                     }
                     headers.put(Constants.COOKIE, cookies);
                 }
-                HttpResponse response = HttpUtils.get(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.CREATE_JOB_URL, headers, null);
+                HttpResponse response = HttpUtils.doGet(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.CREATE_JOB_URL, headers, null);
 
                 if (response != null && response.getJsonObject() != null) {
                     job = response.getJsonObject();
@@ -290,7 +294,7 @@ public class JobConfigurationProxy {
                     }
                     headers.put(Constants.COOKIE, cookies);
                 }
-                HttpResponse response = HttpUtils.get(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
+                HttpResponse response = HttpUtils.doGet(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
 
                 if (response != null && response.getJsonObject() != null) {
                     jobJsonObject = response.getJsonObject();
