@@ -32,16 +32,22 @@ namespace HpToolsLauncher
 {
     public class RunnerBase : IAssetRunner
     {
-
         public virtual void Dispose()
         {
         }
         protected bool _blnRunCancelled = false;
+        protected JunitXmlBuilder _xmlBuilder = new JunitXmlBuilder();
 
         public bool RunWasCancelled
         {
             get { return _blnRunCancelled; }
             set { _blnRunCancelled = value; }
+        }
+
+        public JunitXmlBuilder XmlBuilder
+        {
+            get { return _xmlBuilder; }
+            set { _xmlBuilder = value; }
         }
 
         public virtual TestSuiteRunResults Run()

@@ -420,11 +420,11 @@ public partial class testsuite
 
     private string nameField;
 
-    private string testsField;
+    private int testsField;
 
-    private string failuresField;
+    private int failuresField;
 
-    private string errorsField;
+    private int errorsField;
 
     private string timeField;
 
@@ -513,7 +513,7 @@ public partial class testsuite
 
     /// <remarks/>
     [System.Xml.Serialization.XmlAttributeAttribute()]
-    public string tests
+    public int tests
     {
         get
         {
@@ -527,7 +527,7 @@ public partial class testsuite
 
     /// <remarks/>
     [System.Xml.Serialization.XmlAttributeAttribute()]
-    public string failures
+    public int failures
     {
         get
         {
@@ -541,7 +541,7 @@ public partial class testsuite
 
     /// <remarks/>
     [System.Xml.Serialization.XmlAttributeAttribute()]
-    public string errors
+    public int errors
     {
         get
         {
@@ -797,5 +797,23 @@ public partial class testsuites
 
         if (foundSuite != null)
             testsuiteField.Remove(foundSuite);
+    }
+
+    internal testsuite GetTestSuiteOrDefault(string name, string package, out bool isNewTestSuite)
+    {
+        isNewTestSuite = false;
+        foreach (testsuite ts in testsuiteField)
+            if (ts.name == name && ts.package == package)
+                return ts;
+
+        isNewTestSuite = true;
+        return new testsuite
+        {
+            name = name,
+            package = package,
+            tests = 0,
+            errors = 0,
+            failures = 0
+        };
     }
 }
