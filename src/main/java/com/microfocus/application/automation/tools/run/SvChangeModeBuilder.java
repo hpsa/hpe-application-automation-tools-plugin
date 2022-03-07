@@ -218,6 +218,7 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
             items.add("Stand-By", ServiceRuntimeConfiguration.RuntimeMode.STAND_BY.toString());
             items.add("Simulate", ServiceRuntimeConfiguration.RuntimeMode.SIMULATING.toString());
             items.add("Learn", ServiceRuntimeConfiguration.RuntimeMode.LEARNING.toString());
+            items.add("Offline", ServiceRuntimeConfiguration.RuntimeMode.OFFLINE.toString());
             return items;
         }
     }
