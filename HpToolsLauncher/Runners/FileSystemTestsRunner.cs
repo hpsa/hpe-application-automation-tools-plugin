@@ -68,10 +68,8 @@ namespace HpToolsLauncher
         //saves runners for cleaning up at the end.
         private Dictionary<TestType, IFileSysTestRunner> _colRunnersForCleanup = new Dictionary<TestType, IFileSysTestRunner>();
 
-
         private McConnectionInfo _mcConnection;
         private string _mobileInfoForAllGuiTests;
-
 
 		#endregion
 
@@ -110,9 +108,9 @@ namespace HpToolsLauncher
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
+                                    string xmlResultsFullFileName,
                                     bool useUftLicense = false)
-
-            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, useUftLicense)
+            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -150,13 +148,14 @@ namespace HpToolsLauncher
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
+                                    string xmlResultsFullFileName,
                                     bool useUftLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
             if (!Helper.IsTestingToolsInstalled(TestStorageType.FileSystem))
             {
-                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on, System.Environment.MachineName));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on, Environment.MachineName));
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
@@ -180,6 +179,7 @@ namespace HpToolsLauncher
             _mobileInfoForAllGuiTests = mobileInfo;
 
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
+            _xmlBuilder.XmlName = xmlResultsFullFileName;
 
             ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
@@ -303,6 +303,9 @@ namespace HpToolsLauncher
         {
             //create a new Run Results object
             TestSuiteRunResults activeRunDesc = new TestSuiteRunResults();
+            bool isNewTestSuite;
+            testsuite ts = _xmlBuilder.TestSuites.GetTestSuiteOrDefault(activeRunDesc.SuiteName, JunitXmlBuilder.ClassName, out isNewTestSuite);
+            ts.tests += _tests.Count;
 
             double totalTime = 0;
             try
@@ -317,16 +320,15 @@ namespace HpToolsLauncher
 
                 Dictionary<string, int> rerunList = createDictionary(_tests);
 
-                foreach (var test in _tests)
+                for (int x = 0; x < _tests.Count; x++)
                 {
+                    var test = _tests[x];
                     if (indexList[test.TestPath] == 0)
                     {
                         indexList[test.TestPath] = 1;
                     }
 
                     if (RunCancelled()) break;
-
-                    var testStart = DateTime.Now;
 
                     string errorReason = string.Empty;
                     TestRunResults runResult = null;
@@ -361,7 +363,7 @@ namespace HpToolsLauncher
                         {
                             if (string.IsNullOrEmpty(runResult.ErrorDesc))
                             {
-                                runResult.ErrorDesc = RunCancelled() ? HpToolsLauncher.Properties.Resources.ExceptionUserCancelled : HpToolsLauncher.Properties.Resources.ExceptionExternalProcess;
+                                runResult.ErrorDesc = RunCancelled() ? Resources.ExceptionUserCancelled : Resources.ExceptionExternalProcess;
                             }
                             runResult.ReportLocation = null;
                             runResult.TestState = TestState.Error;
@@ -378,8 +380,7 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestDone, runResult.TestState));
                     }
 
-                    UpdateCounters(runResult.TestState);
-                    var testTotalTime = (DateTime.Now - testStart).TotalSeconds;
+                    UpdateCounters(runResult.TestState, ts);
 
                     //create test folders
                     if (rerunList[test.TestPath] > 0)
@@ -396,9 +397,9 @@ namespace HpToolsLauncher
                     }
 
                     //update report folder
-                    String uftReportDir = Path.Combine(test.TestPath, "Report");
-                    String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
-                    ConsoleWriter.WriteLine("uftReportDir is " + uftReportDirNew);
+                    string uftReportDir = Path.Combine(test.TestPath, "Report");
+                    string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
+                    ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
                     try
                     {
                         if (Directory.Exists(uftReportDir))
@@ -417,6 +418,8 @@ namespace HpToolsLauncher
                         Directory.Move(uftReportDir, uftReportDirNew);
                     }
 
+                    // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
+                    _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
                     ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
                 }
 
@@ -633,18 +636,20 @@ namespace HpToolsLauncher
         /// sums errors and failed tests
         /// </summary>
         /// <param name="testState"></param>
-        private void UpdateCounters(TestState testState)
+        private void UpdateCounters(TestState testState, testsuite ts)
         {
             switch (testState)
             {
                 case TestState.Error:
-                    _errors += 1;
+                    _errors++;
+                    ts.errors++;
                     break;
                 case TestState.Failed:
-                    _fail += 1;
+                    _fail++;
+                    ts.failures++;
                     break;
                 case TestState.Warning:
-                    _warnings += 1;
+                    _warnings++;
                     break;
             }
         }

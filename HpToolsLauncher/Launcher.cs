@@ -256,7 +256,6 @@ namespace HpToolsLauncher
 
             List<TestData> failedTests = new List<TestData>();
 
-
             //run the entire set of test once
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runType, true, failedTests);
@@ -271,9 +270,9 @@ namespace HpToolsLauncher
 
             TestSuiteRunResults results = runner.Run();
 
-            if (!_runType.Equals(TestStorageType.MBT))
+            if (_runType != TestStorageType.MBT)
             {
-                RunTests(runner, resultsFilename, results);
+                RunSummary(runner, resultsFilename, results);
             }
 
             if (_runType.Equals(TestStorageType.FileSystem))
@@ -295,11 +294,12 @@ namespace HpToolsLauncher
                         if (item.TestState == TestState.Failed || item.TestState == TestState.Error)
                         {
                             index++;
-                            failedTests.Add(new TestData(item.TestPath, "FailedTest" + index));
+                            failedTests.Add(new TestData(item.TestPath, string.Format("FailedTest{0}", index)));
                         }
                     }
 
-
+                    // save the initial XmlBuilder because it contains testcases already created, in order to speed up the report building
+                    JunitXmlBuilder initialXmlBuilder = ((RunnerBase)runner).XmlBuilder;
                     //create the runner according to type
                     runner = CreateRunner(_runType, false, failedTests);
 
@@ -310,10 +310,11 @@ namespace HpToolsLauncher
                         return;
                     }
 
+                    ((RunnerBase)runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
                     TestSuiteRunResults rerunResults = runner.Run();
 
                     results.AppendResults(rerunResults);
-                    RunTests(runner, resultsFilename, results);
+                    RunSummary(runner, resultsFilename, results);
                     Environment.Exit((int)_exitCode);
                 }
             }
@@ -362,7 +363,7 @@ namespace HpToolsLauncher
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayRunmode, enmQcRunMode.ToString()));
 
                     //go over test sets in the parameters, and collect them
-                    List<string> sets = GetParamsWithPrefix("TestSet");
+                    List<string> sets = GetParamsWithPrefix("TestSet", true);
 
                     if (sets.Count == 0)
                     {
@@ -762,14 +763,15 @@ namespace HpToolsLauncher
 
                     SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
                     List<ScriptRTSModel> scriptRTSSet = GetScriptRtsSet();
+                    string resultsFilename = _ciParams["resultsFilename"];
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
                     }
 
                     break;
@@ -821,7 +823,7 @@ namespace HpToolsLauncher
             }
         }
 
-        private List<string> GetParamsWithPrefix(string prefix)
+        private List<string> GetParamsWithPrefix(string prefix, bool skipEmptyEntries = false)
         {
             int idx = 1;
             List<string> parameters = new List<string>();
@@ -830,8 +832,11 @@ namespace HpToolsLauncher
                 string set = _ciParams[prefix + idx];
                 if (set.StartsWith("Root\\"))
                     set = set.Substring(5);
-                set = set.TrimEnd("\\".ToCharArray());
-                parameters.Add(set.TrimEnd());
+                set = set.TrimEnd(" \\".ToCharArray());
+                if (!(skipEmptyEntries && string.IsNullOrWhiteSpace(set)))
+                {
+                    parameters.Add(set);
+                }
                 ++idx;
             }
             return parameters;
@@ -848,9 +853,9 @@ namespace HpToolsLauncher
                 string set = _ciParams[prefix + idx];
                 if (set.StartsWith("Root\\"))
                     set = set.Substring(5);
-                set = set.TrimEnd("\\".ToCharArray());
+                set = set.TrimEnd(" \\".ToCharArray());
                 string key = prefix + idx;
-                dict[key] = set.TrimEnd();
+                dict[key] = set;
                 ++idx;
             }
 
@@ -863,23 +868,26 @@ namespace HpToolsLauncher
         /// <param name="runner"></param>
         /// <param name="resultsFile"></param>
         ///
-        private void RunTests(IAssetRunner runner, string resultsFile, TestSuiteRunResults results)
+        private void RunSummary(IAssetRunner runner, string resultsFile, TestSuiteRunResults results)
         {
             try
             {
-                if (_ciRun)
-                {
-                    _xmlBuilder = new JunitXmlBuilder();
-                    _xmlBuilder.XmlName = resultsFile;
-                }
-
                 if (results == null)
                 {
                     Environment.Exit((int)ExitCodeEnum.Failed);
                     return;
                 }
 
-                _xmlBuilder.CreateXmlFromRunResults(results);
+                if (_runType != TestStorageType.FileSystem) // for FileSystem the report is already generated inside FileSystemTestsRunner.Run()
+                {
+                    if (_ciRun)
+                    {
+                        _xmlBuilder = new JunitXmlBuilder();
+                        _xmlBuilder.XmlName = resultsFile;
+                    }
+
+                    _xmlBuilder.CreateXmlFromRunResults(results);
+                }
 
                 if (results.TestRuns.Count == 0)
                 {
@@ -986,7 +994,8 @@ namespace HpToolsLauncher
                     {
                         Environment.Exit((int)_exitCode);
                     }
-                } else
+                }
+                else
 				{
                     Environment.Exit((int)_exitCode);
                 }
@@ -1000,7 +1009,7 @@ namespace HpToolsLauncher
                 catch (Exception ex)
                 {
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherRunnerDisposeError, ex.Message));
-                };
+                }
             }
         }
 
