@@ -44,6 +44,7 @@ namespace HpToolsLauncher
 
         Dictionary<string, string> _jenkinsEnvVariables;
         private List<TestInfo> _tests;
+        private List<TestParameter> _parameters;
         private static string _uftViewerPath;
         private int _errors, _fail, _warnings;
         private bool _useUFTLicense;
@@ -92,6 +93,7 @@ namespace HpToolsLauncher
 		/// <param name="summaryDataLogger"></param>
 		/// <param name="scriptRtsSet"></param>
 		public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> parameters,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int controllerPollingInterval,
@@ -108,8 +110,7 @@ namespace HpToolsLauncher
                                     string reportPath,
                                     string xmlResultsFullFileName,
                                     bool useUftLicense = false)
-
-            : this(sources, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, useUftLicense)
+            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -133,6 +134,7 @@ namespace HpToolsLauncher
         /// <param name="summaryDataLogger"></param>
         /// <param name="useUftLicense"></param>
         public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> parameters,
                                     TimeSpan timeout,
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
@@ -171,6 +173,7 @@ namespace HpToolsLauncher
             _summaryDataLogger = summaryDataLogger;
             _scriptRTSSet = scriptRtsSet;
             _tests = new List<TestInfo>();
+            _parameters = parameters;
 
             _mcConnection = mcConnection;
             _mobileInfoForAllGuiTests = mobileInfo;
@@ -185,9 +188,11 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine("Results directory is: " + reportPath);
             }
 
+            int idx = 1;
             //go over all sources, and create a list of all tests
             foreach (TestData source in sources)
             {
+                //this will contain all the tests found in the source
                 List<TestInfo> testGroup = new List<TestInfo>();
                 try
                 {
@@ -200,10 +205,12 @@ namespace HpToolsLauncher
                         foreach (var loc in testsLocations)
                         {
                             var test = new TestInfo(loc, loc, testPath, source.Id);
-                            
+
                             try
 							{
-                                SetParams(source.Tests, ref test);
+                                //we need to check for inline params and props params as well, for backward compatibility
+                                SetInlineParams(source.Tests, ref test);
+                                SetPropsParams(idx, ref test);
                             } catch (ArgumentException)
 							{
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.FsRunnerErrorParameterFormat, testPath));
@@ -244,8 +251,7 @@ namespace HpToolsLauncher
                             }
                         }
                     }
-                }
-                catch (Exception)
+                } catch (Exception)
                 {
                     testGroup = new List<TestInfo>();
                 }
@@ -256,7 +262,10 @@ namespace HpToolsLauncher
                     testGroup[0].TestGroup = "Test group";
                 }
 
+                //we add the found tests to the test list
                 _tests.AddRange(testGroup);
+
+                ++idx;
             }
 
             if (_tests == null || _tests.Count == 0)
@@ -452,10 +461,18 @@ namespace HpToolsLauncher
             return rerunList;
         }
 
-        public static void SetParams(string testPath, ref TestInfo test)
+        /// <summary>
+        /// Sets the test's inline parameters.
+        /// </summary>
+        /// <param name="testPath"></param>
+        /// <param name="test"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void SetInlineParams(string testPath, ref TestInfo test)
         {
+            // the inline test path does not contain any parameter specification
             if (testPath.IndexOf("\"") == -1) return;
 
+            // the inline test path does contain parameter specification
             string paramString = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
             string[] paramList = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -463,10 +480,10 @@ namespace HpToolsLauncher
 
             IList<string> paramNames, paramValues;
 
-            if (!Helper.ValidateListOfParams(paramList, out paramNames, out paramValues))
-			{
+            if (!Helper.ValidateListOfParamsForInline(paramList, out paramNames, out paramValues))
+            {
                 throw new ArgumentException();
-			}
+            }
 
             TestParameterInfo placeholderParam;
             string placeholderType = "string";
@@ -474,14 +491,32 @@ namespace HpToolsLauncher
             for (int i = 0; i < paramNames.Count; ++i)
             {
                 if (long.TryParse(paramValues[i], out _unused))
-				{
+                {
                     placeholderType = "number";
-				} else
-				{
+                }
+                else
+                {
                     placeholderType = "string";
-				}
+                }
 
                 placeholderParam = new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] };
+                test.ParameterList.Add(placeholderParam);
+            }
+        }
+
+        /// <summary>
+        /// Sets the test's parameters from the props (CI args).
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <param name="test"></param>
+        private void SetPropsParams(int idx, ref TestInfo test)
+        {
+            // all the parameters that belong to this test
+            List<TestParameter> relevant = _parameters.FindAll(elem => elem.TestIdx.Equals(idx));
+
+            foreach (TestParameter param in relevant)
+            {
+                TestParameterInfo placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
                 test.ParameterList.Add(placeholderParam);
             }
 

@@ -46,8 +46,6 @@
 			width: 85%;
 		}
 
-
-
 		#cleanupTestInput {
 			width: 250px;
 			margin-left: 10px;
@@ -57,13 +55,12 @@
 			margin-left: 20px;
 		}
 
-
-
 		td.help-text {
 			padding-left: 15px;
 		}
 
-		input[name="isParallelRunnerEnabled"]{
+		input[name="isParallelRunnerEnabled"],
+		 input[name="areParametersEnabled"] {
 			margin-left: 35px;
 		}
 
@@ -88,7 +85,6 @@
 		textarea.setting-input{
 			resize: vertical;
 		}
-
 	 </style>
 
 	<st:bind var="a" value="${descriptor}"/>
@@ -117,9 +113,15 @@
 		<f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
 	</f:entry>
 
-	<f:entry title="Timeout" field="fsTimeout" style="display:block">
+	<f:entry title="Timeout" field="fsTimeout">
 		<f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
 	</f:entry>
+
+	<f:optionalBlock name="areParametersEnabled" title="Specify test parameters" inline="true" checked="${instance.areParametersEnabled}">
+		<f:entry field="specifyParametersModel">
+			<f:property field="specifyParametersModel"/>
+		</f:entry>
+	</f:optionalBlock>
 
 	<f:optionalBlock name="isParallelRunnerEnabled" title="UFT parallel running mode" inline="true" checked="${instance.isParallelRunnerEnabled}">
 		<f:entry field="fileSystemTestSetModel">

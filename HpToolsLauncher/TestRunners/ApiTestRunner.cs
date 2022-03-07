@@ -28,6 +28,7 @@
 
 using HpToolsLauncher.Properties;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -142,17 +143,29 @@ namespace HpToolsLauncher
             string tempPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestParams");
             Directory.CreateDirectory(tempPath);
             string paramsFilePath = Path.Combine(tempPath, "params" + paramFileName + ".xml");
-            string paramFileContent = testinf.GenerateAPITestXmlForTest();
+
+            Dictionary<string, object> paramDict;
+            try
+            {
+                paramDict = testinf.GetParameterDictionaryForQTP();
+            }
+            catch (ArgumentException)
+            {
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
+                throw;
+            }
+
+            string paramFileContent = testinf.GenerateAPITestXmlForTest(paramDict);
 
             string argumentString = "";
             if (!string.IsNullOrWhiteSpace(paramFileContent))
             {
                 File.WriteAllText(paramsFilePath, paramFileContent);
-                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath);
             }
             else
             {
-                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation);
             }
 
             Stopwatch s = Stopwatch.StartNew();
@@ -339,6 +352,43 @@ namespace HpToolsLauncher
         }
 
         #endregion
+
+        public static bool VerifyParameterValueType(object paramValue, string type)
+        {
+            bool legal = false;
+
+            switch (type)
+            {
+                case "boolean":
+                    legal = paramValue is bool;
+                    break;
+
+                case "dateTime":
+                    legal = paramValue is DateTime;
+                    break;
+
+                case "int":
+                case "long":
+                    legal = ((paramValue is int) || (paramValue is long));
+                    break;
+
+                case "float":
+                case "double":
+                case "decimal":
+                    legal = ((paramValue is decimal) || (paramValue is float) || (paramValue is double));
+                    break;
+
+                case "string":
+                    legal = paramValue is string;
+                    break;
+
+                default:
+                    legal = false;
+                    break;
+            }
+
+            return legal;
+        }
 
     }
 }

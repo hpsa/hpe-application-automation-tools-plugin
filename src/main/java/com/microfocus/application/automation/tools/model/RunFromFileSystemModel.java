@@ -29,23 +29,19 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
-import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.TaskListener;
 import hudson.util.Secret;
-import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.*;
 
 /**
@@ -62,7 +58,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
 
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
-
 
     private String fsTests;
     private String fsTimeout;
@@ -122,8 +117,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, String fsUserName, String fsPassword, String mcTenantId,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath){
-
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath) {
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
@@ -773,7 +767,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         return JobConfigurationProxy
                 .getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), mcTenantId, proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
-
 
     @Extension
     public static class DescriptorImpl extends Descriptor<RunFromFileSystemModel> {
