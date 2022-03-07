@@ -47,14 +47,17 @@ namespace HpToolsLauncher
         private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
         private const string MOBILE_USER = "ALM_MobileUserName";
         private const string MOBILE_PASSWORD = "ALM_MobilePassword";
+        private const string MOBILE_CLIENTID = "EXTERNAL_MobileClientID";
+        private const string MOBILE_SECRET = "EXTERNAL_MobileSecretKey";
+        private const string MOBILE_AUTH_TYPE = "EXTERNAL_MobileAuthType";
         private const string MOBILE_TENANT = "EXTERNAL_MobileTenantId";
         private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
-        private const string MOBILE_USE_PROXY = "MobileProxySetting_UseProxy";
-        private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
-        private const string MOBILE_PROXY_SETTING_PORT = "MobileProxySetting_Port";
-        private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
-        private const string MOBILE_PROXY_SETTING_USERNAME = "MobileProxySetting_UserName";
-        private const string MOBILE_PROXY_SETTING_PASSWORD = "MobileProxySetting_Password";
+        private const string MOBILE_USE_PROXY = "EXTERNAL_MobileProxySetting_UseProxy";
+        private const string MOBILE_PROXY_SETTING_ADDRESS = "EXTERNAL_MobileProxySetting_Address";
+        private const string MOBILE_PROXY_SETTING_PORT = "EXTERNAL_MobileProxySetting_Port";
+        private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "EXTERNAL_MobileProxySetting_Authentication";
+        private const string MOBILE_PROXY_SETTING_USERNAME = "EXTERNAL_MobileProxySetting_UserName";
+        private const string MOBILE_PROXY_SETTING_PASSWORD = "EXTERNAL_MobileProxySetting_Password";
         private const string MOBILE_INFO = "mobileinfo";
 
         private readonly IAssetRunner _runNotifier;
@@ -187,25 +190,42 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(_mcConnection.MobileUserName))
+                    var mcAuthType = _mcConnection.MobileAuthType;
+                    switch (mcAuthType)
                     {
-                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.MobileUserName);
+                        case McConnectionInfo.AuthType.AuthToken:
+                            var token = _mcConnection.GetAuthToken();
+
+                            _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_CLIENTID, token.ClientId);
+                            _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_SECRET, token.SecretKey);
+
+                            break;
+                        case McConnectionInfo.AuthType.UsernamePassword:
+                            if (!string.IsNullOrEmpty(_mcConnection.MobileUserName))
+                            {
+                                _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.MobileUserName);
+                            }
+
+                            if (!string.IsNullOrEmpty(_mcConnection.MobilePassword))
+                            {
+                                string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.MobilePassword);
+                                if (encriptedMcPassword == null)
+                                {
+                                    ConsoleWriter.WriteLine("ProtectBSTRToBase64 fail for mcPassword");
+                                    throw new Exception("ProtectBSTRToBase64 fail for mcPassword");
+                                }
+                                _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
+                            }
+                            break;
                     }
 
+                    // set authentication type
+                    _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_AUTH_TYPE, mcAuthType);
+
+                    // set tenantID
                     if (!string.IsNullOrEmpty(_mcConnection.MobileTenantId))
                     {
                         _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_TENANT, _mcConnection.MobileTenantId);
-                    }
-
-                    if (!string.IsNullOrEmpty(_mcConnection.MobilePassword))
-                    {
-                        string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.MobilePassword);
-                        if (encriptedMcPassword == null)
-                        {
-                            ConsoleWriter.WriteLine("ProtectBSTRToBase64 fail for mcPassword");
-                            throw new Exception("ProtectBSTRToBase64 fail for mcPassword");
-                        }
-                        _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
                     }
 
                     // ssl and proxy info
@@ -234,7 +254,6 @@ namespace HpToolsLauncher
                     }
 
                     #endregion
-
 
                     if (!_qtpApplication.Launched)
                     {
