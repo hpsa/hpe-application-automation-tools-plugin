@@ -273,9 +273,17 @@ namespace HpToolsLauncher
                                                  ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
                                                  : tagUnifiedLicenseType.qtNonUnified);
 
-            Dictionary<string, object> paramList = testinf.GetParameterDictionaryForQTP();
+            Dictionary<string, object> paramDict;
+            try
+            {
+                paramDict = testinf.GetParameterDictionaryForQTP();
+            } catch (ArgumentException)
+            {
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
+                throw;
+            }
 
-            if (!HandleInputParameters(testPath, ref errorReason, testinf.GetParameterDictionaryForQTP(), testinf))
+            if (!HandleInputParameters(testPath, ref errorReason, paramDict, testinf))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -622,15 +630,13 @@ namespace HpToolsLauncher
                     break;
 
                 case qtParameterType.qtParamTypePassword:
-                    legal = paramValue is string;
-                    break;
-
                 case qtParameterType.qtParamTypeString:
+                case qtParameterType.qtParamTypeAny:
                     legal = paramValue is string;
                     break;
 
                 default:
-                    legal = true;
+                    legal = false;
                     break;
             }
 
@@ -664,25 +670,31 @@ namespace HpToolsLauncher
                         qtParameterType type = _qtpParamDefs[i].Type;
 
                         // if the caller supplies value for a parameter we set it
-                        if (inputParams.ContainsKey(paramName))
+                        if (!inputParams.ContainsKey(paramName)) continue;
+
+                        // first verify that the type is correct
+                        object paramValue = inputParams[paramName];
+                        if (!VerifyParameterValueType(paramValue, type))
                         {
-                            // first verify that the type is correct
-                            object paramValue = inputParams[paramName];
-                            if (!VerifyParameterValueType(paramValue, type))
+                            try
                             {
-                                ConsoleWriter.WriteErrLine(string.Format("Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: '{2}'", paramName, Enum.GetName(typeof(qtParameterType), type), paramValue.GetType()));
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith2Types, paramName, Enum.GetName(typeof(qtParameterType), type), paramValue.GetType()));
                             }
-                            else
+                            catch (Exception)
                             {
-                                // second-check
-                                try
-								{
-                                    _qtpParameters[paramName].Value = paramValue;
-                                    ConsoleWriter.WriteLine(string.Format("Using parameter {0}={1} ", paramName, paramValue));
-                                } catch (Exception)
-								{
-                                    ConsoleWriter.WriteErrLine(string.Format("Input parameter type mismatch (skipped), check your test configuration in UFT. param: '{0}'", paramName));
-                                }
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith2Types, paramName, Enum.GetName(typeof(qtParameterType), type), null));
+                            }
+                        }
+                        else
+                        {
+                            // second-check
+                            try
+                            {
+                                _qtpParameters[paramName].Value = paramValue;
+                                ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime) paramValue).ToShortDateString()));
+                            } catch (Exception)
+                            {
+                                ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith1Type, paramName));
                             }
                         }
                     }

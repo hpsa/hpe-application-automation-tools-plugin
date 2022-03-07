@@ -34,6 +34,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
 {
@@ -43,27 +44,64 @@ namespace HpToolsLauncher
         {
             TestPath = testPath;
         }
-        public string GenerateAPITestXmlForTest()
+
+        public string GenerateAPITestXmlForTest(Dictionary<string, object> paramDict)
         {
-            Dictionary<string, TestParameterInfo> paramDict = new Dictionary<string, TestParameterInfo>();
-            foreach (var param in ParameterList)
-            {
-                paramDict.Add(param.Name.ToLower(), param);
-            }
             string paramXmlFileName = Path.Combine(TestPath, "TestInputParameters.xml");
             XDocument doc = XDocument.Load(paramXmlFileName);
-            string schemaStr = doc.Descendants("Schema").First().Elements().First().ToString();
+            var schemaTmp = doc.Descendants("Schema").First().Elements().First();
+            var paramNs = schemaTmp.GetNamespaceOfPrefix("xs");
+            string schemaStr = schemaTmp.ToString();
             XElement xArgs = doc.Descendants("Arguments").FirstOrDefault();
-            if (xArgs != null)
+
+            // parameter specifications according to schema
+            var xParams = doc.Descendants(paramNs + "element")
+                .Where(node => "Arguments" == (string)node.Attribute("name"))
+                .Descendants(paramNs + "element").ToList();
+
+            if (xArgs != null && xParams.Count != 0)
                 foreach (XElement arg in xArgs.Elements())
                 {
-                    string paramName = arg.Name.ToString().ToLower();
-                    if (paramDict.ContainsKey(paramName))
+                    string paramName = arg.Name.ToString();
+
+                    if (!paramDict.ContainsKey(paramName))
                     {
-                        var param = paramDict[paramName];
-                        arg.Value = NormalizeParamValue(param);
+                        continue;
+                    }
+
+                    var param = paramDict[paramName];
+
+                    // spec belonging to this parameter
+                    var paramSpec = xParams.Find(elem => paramName == (string)elem.Attribute("name"));
+                    // its type
+                    string paramType;
+                    if (paramSpec != null)
+                    {
+                        var typeSpec = paramSpec.Attribute("type");
+
+                        if (typeSpec != null)
+                        {
+                            var tmpVal = typeSpec.Value;
+                            var startIdx = tmpVal.IndexOf(":", StringComparison.Ordinal);
+                            paramType = typeSpec.Value.Substring(startIdx != 0 ? startIdx + 1 : startIdx);
+                        }
+                        else continue;
+                    }
+                    else continue; // no spec found for given parameter, skipping
+
+                    // verify its type according to the spec
+                    if (!ApiTestRunner.VerifyParameterValueType(param, paramType))
+                    {
+                        ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith2Types,
+                            paramName, paramType, param.GetType()));
+                    }
+                    else
+                    {
+                        arg.Value = NormalizeParamValue(paramName, param, paramType);
+                        ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, paramType.ToLower() != "datetime" && paramType.ToLower() != "date" ? param : ((DateTime)param).ToShortDateString()));
                     }
                 }
+
             string argumentSectionStr = doc.Descendants("Values").First().Elements().First().ToString();
             try
             {
@@ -93,25 +131,26 @@ namespace HpToolsLauncher
             return doc.ToString();
         }
 
-
-        private string NormalizeParamValue(TestParameterInfo param)
+        private string NormalizeParamValue(string name, object param, string type)
         {
-            switch (param.Type.ToLower())
+            switch (type.ToLower())
             {
                 case "datetime":
                 case "date":
                     string retStr = "";
                     try
                     {
-                        retStr = ((DateTime)param.ParseValue()).ToString("yyyy-MM-ddTHH:mm:ss");
+                        retStr = ((DateTime)param).ToString("yyyy-MM-ddTHH:mm:ss");
                     }
                     catch
                     {
-                        ConsoleWriter.WriteErrLine("incorrect dateTime value format in parameter: " + param.Name);
+                        ConsoleWriter.WriteErrLine("Incorrect dateTime value format in parameter: " + name);
                     }
                     return retStr;
+                case "boolean":
+                    return param.ToString().ToLower();
                 default:
-                    return param.Value;
+                    return param.ToString();
             }
         }
 

@@ -370,6 +370,8 @@ namespace HpToolsLauncher
                         return null;
                     }
 
+                    List<TestParameter> parameters = GetValidParams();
+
                     //check if filterTests flag is selected; if yes apply filters on the list
                     bool isFilterSelected;
                     string filter = _ciParams.ContainsKey("FilterTests") ? _ciParams["FilterTests"] : string.Empty;
@@ -409,6 +411,7 @@ namespace HpToolsLauncher
                                      enmQcRunMode,
                                      almRunHost,
                                      sets,
+                                     parameters,
                                      isFilterSelected,
                                      filterByName,
                                      filterByStatuses,
@@ -422,6 +425,7 @@ namespace HpToolsLauncher
                     string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : string.Empty);
 
                     List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests, string.Empty);
+                    List<TestParameter> validParams = GetValidParams();
 
                     if (validBuildTests.Count == 0)
                     {
@@ -761,11 +765,11 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath);
                     }
 
                     break;
@@ -1104,6 +1108,47 @@ namespace HpToolsLauncher
             }
 
             return new List<TestData>();
+        }
+
+
+        /// <summary>
+        /// Returns all the valid parameters from the props file (CI args).
+        /// </summary>
+        /// <returns></returns>
+        private List<TestParameter> GetValidParams()
+        {
+            List<TestParameter> parameters = new List<TestParameter>();
+
+            int initialNumOfTests = _ciParams.ContainsKey("numOfTests") ? int.Parse(_ciParams["numOfTests"]) : 0;
+
+            for (int i = 1; i <= initialNumOfTests; ++i)
+            {
+                int j = 1;
+                while (_ciParams.ContainsKey(string.Format("Param{0}_Name_{1}", i, j)))
+                {
+                    string name = _ciParams[string.Format("Param{0}_Name_{1}", i, j)].Trim();
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        ConsoleWriter.WriteLine(string.Format("Found no name associated with parameter with index {0} for test {1}.", j, i));
+                        continue;
+                    }
+
+                    string val = _ciParams[string.Format("Param{0}_Value_{1}", i, j)].Trim();
+
+                    string type = _ciParams[string.Format("Param{0}_Type_{1}", i, j)];
+                    if (string.IsNullOrWhiteSpace(type))
+                    {
+                        ConsoleWriter.WriteLine(string.Format("Found no type associated with parameter {0}.", name));
+                        continue;
+                    }
+
+                    parameters.Add(new TestParameter(i, name, val, type.ToLower()));
+                    ++j;
+                }
+            }
+
+            return parameters;
         }
 
         /// <summary>
