@@ -282,7 +282,9 @@ namespace HpToolsLauncher
                 _rerunFailedTests = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
 
                 //the "On failure" option is selected and the run build contains failed tests
-                if (_rerunFailedTests && _exitCode != ExitCodeEnum.Passed)
+                // we need to check if there were any failed tests
+
+                if (_rerunFailedTests && (_exitCode == ExitCodeEnum.Failed || results.NumFailures > 0))
                 {
                     ConsoleWriter.WriteLine("There are failed tests.");
 
@@ -315,8 +317,9 @@ namespace HpToolsLauncher
 
                     results.AppendResults(rerunResults);
                     RunSummary(runner, resultsFilename, results);
-                    Environment.Exit((int)_exitCode);
                 }
+
+                Environment.Exit((int)_exitCode);
             }
         }
 
