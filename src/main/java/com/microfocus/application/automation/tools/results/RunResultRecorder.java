@@ -436,7 +436,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			} else { // UFT Test
 				boolean reportIsHtml = false;
 				NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+
+				// to keep counting how many times this TestName have appeared, used for counting the correct count of appearance
 				Map<String, Integer> fileNameCount = new HashMap<>();
+				// to keep counting how many times this TestPath have appeared, used for accessing the correct Report dir
+				Map<String, Integer> filePathCount = new HashMap<>();
+
 				for (int i = 0; i < testCasesNodes.getLength(); i++) {
 					Node nNode = testCasesNodes.item(i);
 
@@ -455,22 +460,34 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
 						String sysInfo = nodeSystemInfo.getFirstChild().getNodeValue();
 						String testDateTime = sysInfo.substring(0, 19);
-						String reportIndex = "";
 						FilePath testFileFullName = new FilePath(channel, testFolderPath);
+
 						if(!testFileFullName.exists()){
 							break;
 						}
 
 						String testName = testFileFullName.getName();
+
 						int nameCount = 1;
 						if (fileNameCount.containsKey(testName)) {
 							nameCount = fileNameCount.get(testName) + 1;
 						}
 						// update the count for this file
 						fileNameCount.put(testName, nameCount);
+						testName += "[" + nameCount + "]";
 
-						if (fileNameCount.get(testName) != null) {
-							reportIndex = Integer.toString(fileNameCount.get(testName));
+						String testPath = testFileFullName.getRemote();
+
+						int pathCount = 1;
+						if (filePathCount.containsKey(testPath)) {
+							pathCount = filePathCount.get(testPath) + 1;
+						}
+						// update the count for this path
+						filePathCount.put(testPath, pathCount);
+
+						String reportIndex = "";
+						if (filePathCount.get(testPath) != null) {
+							reportIndex = Integer.toString(filePathCount.get(testPath));
 						} else {
 							reportIndex = "1";
 						}
@@ -480,8 +497,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							reportFolder = new FilePath(channel, reportFolderPath);
 						}
 						if(!reportFolder.exists()){
-							listener.getLogger().println("report folder does not exist");
+							listener.getLogger().println("Report folder does not exist.");
 						}
+
 						boolean isParallelRunnerReport = isParallelRunnerReportPath(reportFolder);
 						reportFolders.add(reportFolder);
 
@@ -500,12 +518,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							reportMetaData.setDateTime(testDateTime);
 							reportMetaData.setStatus(testStatus);
 							reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
-							// the type for this report
-							testFileFullName = new FilePath(channel, testFolderPath);
-							testName = testFileFullName.getName();
-							testName += "[" + nameCount + "]";
-							String resourceUrl = "artifact/UFTReport/" + testName;
 
+							// the type for this report
+							String resourceUrl = "artifact/UFTReport/" + testName;
 							reportMetaData.setResourceURL(resourceUrl);
 							reportMetaData.setDisPlayName(testName); // use the name, not the full path
 
