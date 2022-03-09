@@ -37,6 +37,7 @@ import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
+import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
@@ -49,7 +50,9 @@ import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -83,9 +86,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private RunFromFileSystemModel runFromFileModel;
 
     private FileSystemTestSetModel fileSystemTestSetModel;
-
+    private SpecifyParametersModel specifyParametersModel;
     private boolean isParallelRunnerEnabled;
-
+    private boolean areParametersEnabled;
     private SummaryDataLogModel summaryDataLogModel;
 
     private ScriptRTSSetModel scriptRTSSetModel;
@@ -102,13 +105,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests,
                               boolean isParallelRunnerEnabled,
+                              boolean areParametersEnabled,
+                              SpecifyParametersModel specifyParametersModel,
                               FileSystemTestSetModel fileSystemTestSetModel,
                               SummaryDataLogModel summaryDataLogModel,
                               ScriptRTSSetModel scriptRTSSetModel,
                               UftSettingsModel uftSettingsModel) {
         this.runFromFileModel = new RunFromFileSystemModel(fsTests);
+        this.specifyParametersModel = specifyParametersModel;
         this.fileSystemTestSetModel = fileSystemTestSetModel;
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
+        this.areParametersEnabled = areParametersEnabled;
         this.summaryDataLogModel = summaryDataLogModel;
         this.scriptRTSSetModel = scriptRTSSetModel;
         this.uftSettingsModel = uftSettingsModel;
@@ -687,6 +694,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             mergedProperties.putAll(runFromFileModel.getProperties(env));
         }
 
+        if (areParametersEnabled) {
+            try {
+                specifyParametersModel.addProperties(mergedProperties, "Test");
+            } catch (Exception e) {
+                listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
+            }
+        }
+
         int idx = 0;
         for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
             String key = iterator.next();
@@ -788,6 +803,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             }
             index++;
         }
+
+        mergedProperties.setProperty("numOfTests", String.valueOf(index - 1));
 
         // get properties serialized into a stream
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -901,6 +918,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             String fileName = resultFileNames.get(threadId);
             return fileName;
         }
+    }
+
+    public boolean isAreParametersEnabled() {
+        return areParametersEnabled;
+    }
+
+    public void setAreParametersEnabled(boolean areParametersEnabled) {
+        this.areParametersEnabled = areParametersEnabled;
+    }
+
+    public SpecifyParametersModel getSpecifyParametersModel() {
+        return specifyParametersModel;
     }
 
     /**

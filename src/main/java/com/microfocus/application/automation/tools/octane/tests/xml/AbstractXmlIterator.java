@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests.xml;
 
+import com.ctc.wstx.stax.WstxInputFactory;
 import hudson.util.IOUtils;
 
 import javax.xml.stream.XMLEventReader;
@@ -108,7 +109,8 @@ public abstract class AbstractXmlIterator<E> {
     }
 
     private static XMLInputFactory createXmlInputFactory() {
-        XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
+        //up to Jenkins version 2.319.2 this was the XML Input Factory implementation used, new Factory cause test result corruption
+        XMLInputFactory xmlFactory = new WstxInputFactory();
         xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         xmlFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         return xmlFactory;

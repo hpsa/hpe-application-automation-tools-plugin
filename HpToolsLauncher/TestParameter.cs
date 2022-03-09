@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Certain versions of software and/or documents ("Material") accessible here may contain branding from
  * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
  * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
@@ -26,34 +26,21 @@
  * ___________________________________________________________________
  */
 
-using System;
-
 namespace HpToolsLauncher
 {
-    public class RunnerBase : IAssetRunner
+    public class TestParameter
     {
-        public virtual void Dispose()
-        {
-        }
-        protected bool _blnRunCancelled = false;
-        protected JunitXmlBuilder _xmlBuilder = new JunitXmlBuilder();
-
-        public bool RunWasCancelled
-        {
-            get { return _blnRunCancelled; }
-            set { _blnRunCancelled = value; }
+        public TestParameter(int TestIdx, string ParamName, string ParamVal, string ParamType) { 
+            this.TestIdx = TestIdx;
+            this.ParamName = ParamName;
+            this.ParamVal = ParamVal;
+            this.ParamType = ParamType;
         }
 
-        public JunitXmlBuilder XmlBuilder
-        {
-            get { return _xmlBuilder; }
-            set { _xmlBuilder = value; }
-        }
-
-        public virtual TestSuiteRunResults Run()
-        {
-            throw new NotImplementedException();
-        }
+        public int TestIdx { get; set; }
+        public string ParamName { get; set; }
+        public string ParamVal { get; set; }
+        public string ParamType { get; set; }
 
     }
 }

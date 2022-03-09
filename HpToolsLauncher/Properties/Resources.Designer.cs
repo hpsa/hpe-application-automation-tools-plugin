@@ -61,6 +61,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate parameter name entry found, please check the parameters&apos; specification, falling back to default parameters for {0}. test or testset..
+        /// </summary>
+        internal static string AlmDuplicateParameter {
+            get {
+                return ResourceManager.GetString("AlmDuplicateParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find Test {0}.
         /// </summary>
         internal static string AlmRunnerCantFindTest {
@@ -163,7 +172,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Unable to login. Please check username and password.&quot;.
+        ///   Looks up a localized string similar to Unable to login. Please check username and password..
         /// </summary>
         internal static string AlmRunnerIncorectCredentials {
             get {
@@ -217,7 +226,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Scheduler started at:.
+        ///   Looks up a localized string similar to Scheduler started at:.
         /// </summary>
         internal static string AlmRunnerSchedStarted {
             get {
@@ -226,7 +235,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;ALM server {0} unreachable, check that server Url is correct&quot;.
+        ///   Looks up a localized string similar to ALM server {0} unreachable, check that server Url is correct.
         /// </summary>
         internal static string AlmRunnerServerUnreachable {
             get {
@@ -397,6 +406,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate parameter name entry found, please check the parameters&apos; specification..
+        /// </summary>
+        internal static string FsDuplicateParamNames {
+            get {
+                return ResourceManager.GetString("FsDuplicateParamNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test..
         /// </summary>
         internal static string FsRunnerErrorParameterFormat {
@@ -492,6 +510,33 @@ namespace HpToolsLauncher.Properties {
         internal static string GeneralFileNotFound {
             get {
                 return ResourceManager.GetString("GeneralFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input parameter type mismatch (skipped), check your test configuration in UFT. param: &apos;{0}&apos;.
+        /// </summary>
+        internal static string GeneralParameterTypeMismatchWith1Type {
+            get {
+                return ResourceManager.GetString("GeneralParameterTypeMismatchWith1Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Illegal input parameter type (skipped). param: &apos;{0}&apos;. expected type: &apos;{1}&apos;. actual type: &apos;{2}&apos;.
+        /// </summary>
+        internal static string GeneralParameterTypeMismatchWith2Types {
+            get {
+                return ResourceManager.GetString("GeneralParameterTypeMismatchWith2Types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using parameter {0} = {1}.
+        /// </summary>
+        internal static string GeneralParameterUsage {
+            get {
+                return ResourceManager.GetString("GeneralParameterUsage", resourceCulture);
             }
         }
         

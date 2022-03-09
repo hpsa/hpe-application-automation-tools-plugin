@@ -214,6 +214,8 @@ public class RunFromAlmModel extends AbstractDescribableImpl<RunFromAlmModel> {
                     i++;
                 }
             }
+
+            props.put("numOfTests", String.valueOf(i - 1));
         } else {
             props.put("almTestSets", "");
         }

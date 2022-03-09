@@ -267,7 +267,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
                     //workspace.createTextTempFile("build" + buildId + "." + cleanTestName(testName) + ".", "", "Created  " + testReportCreated);
                     if (testReportCreated) {
-                        uftResultFilePath = ((List<String>) additionalContext).get(0) +"\\archive\\UFTReport\\" + cleanedTestName + "\\run_results.xml";
+                        final String basePath = ((List<String>) additionalContext).get(0);
+                        uftResultFilePath = Paths.get(basePath, "archive", "UFTReport", cleanedTestName, "run_results.xml").toFile().getCanonicalPath();
                         externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanedTestName + "/run_results.html";
                     } else {
                         //if UFT didn't created test results page - add reference to Jenkins test results page

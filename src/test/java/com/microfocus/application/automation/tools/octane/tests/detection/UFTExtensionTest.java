@@ -35,6 +35,7 @@ import com.microfocus.application.automation.tools.octane.tests.detection.Result
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsXmlReader.TestResultContainer;
 import com.microfocus.application.automation.tools.run.RunFromAlmBuilder;
 import com.microfocus.application.automation.tools.run.RunFromFileBuilder;
+import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SubversionSCM;
@@ -83,10 +84,11 @@ public class UFTExtensionTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		FilterTestsModel filterTestsModel = new FilterTestsModel("testName", false, false, false, false, false);
+		SpecifyParametersModel parametersModel = new SpecifyParametersModel("[]");
 		AlmServerSettingsModel almServerSettingsModel =  new AlmServerSettingsModel("server2", "serverURL",  new ArrayList<>(), new ArrayList<>());
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test -Dmaven.repo.local=%s\\m2-temp",
 				TestUtils.getMavenHome(),System.getenv("TEMP")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "JOB", "sa", "", "domain", "project", "notExistingTests", "", "", "", "", "","", false, false, filterTestsModel, almServerSettingsModel));
+		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "JOB", "sa", "", "domain", "project", "notExistingTests", "", "", "", "", "","", false, false, false, filterTestsModel, parametersModel, almServerSettingsModel));
 
 		AbstractBuild buildMock = Mockito.mock(AbstractBuild.class);
 		Mockito.when(buildMock.getProject()).thenReturn(project);

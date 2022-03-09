@@ -44,6 +44,7 @@ namespace HpToolsLauncher
 
         Dictionary<string, string> _jenkinsEnvVariables;
         private List<TestInfo> _tests;
+        private List<TestParameter> _parameters;
         private static string _uftViewerPath;
         private int _errors, _fail, _warnings;
         private bool _useUFTLicense;
@@ -67,10 +68,8 @@ namespace HpToolsLauncher
         //saves runners for cleaning up at the end.
         private Dictionary<TestType, IFileSysTestRunner> _colRunnersForCleanup = new Dictionary<TestType, IFileSysTestRunner>();
 
-
         private McConnectionInfo _mcConnection;
         private string _mobileInfoForAllGuiTests;
-
 
 		#endregion
 
@@ -94,6 +93,7 @@ namespace HpToolsLauncher
 		/// <param name="summaryDataLogger"></param>
 		/// <param name="scriptRtsSet"></param>
 		public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> parameters,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int controllerPollingInterval,
@@ -108,9 +108,9 @@ namespace HpToolsLauncher
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
+                                    string xmlResultsFullFileName,
                                     bool useUftLicense = false)
-
-            : this(sources, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, useUftLicense)
+            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -134,6 +134,7 @@ namespace HpToolsLauncher
         /// <param name="summaryDataLogger"></param>
         /// <param name="useUftLicense"></param>
         public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> parameters,
                                     TimeSpan timeout,
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
@@ -147,13 +148,14 @@ namespace HpToolsLauncher
                                     SummaryDataLogger summaryDataLogger,
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
+                                    string xmlResultsFullFileName,
                                     bool useUftLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
             if (!Helper.IsTestingToolsInstalled(TestStorageType.FileSystem))
             {
-                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on, System.Environment.MachineName));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on, Environment.MachineName));
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
@@ -171,11 +173,13 @@ namespace HpToolsLauncher
             _summaryDataLogger = summaryDataLogger;
             _scriptRTSSet = scriptRtsSet;
             _tests = new List<TestInfo>();
+            _parameters = parameters;
 
             _mcConnection = mcConnection;
             _mobileInfoForAllGuiTests = mobileInfo;
 
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
+            _xmlBuilder.XmlName = xmlResultsFullFileName;
 
             ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
@@ -184,9 +188,11 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine("Results directory is: " + reportPath);
             }
 
+            int idx = 1;
             //go over all sources, and create a list of all tests
             foreach (TestData source in sources)
             {
+                //this will contain all the tests found in the source
                 List<TestInfo> testGroup = new List<TestInfo>();
                 try
                 {
@@ -199,10 +205,12 @@ namespace HpToolsLauncher
                         foreach (var loc in testsLocations)
                         {
                             var test = new TestInfo(loc, loc, testPath, source.Id);
-                            
+
                             try
 							{
-                                SetParams(source.Tests, ref test);
+                                //we need to check for inline params and props params as well, for backward compatibility
+                                SetInlineParams(source.Tests, ref test);
+                                SetPropsParams(idx, ref test);
                             } catch (ArgumentException)
 							{
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.FsRunnerErrorParameterFormat, testPath));
@@ -243,8 +251,7 @@ namespace HpToolsLauncher
                             }
                         }
                     }
-                }
-                catch (Exception)
+                } catch (Exception)
                 {
                     testGroup = new List<TestInfo>();
                 }
@@ -255,7 +262,10 @@ namespace HpToolsLauncher
                     testGroup[0].TestGroup = "Test group";
                 }
 
+                //we add the found tests to the test list
                 _tests.AddRange(testGroup);
+
+                ++idx;
             }
 
             if (_tests == null || _tests.Count == 0)
@@ -293,6 +303,9 @@ namespace HpToolsLauncher
         {
             //create a new Run Results object
             TestSuiteRunResults activeRunDesc = new TestSuiteRunResults();
+            bool isNewTestSuite;
+            testsuite ts = _xmlBuilder.TestSuites.GetTestSuiteOrDefault(activeRunDesc.SuiteName, JunitXmlBuilder.ClassName, out isNewTestSuite);
+            ts.tests += _tests.Count;
 
             double totalTime = 0;
             try
@@ -307,16 +320,15 @@ namespace HpToolsLauncher
 
                 Dictionary<string, int> rerunList = createDictionary(_tests);
 
-                foreach (var test in _tests)
+                for (int x = 0; x < _tests.Count; x++)
                 {
+                    var test = _tests[x];
                     if (indexList[test.TestPath] == 0)
                     {
                         indexList[test.TestPath] = 1;
                     }
 
                     if (RunCancelled()) break;
-
-                    var testStart = DateTime.Now;
 
                     string errorReason = string.Empty;
                     TestRunResults runResult = null;
@@ -351,7 +363,7 @@ namespace HpToolsLauncher
                         {
                             if (string.IsNullOrEmpty(runResult.ErrorDesc))
                             {
-                                runResult.ErrorDesc = RunCancelled() ? HpToolsLauncher.Properties.Resources.ExceptionUserCancelled : HpToolsLauncher.Properties.Resources.ExceptionExternalProcess;
+                                runResult.ErrorDesc = RunCancelled() ? Resources.ExceptionUserCancelled : Resources.ExceptionExternalProcess;
                             }
                             runResult.ReportLocation = null;
                             runResult.TestState = TestState.Error;
@@ -368,8 +380,7 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestDone, runResult.TestState));
                     }
 
-                    UpdateCounters(runResult.TestState);
-                    var testTotalTime = (DateTime.Now - testStart).TotalSeconds;
+                    UpdateCounters(runResult.TestState, ts);
 
                     //create test folders
                     if (rerunList[test.TestPath] > 0)
@@ -386,9 +397,9 @@ namespace HpToolsLauncher
                     }
 
                     //update report folder
-                    String uftReportDir = Path.Combine(test.TestPath, "Report");
-                    String uftReportDirNew = Path.Combine(test.TestPath, "Report" + indexList[test.TestPath]);
-                    ConsoleWriter.WriteLine("uftReportDir is " + uftReportDirNew);
+                    string uftReportDir = Path.Combine(test.TestPath, "Report");
+                    string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
+                    ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
                     try
                     {
                         if (Directory.Exists(uftReportDir))
@@ -401,12 +412,14 @@ namespace HpToolsLauncher
                             Directory.Move(uftReportDir, uftReportDirNew);
                         }
                     }
-                    catch(Exception e)
+                    catch(Exception)
                     {
                         System.Threading.Thread.Sleep(1000);
                         Directory.Move(uftReportDir, uftReportDirNew);
                     }
 
+                    // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
+                    _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
                     ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
                 }
 
@@ -448,10 +461,18 @@ namespace HpToolsLauncher
             return rerunList;
         }
 
-        public static void SetParams(string testPath, ref TestInfo test)
+        /// <summary>
+        /// Sets the test's inline parameters.
+        /// </summary>
+        /// <param name="testPath"></param>
+        /// <param name="test"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void SetInlineParams(string testPath, ref TestInfo test)
         {
+            // the inline test path does not contain any parameter specification
             if (testPath.IndexOf("\"") == -1) return;
 
+            // the inline test path does contain parameter specification
             string paramString = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
             string[] paramList = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -459,10 +480,10 @@ namespace HpToolsLauncher
 
             IList<string> paramNames, paramValues;
 
-            if (!Helper.ValidateListOfParams(paramList, out paramNames, out paramValues))
-			{
+            if (!Helper.ValidateListOfParamsForInline(paramList, out paramNames, out paramValues))
+            {
                 throw new ArgumentException();
-			}
+            }
 
             TestParameterInfo placeholderParam;
             string placeholderType = "string";
@@ -470,14 +491,32 @@ namespace HpToolsLauncher
             for (int i = 0; i < paramNames.Count; ++i)
             {
                 if (long.TryParse(paramValues[i], out _unused))
-				{
+                {
                     placeholderType = "number";
-				} else
-				{
+                }
+                else
+                {
                     placeholderType = "string";
-				}
+                }
 
                 placeholderParam = new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] };
+                test.ParameterList.Add(placeholderParam);
+            }
+        }
+
+        /// <summary>
+        /// Sets the test's parameters from the props (CI args).
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <param name="test"></param>
+        private void SetPropsParams(int idx, ref TestInfo test)
+        {
+            // all the parameters that belong to this test
+            List<TestParameter> relevant = _parameters.FindAll(elem => elem.TestIdx.Equals(idx));
+
+            foreach (TestParameter param in relevant)
+            {
+                TestParameterInfo placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
                 test.ParameterList.Add(placeholderParam);
             }
 
@@ -597,18 +636,20 @@ namespace HpToolsLauncher
         /// sums errors and failed tests
         /// </summary>
         /// <param name="testState"></param>
-        private void UpdateCounters(TestState testState)
+        private void UpdateCounters(TestState testState, testsuite ts)
         {
             switch (testState)
             {
                 case TestState.Error:
-                    _errors += 1;
+                    _errors++;
+                    ts.errors++;
                     break;
                 case TestState.Failed:
-                    _fail += 1;
+                    _fail++;
+                    ts.failures++;
                     break;
                 case TestState.Warning:
-                    _warnings += 1;
+                    _warnings++;
                     break;
             }
         }

@@ -29,12 +29,14 @@
 package com.microfocus.application.automation.tools.model;
 
 import com.microfocus.application.automation.tools.EncryptionUtils;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.Secret;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -44,6 +46,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.*;
 
 /**
  * Holds the data for RunFromFile build type.
@@ -59,7 +62,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
 
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
-
 
     private String fsTests;
     private String fsTimeout;
@@ -116,7 +118,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
                                   String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath) {
-
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;

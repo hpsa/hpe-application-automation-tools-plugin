@@ -203,13 +203,13 @@ Save the test in QuickTest and then run it again.</value>
     <value>Run ID:</value>
   </data>
   <data name="AlmRunnerSchedStarted" xml:space="preserve">
-    <value>"Scheduler started at:</value>
+    <value>Scheduler started at:</value>
   </data>
   <data name="AlmRunnerServerUnreachable" xml:space="preserve">
-    <value>"ALM server {0} unreachable, check that server Url is correct"</value>
+    <value>ALM server {0} unreachable, check that server Url is correct</value>
   </data>
   <data name="AlmRunnerIncorectCredentials" xml:space="preserve">
-    <value>"Unable to login. Please check username and password."</value>
+    <value>Unable to login. Please check username and password.</value>
   </data>
   <data name="AlmRunnerStartingExecution" xml:space="preserve">
     <value>Starting test set execution</value>
@@ -519,5 +519,19 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="McMalformedTokenMissingKeyValuePair" xml:space="preserve">
     <value>Malformed execution token for Mobile, token without key-value.</value>
+  <data name="FsDuplicateParamNames" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
+  </data>
+  <data name="AlmDuplicateParameter" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification, falling back to default parameters for {0}. test or testset.</value>
+  </data>
+  <data name="GeneralParameterTypeMismatchWith1Type" xml:space="preserve">
+    <value>Input parameter type mismatch (skipped), check your test configuration in UFT. param: '{0}'</value>
+  </data>
+  <data name="GeneralParameterTypeMismatchWith2Types" xml:space="preserve">
+    <value>Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: '{2}'</value>
+  </data>
+  <data name="GeneralParameterUsage" xml:space="preserve">
+    <value>Using parameter {0} = {1}</value>
   </data>
 </root>
