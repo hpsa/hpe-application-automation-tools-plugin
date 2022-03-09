@@ -519,6 +519,7 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="McMalformedTokenMissingKeyValuePair" xml:space="preserve">
     <value>Malformed execution token for Mobile, token without key-value.</value>
+  </data>
   <data name="FsDuplicateParamNames" xml:space="preserve">
     <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
   </data>
