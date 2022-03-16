@@ -175,11 +175,9 @@ public class HttpUtils {
                 while ((line = reader.readLine()) != null) {
                     res.append(line);
                 }
-                if (JSONValue.isValidJson(res.toString())) {
-                    obj = (JSONObject) JSONValue.parseStrict(res.toString());
-                } else {
-                    System.out.println("WARN::INVALIDE JSON Object" + res);
-                }
+                obj = (JSONObject) JSONValue.parseStrict(res.toString());
+            } catch (ClassCastException e) {
+                System.out.println("WARN::INVALIDE JSON Object" + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
