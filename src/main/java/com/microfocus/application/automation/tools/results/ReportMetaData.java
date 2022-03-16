@@ -28,10 +28,15 @@
 
 package com.microfocus.application.automation.tools.results;
 
+import com.microfocus.application.automation.tools.settings.RunnerMiscSettingsGlobalConfiguration;
+
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static com.microfocus.application.automation.tools.settings.RunnerMiscSettingsGlobalConfiguration.*;
 
 public class ReportMetaData {
-
-
 
     private String folderPath;  //slave path of report folder(only for html report format)
     private String disPlayName;
@@ -75,8 +80,31 @@ public class ReportMetaData {
         this.resourceURL = resourceURL;
     }
 
+    private static LocalDateTime tryParseDate(String date) {
+        for (String pattern : DEFAULT_UFT_DATE_PATTERNS) {
+            try {
+                return LocalDateTime.parse(date, DateTimeFormatter.ofPattern(pattern));
+            } catch (DateTimeException | IllegalArgumentException ignored) {}
+        }
+
+        return null;
+    }
+
     public String getDateTime() {
         return dateTime;
+    }
+
+    public String getFormattedDateTime() {
+        // there is a global configuration option to set the date format for RunResults, we format the received date at the last second
+        // because this way we can keep the default UFT formatting, nonetheless how users specify their own format
+        LocalDateTime dateTime = tryParseDate(this.dateTime);
+        if (dateTime == null) return this.dateTime;
+
+        try {
+            return dateTime.format(RunnerMiscSettingsGlobalConfiguration.getInstance().getDateFormatter());
+        } catch (NullPointerException ignored) {
+            return this.dateTime;
+        }
     }
 
     public void setDateTime(String dateTime) {
@@ -116,4 +144,5 @@ public class ReportMetaData {
     public boolean hasArchiveUrl() {
         return archiveUrl != null && !archiveUrl.equals("");
     }
+
 }
