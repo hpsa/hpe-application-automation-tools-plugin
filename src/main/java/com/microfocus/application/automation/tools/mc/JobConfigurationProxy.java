@@ -74,10 +74,11 @@ public class JobConfigurationProxy {
             }
             HttpResponse response;
             if ("base".equals(authModel.getValue())) {
+                String tempUsername = authModel.getMcUserName();
                 if (!StringUtils.isNullOrEmpty(authModel.getMcTenantId())) {
-                    authModel.setMcUserName(authModel.getMcUserName() + "#" + authModel.getMcTenantId());
+                    tempUsername += "#" + authModel.getMcTenantId();
                 }
-                sendObject.put("name", authModel.getMcUserName());
+                sendObject.put("name", tempUsername);
                 sendObject.put("password", authModel.getMcPassword());
                 sendObject.put("accountName", "default");
                 response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
