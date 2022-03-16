@@ -84,7 +84,9 @@ public class ReportMetaData {
         for (String pattern : DEFAULT_UFT_DATE_PATTERNS) {
             try {
                 return LocalDateTime.parse(date, DateTimeFormatter.ofPattern(pattern));
-            } catch (DateTimeException | IllegalArgumentException ignored) {}
+            } catch (DateTimeException | IllegalArgumentException ignored) {
+                // ignoring, trying to find appropriate date pattern for date string
+            }
         }
 
         return null;
@@ -97,13 +99,13 @@ public class ReportMetaData {
     public String getFormattedDateTime() {
         // there is a global configuration option to set the date format for RunResults, we format the received date at the last second
         // because this way we can keep the default UFT formatting, nonetheless how users specify their own format
-        LocalDateTime dateTime = tryParseDate(this.dateTime);
-        if (dateTime == null) return this.dateTime;
+        LocalDateTime dt = tryParseDate(dateTime);
+        if (dt == null) return dateTime;
 
         try {
-            return dateTime.format(RunnerMiscSettingsGlobalConfiguration.getInstance().getDateFormatter());
+            return dt.format(RunnerMiscSettingsGlobalConfiguration.getInstance().getDateFormatter());
         } catch (NullPointerException ignored) {
-            return this.dateTime;
+            return dateTime;
         }
     }
 

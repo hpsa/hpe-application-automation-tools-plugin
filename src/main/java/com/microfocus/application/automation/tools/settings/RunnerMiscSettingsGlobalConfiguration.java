@@ -50,8 +50,6 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     public static final String DEFAULT_UFT_DATE_PATTERN3 = "dd.MM.yyyy HH:mm:ss";
     public static final List<String> DEFAULT_UFT_DATE_PATTERNS = Arrays.asList(DEFAULT_UFT_DATE_PATTERN1, DEFAULT_UFT_DATE_PATTERN2, DEFAULT_UFT_DATE_PATTERN3);
 
-    private static boolean LOADED = false;
-
     private String dateFormat;
 
     @DataBoundConstructor
@@ -61,17 +59,12 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
 
     public RunnerMiscSettingsGlobalConfiguration() {
         load();
-        LOADED = true;
     }
 
     public static RunnerMiscSettingsGlobalConfiguration getInstance() throws NullPointerException {
         RunnerMiscSettingsGlobalConfiguration config = GlobalConfiguration.all().get(RunnerMiscSettingsGlobalConfiguration.class);
 
         if (config == null) throw new NullPointerException();
-
-        if (!LOADED) {
-            config.load();
-        }
 
         return config;
     }
