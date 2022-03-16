@@ -540,7 +540,7 @@ namespace HpToolsLauncher
                 }
                 else if (_qtpApplication.Test.LastRunResults.Status.Equals("Warning"))
                 {
-                    testResults.TestState = TestState.Passed;
+                    testResults.TestState = TestState.Warning;
                     testResults.HasWarnings = true;
 
                     if (Launcher.ExitCode != Launcher.ExitCodeEnum.Failed && Launcher.ExitCode != Launcher.ExitCodeEnum.Aborted)
