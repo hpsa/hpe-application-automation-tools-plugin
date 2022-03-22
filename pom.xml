@@ -35,7 +35,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>7.2.3-beta-SNAPSHOT</version>
+	<version>7.3</version>
 	<packaging>hpi</packaging>
 	<name>Micro Focus Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
@@ -81,7 +81,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
-		<tag>micro-focus-application-automation-tools-plugin-5.5.4-beta</tag>
+		<tag>micro-focus-application-automation-tools-plugin-7.3</tag>
 	</scm>
 
 	<issueManagement>
