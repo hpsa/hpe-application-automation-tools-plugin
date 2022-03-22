@@ -1,5 +1,7 @@
 package com.microfocus.application.automation.tools.mc;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.regex.Pattern;
 
 public class Oauth2TokenUtil {
@@ -8,21 +10,20 @@ public class Oauth2TokenUtil {
     private static String secret;
     private static String tenant;
 
+    private Oauth2TokenUtil() {
+    }
+
     public static boolean validate(String auth2) {
         String strCleaned = removeQuotes(auth2.trim());
         String[] a = strCleaned.split(Pattern.quote(";"));
         for (String s : a) {
-            if (s == null) {
-                return false;
-            }
-            if (s.trim().isEmpty()) {
+            if (StringUtils.isEmpty(s)) {
                 continue;
             }
             if (!extractField(s.trim())) {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -34,7 +35,7 @@ public class Oauth2TokenUtil {
     }
 
     private static boolean extractField(String str) {
-        int pos = str.indexOf("=");
+        int pos = str.indexOf('=');
         if (pos < 0) {
             return false;
         }
@@ -44,16 +45,14 @@ public class Oauth2TokenUtil {
 
         if ("client".equalsIgnoreCase(key)) {
             client = value;
-            return true;
         } else if ("secret".equalsIgnoreCase(key)) {
             secret = value;
-            return true;
         } else if ("tenant".equalsIgnoreCase(key)) {
             tenant = value;
-            return true;
+        } else {
+            return false;
         }
-
-        return false;
+        return true;
     }
 
     public static String getClient() {
