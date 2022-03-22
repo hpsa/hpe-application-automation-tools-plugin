@@ -51,16 +51,26 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.2 introduced the following enhancements:
+Version 7.3 introduced the following enhancements:
 
-**General**
+**ALM Octane**
 
-- Updated plugin to handle log4j security issue.
+- Code improvements for MBT, model-based testing.
+- Support for Codeless text executions.
+- Defect fixes.
 
 **UFT One**
 
-- Parsing of UFT test names by Jenkins.
+- Partial test result reporting for aborted Jenkins jobs, for file system executions. When a Jenkins job execution is aborted or cancelled, all the test results until that point, will be available in the build.
+- Improved parameter configuration for UFT One tests using a new parameter table, for file system and ALM execution. You can now add different types of parameters, for both GUI and API tests. 
+- Improvements in the re-run option for failed scenarios in file system executions, where tests finished with a Warning status.
+- Improved reporting for UFT One tests with same name, but different locations. 
+- Enhancements to secure log4j issues.
 
+**Service Virtualization**
+
+- Ability to switch virtual services to OFFLINE mode.
+ 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Changelog
