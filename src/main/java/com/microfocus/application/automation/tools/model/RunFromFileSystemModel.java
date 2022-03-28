@@ -35,6 +35,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.util.Secret;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -650,11 +651,11 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @return the properties
      */
 	@Nullable
-	public Properties getProperties(EnvVars envVars) {
-        return createProperties(envVars);
+	public Properties getProperties(EnvVars envVars, Node currNode) {
+        return createProperties(envVars, currNode);
     }
 
-    private Properties createProperties(EnvVars envVars) {
+    private Properties createProperties(EnvVars envVars, Node currNode) {
         Properties props = new Properties();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
@@ -721,9 +722,8 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                 String encryptedPassword;
 
                 try {
-                    encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
-                            EncryptionUtils.getSecretKey());
-                }catch (Exception ex) {
+                    encryptedPassword = EncryptionUtils.encrypt(proxySettings.getFsProxyPassword(), currNode);
+                } catch (Exception ex) {
                     return null; // cannot continue without proper config
                 }
 

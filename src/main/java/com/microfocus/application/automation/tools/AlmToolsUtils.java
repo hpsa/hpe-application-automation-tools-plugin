@@ -28,19 +28,24 @@
 
 package com.microfocus.application.automation.tools;
 
+import com.microfocus.application.automation.tools.settings.UFTEncryptionGlobalConfiguration;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("squid:S1160")
-public class AlmToolsUtils {
+public final class AlmToolsUtils {
 
 
 	private AlmToolsUtils() {
@@ -61,9 +66,28 @@ public class AlmToolsUtils {
             args.add("-paramfile");
             args.add(paramFileName);
 
+            // for encryption
+            Map<String, String> envs = new HashMap<>();
+
+            try {
+                UFTEncryptionGlobalConfiguration config = UFTEncryptionGlobalConfiguration.getInstance();
+                envs.put("hptoolslauncher.key", Secret.fromString(config.getEncKey()).getPlainText());
+            } catch (NullPointerException ignored) {
+                throw new IOException("Failed to access encryption key, the module UFTEncryption is unavailable.");
+            }
+
+            Node currNode = JenkinsUtils.getCurrentNode(build);
+            if (currNode == null) throw new IOException("Failed to access current executor node.");
+
+            try {
+                envs.put("hptoolslauncher.rootpath", Objects.requireNonNull(currNode.getRootPath()).getRemote());
+            } catch (NullPointerException e) {
+                throw new IOException(e.getMessage());
+            }
+
             // Run the script on node
             // Execution result should be 0
-            int returnCode = launcher.launch().cmds(args).stdout(out).pwd(file.getParent()).join();
+            int returnCode = launcher.launch().cmds(args).stdout(out).pwd(file.getParent()).envs(envs).join();
 
             if (returnCode != 0) {
                 if (returnCode == -1) {
