@@ -119,7 +119,7 @@ namespace HpToolsLauncher.TestRunners
             TestRunResults runDesc = new TestRunResults();
 
             ConsoleWriter.ActiveTestRun = runDesc;
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + scenarioPath);
+            ConsoleWriter.WriteLineWithTime("Running: " + scenarioPath);
 
             runDesc.TestType = TestType.LoadRunner.ToString();
             _resultsFolder = Helper.GetTempDir();

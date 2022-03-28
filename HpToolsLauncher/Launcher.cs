@@ -100,7 +100,7 @@ namespace HpToolsLauncher
         private TestStorageType _runType;
         private readonly string _failOnUftTestFailed;
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
-        private const string _dateFormat = "dd/MM/yyyy HH:mm:ss";
+        private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
         private bool _rerunFailedTests = false;
 
         public const string ClassName = "HPToolsFileSystemRunner";

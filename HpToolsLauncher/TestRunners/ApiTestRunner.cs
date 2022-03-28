@@ -94,7 +94,7 @@ namespace HpToolsLauncher
 
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testinf.TestPath);
+            ConsoleWriter.WriteLineWithTime("Running: " + testinf.TestPath);
 
             runDesc.TestPath = testinf.TestPath;
 
