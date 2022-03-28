@@ -49,6 +49,7 @@ public final class AlmToolsUtils {
 
 
 	private AlmToolsUtils() {
+        // no meaning instantiating
 	}
 
 	public static void runOnBuildEnv(

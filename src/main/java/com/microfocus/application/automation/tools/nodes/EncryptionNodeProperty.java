@@ -46,7 +46,9 @@ public class EncryptionNodeProperty extends NodeProperty<Node> {
     private Secret publicKey;
 
     @DataBoundConstructor
-    public EncryptionNodeProperty() {}
+    public EncryptionNodeProperty() {
+        // no need to give value to anything
+    }
 
     @CheckForNull
     public String getPublicKey() {

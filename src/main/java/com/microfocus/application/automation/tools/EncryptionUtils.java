@@ -63,6 +63,10 @@ public final class EncryptionUtils {
     private static final String KEY_PATH = "secrets/.hptoolslaunchersecret.key";
     private static final String NL = System.getProperty("line.separator");
 
+    private EncryptionUtils() {
+        // no meaning instantiating
+    }
+
     /**
      * Parses a public key returns its PublicKey instance.
      * @param publicKeyStr public key in base64 string format

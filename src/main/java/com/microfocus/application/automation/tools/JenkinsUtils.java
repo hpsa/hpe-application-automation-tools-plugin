@@ -37,6 +37,10 @@ import java.util.Objects;
 
 public final class JenkinsUtils {
 
+    private JenkinsUtils() {
+        // no meaning instantiating
+    }
+
     /**
      * Returns the current executor node from the Run instance.
      * @param build current job
