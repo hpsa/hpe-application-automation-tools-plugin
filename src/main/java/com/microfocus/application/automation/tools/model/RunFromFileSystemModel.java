@@ -675,12 +675,12 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put("MobileTenantId", mcTenantId);
         }
 
-        if(isUseProxy()){
+        if (isUseProxy()){
             props.put("MobileUseProxy", "1");
             props.put("MobileProxyType","2");
             props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
 
-            if(isUseAuthentication()){
+            if (isUseAuthentication()){
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
                 String encryptedPassword;
@@ -692,12 +692,12 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                 }
 
                 props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
-            }else{
+            } else{
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
                 props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
             }
-        }else{
+        } else{
             props.put("MobileUseProxy", "0");
             props.put("MobileProxyType","0");
             props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
@@ -706,9 +706,9 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
         }
 
-        if(useSSL){
+        if (useSSL){
             props.put(MOBILE_USE_SSL,"1");
-        }else{
+        } else{
             props.put(MOBILE_USE_SSL,"0");
         }
         return false;
