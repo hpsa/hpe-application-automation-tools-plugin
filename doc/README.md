@@ -59,6 +59,12 @@ Version 7.3 introduced the following enhancements:
 - Support for Codeless text executions.
 - Defect fixes.
 
+**Model-Based Testing**
+
+- Code improvements.
+- Support for Windows and Linux upper case/lower case strings.
+- Defect fixes.
+
 **UFT One**
 
 - Partial test result reporting for aborted Jenkins jobs, for file system executions. When a Jenkins job execution is aborted or cancelled, all the test results until that point, will be available in the build.
@@ -99,7 +105,8 @@ This plugin supports the following Micro Focus product versions:
 | :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md)                  |
 | ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
-| ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
+| ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help Center](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
+| Model-based Testing                                          | 16.0.300 and higher  | [Model-Based Testing Help Center](https://admhelp.microfocus.com/mbt) |
 | LoadRunner Professional                             | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
 | UFT Mobile                                           | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
 | LoadRunner Enterprise                               | 12.xx (12.53 or higher required for trend reports), 2020 and higher     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/lre/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
