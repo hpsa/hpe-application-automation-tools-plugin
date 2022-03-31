@@ -261,7 +261,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
-
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
 
@@ -274,7 +273,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return;
         }
 
-        Node currNode = JenkinsUtils.getCurrentNode(build);
+        Node currNode = JenkinsUtils.getCurrentNode(workspace);
         if (currNode == null) {
             listener.error("Failed to get current executor node.");
             return;
@@ -409,7 +408,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);

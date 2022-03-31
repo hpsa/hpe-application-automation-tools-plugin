@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
+import hudson.FilePath;
 import hudson.model.Node;
 import hudson.model.Run;
 
@@ -47,11 +48,11 @@ public final class JenkinsUtils {
      * @return executor
      */
     @CheckForNull
-    public static Node getCurrentNode(@Nonnull Run<?, ?> build) {
+    public static Node getCurrentNode(@Nonnull FilePath workspace) {
         try {
             Node currNode;
             // throws NullPointerException if failed to access executor node
-            currNode = Objects.requireNonNull(build.getExecutor()).getOwner().getNode();
+            currNode = Objects.requireNonNull(workspace.toComputer()).getNode();
             return currNode;
         } catch (NullPointerException ignored) {
             // ignore

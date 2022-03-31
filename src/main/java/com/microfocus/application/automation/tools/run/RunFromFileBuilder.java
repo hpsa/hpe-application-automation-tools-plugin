@@ -664,7 +664,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             listener.error("Failed loading build environment: " + e.getMessage());
         }
 
-        Node currNode = JenkinsUtils.getCurrentNode(build);
+        Node currNode = JenkinsUtils.getCurrentNode(workspace);
         if (currNode == null) {
             listener.error("Failed to get current executor node.");
             return;
@@ -886,7 +886,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);

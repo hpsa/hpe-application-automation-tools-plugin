@@ -57,7 +57,8 @@ public final class AlmToolsUtils {
             Launcher launcher,
             TaskListener listener,
             FilePath file,
-            String paramFileName) throws IOException, InterruptedException {
+            String paramFileName,
+            Node node) throws IOException, InterruptedException {
 
             ArgumentListBuilder args = new ArgumentListBuilder();
             PrintStream out = listener.getLogger();
@@ -77,11 +78,16 @@ public final class AlmToolsUtils {
                 throw new IOException("Failed to access encryption key, the module UFTEncryption is unavailable.");
             }
 
-            Node currNode = JenkinsUtils.getCurrentNode(build);
-            if (currNode == null) throw new IOException("Failed to access current executor node.");
+            if (node == null) {
+                node = JenkinsUtils.getCurrentNode(file);
+
+                if (node == null) {
+                    throw new IOException("Failed to access current executor node.");
+                }
+            }
 
             try {
-                envs.put("hptoolslauncher.rootpath", Objects.requireNonNull(currNode.getRootPath()).getRemote());
+                envs.put("hptoolslauncher.rootpath", Objects.requireNonNull(node.getRootPath()).getRemote());
             } catch (NullPointerException e) {
                 throw new IOException(e.getMessage());
             }
