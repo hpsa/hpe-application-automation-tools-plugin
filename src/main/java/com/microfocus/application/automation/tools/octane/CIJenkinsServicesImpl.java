@@ -106,7 +106,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
     //we going to print octaneAllowedStorage to system log, this flag help to avoid multiple prints
     private static boolean skipOctaneAllowedStoragePrint = false;
-    private static Object skipOctaneAllowedStoragePrintLock = new Object(); //this must be before SDKBasedLoggerProvider.getLogger
+    private static Object skipOctaneAllowedStoragePrintLock = new Object();//this must be before SDKBasedLoggerProvider.getLogger
 
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
@@ -188,7 +188,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                     PipelineNode tmpConfig;
                     if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
                         tempJobName = tmpJob.getParent().getFullName();
-                        if(jobsMap.containsKey(tempJobName)) {
+                        if(jobsMap.containsKey(tempJobName)){
                             continue;//skip redundant creation config for multibranch job
                         }
                         tmpConfig = createPipelineNodeFromJobName(tempJobName);
@@ -201,14 +201,14 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                 }
             }
 
-            if (jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)) {
+            if(jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)){
                 //it is possible that user doesn't have general READ permission
                 // but has read permission to specific job, so we postponed this check to end
                 String userName = ImpersonationUtil.getUserNameForImpersonation(getInstanceId(), workspaceId);
-                if (StringUtils.isEmpty(userName)) {
+                if(StringUtils.isEmpty(userName)){
                     userName = "anonymous";
                 }
-                String msg = String.format("User %s does not have READ permission", userName);
+                String msg = String.format("User %s does not have READ permission",userName);
                 throw new PermissionException(msg, HttpStatus.SC_FORBIDDEN);
             }
 
@@ -222,7 +222,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         return result;
     }
 
-    public static boolean isJobIsRelevantForPipelineModule(Job job) {
+    public static boolean isJobIsRelevantForPipelineModule(Job job){
         return !(job == null ||
                 (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) ||
                 job instanceof MatrixConfiguration ||
@@ -348,7 +348,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             Job job = getJobByRefId(jobCiId);
             boolean hasRead = Jenkins.get().hasPermission(Item.READ);
             if (!hasRead) {
-                throw new PermissionException("Missing READ permission to job " + jobCiId, HttpStatus.SC_FORBIDDEN);
+                throw new PermissionException("Missing READ permission to job " + jobCiId,  HttpStatus.SC_FORBIDDEN);
             }
             AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
             return jobProcessor.getBuildStatus(parameterName, parameterValue);
@@ -492,7 +492,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         }
     }
 
-    private String getFortifySSCToken() {
+    private String getFortifySSCToken(){
         OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(getInstanceId());
         FortifySSCTokenParameter parameter = (FortifySSCTokenParameter) octaneClient.getConfigurationService().getConfiguration().getParameter(FortifySSCTokenParameter.KEY);
         if (parameter != null) {
@@ -839,7 +839,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         if (jenkins != null) {
             folder = getAllowedStorageFileForMasterJenkins(jenkins);
         } else {/*is slave*/
-            folder = new File("octanePluginContent");
+            folder =  new File("octanePluginContent");
         }
         return folder;
     }
@@ -881,14 +881,14 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
         }
         result.setType(CIServerTypes.JENKINS.value())
-                .setVersion("7.4")
+                .setVersion(Jenkins.VERSION)
                 .setUrl(serverUrl)
                 .setSendingTime(System.currentTimeMillis());
         return result;
     }
 
     public static void publishEventToRelevantClients(CIEvent event) {
-        OctaneSDK.getClients().forEach(c -> c.getEventsService().publishEvent(event));
+        OctaneSDK.getClients().forEach(c->c.getEventsService().publishEvent(event));
     }
 
     @Override
