@@ -50,11 +50,15 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     public static final String DEFAULT_UFT_DATE_PATTERN3 = "dd.MM.yyyy HH:mm:ss";
     public static final List<String> DEFAULT_UFT_DATE_PATTERNS = Arrays.asList(DEFAULT_UFT_DATE_PATTERN1, DEFAULT_UFT_DATE_PATTERN2, DEFAULT_UFT_DATE_PATTERN3);
 
+    public static final String DEFAULT_BRANCHES = "master,main,trunk,mainline";
+
     private String dateFormat;
+    private String defaultBranches;
 
     @DataBoundConstructor
-    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat) {
+    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches) {
         setDateFormat(mfDateFormat);
+        setDefaultBranches(defaultBranches);
     }
 
     public RunnerMiscSettingsGlobalConfiguration() {
@@ -77,6 +81,20 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
 
     public String getDateFormat() {
         return dateFormat;
+    }
+
+    public String getDefaultBranches() {
+        return defaultBranches;
+    }
+
+    public void setDefaultBranches(String defaultBranches) {
+        if (!StringUtils.isNullOrEmpty(defaultBranches)) {
+            this.defaultBranches = defaultBranches;
+        } else {
+            this.defaultBranches = DEFAULT_BRANCHES;
+        }
+
+        save();
     }
 
     public DateTimeFormatter getDateFormatter() {
@@ -106,6 +124,14 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
                 return FormValidation.error("Invalid timestamp pattern specified.");
             }
 
+            return FormValidation.ok();
+        }
+
+        return FormValidation.warning("Will fallback to default pattern.");
+    }
+
+    public FormValidation doCheckDefaultBranches(@QueryParameter String value) {
+        if (!StringUtils.isNullOrEmpty(value)) {
             return FormValidation.ok();
         }
 
