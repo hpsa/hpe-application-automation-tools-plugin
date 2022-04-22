@@ -48,6 +48,7 @@ import com.hp.octane.integrations.dto.general.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
@@ -69,6 +70,7 @@ import com.microfocus.application.automation.tools.octane.testrunner.TestsToRunC
 import com.microfocus.application.automation.tools.octane.tests.TestListener;
 import com.microfocus.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.microfocus.application.automation.tools.octane.tests.junit.JUnitExtension;
+import com.microfocus.application.automation.tools.settings.RunnerMiscSettingsGlobalConfiguration;
 import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.matrix.MatrixConfiguration;
@@ -76,6 +78,7 @@ import hudson.maven.MavenModule;
 import hudson.model.*;
 import hudson.security.ACLContext;
 import hudson.util.IOUtils;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.apache.commons.fileupload.FileItem;
@@ -108,6 +111,10 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
     private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
+
+    private static final RunnerMiscSettingsGlobalConfiguration config = GlobalConfiguration.all().get(RunnerMiscSettingsGlobalConfiguration.class);
+
+    private static final String DEFAULT_BRANCHES_SEPARATOR = ",";
 
     @Override
     public CIServerInfo getServerInfo() {
@@ -296,6 +303,42 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         } finally {
             stopImpersonation(securityContext);
         }
+    }
+
+    @Override
+    public CIBranchesList getBranchesList(String jobCiId, String filterBranchName) {
+        ACLContext securityContext = startImpersonation();
+        List<Branch> result = new ArrayList<>();
+        try {
+            Item item = Jenkins.get().getItemByFullName(jobCiId);
+            if (item != null) {
+                boolean hasAbortPermissions = item.hasPermission(Item.CANCEL);
+                item.hasPermission(Item.READ);
+                if (!hasAbortPermissions) {
+                    stopImpersonation(securityContext);
+                    throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+                }
+                if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+                    result = doGetListOfBranchesImpl(item, filterBranchName);
+                }
+                return dtoFactory.newDTO(CIBranchesList.class)
+                        .setBranches(result);
+            } else {
+                throw new ConfigurationException(HttpStatus.SC_NOT_FOUND);
+            }
+        } finally {
+            stopImpersonation(securityContext);
+        }
+    }
+
+    private List<Branch> doGetListOfBranchesImpl(Item item, String filterBranchName) {
+        Collection<? extends Job> allJobs = item.getAllJobs();
+
+        return allJobs.stream().filter(job -> job.getDisplayName().equals(filterBranchName))
+                .map(job -> dtoFactory.newDTO(Branch.class)
+                        .setName(job.getDisplayName())
+                        .setInternalId(job.getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -618,9 +661,34 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     }
 
     private PipelineNode createPipelineNodeFromJobName(String name) {
-        return dtoFactory.newDTO(PipelineNode.class)
+        String[] defaultBranchesArray = config.getDefaultBranches().split(DEFAULT_BRANCHES_SEPARATOR);
+        Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toSet());
+
+        Item item = Jenkins.get().getItemByFullName(name);
+        Collection<? extends Job> allJobs = item.getAllJobs();
+
+        Job job = allJobs.stream()
+                .filter(tempJob -> defaultBranches.contains(getDisplayNameFromJob(tempJob)))
+                .findFirst().orElse(null);
+
+        PipelineNode result = dtoFactory.newDTO(PipelineNode.class)
                 .setJobCiId(BuildHandlerUtils.translateFolderJobName(name))
                 .setName(name);
+
+        if(job != null) {
+            String defaultBranch = getDisplayNameFromJob(job);
+            result.setParameters(ParameterProcessors.getConfigs(job))
+                    .setDefaultBranchName(defaultBranch);
+        }
+
+        return result;
+    }
+
+    private String getDisplayNameFromJob(Job tempJob) {
+        return tempJob.getDisplayName() != null ? tempJob.getDisplayName() : tempJob.getName();
     }
 
     private InputStream getOctaneLogFile(Run run) {
