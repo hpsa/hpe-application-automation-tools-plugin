@@ -10,13 +10,8 @@
           </option>
           <option name="goals">
             <list>
-              <option value="hpi:run" />
-              <option value="clean" />
-              <option value="package" />
-              <option value="-Djetty.port=8083" />
-              <option value="-Dmaven.javadoc.skip=true" />
-              <option value="-Dhudson.model.DirectoryBrowserSupport.CSP=" />
-              <option value="-DskipTests" />
+              <option value="mvn" />
+              <option value="debug" />
             </list>
           </option>
           <option name="pomFileName" />
