@@ -312,11 +312,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         try {
             Item item = Jenkins.get().getItemByFullName(jobCiId);
             if (item != null) {
-                boolean hasAbortPermissions = item.hasPermission(Item.CANCEL);
-                item.hasPermission(Item.READ);
-                if (!hasAbortPermissions) {
-                    stopImpersonation(securityContext);
-                    throw new PermissionException(HttpStatus.SC_FORBIDDEN);
+                boolean hasRead = Jenkins.get().hasPermission(Item.READ);
+                if (!hasRead) {
+                    throw new PermissionException("Missing READ permission to job " + jobCiId,  HttpStatus.SC_FORBIDDEN);
                 }
                 if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
                     result = doGetListOfBranchesImpl(item, filterBranchName);
@@ -334,7 +332,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     private List<Branch> doGetListOfBranchesImpl(Item item, String filterBranchName) {
         Collection<? extends Job> allJobs = item.getAllJobs();
 
-        return allJobs.stream().filter(job -> job.getDisplayName().equals(filterBranchName))
+        return allJobs.stream().filter(job -> getDisplayNameFromJob(job).equals(filterBranchName))
                 .map(job -> dtoFactory.newDTO(Branch.class)
                         .setName(job.getDisplayName())
                         .setInternalId(job.getName()))
