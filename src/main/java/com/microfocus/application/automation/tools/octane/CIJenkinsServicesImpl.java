@@ -258,31 +258,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         }
     }
 
-    private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
-        if(config == null) return;
-
-        String defaultBranchesConfig = config.getDefaultBranches();
-        if(StringUtils.isNotEmpty(defaultBranchesConfig)) {
-            String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
-            Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
-                    .map(String::trim)
-                    .filter(StringUtils::isNotEmpty)
-                    .collect(Collectors.toSet());
-
-            Collection<? extends Job> allJobs = item.getAllJobs();
-
-            Job job = allJobs.stream()
-                    .filter(tempJob -> defaultBranches.contains(getDisplayNameFromJob(tempJob)))
-                    .findFirst().orElse(null);
-
-            if (job != null) {
-                String defaultBranch = getDisplayNameFromJob(job);
-                result.setParameters(ParameterProcessors.getConfigs(job))
-                        .setDefaultBranchName(defaultBranch);
-            }
-        }
-    }
-
     @Override
     public void runPipeline(String jobCiId, CIParameters ciParameters) {
         ACLContext securityContext = startImpersonation();
@@ -688,6 +663,29 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         return dtoFactory.newDTO(PipelineNode.class)
                 .setJobCiId(BuildHandlerUtils.translateFolderJobName(name))
                 .setName(name);
+    }
+
+    private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
+        String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
+        if(StringUtils.isNotEmpty(defaultBranchesConfig)) {
+            String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
+            Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
+                    .map(String::trim)
+                    .filter(StringUtils::isNotEmpty)
+                    .collect(Collectors.toSet());
+
+            Collection<? extends Job> allJobs = item.getAllJobs();
+
+            Job job = allJobs.stream()
+                    .filter(tempJob -> defaultBranches.contains(getDisplayNameFromJob(tempJob)))
+                    .findFirst().orElse(null);
+
+            if (job != null) {
+                String defaultBranch = getDisplayNameFromJob(job);
+                result.setParameters(ParameterProcessors.getConfigs(job))
+                        .setDefaultBranchName(defaultBranch);
+            }
+        }
     }
 
     private String getDisplayNameFromJob(Job tempJob) {
