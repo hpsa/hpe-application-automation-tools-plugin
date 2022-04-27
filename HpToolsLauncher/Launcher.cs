@@ -101,7 +101,6 @@ namespace HpToolsLauncher
         private readonly string _failOnUftTestFailed;
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
         private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
-        private const string _defaultBranches = "main,master,trunk,mainline";
         private bool _rerunFailedTests = false;
 
         public const string ClassName = "HPToolsFileSystemRunner";
@@ -109,11 +108,6 @@ namespace HpToolsLauncher
         public static string DateFormat
         {
             get { return _dateFormat; }
-        }
-
-        public static string DefaultBranches
-        {
-            get { return _defaultBranches; }
         }
 
         /// <summary>
