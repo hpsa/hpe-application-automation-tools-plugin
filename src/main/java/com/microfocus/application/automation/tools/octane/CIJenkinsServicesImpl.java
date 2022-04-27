@@ -248,12 +248,38 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             } else {
                 result = createPipelineNodeFromJobName(item.getFullName());
                 if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
+                    addParametersAndDefaultBranchFromConfig(item, result);
                     result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
                 }
             }
             return result;
         } finally {
             stopImpersonation(securityContext);
+        }
+    }
+
+    private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
+        if(config == null) return;
+
+        String defaultBranchesConfig = config.getDefaultBranches();
+        if(StringUtils.isNotEmpty(defaultBranchesConfig)) {
+            String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
+            Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
+                    .map(String::trim)
+                    .filter(StringUtils::isNotEmpty)
+                    .collect(Collectors.toSet());
+
+            Collection<? extends Job> allJobs = item.getAllJobs();
+
+            Job job = allJobs.stream()
+                    .filter(tempJob -> defaultBranches.contains(getDisplayNameFromJob(tempJob)))
+                    .findFirst().orElse(null);
+
+            if (job != null) {
+                String defaultBranch = getDisplayNameFromJob(job);
+                result.setParameters(ParameterProcessors.getConfigs(job))
+                        .setDefaultBranchName(defaultBranch);
+            }
         }
     }
 
@@ -659,30 +685,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     }
 
     private PipelineNode createPipelineNodeFromJobName(String name) {
-        String[] defaultBranchesArray = config.getDefaultBranches().split(DEFAULT_BRANCHES_SEPARATOR);
-        Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
-                .map(String::trim)
-                .filter(StringUtils::isNotEmpty)
-                .collect(Collectors.toSet());
-
-        Item item = Jenkins.get().getItemByFullName(name);
-        Collection<? extends Job> allJobs = item.getAllJobs();
-
-        Job job = allJobs.stream()
-                .filter(tempJob -> defaultBranches.contains(getDisplayNameFromJob(tempJob)))
-                .findFirst().orElse(null);
-
-        PipelineNode result = dtoFactory.newDTO(PipelineNode.class)
+        return dtoFactory.newDTO(PipelineNode.class)
                 .setJobCiId(BuildHandlerUtils.translateFolderJobName(name))
                 .setName(name);
-
-        if(job != null) {
-            String defaultBranch = getDisplayNameFromJob(job);
-            result.setParameters(ParameterProcessors.getConfigs(job))
-                    .setDefaultBranchName(defaultBranch);
-        }
-
-        return result;
     }
 
     private String getDisplayNameFromJob(Job tempJob) {
