@@ -114,7 +114,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
     private static final RunnerMiscSettingsGlobalConfiguration config = GlobalConfiguration.all().get(RunnerMiscSettingsGlobalConfiguration.class);
 
-    private static final String DEFAULT_BRANCHES_SEPARATOR = ",";
+    private static final String DEFAULT_BRANCHES_SEPARATOR = " ";
 
     @Override
     public CIServerInfo getServerInfo() {
