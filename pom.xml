@@ -32,7 +32,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>4.40</version>
+		<version>4.31</version> <!-- TODO newer versions require an upgrade of the test harness -->
 		<relativePath />
 	</parent>
 
@@ -63,6 +63,8 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>2.289.3</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
+		<java.level>8</java.level>
+		<jenkins-test-harness.version>2.55</jenkins-test-harness.version> <!-- TODO newer versions require debugging an issue with open file handles -->
 	</properties>
 
 	<distributionManagement>
