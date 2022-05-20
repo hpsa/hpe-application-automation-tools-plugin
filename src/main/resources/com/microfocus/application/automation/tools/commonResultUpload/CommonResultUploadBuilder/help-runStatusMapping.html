@@ -28,13 +28,26 @@
 
 <div>
     <p>Run status mapping field is for mapping the test result's status values to ALM run status value.
-        Yaml key represents the test result run status value. You should first set the status field in field mapping.
-    Yaml value represents the ALM run status values. There are following status in ALM:<br>
-    No Run<br>
+        Yaml key represents the ALM run status values. Only one of the following status can be set here:<br>
     Passed<br>
     Failed<br>
-    Blocked<br>
-    Not Completed<br>
+        Yaml value represents the condition that sustains the status. Ten kinds of conditions can be set here:<br>
+        ==StringValue<br>
+        !=StringValue<br>
+
+        ==0 (Or any numeric value)<br>
+        !=0 (Or any numeric value)<br>
+
+        >>0 (Or any numeric value)<br>
+        <<0 (Or any numeric value)<br>
+
+        <=0 (Or any numeric value)<br>
+        >=0 (Or any numeric value)<br>
+
+        ==NULL<br>
+        !=NULL<br>
+
+        You should first set the status field in field mapping.<br>
     </p>
 
 <xmp>
@@ -48,8 +61,24 @@ Take following test result as example:
 </xmp>
 <b>Sample status mapping:</b>
 <xmp>status:
-  True: "Passed"
-  False: "Failed"
+    Passed: "==true"
 </xmp>
 
+    <xmp>
+Take following test result as example:
+<case>
+    <duration>0.041</duration>
+    <className>SomeClass</className>
+    <testName>SomeTest-1</testName>
+    <skipped>false</skipped>
+    <failedSince>0</failedSince>
+</case>
+    </xmp>
+    <b>Sample field mapping:</b>
+    <xmp>run:
+  status: "x: failedSince"</xmp>
+        <b>Sample status mapping:</b>
+    <xmp>status:
+  Failed: ">=0"
+    </xmp>
 </div>
