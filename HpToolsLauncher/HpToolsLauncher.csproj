@@ -89,6 +89,7 @@
     <Compile Include="ConsoleQuickEdit.cs" />
     <Compile Include="ElevatedProcess.cs" />
     <Compile Include="IProcessAdapter.cs" />
+    <Compile Include="EncryptionUtils.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="ConsoleWriter.cs" />
     <Compile Include="Interfaces\IAssetRunner.cs" />
