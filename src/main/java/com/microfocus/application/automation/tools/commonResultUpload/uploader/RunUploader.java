@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.commonResultUpload.uploader;
 import com.microfocus.application.automation.tools.commonResultUpload.CommonUploadLogger;
 import com.microfocus.application.automation.tools.commonResultUpload.service.CustomizationService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RestService;
+import com.microfocus.application.automation.tools.commonResultUpload.service.RunStatusResolver;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmCommonProperties;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmRun;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmTestInstance;
@@ -42,6 +43,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.ACTUAL_USER;
 
@@ -92,8 +94,9 @@ public class RunUploader {
         }
 
         // Update test instance status
-        if (StringUtils.isNotEmpty(run.get(AlmRun.RUN_STATUS))) {
-            String runstatus = getRunStatus(run.get(AlmRun.RUN_STATUS));
+        String runstatus = RunStatusResolver.getRunStatus(run.get(AlmRun.RUN_STATUS), runStatusMapping);
+
+        if (StringUtils.isNotEmpty(runstatus)) {
             // Create a run without status
             run.remove(AlmRun.RUN_STATUS);
             Map<String, String> createdRun = restService.create(RUN_PREFIX, run);
@@ -127,6 +130,8 @@ public class RunUploader {
 
     private String convertDetail(String detail) {
         if (StringUtils.isNotEmpty(detail)) {
+            detail = detail.replaceAll("<", "&lt;");
+            detail = detail.replaceAll(">", "&gt;");
             return Base64Encoder.encode(detail.getBytes());
         }
         return detail;
@@ -158,19 +163,6 @@ public class RunUploader {
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
                 cal.get(Calendar.SECOND));
-    }
-
-    private String getRunStatus(String status) {
-        if (StringUtils.isEmpty(status)) {
-            return IAlmConsts.IStatuses.NO_RUN.value();
-        } else {
-            // If status are set, return as set.
-            if (runStatusMapping != null) {
-                String realStatus = runStatusMapping.get(status);
-                return realStatus == null ? status : realStatus;
-            }
-            return status;
-        }
     }
 
     /**
