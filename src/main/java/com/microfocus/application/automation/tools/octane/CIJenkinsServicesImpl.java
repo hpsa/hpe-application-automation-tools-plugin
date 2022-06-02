@@ -189,9 +189,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                     PipelineNode tmpConfig;
                     if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
                         tempJobName = tmpJob.getParent().getFullName();
-                        WorkflowMultiBranchProject parentItem = (WorkflowMultiBranchProject) (Jenkins.get().getItemByFullName(tempJobName));
+                        WorkflowMultiBranchProject parentItem = (WorkflowMultiBranchProject) Jenkins.get().getItem(tempJobName);
                         if( (parentItem != null && parentItem.isDisabled()) || jobsMap.containsKey(tempJobName)){
-                            continue; // skip redundant creation config for multibranch job
+                            continue; //skip redundant creation config for multibranch job
                         }
                         tmpConfig = createPipelineNodeFromJobName(tempJobName);
                     } else {
@@ -672,7 +672,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
     private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
         String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
-        if(defaultBranchesConfig !=null && !defaultBranchesConfig.isEmpty()) {
+        if(StringUtils.isNotEmpty(defaultBranchesConfig)) {
             String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
             Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
                     .map(String::trim)
