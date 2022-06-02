@@ -672,7 +672,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
     private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
         String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
-        if(StringUtils.isNotEmpty(defaultBranchesConfig)) {
+        if(defaultBranchesConfig != null && !defaultBranchesConfig.isEmpty()) {
             String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
             Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
                     .map(String::trim)
