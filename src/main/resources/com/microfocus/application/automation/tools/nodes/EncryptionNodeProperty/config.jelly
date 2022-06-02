@@ -1,4 +1,3 @@
-<?jelly escape-by-default='true'?>
 <!--
   ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
   ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
@@ -27,13 +26,10 @@
   ~ ___________________________________________________________________
   -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:hp="/lib/hp-application-automation-tools">
-    <f:section title="${instance.displayName}">
-        <f:entry title="Run Result (UFT Report) timestamp format string" field="dateFormat" >
-            <f:textbox name="mf.dateFormat" value="${instance.dateFormat}" />
-        </f:entry>
-        <f:entry title="Default branches" field="defaultBranches" >
-            <f:textbox name="mf.defaultBranches" value="${instance.defaultBranches}" />
-        </f:entry>
-    </f:section>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+    <f:entry title="Public key for encryption" field="publicKey">
+        <f:secretTextarea value="${instance.publicKey}" />
+    </f:entry>
 </j:jelly>

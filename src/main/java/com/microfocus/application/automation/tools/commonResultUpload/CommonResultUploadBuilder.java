@@ -301,10 +301,9 @@ public class CommonResultUploadBuilder extends Recorder implements SimpleBuildSt
 
         public String defaultRunStatusMapping() {
             return "status:\n" +
-                    "  True: \"Passed\" # If status attribute is \"True\" in report, the run in ALM will be marked as \"Passed\"\n" +
-                    "  False: \"Failed\" # If status attribute is \"False\" in report, the run in ALM will be marked as \"Failed\"\n" +
-                    "  1: \"Passed\" # If status attribute is \"1\" in report, the run in ALM will be marked as \"Passed\"\n" +
-                    "  0: \"Failed\" # If status attribute is \"0\" in report, the run in ALM will be marked as \"Failed\"\n";
+                    "  Passed: \"==True\" # If status attribute is \"True\" in report, the run in ALM will be marked as \"Passed\". Else will be \"Failed\".\n" +
+                    "  #Failed: \">=0\" # If status attribute value greater or equals than 0, then run in ALM will be marked as \"Failed\".  \n" +
+                    "  #Passed condition and Failed condition are mutural exclusion." ;
         }
     }
 

@@ -35,6 +35,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.util.Secret;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -650,33 +651,70 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @return the properties
      */
 	@Nullable
-	public Properties getProperties(EnvVars envVars) {
-        return createProperties(envVars);
+	public Properties getProperties(EnvVars envVars, Node currNode) {
+        return createProperties(envVars, currNode);
     }
 
-    private Properties createProperties(EnvVars envVars) {
+    private Properties createProperties(EnvVars envVars, Node currNode) {
         Properties props = new Properties();
 
-        if (!StringUtils.isEmpty(this.fsTests)) {
-            String expandedFsTests = envVars.expand(fsTests);
-            String[] testsArr;
-            if (UftToolUtils.isMtbxContent(expandedFsTests)) {
-                testsArr = new String[]{expandedFsTests};
-            } else {
-                testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
-            }
+        addTestsToProps(envVars, props);
 
-            int i = 1;
+        addUFTSpecificSettingsToProps(envVars, props);
 
-            for (String test : testsArr) {
-                test = test.trim();
-                props.put("Test" + i, test);
-                i++;
-            }
-        } else {
-            props.put("fsTests", "");
+        if (addMobileSpecificSettingsToProps(currNode, props)) return null; // cannot continue without proper config
+
+        return props;
+    }
+
+    private boolean addMobileSpecificSettingsToProps(Node currNode, Properties props) {
+        if (StringUtils.isNotBlank(fsUserName)){
+            props.put("MobileUserName", fsUserName);
+        }
+        if (StringUtils.isNotBlank(mcTenantId)){
+            props.put("MobileTenantId", mcTenantId);
         }
 
+        if (isUseProxy()){
+            props.put("MobileUseProxy", "1");
+            props.put("MobileProxyType","2");
+            props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
+
+            if (isUseAuthentication()){
+                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
+                props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
+                String encryptedPassword;
+
+                try {
+                    encryptedPassword = EncryptionUtils.encrypt(proxySettings.getFsProxyPassword(), currNode);
+                } catch (Exception ex) {
+                    return true;
+                }
+
+                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
+            } else{
+                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
+                props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
+                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
+            }
+        } else{
+            props.put("MobileUseProxy", "0");
+            props.put("MobileProxyType","0");
+            props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
+            props.put("MobileProxySetting_Address", "");
+            props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
+            props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
+        }
+
+        if (useSSL){
+            props.put(MOBILE_USE_SSL,"1");
+        } else{
+            props.put(MOBILE_USE_SSL,"0");
+        }
+        return false;
+    }
+
+    private void addUFTSpecificSettingsToProps(EnvVars envVars, Properties props) {
         String fsTimeoutVal = StringUtils.isEmpty(fsTimeout) ? "-1" : envVars.expand(fsTimeout);
         props.put("fsTimeout", fsTimeoutVal);
 
@@ -699,56 +737,31 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
         }
 
-        if (StringUtils.isNotBlank(fsUserName)){
-            props.put("MobileUserName", fsUserName);
-        }
-        if (StringUtils.isNotBlank(mcTenantId)){
-            props.put("MobileTenantId", mcTenantId);
-        }
-
         if(StringUtils.isNotBlank(fsReportPath)) {
             props.put("fsReportPath", fsReportPath);
         }
+    }
 
-        if(isUseProxy()){
-            props.put("MobileUseProxy", "1");
-            props.put("MobileProxyType","2");
-            props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
-
-            if(isUseAuthentication()){
-                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"1");
-                props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
-                String encryptedPassword;
-
-                try {
-                    encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
-                            EncryptionUtils.getSecretKey());
-                }catch (Exception ex) {
-                    return null; // cannot continue without proper config
-                }
-
-                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
-            }else{
-                props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
-                props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
-                props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
+    private void addTestsToProps(EnvVars envVars, Properties props) {
+        if (!StringUtils.isEmpty(this.fsTests)) {
+            String expandedFsTests = envVars.expand(fsTests);
+            String[] testsArr;
+            if (UftToolUtils.isMtbxContent(expandedFsTests)) {
+                testsArr = new String[]{expandedFsTests};
+            } else {
+                testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
             }
-        }else{
-            props.put("MobileUseProxy", "0");
-            props.put("MobileProxyType","0");
-            props.put(MOBILE_PROXY_SETTING_AUTHENTICATION,"0");
-            props.put("MobileProxySetting_Address", "");
-            props.put(MOBILE_PROXY_SETTING_USER_NAME,"");
-            props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD,"");
-        }
 
-        if(useSSL){
-            props.put(MOBILE_USE_SSL,"1");
-        }else{
-            props.put(MOBILE_USE_SSL,"0");
-        }
+            int i = 1;
 
-        return props;
+            for (String test : testsArr) {
+                test = test.trim();
+                props.put("Test" + i, test);
+                i++;
+            }
+        } else {
+            props.put("fsTests", "");
+        }
     }
 
     /**

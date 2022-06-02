@@ -26,39 +26,57 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.common;
+package com.microfocus.application.automation.tools.nodes;
 
-import java.util.Objects;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Extension;
+import hudson.model.Node;
+import hudson.slaves.NodeProperty;
+import hudson.slaves.NodePropertyDescriptor;
+import hudson.util.Secret;
+import org.kohsuke.stapler.DataBoundConstructor;
 
-public class Pair<TFirst, TSecond> {
-    
-    private final TFirst _first;
-    private final TSecond _second;
-    
-    public Pair(TFirst first, TSecond second) {
-        _first = first;
-        _second = second;
-    }
-    
-    public TFirst getFirst() {
-        return _first;
-    }
-    
-    public TSecond getSecond() {
-        return _second;
-    }
+/**
+ * Each node will have a public-private RSA key pair.
+ */
+@Extension
+public class EncryptionNodeProperty extends NodeProperty<Node> {
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Pair<?, ?> pair = (Pair<?, ?>) o;
-        return Objects.equals(_first, pair._first) && Objects.equals(_second, pair._second);
+    private Secret publicKey;
+
+    @DataBoundConstructor
+    public EncryptionNodeProperty() {
+        // no need to give value to anything
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(_first, _second);
+    @CheckForNull
+    public String getPublicKey() {
+        if (publicKey == null) return null;
+
+        return publicKey.getEncryptedValue();
+    }
+
+    /**
+     * Sets the RSA public key from encryption, will be stored encrypted with Jenkins master.
+     * @param publicKey to be set
+     */
+    public void setPublicKey(String publicKey) {
+        this.publicKey = Secret.fromString(publicKey);
+    }
+
+    @Extension
+    public static class DescriptorImpl extends NodePropertyDescriptor {
+        @NonNull
+        @Override
+        public String getDisplayName() {
+            return "Encryption for UFT sensitive data";
+        }
+
+        @Override
+        public boolean isApplicableAsGlobal() {
+            return false;
+        }
     }
 
 }

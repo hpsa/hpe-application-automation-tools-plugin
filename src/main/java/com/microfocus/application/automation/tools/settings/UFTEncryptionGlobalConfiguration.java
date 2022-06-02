@@ -26,39 +26,61 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.common;
+package com.microfocus.application.automation.tools.settings;
 
-import java.util.Objects;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Extension;
+import hudson.util.Secret;
+import io.jenkins.cli.shaded.org.apache.commons.lang.RandomStringUtils;
+import jenkins.model.GlobalConfiguration;
+import org.kohsuke.stapler.DataBoundConstructor;
 
-public class Pair<TFirst, TSecond> {
-    
-    private final TFirst _first;
-    private final TSecond _second;
-    
-    public Pair(TFirst first, TSecond second) {
-        _first = first;
-        _second = second;
-    }
-    
-    public TFirst getFirst() {
-        return _first;
-    }
-    
-    public TSecond getSecond() {
-        return _second;
+import java.io.Serializable;
+import java.security.SecureRandom;
+
+@Extension
+public class UFTEncryptionGlobalConfiguration extends GlobalConfiguration implements Serializable {
+    // won't be displayed anywhere, a bit of a hack, but should be secure
+
+    // seems important, if further changes needed after release
+    private static final long serialVersionUID = 1L;
+
+    private static Secret generateKey() {
+        return Secret.fromString(RandomStringUtils.random(32, 0, 0, true, true, null, new SecureRandom()));
     }
 
+    public static UFTEncryptionGlobalConfiguration getInstance() throws NullPointerException {
+        UFTEncryptionGlobalConfiguration config = GlobalConfiguration.all().get(UFTEncryptionGlobalConfiguration.class);
+
+        if (config == null) throw new NullPointerException();
+
+        return config;
+    }
+
+    private Secret encKey;
+
+    @DataBoundConstructor
+    public UFTEncryptionGlobalConfiguration() {
+        load();
+    }
+
+    @NonNull
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Pair<?, ?> pair = (Pair<?, ?>) o;
-        return Objects.equals(_first, pair._first) && Objects.equals(_second, pair._second);
+    public String getDisplayName() {
+        return "UFT Encryption Global Configuration (Should not appear)";
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(_first, _second);
+    /**
+     * Returns in encrypted form the current encryption key, generates one if this master doesn't have one.
+     * @return encrypted encryption key
+     */
+    public String getEncKey() {
+        if (encKey == null) {
+            encKey = generateKey();
+            save();
+        }
+
+        return encKey.getEncryptedValue();
     }
 
 }
