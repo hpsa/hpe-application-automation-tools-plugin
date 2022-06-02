@@ -532,7 +532,7 @@
 		<dependency>
 			<artifactId>matrix-project</artifactId>
 			<groupId>org.jenkins-ci.plugins</groupId>
-			<version>1.13</version>
+			<version>1.14</version>
 		</dependency>
 		<dependency>
 			<artifactId>jenkins-multijob-plugin</artifactId>
