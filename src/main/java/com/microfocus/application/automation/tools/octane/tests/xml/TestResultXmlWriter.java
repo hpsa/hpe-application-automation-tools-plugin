@@ -43,6 +43,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 /**
@@ -93,7 +94,7 @@ public class TestResultXmlWriter {
 	private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
 		if (outputStream == null) {
 			outputStream = targetPath.write();
-			writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
+			writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream, StandardCharsets.UTF_8.name() );
 			writer.writeStartDocument();
 
 			writer.writeStartElement("test_result");
