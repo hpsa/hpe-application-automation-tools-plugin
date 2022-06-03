@@ -88,6 +88,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 
 import java.io.*;
 import java.net.URL;
@@ -188,8 +189,9 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                     PipelineNode tmpConfig;
                     if (tmpJob != null && JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME.equals(tmpJob.getParent().getClass().getName())) {
                         tempJobName = tmpJob.getParent().getFullName();
-                        if(jobsMap.containsKey(tempJobName)){
-                            continue;//skip redundant creation config for multibranch job
+                        WorkflowMultiBranchProject parentItem = (WorkflowMultiBranchProject) Jenkins.get().getItem(tempJobName);
+                        if( (parentItem != null && parentItem.isDisabled()) || jobsMap.containsKey(tempJobName)){
+                            continue; //skip redundant creation config for multibranch job
                         }
                         tmpConfig = createPipelineNodeFromJobName(tempJobName);
                     } else {
@@ -248,8 +250,11 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             } else {
                 result = createPipelineNodeFromJobName(item.getFullName());
                 if (item.getClass().getName().equals(JobProcessorFactory.WORKFLOW_MULTI_BRANCH_JOB_NAME)) {
-                    addParametersAndDefaultBranchFromConfig(item, result);
-                    result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
+                    WorkflowMultiBranchProject parentItem = (WorkflowMultiBranchProject) item;
+                    if(!parentItem.isDisabled()) {
+                        addParametersAndDefaultBranchFromConfig(item, result);
+                        result.setMultiBranchType(MultiBranchType.MULTI_BRANCH_PARENT);
+                    } else result = null;
                 }
             }
             return result;
@@ -667,7 +672,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
 
     private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
         String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
-        if(defaultBranchesConfig !=null && !defaultBranchesConfig.isEmpty()) {
+        if(defaultBranchesConfig != null && !defaultBranchesConfig.isEmpty()) {
             String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
             Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
                     .map(String::trim)
