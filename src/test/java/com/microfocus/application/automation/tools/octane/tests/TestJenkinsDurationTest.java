@@ -28,7 +28,7 @@
 
 package com.microfocus.application.automation.tools.octane.tests;
 
-import hudson.model.FreeStyleBuild;
+import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -54,27 +54,26 @@ public class TestJenkinsDurationTest {
 
         assertEquals(0, p.getBuilds().toArray().length);
         long start = System.currentTimeMillis();
-        p.scheduleBuild2(0);
+        AbstractBuild build = p.scheduleBuild2(0).get();
 
-        while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
-            Thread.sleep(100);
+
+        while (build.isBuilding()){
+            Thread.sleep(10);
         }
 
         long end = System.currentTimeMillis();
-        FreeStyleBuild run1 = p.getBuilds().getLastBuild();
-
-        long buildDurationWithoutPostProcessTime = run1.getDuration();
+         long buildDurationWithoutPostProcessTime = build.getDuration();
         long buildDurationTotal = (end - start);
         long pluginPostProcessWorkTime = buildDurationTotal - buildDurationWithoutPostProcessTime;
 
 
         long buildDurationTotalExpected = 1750;
-        long pluginPostProcessWorkTimeExpected = 140;
+        long pluginPostProcessWorkTimeExpected = 200;
 
         System.out.println(String.format("buildDurationTotal=%d, expected=%d", buildDurationTotal, buildDurationTotalExpected));
         System.out.println(String.format("pluginPostProcessWorkTime=%d, expected=%d", pluginPostProcessWorkTime, pluginPostProcessWorkTimeExpected));
-        Assert.assertTrue(buildDurationTotal < buildDurationTotalExpected);
-        Assert.assertTrue(pluginPostProcessWorkTime < pluginPostProcessWorkTimeExpected);
+        Assert.assertTrue(String.format("buildDurationTotal=%d, expected=%d", buildDurationTotal, buildDurationTotalExpected),buildDurationTotal < buildDurationTotalExpected);
+        Assert.assertTrue(String.format("pluginPostProcessWorkTime=%d, expected=%d", pluginPostProcessWorkTime, pluginPostProcessWorkTimeExpected),pluginPostProcessWorkTime < pluginPostProcessWorkTimeExpected);
 
         int t;
 
