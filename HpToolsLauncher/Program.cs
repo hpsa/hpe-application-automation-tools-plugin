@@ -30,6 +30,7 @@ using HpToolsLauncher.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -52,7 +53,7 @@ namespace HpToolsLauncher
         {
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
             ConsoleQuickEdit.Disable();
-            Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
+            Console.OutputEncoding = Encoding.UTF8;
             if (!args.Any() || args.Contains("/?"))
             {
                 ShowHelp();
@@ -65,10 +66,11 @@ namespace HpToolsLauncher
                 argsDictionary[key] = val;
             }
             string failOnTestFailed = "N";
-            string runtype, paramFileName;
+            string runtype, paramFileName, outEncoding;
             TestStorageType enmRuntype;
             argsDictionary.TryGetValue("runtype", out runtype);
             argsDictionary.TryGetValue("paramfile", out paramFileName);
+            argsDictionary.TryGetValue("encoding", out outEncoding);
             if (!Enum.TryParse(runtype, true, out enmRuntype))
                 enmRuntype = TestStorageType.Unknown;
 
@@ -77,7 +79,19 @@ namespace HpToolsLauncher
                 ShowHelp();
                 return;
             }
-            var apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype);
+
+            if (!string.IsNullOrWhiteSpace(outEncoding))
+            {
+                try
+                {
+                    Console.OutputEncoding = Encoding.GetEncoding(outEncoding);
+                }
+                catch
+                {
+                    Console.WriteLine("Unsupported encoding {0}. In this case UTF-8 will be used.", outEncoding);
+                }
+            }
+            var apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype, outEncoding);
 
             apiRunner.Run();
         }
@@ -90,6 +104,10 @@ namespace HpToolsLauncher
             Console.Write("  -paramfile ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("<a file in key=value format> ");
+            Console.ResetColor();
+            Console.Write("  -encoding ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("ASCII | UTF-7 | UTF-8 | UTF-16 | UTF-32");
             Console.ResetColor();
             Console.WriteLine();
             Console.WriteLine();
@@ -107,6 +125,9 @@ namespace HpToolsLauncher
             Console.WriteLine("\tTestSet<number starting at 1>=<testSet>/<AlmFolder>");
             Console.WriteLine("\tTest<number starting at 1>=<testFolderPath>/<a Path ContainingTestFolders>/<mtbFilePath>");
             Console.WriteLine("* the last two fields may recur more than once with different index numbers");
+            Console.WriteLine();
+            Console.WriteLine("-encoding is optional and can take one of the values: ASCII, UTF-7, UTF-8, UTF-16 or UTF-32");
+
             Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
         }
     }

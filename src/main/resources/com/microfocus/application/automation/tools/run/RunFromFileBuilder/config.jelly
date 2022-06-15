@@ -117,6 +117,16 @@
 		<f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
 	</f:entry>
 
+	<f:entry title="Output encoding" field="outEncoding">
+		<select name="outEncoding" style="width: 250px;">
+			<j:forEach var="enc" items="${descriptor.encodings}">
+				<f:option selected="${enc == instance.outEncoding}" value="${enc}">
+					${enc}
+				</f:option>
+			</j:forEach>
+		</select>
+	</f:entry>
+
 	<f:optionalBlock name="areParametersEnabled" title="Specify test parameters" inline="true" checked="${instance.areParametersEnabled}">
 		<f:entry field="specifyParametersModel">
 			<f:property field="specifyParametersModel"/>

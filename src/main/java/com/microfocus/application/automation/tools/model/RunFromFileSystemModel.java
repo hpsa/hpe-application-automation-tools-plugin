@@ -59,9 +59,11 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
 
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
+    public final static List<String> encodings = Arrays.asList("", "ASCII", "UTF-7", "UTF-8", "UTF-16", "UTF-32");
 
     private String fsTests;
     private String fsTimeout;
+    private String outEncoding;
     private String fsUftRunMode;
     private String controllerPollingInterval;
     private String perScenarioTimeOut;
@@ -159,6 +161,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests) {
         this.setFsTests(fsTests);
+        this.outEncoding = StringUtils.defaultString(outEncoding);
 
         //Init default vals
         this.fsTimeout = "";
@@ -169,6 +172,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.displayController = "false";
         this.analysisTemplate = "";
         this.fsReportPath = ""; // no custom report path by default
+        this.outEncoding = "";
     }
 
     /**
@@ -192,6 +196,13 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     public void setFsTimeout(String fsTimeout) {
         this.fsTimeout = fsTimeout;
     }
+
+    public void setOutEncoding(String encoding) {
+        this.outEncoding = encoding;
+    }
+
+    public String getOutEncoding() { return outEncoding; }
+
 
     /**
      * Sets fs runMode.
