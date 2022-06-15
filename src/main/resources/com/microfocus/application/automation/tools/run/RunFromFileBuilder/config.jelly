@@ -277,15 +277,14 @@
 						 <f:entry title="Address" field="fsProxyAddress">
 							 <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
 						 </f:entry>
-						 <f:entry>
-							 <f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
-						 </f:entry>
-						 <f:entry title="User name" field="fsProxyUserName">
-							 <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
-						 </f:entry>
-						 <f:entry title="Password" field="fsProxyPassword">
-							 <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
-						 </f:entry>
+						 <f:optionalBlock title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" inline="true" >
+							 <f:entry title="User name" field="fsProxyUserName">
+								 <f:textbox name="runfromfs.fsProxyUserName" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+							 </f:entry>
+							 <f:entry title="Password" field="fsProxyPassword">
+								 <f:password name="runfromfs.fsProxyPassword" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+							 </f:entry>
+						</f:optionalBlock>
 					 </f:optionalBlock>
 				 </f:entry>
 				 <f:entry title="DEVICE INFORMATION:"/>
