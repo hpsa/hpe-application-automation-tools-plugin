@@ -166,9 +166,6 @@ public class UploadAppBuilder extends Builder {
                     build.setResult(Result.FAILURE);
                     allSuccess = false;
                     continue;
-                } catch (InterruptedException e) {
-                    build.setResult(Result.ABORTED);
-                    return false;
                 } catch (Exception e) {
                     if (uploadAppModel.isUseProxy()) {
                         out.println(String.format("Failed to upload app, Cause UFT Mobile connection info is incorrect. url:%s, Proxy url:%s",
