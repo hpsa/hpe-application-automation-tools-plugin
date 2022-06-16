@@ -55,7 +55,7 @@ namespace HpToolsLauncher
         private TestStorageType _runType;
         private readonly string _failOnUftTestFailed;
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
-        private const string _dateFormat = "dd/MM/yyyy HH:mm:ss";
+        private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
         private bool _rerunFailedTests = false;
 
         public const string ClassName = "HPToolsFileSystemRunner";
@@ -115,66 +115,6 @@ namespace HpToolsLauncher
             _paramFileName = paramFileName;
 
             _failOnUftTestFailed = string.IsNullOrEmpty(failOnTestFailed) ? "N" : failOnTestFailed;
-        }
-
-        private static string _secretKey = "EncriptionPass4Java";
-
-        /// <summary>
-        /// decrypts strings which were encrypted by Encrypt (in the c# or java code, mainly for qc passwords)
-        /// </summary>
-        /// <param name="textToDecrypt"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        string Decrypt(string textToDecrypt, string key)
-        {
-            RijndaelManaged rijndaelCipher = new RijndaelManaged();
-            rijndaelCipher.Mode = CipherMode.CBC;
-            rijndaelCipher.Padding = PaddingMode.PKCS7;
-
-            rijndaelCipher.KeySize = 0x80;
-            rijndaelCipher.BlockSize = 0x80;
-            byte[] encryptedData = Convert.FromBase64String(textToDecrypt);
-            byte[] pwdBytes = Encoding.UTF8.GetBytes(key);
-            byte[] keyBytes = new byte[0x10];
-            int len = pwdBytes.Length;
-            if (len > keyBytes.Length)
-            {
-                len = keyBytes.Length;
-            }
-            Array.Copy(pwdBytes, keyBytes, len);
-            rijndaelCipher.Key = keyBytes;
-            rijndaelCipher.IV = keyBytes;
-            byte[] plainText = rijndaelCipher.CreateDecryptor().TransformFinalBlock(encryptedData, 0, encryptedData.Length);
-            return Encoding.UTF8.GetString(plainText);
-        }
-
-        /// <summary>
-        /// encrypts strings to be decrypted by decrypt function(in the c# or java code, mainly for qc passwords)
-        /// </summary>
-        /// <param name="textToEncrypt"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        string Encrypt(string textToEncrypt, string key)
-        {
-            RijndaelManaged rijndaelCipher = new RijndaelManaged();
-            rijndaelCipher.Mode = CipherMode.CBC;
-            rijndaelCipher.Padding = PaddingMode.PKCS7;
-
-            rijndaelCipher.KeySize = 0x80;
-            rijndaelCipher.BlockSize = 0x80;
-            byte[] pwdBytes = Encoding.UTF8.GetBytes(key);
-            byte[] keyBytes = new byte[0x10];
-            int len = pwdBytes.Length;
-            if (len > keyBytes.Length)
-            {
-                len = keyBytes.Length;
-            }
-            Array.Copy(pwdBytes, keyBytes, len);
-            rijndaelCipher.Key = keyBytes;
-            rijndaelCipher.IV = keyBytes;
-            ICryptoTransform transform = rijndaelCipher.CreateEncryptor();
-            byte[] plainText = Encoding.UTF8.GetBytes(textToEncrypt);
-            return Convert.ToBase64String(transform.TransformFinalBlock(plainText, 0, plainText.Length));
         }
 
         /// <summary>
@@ -357,13 +297,13 @@ namespace HpToolsLauncher
 
                     bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") ? Convert.ToBoolean(_ciParams["SSOEnabled"]) : false;
                     string clientID = _ciParams.ContainsKey("almClientID") ? _ciParams["almClientID"] : string.Empty;
-                    string apiKey = _ciParams.ContainsKey("almApiKeySecret") ? Decrypt(_ciParams["almApiKeySecret"], _secretKey) : string.Empty;
+                    string apiKey = _ciParams.ContainsKey("almApiKeySecret") ? EncryptionUtils.Decrypt(_ciParams["almApiKeySecret"]) : string.Empty;
                     string almRunHost = _ciParams.ContainsKey("almRunHost") ? _ciParams["almRunHost"] : string.Empty;
 
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
                                      _ciParams["almUsername"],
-                                     Decrypt(_ciParams["almPassword"], _secretKey),
+                                     EncryptionUtils.Decrypt(_ciParams["almPassword"]),
                                      _ciParams["almDomain"],
                                      _ciParams["almProject"],
                                      dblQcTimeout,
@@ -586,7 +526,7 @@ namespace HpToolsLauncher
                                 string mcPassword = _ciParams["MobilePassword"];
                                 if (!string.IsNullOrEmpty(mcPassword))
                                 {
-                                    mcConnectionInfo.MobilePassword = Decrypt(mcPassword, _secretKey);
+                                    mcConnectionInfo.MobilePassword = EncryptionUtils.Decrypt(mcPassword);
                                 }
                             }
 
@@ -608,7 +548,7 @@ namespace HpToolsLauncher
                                 {	
                                     try	
                                     {	
-                                        mcConnectionInfo.MobileExecToken = Decrypt(mcExecToken, _secretKey);	
+                                        mcConnectionInfo.MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);	
                                     }	
                                     catch (ArgumentException e)	
                                     {	
@@ -678,7 +618,7 @@ namespace HpToolsLauncher
                                 string proxyPassword = _ciParams["MobileProxySetting_Password"];
                                 if (!string.IsNullOrEmpty(proxyPassword))
                                 {
-                                    mcConnectionInfo.MobileProxySetting_Password = Decrypt(proxyPassword, _secretKey);
+                                    mcConnectionInfo.MobileProxySetting_Password = EncryptionUtils.Decrypt(proxyPassword);
                                 }
                             }
                         }

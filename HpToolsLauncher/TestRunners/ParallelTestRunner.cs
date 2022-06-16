@@ -180,7 +180,7 @@ namespace HpToolsLauncher.TestRunners
                 return runResults;
             }
 
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " => Using ParallelRunner to execute test: " + testInfo.TestPath);
+            ConsoleWriter.WriteLineWithTime("Using ParallelRunner to execute test: " + testInfo.TestPath);
 
             _runCancelled = runCancelled;
 

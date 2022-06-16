@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools.run;
 
 import com.hp.octane.integrations.executor.TestsToRunConverter;
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
 import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
@@ -50,9 +51,7 @@ import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -64,7 +63,6 @@ import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -624,7 +622,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
-        //synchronized (this) {
         PrintStream out = listener.getLogger();
 
         UftOctaneUtils.setUFTRunnerTypeAsParameter(build, listener);
@@ -634,9 +631,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         EnvVars env = null;
         try {
             env = build.getEnvironment(listener);
-
         } catch (IOException | InterruptedException e) {
-            listener.error("Failed loading build environment " + e);
+            listener.error("Failed loading build environment: " + e.getMessage());
+        }
+
+        Node currNode = JenkinsUtils.getCurrentNode(workspace);
+        if (currNode == null) {
+            listener.error("Failed to get current executor node.");
+            return;
         }
 
         // in case of mbt, since mbt can support uft and codeless at the same time, run only if there are uft tests
@@ -649,13 +651,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 return;
             }
         }
+
         // this is an unproper replacement to the build.getVariableResolver since workflow run won't support the
         // getBuildEnvironment() as written here:
         // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE
         // .md#variable-substitutions
 
-        JSONObject jobDetails = null;
-        String mcServerUrl = "";
+        JSONObject jobDetails;
+        String mcServerUrl;
         // now merge them into one list
         Properties mergedProperties = new Properties();
         if (mcServerSettingsModel != null) {
@@ -667,32 +670,35 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         try {
-            String encPassword = EncryptionUtils.Encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
-                    EncryptionUtils.getSecretKey());
+            String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
+                    currNode);
             mergedProperties.put("MobilePassword", encPassword);
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem in UFT Mobile password encryption" + e);
+            listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
+            return;
         }
+      
         try {
-            String token = EncryptionUtils.Encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
-                    EncryptionUtils.getSecretKey());
+            String token = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
+                    currNode);
             mergedProperties.put("MobileExecToken", token);
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem in UFT Mobile password encryption" + e);
+            listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
+            return;
         }
 
         if (env == null) {
             listener.fatalError("Environment not set");
             throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
         }
+
         if (build instanceof AbstractBuild) {
             VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
-            mergedProperties.putAll(runFromFileModel.getProperties(env));
-        } else {
-            mergedProperties.putAll(runFromFileModel.getProperties(env));
         }
+
+        mergedProperties.putAll(Objects.requireNonNull(runFromFileModel).getProperties(env, currNode));
 
         if (areParametersEnabled) {
             try {
@@ -814,10 +820,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             listener.error("Storing run variable failed: " + e);
             build.setResult(Result.FAILURE);
         }
+
         String propsSerialization = stream.toString();
+        
         FilePath CmdLineExe;
         try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
-
             // Get the URL to the Script used to run the test, which is bundled
             // in the plugin
             @SuppressWarnings("squid:S2259")
@@ -841,12 +848,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             try {
                 // create a file for the properties file, and save the properties
                 propsFileName.copyFrom(propsStream);
-
                 // Copy the script to the project workspace
                 CmdLineExe.copyFrom(cmdExeUrl);
-
                 CmdLineExe2.copyFrom(cmdExe2Url);
-
             } catch (IOException | InterruptedException e) {
                 build.setResult(Result.FAILURE);
                 listener.error("Copying executable files to executing node " + e);
@@ -855,25 +859,24 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
-            listener.error("Failed running HpToolsLauncher " + ioe);
+            listener.error("Failed running HpToolsLauncher " + ioe.getMessage());
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
-            listener.error("Failed running HpToolsLauncher - build aborted " + e);
+            listener.error("Failed running HpToolsLauncher - build aborted " + e.getMessage());
             try {
                 AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
             } catch (InterruptedException e1) {
-                listener.error("Failed running HpToolsAborter " + e1);
+                listener.error("Failed running HpToolsAborter " + e1.getMessage());
             }
         }
-        //}
     }
 
     /**

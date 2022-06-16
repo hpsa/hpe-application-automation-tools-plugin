@@ -77,7 +77,7 @@ public abstract class BasicPostEntityRequest {
     protected byte[] getDataBytes(Map<String, String> valueMap) {
         StringBuilder builder = new StringBuilder("<Entity><Fields>");
         for (Map.Entry<String, String> entry : valueMap.entrySet()) {
-            builder.append(RestXmlUtils.fieldXml(entry.getKey(), StringEscapeUtils.escapeHtml4(entry.getValue())));
+            builder.append(RestXmlUtils.fieldXml(entry.getKey(), StringEscapeUtils.escapeXml10(entry.getValue())));
         }
         builder.append("</Fields></Entity>");
         logger.info("Request body: " + builder.toString());

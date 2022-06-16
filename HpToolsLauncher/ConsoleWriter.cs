@@ -99,11 +99,22 @@ namespace HpToolsLauncher
 
         public static void WriteLine(string message)
         {
-            message = FilterXmlProblematicChars(message);
-            //File.AppendAllText("c:\\stam11.stam", message);
+            message = FilterXmlProblematicChars(message); 
+            
             Console.WriteLine(message);
+
             if (activeTestRun != null)
                 activeTestRun.ConsoleOut += message + "\n";
+        }
+
+        public static void WriteLineWithTime(string message)
+        {
+            WriteLine(string.Format("{0} {1}", DateTime.Now.ToString(Launcher.DateFormat), message));
+        }
+
+        public static void WriteErrLineWithTime(string message)
+        {
+            WriteLine(string.Format("Error: {0} {1}", DateTime.Now.ToString(Launcher.DateFormat), message));
         }
     }
 }

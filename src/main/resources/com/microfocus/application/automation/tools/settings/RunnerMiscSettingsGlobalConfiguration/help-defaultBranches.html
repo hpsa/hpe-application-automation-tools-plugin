@@ -27,58 +27,7 @@
   -->
 
 <div>
-    <p>Run status mapping field is for mapping the test result's status values to ALM run status value.
-        Yaml key represents the ALM run status values. Only one of the following status can be set here:<br>
-    Passed<br>
-    Failed<br>
-        Yaml value represents the condition that sustains the status. Ten kinds of conditions can be set here:<br>
-        ==StringValue<br>
-        !=StringValue<br>
-
-        ==0 (Or any numeric value)<br>
-        !=0 (Or any numeric value)<br>
-
-        >>0 (Or any numeric value)<br>
-        <<0 (Or any numeric value)<br>
-
-        <=0 (Or any numeric value)<br>
-        >=0 (Or any numeric value)<br>
-
-        ==NULL<br>
-        !=NULL<br>
-
-        You should first set the status field in field mapping.<br>
-    </p>
-
-<xmp>
-Take following test result as example:
-<test-case name="ExampleTestOfNUnit.TestMultiplicationFail" executed="True" result="Failure" success="False" time="0.122" asserts="1">
-</xmp>
-
-<b>Sample field mapping:</b>
-<xmp>run:
-  status: "x: success"
-</xmp>
-<b>Sample status mapping:</b>
-<xmp>status:
-    Passed: "==true"
-</xmp>
-
-    <xmp>
-Take following test result as example:
-<case>
-    <duration>0.041</duration>
-    <className>SomeClass</className>
-    <testName>SomeTest-1</testName>
-    <skipped>false</skipped>
-    <failedSince>0</failedSince>
-</case>
-    </xmp>
-    <b>Sample field mapping:</b>
-    <xmp>run:
-  status: "x: failedSince"</xmp>
-        <b>Sample status mapping:</b>
-    <xmp>status:
-  Failed: ">=0"
-    </xmp>
+    To indicate default branch in multi-branch pipelines for getting parameters.
+    <br>
+    Please use space as separator for default branches. For example, "main master trunk".
 </div>

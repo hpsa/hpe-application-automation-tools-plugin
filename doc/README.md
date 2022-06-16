@@ -51,16 +51,32 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.2 introduced the following enhancements:
+Version 7.3 introduced the following enhancements:
 
-**General**
+**ALM Octane**
 
-- Updated plugin to handle log4j security issue.
+- Code improvements for MBT, model-based testing.
+- Support for Codeless text executions.
+- Defect fixes.
+
+**Model-Based Testing**
+
+- Code improvements.
+- Support for Windows and Linux upper case/lower case strings.
+- Defect fixes.
 
 **UFT One**
 
-- Parsing of UFT test names by Jenkins.
+- Partial test result reporting for aborted Jenkins jobs, for file system executions. When a Jenkins job execution is aborted or cancelled, all the test results until that point, will be available in the build.
+- Improved parameter configuration for UFT One tests using a new parameter table, for file system and ALM execution. You can now add different types of parameters, for both GUI and API tests. 
+- Improvements in the re-run option for failed scenarios in file system executions, where tests finished with a Warning status.
+- Improved reporting for UFT One tests with same name, but different locations. 
+- Enhancements to secure log4j issues.
 
+**Service Virtualization**
+
+- Ability to switch virtual services to OFFLINE mode.
+ 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Changelog
@@ -87,11 +103,12 @@ This plugin supports the following Micro Focus product versions:
 
 | Micro Focus tool                                    | Supported versions                                           | Find more information...                                     |
 | :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](ALM_Integration.md)                  |
-| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](ALM_Integration.md#running-server-side-tests-using-alm-lab-management) |
-| ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
+| ALM (Application Lifecycle Management)              | 12.xx, 15.x                                                  | [ALM Integration  page](https://admhelp.microfocus.com/alm/en/latest/online_help/Content/jenkins-integration.htm)                  |
+| ALM Lab Management                                  | 12.xx, 15.x                                                  | [ALM Integration page](https://admhelp.microfocus.com/alm/en/latest/online_help/Content/jenkins-integration.htm#mt-item-3) |
+| ALM Octane                                          | 12.53.20 and higher (12.55.4 or later required for direct UFT One integration and for LoadRunner Enterprise integration using pipelines) | [ALM Octane Help Center](https://admhelp.microfocus.com/octane/en/latest/Online/Content/AdminGuide/jenkins-integration.htm) |
+| Model-based Testing                                          | 16.0.300 and higher  | [Model-Based Testing Help Center](https://admhelp.microfocus.com/mbt) |
 | LoadRunner Professional                             | 12.xx, 2020 and higher                                                  | [LoadRunner Professional Integration page](LR_Integration.md)             |
-| UFT Mobile                                           | 2.0 and higher                                               | [UFT Mobile Integration page](UFT_Mobile_Integration.md) |
+| UFT Mobile                                           | 2.0 and higher                                               | [UFT Mobile Integration page](https://github.com/jenkinsci/hpe-application-automation-tools-plugin/blob/latest/doc/UFT_Mobile_Integration.md) |
 | LoadRunner Enterprise                               | 12.xx (12.53 or higher required for trend reports), 2020 and higher     | [LoadRunner Enterprise Help Center](https://admhelp.microfocus.com/lre/en/latest/online_help/Content/PC/Continuous-Integration-Jenkins.htm) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT One                                            | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |

@@ -35,6 +35,7 @@ import com.hp.octane.integrations.executor.converters.*;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.model.TestsFramework;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -319,7 +320,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, paramFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, paramFileName, null);
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);

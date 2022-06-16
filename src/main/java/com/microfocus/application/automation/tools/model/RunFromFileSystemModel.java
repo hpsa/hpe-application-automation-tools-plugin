@@ -36,6 +36,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.util.Secret;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -627,75 +628,38 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @param envVars the env vars
      * @return the properties
      */
-    @Nullable
-    public Properties getProperties(EnvVars envVars) {
-        return createProperties(envVars);
+	@Nullable
+	public Properties getProperties(EnvVars envVars, Node currNode) {
+        return createProperties(envVars, currNode);
     }
 
-    private Properties createProperties(EnvVars envVars) {
+    private Properties createProperties(EnvVars envVars, Node currNode) {
         Properties props = new Properties();
 
-        if (!StringUtils.isEmpty(this.fsTests)) {
-            String expandedFsTests = envVars.expand(fsTests);
-            String[] testsArr;
-            if (UftToolUtils.isMtbxContent(expandedFsTests)) {
-                testsArr = new String[]{expandedFsTests};
-            } else {
-                testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
-            }
+        addTestsToProps(envVars, props);
 
-            int i = 1;
+        addUFTSpecificSettingsToProps(envVars, props);
 
-            for (String test : testsArr) {
-                test = test.trim();
-                props.put("Test" + i, test);
-                i++;
-            }
-        } else {
-            props.put("fsTests", "");
-        }
+        if (addMobileSpecificSettingsToProps(currNode, props)) return null; // cannot continue without proper config
 
-        String fsTimeoutVal = StringUtils.isEmpty(fsTimeout) ? "-1" : envVars.expand(fsTimeout);
-        props.put("fsTimeout", fsTimeoutVal);
+        return props;
+    }
 
-        String fsUFTRunModeVal = StringUtils.isEmpty(fsUftRunMode) ? "Fast" : "" + fsUftRunMode;
-        props.put("fsUftRunMode", fsUFTRunModeVal);
-
-        String controllerPollingIntervalValue = StringUtils.isEmpty(controllerPollingInterval) ? "30" : controllerPollingInterval;
-        props.put("controllerPollingInterval", controllerPollingIntervalValue);
-
-        String analysisTemplateVal = StringUtils.isEmpty(analysisTemplate) ? "" : analysisTemplate;
-        props.put("analysisTemplate", analysisTemplateVal);
-
-        String displayControllerVal = (StringUtils.isEmpty(displayController) || displayController.equals("false")) ? "0" : "1";
-        props.put("displayController", displayControllerVal);
-
-        String perScenarioTimeOutVal = StringUtils.isEmpty(perScenarioTimeOut) ? "10" : envVars.expand(perScenarioTimeOut);
-        props.put("PerScenarioTimeOut", perScenarioTimeOutVal);
-
-        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))) {
-            props.put("ignoreErrorStrings", "" + ignoreErrorStrings.replaceAll("\r", ""));
-        }
-
-        if (StringUtils.isNotBlank(fsReportPath)) {
-            props.put("fsReportPath", fsReportPath);
-        }
-
-        if (isUseProxy()) {
+    private boolean addMobileSpecificSettingsToProps(Node currNode, Properties props) {
+        if (isUseProxy()){
             props.put("MobileUseProxy", "1");
             props.put("MobileProxyType", "2");
             props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
 
-            if (isUseAuthentication()) {
+            if (isUseAuthentication()){
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION, "1");
-                props.put(MOBILE_PROXY_SETTING_USER_NAME, proxySettings.getFsProxyUserName());
+                props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
                 String encryptedPassword;
 
                 try {
-                    encryptedPassword = EncryptionUtils.Encrypt(proxySettings.getFsProxyPassword(),
-                            EncryptionUtils.getSecretKey());
+                    encryptedPassword = EncryptionUtils.encrypt(proxySettings.getFsProxyPassword(), currNode);
                 } catch (Exception ex) {
-                    return null; // cannot continue without proper config
+                    return true;
                 }
 
                 props.put(MOBILE_PROXY_SETTING_PASSWORD_FIELD, encryptedPassword);
@@ -727,7 +691,58 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                 props.put("MobileTenantId", authModel.getMcTenantId());
             }
         }
-        return props;
+      
+        return false;
+    }
+  
+    private void addUFTSpecificSettingsToProps(EnvVars envVars, Properties props) {
+        String fsTimeoutVal = StringUtils.isEmpty(fsTimeout) ? "-1" : envVars.expand(fsTimeout);
+        props.put("fsTimeout", fsTimeoutVal);
+
+        String fsUFTRunModeVal = StringUtils.isEmpty(fsUftRunMode) ? "Fast" : "" + fsUftRunMode;
+        props.put("fsUftRunMode", fsUFTRunModeVal);
+
+        String controllerPollingIntervalValue = StringUtils.isEmpty(controllerPollingInterval) ? "30" : controllerPollingInterval;
+        props.put("controllerPollingInterval", controllerPollingIntervalValue);
+
+        String analysisTemplateVal = StringUtils.isEmpty(analysisTemplate) ? "" : analysisTemplate;
+        props.put("analysisTemplate", analysisTemplateVal);
+
+        String displayControllerVal = (StringUtils.isEmpty(displayController) || displayController.equals("false")) ? "0" : "1";
+        props.put("displayController", displayControllerVal);
+
+        String perScenarioTimeOutVal = StringUtils.isEmpty(perScenarioTimeOut) ? "10" : envVars.expand(perScenarioTimeOut);
+        props.put("PerScenarioTimeOut", perScenarioTimeOutVal);
+
+        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
+            props.put("ignoreErrorStrings", "" + ignoreErrorStrings.replaceAll("\r", ""));
+        }
+
+        if (StringUtils.isNotBlank(fsReportPath)) {
+            props.put("fsReportPath", fsReportPath);
+        }
+    }
+
+    private void addTestsToProps(EnvVars envVars, Properties props) {
+        if (!StringUtils.isEmpty(this.fsTests)) {
+            String expandedFsTests = envVars.expand(fsTests);
+            String[] testsArr;
+            if (UftToolUtils.isMtbxContent(expandedFsTests)) {
+                testsArr = new String[]{expandedFsTests};
+            } else {
+                testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
+            }
+
+            int i = 1;
+
+            for (String test : testsArr) {
+                test = test.trim();
+                props.put("Test" + i, test);
+                i++;
+            }
+        } else {
+            props.put("fsTests", "");
+        }
     }
 
     /**

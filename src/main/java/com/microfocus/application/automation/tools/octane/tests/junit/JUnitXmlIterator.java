@@ -151,11 +151,11 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
         if (testingToolType.equals(TestingToolType.CODELESS)) {
             handleCodelessTest(event);
         } else {
-            handleUftTest(event);
+            handleJUnitTest(event);
         }
     }
 
-    private void handleUftTest(XMLEvent event) throws XMLStreamException, IOException, InterruptedException {
+    private void handleJUnitTest(XMLEvent event) throws XMLStreamException, IOException, InterruptedException {
         if (event instanceof StartElement) {
             StartElement element = (StartElement) event;
             String localName = element.getName().getLocalPart();
@@ -357,7 +357,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                 filePath = peekNextValue();
                 if(!checkIsCodelessTestResult(filePath)) {
                     testingToolType = TestingToolType.UFT;
-                    handleUftTest(event);
+                    handleJUnitTest(event);
                 } else { // start of a new iteration
                     filePath = readNextValue();
                     testingToolType = TestingToolType.CODELESS;

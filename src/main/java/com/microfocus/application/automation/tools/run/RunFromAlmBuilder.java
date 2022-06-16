@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.run;
 
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
@@ -44,7 +45,6 @@ import hudson.util.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -261,7 +261,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
-
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
 
@@ -274,12 +273,17 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             return;
         }
 
-        EnvVars env = null;
+        Node currNode = JenkinsUtils.getCurrentNode(workspace);
+        if (currNode == null) {
+            listener.error("Failed to get current executor node.");
+            return;
+        }
+
+        EnvVars env;
         try {
             env = build.getEnvironment(listener);
         } catch (IOException e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
+            throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
         }
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
 
@@ -290,7 +294,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
 
         CredentialsScope scope = getCredentialsScopeOrDefault();
-        String encAlmPass = "";
+        String encAlmPass;
         try {
             String almPassword = runFromAlmModel.getPasswordPlainText();
             if (scope == CredentialsScope.SYSTEM) {
@@ -299,16 +303,18 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                     almPassword = cred.get().getAlmPasswordPlainText();
                 }
             }
-            encAlmPass = EncryptionUtils.Encrypt(almPassword, EncryptionUtils.getSecretKey());
+
+            encAlmPass = EncryptionUtils.encrypt(almPassword, currNode);
 
             mergedProperties.remove(RunFromAlmModel.ALM_PASSWORD_KEY);
             mergedProperties.put(RunFromAlmModel.ALM_PASSWORD_KEY, encAlmPass);
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem with qcPassword encryption");
+            listener.fatalError("Issue with ALM Password encryption: " + e.getMessage() + ".");
+            return;
         }
 
-        String encAlmApiKey = "";
+        String encAlmApiKey;
         try {
             String almApiKeySecret = runFromAlmModel.getApiKeyPlainText();
             if (scope == CredentialsScope.SYSTEM) {
@@ -318,13 +324,14 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
                 }
             }
 
-            encAlmApiKey = EncryptionUtils.Encrypt(almApiKeySecret, EncryptionUtils.getSecretKey());
+            encAlmApiKey = EncryptionUtils.encrypt(almApiKeySecret, currNode);
             mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
             mergedProperties.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
             mergedProperties.put("almClientID", getAlmClientID());
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError("problem with apiKey encryption");
+            listener.fatalError("Issue with apiKey encryption: " + e.getMessage() + ".");
+            return;
         }
 
         if (isFilterTestsEnabled) {
@@ -366,8 +373,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             mergedProperties.store(stream, "");
         } catch (IOException e) {
             build.setResult(Result.FAILURE);
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            listener.error("Failed to store properties for agent machine.");
+            return;
         }
         String propsSerialization = stream.toString();
         InputStream propsStream = IOUtils.toInputStream(propsSerialization);
@@ -381,6 +388,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         URL cmdExeUrl =
                 Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
+            build.setResult(Result.FAILURE);
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
             return;
         }
@@ -391,38 +399,30 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         try {
             // create a file for the properties file, and save the properties
             propsFileName.copyFrom(propsStream);
-
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
         } catch (IOException e1) {
             build.setResult(Result.FAILURE);
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            listener.error("Failed to copy UFT tools to agent machine.");
+            return;
         }
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
-            return;
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
-            PrintStream out = listener.getLogger();
-            
             try {
                 AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
-                return;
     		} catch (InterruptedException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                listener.error("Failed running HpToolsAborter " + e1.getMessage());
             }
         }
-
-        return;
     }
 
     public AlmServerSettingsModel getAlmServerSettingsModel() {

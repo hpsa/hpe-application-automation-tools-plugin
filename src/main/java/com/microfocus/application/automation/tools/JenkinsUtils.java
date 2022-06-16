@@ -26,39 +26,39 @@
  * ___________________________________________________________________
  */
 
-package com.microfocus.application.automation.tools.common;
+package com.microfocus.application.automation.tools;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import hudson.FilePath;
+import hudson.model.Node;
+import hudson.model.Run;
+
+import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class Pair<TFirst, TSecond> {
-    
-    private final TFirst _first;
-    private final TSecond _second;
-    
-    public Pair(TFirst first, TSecond second) {
-        _first = first;
-        _second = second;
-    }
-    
-    public TFirst getFirst() {
-        return _first;
-    }
-    
-    public TSecond getSecond() {
-        return _second;
+public final class JenkinsUtils {
+
+    private JenkinsUtils() {
+        // no meaning instantiating
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Pair<?, ?> pair = (Pair<?, ?>) o;
-        return Objects.equals(_first, pair._first) && Objects.equals(_second, pair._second);
-    }
+    /**
+     * Returns the current executor node from the Run instance.
+     * @param build current job
+     * @return executor
+     */
+    @CheckForNull
+    public static Node getCurrentNode(@Nonnull FilePath workspace) {
+        try {
+            Node currNode;
+            // throws NullPointerException if failed to access executor node
+            currNode = Objects.requireNonNull(workspace.toComputer()).getNode();
+            return currNode;
+        } catch (NullPointerException ignored) {
+            // ignore
+        }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(_first, _second);
+        return null;
     }
 
 }

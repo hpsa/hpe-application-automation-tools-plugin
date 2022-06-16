@@ -1708,10 +1708,10 @@ namespace HpToolsLauncher
 
                                 ConsoleWriter.ActiveTestRun = runDesc.TestRuns[testIndex];
 
-                                ConsoleWriter.WriteLine(string.Format("{0} Running: {1}", DateTime.Now.ToString(Launcher.DateFormat), currentTest.Name));
+                                ConsoleWriter.WriteLineWithTime(string.Format("Running: {0}", currentTest.Name));
                                 activeTestDesc.TestName = currentTest.Name;
                                 //tell user that the test is running
-                                ConsoleWriter.WriteLine(string.Format("{0} Running test: {1}, Test id: {2}, Test instance id: {3}", DateTime.Now.ToString(Launcher.DateFormat), activeTestDesc.TestName, testExecStatusObj.TestId, testExecStatusObj.TSTestId));
+                                ConsoleWriter.WriteLineWithTime(string.Format("Running test: {0}, Test id: {1}, Test instance id: {2}", activeTestDesc.TestName, testExecStatusObj.TestId, testExecStatusObj.TSTestId));
 
                                 //start timing the new test run
                                 string folderName = string.Empty;
@@ -1878,10 +1878,10 @@ namespace HpToolsLauncher
             {
                 ConsoleWriter.WriteLine("\n" + string.Format(Resources.AlmRunnerDisplayLink, "\n" + linkStr + "\n"));
             }
-
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " " + Resources.AlmRunnerTestCompleteCaption + " " + prevTest.Name +
-            ", " + Resources.AlmRunnerRunIdCaption + " " + runId
-            + "\n-------------------------------------------------------------------------------------------------------");
+            
+            ConsoleWriter.WriteLineWithTime(Resources.AlmRunnerTestCompleteCaption + " " + prevTest.Name +
+                                            ", " + Resources.AlmRunnerRunIdCaption + " " + runId
+                                            + "\n-------------------------------------------------------------------------------------------------------");
         }
 
         /// <summary>

@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 7.2](#what&#39;s-new-in-version-7&#46;2)
+
 [What&#39;s New in version 7.1](#what&#39;s-new-in-version-7&#46;1)
 
 [What&#39;s New in version 7.0](#what&#39;s-new-in-version-7&#46;0)
@@ -24,6 +26,18 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;2
+
+Version 7.2 introduced the following enhancements:
+
+**General**
+
+- Updated plugin to handle log4j security issue.
+
+**UFT One**
+
+- Parsing of UFT test names by Jenkins.
 
 ## What&#39;s New in version 7&#46;1
 
