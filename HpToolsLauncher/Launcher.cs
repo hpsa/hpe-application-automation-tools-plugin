@@ -102,6 +102,7 @@ namespace HpToolsLauncher
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
         private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
         private bool _rerunFailedTests = false;
+        private string _encoding;
 
         public const string ClassName = "HPToolsFileSystemRunner";
 
@@ -152,7 +153,7 @@ namespace HpToolsLauncher
         /// <param name="failOnTestFailed"></param>
         /// <param name="paramFileName"></param>
         /// <param name="runType"></param>
-        public Launcher(string failOnTestFailed, string paramFileName, TestStorageType runType)
+        public Launcher(string failOnTestFailed, string paramFileName, TestStorageType runType, string encoding = "UTF-8")
         {
             _runType = runType;
             if (paramFileName != null)
@@ -160,6 +161,7 @@ namespace HpToolsLauncher
             _paramFileName = paramFileName;
 
             _failOnUftTestFailed = string.IsNullOrEmpty(failOnTestFailed) ? "N" : failOnTestFailed;
+            _encoding = encoding;
         }
 
         /// <summary>
@@ -710,11 +712,11 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
                     }
 
                     break;

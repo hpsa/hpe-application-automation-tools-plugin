@@ -41,6 +41,7 @@ namespace HpToolsLauncher
         public const string STRunnerTestArg = @"-test";
         public const string STRunnerReportArg = @"-report";
         public const string STRunnerInputParamsArg = @"-inParams";
+        public const string STRunnerEncodingArg = @"-encoding";
         private const int PollingTimeMs = 500;
         private bool _stCanRun;
         private string _stExecuterPath = Directory.GetCurrentDirectory();
@@ -48,18 +49,20 @@ namespace HpToolsLauncher
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private Stopwatch _stopwatch = null;
         private RunCancelledDelegate _runCancelled;
+        private string _encoding;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runner">parent runner</param>
         /// <param name="timeout">the global timout</param>
-        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout)
+        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout, string encoding)
         {
             _stopwatch = Stopwatch.StartNew();
             _timeout = timeout;
             _stCanRun = TrySetSTRunner();
             _runner = runner;
+            _encoding = encoding;
         }
 
         /// <summary>
@@ -157,15 +160,15 @@ namespace HpToolsLauncher
 
             string paramFileContent = testinf.GenerateAPITestXmlForTest(paramDict);
 
-            string argumentString = "";
+            string argumentString;
             if (!string.IsNullOrWhiteSpace(paramFileContent))
             {
                 File.WriteAllText(paramsFilePath, paramFileContent);
-                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\" {6} {7}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath, STRunnerEncodingArg, _encoding);
             }
             else
             {
-                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} {5}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerEncodingArg, _encoding);
             }
 
             Stopwatch s = Stopwatch.StartNew();
@@ -272,6 +275,8 @@ namespace HpToolsLauncher
                 Arguments = arguments,
                 WorkingDirectory = Directory.GetCurrentDirectory()
             };
+
+            Console.WriteLine("{0} {1}", STRunnerName, arguments);
 
             if (!enableRedirection) return;
 

@@ -35,7 +35,6 @@ using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
 
-
 namespace HpToolsLauncher
 {
     public class FileSystemTestsRunner : RunnerBase, IDisposable
@@ -56,6 +55,7 @@ namespace HpToolsLauncher
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
+        private string _encoding;
 
         //LoadRunner Arguments
         private int _pollingInterval;
@@ -109,8 +109,9 @@ namespace HpToolsLauncher
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
                                     string xmlResultsFullFileName,
+                                    string encoding,
                                     bool useUftLicense = false)
-            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, useUftLicense)
+            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -149,6 +150,7 @@ namespace HpToolsLauncher
                                     List<ScriptRTSModel> scriptRtsSet,
                                     string reportPath,
                                     string xmlResultsFullFileName,
+                                    string encoding,
                                     bool useUftLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -180,6 +182,7 @@ namespace HpToolsLauncher
 
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
             _xmlBuilder.XmlName = xmlResultsFullFileName;
+            _encoding = encoding;
 
             ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
@@ -564,7 +567,7 @@ namespace HpToolsLauncher
             switch (type)
             {
                 case TestType.ST:
-                    runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
+                    runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
                     break;
                 case TestType.QTP:
                     runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests);
