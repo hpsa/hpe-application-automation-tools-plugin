@@ -600,6 +600,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel.setFsReportPath(fsReportPath);
     }
 
+    public String getOutEncoding() { return runFromFileModel.getOutEncoding(); }
+
+    @DataBoundSetter
+    public void setOutEncoding(String encoding) { runFromFileModel.setOutEncoding(encoding); }
+
     /**
      * Sets mc server name.
      *
@@ -860,7 +865,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode, runFromFileModel.getOutEncoding());
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
@@ -1159,6 +1164,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return UftToolUtils.getNodesList();
         }
 
+        public List<String> getEncodings() { return RunFromFileSystemModel.encodings; }
     }
 
 }

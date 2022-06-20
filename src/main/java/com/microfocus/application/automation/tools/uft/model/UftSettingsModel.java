@@ -33,7 +33,6 @@ import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -41,7 +40,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;

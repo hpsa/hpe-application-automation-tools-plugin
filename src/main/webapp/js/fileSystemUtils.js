@@ -47,16 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }, false);
 
-    function useAuthentication(obj) {
-        if (obj.checked) {
-            document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled = null;
-            document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled = null;
-        } else {
-            document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled = "true";
-            document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled = "true";
-        }
-    }
-
     function enableCombobox(object) {
         if (object.checked) {
             document.getElementsByName("fsTestType")[0].disabled = false;
