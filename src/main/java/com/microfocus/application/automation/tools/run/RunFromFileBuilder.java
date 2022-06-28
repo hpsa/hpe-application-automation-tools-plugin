@@ -783,7 +783,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             uftSettingsModel.addToProperties(mergedProperties);
         }
 
-        //cleanup report folders before running the build
+        // cleanup report folders before running the build
         String selectedNode = env.get("NODE_NAME");
         if (selectedNode == null) {//if slave is given in the pipeline and not as part of build step
             try {
