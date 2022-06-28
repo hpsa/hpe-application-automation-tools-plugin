@@ -676,7 +676,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         // check whether Mobile authentification info is given or not
-        if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcPassword())).getPlainText()) {
+        if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText())) {
             try {
                 String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
                     currNode);
@@ -686,7 +686,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
                 return;
             }
-        } else if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcExecToken())).getPlainText()) {
+        } else if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText())) {
             try {
                 String token = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
                         currNode);
