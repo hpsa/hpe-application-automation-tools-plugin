@@ -35,5 +35,8 @@
         <f:entry title="Default branches" field="defaultBranches" >
             <f:textbox name="mf.defaultBranches" value="${instance.defaultBranches}" />
         </f:entry>
+        <f:entry title="Enable Agent to Controller access" description="If checked, when you execute a build on an agent, the agent will access the controller to write results that will be reported to ALM Octane.">
+            <f:checkbox name="agentToControllerEnabled" checked="${instance.agentToControllerEnabled}"/>
+        </f:entry>
     </f:section>
 </j:jelly>

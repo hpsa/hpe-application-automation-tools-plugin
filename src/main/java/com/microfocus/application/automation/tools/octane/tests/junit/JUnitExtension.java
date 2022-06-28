@@ -44,6 +44,7 @@ import com.microfocus.application.automation.tools.octane.tests.detection.MFTool
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFields;
 import com.microfocus.application.automation.tools.octane.tests.detection.ResultFieldsDetectionService;
 import com.microfocus.application.automation.tools.octane.tests.impl.ObjectStreamIterator;
+import com.microfocus.application.automation.tools.settings.RunnerMiscSettingsGlobalConfiguration;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
@@ -103,32 +104,21 @@ public class JUnitExtension extends OctaneTestsExtension {
 		logger.debug("Collecting JUnit results");
 
 		FilePath resultFile = new FilePath(run.getRootDir()).child(JUNIT_RESULT_XML);
+		boolean getResultsOnController = !RunnerMiscSettingsGlobalConfiguration.getInstance().isAgentToControllerEnabled();
+		FilePath workspace = BuildHandlerUtils.getWorkspace(run);
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
-			FilePath workspace = BuildHandlerUtils.getWorkspace(run);
 			if (workspace == null) {
 				logger.error("Received null workspace : " + run);
 				return null;
 			}
 
-			boolean getResultsOnMaster = false;
+
 			HPRunnerType hpRunnerType = MFToolsDetectionExtension.getRunnerType(run);
 			if(hpRunnerType.equals(HPRunnerType.UFT) || hpRunnerType.equals(HPRunnerType.UFT_MBT)){
-				getResultsOnMaster = true;
+				getResultsOnController = true;
 			}
-			FilePath filePath;
-			if (getResultsOnMaster) {
-				filePath = (new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl)).invoke(null, null);
-			} else {
-				try {
-					filePath = workspace.act(new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl));
-				} catch (Exception e) {
-					//on some docker/kubernetis environments - workspace folder might not be available after job is finished
-					logger.error("Failed to get test results from workspace, trying to get test results from master : " + e.getMessage(), e);
-					filePath = (new GetJUnitTestResults(run, hpRunnerType, Collections.singletonList(resultFile), false, jenkinsRootUrl)).invoke(null, null);
-				}
-			}
-
+			FilePath filePath = getTestResultsFromWorkspace(run, jenkinsRootUrl, getResultsOnController, workspace, Collections.singletonList(resultFile),hpRunnerType);
 			ResultFields detectedFields = getResultFields(run);
 			return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 		} else {
@@ -150,13 +140,41 @@ public class JUnitExtension extends OctaneTestsExtension {
 				}
 				if (!resultFiles.isEmpty()) {
 					ResultFields detectedFields = getResultFields(run);
-					FilePath filePath = BuildHandlerUtils.getWorkspace(run).act(new GetJUnitTestResults(run, HPRunnerType.NONE, resultFiles, false, jenkinsRootUrl));
+					FilePath filePath = getTestResultsFromWorkspace(run, jenkinsRootUrl, getResultsOnController, workspace, resultFiles,HPRunnerType.NONE);
 					return new TestResultContainer(new ObjectStreamIterator<>(filePath), detectedFields);
 				}
 			}
 			logger.debug("No JUnit result report found");
 			return null;
 		}
+	}
+
+	private FilePath getTestResultsFromWorkspace(Run<?, ?> run, String jenkinsRootUrl, boolean getResultsOnController, FilePath workspace, List<FilePath> resultFiles,HPRunnerType runnerType) throws IOException, InterruptedException {
+		FilePath filePath;
+		try {
+			if (getResultsOnController) {
+				logger.info("Get results from controller");
+				filePath = (new GetJUnitTestResults(run, runnerType, resultFiles, false, jenkinsRootUrl)).invoke(null, null);
+			} else {
+				logger.info("Get results from agent");
+				filePath = workspace.act(new GetJUnitTestResults(run, runnerType, resultFiles, false, jenkinsRootUrl));
+			}
+		}catch (Exception e){
+			//if failed on controller/agent retrying from agent/controller
+			logger.error(String.format("Failed to get test results from %s, trying to get test results from %s : %s",
+						getResultsOnController ? "controller" : "agent",
+						getResultsOnController ? "agent" : "controller",
+						e.getMessage()),
+					e);
+			if (getResultsOnController) {
+				logger.info("Get results from agent");
+				filePath = workspace.act(new GetJUnitTestResults(run, runnerType, resultFiles, false, jenkinsRootUrl));
+			} else {
+				logger.info("Get results from controller");
+				filePath = (new GetJUnitTestResults(run, runnerType, resultFiles, false, jenkinsRootUrl)).invoke(null, null);
+			}
+		}
+		return filePath;
 	}
 
 	private ResultFields getResultFields(Run<?, ?> build) throws InterruptedException {
