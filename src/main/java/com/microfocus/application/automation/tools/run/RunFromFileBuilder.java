@@ -675,24 +675,27 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
         }
 
-        try {
-            String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
+        // check whether Mobile authentification info is given or not
+        if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcPassword())).getPlainText()) {
+            try {
+                String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
                     currNode);
-            mergedProperties.put("MobilePassword", encPassword);
-        } catch (Exception e) {
-            build.setResult(Result.FAILURE);
-            listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
-            return;
-        }
-      
-        try {
-            String token = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
-                    currNode);
-            mergedProperties.put("MobileExecToken", token);
-        } catch (Exception e) {
-            build.setResult(Result.FAILURE);
-            listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
-            return;
+                mergedProperties.put("MobilePassword", encPassword);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
+                return;
+            }
+        } else if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcExecToken())).getPlainText()) {
+            try {
+                String token = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
+                        currNode);
+                mergedProperties.put("MobileExecToken", token);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("Problem in UFT Mobile execution token encryption: " + e.getMessage() + ".");
+                return;
+            }
         }
 
         if (env == null) {
