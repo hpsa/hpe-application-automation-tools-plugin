@@ -105,6 +105,7 @@
       <DependentUpon>junit.xsd</DependentUpon>
       <SubType>code</SubType>
     </Compile>
+    <Compile Include="McConnection.cs" />
     <Compile Include="MtbManager.cs" />
     <Compile Include="NativeProcess.cs" />
     <Compile Include="ParallelRunner\ParallelRunnerEnvironmentUtil.cs" />

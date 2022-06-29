@@ -1117,6 +1117,42 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid execution token for Mobile, should contain ClientID, SecretKey and TenantID..
+        /// </summary>
+        internal static string McInvalidToken {
+            get {
+                return ResourceManager.GetString("McInvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed execution token for Mobile, invalid key value: {0}..
+        /// </summary>
+        internal static string McMalformedTokenInvalidKey {
+            get {
+                return ResourceManager.GetString("McMalformedTokenInvalidKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed execution token for Mobile, key-value pairs are not separated by {0}..
+        /// </summary>
+        internal static string McMalformedTokenInvalidKeyValueSeparator {
+            get {
+                return ResourceManager.GetString("McMalformedTokenInvalidKeyValueSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed execution token for Mobile, token without key-value..
+        /// </summary>
+        internal static string McMalformedTokenMissingKeyValuePair {
+            get {
+                return ResourceManager.GetString("McMalformedTokenMissingKeyValuePair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter name missing. Please specify the parameter name..
         /// </summary>
         internal static string MissingParameterName {

@@ -63,6 +63,7 @@ import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -150,8 +151,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @param analysisTemplate          the analysis template
      * @param displayController         the display controller
      * @param mcServerName              the mc server name
-     * @param fsUserName                the fs user name
-     * @param fsPassword                the fs password
      * @param fsDeviceId                the fs device id
      * @param fsTargetLab               the fs target lab
      * @param fsManufacturerAndModel    the fs manufacturer and model
@@ -170,15 +169,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     @Deprecated
     public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
                               String perScenarioTimeOut, String ignoreErrorStrings, String displayController,
-                              String analysisTemplate, String mcServerName, String fsUserName, String fsPassword,
-                              String mcTenantId, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
+                              String analysisTemplate, String mcServerName, AuthModel authModel, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
                               boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
-                fsUserName, fsPassword, mcTenantId, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
+                authModel, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
                 proxySettings, useSSL, fsReportPath);
     }
@@ -556,45 +554,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel.setProxySettings(proxySettings);
     }
 
-    public String getMcTenantId() {
-        return runFromFileModel.getMcTenantId();
-    }
-
-    @DataBoundSetter
-    public void setMcTenantId(String mcTenantId) {
-        runFromFileModel.setMcTenantId(mcTenantId);
-    }
-
-    public String getFsPassword() {
-        return runFromFileModel.getFsPassword();
-    }
-
-    /**
-     * Sets fs password.
-     *
-     * @param fsPassword the fs password
-     */
-    @DataBoundSetter
-    public void setFsPassword(String fsPassword) {
-        runFromFileModel.setFsPassword(fsPassword);
-    }
-
-    public String getFsUserName() {
-        return runFromFileModel.getFsUserName();
-    }
-
-    /**
-     * Sets fs user name.
-     *
-     * @param fsUserName the fs user name
-     */
-    @DataBoundSetter
-    public void setFsUserName(String fsUserName) {
-        runFromFileModel.setFsUserName(fsUserName);
-    }
-
     public String getFsTargetLab() {
         return runFromFileModel.getFsTargetLab();
+    }
+
+    public AuthModel getAuthModel() {
+        return runFromFileModel.getAuthModel();
+    }
+
+    @DataBoundSetter
+    public void setAuthModel(AuthModel authModel) {
+        runFromFileModel.setAuthModel(authModel);
     }
 
     /**
@@ -658,6 +628,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener)
             throws IOException {
+        PrintStream out = listener.getLogger();
+
         UftOctaneUtils.setUFTRunnerTypeAsParameter(build, listener);
         // get the mc server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -680,8 +652,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         ParameterValue octaneFrameworkParam = parameterAction != null ? parameterAction.getParameter("octaneTestRunnerFramework") : null;
         if (octaneFrameworkParam != null && octaneFrameworkParam.getValue().equals("MBT")) {
             String testsToRunConverted = env == null ? null : env.get(TestsToRunConverter.DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER);
-            if(StringUtils.isEmpty(testsToRunConverted)) {
-                listener.getLogger().println(RunFromFileBuilder.class.getSimpleName() + " : No UFT tests were found");
+            if (StringUtils.isEmpty(testsToRunConverted)) {
+                out.println(RunFromFileBuilder.class.getSimpleName() + " : No UFT tests were found");
                 return;
             }
         }
@@ -697,26 +669,31 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         Properties mergedProperties = new Properties();
         if (mcServerSettingsModel != null) {
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
-            if (runFromFileModel.getProxySettings() == null) {
-                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
-            } else {
-                jobDetails = runFromFileModel.getJobDetails(mcServerUrl,
-                        runFromFileModel.getProxySettings().getFsProxyAddress(),
-                        runFromFileModel.getProxySettings().getFsProxyUserName(),
-                        runFromFileModel.getProxySettings().getFsProxyPassword());
-            }
+            jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings());
 
             mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
             mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
         }
 
-        if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
+        // check whether Mobile authentification info is given or not
+        if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText())) {
             try {
-                String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getFsPassword()).getPlainText(), currNode);
+                String encPassword = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcPassword()).getPlainText(),
+                    currNode);
                 mergedProperties.put("MobilePassword", encPassword);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
                 listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
+                return;
+            }
+        } else if (StringUtils.isNotBlank(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText())) {
+            try {
+                String token = EncryptionUtils.encrypt(Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText(),
+                        currNode);
+                mergedProperties.put("MobileExecToken", token);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("Problem in UFT Mobile execution token encryption: " + e.getMessage() + ".");
                 return;
             }
         }
@@ -809,7 +786,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             uftSettingsModel.addToProperties(mergedProperties);
         }
 
-        //cleanup report folders before running the build
+        // cleanup report folders before running the build
         String selectedNode = env.get("NODE_NAME");
         if (selectedNode == null) {//if slave is given in the pipeline and not as part of build step
             try {
@@ -1007,40 +984,35 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the job id
          */
         @JavaScriptMethod
-        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                               String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken, String authType,
+                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
+            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
             if (null != previousJobId && !previousJobId.isEmpty()) {
-                JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress,
-                        proxyUserName, proxyPassword, previousJobId);
+                JSONObject jobJSON = instance.getJobById(mcUrl, authModel, proxy, previousJobId);
                 if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
                     return previousJobId;
                 } else {
-                    return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress,
-                            proxyUserName, proxyPassword);
+                    return instance.createTempJob(mcUrl, authModel, proxy);
                 }
             }
-            return instance.createTempJob(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
-                    proxyPassword);
+            return instance.createTempJob(mcUrl, authModel, proxy);
         }
 
         /**
          * Populate app and device json object.
          *
-         * @param mcUrl         the mc url
-         * @param mcUserName    the mc user name
-         * @param mcPassword    the mc password
-         * @param proxyAddress  the proxy address
-         * @param proxyUserName the proxy user name
-         * @param proxyPassword the proxy password
-         * @param jobId         the job id
+         * @param mcUrl the mc url
+         * @param jobId the job id
          * @return the json object
          */
         @JavaScriptMethod
-        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                                               String proxyAddress, String proxyUserName, String proxyPassword,
+        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken, String authType,
+                                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword,
                                                String jobId) {
-            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName,
-                    proxyPassword, jobId);
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
+            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            return instance.getJobJSONData(mcUrl, authModel, proxy, jobId);
         }
 
         /**
