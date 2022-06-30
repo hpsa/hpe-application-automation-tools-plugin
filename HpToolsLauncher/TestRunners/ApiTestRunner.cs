@@ -164,11 +164,11 @@ namespace HpToolsLauncher
             if (!string.IsNullOrWhiteSpace(paramFileContent))
             {
                 File.WriteAllText(paramsFilePath, paramFileContent);
-                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\" {6} {7}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath, STRunnerEncodingArg, _encoding);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\" {6} {7}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath, string.IsNullOrWhiteSpace(_encoding) ? string.Empty : STRunnerEncodingArg, _encoding);
             }
             else
             {
-                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} {5}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerEncodingArg, _encoding);
+                argumentString = string.Format("{0} \"{1}\" {2} \"{3}\" {4} {5}", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, string.IsNullOrWhiteSpace(_encoding) ? string.Empty : STRunnerEncodingArg, _encoding);
             }
 
             Stopwatch s = Stopwatch.StartNew();

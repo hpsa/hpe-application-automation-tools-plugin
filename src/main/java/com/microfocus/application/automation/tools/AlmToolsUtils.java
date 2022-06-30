@@ -35,6 +35,7 @@ import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -76,8 +77,10 @@ public final class AlmToolsUtils {
             args.add(file);
             args.add("-paramfile");
             args.add(paramFileName);
-            args.add("-encoding");
-            args.add(encoding);
+            if (StringUtils.isNotBlank(encoding)) {
+                args.add("-encoding");
+                args.add(encoding);
+            }
 
             // for encryption
             Map<String, String> envs = new HashMap<>();

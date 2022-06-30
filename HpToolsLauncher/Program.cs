@@ -107,7 +107,7 @@ namespace HpToolsLauncher
             Console.ResetColor();
             Console.Write("  -encoding ");
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("ASCII | UTF-7 | UTF-8 | UTF-16 | UTF-32");
+            Console.Write("ASCII | UTF-7 | UTF-8 | UTF-16");
             Console.ResetColor();
             Console.WriteLine();
             Console.WriteLine();
@@ -126,7 +126,7 @@ namespace HpToolsLauncher
             Console.WriteLine("\tTest<number starting at 1>=<testFolderPath>/<a Path ContainingTestFolders>/<mtbFilePath>");
             Console.WriteLine("* the last two fields may recur more than once with different index numbers");
             Console.WriteLine();
-            Console.WriteLine("-encoding is optional and can take one of the values: ASCII, UTF-7, UTF-8, UTF-16 or UTF-32");
+            Console.WriteLine("-encoding is optional and can take one of the values: ASCII, UTF-7, UTF-8 or UTF-16");
 
             Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
         }

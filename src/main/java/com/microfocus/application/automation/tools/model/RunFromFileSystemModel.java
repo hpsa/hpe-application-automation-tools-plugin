@@ -63,7 +63,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
 
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
-    public final static List<String> encodings = Arrays.asList("", "ASCII", "UTF-7", "UTF-8", "UTF-16", "UTF-32");
+    public final static List<String> encodings = Arrays.asList("", "ASCII", "UTF-7", "UTF-8", "UTF-16");
 
     private String fsTests;
     private String fsTimeout;
@@ -383,7 +383,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 
     public String getMcPassword() {
         //Temp fix till supported in pipeline module in LR
-        if (authModel.getMcPassword() == null) {
+        if (authModel == null || authModel.getMcPassword() == null) {
             return null;
         }
         return authModel.getMcEncryptedPassword();
@@ -391,7 +391,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
 
     public String getMcExecToken() {
         //Temp fix till supported in pipeline module in LR
-        if (authModel.getMcExecToken() == null) {
+        if (authModel == null || authModel.getMcExecToken() == null) {
             return null;
         }
         return authModel.getMcEncryptedExecToken();
@@ -694,7 +694,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put(MOBILE_USE_SSL, "0");
         }
 
-        if (authModel.getValue().equals("base")) {
+        if (authModel != null &&  authModel.getValue().equals("base")) {
             if (StringUtils.isNotBlank(authModel.getMcUserName())) {
                 props.put("MobileUserName", authModel.getMcUserName());
             }
