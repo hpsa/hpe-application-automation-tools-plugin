@@ -116,7 +116,7 @@ public class JobConfigurationProxy {
         Map<String, List<String>> headerFields = response.getHeaders();
         List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);
         JSONObject returnObject = new JSONObject();
-        if (hp4mSecretList != null && hp4mSecretList.isEmpty()) {
+        if (hp4mSecretList != null && !hp4mSecretList.isEmpty()) {
             setToRespJSON(returnObject, Constants.LOGIN_SECRET, hp4mSecretList.get(0));
         }
         List<String> setCookieList = headerFields.get(Constants.SET_COOKIE);
@@ -218,7 +218,7 @@ public class JobConfigurationProxy {
             String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
             String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
 
-            if (argumentsEmptyCheck(hp4mSecret, jsessionId)) {
+            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, jsessionId)) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
                 StringBuilder cookies = new StringBuilder(Constants.JESEEIONEQ).append(jsessionId);
@@ -254,7 +254,7 @@ public class JobConfigurationProxy {
             String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
             String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
 
-            if (argumentsEmptyCheck(jobUUID, hp4mSecret, jsessionId)) {
+            if (thereIsNoArgumentNullOrEmpty(jobUUID, hp4mSecret, jsessionId)) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
                 String cookies = Constants.JESEEIONEQ + jsessionId;
@@ -437,7 +437,7 @@ public class JobConfigurationProxy {
         return id;
     }
 
-    private boolean argumentsEmptyCheck(String... args) {
+    private boolean thereIsNoArgumentNullOrEmpty(String... args) {
         for (String arg : args) {
             if (StringUtils.isNullOrEmpty(arg)) {
                 return false;
@@ -474,7 +474,7 @@ public class JobConfigurationProxy {
     }
 
     private void setToRespJSON(JSONObject returnObject, String key, String value) {
-        if (argumentsEmptyCheck(key, value) && null != returnObject)
+        if (thereIsNoArgumentNullOrEmpty(key, value) && null != returnObject)
             returnObject.put(key, value);
     }
 }
