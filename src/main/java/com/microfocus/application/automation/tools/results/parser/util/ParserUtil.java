@@ -98,7 +98,16 @@ public class ParserUtil {
 	public static String marshallerObject(Class c, Object o){
 		String s = "<?xml version=\"1.0\" ?>";
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(c);
+			JAXBContext jaxbContext;
+			Thread t = Thread.currentThread();
+			ClassLoader orig = t.getContextClassLoader();
+			t.setContextClassLoader(ParserUtil.class.getClassLoader());
+			try {
+				jaxbContext = JAXBContext.newInstance(c);
+			} finally {
+				t.setContextClassLoader(orig);
+			}
+
 			Marshaller marshaller =  jaxbContext.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_ENCODING,"utf-8");
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);

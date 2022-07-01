@@ -43,7 +43,15 @@ public class ALMRESTVersionUtils {
 
         ALMVersion ret = null;
         try {
-            JAXBContext context = JAXBContext.newInstance(ALMVersion.class);
+            JAXBContext context;
+            Thread t = Thread.currentThread();
+            ClassLoader orig = t.getContextClassLoader();
+            t.setContextClassLoader(ALMRESTVersionUtils.class.getClassLoader());
+            try {
+                context = JAXBContext.newInstance(ALMVersion.class);
+            } finally {
+                t.setContextClassLoader(orig);
+            }
             Unmarshaller unMarshaller = context.createUnmarshaller();
             ret = (ALMVersion) unMarshaller.unmarshal(new ByteArrayInputStream(xml));
         } catch (Exception e) {
