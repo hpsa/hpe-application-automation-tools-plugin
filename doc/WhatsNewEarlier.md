@@ -5,27 +5,57 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
-[What&#39;s New in version 7.2](#what&#39;s-new-in-version-7&#46;2)
+[What&#39;s New in version 7.3 ](#what&#39;s-new-in-version-7&#46;3)
 
-[What&#39;s New in version 7.1](#what&#39;s-new-in-version-7&#46;1)
+[What&#39;s New in version 7.2 ](#what&#39;s-new-in-version-7&#46;2)
 
-[What&#39;s New in version 7.0](#what&#39;s-new-in-version-7&#46;0)
+[What&#39;s New in version 7.1 ](#what&#39;s-new-in-version-7&#46;1)
 
-[What&#39;s New in version 6.9](#what&#39;s-new-in-version-6&#46;9)
+[What&#39;s New in version 7.0 ](#what&#39;s-new-in-version-7&#46;0)
 
-[What&#39;s New in versions 6.7 and 6.8](#what&#39;s-new-in-versions-6&#46;7-and-6&#39;8)
+[What&#39;s New in version 6.9 ](#what&#39;s-new-in-version-6&#46;9)
 
-[What&#39;s New in version 6.6](#what&#39;s-new-in-version-6.6)
+[What&#39;s New in versions 6.7 and 6.8 ](#what&#39;s-new-in-versions-6&#46;7-and-6&#39;8)
 
-[What&#39;s New in version 6.5](#what&#39;s-new-in-version-6.5)
+[What&#39;s New in version 6.6 ](#what&#39;s-new-in-version-6.6)
 
-[What&#39;s New in version 6.4](#what&#39;s-new-in-version-6.4)
+[What&#39;s New in version 6.5 ](#what&#39;s-new-in-version-6.5)
 
-[What&#39;s New in version 6.3](#what&#39;s-new-in-version-6.3)
+[What&#39;s New in version 6.4 ](#what&#39;s-new-in-version-6.4)
 
-[What&#39;s New in version 6.0](#what&#39;s-new-in-version-6.0)
+[What&#39;s New in version 6.3 ](#what&#39;s-new-in-version-6.3)
 
-[What&#39;s New in version 5.9](#what&#39;s-new-in-version-5.9)
+[What&#39;s New in version 6.0 ](#what&#39;s-new-in-version-6.0)
+
+[What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;3
+
+Version 7.3 introduced the following enhancements:
+
+**ALM Octane**
+
+- Code improvements for MBT, model-based testing.
+- Support for Codeless text executions.
+- Defect fixes.
+
+**Model-Based Testing**
+
+- Code improvements.
+- Support for Windows and Linux upper case/lower case strings.
+- Defect fixes.
+
+**UFT One**
+
+- Partial test result reporting for aborted Jenkins jobs, for file system executions. When a Jenkins job execution is aborted or cancelled, all the test results until that point, will be available in the build.
+- Improved parameter configuration for UFT One tests using a new parameter table, for file system and ALM execution. You can now add different types of parameters, for both GUI and API tests. 
+- Improvements in the re-run option for failed scenarios in file system executions, where tests finished with a Warning status.
+- Improved reporting for UFT One tests with same name, but different locations. 
+- Enhancements to secure log4j issues.
+
+**Service Virtualization**
+
+- Ability to switch virtual services to OFFLINE mode.
 
 ## What&#39;s New in version 7&#46;2
 
