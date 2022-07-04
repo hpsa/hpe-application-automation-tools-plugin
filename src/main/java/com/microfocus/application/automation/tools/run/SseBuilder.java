@@ -272,7 +272,15 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         try {
             if (testsuites != null && !testsuites.getTestsuite().isEmpty()) {
                 StringWriter writer = new StringWriter();
-                JAXBContext context = JAXBContext.newInstance(Testsuites.class);
+                JAXBContext context;
+                Thread t = Thread.currentThread();
+                ClassLoader orig = t.getContextClassLoader();
+                t.setContextClassLoader(SseBuilder.class.getClassLoader());
+                try {
+                    context = JAXBContext.newInstance(Testsuites.class);
+                } finally {
+                    t.setContextClassLoader(orig);
+                }
                 Marshaller marshaller = context.createMarshaller();
                 marshaller.marshal(testsuites, writer);
                 filePath.write(writer.toString(), null);

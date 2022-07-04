@@ -73,7 +73,15 @@ public class AntJUnitReportParserImpl implements ReportParser {
 	}	
 	
 	private Testsuites parseFromAntJUnitReport(InputStream reportInputStream) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(Testsuites.class);
+		JAXBContext jaxbContext;
+		Thread t = Thread.currentThread();
+		ClassLoader orig = t.getContextClassLoader();
+		t.setContextClassLoader(AntJUnitReportParserImpl.class.getClassLoader());
+		try {
+			jaxbContext = JAXBContext.newInstance(Testsuites.class);
+		} finally {
+			t.setContextClassLoader(orig);
+		}
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (Testsuites)unmarshaller.unmarshal(reportInputStream);
 	}

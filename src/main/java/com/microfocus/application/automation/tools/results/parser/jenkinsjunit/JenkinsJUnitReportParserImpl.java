@@ -64,7 +64,15 @@ public class JenkinsJUnitReportParserImpl implements ReportParser {
 	}	
 	
 	private Result parseFromJenkinsPluginJUnitReport(InputStream reportInputStream) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(Result.class);
+		JAXBContext jaxbContext;
+		Thread t = Thread.currentThread();
+		ClassLoader orig = t.getContextClassLoader();
+		t.setContextClassLoader(JenkinsJUnitReportParserImpl.class.getClassLoader());
+		try {
+			jaxbContext = JAXBContext.newInstance(Result.class);
+		} finally {
+			t.setContextClassLoader(orig);
+		}
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (Result)unmarshaller.unmarshal(reportInputStream);		
 	}
