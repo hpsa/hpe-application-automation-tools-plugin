@@ -18,6 +18,8 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [New Features and Enhancements](#new-features-and-enhancements)
 
+[Release notes](#release-notes)
+
 [Changelog](#changelog)
 
 [Supported Integrations](#supported-integrations)
@@ -69,6 +71,10 @@ Version 7.4 introduced the following enhancements:
 -	Layout improvements. 
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
+
+## Release notes
+
+Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin.
 
 ## Changelog
 
