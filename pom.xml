@@ -55,9 +55,9 @@
 	</licenses>
 
 	<properties>
-		<revision>7.4</revision>
+		<revision>7.4.1</revision>
 		<changelist>-SNAPSHOT</changelist>
-		<gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
