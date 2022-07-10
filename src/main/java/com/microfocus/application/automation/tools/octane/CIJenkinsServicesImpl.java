@@ -80,7 +80,6 @@ import hudson.maven.MavenModule;
 import hudson.model.*;
 import hudson.security.ACLContext;
 import hudson.util.IOUtils;
-import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.apache.commons.fileupload.FileItem;
@@ -114,8 +113,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
     private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
-
-    private static final RunnerMiscSettingsGlobalConfiguration config = GlobalConfiguration.all().get(RunnerMiscSettingsGlobalConfiguration.class);
 
     private static final String DEFAULT_BRANCHES_SEPARATOR = " ";
 
@@ -686,7 +683,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     }
 
     private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
-        String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
+        String defaultBranchesConfig = RunnerMiscSettingsGlobalConfiguration.getInstance() != null ? RunnerMiscSettingsGlobalConfiguration.getInstance().getDefaultBranches() : null;
         if(defaultBranchesConfig != null && !defaultBranchesConfig.isEmpty()) {
             String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
             Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)
