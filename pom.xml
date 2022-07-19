@@ -44,7 +44,7 @@
 		LoadRunner, LoadRunner Enterprise, Unified Functional Testing, QuickTest Professional, Service Test, Unified Functional Testing Mobile,
 		Application Lifecycle Management and Application Lifecycle Management Octane.
 	</description>
-	<url>https://github.com/jenkinsci/hp-application-automation-tools-plugin</url>
+	<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin/blob/latest/doc/README.md</url>
 
 	<licenses>
 		<license>
