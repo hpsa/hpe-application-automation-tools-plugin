@@ -45,7 +45,9 @@ import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.*;
+import hudson.remoting.Channel;
 import hudson.remoting.VirtualChannel;
+import hudson.slaves.SlaveComputer;
 import hudson.tasks.*;
 import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
@@ -56,6 +58,7 @@ import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -360,10 +363,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		EnvVars env = build.getEnvironment(listener);
 		hudson.model.Node node =  Jenkins.get().getNode(env.get("NODE_NAME"));
 		VirtualChannel channel;
-		if(node != null) {
+		String nodeName = "";
+		if (node != null) {
 			channel = node.getChannel();
-		} else{
+			nodeName = node.getNodeName();
+		} else {
 			channel = projectWS.getChannel();
+			try {
+				nodeName = ((SlaveComputer) ((Channel) channel).getProperty(SlaveComputer.class)).getNode().getNodeName();
+				listener.getLogger().println("Node name = " + nodeName);
+			} catch (Exception e) {
+				listener.getLogger().println("Failed to get the current Node: " + e.getMessage());
+			}
 		}
 		for (String resultsFilePath : resultFiles) {
 			FilePath resultsFile = projectWS.child(resultsFilePath);
@@ -521,7 +532,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
 
 							// the type for this report
-							String resourceUrl = "artifact/UFTReport/" + testName + "/Result";
+							String resourceUrl = "artifact/UFTReport/" + (StringUtils.isBlank(nodeName) ? "" : nodeName + "/") + testName + "/Result";
 							reportMetaData.setResourceURL(resourceUrl);
 							reportMetaData.setDisPlayName(testName); // use the name, not the full path
 							reportMetaData.computeStResFolders(new FilePath(reportFolder, RUN_RESULTS_XML), listener);
@@ -534,7 +545,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						if (archiveTestResult) {
 							if (reportFolder.exists()) {
 								FilePath testFolder = new FilePath(channel, testFolderPath);
-								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
+								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, (StringUtils.isBlank(nodeName) ? "" : nodeName + "_") + testFolder.getName(), "UFT");
 								zipFileNames.add(zipFileName);
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
@@ -569,7 +580,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				}
 
 				if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
-					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
+					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace, nodeName);
 				}
 
 				if (!ReportInfoToCollect.isEmpty()) {
@@ -661,8 +672,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	}
 
-	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo, FilePath runWorkspace) {
+	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo, FilePath runWorkspace, String nodeName) {
 		File reportMainDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
+		if (StringUtils.isNotBlank(nodeName)) {
+			reportMainDir = new File(reportMainDir, nodeName);
+		}
 
 		try {
 			for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
@@ -675,12 +689,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				File reportDir = new File(reportMainDir, testName);
 				String htmlReportDir = htmlReportInfo.getFolderPath(); // C:\UFTTest\GuiTest1\Report
 				try {
-					EnvVars env = build.getEnvironment(listener);
 					for (String subdir : htmlReportInfo.getStResFolders()) {
 						File dir = new File(htmlReportDir);
 						String testFolderPath = dir.getPath().substring(0, dir.getPath().lastIndexOf('\\'));
 						String stResPath = new File(testFolderPath, subdir).getAbsolutePath();
-						if (UftToolUtils.getFilePath(env.get("NODE_NAME"), stResPath).exists()) {
+						if (UftToolUtils.getFilePath(nodeName, stResPath).exists()) {
 							archiveAndCopyReportFolder(runWorkspace, reportDir, stResPath);
 						}
 					}
