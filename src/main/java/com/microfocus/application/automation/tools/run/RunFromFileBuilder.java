@@ -669,7 +669,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         Properties mergedProperties = new Properties();
         if (mcServerSettingsModel != null) {
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
-            jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings());
+            jobDetails = runFromFileModel.getJobDetails(mcServerUrl);
 
             mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
             mergedProperties.setProperty("MobileHostAddress", mcServerUrl);

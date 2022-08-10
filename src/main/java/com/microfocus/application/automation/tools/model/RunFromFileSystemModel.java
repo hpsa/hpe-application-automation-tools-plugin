@@ -762,8 +762,8 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * @param mcUrl the mc url
      * @return the json object
      */
-    public JSONObject getJobDetails(String mcUrl, ProxySettings proxy) {
-        return JobConfigurationProxy.getInstance().getJobById(mcUrl, authModel, proxy, fsJobId);
+    public JSONObject getJobDetails(String mcUrl) {
+        return JobConfigurationProxy.getInstance().getJobById(mcUrl, authModel, proxySettings, fsJobId);
     }
 
     @Extension
