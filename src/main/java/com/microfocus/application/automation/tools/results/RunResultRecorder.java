@@ -45,7 +45,9 @@ import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.*;
+import hudson.remoting.Channel;
 import hudson.remoting.VirtualChannel;
+import hudson.slaves.SlaveComputer;
 import hudson.tasks.*;
 import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
@@ -56,6 +58,7 @@ import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -112,7 +115,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			"report.";
 	private static final String PARALLEL_RESULT_FILE = "parallelrun_results.html";
 	private static final String REPORT_ARCHIVE_SUFFIX = "_Report.zip";
-	private static final String EXTERNAL_REPORT_FOLDER = "StRes";
+	private static final String RUN_RESULTS_XML = "run_results.xml";
+	private static final String RESULT = "Result";
 
 	private final ResultsPublisherModel _resultsPublisherModel;
 	private List<FilePath> runReportList;
@@ -359,10 +363,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		EnvVars env = build.getEnvironment(listener);
 		hudson.model.Node node =  Jenkins.get().getNode(env.get("NODE_NAME"));
 		VirtualChannel channel;
-		if(node != null) {
+		String nodeName = "";
+		if (node != null) {
 			channel = node.getChannel();
-		} else{
+			nodeName = node.getNodeName();
+		} else {
 			channel = projectWS.getChannel();
+			try {
+				nodeName = ((SlaveComputer) ((Channel) channel).getProperty(SlaveComputer.class)).getNode().getNodeName();
+				listener.getLogger().println("Node name = " + nodeName);
+			} catch (Exception e) {
+				listener.getLogger().println("Failed to get the current Node: " + e.getMessage());
+			}
 		}
 		for (String resultsFilePath : resultFiles) {
 			FilePath resultsFile = projectWS.child(resultsFilePath);
@@ -520,9 +532,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							reportMetaData.setIsParallelRunnerReport(isParallelRunnerReport); // we need to handle
 
 							// the type for this report
-							String resourceUrl = "artifact/UFTReport/" + testName;
+							String resourceUrl = "artifact/UFTReport/" + (StringUtils.isBlank(nodeName) ? "" : nodeName + "/") + testName + "/Result";
 							reportMetaData.setResourceURL(resourceUrl);
 							reportMetaData.setDisPlayName(testName); // use the name, not the full path
+							reportMetaData.computeStResFolders(new FilePath(reportFolder, RUN_RESULTS_XML), listener);
 
 							// don't know reportMetaData's URL path yet, we will generate it later.
 							ReportInfoToCollect.add(reportMetaData);
@@ -532,7 +545,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 						if (archiveTestResult) {
 							if (reportFolder.exists()) {
 								FilePath testFolder = new FilePath(channel, testFolderPath);
-								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName(), "UFT");
+								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, (StringUtils.isBlank(nodeName) ? "" : nodeName + "_") + testFolder.getName(), "UFT");
 								zipFileNames.add(zipFileName);
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
@@ -567,7 +580,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				}
 
 				if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
-					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
+					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace, nodeName);
 				}
 
 				if (!ReportInfoToCollect.isEmpty()) {
@@ -659,12 +672,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	}
 
-	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo,
-	                                             FilePath runWorkspace) throws IOException, InterruptedException {
-		File reportDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
-
-		FilePath rootTarget = new FilePath(reportDir);
-
+	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo, FilePath runWorkspace, String nodeName) {
+		File reportMainDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
+		if (StringUtils.isNotBlank(nodeName)) {
+			reportMainDir = new File(reportMainDir, nodeName);
+		}
 
 		try {
 			for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
@@ -673,14 +685,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 					continue;
 				}
 
+				String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
+				File reportDir = new File(reportMainDir, testName);
 				String htmlReportDir = htmlReportInfo.getFolderPath(); // C:\UFTTest\GuiTest1\Report
 				try {
-					EnvVars env = build.getEnvironment(listener);
-					long indexFolder = getIndexOfReportFolder(new File(htmlReportDir), EXTERNAL_REPORT_FOLDER, env.get("NODE_NAME"));
-					if(indexFolder > 0) {
-						String innerHtmlReportDir = htmlReportDir.substring(0, htmlReportDir.lastIndexOf('\\')) + "\\" + EXTERNAL_REPORT_FOLDER + indexFolder;
-
-						archiveAndCopyReportFolder(runWorkspace, reportDir, innerHtmlReportDir);
+					for (String subdir : htmlReportInfo.getStResFolders()) {
+						File dir = new File(htmlReportDir);
+						String testFolderPath = dir.getPath().substring(0, dir.getPath().lastIndexOf('\\'));
+						String stResPath = new File(testFolderPath, subdir).getAbsolutePath();
+						if (UftToolUtils.getFilePath(nodeName, stResPath).exists()) {
+							archiveAndCopyReportFolder(runWorkspace, reportDir, stResPath);
+						}
 					}
 				} catch (Exception e){
 					listener.getLogger().println("Path to test folder not found");
@@ -696,10 +711,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				// So at last we got files in C:\Program Files (x86)
 				// \Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
 				String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
-				String testName = htmlReportInfo.getDisPlayName(); // like "GuiTest1"
-				String dest = testName;
 
-				FilePath targetPath = new FilePath(rootTarget, dest); // target path is something like "C:\Program Files
+				FilePath rootTarget = new FilePath(reportDir);
+				FilePath targetPath = new FilePath(rootTarget, RESULT); // target path is something like "C:\Program Files
 				if(targetPath.exists()){
 					continue;
 				}
@@ -711,13 +725,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				//rename unzippedFolderPath to targetPath
 				try {
 					unzippedFolderPath.renameTo(targetPath);
-				}catch(Exception e){
+				} catch(Exception e){
 					listener.getLogger().println("Cannot rename to target path.");
 				}
 				// fill in the urlName of this report. we need a network path not a FS path
 				String resourceUrl = htmlReportInfo.getResourceURL();
 
-				//paraller runner
+				//parallel runner
 				FilePath source = new FilePath(runWorkspace, htmlReportDir);
 
 				// if it's a parallel runner report path, we must change the resFileName
@@ -764,22 +778,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		outStr.close();
 		inStr.close();
 	}
-
-
-	public int getIndexOfReportFolder(File directory, String fileName, String nodeName) throws IOException, InterruptedException {
-		String testFolderPath = directory.getPath().substring(0, directory.getPath().lastIndexOf('\\'));
-		int index = 0;
-
-		FilePath testFilePath = UftToolUtils.getFilePath(nodeName, testFolderPath);
-		for (FilePath file : testFilePath.listDirectories()) {
-			if (file.isDirectory() && file.getName().startsWith(fileName) && index < Integer.parseInt(file.getName().substring(5))) {
-				index = Integer.parseInt(file.getName().substring(5));
-			}
-		}
-
-		return index;
-	}
-
 
 	/**
 	 * Copies the run report from the executing node to the Jenkins master for
@@ -1210,8 +1208,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/*
 	 * if we have a directory with file name "file.zip" we will return "file_1.zip"
 	 */
-	private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName, String productName)
-			throws IOException, InterruptedException {
+	private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName, String productName) {
 
 		String result = fileName + REPORT_ARCHIVE_SUFFIX;
 		int index = 1;

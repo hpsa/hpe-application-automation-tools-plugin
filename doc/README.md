@@ -74,7 +74,7 @@ For information about enhancements introduced in previous versions, see [What's 
 
 ## Release notes
 
-Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin.
+Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin. **Note:** This limitation only applies to version 7.4. A fix was provided in version 7.4.1 Beta.
 
 ## Changelog
 
