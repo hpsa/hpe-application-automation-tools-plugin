@@ -31,6 +31,7 @@ package com.microfocus.application.automation.tools.octane.tests.junit;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
@@ -229,7 +230,9 @@ public class JUnitExtension extends OctaneTestsExtension {
 			if (HPRunnerType.UFT.equals(hpRunnerType) || HPRunnerType.UFT_MBT.equals(hpRunnerType)) {
 
 				//extract folder names for created tests
-				String reportFolder = buildRootDir + "/archive/UFTReport";
+				String reportFolder = buildRootDir + "/archive/UFTReport" +
+						(JenkinsUtils.getCurrentNode(workspace) != null && !JenkinsUtils.getCurrentNode(workspace).getNodeName().isEmpty() ?
+						"/" + JenkinsUtils.getCurrentNode(workspace).getNodeName() : "");
 				List<String> testFolderNames = new ArrayList<>();
 				testFolderNames.add(build.getRootDir().getAbsolutePath());
 				File reportFolderFile = new File(reportFolder);
