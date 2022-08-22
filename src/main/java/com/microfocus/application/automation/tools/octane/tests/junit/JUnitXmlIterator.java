@@ -115,8 +115,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
     private String stepName;
     private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     private Map<String, CodelessResult> testNameToCodelessResultMap = new HashMap<>();
+    private String nodeName;
 
-    public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps) throws XMLStreamException {
+    public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps,String nodeName) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -130,6 +131,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		this.additionalContext = additionalContext;
 		this.testParserRegEx = testParserRegEx;
 		this.octaneSupportsSteps = octaneSupportsSteps;
+		this.nodeName = nodeName;
 	}
 
 	private static long parseTime(String timeString) {
@@ -268,11 +270,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
                     if (testReportCreated) {
                         final String basePath = ((List<String>) additionalContext).get(0);
-                        String nodeName = JenkinsUtils.getCurrentNode(workspace) != null && !JenkinsUtils.getCurrentNode(workspace).getNodeName().isEmpty() ?
-                                JenkinsUtils.getCurrentNode(workspace).getNodeName() : "";
                         uftResultFilePath = Paths.get(basePath, "archive", "UFTReport", cleanedTestName, "run_results.xml").toFile().getCanonicalPath();
                         externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" +
-                                (!nodeName.isEmpty() ? nodeName +"/" : "") +
+                                (StringUtils.isNotEmpty(this.nodeName) ? nodeName +"/" : "") +
                                 cleanedTestName + "/Result/run_results.html";
                     } else {
                         //if UFT didn't created test results page - add reference to Jenkins test results page

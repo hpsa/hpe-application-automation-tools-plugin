@@ -51,10 +51,7 @@ import hudson.FilePath;
 import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.Run;
-import hudson.model.StringParameterValue;
+import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.test.AbstractTestResultAction;
 import org.apache.commons.lang.StringUtils;
@@ -201,6 +198,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 		//this class is run on master and JUnitXmlIterator is runnning on slave.
 		//this object pass some master2slave data
 		private Object additionalContext;
+		private String nodeName;
 
 		public GetJUnitTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, List<FilePath> reports, boolean stripPackageAndClass, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
@@ -228,11 +226,11 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 
 			if (HPRunnerType.UFT.equals(hpRunnerType) || HPRunnerType.UFT_MBT.equals(hpRunnerType)) {
-
+				Node node = JenkinsUtils.getCurrentNode(workspace);
+				this.nodeName = node != null && !node.getNodeName().isEmpty() ? node.getNodeName() : "";
 				//extract folder names for created tests
 				String reportFolder = buildRootDir + "/archive/UFTReport" +
-						(JenkinsUtils.getCurrentNode(workspace) != null && !JenkinsUtils.getCurrentNode(workspace).getNodeName().isEmpty() ?
-						"/" + JenkinsUtils.getCurrentNode(workspace).getNodeName() : "");
+						(StringUtils.isNotEmpty(this.nodeName) ? "/" + this.nodeName : "");
 				List<String> testFolderNames = new ArrayList<>();
 				testFolderNames.add(build.getRootDir().getAbsolutePath());
 				File reportFolderFile = new File(reportFolder);
@@ -290,7 +288,7 @@ public class JUnitExtension extends OctaneTestsExtension {
 
 			try {
 				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext,testParserRegEx, octaneSupportsSteps);
+					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext,testParserRegEx, octaneSupportsSteps,nodeName);
 					while (iterator.hasNext()) {
 						oos.writeObject(iterator.next());
 					}

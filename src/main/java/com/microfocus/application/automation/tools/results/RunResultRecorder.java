@@ -371,7 +371,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		} else {
 			channel = projectWS.getChannel();
 			try {
-				nodeName = JenkinsUtils.getCurrentNode(runWorkspace) != null ? JenkinsUtils.getCurrentNode(runWorkspace).getNodeName() : "";
+				node = JenkinsUtils.getCurrentNode(runWorkspace);
+				nodeName = node != null ? node.getNodeName() : "";
 				listener.getLogger().println("Node name = " + nodeName);
 			} catch (Exception e) {
 				listener.getLogger().println("Failed to get the current Node: " + e.getMessage());
