@@ -128,7 +128,8 @@ public class Uploader {
     private List<XmlResultEntity> getUploadData() {
         List<XmlResultEntity> xmlResultEntities = new ArrayList<>();
 
-        EntitiesFieldMap entitiesFieldMap = EntitiesFieldMapLoader.load(params.get(FIELD_MAPPING), logger, cs);
+        EntitiesFieldMap entitiesFieldMap = EntitiesFieldMapLoader.load(params.get(FIELD_MAPPING), logger, cs,
+                "true".equals(params.get(CREATE_NEW_TEST)));
         if (entitiesFieldMap == null) {
             return xmlResultEntities;
         }

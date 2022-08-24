@@ -43,9 +43,19 @@ public class EntitiesFieldMapLoader {
     private static final String ILLEGAL = "Illegal ";
     private static final String[] TEST_SET_REQUIRED_FIELDS = new String[]{"root", "name", "subtype-id"};
     private static final String[] RUN_REQUIRED_FIELDS = new String[]{"root"};
+    private static String[] testRquiredFields;
 
     private EntitiesFieldMapLoader() {
 
+    }
+
+    public static EntitiesFieldMap load(String yamlContent, CommonUploadLogger logger, CustomizationService cs, boolean isCreateNewTest) {
+        if (isCreateNewTest) {
+            testRquiredFields = new String[]{"root",  "name", "subtype-id"};
+        } else {
+            testRquiredFields = new String[]{"root", "subtype-id"};
+        }
+        return load(yamlContent, logger, cs);
     }
 
     public static EntitiesFieldMap load(String yamlContent, CommonUploadLogger logger, CustomizationService cs) {
@@ -53,10 +63,7 @@ public class EntitiesFieldMapLoader {
         EntitiesFieldMap entitiesFieldMap;
         try {
             entitiesFieldMap = mapper.readValue(yamlContent, EntitiesFieldMap.class);
-        } catch (IOException e) {
-            logger.error("Field mapping is not in right format. " + e.getMessage());
-            return null;
-        } catch (RuntimeException e) {
+        } catch (IOException | RuntimeException e) {
             logger.error("Field mapping is not in right format. " + e.getMessage());
             return null;
         }
@@ -104,7 +111,7 @@ public class EntitiesFieldMapLoader {
                 return false;
             }
         }
-        for (String field : TEST_SET_REQUIRED_FIELDS) {
+        for (String field : testRquiredFields) {
             if (!entitiesFieldMap.getTest().containsKey(field)) {
                 logger.error(field + " should be set in test's field mapping.");
                 return false;
