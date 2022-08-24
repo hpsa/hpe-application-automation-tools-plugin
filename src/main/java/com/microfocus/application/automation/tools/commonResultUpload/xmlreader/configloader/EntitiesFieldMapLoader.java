@@ -38,10 +38,13 @@ import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.
 import java.io.IOException;
 import java.util.Map;
 
+import static com.microfocus.application.automation.tools.results.service.almentities.AlmTest.TEST_TYPE;
+import static com.microfocus.application.automation.tools.results.service.almentities.AlmTestSet.TESTSET_SUB_TYPE_ID;
+
 public class EntitiesFieldMapLoader {
 
     private static final String ILLEGAL = "Illegal ";
-    private static final String[] TEST_SET_REQUIRED_FIELDS = new String[]{"root", "name", "subtype-id"};
+    private static final String[] TEST_SET_REQUIRED_FIELDS = new String[]{"root", "name", TESTSET_SUB_TYPE_ID};
     private static final String[] RUN_REQUIRED_FIELDS = new String[]{"root"};
     private static String[] testRquiredFields;
 
@@ -51,9 +54,9 @@ public class EntitiesFieldMapLoader {
 
     public static EntitiesFieldMap load(String yamlContent, CommonUploadLogger logger, CustomizationService cs, boolean isCreateNewTest) {
         if (isCreateNewTest) {
-            testRquiredFields = new String[]{"root",  "name", "subtype-id"};
+            testRquiredFields = new String[]{"root",  "name", TEST_TYPE};
         } else {
-            testRquiredFields = new String[]{"root", "subtype-id"};
+            testRquiredFields = new String[]{"root", TEST_TYPE};
         }
         return load(yamlContent, logger, cs);
     }
