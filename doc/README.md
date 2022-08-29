@@ -18,6 +18,8 @@ A list of known bugs is available [here](https://issues.jenkins-ci.org/issues/?j
 
 [New Features and Enhancements](#new-features-and-enhancements)
 
+[Release notes](#release-notes)
+
 [Changelog](#changelog)
 
 [Supported Integrations](#supported-integrations)
@@ -51,33 +53,28 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.3 introduced the following enhancements:
+Version 7.4 introduced the following enhancements:
 
 **ALM Octane**
 
-- Code improvements for MBT, model-based testing.
-- Support for Codeless text executions.
-- Defect fixes.
-
-**Model-Based Testing**
-
-- Code improvements.
-- Support for Windows and Linux upper case/lower case strings.
+- Added the **Default branches** setting. This allows ALM Octane to enable the selection of parameters for multi-branch CI jobs used in the *Run CI Job* auto action. This change allows ALM Octane to validate the branch name used for the multi-branch CI job.
+- The log4j version was updated from 2.17.1 to 2.17.2.
 - Defect fixes.
 
 **UFT One**
 
-- Partial test result reporting for aborted Jenkins jobs, for file system executions. When a Jenkins job execution is aborted or cancelled, all the test results until that point, will be available in the build.
-- Improved parameter configuration for UFT One tests using a new parameter table, for file system and ALM execution. You can now add different types of parameters, for both GUI and API tests. 
-- Improvements in the re-run option for failed scenarios in file system executions, where tests finished with a Warning status.
-- Improved reporting for UFT One tests with same name, but different locations. 
-- Enhancements to secure log4j issues.
+- Enhanced data security in UFT One’s Jenkins tasks.  A public-private key pair is used to encrypt and decrypt sensitive data on each execution node. 
+-	Access Key authentication support for UFT Mobile (supported from UFT One 2021 R1 Patch1)
+-	Support for the Java 11 JAXB dependency.
+-	Ability to specify the UFT Report timestamp format, by defining a date format on the Jenkins configuration page. (Manage Jenkins > Configure System, Run Result (UFT Report) timestamp format string section).
+-	Console Output text encoding configuration on the job level.
+-	Layout improvements. 
 
-**Service Virtualization**
-
-- Ability to switch virtual services to OFFLINE mode.
- 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
+
+## Release notes
+
+Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin. **Note:** This limitation only applies to version 7.4. A fix was provided in version 7.4.1 Beta.
 
 ## Changelog
 

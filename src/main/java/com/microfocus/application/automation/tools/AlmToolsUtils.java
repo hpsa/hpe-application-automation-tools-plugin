@@ -35,6 +35,7 @@ import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -51,14 +52,23 @@ public final class AlmToolsUtils {
 	private AlmToolsUtils() {
         // no meaning instantiating
 	}
-
-	public static void runOnBuildEnv(
+    public static void runOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
             TaskListener listener,
             FilePath file,
             String paramFileName,
             Node node) throws IOException, InterruptedException {
+        runOnBuildEnv(build, launcher, listener, file, paramFileName, node, "UTF-8");
+    }
+	public static void runOnBuildEnv(
+            Run<?, ?> build,
+            Launcher launcher,
+            TaskListener listener,
+            FilePath file,
+            String paramFileName,
+            Node node,
+            String encoding) throws IOException, InterruptedException {
 
             ArgumentListBuilder args = new ArgumentListBuilder();
             PrintStream out = listener.getLogger();
@@ -67,6 +77,10 @@ public final class AlmToolsUtils {
             args.add(file);
             args.add("-paramfile");
             args.add(paramFileName);
+            if (StringUtils.isNotBlank(encoding)) {
+                args.add("-encoding");
+                args.add(encoding);
+            }
 
             // for encryption
             Map<String, String> envs = new HashMap<>();

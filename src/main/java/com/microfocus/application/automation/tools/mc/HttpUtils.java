@@ -30,11 +30,11 @@ package com.microfocus.application.automation.tools.mc;
 
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.net.*;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public class HttpUtils {
@@ -46,10 +46,9 @@ public class HttpUtils {
 
     }
 
-    public static HttpResponse post(ProxyInfo proxyInfo, String url, Map<String, String> headers, byte[] data) {
+    public static HttpResponse doPost(ProxyInfo proxyInfo, String url, Map<String, String> headers, byte[] data) {
 
         HttpResponse response = null;
-
         try {
             response = doHttp(proxyInfo, POST, url, null, headers, data);
         } catch (Exception e) {
@@ -58,7 +57,7 @@ public class HttpUtils {
         return response;
     }
 
-    public static HttpResponse get(ProxyInfo proxyInfo, String url, Map<String, String> headers, String queryString) {
+    public static HttpResponse doGet(ProxyInfo proxyInfo, String url, Map<String, String> headers, String queryString) {
 
         HttpResponse response = null;
         try {
@@ -100,17 +99,20 @@ public class HttpUtils {
 
         connection.connect();
 
-
         int responseCode = connection.getResponseCode();
 
         if (responseCode == HttpURLConnection.HTTP_OK) {
             InputStream inputStream = connection.getInputStream();
             JSONObject jsonObject = convertStreamToJSONObject(inputStream);
-            Map<String, List<String>> headerFields = connection.getHeaderFields();
-            response.setHeaders(headerFields);
-            response.setJsonObject(jsonObject);
+            response.setHeaders(connection.getHeaderFields());
+            if (null == jsonObject) {
+                System.out.println(requestMethod + " " + connectionUrl + " return is null.");
+            } else {
+                response.setJsonObject(jsonObject);
+            }
+        } else {
+            System.out.println(requestMethod + " " + connectionUrl + " failed with response code:" + responseCode);
         }
-
         connection.disconnect();
 
         return response;
@@ -120,26 +122,23 @@ public class HttpUtils {
 
         Proxy proxy = null;
 
-        if (proxyInfo != null && proxyInfo._host != null && proxyInfo._port != null && !proxyInfo._host.isEmpty() && !proxyInfo._port.isEmpty()) {
-
+        if (proxyInfo != null && !proxyInfo.isEmpty()) {
             try {
-                int port = Integer.parseInt(proxyInfo._port.trim());
-                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
-
+                int port = Integer.parseInt(proxyInfo.port.trim());
+                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo.host, port));
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
 
-        if (proxy != null && proxyInfo._userName != null && proxyInfo._password != null && !proxyInfo._password.isEmpty() && !proxyInfo._password.isEmpty()) {
+        if (proxy != null && !proxyInfo.isEmpty()) {
             Authenticator authenticator = new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(proxyInfo._userName, proxyInfo._password.toCharArray());    //To change body of overridden methods use File | Settings | File Templates.
+                    return new PasswordAuthentication(proxyInfo.userName, proxyInfo.password.toCharArray());    //To change body of overridden methods use File | Settings | File Templates.
                 }
             };
-
 
             Authenticator.setDefault(authenticator);
         }
@@ -177,6 +176,8 @@ public class HttpUtils {
                     res.append(line);
                 }
                 obj = (JSONObject) JSONValue.parseStrict(res.toString());
+            } catch (ClassCastException e) {
+                System.out.println("WARN::INVALIDE JSON Object" + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -194,8 +195,8 @@ public class HttpUtils {
 
         ProxyInfo proxyInfo = new ProxyInfo();
 
-        proxyInfo._host = host;
-        proxyInfo._port = port;
+        proxyInfo.host = host;
+        proxyInfo.port = port;
 
         return proxyInfo;
     }
@@ -211,34 +212,38 @@ public class HttpUtils {
 
             int index = address.lastIndexOf(':');
             if (index > 0) {
-                proxyInfo._host = address.substring(0, index);
-                proxyInfo._port = address.substring(index + 1, address.length());
+                proxyInfo.host = address.substring(0, index);
+                proxyInfo.port = address.substring(index + 1, address.length());
             } else {
-                proxyInfo._host = address;
-                proxyInfo._port = "80";
+                proxyInfo.host = address;
+                proxyInfo.port = "80";
             }
         }
-        proxyInfo._userName = userName;
-        proxyInfo._password = password;
+        proxyInfo.userName = userName;
+        proxyInfo.password = password;
 
         return proxyInfo;
     }
 
     static class ProxyInfo {
-        String _host;
-        String _port;
-        String _userName;
-        String _password;
+        String host;
+        String port;
+        String userName;
+        String password;
 
         public ProxyInfo() {
 
         }
 
         public ProxyInfo(String host, String port, String userName, String password) {
-            _host = host;
-            _port = port;
-            _userName = userName;
-            _password = password;
+            this.host = host;
+            this.port = port;
+            this.userName = userName;
+            this.password = password;
+        }
+
+        public boolean isEmpty() {
+            return StringUtils.isEmpty(host) || StringUtils.isEmpty(port) || StringUtils.isEmpty(userName) || StringUtils.isEmpty(password);
         }
 
     }

@@ -44,7 +44,7 @@
 		LoadRunner, LoadRunner Enterprise, Unified Functional Testing, QuickTest Professional, Service Test, Unified Functional Testing Mobile,
 		Application Lifecycle Management and Application Lifecycle Management Octane.
 	</description>
-	<url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+	<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin/blob/latest/doc/README.md</url>
 
 	<licenses>
 		<license>
@@ -55,9 +55,9 @@
 	</licenses>
 
 	<properties>
-		<revision>7.4</revision>
+		<revision>7.4.4</revision>
 		<changelist>-SNAPSHOT</changelist>
-		<gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>

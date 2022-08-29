@@ -46,51 +46,6 @@ namespace HpToolsLauncher
         CCNET
     }
 
-    public class McConnectionInfo
-    {
-        public string MobileUserName { get; set; }
-        public string MobilePassword { get; set; }
-        public string MobileHostAddress { get; set; }
-        public string MobileHostPort { get; set; }
-        public string MobileTenantId { get; set; }
-        public int MobileUseSSL { get; set; }
-        public int MobileUseProxy { get; set; }
-        public int MobileProxyType { get; set; }
-        public string MobileProxySetting_Address { get; set; }
-        public int MobileProxySetting_Port { get; set; }
-        public int MobileProxySetting_Authentication { get; set; }
-        public string MobileProxySetting_UserName { get; set; }
-        public string MobileProxySetting_Password { get; set; }
-
-
-        public McConnectionInfo()
-        {
-            MobileHostPort = "8080";
-            MobileUserName = string.Empty;
-            MobilePassword = string.Empty;
-            MobileHostAddress = string.Empty;
-            MobileTenantId = string.Empty;
-            MobileUseSSL = 0;
-
-            MobileUseProxy = 0;
-            MobileProxyType = 0;
-            MobileProxySetting_Address = string.Empty;
-            MobileProxySetting_Port = 0;
-            MobileProxySetting_Authentication = 0;
-            MobileProxySetting_UserName = string.Empty;
-            MobileProxySetting_Password = string.Empty;
-        }
-
-        public override string ToString()
-        {
-            string McConnectionStr =
-                 string.Format("UFT Mobile HostAddress: {0}, Port: {1}, Username: {2}, TenantId: {3}, UseSSL: {4}, UseProxy: {5}, ProxyType: {6}, ProxyAddress: {7}, ProxyPort: {8}, ProxyAuth: {9}, ProxyUser: {10}",
-                 MobileHostAddress, MobileHostPort, MobileUserName, MobileTenantId, MobileUseSSL, MobileUseProxy, MobileProxyType, MobileProxySetting_Address, MobileProxySetting_Port, MobileProxySetting_Authentication,
-                 MobileProxySetting_UserName);
-            return McConnectionStr;
-        }
-    }
-
     public class Launcher
     {
         private IXmlBuilder _xmlBuilder;
@@ -102,6 +57,7 @@ namespace HpToolsLauncher
         private static ExitCodeEnum _exitCode = ExitCodeEnum.Passed;
         private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
         private bool _rerunFailedTests = false;
+        private string _encoding;
 
         public const string ClassName = "HPToolsFileSystemRunner";
 
@@ -152,7 +108,7 @@ namespace HpToolsLauncher
         /// <param name="failOnTestFailed"></param>
         /// <param name="paramFileName"></param>
         /// <param name="runType"></param>
-        public Launcher(string failOnTestFailed, string paramFileName, TestStorageType runType)
+        public Launcher(string failOnTestFailed, string paramFileName, TestStorageType runType, string encoding = "UTF-8")
         {
             _runType = runType;
             if (paramFileName != null)
@@ -160,6 +116,7 @@ namespace HpToolsLauncher
             _paramFileName = paramFileName;
 
             _failOnUftTestFailed = string.IsNullOrEmpty(failOnTestFailed) ? "N" : failOnTestFailed;
+            _encoding = encoding;
         }
 
         /// <summary>
@@ -584,6 +541,24 @@ namespace HpToolsLauncher
                                     mcConnectionInfo.MobileTenantId = mcTenantId;
                                 }
                             }
+                          
+                            //mc exec token	
+                            if (_ciParams.ContainsKey("MobileExecToken"))	
+                            {	
+                                var mcExecToken = _ciParams["MobileExecToken"];	
+                                if (!string.IsNullOrEmpty(mcExecToken))	
+                                {	
+                                    try	
+                                    {	
+                                        mcConnectionInfo.MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);	
+                                    }	
+                                    catch (ArgumentException e)	
+                                    {	
+                                        ConsoleWriter.WriteErrLine(e.Message);	
+                                        Environment.Exit((int)ExitCodeEnum.Failed);	
+                                    }	
+                                }	
+                            }
 
                             //ssl
                             if (_ciParams.ContainsKey("MobileUseSSL"))
@@ -710,11 +685,11 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("fsUftRunMode"))
                     {
                         string uftRunMode = _ciParams["fsUftRunMode"];
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
                     }
                     else
                     {
-                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename);
+                        runner = new FileSystemTestsRunner(validTests, validParams, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
                     }
 
                     break;

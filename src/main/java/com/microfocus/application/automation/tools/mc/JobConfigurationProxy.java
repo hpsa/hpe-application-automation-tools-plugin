@@ -28,6 +28,8 @@
 
 package com.microfocus.application.automation.tools.mc;
 
+import com.microfocus.application.automation.tools.model.AuthModel;
+import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -36,6 +38,7 @@ import net.minidev.json.JSONValue;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,346 +49,367 @@ import java.util.Map;
  */
 public class JobConfigurationProxy {
 
+    private static final String TOKEN = "token";
+    private static final String EXTRA_APPS = "extraApps";
+    private static final String INSTRUMENTED = "instrumented";
+    private static final String PACKAGED = "Packaged";
+    private static final String NOT_PACKAGED = "Not Packaged";
     private static JobConfigurationProxy instance = null;
 
     private JobConfigurationProxy() {
     }
 
-    public static JobConfigurationProxy getInstance(){
-        if(instance == null){
+    public static JobConfigurationProxy getInstance() {
+        if (instance == null) {
             instance = new JobConfigurationProxy();
         }
         return instance;
     }
+
     //Login to MC
-    public JSONObject loginToMC(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                                String proxyAddress, String proxyUsername, String proxyPassword) {
+    public JSONObject loginToMC(String mcUrl, AuthModel authModel, ProxySettings proxy) {
 
         JSONObject returnObject = new JSONObject();
         try {
-            Map<String, String> headers = new HashMap<String, String>();
+            Map<String, String> headers = new HashMap<>();
             headers.put(Constants.ACCEPT, "application/json");
             headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
-//            headers.put("TENANT_ID_COOKIE", mcTenantId);
 
             JSONObject sendObject = new JSONObject();
-            if(!StringUtils.isNullOrEmpty(mcTenantId)){
-                mcUserName = mcUserName + "#" + mcTenantId;
+            if (null == proxy) {
+                proxy = new ProxySettings();
             }
-            sendObject.put("name", mcUserName);
-            sendObject.put("password", mcPassword);
-            sendObject.put("accountName", "default");
-            HttpResponse response = HttpUtils.post(HttpUtils.setProxyCfg(proxyAddress, proxyUsername, proxyPassword), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
-
-            if (response != null && response.getHeaders() != null) {
-                Map<String, List<String>> headerFields = response.getHeaders();
-                List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);
-                String hp4mSecret = null;
-                if (hp4mSecretList != null && hp4mSecretList.size() != 0) {
-                    hp4mSecret = hp4mSecretList.get(0);
+            HttpResponse response;
+            if ("base".equals(authModel.getValue())) {
+                String tempUsername = authModel.getMcUserName();
+                if (!StringUtils.isNullOrEmpty(authModel.getMcTenantId())) {
+                    tempUsername += "#" + authModel.getMcTenantId();
                 }
-                List<String> setCookieList = headerFields.get(Constants.SET_COOKIE);
-                String setCookie = null;
-                String tenantCookie = null;
-                if (setCookieList != null && setCookieList.size() != 0) {
-                    setCookie = setCookieList.get(0);
-                    for(String str : setCookieList){
-                        if(str.contains(Constants.JSESSIONID) && str.startsWith(Constants.JSESSIONID)){
-                            setCookie = str;
-                            continue;
-                        }else if(str.contains(Constants.TENANT_COOKIE) && str.startsWith(Constants.TENANT_COOKIE)){
-                            tenantCookie = str;
-                            continue;
-                        }
-                    }
+                sendObject.put("name", tempUsername);
+                sendObject.put("password", authModel.getMcPassword());
+                sendObject.put("accountName", "default");
+                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
+            } else {
+                headers.put(Constants.ACCEPT, "application/json");
+                headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
+                if (Oauth2TokenUtil.validate(authModel.getMcExecToken())) {
+                    sendObject.put("client", Oauth2TokenUtil.getClient());
+                    sendObject.put("secret", Oauth2TokenUtil.getSecret());
+                    sendObject.put("tenant", Oauth2TokenUtil.getTenant());
+                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes());
+                } else {
+                    System.out.println("ERROR:: oauth token is invalid.");
+                    return returnObject;
                 }
-                String jsessionId = getCookieValue(setCookie, Constants.JSESSIONID);
-                String tenantId = getCookieValue(tenantCookie, Constants.TENANT_COOKIE);
-                returnObject.put(Constants.JSESSIONID, jsessionId);
-                returnObject.put(Constants.TENANT_COOKIE, tenantId);
-                returnObject.put(Constants.LOGIN_SECRET, hp4mSecret);
-                String cookies = Constants.JESEEIONEQ + jsessionId;
-                if(!StringUtils.isNullOrEmpty(tenantId)){
-                    cookies = cookies + Constants.TENANT_EQ + tenantId;
-                }
-                returnObject.put(Constants.COOKIE, cookies);
             }
-
+            return parseLoginResponse(response);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return returnObject;
     }
 
+    private JSONObject parseLoginResponse(HttpResponse response) {
+        if (response == null || response.getHeaders() == null) {
+            return null;
+        }
+        Map<String, List<String>> headerFields = response.getHeaders();
+        List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);
+        JSONObject returnObject = new JSONObject();
+        if (hp4mSecretList != null && !hp4mSecretList.isEmpty()) {
+            setToRespJSON(returnObject, Constants.LOGIN_SECRET, hp4mSecretList.get(0));
+        }
+        List<String> setCookieList = headerFields.get(Constants.SET_COOKIE);
+        if (setCookieList == null || setCookieList.isEmpty()) {
+            return returnObject;
+        }
+        StringBuilder cookies = new StringBuilder();
+        String setCookie = setCookieList.get(0);
+        String tenantCookie = null;
+        String oauth2Cookie = null;
+
+        for (String str : setCookieList) {
+            if (str.contains(Constants.JSESSIONID) && str.startsWith(Constants.JSESSIONID)) {
+                setCookie = str;
+                cookies.append(str).append(';');
+            } else if (str.contains(Constants.TENANT_COOKIE) && str.startsWith(Constants.TENANT_COOKIE)) {
+                tenantCookie = str;
+                cookies.append(str).append(';');
+            } else if (str.contains(Constants.OAUTH2_COOKIE_KEY) && str.startsWith(Constants.OAUTH2_COOKIE_KEY)) {
+                oauth2Cookie = str;
+            }
+        }
+        setToRespJSON(returnObject, Constants.JSESSIONID, getCookieValue(setCookie, Constants.JSESSIONID));
+        setToRespJSON(returnObject, Constants.TENANT_COOKIE, getCookieValue(tenantCookie, Constants.TENANT_COOKIE));
+        setToRespJSON(returnObject, Constants.OAUTH2_COOKIE_KEY, getCookieValue(oauth2Cookie, Constants.OAUTH2_COOKIE_KEY));
+        setToRespJSON(returnObject, Constants.COOKIE, cookies.toString());
+
+        return returnObject;
+    }
+
     //upload app to MC
-    public JSONObject upload(String mcUrl, String mcUserName, String mcPassword, String mcTenantId,
-                             String proxyAddress, String proxyUsername, String proxyPassword, String appPath) throws Exception {
-
-        JSONObject json = null;
-        String hp4mSecret = null;
-        String jsessionId = null;
-
+    public JSONObject upload(String mcUrl, AuthModel authModel, ProxySettings proxy, String appPath) throws IOException {
         File appFile = new File(appPath);
 
         String uploadUrl = mcUrl + Constants.APP_UPLOAD;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        StringBuffer content = new StringBuffer();
+        StringBuilder content = new StringBuilder();
         content.append("\r\n").append("------").append(Constants.BOUNDARYSTR).append("\r\n");
         content.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + appFile.getName() + "\"\r\n");
         content.append("Content-Type: application/octet-stream\r\n\r\n");
 
         outputStream.write(content.toString().getBytes());
 
-        FileInputStream in = new FileInputStream(appFile);
-        byte[] b = new byte[1024];
-        int i = 0;
-        while ((i = in.read(b)) != -1) {
-            outputStream.write(b, 0, i);
+        try (FileInputStream in = new FileInputStream(appFile)) {
+            byte[] b = new byte[1024];
+            int i = 0;
+            while ((i = in.read(b)) != -1) {
+                outputStream.write(b, 0, i);
+            }
         }
-        in.close();
 
         outputStream.write(("\r\n------" + Constants.BOUNDARYSTR + "--\r\n").getBytes());
 
         byte[] bytes = outputStream.toByteArray();
 
         outputStream.close();
-
-        JSONObject loginJson = loginToMC(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUsername, proxyPassword);
-
-        if (loginJson != null) {
-            hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-            jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+        if (null == proxy) {
+            proxy = new ProxySettings();
         }
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-        headers.put(Constants.COOKIE, Constants.JESEEIONEQ + jsessionId);
+        Map<String, String> headers = new HashMap<>();
+        JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
+        if (loginJson != null) {
+            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+            headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+            String cookies = Constants.JESEEIONEQ + jsessionId;
+            if (TOKEN.equals(authModel.getValue())) {
+                String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
+                if (!StringUtils.isNullOrEmpty(oauth)) {
+                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                } else {
+                    System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
+                }
+            }
+            headers.put(Constants.COOKIE, cookies);
+        }
+
         headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
         headers.put(Constants.FILENAME, appFile.getName());
 
-        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxyAddress, proxyUsername, proxyPassword);
-        HttpResponse response = HttpUtils.post(proxyInfo, uploadUrl, headers, bytes);
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doPost(proxyInfo, uploadUrl, headers, bytes);
 
         if (response != null && response.getJsonObject() != null) {
-            json = response.getJsonObject();
+            return response.getJsonObject();
         }
-        return json;
+        return null;
     }
 
     //create one temp job
-    public String createTempJob(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword) {
-        JSONObject job = null;
-        String jobId = null;
-        String hp4mSecret = null;
-        String jsessionId = null;
-
-        String loginJson = loginToMC(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword).toJSONString();
+    public String createTempJob(String mcUrl, AuthModel authModel, ProxySettings proxy) {
         try {
-            if (loginJson != null) {
-                JSONObject jsonObject = (JSONObject) JSONValue.parseStrict(loginJson);
-                hp4mSecret = (String) jsonObject.get(Constants.LOGIN_SECRET);
-                jsessionId = (String) jsonObject.get(Constants.JSESSIONID);
+            JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
+            if (loginJson == null) {
+                return null;
+            }
+            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+
+            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, jsessionId)) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+                StringBuilder cookies = new StringBuilder(Constants.JESEEIONEQ).append(jsessionId);
+                if (TOKEN.equals(authModel.getValue())) {
+                    cookies.append(';').append(Constants.OAUTH2_COOKIE_KEY).append('=').append((String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                }
+                headers.put(Constants.COOKIE, cookies.toString());
+                HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+                HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.CREATE_JOB_URL, headers, null);
+
+                if (response != null && response.getJsonObject() != null) {
+                    JSONObject job = response.getJsonObject();
+                    if (job != null && job.get("data") != null) {
+                        JSONObject data = (JSONObject) job.get("data");
+                        return data.getAsString("id");
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        boolean isValid = argumentsCheck(hp4mSecret, jsessionId);
-
-        if (isValid) {
-            try {
-                Map<String, String> headers = new HashMap<String, String>();
-                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                headers.put(Constants.COOKIE, Constants.JESEEIONEQ + jsessionId);
-                HttpResponse response = HttpUtils.get(HttpUtils.setProxyCfg(proxyAddress,proxyUserName,proxyPassword), mcUrl + Constants.CREATE_JOB_URL, headers, null);
-
-                if (response != null && response.getJsonObject() != null) {
-                    job = response.getJsonObject();
-                    if(job != null && job.get("data") != null){
-                        JSONObject data = (JSONObject)job.get("data");
-                        jobId = data.getAsString("id");
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return jobId;
+        return null;
     }
 
     //get one job by id
-    public JSONObject getJobById(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUsername, String proxyPassword, String jobUUID) {
+    public JSONObject getJobById(String mcUrl, AuthModel authModel, ProxySettings proxy, String jobUUID) {
         JSONObject jobJsonObject = null;
-        String hp4mSecret = null;
-        String jsessionId = null;
 
-        String loginJson = loginToMC(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUsername, proxyPassword).toJSONString();
         try {
-            if (loginJson != null) {
-                JSONObject jsonObject = (JSONObject) JSONValue.parseStrict(loginJson);
-                hp4mSecret = (String) jsonObject.get(Constants.LOGIN_SECRET);
-                jsessionId = (String) jsonObject.get(Constants.JSESSIONID);
+            JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
+            if (loginJson == null) {
+                return null;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
 
-        boolean b = argumentsCheck(jobUUID, hp4mSecret, jsessionId);
-
-        if (b) {
-            try {
-                Map<String, String> headers = new HashMap<String, String>();
+            if (thereIsNoArgumentNullOrEmpty(jobUUID, hp4mSecret, jsessionId)) {
+                Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                headers.put(Constants.COOKIE, Constants.JESEEIONEQ + jsessionId);
-                HttpResponse response = HttpUtils.get(HttpUtils.setProxyCfg(proxyAddress, proxyUsername, proxyPassword), mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
+                String cookies = Constants.JESEEIONEQ + jsessionId;
+                if (TOKEN.equals(authModel.getValue())) {
+                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                }
+                headers.put(Constants.COOKIE, cookies);
+                HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+                HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
 
                 if (response != null && response.getJsonObject() != null) {
                     jobJsonObject = response.getJsonObject();
                 }
-                if(jobJsonObject != null){
-                    jobJsonObject = (JSONObject)jobJsonObject.get(Constants.DATA);
+                if (jobJsonObject != null) {
+                    jobJsonObject = (JSONObject) jobJsonObject.get(Constants.DATA);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return removeIcon(jobJsonObject);
     }
 
     //parse one job.and get the data we want
-    public JSONObject getJobJSONData(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String proxyAddress, String proxyUserName, String proxyPassword, String jobUUID) {
-        JSONObject jobJSON = getJobById(mcUrl, mcUserName, mcPassword, mcTenantId, proxyAddress, proxyUserName, proxyPassword, jobUUID);
+    public JSONObject getJobJSONData(String mcUrl, AuthModel authModel, ProxySettings proxy, String jobUUID) {
+        JSONObject jobJSON = getJobById(mcUrl, authModel, proxy, jobUUID);
 
         JSONObject returnJSON = new JSONObject();
-
-        //Device Capabilities
-        if (jobJSON != null) {
-            JSONObject returnDeviceCapabilityJSON = new JSONObject();
-
-            JSONObject detailJSON = (JSONObject) jobJSON.get("capableDeviceFilterDetails");
-            if (detailJSON != null) {
-                String osType = (String) detailJSON.get("platformName");
-                String osVersion = (String) detailJSON.get("platformVersion");
-                String manufacturerAndModel = (String) detailJSON.get("deviceName");
-                String targetLab = (String) detailJSON.get("source");
-
-                returnDeviceCapabilityJSON.put("OS", osType + osVersion);
-                returnDeviceCapabilityJSON.put("manufacturerAndModel", manufacturerAndModel);
-                returnDeviceCapabilityJSON.put("targetLab", targetLab);
-            }
-
-            JSONObject returnDeviceJSON = new JSONObject();
-            //specific device
-            JSONArray devices = (JSONArray) jobJSON.get("devices");
-
-            if (devices != null) {
-                JSONObject deviceJSON = (JSONObject) devices.get(0);
-                if (deviceJSON != null) {
-                    String deviceID = deviceJSON.getAsString("deviceID");
-                    String osType = deviceJSON.getAsString("osType");
-                    String osVersion = deviceJSON.getAsString("osVersion");
-                    String manufacturerAndModel = deviceJSON.getAsString("model");
-
-                    returnDeviceJSON.put("deviceId", deviceID);
-                    returnDeviceJSON.put("OS", osType + " " + osVersion);
-                    returnDeviceJSON.put("manufacturerAndModel", manufacturerAndModel);
-                }
-            }
-            //Applications under test
-            JSONArray returnExtraJSONArray = new JSONArray();
-            StringBuilder extraApps = new StringBuilder();
-            JSONArray extraAppJSONArray = (JSONArray) jobJSON.get("extraApps");
-
-            if (extraAppJSONArray != null) {
-                Iterator<Object> iterator = extraAppJSONArray.iterator();
-
-                while (iterator.hasNext()) {
-
-                    JSONObject extraAPPJSON = new JSONObject();
-
-                    JSONObject nextJSONObject = (JSONObject) iterator.next();
-                    String extraAppName = (String) nextJSONObject.get("name");
-                    Boolean instrumented = (Boolean) nextJSONObject.get("instrumented");
-
-                    extraAPPJSON.put("extraAppName", extraAppName);
-                    extraAPPJSON.put("instrumented", instrumented ? "Packaged" : "Not Packaged");
-                    if(extraApps.length() > 1){
-                        extraApps.append(";\n");
-                    }
-                    extraApps.append(extraAppName).append("\t\t").append(instrumented ? "Packaged" : "Not Packaged");
-
-                    returnExtraJSONArray.add(extraAPPJSON);
-                }
-            }
-            //Test Definitions
-            JSONObject returnDefinitionJSON = new JSONObject();
-
-            JSONObject applicationJSON = (JSONObject) jobJSON.get("application");
-
-            if (applicationJSON != null) {
-                String launchApplicationName = (String) applicationJSON.get("name");
-                Boolean instrumented = (Boolean) applicationJSON.get("instrumented");
-
-                returnDefinitionJSON.put("launchApplicationName", launchApplicationName);
-                returnDefinitionJSON.put("instrumented", instrumented ? "Packaged" : "Not Packaged");
-            }
-
-            //Device metrics,Install Restart
-            String headerStr = (String) jobJSON.get("header");
-            JSONObject headerJSON = parseJSONString(headerStr);
-            if (headerJSON != null) {
-                JSONObject configurationJSONObject = (JSONObject) headerJSON.get("configuration");
-                Boolean restart = (Boolean) configurationJSONObject.get("restartApp");
-                Boolean install = (Boolean) configurationJSONObject.get("installAppBeforeExecution");
-                Boolean uninstall = (Boolean) configurationJSONObject.get("deleteAppAfterExecution");
-
-                StringBuffer sb = new StringBuffer("");
-
-                if (restart) {
-                    sb.append("Restart;");
-                }
-                if (install) {
-                    sb.append("Install;");
-                }
-                if (uninstall) {
-                    sb.append("Uninstall;");
-                }
-                JSONObject collectJSON = (JSONObject) headerJSON.get("collect");
-                StringBuffer deviceMetricsSb = new StringBuffer("");
-                //device metrics
-                if (collectJSON != null) {
-                    Boolean useCPU = (Boolean) collectJSON.get("cpu");
-                    Boolean useMemory = (Boolean) collectJSON.get("memory");
-                    Boolean useLogs = (Boolean) collectJSON.get("logs");
-                    Boolean useScreenshot = (Boolean) collectJSON.get("screenshot");
-                    Boolean useFreeMemory = (Boolean) collectJSON.get("freeMemory");
-                    if (useCPU) {
-                        deviceMetricsSb.append("CPU;");
-                    }
-                    if (useMemory) {
-                        deviceMetricsSb.append("Memory;");
-                    }
-                    if (useLogs) {
-                        deviceMetricsSb.append("Log;");
-                    }
-                    if (useScreenshot) {
-                        deviceMetricsSb.append("Screenshot;");
-                    }
-                    if (useFreeMemory) {
-                        deviceMetricsSb.append("FreeMomery;");
-                    }
-                }
-                returnDefinitionJSON.put("autActions", removeLastSemicolon(sb));
-                returnDefinitionJSON.put("deviceMetrics", removeLastSemicolon(deviceMetricsSb));
-            }
-            returnJSON.put("deviceCapability", returnDeviceCapabilityJSON);
-            returnJSON.put("extraApps", extraApps.toString());
-            returnJSON.put("extraApps2", returnExtraJSONArray);
-            returnJSON.put("definitions", returnDefinitionJSON);
-            returnJSON.put("jobUUID", jobUUID);
-            returnJSON.put("deviceJSON", returnDeviceJSON);
+        if (jobJSON == null) {
+            return returnJSON;
         }
+        //Device Capabilities
+        JSONObject returnDeviceCapabilityJSON = new JSONObject();
+
+        JSONObject detailJSON = (JSONObject) jobJSON.get("capableDeviceFilterDetails");
+        if (detailJSON != null) {
+            String osType = (String) detailJSON.get("platformName");
+            String osVersion = (String) detailJSON.get("platformVersion");
+            String manufacturerAndModel = (String) detailJSON.get("deviceName");
+            String targetLab = (String) detailJSON.get("source");
+
+            returnDeviceCapabilityJSON.put("OS", osType + osVersion);
+            returnDeviceCapabilityJSON.put("manufacturerAndModel", manufacturerAndModel);
+            returnDeviceCapabilityJSON.put("targetLab", targetLab);
+        }
+
+        JSONObject returnDeviceJSON = new JSONObject();
+        //specific device
+        JSONArray devices = (JSONArray) jobJSON.get("devices");
+
+        if (devices != null) {
+            JSONObject deviceJSON = (JSONObject) devices.get(0);
+            if (deviceJSON != null) {
+                String deviceID = deviceJSON.getAsString("deviceID");
+                String osType = deviceJSON.getAsString("osType");
+                String osVersion = deviceJSON.getAsString("osVersion");
+                String manufacturerAndModel = deviceJSON.getAsString("model");
+
+                returnDeviceJSON.put("deviceId", deviceID);
+                returnDeviceJSON.put("OS", osType + " " + osVersion);
+                returnDeviceJSON.put("manufacturerAndModel", manufacturerAndModel);
+            }
+        }
+        //Applications under test
+        JSONArray returnExtraJSONArray = new JSONArray();
+        StringBuilder extraApps = new StringBuilder();
+        JSONArray extraAppJSONArray = (JSONArray) jobJSON.get(EXTRA_APPS);
+
+        if (extraAppJSONArray != null) {
+            Iterator<Object> iterator = extraAppJSONArray.iterator();
+
+            while (iterator.hasNext()) {
+                JSONObject extraAPPJSON = new JSONObject();
+
+                JSONObject nextJSONObject = (JSONObject) iterator.next();
+                String extraAppName = (String) nextJSONObject.get("name");
+                Boolean instrumented = (Boolean) nextJSONObject.get(INSTRUMENTED);
+
+                extraAPPJSON.put("extraAppName", extraAppName);
+                extraAPPJSON.put(INSTRUMENTED, instrumented ? PACKAGED : NOT_PACKAGED);
+                if (extraApps.length() > 1) {
+                    extraApps.append(";\n");
+                }
+                extraApps.append(extraAppName).append("\t\t").append(instrumented ? PACKAGED : NOT_PACKAGED);
+
+                returnExtraJSONArray.add(extraAPPJSON);
+            }
+        }
+        //Test Definitions
+        JSONObject returnDefinitionJSON = new JSONObject();
+
+        JSONObject applicationJSON = (JSONObject) jobJSON.get("application");
+
+        if (applicationJSON != null) {
+            String launchApplicationName = (String) applicationJSON.get("name");
+            Boolean instrumented = (Boolean) applicationJSON.get(INSTRUMENTED);
+
+            returnDefinitionJSON.put("launchApplicationName", launchApplicationName);
+            returnDefinitionJSON.put(INSTRUMENTED, instrumented ? PACKAGED : NOT_PACKAGED);
+        }
+
+        //Device metrics,Install Restart
+        String headerStr = (String) jobJSON.get("header");
+        JSONObject headerJSON = parseJSONString(headerStr);
+        if (headerJSON != null) {
+            JSONObject configurationJSONObject = (JSONObject) headerJSON.get("configuration");
+            Boolean restart = (Boolean) configurationJSONObject.get("restartApp");
+            Boolean install = (Boolean) configurationJSONObject.get("installAppBeforeExecution");
+            Boolean uninstall = (Boolean) configurationJSONObject.get("deleteAppAfterExecution");
+
+            StringBuilder sb = new StringBuilder("");
+            if (restart) {
+                sb.append("Restart;");
+            }
+            if (install) {
+                sb.append("Install;");
+            }
+            if (uninstall) {
+                sb.append("Uninstall;");
+            }
+            JSONObject collectJSON = (JSONObject) headerJSON.get("collect");
+            StringBuilder deviceMetricsSb = new StringBuilder("");
+            //device metrics
+            if (collectJSON != null) {
+                Boolean useCPU = (Boolean) collectJSON.get("cpu");
+                Boolean useMemory = (Boolean) collectJSON.get("memory");
+                Boolean useLogs = (Boolean) collectJSON.get("logs");
+                Boolean useScreenshot = (Boolean) collectJSON.get("screenshot");
+                Boolean useFreeMemory = (Boolean) collectJSON.get("freeMemory");
+                if (useCPU) {
+                    deviceMetricsSb.append("CPU;");
+                }
+                if (useMemory) {
+                    deviceMetricsSb.append("Memory;");
+                }
+                if (useLogs) {
+                    deviceMetricsSb.append("Log;");
+                }
+                if (useScreenshot) {
+                    deviceMetricsSb.append("Screenshot;");
+                }
+                if (useFreeMemory) {
+                    deviceMetricsSb.append("FreeMomery;");
+                }
+            }
+            returnDefinitionJSON.put("autActions", removeLastSemicolon(sb));
+            returnDefinitionJSON.put("deviceMetrics", removeLastSemicolon(deviceMetricsSb));
+        }
+        returnJSON.put("deviceCapability", returnDeviceCapabilityJSON);
+        returnJSON.put(EXTRA_APPS, extraApps.toString());
+        returnJSON.put("extraApps2", returnExtraJSONArray);
+        returnJSON.put("definitions", returnDefinitionJSON);
+        returnJSON.put("jobUUID", jobUUID);
+        returnJSON.put("deviceJSON", returnDeviceJSON);
         return returnJSON;
     }
 
@@ -400,7 +424,7 @@ public class JobConfigurationProxy {
     }
 
     private String getCookieValue(String setCookie, String cookieName) {
-        if(StringUtils.isNullOrEmpty(setCookie)){
+        if (StringUtils.isNullOrEmpty(setCookie)) {
             return null;
         }
         String id = null;
@@ -415,43 +439,44 @@ public class JobConfigurationProxy {
         return id;
     }
 
-    private boolean argumentsCheck(String... args) {
-
+    private boolean thereIsNoArgumentNullOrEmpty(String... args) {
         for (String arg : args) {
-            if (arg == null || arg == "" || arg.length() == 0) {
+            if (StringUtils.isNullOrEmpty(arg)) {
                 return false;
             }
         }
         return true;
     }
 
-    private String removeLastSemicolon(StringBuffer sb) {
+    private String removeLastSemicolon(StringBuilder sb) {
         String result = sb.toString();
         int indexOf = result.lastIndexOf(";");
-        if(indexOf > 0){
+        if (indexOf > 0) {
             result = result.substring(0, indexOf);
         }
         return result;
     }
 
-    private JSONObject removeIcon(JSONObject jobJSON){
-        JSONArray extArr = null;
+    private JSONObject removeIcon(JSONObject jobJSON) {
         if (jobJSON != null) {
-            if (jobJSON != null) {
-                JSONObject applicationJSONObject = (JSONObject) jobJSON.get("application");
-                if (applicationJSONObject != null) {
-                    applicationJSONObject.remove(Constants.ICON);
-                }
-                extArr = (JSONArray) jobJSON.get("extraApps");
-                if (extArr != null) {
-                    Iterator<Object> iterator = extArr.iterator();
-                    while (iterator.hasNext()) {
-                        JSONObject extAppJSONObject = (JSONObject) iterator.next();
-                        extAppJSONObject.remove(Constants.ICON);
-                    }
+            JSONObject applicationJSONObject = (JSONObject) jobJSON.get("application");
+            if (applicationJSONObject != null) {
+                applicationJSONObject.remove(Constants.ICON);
+            }
+            JSONArray extArr = (JSONArray) jobJSON.get(EXTRA_APPS);
+            if (extArr != null) {
+                Iterator<Object> iterator = extArr.iterator();
+                while (iterator.hasNext()) {
+                    JSONObject extAppJSONObject = (JSONObject) iterator.next();
+                    extAppJSONObject.remove(Constants.ICON);
                 }
             }
         }
         return jobJSON;
+    }
+
+    private void setToRespJSON(JSONObject returnObject, String key, String value) {
+        if (thereIsNoArgumentNullOrEmpty(key, value) && null != returnObject)
+            returnObject.put(key, value);
     }
 }

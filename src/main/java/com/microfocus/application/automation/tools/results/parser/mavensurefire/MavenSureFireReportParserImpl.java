@@ -63,7 +63,15 @@ public class MavenSureFireReportParserImpl implements ReportParser {
 	}	
     
 	private Testsuite parseFromMavenSurefirePluginJUnitReport(InputStream reportInputStream) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(Testsuite.class);
+		JAXBContext jaxbContext;
+		Thread t = Thread.currentThread();
+		ClassLoader orig = t.getContextClassLoader();
+		t.setContextClassLoader(MavenSureFireReportParserImpl.class.getClassLoader());
+		try {
+			jaxbContext = JAXBContext.newInstance(Testsuite.class);
+		} finally {
+			t.setContextClassLoader(orig);
+		}
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (Testsuite)unmarshaller.unmarshal(reportInputStream);
 	}

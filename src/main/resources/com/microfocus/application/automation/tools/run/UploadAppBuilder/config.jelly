@@ -63,14 +63,27 @@
             </j:forEach>
         </select>
     </f:entry>
-    <f:entry title="User name" field="mcUserName">
-        <f:textbox name="uploadApp.mcUserName" value="${instance.uploadAppModel.mcUserName}"/>
-    </f:entry>
-    <f:entry title="Password" field="mcPassword">
-        <f:password name="uploadApp.mcPassword" value="${instance.uploadAppModel.mcPassword}"/>
-    </f:entry>
-    <f:entry title="Tenant Id" field="mcTenantId">
-        <f:textbox name="uploadApp.mcTenantId" value="${instance.uploadAppModel.mcTenantId}"/>
+    <f:entry field="authModel">
+        <f:radioBlock name="authModel" value="token" checked="${instance.uploadAppModel.authType == 'token' || instance.uploadAppModel.authType == null}" title="Execution Token Authentication">
+            <f:nested>
+                <f:entry title="Access Key" field="mcExecToken">
+                    <f:password name="uploadApp.mcExecToken" value="${instance.uploadAppModel.authModel.mcExecToken}" />
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+        <f:radioBlock name="authModel" value="base" checked="${instance.uploadAppModel.authType == 'base'}" title="Base Authentication">
+            <f:nested>
+                <f:entry title="User name" field="mcUserName">
+                    <f:textbox name="uploadApp.mcUserName" value="${instance.uploadAppModel.authModel.mcUserName}"/>
+                </f:entry>
+                <f:entry title="Password" field="mcPassword">
+                    <f:password name="uploadApp.mcPassword" value="${instance.uploadAppModel.authModel.mcPassword}"/>
+                </f:entry>
+                <f:entry title="Tenant Id" field="mcTenantId">
+                    <f:textbox name="uploadApp.mcTenantId" value="${instance.uploadAppModel.authModel.mcTenantId}"/>
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
     </f:entry>
     <f:entry>
         <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.uploadAppModel.useProxy}">

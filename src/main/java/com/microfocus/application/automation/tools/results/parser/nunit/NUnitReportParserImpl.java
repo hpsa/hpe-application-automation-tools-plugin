@@ -65,7 +65,15 @@ public class NUnitReportParserImpl implements ReportParser {
 	}	
     
 	private ResultType parseFromNUnitReport(InputStream reportInputStream) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(ResultType.class);
+		JAXBContext jaxbContext;
+		Thread t = Thread.currentThread();
+		ClassLoader orig = t.getContextClassLoader();
+		t.setContextClassLoader(NUnitReportParserImpl.class.getClassLoader());
+		try {
+			jaxbContext = JAXBContext.newInstance(ResultType.class);
+		} finally {
+			t.setContextClassLoader(orig);
+		}
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (ResultType)unmarshaller.unmarshal(reportInputStream);
 	}

@@ -508,6 +508,18 @@ Save the test in QuickTest and then run it again.</value>
   <data name="FsRunnerErrorParameterFormat" xml:space="preserve">
     <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test.</value>
   </data>
+  <data name="McInvalidToken" xml:space="preserve">
+    <value>Invalid execution token for Mobile, should contain ClientID, SecretKey and TenantID.</value>
+  </data>
+  <data name="McMalformedTokenInvalidKey" xml:space="preserve">
+    <value>Malformed execution token for Mobile, invalid key value: {0}.</value>
+  </data>
+  <data name="McMalformedTokenInvalidKeyValueSeparator" xml:space="preserve">
+    <value>Malformed execution token for Mobile, key-value pairs are not separated by {0}.</value>
+  </data>
+  <data name="McMalformedTokenMissingKeyValuePair" xml:space="preserve">
+    <value>Malformed execution token for Mobile, token without key-value.</value>
+  </data>
   <data name="FsDuplicateParamNames" xml:space="preserve">
     <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
   </data>

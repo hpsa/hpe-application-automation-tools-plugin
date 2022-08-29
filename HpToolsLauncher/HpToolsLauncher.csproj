@@ -105,6 +105,7 @@
       <DependentUpon>junit.xsd</DependentUpon>
       <SubType>code</SubType>
     </Compile>
+    <Compile Include="McConnection.cs" />
     <Compile Include="MtbManager.cs" />
     <Compile Include="NativeProcess.cs" />
     <Compile Include="ParallelRunner\ParallelRunnerEnvironmentUtil.cs" />
@@ -122,7 +123,7 @@
     <Compile Include="Runners\RunnerBase.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="TestInfo.cs" />
-	  <Compile Include="TestParameter.cs" />
+    <Compile Include="TestParameter.cs" />
     <Compile Include="TestParameterInfo.cs" />
     <Compile Include="TestRunners\IterationInfo.cs" />
     <Compile Include="TestRunners\ParallelTestRunner.cs" />

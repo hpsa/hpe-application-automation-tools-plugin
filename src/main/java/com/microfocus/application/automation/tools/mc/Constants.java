@@ -44,12 +44,15 @@ public class Constants {
     public static final String LOGIN_SECRET = "x-hp4msecret";
     public static final String SPLIT_COMMA = ";";
     public static final String JSESSIONID = "JSESSIONID";
+    public static final String LWSSO_COOKIE_KEY = "LWSSO_COOKIE_KEY";
+    public static final String OAUTH2_COOKIE_KEY = "OAUTH2_COOKIE_KEY";
     public static final String ACCEPT = "Accept";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String COOKIE = "Cookie";
     public static final String SET_COOKIE = "Set-Cookie";
     public static final String EQUAL = "=";
     public static final String LOGIN_URL = "/rest/client/login";
+    public static final String LOGIN_URL_OAUTH = "/rest/client/v2/oauth2/login";
     public static final String CREATE_JOB_URL = "/rest/job/createTempJob";
     public static final String GET_JOB_UEL = "/rest/job/";
     public final static String ICON = "icon";

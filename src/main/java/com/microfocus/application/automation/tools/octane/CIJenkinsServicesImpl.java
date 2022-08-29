@@ -51,6 +51,8 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.services.configurationparameters.FortifySSCTokenParameter;
@@ -78,7 +80,6 @@ import hudson.maven.MavenModule;
 import hudson.model.*;
 import hudson.security.ACLContext;
 import hudson.util.IOUtils;
-import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.apache.commons.fileupload.FileItem;
@@ -112,8 +113,6 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private static final Logger logger = SDKBasedLoggerProvider.getLogger(CIJenkinsServicesImpl.class);
     private static final java.util.logging.Logger systemLogger = java.util.logging.Logger.getLogger(CIJenkinsServicesImpl.class.getName());
-
-    private static final RunnerMiscSettingsGlobalConfiguration config = GlobalConfiguration.all().get(RunnerMiscSettingsGlobalConfiguration.class);
 
     private static final String DEFAULT_BRANCHES_SEPARATOR = " ";
 
@@ -354,8 +353,12 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
             if (!hasRead) {
                 throw new PermissionException("Missing READ permission to job " + jobCiId,  HttpStatus.SC_FORBIDDEN);
             }
-            AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
-            return jobProcessor.getBuildStatus(parameterName, parameterValue);
+            if(job == null) {
+                return getUnavailableJobStatus(jobCiId, parameterName, parameterValue);
+            } else {
+                AbstractProjectProcessor jobProcessor = JobProcessorFactory.getFlowProcessor(job);
+                return jobProcessor.getBuildStatus(parameterName, parameterValue);
+            }
         } finally {
             stopImpersonation(securityContext);
         }
@@ -670,8 +673,17 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                 .setName(name);
     }
 
+    private CIBuildStatusInfo getUnavailableJobStatus(String ciJobId, String paramName, String paramValue) {
+        return DTOFactory.getInstance().newDTO(CIBuildStatusInfo.class)
+                .setBuildStatus(CIBuildStatus.UNAVAILABLE)
+                .setJobCiId(ciJobId)
+                .setParamName(paramName)
+                .setParamValue(paramValue)
+                .setResult(CIBuildResult.UNAVAILABLE);
+    }
+
     private void addParametersAndDefaultBranchFromConfig(Item item, PipelineNode result) {
-        String defaultBranchesConfig = config != null ? config.getDefaultBranches() : null;
+        String defaultBranchesConfig = RunnerMiscSettingsGlobalConfiguration.getInstance() != null ? RunnerMiscSettingsGlobalConfiguration.getInstance().getDefaultBranches() : null;
         if(defaultBranchesConfig != null && !defaultBranchesConfig.isEmpty()) {
             String[] defaultBranchesArray = defaultBranchesConfig.split(DEFAULT_BRANCHES_SEPARATOR);
             Set<String> defaultBranches = Arrays.stream(defaultBranchesArray)

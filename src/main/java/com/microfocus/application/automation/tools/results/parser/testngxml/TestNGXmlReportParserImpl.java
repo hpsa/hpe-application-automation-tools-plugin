@@ -66,7 +66,15 @@ public class TestNGXmlReportParserImpl implements ReportParser {
 	}	
     
 	private TestngResults parseFromTestNGXmlReport(InputStream reportInputStream) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(TestngResults.class);
+		JAXBContext jaxbContext;
+		Thread t = Thread.currentThread();
+		ClassLoader orig = t.getContextClassLoader();
+		t.setContextClassLoader(TestNGXmlReportParserImpl.class.getClassLoader());
+		try {
+			jaxbContext = JAXBContext.newInstance(TestngResults.class);
+		} finally {
+			t.setContextClassLoader(orig);
+		}
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (TestngResults)unmarshaller.unmarshal(reportInputStream);
 	}

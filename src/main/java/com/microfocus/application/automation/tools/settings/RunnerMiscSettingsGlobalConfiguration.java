@@ -56,11 +56,13 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
 
     private String dateFormat;
     private String defaultBranches;
+    private boolean agentToControllerEnabled;
 
     @DataBoundConstructor
-    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches) {
+    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches,boolean agentToControllerEnabled) {
         setDateFormat(mfDateFormat);
         setDefaultBranches(defaultBranches);
+        setAgentToControllerEnabled(agentToControllerEnabled);
     }
 
     public RunnerMiscSettingsGlobalConfiguration() {
@@ -100,6 +102,8 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
         save();
     }
 
+
+
     private String getValidatedDefaultBranches(String defaultBranches) {
         String[] branches = defaultBranches.split(" ");
         return Stream.of(branches).filter(branch -> !StringUtils.isNullOrEmpty(branch))
@@ -122,6 +126,15 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
             this.dateFormat = DEFAULT_UFT_DATE_PATTERN1;
         }
 
+        save();
+    }
+
+    public boolean isAgentToControllerEnabled() {
+        return agentToControllerEnabled;
+    }
+
+    public void setAgentToControllerEnabled(boolean agentToControllerEnabled) {
+        this.agentToControllerEnabled = agentToControllerEnabled;
         save();
     }
 
