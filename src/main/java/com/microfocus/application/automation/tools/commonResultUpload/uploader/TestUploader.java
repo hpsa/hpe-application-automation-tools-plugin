@@ -36,7 +36,6 @@ import com.microfocus.application.automation.tools.commonResultUpload.service.Re
 import com.microfocus.application.automation.tools.commonResultUpload.service.VersionControlService;
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmCommonProperties;
-import com.microfocus.application.automation.tools.sse.sdk.Logger;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -95,7 +94,9 @@ public class TestUploader {
                         TEST_REST_PREFIX, TEST_FOLDERS_REST_PREFIX,
                         new String[]{"id", "name", SUB_TYPE_ID, VC_VERSION_NUMBER});
                 if (existsTest != null) {
-                    newTest = existsTest;
+                    // If exists, update the test.
+                    existsTest.putAll(test);
+                    newTest = restService.update(TEST_REST_PREFIX, existsTest);
                 } else {
                     logger.log("Test not found by criteria:");
                     for (Map.Entry<String, String> entry : test.entrySet()) {
