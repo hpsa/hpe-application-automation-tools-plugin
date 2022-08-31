@@ -40,6 +40,7 @@ import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationDa
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter;
 import com.hp.octane.integrations.utils.SdkConstants;
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.tests.HPRunnerType;
@@ -114,8 +115,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
     private String stepName;
     private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     private Map<String, CodelessResult> testNameToCodelessResultMap = new HashMap<>();
+    private String nodeName;
 
-    public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps) throws XMLStreamException {
+    public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps,String nodeName) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -129,6 +131,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 		this.additionalContext = additionalContext;
 		this.testParserRegEx = testParserRegEx;
 		this.octaneSupportsSteps = octaneSupportsSteps;
+		this.nodeName = nodeName;
 	}
 
 	private static long parseTime(String timeString) {
@@ -265,11 +268,12 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
                         testReportCreated = optional.isPresent();
                     }
 
-                    //workspace.createTextTempFile("build" + buildId + "." + cleanTestName(testName) + ".", "", "Created  " + testReportCreated);
                     if (testReportCreated) {
                         final String basePath = ((List<String>) additionalContext).get(0);
                         uftResultFilePath = Paths.get(basePath, "archive", "UFTReport", cleanedTestName, "run_results.xml").toFile().getCanonicalPath();
-                        externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanedTestName + "/run_results.html";
+                        externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" +
+                                (StringUtils.isNotEmpty(this.nodeName) ? nodeName +"/" : "") +
+                                cleanedTestName + "/Result/run_results.html";
                     } else {
                         //if UFT didn't created test results page - add reference to Jenkins test results page
                         externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";

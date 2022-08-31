@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.results;
 
+import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.common.RuntimeUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.model.ResultsPublisherModel;
@@ -370,7 +371,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		} else {
 			channel = projectWS.getChannel();
 			try {
-				nodeName = ((SlaveComputer) ((Channel) channel).getProperty(SlaveComputer.class)).getNode().getNodeName();
+				node = JenkinsUtils.getCurrentNode(runWorkspace);
+				nodeName = node != null ? node.getNodeName() : "";
 				listener.getLogger().println("Node name = " + nodeName);
 			} catch (Exception e) {
 				listener.getLogger().println("Failed to get the current Node: " + e.getMessage());
