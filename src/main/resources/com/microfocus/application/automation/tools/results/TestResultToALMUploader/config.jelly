@@ -93,6 +93,10 @@
         <f:textbox name="uploadtest.testingResultFile" value="${instance.uploadTestResultToAlmModel.testingResultFile}"/>
     </f:entry>
 
+    <f:entry title="Test set attachments" field="testingAttachments">
+            <f:textbox name="uploadtest.testingAttachments" value="${instance.uploadTestResultToAlmModel.testingAttachments}"/>
+        </f:entry>
+
     <f:entry title="Jenkins server URL" field="jenkinsServerUrl">
         <f:textbox name="uploadtest.jenkinsServerUrl" value="${instance.uploadTestResultToAlmModel.jenkinsServerUrl}"/>
     </f:entry>

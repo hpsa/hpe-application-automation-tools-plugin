@@ -32,9 +32,11 @@ import com.microfocus.application.automation.tools.commonResultUpload.CommonUplo
 import com.microfocus.application.automation.tools.commonResultUpload.service.CustomizationService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RestService;
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
+import com.microfocus.application.automation.tools.results.service.AttachmentUploadService;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmCommonProperties;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmTest;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmTestInstance;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +65,7 @@ public class TestInstanceUploader {
         this.customizationService = customizationService;
     }
 
-    public void upload(Map<String, String> testset, XmlResultEntity xmlResultEntity) {
+    public void upload(Map<String, String> testset, XmlResultEntity xmlResultEntity, String attachment) {
         Map<String, String> test = xmlResultEntity.getValueMap();
         Map<String, String> testconfig = getMainTestConfig(test);
         Map<String, String> testinstance;
@@ -77,6 +79,11 @@ public class TestInstanceUploader {
                 } else {
                     testinstance = testInstances.get(0);
                 }
+
+                if (StringUtils.isNotEmpty(attachment)) {
+                    AttachmentUploadService.getInstance().upload(attachment, TEST_INSTANCE_PREFIX, testinstance.get("id"));
+                }
+
                 // Upload run
                 if (xmlResultEntity.getSubEntities().size() > 0) {
                     runUploader.upload(testset, test, testconfig, testinstance,

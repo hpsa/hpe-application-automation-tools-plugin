@@ -36,7 +36,6 @@ import com.microfocus.application.automation.tools.commonResultUpload.service.Re
 import com.microfocus.application.automation.tools.commonResultUpload.service.VersionControlService;
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmCommonProperties;
-import com.microfocus.application.automation.tools.sse.sdk.Logger;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -81,6 +80,9 @@ public class TestUploader {
         for (XmlResultEntity xmlResultEntity : xmlResultEntities) {
             Map<String, String> test = xmlResultEntity.getValueMap();
             Map<String, String> newTest;
+
+            String attachment = test.get("attachment");
+            test.remove("attachment");
 
             if (!StringUtils.isEmpty(params.get(ALM_TEST_FOLDER))) {
                 // Create or find a exists folder
@@ -130,7 +132,7 @@ public class TestUploader {
                 // upload test instance
                 getVersionNumberForVC(newTest);
                 test.putAll(newTest);
-                testInstanceUploader.upload(testset, xmlResultEntity);
+                testInstanceUploader.upload(testset, xmlResultEntity, attachment);
             }
         }
     }

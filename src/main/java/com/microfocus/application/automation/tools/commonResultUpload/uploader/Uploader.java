@@ -41,6 +41,7 @@ import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
 import com.microfocus.application.automation.tools.rest.RestClient;
 import com.microfocus.application.automation.tools.results.service.AlmRestTool;
+import com.microfocus.application.automation.tools.results.service.AttachmentUploadService;
 import com.microfocus.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
 import hudson.FilePath;
 import hudson.model.Run;
@@ -112,6 +113,7 @@ public class Uploader {
         udt = new UDFTranslator(cs, logger);
         rs = new RestService(restClient, logger, udt);
         fs = new FolderService(rs);
+        AttachmentUploadService.init(run, workspace, restClient, logger);
     }
 
     private TestSetUploader getTestSetUploader() {
