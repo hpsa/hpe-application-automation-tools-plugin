@@ -77,19 +77,11 @@ public class AttachmentUploadService {
                 String filePath = run.getRootDir().getAbsolutePath() + File.separator + ds.getIncludedFiles()[i];
                 logger.log("INFO: Fould file: " + filePath);
 
-                FileInputStream in = null;
-                try {
-                    in = new FileInputStream(new File(filePath));
+                try (FileInputStream in = new FileInputStream(new File(filePath))) {
                     result = upload(IOUtils.toByteArray(in), ds.getIncludedFiles()[i], entityCollectionName, entityId);
                 } catch (IOException e) {
                     logger.log("ERR: Read file failed. " + e.getMessage());
                     result = false;
-                } finally {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        logger.log("ERR: Close file input stream failed. " + e.getMessage());
-                    }
                 }
             }
         } else {
@@ -105,21 +97,12 @@ public class AttachmentUploadService {
             for (FilePath f : fileList) {
                 logger.log("INFO: Fould file: " + f.getRemote() + "| name: " + f.getName());
 
-                InputStream in = null;
-                try {
-                    in = f.read();
+                try (InputStream in  = f.read()) {
                     logger.log("INFO: InputSteam read get: " + in.toString());
-
                     result = upload(IOUtils.toByteArray(in), f.getName(), entityCollectionName, entityId);
                 } catch (IOException | InterruptedException e) {
                     logger.log("ERR: Read file failed. " + e.getMessage());
                     result = false;
-                } finally {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        logger.log("ERR: Close file input stream failed. " + e.getMessage());
-                    }
                 }
             }
         }

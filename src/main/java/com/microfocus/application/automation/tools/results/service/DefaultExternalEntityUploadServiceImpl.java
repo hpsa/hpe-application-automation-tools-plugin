@@ -367,11 +367,11 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							String testingTool, 
 							String subversion,
 							String jobName, 
-							String buildUrl) throws ExternalEntityUploadException{
+							String buildUrl) throws ExternalEntityUploadException {
 		
-		logger.log("INFO: Start to parse file: " +reportFilePath);
+		logger.log("INFO: Start to parse file: " + reportFilePath);
 
-		List<String> importedTestsetIds = null;
+		List<String> importedTestsetIds = new ArrayList<>();
 		ReportParserManager reportParserManager = ReportParserManager.getInstance(workspace, logger);
 
 		List<AlmTestSet> testsets = reportParserManager.parseTestSets(reportFilePath, testingFramework,  testingTool);
@@ -384,7 +384,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 
 		if (testsets.size() <= 0) {
 			logger.log("INFO: No testset to upload.");
-			return null;
+			return importedTestsetIds;
 		}
 
 		logger.log("INFO: Start to login to ALM Server.");
