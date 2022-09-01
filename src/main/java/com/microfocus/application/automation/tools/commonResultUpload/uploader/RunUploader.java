@@ -127,7 +127,7 @@ public class RunUploader {
                     }
                 }
             }
-            if (StringUtils.isNotEmpty(attachment)) {
+            if (StringUtils.isNotEmpty(attachment) && updateResult != null) {
                 AttachmentUploadService.getInstance().upload(attachment, RUN_PREFIX, updateResult.get("id"));
             }
 
