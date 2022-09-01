@@ -225,18 +225,18 @@ The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromFS
 
 | Product                | Pipeline step name           | Description                                                        |
 | ---------------------- | ---------------------------- | ------------------------------------------------------------------ |
-| LoadRunner Professional| loadRunnerTest               | Run LoadRunner Professional tests from a file system scenario file |
-| UFT One                | uftScenarioLoad              | Run a UFT scenario from file system scenario                       |
-| UFT One                | runFromFSBuilder             | Execute UFT Tests from file system                                 |
-| ALM                    | runFromAlmBuilder            | Execute functional tests from ALM                                  |
-| ALM Lab Management     | sseBuild                     | Execute tests using ALM Lab Management                             |
-| ALM Lab Management     | sseBuildAndPublish           | Execute tests using ALM Lab Management and publish test results    |
-| LoadRunner Enterprise  | pcBuild                      | Execute tests using LoadRunner Enterprise                          |
-| Service Virtualization | svChangeModeStep             | Change the mode of a virtual service                               |
-| Service Virtualization | svDeployStep                 | Deploy a virtual service                                           |
-| Service Virtualization | svExportStep                 | Export a virtual service                                           |
-| Service Virtualization | svUndeployStep               | Undeploy a virtual service                                         |
-| UFT One, ALM, ALM LM   | publishMicroFocusTestResults | Publish Test Results for FS, ALM and ALM Lab Management executions |                                   |
+| LoadRunner Professional| loadRunnerTest               | Run LoadRunner Professional tests from a file system scenario file.|
+| UFT One                | uftScenarioLoad              | Run a UFT scenario. **Deprecated**, but backwards compatibility exists.|
+| UFT One                | runFromFSBuilder             | Execute UFT One Tests from the file system.                        |
+| ALM                    | runFromAlmBuilder            | Execute functional tests from ALM.                                 |
+| ALM Lab Management     | sseBuild                     | Execute tests using ALM Lab Management.                            |
+| ALM Lab Management     | sseBuildAndPublish           | Execute tests using ALM Lab Management and publish test results.   |
+| LoadRunner Enterprise  | pcBuild                      | Execute tests using LoadRunner Enterprise.                         |
+| Service Virtualization | svChangeModeStep             | Change the mode of a virtual service.                              |
+| Service Virtualization | svDeployStep                 | Deploy a virtual service.                                          |
+| Service Virtualization | svExportStep                 | Export a virtual service.                                          |
+| Service Virtualization | svUndeployStep               | Undeploy a virtual service.                                        |
+| UFT One, ALM, ALM LM   | publishMicroFocusTestResults | Publish Test Results for FS, ALM and ALM Lab Management executions. |                                   |
 
 Pipeline jobs are not supported for UFT Mobile uploads, ALM test uploader, and ALM AUT job types.
 

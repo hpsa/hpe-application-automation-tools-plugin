@@ -104,8 +104,14 @@ public class FolderService {
         // Make criteria fields.
         test.put(CriteriaTranslator.CRITERIA_PREFIX + AlmCommonProperties.PARENT_ID,
                 testFolder.get(AlmCommonProperties.ID));
-        test.put(CriteriaTranslator.CRITERIA_PREFIX + AlmCommonProperties.NAME,
-                test.get(AlmCommonProperties.NAME));
+
+        if (test.get(CriteriaTranslator.CRITERIA_PREFIX + AlmCommonProperties.ID) != null
+                && !test.get(CriteriaTranslator.CRITERIA_PREFIX + AlmCommonProperties.ID).isEmpty()) {
+            // If there's ID in the criteria, ignor name criteria.
+        } else {
+            test.put(CriteriaTranslator.CRITERIA_PREFIX + AlmCommonProperties.NAME,
+                    test.get(AlmCommonProperties.NAME));
+        }
 
         findEntityInFolderAndSub(foundTests, test, entityPrefix, folderPrefix, queryFields);
         return foundTests.size() > 0 ? foundTests.get(0) : null;
