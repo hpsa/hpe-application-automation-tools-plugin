@@ -46,11 +46,11 @@
 			<div title="Environment " class="environment-title" style="margin-right: 5px;">Environment </div>
 			<f:radio field="environmentType" name="environmentType"
 						  value="Mobile" checked="${instance.environmentType == 'Mobile'}"
-					 title="Mobile" inline="true" style="margin-right: 15px;" class="customRadio"/>
+					 title="Mobile" inline="true" class="customRadio"/>
 
 			<f:radio field="environmentType" name="environmentType"
 						  value="Web" checked="${instance.environmentType == 'Web' || instance.environmentType == null}"
-					 title="Web" inline="true" style="margin-left: 15px;" class="customRadio"/>
+					 title="Web" inline="true" class="customRadio"/>
 		</div>
 
 		<div class="myDiv" style="display:flex;flex-direction:row">

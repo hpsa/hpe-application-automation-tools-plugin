@@ -41,7 +41,6 @@
 			margin-left: 20px;
 		}
 
-
 		#testsDropDown {
 			width: 85%;
 		}
@@ -85,6 +84,12 @@
 		textarea.setting-input{
 			resize: vertical;
 		}
+		 div.setting-main {
+		 	width: 100%;
+		 }
+		 div.setting-main div.jenkins-radio, div.setting-main select {
+		 	margin-right: 15px;
+		 }
 	 </style>
 
 	<st:bind var="a" value="${descriptor}"/>
