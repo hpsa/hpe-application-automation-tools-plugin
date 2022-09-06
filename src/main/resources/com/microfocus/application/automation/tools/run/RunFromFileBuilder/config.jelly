@@ -84,12 +84,15 @@
 		textarea.setting-input{
 			resize: vertical;
 		}
-		 div.setting-main {
-		 	width: 100%;
-		 }
-		 div.setting-main div.jenkins-radio, div.setting-main select {
-		 	margin-right: 15px;
-		 }
+		div.setting-main {
+			width: 100%;
+		}
+		div.setting-main div.jenkins-radio, div.setting-main select {
+			margin-right: 15px;
+		}
+		div.repeated-container {
+			width:100%;
+		}
 	 </style>
 
 	<st:bind var="a" value="${descriptor}"/>
@@ -144,7 +147,7 @@
 		</f:entry>
 	</f:optionalBlock>
 
-	<f:advanced title="UFT-Specific Settings">
+	<f:advanced title="UFT-Specific Settings" align="right">
 		<div id="uftSpecificSection" class="tr config-table-top-row" style="position: relative;">
 			<div class="repeated-chunk">
 				<div style="width: 100%">
@@ -187,7 +190,7 @@
 		</div>
 	</f:advanced>
 
-	<f:advanced title="LoadRunner-Specific Settings">
+	<f:advanced title="LoadRunner-Specific Settings" align="right">
 		<div id="loadRunnerSpecificSection" class="tr config-table-top-row" style="position: relative;">
 			<div class="repeated-chunk">
 				<div style="width: 100%">
@@ -243,7 +246,7 @@
 	</f:advanced>
 
 	<!-- add MC server and app info starting -->
-	 <f:advanced title="UFT-Mobile Options">
+	 <f:advanced title="UFT-Mobile Options" align="right">
 		 <div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
 			 <div class="repeated-chunk">
 				 <div style="width: 100%">
