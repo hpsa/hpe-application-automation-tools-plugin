@@ -152,5 +152,5 @@ function hideAndMoveAdvancedBody(_id) {
     const tBody = document.querySelector("#" + _id).parentNode; // initial advanced block content
     const initialAdvancedBlock = tBody.previousSibling; // advanced link button block and here was hidden the initial advanced block content
     initialAdvancedBlock.querySelector(".advancedBody").appendChild(tBody); // moves the initial advanced block content back to the hidden block
-    initialAdvancedBlock.querySelector(".advancedLink").style = ""; // enables once again the advanced link
+    initialAdvancedBlock.querySelector(".advancedLink").style.display = ""; // enables once again the advanced link
 }
