@@ -83,6 +83,10 @@
         .info {
             margin-left: -15px;
         }
+
+        div.setting-main {
+            width: 100%;
+        }
     </style>
 
     <!--
