@@ -66,7 +66,7 @@
            background-color: transparent;
         }
 
-        textarea.jenkins-input{
+        textarea.jenkins-input, textarea.setting-input {
             resize: vertical;
         }
 

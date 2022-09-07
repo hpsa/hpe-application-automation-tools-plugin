@@ -85,7 +85,7 @@
         background: none;
         }
 
-        textarea.jenkins-input{
+        textarea.jenkins-input, textarea.setting-input {
         resize: vertical;
         }
 
