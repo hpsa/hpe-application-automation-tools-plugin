@@ -237,7 +237,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             //  NAME
             if (pipeline.isRoot) {
-                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
+                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='jenkins-input setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
                 tr.append(tdPipelineInput);
 
                 var input = tdPipelineInput.find("input");
@@ -450,7 +450,7 @@ function octane_job_configuration(target, progress, proxy) {
                     var tdAdd = $("<td class='setting-add'>");
                     tr.append(tdAdd);
 
-                    var newValueInput = $("<input type='text' class='setting-input' maxlength='70' style ='width: 150px;'>");
+                    var newValueInput = $("<input type='text' class='jenkins-input setting-input' maxlength='70' style ='width: 150px;'>");
                     tdAdd.append(newValueInput);
 
                     var trArea = $("<tr><td/></tr>");
@@ -617,7 +617,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             var tagTypeInputTd = $("<td class='setting-name'>");
             tagSelectTr.append(tagTypeInputTd);
-            var tagTypeInput = $("<input type='text' class='setting-input'>");
+            var tagTypeInput = $("<input type='text' class='jenkins-input setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
             tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.instanceId, pipeline.workspaceId, function(error) {
@@ -629,7 +629,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             var tagInputTd = $("<td>");
             tagSelectTr.append(tagInputTd);
-            var tagInput = $("<input type='text' class='setting-input'>");
+            var tagInput = $("<input type='text' class='jenkins-input setting-input'>");
             tagInputTd.append(tagInput);
             tagInput.hide();
             tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));

@@ -64,6 +64,6 @@ table tr[nameref^="rowSetStart"] {
     background: none;
 }
 
-textarea.setting-input{
+textarea.jenkins-input, textarea.setting-input{
     resize: vertical;
 }

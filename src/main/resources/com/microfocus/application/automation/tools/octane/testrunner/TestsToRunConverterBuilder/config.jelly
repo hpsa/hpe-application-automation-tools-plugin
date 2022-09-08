@@ -40,7 +40,7 @@
     <f:entry title="Custom conversion format" field="format">
         <div class="custom-conf-parent">
             <j:if test="${instance.isCustom}">
-                <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text setting-input">
+                <textarea name="teststorunconverter.format" type="text" class="custom-configuration-text jenkins-input setting-input">
                     ${instance.testsToRunConverterModel.framework.format}
                 </textarea>
                 <select class="custom-configuration-fill" onchange="insertFormat(this)">
@@ -50,7 +50,7 @@
                  </select>
              </j:if>
              <j:if test="${!instance.isCustom}">
-                <textarea name="teststorunconverter.format" type="text" disabled="true" class="custom-configuration-text setting-input">
+                <textarea name="teststorunconverter.format" type="text" disabled="true" class="custom-configuration-text jenkins-input setting-input">
                     ${instance.testsToRunConverterModel.framework.format}
                 </textarea>
                 <select class="custom-configuration-fill hidden" onchange="insertFormat(this)">

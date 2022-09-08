@@ -425,7 +425,7 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
 	// jelly represents each item as a 'div' with data inside
 	var parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if (parent == null) return null;
-	return parent.querySelector(".setting-input");
+	return parent.querySelector(".jenkins-input,.setting-input") ;
 };
 
 /**

@@ -35,9 +35,6 @@
 		div[name="parallelRunnerEnvironments"] {
 			background-color: inherit !important;
 		}
-		div.repeated-container {
-			width:100%;
-		}
 	</style>
 
 	<f:entry>

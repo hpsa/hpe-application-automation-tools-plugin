@@ -190,16 +190,16 @@ function addNewParam(container) {
     const elem = `
         <li class="test-param" name="testParameter" data-index="${nextIdx}">
             <div>
-                <input class="setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests === 0 ? 1 : maxNumOfTests}" type="number" required="required" />
+                <input class="jenkins-input setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests === 0 ? 1 : maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
-                <input class="setting-input test-label" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
+                <input class="jenkins-input setting-input test-label" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
             </div>
             <div>
-                <input class="setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
+                <input class="jenkins-input setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
             </div>
             <div>
-                <input class="setting-input" name="parameterInput" id="parameterInputValue_${nextIdx}" type="text"/>
+                <input class="jenkins-input setting-input" name="parameterInput" id="parameterInputValue_${nextIdx}" type="text"/>
             </div>
             <div>
                 <select name="parameterInput" id="parameterInputType_${nextIdx}">
