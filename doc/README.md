@@ -53,22 +53,17 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.4 introduced the following enhancements:
+Version 7.5 introduced the following enhancements and fixes:
 
-**ALM Octane**
+**ALM**
 
-- Added the **Default branches** setting. This allows ALM Octane to enable the selection of parameters for multi-branch CI jobs used in the *Run CI Job* auto action. This change allows ALM Octane to validate the branch name used for the multi-branch CI job.
-- The log4j version was updated from 2.17.1 to 2.17.2.
-- Defect fixes.
+- For the **Upload test result to ALM using field mapping** build step:
+    - You can now search for a test set by its name in a specific folder instead of all folders. 
+    - Defect fix: The check for the test map name is suppressed if no new test is being created.
 
 **UFT One**
 
-- Enhanced data security in UFT One’s Jenkins tasks.  A public-private key pair is used to encrypt and decrypt sensitive data on each execution node. 
--	Access Key authentication support for UFT Mobile (supported from UFT One 2021 R1 Patch1)
--	Support for the Java 11 JAXB dependency.
--	Ability to specify the UFT Report timestamp format, by defining a date format on the Jenkins configuration page. (Manage Jenkins > Configure System, Run Result (UFT Report) timestamp format string section).
--	Console Output text encoding configuration on the job level.
--	Layout improvements. 
+-	Layout fixes that were broken in Jenkins 2.346.1 LTS latest version. 
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
@@ -79,7 +74,6 @@ Pipeline scripts are empty in the script editor from within job configurations. 
 ## Changelog
 
 The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists the bug fix changes in the versions of the plugin.
-
 
 
 - [Version 5.6.2](https://wiki.jenkins.io/display/JENKINS/Changelog#Version5.6.2(Dec19,2018))
