@@ -37,7 +37,6 @@ import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.ListItem;
 import com.hp.octane.integrations.dto.general.Taxonomy;
-import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.pipelines.PipelineContext;
 import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
@@ -47,13 +46,13 @@ import com.microfocus.application.automation.tools.model.OctaneServerSettingsMod
 import com.microfocus.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.microfocus.application.automation.tools.octane.Messages;
 import com.microfocus.application.automation.tools.octane.model.ModelFactory;
-import com.microfocus.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.model.Job;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.util.*;
@@ -61,6 +60,7 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is a proxy between JS UI code and server-side job configuration.
@@ -78,16 +78,23 @@ public class JobConfigurationProxy {
 	public static final String TEXT_FIELD = "text";
 
 	final private Job job;
+	final private WorkflowMultiBranchProject multibranch;
 
 	private static final String NOT_SPECIFIED = "-- Not specified --";
 
-	JobConfigurationProxy(Job job) {
+	JobConfigurationProxy(Job job,WorkflowMultiBranchProject multiBranchProject) {
 		this.job = job;
+		this.multibranch = multiBranchProject;
 	}
+
 
 	@JavaScriptMethod
 	public JSONObject createPipelineOnServer(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
+
+		if(multibranch != null){
+			return createMultiBranchOnServer(pipelineObject);
+		}
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
 		String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
@@ -139,6 +146,89 @@ public class JobConfigurationProxy {
 		return result;
 	}
 
+	public JSONObject createMultiBranchOnServer(JSONObject pipelineObject) {
+
+
+		JSONObject result = new JSONObject();
+
+		try {
+			String ciId = multibranch.getFullName();
+			String name = pipelineObject.getString(NAME_FIELD);
+			Long workspaceId = pipelineObject.getLong(WORKSPACE_ID_FIELD);
+			long releaseId = pipelineObject.getLong(RELEASE_ID_FIELD);
+			long milestoneId = pipelineObject.getLong(MILESTONE_ID_FIELD);
+			String instanceId = pipelineObject.getString(INSTANCE_ID_FIELD);
+			OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(instanceId);
+
+
+			String condition = QueryHelper.condition(EntityConstants.CIServer.INSTANCE_ID_FIELD, instanceId);
+			ResponseEntityList response = queryEntitiesByName(octaneClient, null, Collections.singletonList(condition), workspaceId, "ci_servers", 1);
+
+			if (response != null && response.getTotalCount() == 0 && response.getData() != null) {
+				throw new ClientException(String.format("CI Server not exist on Octane please create it on workspace %s, Instance ID %s.", workspaceId, instanceId));
+			}
+
+			Entity CIServer = response.getData().get(0);
+			Entity release = releaseId > 0 ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.Release.ENTITY_NAME).setId(Long.toString(releaseId)) : null;
+			Entity milestone = milestoneId > 0 ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.Milestone.ENTITY_NAME).setId(Long.toString(milestoneId)) : null;
+
+			Entity pipeline = dtoFactory.newDTO(Entity.class)
+					.setField(EntityConstants.Pipeline.CI_SERVER, CIServer)
+					.setField(EntityConstants.Pipeline.NAME_FIELD, name)
+					.setField(EntityConstants.Pipeline.ROOT_JOB_NAME, ciId);
+			if (release != null) {
+				pipeline.setField(EntityConstants.Pipeline.CURRENT_RELEASE, release);
+			}
+			if (milestone != null) {
+				pipeline.setField(EntityConstants.Pipeline.CURRENT_MILESTONE, milestone);
+			}
+
+			EntitiesService entitiesService = octaneClient.getEntitiesService();
+			List<Entity> results = entitiesService.postEntities(workspaceId, EntityConstants.Pipeline.COLLECTION_NAME, Collections.singletonList(pipeline),
+					Stream.of(EntityConstants.Pipeline.NAME_FIELD, EntityConstants.Pipeline.CURRENT_RELEASE, EntityConstants.Pipeline.CURRENT_MILESTONE)
+							.collect(Collectors.toList()));
+
+			if (results.size() != 1) {
+				throw new ClientException("Failed to create pipeline.");
+			}
+
+			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(workspaceId));
+			if (workspaces.size() != 1) {
+				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + workspaceId);
+			}
+
+			Entity pipelineCreated = results.get(0);
+
+			JSONObject pipelineJSON = new JSONObject();
+			pipelineJSON.put(ID_FIELD, pipelineCreated.getId());
+			pipelineJSON.put(NAME_FIELD, pipelineCreated.getStringValue(EntityConstants.Pipeline.NAME_FIELD));
+			pipelineJSON.put(RELEASE_ID_FIELD, pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_RELEASE) != null ? pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_RELEASE).getId() : -1);
+			pipelineJSON.put(MILESTONE_ID_FIELD, pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE) != null ? pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE).getId() : -1);
+			pipelineJSON.put("isRoot", true);
+			pipelineJSON.put(WORKSPACE_ID_FIELD, workspaceId);
+			pipelineJSON.put("workspaceName", workspaces.get(0).getName());
+			pipelineJSON.put("ignoreTests", false);
+			pipelineJSON.put("fields", new JSONObject());
+			pipelineJSON.put("taxonomyTags", new JSONArray());
+
+
+			enrichPipelineInstanceId(pipelineJSON, instanceId);
+			//all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
+			enrichPipelineInternal(pipelineJSON,octaneClient);
+			result.put("pipeline", pipelineJSON);
+
+			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, workspaceId));
+			result.put("fieldsMetadata", fieldsMetadata);
+		} catch (ClientException e) {
+			logger.warn("Failed to create pipeline", e);
+			return error(e.getMessage(), e.getLink());
+		} catch (Exception e) {
+			logger.warn("Failed to create pipeline", e);
+			return error(e.getMessage());
+		}
+		return result;
+	}
+
 	@JavaScriptMethod
 	public JSONObject updatePipelineOnSever(JSONObject pipelineObject) {
 		JSONObject result = new JSONObject();
@@ -179,7 +269,8 @@ public class JobConfigurationProxy {
 				fields.put(jsonObject.getString(NAME_FIELD), assignedValues);
 			}
 
-			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
+			final String jobCiId = job != null ? JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName() :
+						multibranch.getFullName();
 
 			PipelineContext pipelineContext = dtoFactory.newDTO(PipelineContext.class)
 					.setContextEntityId(pipelineId)
@@ -259,7 +350,8 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-			final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName();
+			final String jobCiId = job != null ? JobProcessorFactory.getFlowProcessor(job).getTranslatedJobName()
+					: multibranch.getFullName();
 			PipelineContextList pipelineContextList = octaneClient.getPipelineContextService().getJobConfiguration(octaneClient.getInstanceId(), jobCiId);
 
 			if (!pipelineContextList.getData().isEmpty()) {

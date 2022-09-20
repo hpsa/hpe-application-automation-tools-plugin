@@ -31,17 +31,17 @@ package com.microfocus.application.automation.tools.octane.configuration;
 import com.microfocus.application.automation.tools.octane.Messages;
 import hudson.model.Action;
 import hudson.model.Item;
-import hudson.model.Job;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 import org.kohsuke.stapler.StaplerProxy;
 
-public class ConfigurationAction implements Action, StaplerProxy {
+public class ConfigurationActionMultibranch implements Action, StaplerProxy {
 
-    final public Job owner;
+    final public WorkflowMultiBranchProject owner;
     final public JobConfigurationProxy proxy;
 
-    public ConfigurationAction(Job job) {
+    public ConfigurationActionMultibranch(WorkflowMultiBranchProject job) {
         this.owner = job;
-        this.proxy = new JobConfigurationProxy(job,null);
+        this.proxy = new JobConfigurationProxy(null,job);
     }
 
     @Override
@@ -56,12 +56,13 @@ public class ConfigurationAction implements Action, StaplerProxy {
 
     @Override
     public String getUrlName() {
-        return "mqmConfiguration";
+        return "mqmConfigurationMultibranch";
     }
 
     @Override
     public Object getTarget() {
         owner.getACL().checkPermission(Item.CONFIGURE);
+
         return this;
     }
 }
