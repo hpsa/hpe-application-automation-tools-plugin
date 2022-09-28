@@ -76,6 +76,9 @@ public class JobConfigurationProxy {
 	public static final String INSTANCE_ID_FIELD = "instanceId";
 	public static final String ID_FIELD = "id";
 	public static final String TEXT_FIELD = "text";
+	private static final String IGNORE_TESTS = "ignoreTests";
+	private static final String FIELDS = "fields";
+	private static final String TAXONOMY_TAGS = "taxonomyTags";
 
 	final private Job job;
 	final private WorkflowMultiBranchProject multibranch;
@@ -118,13 +121,10 @@ public class JobConfigurationProxy {
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(pipelineContext.getWorkspaceId()));
-			if (workspaces.size() != 1) {
-				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipelineContext.getWorkspaceId());
-			}
+			Entity workspace = getWorkspace(octaneClient, pipelineContext.getWorkspaceId());
 			//WORKAROUND END
 
-			JSONObject pipelineJSON = fromPipeline(createdPipelineContext, workspaces.get(0));
+			JSONObject pipelineJSON = fromPipeline(createdPipelineContext, workspace);
 			enrichPipelineInstanceId(pipelineJSON, instanceId);
 
 			//WORKAROUND BEGIN
@@ -144,6 +144,14 @@ public class JobConfigurationProxy {
 			return error(e.getMessage());
 		}
 		return result;
+	}
+
+	private Entity getWorkspace(OctaneClient octaneClient, Long workspaceId) throws ClientException {
+		List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(workspaceId));
+		if (workspaces.size() != 1) {
+			throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + workspaceId);
+		}
+		return workspaces.get(0);
 	}
 
 	public JSONObject createMultiBranchOnServer(JSONObject pipelineObject) {
@@ -192,10 +200,7 @@ public class JobConfigurationProxy {
 				throw new ClientException("Failed to create pipeline.");
 			}
 
-			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(workspaceId));
-			if (workspaces.size() != 1) {
-				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + workspaceId);
-			}
+			Entity workspace = getWorkspace(octaneClient,workspaceId);
 
 			Entity pipelineCreated = results.get(0);
 
@@ -206,10 +211,10 @@ public class JobConfigurationProxy {
 			pipelineJSON.put(MILESTONE_ID_FIELD, pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE) != null ? pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE).getId() : -1);
 			pipelineJSON.put("isRoot", true);
 			pipelineJSON.put(WORKSPACE_ID_FIELD, workspaceId);
-			pipelineJSON.put("workspaceName", workspaces.get(0).getName());
-			pipelineJSON.put("ignoreTests", false);
-			pipelineJSON.put("fields", new JSONObject());
-			pipelineJSON.put("taxonomyTags", new JSONArray());
+			pipelineJSON.put("workspaceName", workspace.getName());
+			pipelineJSON.put(IGNORE_TESTS, false);
+			pipelineJSON.put(FIELDS, new JSONObject());
+			pipelineJSON.put(TAXONOMY_TAGS, new JSONArray());
 
 
 			enrichPipelineInstanceId(pipelineJSON, instanceId);
@@ -241,7 +246,7 @@ public class JobConfigurationProxy {
 
 			//build taxonomies
 			LinkedList<Taxonomy> taxonomies = new LinkedList<>();
-			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
+			JSONArray taxonomyTags = pipelineObject.getJSONArray(TAXONOMY_TAGS);
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
 				taxonomies.add(dtoFactory.newDTO(Taxonomy.class)
 						.setId(jsonObject.optLong("tagId"))
@@ -278,7 +283,7 @@ public class JobConfigurationProxy {
 					.setWorkspace(pipelineObject.getLong(WORKSPACE_ID_FIELD))
 					.setReleaseId(pipelineObject.getLong(RELEASE_ID_FIELD))
 					.setMilestoneId(pipelineObject.getLong(MILESTONE_ID_FIELD))
-					.setIgnoreTests(pipelineObject.getBoolean("ignoreTests"))
+					.setIgnoreTests(pipelineObject.getBoolean(IGNORE_TESTS))
 					.setTaxonomies(taxonomies)
 					.setListFields(fields);
 
@@ -286,14 +291,11 @@ public class JobConfigurationProxy {
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Entity> workspaces = getWorkspacesById(octaneClient, Collections.singletonList(pipeline.getWorkspaceId()));
-			if (workspaces.size() != 1) {
-				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipeline.getWorkspaceId());
-			}
+			Entity workspace = getWorkspace(octaneClient, pipeline.getWorkspaceId());
 			//WORKAROUND END
 
 			//TODO uncomment after getting pipelineContext
-			JSONObject pipelineJSON = fromPipeline(pipeline, workspaces.get(0));
+			JSONObject pipelineJSON = fromPipeline(pipeline, workspace);
 			enrichPipelineInstanceId(pipelineJSON, instanceId);
 
 			//WORKAROUND BEGIN
@@ -449,7 +451,7 @@ public class JobConfigurationProxy {
 		pipelineJSON.put("isRoot", pipeline.isPipelineRoot());
 		pipelineJSON.put(WORKSPACE_ID_FIELD, relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
-		pipelineJSON.put("ignoreTests", pipeline.getIgnoreTests());
+		pipelineJSON.put(IGNORE_TESTS, pipeline.getIgnoreTests());
 		addTaxonomyTags(pipelineJSON, pipeline);
 		addFields(pipelineJSON, pipeline);
 
@@ -504,9 +506,9 @@ public class JobConfigurationProxy {
 
 	private static void enrichTaxonomies(JSONObject pipeline, OctaneClient octaneClient) {
 		JSONArray ret = new JSONArray();
-		if (pipeline.has("taxonomyTags")) {
+		if (pipeline.has(TAXONOMY_TAGS)) {
 
-			JSONArray taxonomyTags = pipeline.getJSONArray("taxonomyTags");
+			JSONArray taxonomyTags = pipeline.getJSONArray(TAXONOMY_TAGS);
 			List<Long> taxonomyIdsList = new LinkedList<>();
 			for (int i = 0; i < taxonomyTags.size(); i++) {
 				JSONObject taxonomy = taxonomyTags.getJSONObject(i);
@@ -519,15 +521,15 @@ public class JobConfigurationProxy {
 				ret.add(tag(tax));
 			}
 		}
-		pipeline.put("taxonomyTags", ret);
+		pipeline.put(TAXONOMY_TAGS, ret);
 	}
 
 	private static void enrichFields(JSONObject pipeline, OctaneClient client) {
 		JSONObject ret = new JSONObject();
 
-		if (pipeline.has("fields")) {
+		if (pipeline.has(FIELDS)) {
 			long workspaceId = pipeline.getLong(WORKSPACE_ID_FIELD);
-			JSONObject pipelineFields = pipeline.getJSONObject("fields");
+			JSONObject pipelineFields = pipeline.getJSONObject(FIELDS);
 			Iterator<?> keys = pipelineFields.keys();
 			//iteration over listFields
 			while (keys.hasNext()) {
@@ -548,7 +550,7 @@ public class JobConfigurationProxy {
 				}
 			}
 		}
-		pipeline.put("fields", ret);
+		pipeline.put(FIELDS, ret);
 	}
 
 	@JavaScriptMethod
@@ -877,7 +879,7 @@ public class JobConfigurationProxy {
 		for (Taxonomy taxonomy : pipeline.getTaxonomies()) {
 			pipelineTaxonomies.add(tag(taxonomy));
 		}
-		result.put("taxonomyTags", pipelineTaxonomies);
+		result.put(TAXONOMY_TAGS, pipelineTaxonomies);
 	}
 
 	private static void addFields(JSONObject result, PipelineContext pipeline) {
@@ -887,7 +889,7 @@ public class JobConfigurationProxy {
 			JSONArray assignedValuesArray = listFieldValues(fieldEntry.getValue());
 			listFields.put(fieldEntry.getKey(), assignedValuesArray);
 		}
-		result.put("fields", listFields);
+		result.put(FIELDS, listFields);
 	}
 
 	private static JSONArray listFieldValues(List<ListItem> listItems) {
