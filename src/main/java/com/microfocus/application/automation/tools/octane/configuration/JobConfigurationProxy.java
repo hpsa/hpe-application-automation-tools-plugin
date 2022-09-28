@@ -79,6 +79,7 @@ public class JobConfigurationProxy {
 	private static final String IGNORE_TESTS = "ignoreTests";
 	private static final String FIELDS = "fields";
 	private static final String TAXONOMY_TAGS = "taxonomyTags";
+	private static final String FIELD_CREATE_MESSAGE = "Failed to create pipeline";
 
 	final private Job job;
 	final private WorkflowMultiBranchProject multibranch;
@@ -137,10 +138,10 @@ public class JobConfigurationProxy {
 			result.put("fieldsMetadata", fieldsMetadata);
 
 		} catch (ClientException e) {
-			logger.warn("Failed to create pipeline", e);
+			logger.warn(FIELD_CREATE_MESSAGE, e);
 			return error(e.getMessage(), e.getLink());
 		} catch (Exception e) {
-			logger.warn("Failed to create pipeline", e);
+			logger.warn(FIELD_CREATE_MESSAGE, e);
 			return error(e.getMessage());
 		}
 		return result;
@@ -197,7 +198,7 @@ public class JobConfigurationProxy {
 							.collect(Collectors.toList()));
 
 			if (results.size() != 1) {
-				throw new ClientException("Failed to create pipeline.");
+				throw new ClientException(FIELD_CREATE_MESSAGE);
 			}
 
 			Entity workspace = getWorkspace(octaneClient,workspaceId);
@@ -207,8 +208,8 @@ public class JobConfigurationProxy {
 			JSONObject pipelineJSON = new JSONObject();
 			pipelineJSON.put(ID_FIELD, pipelineCreated.getId());
 			pipelineJSON.put(NAME_FIELD, pipelineCreated.getStringValue(EntityConstants.Pipeline.NAME_FIELD));
-			pipelineJSON.put(RELEASE_ID_FIELD, pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_RELEASE) != null ? pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_RELEASE).getId() : -1);
-			pipelineJSON.put(MILESTONE_ID_FIELD, pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE) != null ? pipelineCreated.getEntityValue(EntityConstants.Pipeline.CURRENT_MILESTONE).getId() : -1);
+			pipelineJSON.put(RELEASE_ID_FIELD, getReferenceFieldId(EntityConstants.Pipeline.CURRENT_RELEASE,pipelineCreated));
+			pipelineJSON.put(MILESTONE_ID_FIELD, getReferenceFieldId(EntityConstants.Pipeline.CURRENT_MILESTONE,pipelineCreated));
 			pipelineJSON.put("isRoot", true);
 			pipelineJSON.put(WORKSPACE_ID_FIELD, workspaceId);
 			pipelineJSON.put("workspaceName", workspace.getName());
@@ -225,13 +226,17 @@ public class JobConfigurationProxy {
 			JSONArray fieldsMetadata = convertToJsonMetadata(getPipelineListNodeFieldsMetadata(octaneClient, workspaceId));
 			result.put("fieldsMetadata", fieldsMetadata);
 		} catch (ClientException e) {
-			logger.warn("Failed to create pipeline", e);
+			logger.warn(FIELD_CREATE_MESSAGE, e);
 			return error(e.getMessage(), e.getLink());
 		} catch (Exception e) {
-			logger.warn("Failed to create pipeline", e);
+			logger.warn(FIELD_CREATE_MESSAGE, e);
 			return error(e.getMessage());
 		}
 		return result;
+	}
+
+	private Object getReferenceFieldId(String fieldName,Entity entity){
+		return entity.getEntityValue(fieldName) != null ? entity.getEntityValue(fieldName).getId() : -1;
 	}
 
 	@JavaScriptMethod
