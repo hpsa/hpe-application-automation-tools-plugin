@@ -67,12 +67,17 @@ public class UploadTestResultToAlmModel {
 	private String testingFramework;
 	private String testingTool;
 	private String testingResultFile;
+	private String testingAttachments;
 	private String jenkinsServerUrl;
 
 	@DataBoundConstructor
-	public UploadTestResultToAlmModel(String almServerName, String almUserName,
-			String almPassword, String almDomain, String clientType, String almProject, String testingFramework, String testingTool,
-			String almTestFolder , String almTestSetFolder, String almTimeout, String testingResultFile, String jenkinsServerUrl) {
+	public UploadTestResultToAlmModel(
+			String almServerName, String almUserName,
+			String almPassword, String almDomain, String clientType, String almProject,
+			String testingFramework, String testingTool,
+			String almTestFolder , String almTestSetFolder, String almTimeout,
+			String testingResultFile, String testingAttachments,
+			String jenkinsServerUrl) {
 
 		this.almServerName = almServerName;
 		this.almUserName = almUserName;
@@ -89,6 +94,7 @@ public class UploadTestResultToAlmModel {
 		this.testingTool = testingTool;
 		
 		this.testingResultFile = testingResultFile;
+		this.testingAttachments = testingAttachments;
 		this.jenkinsServerUrl = jenkinsServerUrl;
 	}
 
@@ -138,6 +144,8 @@ public class UploadTestResultToAlmModel {
 	public String getTestingResultFile() {
 		return testingResultFile;
 	}
+
+	public String getTestingAttachments() { return testingAttachments; }
 	
 	public String getJenkinsServerUrl() {
 		return jenkinsServerUrl;
@@ -211,7 +219,14 @@ public class UploadTestResultToAlmModel {
 
 		} else {
 			props.put("testingResultFile", "");
-		}		
+		}
+
+		if (!StringUtils.isEmpty(this.testingAttachments)) {
+			props.put("testingAttachments" , testingAttachments);
+
+		} else {
+			props.put("testingAttachments", "");
+		}
 
 		if (!StringUtils.isEmpty(this.jenkinsServerUrl)) {
 			props.put("jenkinsServerUrl" , jenkinsServerUrl);

@@ -359,7 +359,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 	}	
 	
 	@Override
-	public void UploadExternalTestSet(AlmRestInfo loginInfo,
+	public List<String> uploadExternalTestSet(AlmRestInfo loginInfo,
 							String reportFilePath, 
 							String testsetFolderPath, 
 							String testFolderPath, 
@@ -367,10 +367,11 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							String testingTool, 
 							String subversion,
 							String jobName, 
-							String buildUrl) throws ExternalEntityUploadException{
+							String buildUrl) throws ExternalEntityUploadException {
 		
-		logger.log("INFO: Start to parse file: " +reportFilePath);
+		logger.log("INFO: Start to parse file: " + reportFilePath);
 
+		List<String> importedTestsetIds = new ArrayList<>();
 		ReportParserManager reportParserManager = ReportParserManager.getInstance(workspace, logger);
 
 		List<AlmTestSet> testsets = reportParserManager.parseTestSets(reportFilePath, testingFramework,  testingTool);
@@ -383,10 +384,10 @@ public class DefaultExternalEntityUploadServiceImpl implements
 
 		if (testsets.size() <= 0) {
 			logger.log("INFO: No testset to upload.");
-			return;
+			return importedTestsetIds;
 		}
-		logger.log("INFO: Start to login to ALM Server.");
 
+		logger.log("INFO: Start to login to ALM Server.");
 		try {
 			if(!restTool.login()) {
 				throw new ExternalEntityUploadException("Failed to login to ALM Server.");
@@ -406,7 +407,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 
 			if(testFolder != null && testsetFolder != null) {
 				logger.log("INFO: Uploading ALM Entities...");
-				importExternalTestSet(
+				importedTestsetIds = importExternalTestSet(
 						testsets,
 						actualUser,
 						Integer.valueOf(testsetFolder.getId()),
@@ -419,17 +420,22 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		} catch (Exception e) {
 			throw new ExternalEntityUploadException(e);
 		}
+		return importedTestsetIds;
 	}
 	
 	
-	private void importExternalTestSet(List<AlmTestSet> testsets, String tester, int testsetFolderId, int testFolderId, String testingTool, String subversion, String jobName, String buildUrl ) throws ExternalEntityUploadException{
+	private List<String> importExternalTestSet(List<AlmTestSet> testsets, String tester, int testsetFolderId, int testFolderId, String testingTool, String subversion, String jobName, String buildUrl ) throws ExternalEntityUploadException{
 
-		
+		List<String> importedTestsetIds = new ArrayList<String>();
+
 		for (AlmTestSet testset : testsets){
 			AlmTestSet importedTestSet = importTestSet(testset, testsetFolderId);
 			if(importedTestSet == null ) {
 				continue;
 			}
+
+            importedTestsetIds.add(importedTestSet.getId());
+
 			List<AlmEntity> testinstances = testset.getRelatedEntities().get(EntityRelation.TESTSET_TO_TESTINSTANCE_CONTAINMENT_RELATION);
 			if(testinstances == null || testinstances.size() <=0) {
 				continue;
@@ -472,7 +478,8 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							);
 			}
 		}
-		
+
+		return importedTestsetIds;
 	}
 	
 }

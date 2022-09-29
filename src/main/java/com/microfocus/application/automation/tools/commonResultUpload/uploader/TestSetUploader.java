@@ -32,6 +32,7 @@ import com.microfocus.application.automation.tools.commonResultUpload.CommonUplo
 import com.microfocus.application.automation.tools.commonResultUpload.service.FolderService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RestService;
 import com.microfocus.application.automation.tools.commonResultUpload.xmlreader.model.XmlResultEntity;
+import com.microfocus.application.automation.tools.results.service.AttachmentUploadService;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -81,16 +82,24 @@ public class TestSetUploader {
     private boolean uploadOrUpdateTestset(Map<String, String> existTestset,
                                           Map<String, String> testset, XmlResultEntity xmlResultEntity) {
         Map<String, String> newTestset;
+        String attachemnt = null;
+
         if (existTestset != null) {
             // If yes, use the exist one to update.
             newTestset = existTestset;
         } else {
             // If no, create test set under folder
+            attachemnt = testset.get("attachment");
+            testset.remove("attachment");
             newTestset =  restService.create(TEST_SET_REST_PREFIX, testset);
         }
+
         if (newTestset == null) {
             return false;
         } else {
+            if (StringUtils.isNotEmpty(attachemnt)) {
+                AttachmentUploadService.getInstance().upload(attachemnt, TEST_SET_REST_PREFIX, newTestset.get("id"));
+            }
             testuploader.upload(newTestset, xmlResultEntity.getSubEntities());
         }
         return true;

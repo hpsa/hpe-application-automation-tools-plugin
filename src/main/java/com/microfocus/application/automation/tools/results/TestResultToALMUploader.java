@@ -38,6 +38,7 @@ import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import com.microfocus.application.automation.tools.results.service.AlmRestInfo;
 import com.microfocus.application.automation.tools.results.service.AlmRestTool;
+import com.microfocus.application.automation.tools.results.service.AttachmentUploadService;
 import com.microfocus.application.automation.tools.results.service.ExternalEntityUploadLogger;
 import com.microfocus.application.automation.tools.results.service.IExternalEntityUploadService;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
@@ -51,7 +52,6 @@ import hudson.matrix.MatrixBuild;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Queue;
 import hudson.model.Result;
@@ -68,8 +68,10 @@ import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.FormValidation;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
 import java.util.List;
 
 import hudson.util.ListBoxModel;
@@ -105,6 +107,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     private String almTestSetFolder;
     private String almTimeout;
     private String testingResultFile;
+    private String testingAttachments;
     private String jenkinsServerUrl;
 
     // These getters setters work for reading config.xml.
@@ -204,6 +207,14 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         this.testingResultFile = testingResultFile;
     }
 
+    public String getTestingAttachments() {
+        return testingAttachments;
+    }
+
+    public void setTestingAttachments(String testingAttachments) {
+        this.testingAttachments = testingAttachments;
+    }
+
     public String getJenkinsServerUrl() {
         return jenkinsServerUrl;
     }
@@ -225,6 +236,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
             String almTestSetFolder,
             String almTimeout,
             String testingResultFile,
+            String testingAttachments,
             String jenkinsServerUrl) {
 
         this.almServerName = almServerName;
@@ -238,6 +250,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         this.almTestSetFolder = almTestSetFolder;
         this.almTimeout = almTimeout;
         this.testingResultFile = testingResultFile;
+        this.testingAttachments = testingAttachments;
         this.jenkinsServerUrl = jenkinsServerUrl;
     }
 
@@ -259,6 +272,8 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     	logger.log(String.format("INFO: 'Upload test result to ALM' Post Build Step is being invoked by %s.",
                 credentials.getUsername()));
 
+        List<String> importedTestsetIds = null;
+
         uploadTestResultToAlmModel = new UploadTestResultToAlmModel(
                 almServerName,
                 credentials.getUsername(),
@@ -272,6 +287,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
                 almTestSetFolder,
                 almTimeout,
                 testingResultFile,
+                testingAttachments,
                 jenkinsServerUrl);
 
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
@@ -298,22 +314,24 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
         } else {
         	logger.log("INFO: "+ ds.getIncludedFilesCount() +" test result file found.");
         	String[] files = ds.getIncludedFiles();
-        	for(String fileName : files) {
+
+            AlmRestInfo loginInfo = new AlmRestInfo(
+                    serverUrl,
+                    Util.replaceMacro(uploadTestResultToAlmModel.getAlmDomain(), varResolver),
+                    clientType,
+                    Util.replaceMacro(uploadTestResultToAlmModel.getAlmProject(), varResolver),
+                    uploadTestResultToAlmModel.getAlmUserName(),
+                    uploadTestResultToAlmModel.getAlmPassword(),
+                    Util.replaceMacro(uploadTestResultToAlmModel.getAlmTestSetFolder(), varResolver)
+            );
+            AlmRestTool almRestTool = new AlmRestTool(loginInfo, logger);
+
+        	for (String fileName : files) {
         		String fullpath = root.getAbsolutePath() + File.separator + fileName;
-    			AlmRestInfo loginInfo = new AlmRestInfo(
-    					serverUrl,
-    					Util.replaceMacro(uploadTestResultToAlmModel.getAlmDomain(), varResolver),
-                        clientType,
-    					Util.replaceMacro(uploadTestResultToAlmModel.getAlmProject(), varResolver),
-    					uploadTestResultToAlmModel.getAlmUserName(),
-    					uploadTestResultToAlmModel.getAlmPassword(),
-                        Util.replaceMacro(uploadTestResultToAlmModel.getAlmTestSetFolder(), varResolver)
-                );
-    			AlmRestTool u = new AlmRestTool(loginInfo, logger);
     			logger.log("INFO: Start to upload "+fullpath);
-    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, workspace, logger);
+    			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(almRestTool, workspace, logger);
     			try {
-	    			service.UploadExternalTestSet(loginInfo,
+                    importedTestsetIds = service.uploadExternalTestSet(loginInfo,
 	    					fullpath,
                             Util.replaceMacro(uploadTestResultToAlmModel.getAlmTestSetFolder(), varResolver),
                             Util.replaceMacro(uploadTestResultToAlmModel.getAlmTestFolder(), varResolver),
@@ -329,6 +347,19 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     				build.setResult(Result.UNSTABLE);
     			}
         	}
+
+        	// Upload attachment.
+            String testingAttachment = uploadTestResultToAlmModel.getTestingAttachments();
+            if (importedTestsetIds != null
+                    && !importedTestsetIds.isEmpty()
+                    && testingAttachment != null
+                    && !testingAttachment.isEmpty()) {
+
+                AttachmentUploadService.init(build, workspace, almRestTool.getRestClient(), logger);
+                if (!AttachmentUploadService.getInstance().upload(testingAttachment, "test-sets", importedTestsetIds.get(0))) {
+                    build.setResult(Result.UNSTABLE);
+                }
+            }
         }
         logger.log("INFO: 'Upload test result to ALM' Completed.");
     }

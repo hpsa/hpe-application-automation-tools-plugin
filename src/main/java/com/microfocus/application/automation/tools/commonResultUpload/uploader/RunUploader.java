@@ -32,6 +32,7 @@ import com.microfocus.application.automation.tools.commonResultUpload.CommonUplo
 import com.microfocus.application.automation.tools.commonResultUpload.service.CustomizationService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RestService;
 import com.microfocus.application.automation.tools.commonResultUpload.service.RunStatusResolver;
+import com.microfocus.application.automation.tools.results.service.AttachmentUploadService;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmCommonProperties;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmRun;
 import com.microfocus.application.automation.tools.results.service.almentities.AlmTestInstance;
@@ -43,7 +44,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static com.microfocus.application.automation.tools.commonResultUpload.ParamConstant.ACTUAL_USER;
 
@@ -72,6 +72,11 @@ public class RunUploader {
     public void upload(Map<String, String> testset, Map<String, String> test,
                        Map<String, String> testconfig, Map<String, String> testinstance,
                        Map<String, String> run) {
+
+        // Get attachment info and remove
+        String attachment = run.get("attachment");
+        run.remove("attachment");
+
         // Set relations
         run.put(AlmRun.RUN_CONFIG_ID, testconfig.get(AlmCommonProperties.ID));
         run.put(AlmRun.RUN_CYCLE_ID, testset.get(AlmCommonProperties.ID));
@@ -122,9 +127,15 @@ public class RunUploader {
                     }
                 }
             }
+            if (StringUtils.isNotEmpty(attachment) && updateResult != null) {
+                AttachmentUploadService.getInstance().upload(attachment, RUN_PREFIX, updateResult.get("id"));
+            }
 
         } else {
-            restService.create(RUN_PREFIX, run);
+            Map<String, String> createdRun = restService.create(RUN_PREFIX, run);
+            if (StringUtils.isNotEmpty(attachment)) {
+                AttachmentUploadService.getInstance().upload(attachment, RUN_PREFIX, createdRun.get("id"));
+            }
         }
     }
 
