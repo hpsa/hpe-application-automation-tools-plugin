@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Certain versions of software and/or documents ("Material") accessible here may contain branding from
   ~ Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
@@ -27,56 +26,29 @@
   ~ ___________________________________________________________________
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+  <l:layout title="${%mqm.configuration.multibranch.title}">
+    <st:include it="${it.owner}" page="sidepanel.jelly"/>
+    <l:main-panel>
+      <st:bind var="proxy" value="${it.proxy}"/>
 
-    <groupId>1</groupId>
-    <artifactId>1</artifactId>
-    <version>1.0-SNAPSHOT</version>
+      <st:adjunct includes="lib.select2.select2-min"/>
+      <st:adjunct includes="lib.octane.ui"/>
+      <st:adjunct includes="lib.octane.configure"/>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+      <div id="mqm_configuration_progress" style="display: none">
+        <h3/>
+        <t:progressBar pos="-1" />
+      </div>
 
-    <dependencies>
-        <dependency>
-            <groupId>info.cukes</groupId>
-            <artifactId>cucumber-java</artifactId>
-            <version>1.2.5</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.alm.octane</groupId>
-            <artifactId>octane-cucumber-jvm</artifactId>
-            <version>12.55.7</version>
-        </dependency>
-    </dependencies>
+      <div id="mqm_configuration_view"/>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
-</project>
+      <script>
+        var target = document.getElementById("mqm_configuration_view");
+        var progress = document.getElementById("mqm_configuration_progress");
+        octane_job_configuration(target, progress, proxy).configure();
+      </script>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>
