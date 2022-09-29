@@ -28,40 +28,30 @@
 
 package com.microfocus.application.automation.tools.octane.configuration;
 
-import com.microfocus.application.automation.tools.octane.Messages;
+import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Item;
-import hudson.model.Job;
-import org.kohsuke.stapler.StaplerProxy;
+import jenkins.model.TransientActionFactory;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 
-public class ConfigurationAction implements Action, StaplerProxy {
+import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.Collections;
 
-    final public Job owner;
-    final public JobConfigurationProxy proxy;
-
-    public ConfigurationAction(Job job) {
-        this.owner = job;
-        this.proxy = new JobConfigurationProxy(job,null);
-    }
+@Extension
+public class ConfigurationActionMultibranchFactory extends TransientActionFactory<WorkflowMultiBranchProject> {
 
     @Override
-    public String getIconFileName() {
-        return owner.getACL().hasPermission(Item.CONFIGURE)? "setting.png": null;
+    public Class<WorkflowMultiBranchProject> type() {
+        return WorkflowMultiBranchProject.class;
     }
 
+    @Nonnull
     @Override
-    public String getDisplayName() {
-        return Messages.ConfigurationLabel();
-    }
-
-    @Override
-    public String getUrlName() {
-        return "mqmConfiguration";
-    }
-
-    @Override
-    public Object getTarget() {
-        owner.getACL().checkPermission(Item.CONFIGURE);
-        return this;
+    public Collection<? extends Action> createFor(@Nonnull WorkflowMultiBranchProject job) {
+        // not sure if we need proper extensibility mechanism here: let's start small and extend if needed
+        if ("hudson.matrix.MatrixConfiguration".equals(job.getClass().getName())) {
+            return Collections.emptyList();
+        }
+        return Collections.singleton(new ConfigurationActionMultibranch(job));
     }
 }

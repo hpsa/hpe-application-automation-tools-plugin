@@ -81,6 +81,9 @@ public class TestUploader {
             Map<String, String> test = xmlResultEntity.getValueMap();
             Map<String, String> newTest;
 
+            String attachment = test.get("attachment");
+            test.remove("attachment");
+
             if (!StringUtils.isEmpty(params.get(ALM_TEST_FOLDER))) {
                 // Create or find a exists folder
                 Map<String, String> folder = folderService.createOrFindPath(
@@ -131,7 +134,7 @@ public class TestUploader {
                 // upload test instance
                 getVersionNumberForVC(newTest);
                 test.putAll(newTest);
-                testInstanceUploader.upload(testset, xmlResultEntity);
+                testInstanceUploader.upload(testset, xmlResultEntity, attachment);
             }
         }
     }

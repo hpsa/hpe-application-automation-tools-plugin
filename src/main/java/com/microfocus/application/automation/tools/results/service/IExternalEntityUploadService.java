@@ -28,8 +28,14 @@
 
 package com.microfocus.application.automation.tools.results.service;
 
+import java.util.List;
+
 public interface IExternalEntityUploadService {
 
-	public void UploadExternalTestSet(AlmRestInfo loginInfo, String reportFilePath, String testsetFolderPath, String testFolderPath, String testingFramework, String testingTool, String subversion, String jobName, String buildUrl) throws ExternalEntityUploadException;	
+    public List<String> uploadExternalTestSet(
+            AlmRestInfo loginInfo, String reportFilePath,
+            String testsetFolderPath, String testFolderPath,
+            String testingFramework, String testingTool,
+            String subversion, String jobName, String buildUrl) throws ExternalEntityUploadException;
 
 }
