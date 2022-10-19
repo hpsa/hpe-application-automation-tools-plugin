@@ -47,6 +47,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParametersModel> {
+	private final static String PASSWORD = "Password";
 
     // FOR GUI
     private final static EnumDescription STRING_TYPE = new EnumDescription("String", "String");
@@ -54,7 +55,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DATE_TYPE = new EnumDescription("Date", "Date");
     private final static EnumDescription BOOL_TYPE = new EnumDescription("Boolean", "Boolean");
     private final static EnumDescription ANY_TYPE = new EnumDescription("Any", "Any");
-    private final static EnumDescription PASSWORD_TYPE = new EnumDescription("Password", "Password");
+    private final static EnumDescription PASSWORD_TYPE = new EnumDescription(PASSWORD, PASSWORD);
 
     public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE, PASSWORD_TYPE);
 
@@ -105,7 +106,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
                 String name = curr.get("name").toString();
                 String type = curr.get("type").toString();
                 String val = curr.get("value").toString();
-                if (type.equals("Password") && StringUtils.isNotBlank(val))
+                if (type.equals(PASSWORD) && StringUtils.isNotBlank(val))
                 {
                     val = EncryptionUtils.encrypt(val, node);
                 }
