@@ -47,7 +47,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParametersModel> {
-	private final static String PASSWORD = "Password";
+	private final static String PWD = "Password";
 
     // FOR GUI
     private final static EnumDescription STRING_TYPE = new EnumDescription("String", "String");
@@ -55,9 +55,9 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DATE_TYPE = new EnumDescription("Date", "Date");
     private final static EnumDescription BOOL_TYPE = new EnumDescription("Boolean", "Boolean");
     private final static EnumDescription ANY_TYPE = new EnumDescription("Any", "Any");
-    private final static EnumDescription PASSWORD_TYPE = new EnumDescription(PASSWORD, PASSWORD);
+    private final static EnumDescription PWD_TYPE = new EnumDescription(PWD, PWD);
 
-    public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE, PASSWORD_TYPE);
+    public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE, PWD_TYPE);
 
     // FOR API
     private final static EnumDescription INT_TYPE = new EnumDescription("Int", "Int");
@@ -67,7 +67,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DOUBLE_TYPE = new EnumDescription("Double", "Double");
     private final static EnumDescription DECIMAL_TYPE = new EnumDescription("Decimal", "Decimal");
 
-    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE, PASSWORD_TYPE);
+    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE, PWD_TYPE);
 
     public final static Map<String, List<EnumDescription>> mapping = new HashMap<>();
     public final static int NUM_OF_TYPES = paramTypesAPI.size() + paramTypesGUI.size();
@@ -106,7 +106,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
                 String name = curr.get("name").toString();
                 String type = curr.get("type").toString();
                 String val = curr.get("value").toString();
-                if (type.equals(PASSWORD) && StringUtils.isNotBlank(val))
+                if (type.equals(PWD) && StringUtils.isNotBlank(val))
                 {
                     val = EncryptionUtils.encrypt(val, node);
                 }
