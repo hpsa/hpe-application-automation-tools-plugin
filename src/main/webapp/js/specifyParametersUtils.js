@@ -36,7 +36,7 @@ if (typeof BUILDER_SELECTOR === "undefined") {
     BUILDER_SELECTOR = "div[name='builder'][descriptorid*='com.microfocus.application.automation.tools.run.RunFrom']";
 }
 
-function setupParameterSpecification() {
+function setupParamSpecification() {
     let main = null;
     if (document.location.href.indexOf("pipeline-syntax") > 0) {
         main = document;
@@ -45,11 +45,11 @@ function setupParameterSpecification() {
     }
 
     setTimeout(() => {
-        startListeningForParameters(main);
+        startListening4Params(main);
     }, 200);
 }
 
-function startListeningForParameters(mainContainer) {
+function startListening4Params(mainContainer) {
     let main = mainContainer;
     if (mainContainer == null) {
         let divs = document.querySelectorAll(BUILDER_SELECTOR);
@@ -58,7 +58,7 @@ function startListeningForParameters(mainContainer) {
 
     loadParamInputs(main);
 
-    const btnAddNewParam = main.querySelector("button[name='addNewParameterBtn']");
+    const btnAddNewParam = main.querySelector("button[name='addNewParamBtn']");
     if (btnAddNewParam) {
         btnAddNewParam.addEventListener('click', () => {
             addNewParam(main);
@@ -67,7 +67,7 @@ function startListeningForParameters(mainContainer) {
         console.warn("Add parameter button is missing.");
     }
 
-    const updateMaxNumberForSpinner = (testInput) => {
+    const updateMaxNumber4Spinner = (testInput) => {
         const rowInputs = main.querySelectorAll(".test-param > div > .num-of-test-spinner");
         const newMax = testInput.value.split("\n").filter(row => row !== "").length;
         rowInputs.forEach(rowInput => rowInput.setAttribute("max", newMax === 0 ? 1 : newMax.toString()));
@@ -87,7 +87,7 @@ function startListeningForParameters(mainContainer) {
         testInput = queryTestInput(main);
         if (testInput) {
             testInput.addEventListener("change", () => {
-                updateMaxNumberForSpinner(testInput);
+                updateMaxNumber4Spinner(testInput);
 
                 rowInputs.forEach((rowInput) => {
                     updateTest(main, rowInput, testInput);
@@ -110,7 +110,7 @@ function startListeningForParameters(mainContainer) {
         })
     });
 
-    const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
+    const chkAreParamsEnabled = main.querySelector("input[name='areParamsEnabled']");
     if (chkAreParamsEnabled) {
         chkAreParamsEnabled.addEventListener("click", () => cleanParamInput(main));
     }
@@ -126,31 +126,32 @@ function queryTestInput(container) {
 }
 
 function generateAndPutJSONResult(container) {
-    const paramsContainer = container.querySelector("ul[name='testParameters']");
+    const paramsContainer = container.querySelector("ul[name='testParams']");
 
-    const inputs = paramsContainer.querySelectorAll("li[name='testParameter']");
+    const inputs = paramsContainer.querySelectorAll("li[name='testParam']");
     let inputJSON = [];
 
-    const strParamRes = paramsContainer.parentElement.querySelector("input[name='parameterJson']");
+    const strParamRes = paramsContainer.parentElement.querySelector("input[name='jsonParams']");
 
-    if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+    if (!strParamRes) return console.warn("Param input JSON result hidden field is missing, reload the page.");
 
     inputs.forEach(elem => {
         let curr = {};
-        const testIdx = curr["index"] = elem.querySelector(`#parameterInputRow_${elem.dataset.index}`).value;
-        const name = curr["name"] = elem.querySelector(`#parameterInputName_${elem.dataset.index}`).value;
+        const idx = elem.dataset.index;
+        curr.index = elem.querySelector(`#paramInputRow_${idx}`).value;
+        const name = curr.name = elem.querySelector(`#paramInputName_${idx}`).value;
 
         if (name !== "") {
-            curr["type"] = elem.querySelector(`#parameterInputType_${elem.dataset.index}`).value;
+            curr.type = elem.querySelector(`#paramInputType_${elem.dataset.index}`).value;
 
-            const val = elem.querySelector(`#parameterInputValue_${elem.dataset.index}`);
-            if (curr["type"] === "Boolean") {
-                curr["value"] = val.checked;
-            } else if (curr["type"] === "Date" || curr["type"] === "DateTime") {
+            const val = elem.querySelector(`#paramInputValue_${elem.dataset.index}`);
+            if (curr.type === "Boolean") {
+                curr.value = val.checked;
+            } else if (curr.type === "Date" || curr.type === "DateTime") {
                 const date = new Date(val.value);
-                curr["value"] = `${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}/${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth()}/${date.getFullYear()}`;
+                curr.value = `${date.getDate() < 10 ? '0' + date.getDate() : date.getDate()}/${date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth()}/${date.getFullYear()}`;
             } else {
-                curr["value"] = val.value;
+                curr.value = val.value;
             }
 
             inputJSON.push(curr);
@@ -164,15 +165,15 @@ function cleanParamInput(container) {
     if (this.checked) {
         loadParamInputs(container);
     } else {
-        const strParamRes = container.querySelector("input[name='parameterJson']");
-        if (!strParamRes) return console.warn("Parameter input JSON result hidden field is missing, reload the page.");
+        const strParamRes = container.querySelector("input[name='jsonParams']");
+        if (!strParamRes) return console.warn("Param input JSON result hidden field is missing, reload the page.");
         strParamRes.value = normalizeJsonFormat(JSON.stringify([]));
     }
 }
 
 function addNewParam(container) {
-    const paramContainer = container.querySelector("ul[name='testParameters']");
-    const params = paramContainer.querySelectorAll("li[name='testParameter']") || [];
+    const paramContainer = container.querySelector("ul[name='testParams']");
+    const params = paramContainer.querySelectorAll("li[name='testParam']") || [];
     const nextIdx = params.length !== 0 ? parseInt(Array.from(params).reduce((prev, curr) => {
         if (parseInt(prev.dataset.index) > parseInt(curr.dataset.index)) return prev;
 
@@ -188,25 +189,25 @@ function addNewParam(container) {
     }
 
     const elem = `
-        <li class="test-param" name="testParameter" data-index="${nextIdx}">
+        <li class="test-param" name="testParam" data-index="${nextIdx}">
             <div>
-                <input class="jenkins-input setting-input num-of-test-spinner" name="parameterInput" id="parameterInputRow_${nextIdx}" min="1" max="${maxNumOfTests === 0 ? 1 : maxNumOfTests}" type="number" required="required" />
+                <input class="jenkins-input setting-input num-of-test-spinner" name="paramInput" id="paramInputRow_${nextIdx}" min="1" max="${maxNumOfTests === 0 ? 1 : maxNumOfTests}" type="number" required="required" />
             </div>
             <div>
-                <input class="jenkins-input setting-input test-label" name="parameterInput" id="parameterInputTest_${nextIdx}" type="text" value="" disabled />
+                <input class="jenkins-input setting-input test-label" name="paramInput" id="paramInputTest_${nextIdx}" type="text" value="" disabled />
             </div>
             <div>
-                <input class="jenkins-input setting-input" name="parameterInput" id="parameterInputName_${nextIdx}" type="text" required="required" />
+                <input class="jenkins-input setting-input" name="paramInput" id="paramInputName_${nextIdx}" type="text" required="required" />
             </div>
             <div>
-                <input class="jenkins-input setting-input" name="parameterInput" id="parameterInputValue_${nextIdx}" type="text"/>
+                <input class="jenkins-input setting-input" name="paramInput" id="paramInputValue_${nextIdx}" type="text"/>
             </div>
             <div>
-                <select name="parameterInput" id="parameterInputType_${nextIdx}">
+                <select name="paramInput" id="paramInputType_${nextIdx}">
                     ${selectableTypeList}
                 </select>
             </div>  
-            <span class="yui-button danger" id="delParameterInput_${nextIdx}" name="delParameter">
+            <span class="yui-button danger" id="delParamInput_${nextIdx}" name="delParam">
                 <span class="first-child">
                     <button type="button" tabindex="0">&#9747;</button>
                 </span>
@@ -216,8 +217,8 @@ function addNewParam(container) {
 
     paramContainer.insertAdjacentHTML("beforeend", elem);
 
-    const testLabel = paramContainer.querySelector(`#parameterInputTest_${nextIdx}`);
-    const spinner = paramContainer.querySelector(`#parameterInputRow_${nextIdx}`);
+    const testLabel = paramContainer.querySelector(`#paramInputTest_${nextIdx}`);
+    const spinner = paramContainer.querySelector(`#paramInputRow_${nextIdx}`);
 
     const handleSpinner = () => {
         if (spinner.value === '') {
@@ -236,17 +237,17 @@ function addNewParam(container) {
 
     spinner.dispatchEvent(new Event("change"));
 
-    Array.from(paramContainer.querySelectorAll(`[name='parameterInput']`)).filter(input => input.getAttribute("id").endsWith("_" + nextIdx.toString()))
+    Array.from(paramContainer.querySelectorAll(`[name='paramInput']`)).filter(input => input.getAttribute("id").endsWith("_" + nextIdx.toString()))
         .forEach(input => input.addEventListener("change", () => generateAndPutJSONResult(container)));
 
-    const delButton = paramContainer.querySelector(`#delParameterInput_${nextIdx} > span > button`);
+    const delButton = paramContainer.querySelector(`#delParamInput_${nextIdx} > span > button`);
     delButton.addEventListener("click", () => deleteParam(delButton, container));
 
-    const typeField = paramContainer.querySelector(`#parameterInputType_${nextIdx}`);
-    const valueField = paramContainer.querySelector(`#parameterInputValue_${nextIdx}`);
+    const typeField = paramContainer.querySelector(`#paramInputType_${nextIdx}`);
+    const valueField = paramContainer.querySelector(`#paramInputValue_${nextIdx}`);
     typeField.addEventListener("change", () => {
         valueField.value = "";
-        valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
+        valueField.setAttribute("type", map4TypeAssociations[typeField.value] || "text");
     });
 }
 
@@ -256,8 +257,8 @@ function deleteParam(elem, container) {
 }
 
 // has to be declared like this, because it has to be globally accessible and multiple steps can be added in a single job, which would throw duplicate exception
-if (typeof mapForTypeAssociations === "undefined") {
-    mapForTypeAssociations = {
+if (typeof map4TypeAssociations === "undefined") {
+    map4TypeAssociations = {
         String: 'text',
         Number: 'number',
         Boolean: 'checkbox',
@@ -274,7 +275,7 @@ if (typeof mapForTypeAssociations === "undefined") {
 }
 
 function loadParamInputs(container) {
-    const paramResultStr = container.querySelector("input[name='parameterJson']");
+    const paramResultStr = container.querySelector("input[name='jsonParams']");
 
     // one some browsers the value attribute may return with extraneous quotes
     let params = paramResultStr.value;
@@ -293,19 +294,19 @@ function loadParamInputs(container) {
 
     for (let i = 0; i < json.length; ++i) addNewParam(container);
 
-    const parameters = container.querySelectorAll("li[name='testParameter']");
+    const testParams = container.querySelectorAll("li[name='testParam']");
 
     for (let i = 0; i < json.length; ++i) {
-        const currElem = parameters[i];
+        const currElem = testParams[i];
         const currElemVal = json[i];
 
-        currElem.querySelector(`#parameterInputRow_${currElem.dataset.index}`).value = currElemVal["index"] || 1;
-        currElem.querySelector(`#parameterInputName_${currElem.dataset.index}`).value = currElemVal["name"] || "";
-        const valueField = currElem.querySelector(`#parameterInputValue_${currElem.dataset.index}`)
-        const typeField = currElem.querySelector(`#parameterInputType_${currElem.dataset.index}`);
+        currElem.querySelector(`#paramInputRow_${currElem.dataset.index}`).value = currElemVal["index"] || 1;
+        currElem.querySelector(`#paramInputName_${currElem.dataset.index}`).value = currElemVal["name"] || "";
+        const valueField = currElem.querySelector(`#paramInputValue_${currElem.dataset.index}`)
+        const typeField = currElem.querySelector(`#paramInputType_${currElem.dataset.index}`);
         typeField.value = currElemVal["type"] || "String";
 
-        valueField.setAttribute("type", mapForTypeAssociations[typeField.value] || "text");
+        valueField.setAttribute("type", map4TypeAssociations[typeField.value] || "text");
         if (typeField.value === "Boolean") {
             valueField.checked = currElemVal["value"] || false;
         } else if (typeField.value === "Date" || typeField.value === "DateTime") {

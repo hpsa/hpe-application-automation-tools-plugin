@@ -31,7 +31,7 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
     <style>
-        input[name="parameterJson"] {
+        input[name="jsonParams"] {
             display: none;
         }
 
@@ -39,7 +39,7 @@
             list-style-type: none;
         }
 
-        .test-parameter:not(:last-of-type) {
+        .test-param:not(:last-of-type) {
             margin-bottom: .5rem;
         }
 
@@ -83,7 +83,7 @@
         }
     </style>
 
-    <ul class="test-params" name="testParameters">
+    <ul class="test-params" name="testParams">
         <li class="test-param--heading pane-header">
             <p># of test</p>
             <p>Test name</p>
@@ -96,11 +96,11 @@
     <f:entry field="__emptyForHelp"/>
     <span class="yui-button yui-push-button repeatable-add">
         <span class="first-child">
-            <button type="button" tabindex="0" name="addNewParameterBtn">+ PARAMETER</button>
+            <button type="button" tabindex="0" name="addNewParamBtn">+ PARAMETER</button>
         </span>
     </span>
-    <f:entry field="parameterJson">
-        <f:readOnlyTextbox name="parameterJson" value="${instance.parameterJson}" />
+    <f:entry field="jsonParams">
+        <f:readOnlyTextbox name="jsonParams" value="${instance.jsonParams}" />
     </f:entry>
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
@@ -122,7 +122,7 @@
     </j:forEach>
 
     <script type="text/javascript">
-        setupParameterSpecification();
+        setupParamSpecification();
     </script>
 
 </j:jelly>

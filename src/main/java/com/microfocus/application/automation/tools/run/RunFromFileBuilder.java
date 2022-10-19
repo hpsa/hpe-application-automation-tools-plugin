@@ -711,7 +711,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         if (areParametersEnabled) {
             try {
-                specifyParametersModel.addProperties(mergedProperties, "Test");
+                specifyParametersModel.addProperties(mergedProperties, "Test", currNode);
             } catch (Exception e) {
                 listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
             }

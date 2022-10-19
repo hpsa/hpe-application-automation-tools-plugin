@@ -28,13 +28,17 @@
 
 package com.microfocus.application.automation.tools.uft.model;
 
+import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.model.EnumDescription;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import net.minidev.json.parser.ParseException;
 
@@ -50,8 +54,9 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DATE_TYPE = new EnumDescription("Date", "Date");
     private final static EnumDescription BOOL_TYPE = new EnumDescription("Boolean", "Boolean");
     private final static EnumDescription ANY_TYPE = new EnumDescription("Any", "Any");
+    private final static EnumDescription PASSWORD_TYPE = new EnumDescription("Password", "Password");
 
-    public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE);
+    public final static List<EnumDescription> paramTypesGUI = Arrays.asList(STRING_TYPE, NUMBER_TYPE, DATE_TYPE, BOOL_TYPE, ANY_TYPE, PASSWORD_TYPE);
 
     // FOR API
     private final static EnumDescription INT_TYPE = new EnumDescription("Int", "Int");
@@ -61,7 +66,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DOUBLE_TYPE = new EnumDescription("Double", "Double");
     private final static EnumDescription DECIMAL_TYPE = new EnumDescription("Decimal", "Decimal");
 
-    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE);
+    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE, PASSWORD_TYPE);
 
     public final static Map<String, List<EnumDescription>> mapping = new HashMap<>();
     public final static int NUM_OF_TYPES = paramTypesAPI.size() + paramTypesGUI.size();
@@ -71,36 +76,43 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
         mapping.put("API", paramTypesAPI);
     }
 
-    private String parameterJson;
+    private String jsonParams;
 
     @DataBoundConstructor
-    public SpecifyParametersModel(String parameterJson) {
-        this.parameterJson = parameterJson;
+    public SpecifyParametersModel(String json) {
+        this.jsonParams = json;
     }
 
-    public String getParameterJson() {
-        return parameterJson;
+    public String getJsonParams() {
+        return jsonParams;
     }
 
-    public void setParameterJson(String parameterJson) {
-        this.parameterJson = parameterJson;
+    public void setJsonParams(String json) {
+        this.jsonParams = json;
     }
 
-    public void addProperties(Properties props, String searchStr) throws ParseException {
-        JSONArray testParameters = (JSONArray) JSONValue.parseStrict(parameterJson);
+    public void addProperties(Properties props, String searchStr, Node node) throws Exception {
+        JSONArray testParams = (JSONArray) JSONValue.parseStrict(jsonParams);
 
         int pidx = 1;
         while (props.getProperty(searchStr + pidx) != null) {
             final int currPidx = pidx;
 
-            List<Object> relevant = testParameters.stream().filter(elem -> Integer.parseInt((String) (((JSONObject) elem).get("index"))) == currPidx).collect(Collectors.toList());
+            List<Object> relevant = testParams.stream().filter(elem -> Integer.parseInt((String) (((JSONObject) elem).get("index"))) == currPidx).collect(Collectors.toList());
 
             for (int i = 0; i < relevant.size(); ++i) {
                 JSONObject curr = ((JSONObject) relevant.get(i));
+                String name = curr.get("name").toString();
+                String type = curr.get("type").toString();
+                String val = curr.get("value").toString();
+                if (type.equals("Password") && StringUtils.isNotBlank(val))
+                {
+                    val = EncryptionUtils.encrypt(val, node);
+                }
 
-                props.setProperty(String.format("Param%d_Name_%d", currPidx, i + 1), curr.get("name").toString());
-                props.setProperty(String.format("Param%d_Value_%d", currPidx, i + 1), curr.get("value").toString());
-                props.setProperty(String.format("Param%d_Type_%d", currPidx, i + 1), curr.get("type").toString());
+                props.setProperty(String.format("Param%d_Name_%d", currPidx, i + 1), name);
+                props.setProperty(String.format("Param%d_Value_%d", currPidx, i + 1), val);
+                props.setProperty(String.format("Param%d_Type_%d", currPidx, i + 1), type);
             }
 
             ++pidx;

@@ -33,8 +33,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace HpToolsLauncher
 {
@@ -58,6 +56,7 @@ namespace HpToolsLauncher
         private const string _dateFormat = "dd'/'MM'/'yyyy HH':'mm':'ss";
         private bool _rerunFailedTests = false;
         private string _encoding;
+        private const string PASSWORD = "Password";
 
         public const string ClassName = "HPToolsFileSystemRunner";
 
@@ -1068,6 +1067,10 @@ namespace HpToolsLauncher
                     {
                         ConsoleWriter.WriteLine(string.Format("Found no type associated with parameter {0}.", name));
                         continue;
+                    }
+                    else if (type == PASSWORD && !string.IsNullOrWhiteSpace(val))
+                    {
+                        val = EncryptionUtils.Decrypt(val);
                     }
 
                     parameters.Add(new TestParameter(i, name, val, type.ToLower()));
