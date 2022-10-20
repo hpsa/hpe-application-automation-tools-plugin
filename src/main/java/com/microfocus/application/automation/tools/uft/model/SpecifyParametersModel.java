@@ -40,7 +40,6 @@ import net.minidev.json.JSONValue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-import net.minidev.json.parser.ParseException;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -77,23 +76,23 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
         mapping.put("API", paramTypesAPI);
     }
 
-    private String jsonParams;
+    private String parameterJson;
 
     @DataBoundConstructor
-    public SpecifyParametersModel(String json) {
-        this.jsonParams = json;
+    public SpecifyParametersModel(String parameterJson) {
+        this.parameterJson = parameterJson;
     }
 
-    public String getJsonParams() {
-        return jsonParams;
+    public String getParameterJson() {
+        return parameterJson;
     }
 
-    public void setJsonParams(String json) {
-        this.jsonParams = json;
+    public void setParameterJson(String parameterJson) {
+        this.parameterJson = parameterJson;
     }
 
     public void addProperties(Properties props, String searchStr, Node node) throws Exception {
-        JSONArray testParams = (JSONArray) JSONValue.parseStrict(jsonParams);
+        JSONArray testParams = (JSONArray) JSONValue.parseStrict(parameterJson);
 
         int pidx = 1;
         while (props.getProperty(searchStr + pidx) != null) {

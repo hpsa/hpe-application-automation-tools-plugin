@@ -131,7 +131,7 @@ function generateAndPutJSONResult(container) {
     const inputs = paramsContainer.querySelectorAll("li[name='testParam']");
     let inputJSON = [];
 
-    const strParamRes = paramsContainer.parentElement.querySelector("input[name='jsonParams']");
+    const strParamRes = paramsContainer.parentElement.querySelector("input.json-params");
 
     if (!strParamRes) return console.warn("Param input JSON result hidden field is missing, reload the page.");
 
@@ -165,7 +165,7 @@ function cleanParamInput(container) {
     if (this.checked) {
         loadParamInputs(container);
     } else {
-        const strParamRes = container.querySelector("input[name='jsonParams']");
+        const strParamRes = container.querySelector("input.json-params");
         if (!strParamRes) return console.warn("Param input JSON result hidden field is missing, reload the page.");
         strParamRes.value = normalizeJsonFormat(JSON.stringify([]));
     }
@@ -275,9 +275,9 @@ if (typeof map4TypeAssociations === "undefined") {
 }
 
 function loadParamInputs(container) {
-    const paramResultStr = container.querySelector("input[name='jsonParams']");
+    const paramResultStr = container.querySelector("input.json-params");
 
-    // one some browsers the value attribute may return with extraneous quotes
+    // on some browsers the value may return with extra-quotes
     let params = paramResultStr.value;
 
     if (params === "" || params === "[]" || params === "\"[]\"") return;

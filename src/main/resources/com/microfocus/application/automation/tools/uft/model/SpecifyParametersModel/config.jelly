@@ -31,10 +31,6 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
 
     <style>
-        input[name="jsonParams"] {
-            display: none;
-        }
-
         .test-params {
             list-style-type: none;
         }
@@ -99,9 +95,9 @@
             <button type="button" tabindex="0" name="addNewParamBtn">+ PARAMETER</button>
         </span>
     </span>
-    <f:entry field="jsonParams">
-        <f:readOnlyTextbox name="jsonParams" value="${instance.jsonParams}" />
-    </f:entry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="parameterJson" clazz="json-params" value="${instance.parameterJson}" />
+    </f:invisibleEntry>
 
     <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
 
