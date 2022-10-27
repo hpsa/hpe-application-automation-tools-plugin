@@ -112,8 +112,9 @@ namespace HpToolsLauncher.TestRunners
             this._errorsCount = 0;
         }
 
-        public TestRunResults RunTest(TestInfo scenarioInf, ref string errorReason, RunCancelledDelegate runCancelled)
+        public TestRunResults RunTest(TestInfo scenarioInf, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
+            outParams = new Dictionary<string, string>();
             string scenarioPath = scenarioInf.TestPath;
             //prepare the instance that will contain test results for JUnit
             TestRunResults runDesc = new TestRunResults();

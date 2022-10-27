@@ -54,6 +54,8 @@ namespace HpToolsLauncher
             set { _type = value; }
         }
 
+        public string Source { get; set; }
+
 
         /// <summary>
         /// parses the value string and returns an object of the specified type.
@@ -63,11 +65,11 @@ namespace HpToolsLauncher
         {
             object val = null;
             bool ok = false;
-            switch (this.Type.ToLower())
+            switch (_type.ToLower())
             {
                 case "int":
                     int v;
-                    ok = int.TryParse(this.Value, out v);
+                    ok = int.TryParse(_value, out v);
                     if (ok)
                     {
                         val = v;
@@ -77,11 +79,11 @@ namespace HpToolsLauncher
                 case "password":
                 case "string":
                 case "any":
-                    val = this.Value;
+                    val = _value;
                     break;
                 case "float":
                     float v1;
-                    ok = float.TryParse(this.Value, out v1);
+                    ok = float.TryParse(_value, out v1);
                     if (ok)
                     {
                         val = v1;
@@ -90,7 +92,7 @@ namespace HpToolsLauncher
                     break;
                 case "double":
                     double v2;
-                    ok = double.TryParse(this.Value, out v2);
+                    ok = double.TryParse(_value, out v2);
                     if (ok)
                     {
                         val = v2;
@@ -99,7 +101,7 @@ namespace HpToolsLauncher
                 case "datetime":
                 case "date":
                     DateTime v3;
-                    ok = DateTime.TryParseExact(this.Value,
+                    ok = DateTime.TryParseExact(_value,
                         new string[] {
                                             "yyyy-MM-ddTHH:mm:ss",
                                             "dd/MM/yyyy HH:mm:ss.fff",
@@ -114,6 +116,9 @@ namespace HpToolsLauncher
                                             "dd.MM.yyyy hh:mm:ss.fff tt" ,
                                             "dd/MM/yyyy HH:mm:ss",
                                             "dd-MM-yyyy HH:mm:ss",
+                                            "dd/MM/yyyy hh:mm:ss tt",
+                                            "dd/M/yyyy hh:mm:ss tt",
+                                            "d/M/yyyy hh:mm:ss tt",
                                             "d/MM/yyyy HH:mm:ss",
                                             "d/MM/yyyy hh:mm:ss tt",
                                             "d-MM-yyyy HH:mm:ss",
@@ -127,16 +132,21 @@ namespace HpToolsLauncher
                                             "d.MM.yyyy" ,
                                             "M/d/yyyy HH:mm:ss.fff",
                                             "M.d.yyyy hh:mm:ss.fff tt",
+                                            "M.d.yyyy hh:mm:ss tt",
                                             "M.d.yyyy HH:mm:ss.fff",
                                             "M/d/yyyy hh:mm:ss.fff t",
                                             "MM/dd/yyyy hh:mm:ss.fff tt",
                                             "MM/d/yyyy hh:mm:ss.fff tt",
+                                            "MM/dd/yyyy hh:mm:ss tt",
+                                            "MM/d/yyyy hh:mm:ss tt",
                                             "MM/dd/yyyy HH:mm:ss",
                                             "MM.dd.yyyy HH:mm:ss",
                                             "M/dd/yyyy HH:mm:ss.fff",
                                             "M/dd/yyyy hh:mm:ss.fff tt",
+                                            "M/dd/yyyy hh:mm:ss tt",
                                             "M.dd.yyyy HH:mm:ss.fff",
                                             "M.dd.yyyy hh:mm:ss.fff tt",
+                                            "M.dd.yyyy hh:mm:ss tt",
                                             "MM/dd/yyyy",
                                             "MM.dd.yyyy",
                                             "M/dd/yyyy",
@@ -155,15 +165,16 @@ namespace HpToolsLauncher
 
                 case "long":
                     long v4;
-                    ok = long.TryParse(this.Value, out v4);
+                    ok = long.TryParse(_value, out v4);
                     if (ok)
                     {
                         val = v4;
                     }
                     break;
+                case "bool":
                 case "boolean":
                     bool v5;
-                    ok = bool.TryParse(this.Value, out v5);
+                    ok = bool.TryParse(_value, out v5);
                     if (ok)
                     {
                         val = v5;
@@ -171,7 +182,7 @@ namespace HpToolsLauncher
                     break;
                 case "decimal":
                     decimal v6;
-                    ok = decimal.TryParse(this.Value, out v6);
+                    ok = decimal.TryParse(_value, out v6);
                     if (ok)
                     {
                         val = v6;
