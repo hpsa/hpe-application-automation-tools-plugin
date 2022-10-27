@@ -233,7 +233,6 @@ namespace HpToolsLauncher
                         if (fi.Extension == Helper.LoadRunnerFileExtention)
                             testGroup.Add(new TestInfo(source.Tests, source.Tests, source.Tests, source.Id));
                         else if (fi.Extension == Helper.MtbFileExtension)
-                        //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
                             MtbManager manager = new MtbManager();
                             var paths = manager.Parse(source.Tests);
@@ -322,6 +321,7 @@ namespace HpToolsLauncher
                 }
 
                 Dictionary<string, int> rerunList = createDictionary(_tests);
+                Dictionary<string, string> prevTestOutParams = null;
 
                 for (int x = 0; x < _tests.Count; x++)
                 {
@@ -337,7 +337,23 @@ namespace HpToolsLauncher
                     TestRunResults runResult = null;
                     try
                     {
-                        runResult = RunHpToolsTest(test, ref errorReason);
+                        if (prevTestOutParams != null && prevTestOutParams.Count > 0)
+                        {
+                            foreach (var param in test.ParameterList)
+                            {
+                                if (param.Source != null && prevTestOutParams.ContainsKey(param.Source))
+                                {
+                                    param.Value = prevTestOutParams[param.Source];
+                                }
+                            }
+                            prevTestOutParams = null;
+                        }
+                        Dictionary<string, string> outParams = null;
+                        runResult = RunHpToolsTest(test, ref errorReason, out outParams);
+                        if (outParams != null && outParams.Count > 0)
+                            prevTestOutParams = outParams;
+                        else
+                            prevTestOutParams = null;
                     }
                     catch (Exception ex)
                     {
@@ -542,8 +558,9 @@ namespace HpToolsLauncher
         /// <param name="testInfo"></param>
         /// <param name="errorReason"></param>
         /// <returns></returns>
-        private TestRunResults RunHpToolsTest(TestInfo testInfo, ref string errorReason)
+        private TestRunResults RunHpToolsTest(TestInfo testInfo, ref string errorReason, out Dictionary<string, string> outParams)
         {
+            outParams = new Dictionary<string, string>();
             var testPath = testInfo.TestPath;
 
             var type = Helper.GetTestType(testPath);
@@ -588,7 +605,7 @@ namespace HpToolsLauncher
 
                 Stopwatch s = Stopwatch.StartNew();
 
-                var results = runner.RunTest(testInfo, ref errorReason, RunCancelled);
+                var results = runner.RunTest(testInfo, ref errorReason, RunCancelled, out outParams);
                 if (results.ErrorDesc != null && results.ErrorDesc.Equals(TestState.Error))
                 {
                     Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
@@ -602,7 +619,7 @@ namespace HpToolsLauncher
             }
 
             //check for abortion
-            if (System.IO.File.Exists(_abortFilename))
+            if (File.Exists(_abortFilename))
             {
 
                 ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
