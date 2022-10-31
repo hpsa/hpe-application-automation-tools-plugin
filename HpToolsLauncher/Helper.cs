@@ -253,7 +253,7 @@ namespace HpToolsLauncher
         /// <param name="paramNames"></param>
         /// <param name="paramValues"></param>
         /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public static bool ValidateListOfParamsForInline(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
+        public static bool ValidateInlineParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
         {
             if (@params == null) throw new ArgumentNullException("Parameters are missing");
             paramNames = new List<string>();
@@ -925,7 +925,6 @@ namespace HpToolsLauncher
 
         }
 
-
         public static TestState GetTestStateFromLRReport(TestRunResults runDesc, string[] resultFiles)
         {
 
@@ -1002,12 +1001,12 @@ namespace HpToolsLauncher
 
             XmlDocument xdoc = new XmlDocument();
             xdoc.Load(resultFileFullPath);
-            return checkNodeStatus(xdoc.DocumentElement, out desc);
+            return CheckNodeStatus(xdoc.DocumentElement, out desc);
         }
 
-        private static TestState checkNodeStatus(XmlNode node, out string desc)
+        private static TestState CheckNodeStatus(XmlNode node, out string desc)
         {
-            desc = "";
+            desc = string.Empty;
             if (node == null)
                 return TestState.Failed;
 
@@ -1031,7 +1030,7 @@ namespace HpToolsLauncher
             //node has children
             foreach (XmlNode childNode in node.ChildNodes)
             {
-                TestState res = checkNodeStatus(childNode, out desc);
+                TestState res = CheckNodeStatus(childNode, out desc);
                 if (res == TestState.Failed)
                 {
                     if (string.IsNullOrEmpty(desc) && node.Attributes != null && node.Attributes["FullName"] != null)
@@ -1046,12 +1045,11 @@ namespace HpToolsLauncher
             return TestState.Passed;
         }
 
-
         private static TestState GetStateFromUFTResultsFile(string resultsFileFullPath, out string desc)
         {
             TestState finalState = TestState.Unknown;
-            desc = "";
-            var status = "";
+            desc = string.Empty;
+            var status = string.Empty;
             var doc = new XmlDocument { PreserveWhitespace = true };
             doc.Load(resultsFileFullPath);
             string strFileName = Path.GetFileName(resultsFileFullPath);
@@ -1271,7 +1269,6 @@ namespace HpToolsLauncher
             this._milliSeconds = milliSeconds;
         }
 
-
         /// <summary>
         /// Creates timer in seconds to replace thread.sleep due to ui freezes in jenkins. 
         /// Should be replaced in the future with ASync tasks
@@ -1290,5 +1287,4 @@ namespace HpToolsLauncher
             }
         }
     }
-
 }

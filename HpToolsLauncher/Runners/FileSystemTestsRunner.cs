@@ -70,6 +70,7 @@ namespace HpToolsLauncher
 
         private McConnectionInfo _mcConnection;
         private string _mobileInfoForAllGuiTests;
+        private bool _printInputParams;
 
 		#endregion
 
@@ -94,6 +95,7 @@ namespace HpToolsLauncher
 		/// <param name="scriptRtsSet"></param>
 		public FileSystemTestsRunner(List<TestData> sources,
                                     List<TestParameter> parameters,
+                                    bool printInParams,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int controllerPollingInterval,
@@ -111,7 +113,7 @@ namespace HpToolsLauncher
                                     string xmlResultsFullFileName,
                                     string encoding,
                                     bool useUftLicense = false)
-            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
+            : this(sources, parameters, printInParams, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -136,6 +138,7 @@ namespace HpToolsLauncher
         /// <param name="useUftLicense"></param>
         public FileSystemTestsRunner(List<TestData> sources,
                                     List<TestParameter> parameters,
+                                    bool printParams,
                                     TimeSpan timeout,
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
@@ -176,6 +179,7 @@ namespace HpToolsLauncher
             _scriptRTSSet = scriptRtsSet;
             _tests = new List<TestInfo>();
             _parameters = parameters;
+            _printInputParams = printParams;
 
             _mcConnection = mcConnection;
             _mobileInfoForAllGuiTests = mobileInfo;
@@ -320,7 +324,7 @@ namespace HpToolsLauncher
                     indexList[test.TestPath] = 0;
                 }
 
-                Dictionary<string, int> rerunList = createDictionary(_tests);
+                Dictionary<string, int> rerunList = CreateDictionary(_tests);
                 Dictionary<string, string> prevTestOutParams = null;
 
                 for (int x = 0; x < _tests.Count; x++)
@@ -339,7 +343,7 @@ namespace HpToolsLauncher
                     {
                         if (prevTestOutParams != null && prevTestOutParams.Count > 0)
                         {
-                            foreach (var param in test.ParameterList)
+                            foreach (var param in test.Params)
                             {
                                 if (param.Source != null && prevTestOutParams.ContainsKey(param.Source))
                                 {
@@ -462,7 +466,7 @@ namespace HpToolsLauncher
         }
 
 
-        private Dictionary<string, int> createDictionary(List<TestInfo> validTests)
+        private Dictionary<string, int> CreateDictionary(List<TestInfo> validTests)
         {
             var rerunList = new Dictionary<string, int>();
             foreach (var item in validTests)
@@ -493,33 +497,23 @@ namespace HpToolsLauncher
 
             // the inline test path does contain parameter specification
             string paramString = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
-            string[] paramList = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] @params = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (paramList == null || paramList.Length == 0) return;
+            if (@params == null || @params.Length == 0) return;
 
             IList<string> paramNames, paramValues;
 
-            if (!Helper.ValidateListOfParamsForInline(paramList, out paramNames, out paramValues))
+            if (!Helper.ValidateInlineParams(@params, out paramNames, out paramValues))
             {
                 throw new ArgumentException();
             }
 
-            TestParameterInfo placeholderParam;
-            string placeholderType = "string";
+            string placeholderType;
             long _unused;
             for (int i = 0; i < paramNames.Count; ++i)
             {
-                if (long.TryParse(paramValues[i], out _unused))
-                {
-                    placeholderType = "number";
-                }
-                else
-                {
-                    placeholderType = "string";
-                }
-
-                placeholderParam = new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] };
-                test.ParameterList.Add(placeholderParam);
+                placeholderType = long.TryParse(paramValues[i], out _unused) ? "number" : "string";
+                test.Params.Add(new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] });
             }
         }
 
@@ -535,8 +529,7 @@ namespace HpToolsLauncher
 
             foreach (TestParameter param in relevant)
             {
-                TestParameterInfo placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
-                test.ParameterList.Add(placeholderParam);
+                test.Params.Add(new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal });
             }
 
             return;
@@ -587,7 +580,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;

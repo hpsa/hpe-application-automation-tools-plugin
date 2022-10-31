@@ -28,11 +28,11 @@
 
 package com.microfocus.application.automation.tools.uft.utils;
 
+import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil;
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import hudson.FilePath;
-import hudson.model.Node;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -363,6 +364,25 @@ public class UftToolUtils {
         }
 
         return nodes;
+    }
+
+    public static boolean isPrintTestParams(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener) {
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        String msg = "NOTE : The test parameters and their values are printed by default in both Console Output and Results###.xml. You can disable this behavior by defining a job-level parameter UFT_PRINT_TEST_PARAMS as boolean and set it to false.";
+        boolean isUftPrintTestParams = true;
+        if (parameterAction == null) {
+            listener.getLogger().println(msg);
+            listener.getLogger().println("");
+        } else {
+            ParameterValue pv = parameterAction.getParameter(UftConstants.UFT_PRINT_TEST_PARAMS);
+            if (pv == null) {
+                listener.getLogger().println(msg);
+            } else {
+                isUftPrintTestParams = (boolean) pv.getValue();
+                listener.getLogger().println(String.format("UFT_PRINT_TEST_PARAMS = %s", isUftPrintTestParams ? "Yes" : "No")) ;
+            }
+        }
+        return isUftPrintTestParams;
     }
 
 }

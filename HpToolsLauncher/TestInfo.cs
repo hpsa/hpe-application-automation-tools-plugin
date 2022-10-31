@@ -154,31 +154,6 @@ namespace HpToolsLauncher
             }
         }
 
-        private string NormalizeParamType(string pType)
-        {
-            switch (pType.ToLower())
-            {
-                case "datetime":
-                case "date":
-                    return "dateTime";
-
-                case "any":
-                case "string":
-                case "password":
-                    return "string";
-
-                case "int":
-                case "integer":
-                case "number":
-                    return "integer";
-                case "bool":
-                case "boolean":
-                    return "boolean";
-                default:
-                    return pType.ToLower();
-            }
-        }
-
         public TestInfo(string testPath, string testName)
         {
             TestPath = testPath;
@@ -200,7 +175,7 @@ namespace HpToolsLauncher
             TestId = testId;
         }
 
-        List<TestParameterInfo> _paramList = new List<TestParameterInfo>();
+        private List<TestParameterInfo> _params = new List<TestParameterInfo>();
         string _testName;
         string _testGroup;
         string _dataTablePath;
@@ -230,10 +205,10 @@ namespace HpToolsLauncher
 
         public string TestId { get; set; }
 
-        public List<TestParameterInfo> ParameterList
+        public List<TestParameterInfo> Params
         {
-            get { return _paramList; }
-            set { _paramList = value; }
+            get { return _params; }
+            set { _params = value; }
         }
 
         public string DataTablePath
@@ -248,11 +223,10 @@ namespace HpToolsLauncher
             set { _iterationInfo = value; }
         }
 
-
         internal Dictionary<string, object> GetParameterDictionaryForQTP()
         {
             Dictionary<string, object> retval = new Dictionary<string, object>();
-            foreach (var param in _paramList)
+            foreach (var param in _params)
             {
                 object val = param.ParseValue();
                 retval.Add(param.Name, val);

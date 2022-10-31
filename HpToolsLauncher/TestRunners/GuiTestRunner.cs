@@ -72,13 +72,14 @@ namespace HpToolsLauncher
         private RunCancelledDelegate _runCancelled;
         private McConnectionInfo _mcConnection;
         private string _mobileInfo;
+        private bool _printInputParams;
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runNotifier"></param>
         /// <param name="useUftLicense"></param>
         /// <param name="timeLeftUntilTimeout"></param>
-        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
+        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo, bool printInputParams)
         {
             _timeLeftUntilTimeout = timeLeftUntilTimeout;
             _uftRunMode = uftRunMode;
@@ -87,6 +88,7 @@ namespace HpToolsLauncher
             _useUFTLicense = useUftLicense;
             _mcConnection = mcConnectionInfo;
             _mobileInfo = mobileInfo;
+            _printInputParams = printInputParams;
         }
 
         #region QTP
@@ -713,10 +715,13 @@ namespace HpToolsLauncher
                             try
                             {
                                 _qtpParameters[paramName].Value = paramValue;
-                                if (type == qtParameterType.qtParamTypePassword)
-                                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsageMask, paramName));
-                                else
-                                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime) paramValue).ToShortDateString()));
+                                if (_printInputParams)
+                                {
+                                    if (type == qtParameterType.qtParamTypePassword)
+                                        ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsageMask, paramName));
+                                    else
+                                        ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime)paramValue).ToShortDateString()));
+                                }
                             } catch (Exception)
                             {
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith1Type, paramName));
@@ -861,10 +866,6 @@ namespace HpToolsLauncher
 
 
         #endregion
-
-
-
-
 
         /// <summary>
         /// holds the resutls for a GUI test

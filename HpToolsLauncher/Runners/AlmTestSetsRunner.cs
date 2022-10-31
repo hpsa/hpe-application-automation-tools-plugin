@@ -56,6 +56,7 @@ namespace HpToolsLauncher
         private readonly char[] COMMA = new char[] { ',' };
         private const string API_TEST = "SERVICE-TEST";
         private const string GUI_TEST = "QUICKTEST_TEST";
+        private List<TestParameter> _params;
 
         public ITDConnection13 TdConnection
         {
@@ -94,7 +95,6 @@ namespace HpToolsLauncher
         public bool SSOEnabled { get; set; }
         public string ClientID { get; set; }
         public string ApiKey { get; set; }
-        public List<TestParameter> TestParameters { get; set; }
 
         /// <summary>
         /// constructor
@@ -123,7 +123,7 @@ namespace HpToolsLauncher
                                 QcRunMode enmQcRunMode,
                                 string runHost,
                                 List<string> qcTestSets,
-                                List<TestParameter> parameters,
+                                List<TestParameter> @params,
                                 bool isFilterSelected,
                                 string filterByName,
                                 List<string> filterByStatuses,
@@ -153,7 +153,7 @@ namespace HpToolsLauncher
 
             Connected = ConnectToProject(MQcServer, MQcUser, qcPassword, MQcDomain, MQcProject, SSOEnabled, ClientID, ApiKey);
             TestSets = qcTestSets;
-            TestParameters = parameters;
+            _params = @params;
             Storage = testStorageType;
             if (!Connected)
             {
@@ -862,11 +862,11 @@ namespace HpToolsLauncher
         /// Collect the inline parameters for the tests.
         /// </summary>
         /// <param name="tList"></param>
-        /// <param name="testParameters"></param>
+        /// <param name="strParams"></param>
         /// <param name="runDesc"></param>
         /// <param name="initialFullTsPath"></param>
-        /// <param name="parametersPlaceholder"></param>
-        public void CollectInlineTestParameters(IList tList, string testParameters, TestSuiteRunResults runDesc, string initialFullTsPath, List<TestParameter> parametersPlaceholder)
+        /// <param name="params"></param>
+        public void CollectInlineTestParams(IList tList, string strParams, string initialFullTsPath, List<TestParameter> @params)
         {
             int idx = 1;
 
@@ -874,12 +874,12 @@ namespace HpToolsLauncher
             {
                 try
 				{
-                    if (test.Type.Equals(API_TEST) && !string.IsNullOrEmpty(testParameters)) //API test
+                    if (test.Type.Equals(API_TEST) && !string.IsNullOrEmpty(strParams)) //API test
                     {
-                        CollectInlineApiTestParameters(test, testParameters, parametersPlaceholder, idx);
-                    } else if (test.Type.Equals(GUI_TEST) && !string.IsNullOrEmpty(testParameters)) //GUI test
+                        CollectInlineApiTestParameters(test, strParams, @params, idx);
+                    } else if (test.Type.Equals(GUI_TEST) && !string.IsNullOrEmpty(strParams)) //GUI test
                     {
-                        CollectInlineGuiTestParameters(test, testParameters, parametersPlaceholder, idx);
+                        CollectInlineGuiTestParameters(test, strParams, @params, idx);
                     }
                 } catch (ArgumentException)
 				{
@@ -893,14 +893,12 @@ namespace HpToolsLauncher
         /// <summary>
         /// Collect the parameters for the tests from the props (CI args).
         /// </summary>
-        /// <param name="filteredTestList"></param>
-        /// <param name="runDesc"></param>
-        /// <param name="parametersPlaceholder"></param>
+        /// <param name="params"></param>
         /// <param name="testIdx"></param>
-        public void CollectPropsTestParameters(IList filteredTestList, TestSuiteRunResults runDesc, List<TestParameter> parametersPlaceholder, int testIdx)
+        private void CollectPropsTestParams(List<TestParameter> @params, int testIdx)
         {
-            List<TestParameter> relevant = TestParameters.FindAll(elem => elem.TestIdx.Equals(testIdx));
-            parametersPlaceholder.AddRange(relevant);
+            List<TestParameter> relevant = _params.FindAll(elem => elem.TestIdx == testIdx);
+            @params.AddRange(relevant);
         }
 
         /// <summary>
@@ -938,24 +936,24 @@ namespace HpToolsLauncher
         /// Set test parameters for an API test
         /// </summary>
         /// <param name="test"></param>
-        /// <param name="paramsString"></param>
-        /// <param name="parametersPlaceholder"></param>
+        /// <param name="strParams"></param>
+        /// <param name="testParams"></param>
         /// <param name="idx"></param>
-        private void CollectInlineApiTestParameters(ITSTest3 test, string paramsString, IList<TestParameter> parametersPlaceholder, int idx)
+        private void CollectInlineApiTestParameters(ITSTest3 test, string strParams, IList<TestParameter> testParams, int idx)
         {
-            if (!string.IsNullOrEmpty(paramsString))
+            if (!string.IsNullOrEmpty(strParams))
             {
-                string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
+                string[] @params = strParams.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
                 IList<string> paramNames, paramValues;
 
-                if (!Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues))
+                if (!Helper.ValidateInlineParams(@params, out paramNames, out paramValues))
 				{
                     throw new ArgumentException();
                 }
 
                 for (int i = 0; i < @params.Length; ++i)
                 {
-                    parametersPlaceholder.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
+                    testParams.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
                 }
             }
         }
@@ -976,7 +974,7 @@ namespace HpToolsLauncher
                 string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
                 IList<string> paramNames, paramValues;
 
-                if (!Helper.ValidateListOfParamsForInline(@params, out paramNames, out paramValues))
+                if (!Helper.ValidateInlineParams(@params, out paramNames, out paramValues))
                 {
                     throw new ArgumentException();
                 }
@@ -1039,7 +1037,7 @@ namespace HpToolsLauncher
                 int pos = testSetItem.LastIndexOf('\\');
 
                 string testSetDir = string.Empty;
-                string inlineTestParameters = string.Empty;
+                string inlineTestParams = string.Empty;
 
                 if (pos != -1)
                 {
@@ -1057,7 +1055,7 @@ namespace HpToolsLauncher
                             if (quotationMarkIndex > pos)
                             {
                                 tsName = testSet.Substring(pos, quotationMarkIndex - pos).Trim(_backSlash).TrimEnd(' ');
-                                inlineTestParameters = testSet.Substring(quotationMarkIndex, testSet.Length - quotationMarkIndex).Trim(_backSlash);
+                                inlineTestParams = testSet.Substring(quotationMarkIndex, testSet.Length - quotationMarkIndex).Trim(_backSlash);
                             }
                         }
                     }
@@ -1067,7 +1065,7 @@ namespace HpToolsLauncher
                     }
                 }
 
-                TestSuiteRunResults runResults = RunTestSet(testSetDir, tsName, inlineTestParameters, swForTimeout, idx);
+                TestSuiteRunResults runResults = RunTestSet(testSetDir, tsName, inlineTestParams, swForTimeout, idx);
                 if (runResults != null)
                     activeRunDescription.AppendResults(runResults);
 
@@ -1085,11 +1083,11 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="tsFolderName">testSet folder name</param>
         /// <param name="tsName">testSet name</param>
-        /// <param name="inlineTestParameters"></param>
+        /// <param name="inlineTestParams"></param>
         /// <param name="swForTimeout"></param>
         /// <param name="testIdx"></param>
         /// <returns></returns>
-        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string inlineTestParameters, Stopwatch swForTimeout, int testIdx)
+        public TestSuiteRunResults RunTestSet(string tsFolderName, string tsName, string inlineTestParams, Stopwatch swForTimeout, int testIdx)
         {
             string testSuiteName = tsName.TrimEnd();
             ITestSetFolder tsFolder = null;
@@ -1201,14 +1199,14 @@ namespace HpToolsLauncher
             if (filteredTestList.Count > 0)
             {
                 // placeholder list for test parameters
-                List<TestParameter> testParameters = new List<TestParameter>();
+                List<TestParameter> @params = new List<TestParameter>();
 
-                CollectInlineTestParameters(filteredTestList, inlineTestParameters, runDesc, initialFullTsPath, testParameters);
-                CollectPropsTestParameters(filteredTestList, runDesc, testParameters, testIdx);
+                CollectInlineTestParams(filteredTestList, inlineTestParams, initialFullTsPath, @params);
+                CollectPropsTestParams(@params, testIdx);
 
                 try
                 {
-                    CheckForDuplicateParametersForTest(testParameters);
+                    CheckForDuplicateParametersForTest(@params);
                 }
                 catch (ArgumentException)
                 {
@@ -1223,7 +1221,7 @@ namespace HpToolsLauncher
                 int index = 1;
                 foreach (ITSTest3 test in filteredTestList)
                 {
-                    SetParameters(test, testParameters);
+                    SetParameters(test, @params);
 
                     ScheduleTest(runDesc, scheduler, test, index);
                     ++index;
