@@ -213,7 +213,7 @@ namespace HpToolsLauncher
                         if (!paramNames.Contains(testParam.Name))
                         {
                             paramNames.Add(testParam.Name);
-                            testInfo.ParameterList.Add(testParam);
+                            testInfo.Params.Add(testParam);
                         }
                         else
                         {
