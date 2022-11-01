@@ -14,6 +14,9 @@ namespace HpToolsLauncher
 
         static EncryptionUtils()
         {
+#if DEBUG
+            return;
+#else
             SecretKey = Environment.GetEnvironmentVariable("hptoolslauncher.key");
             var keyPath = Environment.GetEnvironmentVariable("hptoolslauncher.rootpath");
 
@@ -60,6 +63,7 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteErrLine("No valid private key were provided for cryptography.");
                 throw new ArgumentException("Try forcing a new key pair generation.");
             }
+#endif
         }
 
         /// <summary>
@@ -69,6 +73,9 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public static string Decrypt(string textToDecrypt)
         {
+#if DEBUG
+            return textToDecrypt;
+#else
             var encryptedBytes = Convert.FromBase64String(textToDecrypt);
             byte[] text;
             try
@@ -82,6 +89,7 @@ namespace HpToolsLauncher
             }
 
             return Encoding.UTF8.GetString(text);
+#endif
         }
 
         /// <summary>
@@ -91,6 +99,9 @@ namespace HpToolsLauncher
         /// <returns></returns>
         private static string DecryptWithPwd(string textToDecrypt)
         {
+#if DEBUG
+            return textToDecrypt;
+#else
             var rijndaelCipher = new RijndaelManaged
             {
                 BlockSize = 0x80,
@@ -123,6 +134,7 @@ namespace HpToolsLauncher
             }
 
             return Encoding.UTF8.GetString(plainText);
+#endif
         }
     }
 }

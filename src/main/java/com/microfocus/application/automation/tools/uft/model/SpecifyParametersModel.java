@@ -66,7 +66,7 @@ public class SpecifyParametersModel extends AbstractDescribableImpl<SpecifyParam
     private final static EnumDescription DOUBLE_TYPE = new EnumDescription("Double", "Double");
     private final static EnumDescription DECIMAL_TYPE = new EnumDescription("Decimal", "Decimal");
 
-    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE, PWD_TYPE);
+    public final static List<EnumDescription> paramTypesAPI = Arrays.asList(STRING_TYPE, INT_TYPE, FLOAT_TYPE, DATETIME_TYPE, BOOL_TYPE, LONG_TYPE, DOUBLE_TYPE, DECIMAL_TYPE);
 
     public final static Map<String, List<EnumDescription>> mapping = new HashMap<>();
     public final static int NUM_OF_TYPES = paramTypesAPI.size() + paramTypesGUI.size();

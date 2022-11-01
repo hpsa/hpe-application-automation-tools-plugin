@@ -43,7 +43,7 @@ namespace HpToolsLauncher
 
         Dictionary<string, string> _jenkinsEnvVariables;
         private List<TestInfo> _tests;
-        private List<TestParameter> _parameters;
+        private List<TestParameter> _params;
         private static string _uftViewerPath;
         private int _errors, _fail, _warnings;
         private bool _useUFTLicense;
@@ -70,30 +70,32 @@ namespace HpToolsLauncher
 
         private McConnectionInfo _mcConnection;
         private string _mobileInfoForAllGuiTests;
+        private bool _printInputParams;
 
-		#endregion
+        #endregion
 
-		/// <summary>
-		/// overloaded constructor for adding support for run mode selection
-		/// </summary>
-		/// <param name="sources"></param>
-		/// <param name="timeout"></param>
-		/// <param name="uftRunMode"></param>
-		/// <param name="reportPath"></param>
-		/// <param name="useUftLicense"></param>
-		/// <param name="controllerPollingInterval"></param>
-		/// <param name="perScenarioTimeOutMinutes"></param>
-		/// <param name="ignoreErrorStrings"></param>
-		/// <param name="jenkinsEnvVariables"></param>
-		/// <param name="mcConnection"></param>
-		/// <param name="mobileInfo"></param>
-		/// <param name="parallelRunnerEnvironments"></param>
-		/// <param name="displayController"></param>
-		/// <param name="analysisTemplate"></param>
-		/// <param name="summaryDataLogger"></param>
-		/// <param name="scriptRtsSet"></param>
-		public FileSystemTestsRunner(List<TestData> sources,
-                                    List<TestParameter> parameters,
+        /// <summary>
+        /// overloaded constructor for adding support for run mode selection
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <param name="timeout"></param>
+        /// <param name="uftRunMode"></param>
+        /// <param name="reportPath"></param>
+        /// <param name="useUftLicense"></param>
+        /// <param name="controllerPollingInterval"></param>
+        /// <param name="perScenarioTimeOutMinutes"></param>
+        /// <param name="ignoreErrorStrings"></param>
+        /// <param name="jenkinsEnvVariables"></param>
+        /// <param name="mcConnection"></param>
+        /// <param name="mobileInfo"></param>
+        /// <param name="parallelRunnerEnvironments"></param>
+        /// <param name="displayController"></param>
+        /// <param name="analysisTemplate"></param>
+        /// <param name="summaryDataLogger"></param>
+        /// <param name="scriptRtsSet"></param>
+        public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> @params,
+                                    bool printInputParams,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int controllerPollingInterval,
@@ -111,7 +113,7 @@ namespace HpToolsLauncher
                                     string xmlResultsFullFileName,
                                     string encoding,
                                     bool useUftLicense = false)
-            : this(sources, parameters, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
+            : this(sources, @params, printInputParams, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
         {
             _uftRunMode = uftRunMode;
         }
@@ -135,7 +137,8 @@ namespace HpToolsLauncher
         /// <param name="summaryDataLogger"></param>
         /// <param name="useUftLicense"></param>
         public FileSystemTestsRunner(List<TestData> sources,
-                                    List<TestParameter> parameters,
+                                    List<TestParameter> @params,
+                                    bool printInputParams,
                                     TimeSpan timeout,
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
@@ -175,7 +178,8 @@ namespace HpToolsLauncher
             _summaryDataLogger = summaryDataLogger;
             _scriptRTSSet = scriptRtsSet;
             _tests = new List<TestInfo>();
-            _parameters = parameters;
+            _params = @params;
+            _printInputParams = printInputParams;
 
             _mcConnection = mcConnection;
             _mobileInfoForAllGuiTests = mobileInfo;
@@ -339,7 +343,7 @@ namespace HpToolsLauncher
                     {
                         if (prevTestOutParams != null && prevTestOutParams.Count > 0)
                         {
-                            foreach (var param in test.ParameterList)
+                            foreach (var param in test.Params)
                             {
                                 if (param.Source != null && prevTestOutParams.ContainsKey(param.Source))
                                 {
@@ -492,34 +496,24 @@ namespace HpToolsLauncher
             if (testPath.IndexOf("\"") == -1) return;
 
             // the inline test path does contain parameter specification
-            string paramString = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
-            string[] paramList = paramString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string strParams = testPath.Substring(testPath.IndexOf("\"", StringComparison.Ordinal)).Trim();
+            string[] @params = strParams.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (paramList == null || paramList.Length == 0) return;
+            if (@params == null || @params.Length == 0) return;
 
             IList<string> paramNames, paramValues;
 
-            if (!Helper.ValidateListOfParamsForInline(paramList, out paramNames, out paramValues))
+            if (!Helper.ValidateInlineParams(@params, out paramNames, out paramValues))
             {
                 throw new ArgumentException();
             }
 
-            TestParameterInfo placeholderParam;
-            string placeholderType = "string";
+            string paramType;
             long _unused;
             for (int i = 0; i < paramNames.Count; ++i)
             {
-                if (long.TryParse(paramValues[i], out _unused))
-                {
-                    placeholderType = "number";
-                }
-                else
-                {
-                    placeholderType = "string";
-                }
-
-                placeholderParam = new TestParameterInfo() { Name = paramNames[i], Type = placeholderType, Value = paramValues[i] };
-                test.ParameterList.Add(placeholderParam);
+                paramType = long.TryParse(paramValues[i], out _unused) ? "number" : "string";
+                test.Params.Add(new TestParameterInfo() { Name = paramNames[i], Type = paramType, Value = paramValues[i] });
             }
         }
 
@@ -531,12 +525,11 @@ namespace HpToolsLauncher
         private void SetPropsParams(int idx, ref TestInfo test)
         {
             // all the parameters that belong to this test
-            List<TestParameter> relevant = _parameters.FindAll(elem => elem.TestIdx.Equals(idx));
+            List<TestParameter> testParams = _params.FindAll(elem => elem.TestIdx.Equals(idx));
 
-            foreach (TestParameter param in relevant)
+            foreach (TestParameter param in testParams)
             {
-                TestParameterInfo placeholderParam = new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal };
-                test.ParameterList.Add(placeholderParam);
+                test.Params.Add(new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal });
             }
 
             return;
@@ -587,7 +580,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;

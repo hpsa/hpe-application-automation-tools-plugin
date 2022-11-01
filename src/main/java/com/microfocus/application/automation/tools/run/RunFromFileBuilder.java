@@ -715,6 +715,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             } catch (Exception e) {
                 listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
             }
+            boolean isPrintTestParams = UftToolUtils.isPrintTestParams(build, listener);
+            mergedProperties.put("printTestParams", isPrintTestParams ? "1" : "0");
         }
 
         int idx = 0;
