@@ -372,13 +372,12 @@ public class UftToolUtils {
         boolean isUftPrintTestParams = true;
         if (parameterAction == null) {
             listener.getLogger().println(msg);
-            listener.getLogger().println("");
         } else {
-            ParameterValue pv = parameterAction.getParameter(UftConstants.UFT_PRINT_TEST_PARAMS);
-            if (pv == null) {
+            ParameterValue uftPrintTestParams = parameterAction.getParameter(UftConstants.UFT_PRINT_TEST_PARAMS);
+            if (uftPrintTestParams == null) {
                 listener.getLogger().println(msg);
             } else {
-                isUftPrintTestParams = (boolean) pv.getValue();
+                isUftPrintTestParams = (boolean) uftPrintTestParams.getValue();
                 listener.getLogger().println(String.format("UFT_PRINT_TEST_PARAMS = %s", isUftPrintTestParams ? "Yes" : "No")) ;
             }
         }
