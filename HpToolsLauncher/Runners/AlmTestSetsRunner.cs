@@ -57,6 +57,7 @@ namespace HpToolsLauncher
         private const string API_TEST = "SERVICE-TEST";
         private const string GUI_TEST = "QUICKTEST_TEST";
         private List<TestParameter> _params;
+        private const string PASSWORD = "password";
 
         public ITDConnection13 TdConnection
         {
@@ -876,10 +877,10 @@ namespace HpToolsLauncher
 				{
                     if (test.Type.Equals(API_TEST) && !string.IsNullOrEmpty(strParams)) //API test
                     {
-                        CollectInlineApiTestParameters(test, strParams, @params, idx);
+                        CollectInlineApiTestParams(test, strParams, @params, idx);
                     } else if (test.Type.Equals(GUI_TEST) && !string.IsNullOrEmpty(strParams)) //GUI test
                     {
-                        CollectInlineGuiTestParameters(test, strParams, @params, idx);
+                        CollectInlineGuiTestParams(test, strParams, @params, idx);
                     }
                 } catch (ArgumentException)
 				{
@@ -939,7 +940,7 @@ namespace HpToolsLauncher
         /// <param name="strParams"></param>
         /// <param name="testParams"></param>
         /// <param name="idx"></param>
-        private void CollectInlineApiTestParameters(ITSTest3 test, string strParams, IList<TestParameter> testParams, int idx)
+        private void CollectInlineApiTestParams(ITSTest3 test, string strParams, IList<TestParameter> testParams, int idx)
         {
             if (!string.IsNullOrEmpty(strParams))
             {
@@ -962,16 +963,16 @@ namespace HpToolsLauncher
         /// Set test parameters for a GUI test
         /// </summary>
         /// <param name="test"></param>
-        /// <param name="paramsString"></param>
-        /// <param name="parametersPlaceholder"></param>
+        /// <param name="strParams"></param>
+        /// <param name="testParams"></param>
         /// <param name="idx"></param>
-        private void CollectInlineGuiTestParameters(ITSTest3 test, string paramsString, IList<TestParameter> parametersPlaceholder, int idx)
+        private void CollectInlineGuiTestParams(ITSTest3 test, string strParams, IList<TestParameter> testParams, int idx)
         {
             var xmlParams = new StringBuilder();
 
-            if (!string.IsNullOrWhiteSpace(paramsString))
+            if (!string.IsNullOrWhiteSpace(strParams))
             {
-                string[] @params = paramsString.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
+                string[] @params = strParams.Split(COMMA, StringSplitOptions.RemoveEmptyEntries);
                 IList<string> paramNames, paramValues;
 
                 if (!Helper.ValidateInlineParams(@params, out paramNames, out paramValues))
@@ -981,7 +982,7 @@ namespace HpToolsLauncher
 
                 for (int i = 0; i < @params.Length; ++i)
                 {
-                    parametersPlaceholder.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
+                    testParams.Add(new TestParameter(idx, paramNames[i], paramValues[i], null));
                 }
             }
         }
@@ -1348,24 +1349,31 @@ namespace HpToolsLauncher
         /// Sets the GUI Test's parameters.
         /// </summary>
         /// <param name="test"></param>
-        /// <param name="relevant"></param>
-        private static void SetGUITestParameters(ITSTest3 test, List<TestParameter> relevant)
+        /// <param name="params"></param>
+        private static void SetGUITestParameters(ITSTest3 test, List<TestParameter> @params)
         {
             var xmlParams = new StringBuilder();
 
-            if (relevant.Count > 0)
+            if (@params.Count > 0)
             {
                 xmlParams.Append(XML_PARAMS_START_TAG);
-                foreach (var parameter in relevant)
+                foreach (var param in @params)
                 {
-                    xmlParams.AppendFormat(XML_PARAM_NAME_VALUE_TYPE, SecurityElement.Escape(parameter.ParamName), SecurityElement.Escape(parameter.ParamVal), parameter.ParamType);
+                    xmlParams.AppendFormat(XML_PARAM_NAME_VALUE_TYPE, SecurityElement.Escape(param.ParamName), SecurityElement.Escape(param.ParamVal), param.ParamType);
                 }
                 xmlParams.Append(XML_PARAMS_END_TAG);
             }
 
             if (xmlParams.Length <= 0) return;
 
-            relevant.ForEach(elem => ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, elem.ParamName, elem.ParamVal)));
+            @params.ForEach(elem =>
+            {
+                if (elem.ParamType == PASSWORD)
+                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsageMask, elem.ParamName));
+                else
+                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, elem.ParamName, elem.ParamVal));
+            }
+            );
 
             test["TC_EPARAMS"] = xmlParams.ToString();
             test.Post();

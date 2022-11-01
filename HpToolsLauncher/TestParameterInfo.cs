@@ -56,7 +56,6 @@ namespace HpToolsLauncher
 
         public string Source { get; set; }
 
-
         /// <summary>
         /// parses the value string and returns an object of the specified type.
         /// </summary>
