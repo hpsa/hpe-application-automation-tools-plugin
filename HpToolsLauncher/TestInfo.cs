@@ -175,7 +175,7 @@ namespace HpToolsLauncher
             TestId = testId;
         }
 
-        List<TestParameterInfo> _params = new List<TestParameterInfo>();
+        private List<TestParameterInfo> _params = new List<TestParameterInfo>();
         string _testName;
         string _testGroup;
         string _dataTablePath;
@@ -222,7 +222,6 @@ namespace HpToolsLauncher
             get { return _iterationInfo; }
             set { _iterationInfo = value; }
         }
-
 
         internal Dictionary<string, object> GetParameterDictionaryForQTP()
         {

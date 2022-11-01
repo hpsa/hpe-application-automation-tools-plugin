@@ -233,7 +233,7 @@ namespace HpToolsLauncher
                 case TestStorageType.AlmLabManagement:
 
                 case TestStorageType.Alm:
-                {
+                { 
                     //check that all required parameters exist
                     foreach (string param1 in requiredParamsForQcRun)
                     {
@@ -323,15 +323,15 @@ namespace HpToolsLauncher
                     break;
                 }
                 case TestStorageType.FileSystem:
-                {
+                { 
                     bool displayController = _ciParams.ContainsKey("displayController") && _ciParams["displayController"] == "1";
                     string analysisTemplate = (_ciParams.ContainsKey("analysisTemplate") ? _ciParams["analysisTemplate"] : string.Empty);
 
                     List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests, string.Empty);
                     List<TestParameter> @params = GetValidParams();
-                    bool printInputParams = _ciParams.ContainsKey("printInputParams") && _ciParams["printInputParams"] == "1";
+                    bool printInputParams = _ciParams.ContainsKey("printTestParams") && _ciParams["printTestParams"] == "1";
 
-                        if (validBuildTests.Count == 0)
+                    if (validBuildTests.Count == 0)
                     {
                         Environment.Exit((int)ExitCodeEnum.Failed);
                     }
@@ -544,23 +544,23 @@ namespace HpToolsLauncher
                                     mcConnectionInfo.MobileTenantId = mcTenantId;
                                 }
                             }
-
+                          
                             //mc exec token	
-                            if (_ciParams.ContainsKey("MobileExecToken"))
-                            {
-                                var mcExecToken = _ciParams["MobileExecToken"];
-                                if (!string.IsNullOrEmpty(mcExecToken))
-                                {
-                                    try
-                                    {
-                                        mcConnectionInfo.MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);
-                                    }
-                                    catch (ArgumentException e)
-                                    {
-                                        ConsoleWriter.WriteErrLine(e.Message);
-                                        Environment.Exit((int)ExitCodeEnum.Failed);
-                                    }
-                                }
+                            if (_ciParams.ContainsKey("MobileExecToken"))	
+                            {	
+                                var mcExecToken = _ciParams["MobileExecToken"];	
+                                if (!string.IsNullOrEmpty(mcExecToken))	
+                                {	
+                                    try	
+                                    {	
+                                        mcConnectionInfo.MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);	
+                                    }	
+                                    catch (ArgumentException e)	
+                                    {	
+                                        ConsoleWriter.WriteErrLine(e.Message);	
+                                        Environment.Exit((int)ExitCodeEnum.Failed);	
+                                    }	
+                                }	
                             }
 
                             //ssl
