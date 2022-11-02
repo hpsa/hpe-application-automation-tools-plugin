@@ -26,12 +26,15 @@
  * ___________________________________________________________________
  */
 
+using System.Collections.Generic;
+
 namespace HpToolsLauncher
 {
     public delegate bool RunCancelledDelegate();
     public interface IFileSysTestRunner
     {
-        TestRunResults RunTest(TestInfo fileName, ref string errorReason, RunCancelledDelegate runCancelled);
+        TestRunResults RunTest(TestInfo fileName, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams);
+
         void CleanUp();
     }
 }

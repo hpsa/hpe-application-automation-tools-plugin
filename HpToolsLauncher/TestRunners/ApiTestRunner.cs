@@ -92,9 +92,9 @@ namespace HpToolsLauncher
         /// <param name="errorReason"></param>
         /// <param name="runCancelled">cancellation delegate, holds the function that checks cancellation</param>
         /// <returns></returns>
-        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCancelled)
+        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
-
+            outParams = new Dictionary<string, string>();
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLineWithTime("Running: " + testinf.TestPath);

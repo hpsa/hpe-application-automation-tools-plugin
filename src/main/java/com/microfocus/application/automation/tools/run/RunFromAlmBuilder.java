@@ -34,6 +34,7 @@ import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
+import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
 
 import hudson.model.*;
@@ -361,7 +362,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
         if (areParametersEnabled) {
             try {
-                specifyParametersModel.addProperties(mergedProperties, "TestSet");
+                specifyParametersModel.addProperties(mergedProperties, "TestSet", currNode);
             } catch (Exception e) {
                 listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
             }

@@ -35,7 +35,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Xml;
 using Resources = HpToolsLauncher.Properties.Resources;
 
 namespace HpToolsLauncher
@@ -72,13 +71,15 @@ namespace HpToolsLauncher
         private RunCancelledDelegate _runCancelled;
         private McConnectionInfo _mcConnection;
         private string _mobileInfo;
+        private bool _printInputParams;
+
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runNotifier"></param>
         /// <param name="useUftLicense"></param>
         /// <param name="timeLeftUntilTimeout"></param>
-        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
+        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo, bool printInputParams)
         {
             _timeLeftUntilTimeout = timeLeftUntilTimeout;
             _uftRunMode = uftRunMode;
@@ -87,6 +88,7 @@ namespace HpToolsLauncher
             _useUFTLicense = useUftLicense;
             _mcConnection = mcConnectionInfo;
             _mobileInfo = mobileInfo;
+            _printInputParams = printInputParams;
         }
 
         #region QTP
@@ -96,10 +98,11 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="testPath"></param>
         /// <param name="errorReason"></param>
-        /// <param name="runCanclled"></param>
+        /// <param name="runCancelled"></param>
         /// <returns></returns>
-        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCanclled)
+        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
+            outParams = new Dictionary<string, string>();
             var testPath = testinf.TestPath;
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
@@ -120,18 +123,18 @@ namespace HpToolsLauncher
 
             runDesc.TestState = TestState.Unknown;
 
-            _runCancelled = runCanclled;
+            _runCancelled = runCancelled;
 
             if (!Helper.IsQtpInstalled())
             {
                 runDesc.TestState = TestState.Error;
-                runDesc.ErrorDesc = string.Format(Resources.GeneralQtpNotInstalled, System.Environment.MachineName);
+                runDesc.ErrorDesc = string.Format(Resources.GeneralQtpNotInstalled, Environment.MachineName);
                 ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                 Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
                 return runDesc;
             }
 
-            string reason = string.Empty;
+            string reason;
             if (!Helper.CanUftProcessStart(out reason))
             {
                 runDesc.TestState = TestState.Error;
@@ -274,7 +277,7 @@ namespace HpToolsLauncher
             {
                 errorReason = Resources.QtpNotLaunchedError;
                 runDesc.TestState = TestState.Error;
-                runDesc.ReportLocation = "";
+                runDesc.ReportLocation = string.Empty;
                 runDesc.ErrorDesc = e.Message;
                 return runDesc;
             }
@@ -288,9 +291,7 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
-            _qtpApplication.UseLicenseOfType(_useUFTLicense
-                                                 ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
-                                                 : tagUnifiedLicenseType.qtNonUnified);
+            _qtpApplication.UseLicenseOfType(_useUFTLicense ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting : tagUnifiedLicenseType.qtNonUnified);
 
             Dictionary<string, object> paramDict;
             try
@@ -317,7 +318,7 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
-            if (!HandleOutputArguments(ref errorReason))
+            if (!HandleOutputArguments(ref errorReason, out outParams))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -602,24 +603,28 @@ namespace HpToolsLauncher
 		    }
         }
 
-        private bool HandleOutputArguments(ref string errorReason)
+        private bool HandleOutputArguments(ref string errorReason, out Dictionary<string, string> outParams)
         {
+            outParams = new Dictionary<string, string>();
             try
             {
-                var outputArguments = new XmlDocument { PreserveWhitespace = true };
-                outputArguments.LoadXml("<Arguments/>");
-
                 for (int i = 1; i <= _qtpParamDefs.Count; ++i)
                 {
                     var pd = _qtpParamDefs[i];
                     if (pd.InOut == qtParameterDirection.qtParamDirOut)
                     {
-                        var node = outputArguments.CreateElement(pd.Name);
                         var value = _qtpParameters[pd.Name].Value;
                         if (value != null)
-                            node.InnerText = value.ToString();
-
-                        outputArguments.DocumentElement.AppendChild(node);
+                        {
+                            if (outParams.ContainsKey(pd.Name))
+                            {
+                                outParams[pd.Name] = value.ToString();
+                            }
+                            else
+                            {
+                                outParams.Add(pd.Name, value.ToString());
+                            }
+                        }
                     }
                 }
             }
@@ -709,8 +714,14 @@ namespace HpToolsLauncher
                             // second-check
                             try
                             {
-                                _qtpParameters[paramName].Value = paramValue;
-                                ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime) paramValue).ToShortDateString()));
+                                if (_printInputParams)
+                                {
+                                    _qtpParameters[paramName].Value = paramValue;
+                                    if (type == qtParameterType.qtParamTypePassword)
+                                        ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsageMask, paramName));
+                                    else
+                                        ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime)paramValue).ToShortDateString()));
+                                }
                             } catch (Exception)
                             {
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith1Type, paramName));
@@ -855,9 +866,6 @@ namespace HpToolsLauncher
 
 
         #endregion
-
-
-
 
 
         /// <summary>

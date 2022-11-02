@@ -133,8 +133,10 @@ namespace HpToolsLauncher.TestRunners
         /// <returns>
         /// The run results for the current test.
         /// </returns>
-        public TestRunResults RunTest(TestInfo testInfo, ref string errorReason, RunCancelledDelegate runCancelled)
+        public TestRunResults RunTest(TestInfo testInfo, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
+            outParams = new Dictionary<string, string>();
+
             // change the DCOM setting for qtp application
             Helper.ChangeDCOMSettingToInteractiveUser();
 

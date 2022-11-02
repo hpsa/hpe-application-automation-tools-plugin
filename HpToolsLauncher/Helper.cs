@@ -253,7 +253,7 @@ namespace HpToolsLauncher
         /// <param name="paramNames"></param>
         /// <param name="paramValues"></param>
         /// <returns>true if parameters the list of parameters is valid, false otherwise</returns>
-        public static bool ValidateListOfParamsForInline(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
+        public static bool ValidateInlineParams(string[] @params, out IList<string> paramNames, out IList<string> paramValues)
         {
             if (@params == null) throw new ArgumentNullException("Parameters are missing");
             paramNames = new List<string>();
@@ -890,7 +890,7 @@ namespace HpToolsLauncher
                 foreach (string resultsFileFullPath in resultFiles)
                 {
                     finalState = TestState.Unknown;
-                    string desc = "";
+                    string desc = string.Empty;
                     TestState state = GetStateFromUFTResultsFile(resultsFileFullPath, out desc);
                     if (finalState == TestState.Unknown || finalState == TestState.Passed)
                     {
@@ -931,7 +931,7 @@ namespace HpToolsLauncher
 
             foreach (string resultFileFullPath in resultFiles)
             {
-                string desc = "";
+                string desc = string.Empty;
                 runDesc.TestState = GetTestStateFromLRReport(resultFileFullPath, out desc);
                 if (runDesc.TestState == TestState.Failed)
                 {
@@ -998,16 +998,14 @@ namespace HpToolsLauncher
 
         private static TestState GetTestStateFromLRReport(string resultFileFullPath, out string desc)
         {
-            desc = "";
-
             XmlDocument xdoc = new XmlDocument();
             xdoc.Load(resultFileFullPath);
-            return checkNodeStatus(xdoc.DocumentElement, out desc);
+            return CheckNodeStatus(xdoc.DocumentElement, out desc);
         }
 
-        private static TestState checkNodeStatus(XmlNode node, out string desc)
+        private static TestState CheckNodeStatus(XmlNode node, out string desc)
         {
-            desc = "";
+            desc = string.Empty;
             if (node == null)
                 return TestState.Failed;
 
@@ -1031,7 +1029,7 @@ namespace HpToolsLauncher
             //node has children
             foreach (XmlNode childNode in node.ChildNodes)
             {
-                TestState res = checkNodeStatus(childNode, out desc);
+                TestState res = CheckNodeStatus(childNode, out desc);
                 if (res == TestState.Failed)
                 {
                     if (string.IsNullOrEmpty(desc) && node.Attributes != null && node.Attributes["FullName"] != null)
@@ -1050,8 +1048,8 @@ namespace HpToolsLauncher
         private static TestState GetStateFromUFTResultsFile(string resultsFileFullPath, out string desc)
         {
             TestState finalState = TestState.Unknown;
-            desc = "";
-            var status = "";
+            desc = string.Empty;
+            string status;
             var doc = new XmlDocument { PreserveWhitespace = true };
             doc.Load(resultsFileFullPath);
             string strFileName = Path.GetFileName(resultsFileFullPath);
@@ -1068,7 +1066,6 @@ namespace HpToolsLauncher
                 XmlNode resultNode = ((XmlElement)node).GetElementsByTagName("Result").Item(0);
 
                 status = resultNode.InnerText;
-
             }
             else
             {

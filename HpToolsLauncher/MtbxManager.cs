@@ -188,7 +188,7 @@ namespace HpToolsLauncher
                         reportPath = xReportPath.Value;
                     }
 
-                    TestInfo col = new TestInfo(path, name, testGroupName)
+                    TestInfo testInfo = new TestInfo(path, name, testGroupName)
                     {
                         ReportPath = reportPath
                     };
@@ -199,17 +199,21 @@ namespace HpToolsLauncher
                     {
                         string pname = GetAttribute(param, "name").Value;
                         string pval = GetAttribute(param, "value").Value;
-                        XAttribute xptype = GetAttribute(param, "type");
+                        XAttribute attrType = GetAttribute(param, "type");
+                        XAttribute attrSource = GetAttribute(param, "source");
                         string ptype = "string";
+                        string source = null;
 
-                        if (xptype != null)
-                            ptype = xptype.Value;
+                        if (attrType != null)
+                            ptype = attrType.Value;
+                        if (attrSource != null)
+                            source = attrSource.Value;
 
-                        var testParam = new TestParameterInfo() { Name = pname, Type = ptype, Value = pval };
+                        var testParam = new TestParameterInfo() { Name = pname, Type = ptype, Value = pval, Source = source };
                         if (!paramNames.Contains(testParam.Name))
                         {
                             paramNames.Add(testParam.Name);
-                            col.ParameterList.Add(testParam);
+                            testInfo.Params.Add(testParam);
                         }
                         else
                         {
@@ -221,7 +225,7 @@ namespace HpToolsLauncher
                     XElement dataTable = GetElement(test, "DataTable");
                     if (dataTable != null)
                     {
-                        col.DataTablePath = GetAttribute(dataTable, "path").Value;
+                        testInfo.DataTablePath = GetAttribute(dataTable, "path").Value;
                     }
 
                     XElement iterations = GetElement(test, "Iterations");
@@ -244,10 +248,10 @@ namespace HpToolsLauncher
                             ii.EndIteration = endAttr.Value;
                         }
 
-                        col.IterationInfo = ii;
+                        testInfo.IterationInfo = ii;
                     }
 
-                    retval.Add(col);
+                    retval.Add(testInfo);
                 }
             }
             catch (Exception ex)
