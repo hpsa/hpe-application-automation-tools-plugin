@@ -329,7 +329,7 @@ namespace HpToolsLauncher
 
                     List<TestData> validBuildTests = GetValidTests("Test", Resources.LauncherNoTestsFound, Resources.LauncherNoValidTests, string.Empty);
                     List<TestParameter> @params = GetValidParams();
-                    bool printInputParams = _ciParams.ContainsKey("printTestParams") && _ciParams["printTestParams"] == "1";
+                    bool printInputParams = !_ciParams.ContainsKey("printTestParams") || _ciParams["printTestParams"] == "1";
 
                     if (validBuildTests.Count == 0)
                     {
