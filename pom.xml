@@ -61,7 +61,7 @@
 		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>2.289.3</jenkins.version>
+		<jenkins.version>2.303.1</jenkins.version>
 		<maven.exec.skip>false</maven.exec.skip>
 		<java.level>8</java.level>
 		<jenkins-test-harness.version>2.55</jenkins-test-harness.version> <!-- TODO newer versions require debugging an issue with open file handles -->
