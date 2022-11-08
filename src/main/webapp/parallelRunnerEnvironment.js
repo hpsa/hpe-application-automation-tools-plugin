@@ -99,7 +99,7 @@ ModalDialog.saveBrowserSettings = function(modalNode) {
 
 	for(var i =0; i < radioButtons.length;i++) {
 		if(radioButtons[i].checked) {
-			ParallelRunnerEnvironment.setUpBrowserEnvironment(button,radioButtons[i],modalNode);
+			ParallelRunnerEnv.setUpBrowserEnvironment(button,radioButtons[i],modalNode);
 		}
 	}
 };
@@ -338,7 +338,7 @@ Utils.loadMC = function(a,button){
 	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
 	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
-		ParallelRunnerEnvironment.setEnvironmentError(button,true);
+		ParallelRunnerEnv.setEnvironmentError(button,true);
 		buttonStatus = false;
 		return;
 	}
@@ -348,14 +348,14 @@ Utils.loadMC = function(a,button){
 		if(baseUrl){
 			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
 		} else {
-			ParallelRunnerEnvironment.setEnvironmentError(button,true);
+			ParallelRunnerEnv.setEnvironmentError(button,true);
 			buttonStatus = false;
 			return;
 		}
         a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
-				ParallelRunnerEnvironment.setEnvironmentError(button,true);
+				ParallelRunnerEnv.setEnvironmentError(button,true);
 				buttonStatus = false;
 				return;
 			}
@@ -387,10 +387,10 @@ Utils.loadMC = function(a,button){
 							}
 						}
 						console.log(deviceId);
-						ParallelRunnerEnvironment.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
+						ParallelRunnerEnv.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
 
 						buttonStatus = false;
-						ParallelRunnerEnvironment.setEnvironmentError(button,false);
+						ParallelRunnerEnv.setEnvironmentError(button,false);
 						window.removeEventListener("message",messageCallBack, false);
 						openedWindow.close();
 					});
@@ -412,14 +412,14 @@ Utils.loadMC = function(a,button){
  * Prototype that represents the ParallelRunner environment.
  * @constructor
  */
-function ParallelRunnerEnvironment() {}
+function ParallelRunnerEnv() {}
 
 /**
  *
  * @param button
  * @returns {*}
  */
-ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
+ParallelRunnerEnv.getEnvironmentSettingsInputNode = function (button) {
 	// jelly represents each item as a 'div' with data inside
 	var parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if (parent == null) return null;
@@ -433,8 +433,8 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
  * @param inputValue the input value to be set
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnvironment.setEnvironmentSettingsInput = function(button,inputValue) {
-	var settingInput = ParallelRunnerEnvironment.getEnvironmentSettingsInputNode(button);
+ParallelRunnerEnv.setEnvironmentSettingsInput = function(button,inputValue) {
+	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
 
 	if(settingInput == null) return false;
 
@@ -447,9 +447,9 @@ ParallelRunnerEnvironment.setEnvironmentSettingsInput = function(button,inputVal
  * @param button
  * @returns {null}
  */
-ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
+ParallelRunnerEnv.getEnvironmentSettingsInputValue = function(button) {
 	// jelly represents each item as a 'div' with data inside
-	var settingInput = ParallelRunnerEnvironment.getEnvironmentSettingsInputNode(button);
+	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
 	if(settingInput == null) return null;
 	return settingInput.value;
 };
@@ -461,7 +461,7 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
  * @param enable the div visibility state(true - visible, false - hidden)
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
+ParallelRunnerEnv.setEnvironmentError = function(button, enable) {
 	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if(parent == null) return false;
 	const errorDiv = parent.querySelector('div[name="mcSettingsError"]');
@@ -475,7 +475,7 @@ ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
  * @param visible - should the modal be visible?(true / false)
  * @param path - the patch to the root of the plugin
  */
-ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,visible,path) {
+ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,path) {
 	var modal = document.getElementById(modalId);
 	// it wasn't generated, so we need to generate it
 	if(modal == null) {
@@ -490,7 +490,7 @@ ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,v
 
 	modal = document.getElementById(modalId);
 
-	var environmentInputValue = ParallelRunnerEnvironment.getEnvironmentSettingsInputValue(button);
+	var environmentInputValue = ParallelRunnerEnv.getEnvironmentSettingsInputValue(button);
 
 	// set the selected browser to match the one in the input
 	if(environmentInputValue != null) {
@@ -522,7 +522,7 @@ ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,v
  * @param button - the environment wizard button
  * @returns {*}
  */
-ParallelRunnerEnvironment.GetCurrentEnvironmentType = function(button) {
+ParallelRunnerEnv.GetCurrentEnvironmentType = function(button) {
 	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if(parent == null) return null;
 	const input = parent.querySelector('input[type="radio"][name$="environmentType"]:checked');
@@ -535,11 +535,11 @@ ParallelRunnerEnvironment.GetCurrentEnvironmentType = function(button) {
  * @param radio - the selected radio
  * @param modal - the browser selection modal
  */
-ParallelRunnerEnvironment.setUpBrowserEnvironment = function(button,radio,modal) {
+ParallelRunnerEnv.setUpBrowserEnvironment = function(button,radio,modal) {
 	// we can close the modal now
 	modal.style.display = "none";
 	// based on the browser chosen we will prepare the environment
-	ParallelRunnerEnvironment.setEnvironmentSettingsInput(button,"browser : " + radio['id']);
+	ParallelRunnerEnv.setEnvironmentSettingsInput(button,"browser : " + radio['id']);
 };
 
 /**
@@ -547,7 +547,7 @@ ParallelRunnerEnvironment.setUpBrowserEnvironment = function(button,radio,modal)
  * @param panel - the current build step container
  * @param visible - the visible boolean state to be aquired
  */
-ParallelRunnerEnvironment.setEnvironmentsVisibility = function(panel, visible) {
+ParallelRunnerEnv.setEnvironmentsVisibility = function(panel, visible) {
 	var environments = panel.querySelectorAll("div[name='fileSystemTestSet']");
 	if (environments == null || environments.length == 0) return;
 	[...environments].forEach(env => {
@@ -564,14 +564,14 @@ ParallelRunnerEnvironment.setEnvironmentsVisibility = function(panel, visible) {
  * @param pluginPath the ${root} path
  * @returns {boolean}
  */
-ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
+ParallelRunnerEnv.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
 	// get the environment type for the current env, it could be: 'web' or 'mobile'
-	var type = ParallelRunnerEnvironment.GetCurrentEnvironmentType(button);
+	var type = ParallelRunnerEnv.GetCurrentEnvironmentType(button);
 	if(type == null) return false;
 
 	// if the type is web we need to show the browsers modal
 	if(type.toLowerCase() === 'web') {
-		ParallelRunnerEnvironment.setBrowsersModalVisibility(button,modalId,visibility,pluginPath);
+		ParallelRunnerEnv.setBrowsersModalVisibility(button,modalId,visibility,pluginPath);
 		return true;
 	}
 
@@ -639,7 +639,8 @@ function updateFsView(panel, chkParallelRunner) {
 	RunFromFileSystemEnv.setFsTestsVisibility(panel, !isParallelRun);
 	RunFromFileSystemEnv.setTimeoutVisibility(panel, !isParallelRun);
 	RunFromFileSystemEnv.setParamsVisibility(panel, !isParallelRun);
-	ParallelRunnerEnvironment.setEnvironmentsVisibility(panel, isParallelRun);
+	//this panel should be automatically shown/hidden, so comment-out it for now to see if all works fine
+	//ParallelRunnerEnv.setEnvironmentsVisibility(panel, isParallelRun);
 }
 function setupFsTask() {
 	console.log("setupFsTask");
