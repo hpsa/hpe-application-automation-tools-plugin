@@ -25,6 +25,9 @@
  *
  * ___________________________________________________________________
  */
+if (typeof RUN_FROM_FS_BUILDER_SELECTOR == "undefined") {
+	RUN_FROM_FS_BUILDER_SELECTOR = 'div[name="builder"][descriptorid="com.microfocus.application.automation.tools.run.RunFromFileBuilder"]';
+}
 
 /**
  * Prototype that represents the modal dialog.
@@ -215,15 +218,15 @@ ModalDialog.generate = function(path) {
 function Utils() {}
 
 /**
- * Find the ancestor of a control by a given tag.
- * @param start - the node from where to start.
- * @param tag - the tag of the ancestor to find.
+ * Find the ancestor of a control by a given class name.
+ * @param el - the node from where to start.
+ * @param className - the class of the ancestor to find.
  * @returns {HTMLElement}
  */
-Utils.findAncestorByTag = function(start,tag) {
-	tag = tag.toLowerCase();
-	while((start = start.parentElement) && !(start.tagName.toLowerCase() === tag)) {}
-	return start;
+Utils.findAncestorByClassName = function(el,className) {
+	if (!className.startsWith("."))
+		className = `.${className}`;
+	return el.closest(className);
 };
 
 /**
@@ -296,17 +299,12 @@ Utils.parseMCInformation = function(deviceId, os, manufacturerAndModel) {
 
 /**
  * Set the provided jenkins element visibility.
- * @param element the jenkins element to be hidden
- * @param visible the element visibility state
+ * @param element - the jenkins element to be hidden
+ * @param isVisible - the visible boolean state to be aquired
  */
-Utils.setJenkinsElementVisibility = function(element,visible) {
-	var parent = Utils.findAncestorByTag(element,'tr');
-
-	if(visible === false) {
-		parent.style.display = "none";
-	} else {
-		parent.style.display = "";
-	}
+Utils.setJenkinsElementVisibility = function(element,isVisible) {
+	var parent = Utils.findAncestorByClassName(element,'jenkins-form-item');
+	parent.style.display = isVisible ? "" : "none";
 };
 
 /**
@@ -546,17 +544,15 @@ ParallelRunnerEnvironment.setUpBrowserEnvironment = function(button,radio,modal)
 
 /**
  * Sets the environment and test set visibility based on the parallel runner checkBox state.
- * @param index - the current build index
+ * @param panel - the current build step container
+ * @param visible - the visible boolean state to be aquired
  */
-ParallelRunnerEnvironment.setEnvironmentsVisibility = function(index) {
-	var fsTests = document.getElementsByName("runfromfs.fsTests")[index];
-	var parent = Utils.findAncestorByTag(fsTests,"tbody");
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-	var environment = parent.querySelectorAll("div[name='fileSystemTestSet']")[0];
-
-	if(environment == null) return;
-
-	Utils.setJenkinsElementVisibility(environment,check.checked);
+ParallelRunnerEnvironment.setEnvironmentsVisibility = function(panel, visible) {
+	var environments = panel.querySelectorAll("div[name='fileSystemTestSet']");
+	if (environments == null || environments.length == 0) return;
+	[...environments].forEach(env => {
+		Utils.setJenkinsElementVisibility(env,visible);
+	});
 };
 
 /**
@@ -592,80 +588,75 @@ ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,v
  * Utility class for the RunFromFileSystem model.
  * @constructor
  */
-function RunFromFileSystemEnvironment() {}
+function RunFromFileSystemEnv() {}
 
 /**
  * Sets the visibility of a given multi line text box.
- * @param index the textbox build index
+ * @param panel - the current build step container
  * @param name the textbox name
+ * @param visible - the visible boolean state to be aquired
  */
-RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, name) {
-	var textBox = document.getElementsByName(name)[index];
-	var parentElement = textBox.parentElement;
-	var parent = Utils.findAncestorByTag(textBox,"tr");
-
-	// when the text box is not expanded
-	if(!parentElement.classList.contains("setting-main")) {
-		parent = Utils.findAncestorByTag(parent,'tr');
-	}
-
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-
-	parent.style.display = check.checked ? "none" : "";
+RunFromFileSystemEnv.setMultiLineTextBoxVisibility = function(panel, name, visible) {
+	var textBox = panel.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
+	var parent = Utils.findAncestorByClassName(textBox,"jenkins-form-item");
+	parent.style.display = visible ? "" : "none";
 };
 
-/**
- * Sets the visibility of a given text box.
- * @param index the textbox build index
- * @param name the textbox name
- */
-RunFromFileSystemEnvironment.setTextBoxVisibility = function(index, name) {
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-	var textBox = document.getElementsByName(name)[index];
-
-	Utils.setJenkinsElementVisibility(textBox,!check.checked);
+RunFromFileSystemEnv.setInputVisibility = function(panel, name, visible) {
+	var textBox = panel.querySelector(`input[name="${name}"]`);
+	Utils.setJenkinsElementVisibility(textBox,visible);
 };
 
-/**
- * Sets the fsTests visibility based on the parallel runner checkBox state.
- * @param index - the current build index
- */
-RunFromFileSystemEnvironment.setFsTestsVisibility = function(index) {
-	this.setMultiLineTextBoxVisibility(index, "runfromfs.fsTests");
+RunFromFileSystemEnv.setFsTestsVisibility = function(panel, visible) {
+	this.setMultiLineTextBoxVisibility(panel, "runfromfs.fsTests", visible);
 };
 
-/**
- * Sets the fsReportPath visibility based on the parallel runner checkBox state.
- * @param index - the current build index
- */
-RunFromFileSystemEnvironment.setFsReportPathVisibility = function(index) {
-	this.setTextBoxVisibility(index, "runfromfs.fsReportPath");
+RunFromFileSystemEnv.setFsReportPathVisibility = function(panel, visible) {
+	this.setInputVisibility(panel, "runfromfs.fsReportPath", visible);
 };
 
-/**
- * Sets the fsTimeout visibility based on the parallel runner checkbox state.
- * @param index the current build index.
- */
-RunFromFileSystemEnvironment.setTimeoutVisibility = function (index) {
-	this.setTextBoxVisibility(index, "runfromfs.fsTimeout");
+RunFromFileSystemEnv.setTimeoutVisibility = function (panel, visible) {
+	this.setInputVisibility(panel, "runfromfs.fsTimeout", visible);
+};
+
+RunFromFileSystemEnv.setParamsVisibility = function(panel, visible) {
+	this.setInputVisibility(panel, "areParametersEnabled", visible);
 };
 
 /**
  * Hide/Show the corresponding controls based on the parallel runner checkBox state.
  */
-function setViewVisibility() {
-	var parallelRuns =  document.getElementsByName("isParallelRunnerEnabled");
-
-	// go over all the available builds and set their corresponding
-	// visibilities based on the parallel runner state
-	for(var i = 0; i < parallelRuns.length; i++) {
-		RunFromFileSystemEnvironment.setFsTestsVisibility(i);
-		RunFromFileSystemEnvironment.setTimeoutVisibility(i);
-		RunFromFileSystemEnvironment.setFsReportPathVisibility(i);
-		ParallelRunnerEnvironment.setEnvironmentsVisibility(i);
-	}
+function setViewVisibility(panel) {
+	console.log("setViewVisibility");
+	const chkParallelRunner = panel.querySelector("input[type=checkbox][name=isParallelRunnerEnabled]");
+	updateFsView(panel, chkParallelRunner);
+	chkParallelRunner.addEventListener('click', () => {
+		updateFsView(panel, chkParallelRunner);
+	}, false);
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-	setViewVisibility();
-}, false);
+function updateFsView(panel, chkParallelRunner) {
+	const isParallelRun = chkParallelRunner.checked;
+	RunFromFileSystemEnv.setFsTestsVisibility(panel, !isParallelRun);
+	RunFromFileSystemEnv.setTimeoutVisibility(panel, !isParallelRun);
+	RunFromFileSystemEnv.setParamsVisibility(panel, !isParallelRun);
+	ParallelRunnerEnvironment.setEnvironmentsVisibility(panel, isParallelRun);
+}
+function setupFsTask() {
+	console.log("setupFsTask");
+	let divMain = null;
+	if (document.location.href.indexOf("pipeline-syntax")>0) { // we are on pipeline-syntax page, where runFromFileBuilder step can be selected only once
+		divMain = document;
+	} else if (document.currentScript) { // this block is used for non-IE browsers, for the first FS build step only, it finds very fast the parent DIV
+		divMain = document.currentScript.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+	}
+	setTimeout(function() {
+		prepareFsTask(divMain)}, 100);
+}
+function prepareFsTask(divMain) {
+	console.log("prepareFsTask");
+	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
+		let divs = document.querySelectorAll(RUN_FROM_FS_BUILDER_SELECTOR);
+		divMain = divs[divs.length - 1];
+	}
+	setViewVisibility(divMain);
+}
