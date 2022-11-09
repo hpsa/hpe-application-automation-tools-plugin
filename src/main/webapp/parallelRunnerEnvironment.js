@@ -627,7 +627,6 @@ RunFromFileSystemEnv.setParamsVisibility = function(panel, visible) {
  * Hide/Show the corresponding controls based on the parallel runner checkBox state.
  */
 function setViewVisibility(panel) {
-	console.log("setViewVisibility");
 	const chkParallelRunner = panel.querySelector("input[type=checkbox][name=isParallelRunnerEnabled]");
 	updateFsView(panel, chkParallelRunner);
 	chkParallelRunner.addEventListener('click', () => {
@@ -643,7 +642,6 @@ function updateFsView(panel, chkParallelRunner) {
 	//ParallelRunnerEnv.setEnvironmentsVisibility(panel, isParallelRun);
 }
 function setupFsTask() {
-	console.log("setupFsTask");
 	let divMain = null;
 	if (document.location.href.indexOf("pipeline-syntax")>0) { // we are on pipeline-syntax page, where runFromFileBuilder step can be selected only once
 		divMain = document;
@@ -654,7 +652,6 @@ function setupFsTask() {
 		prepareFsTask(divMain)}, 100);
 }
 function prepareFsTask(divMain) {
-	console.log("prepareFsTask");
 	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
 		let divs = document.querySelectorAll(RUN_FROM_FS_BUILDER_SELECTOR);
 		divMain = divs[divs.length - 1];
