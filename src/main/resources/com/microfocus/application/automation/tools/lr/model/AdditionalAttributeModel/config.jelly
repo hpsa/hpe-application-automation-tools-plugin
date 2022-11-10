@@ -36,5 +36,5 @@
     <f:entry title="${%Description}" field="description">
         <f:textbox field="description"/>
     </f:entry>
-    <input type="button" value="X" class="repeatable-delete danger"/>
+    <f:repeatableDeleteButton value="X" />
 </j:jelly>
