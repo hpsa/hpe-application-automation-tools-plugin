@@ -60,7 +60,7 @@ namespace HpToolsLauncher
         private const string MOBILE_INFO = "mobileinfo";
 
         private readonly IAssetRunner _runNotifier;
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = Program._lockObject;
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
         private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
@@ -270,6 +270,7 @@ namespace HpToolsLauncher
                         // Launch application after set Addins
                         _qtpApplication.Launch();
                         _qtpApplication.Visible = false;
+                        Program._isUftLaunched = true;
                     }
                 }
             }
@@ -337,16 +338,22 @@ namespace HpToolsLauncher
         {
             try
             {
-                //if we don't have a qtp instance, create one
-                if (_qtpApplication == null)
+                lock (_lockObject)
                 {
-                    var type = Type.GetTypeFromProgID("Quicktest.Application");
-                    _qtpApplication = Activator.CreateInstance(type) as Application;
-                }
+                    //if we don't have a qtp instance, create one
+                    if (_qtpApplication == null)
+                    {
+                        var type = Type.GetTypeFromProgID("Quicktest.Application");
+                        _qtpApplication = Activator.CreateInstance(type) as Application;
+                    }
 
-                //if the app is running, close it.
-                if (_qtpApplication.Launched)
-                    _qtpApplication.Quit();
+                    //if the app is running, close it.
+                    if (_qtpApplication.Launched)
+                    {
+                        _qtpApplication.Quit();
+                        Program._isUftLaunched = false;
+                    }
+                }
             }
             catch
             {
@@ -496,7 +503,6 @@ namespace HpToolsLauncher
                     slept += 50;
                 }
 
-
                 while (!_runCancelled() && (_qtpApplication.GetStatus().Equals("Running") || _qtpApplication.GetStatus().Equals("Busy")))
                 {
                     Thread.Sleep(200);
@@ -527,7 +533,7 @@ namespace HpToolsLauncher
                 string lastError = _qtpApplication.Test.LastRunResults.LastError;
 
                 //read the lastError
-                if (!String.IsNullOrEmpty(lastError))
+                if (!string.IsNullOrEmpty(lastError))
                 {
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = lastError;
