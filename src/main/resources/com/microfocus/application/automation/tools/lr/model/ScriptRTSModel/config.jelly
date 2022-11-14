@@ -35,5 +35,5 @@
   <f:block>
       <f:repeatableProperty field="additionalAttributes" minimum="1" add="+ Additional Attribute"/>
   </f:block>
-  <input type="button" value="X" class="repeatable-delete danger" />
+  <f:repeatableDeleteButton value="X" />
 </j:jelly>

@@ -56,10 +56,10 @@
 
 			<!-- This wizard will open the specific window...-->
 			<input type="button" name="env-wizard" value="Environment wizard" class="yui-button"
-				   onClick="ParallelRunnerEnvironment.onEnvironmentWizardClick(this,a,'browsersModal',true,'${rootURL}/');"/>
+				   onClick="ParallelRunnerEnv.onEnvironmentWizardClick(this,a,'browsersModal',true,'${rootURL}/');"/>
 
 			<!-- Remove environment from the list -->
-			<input type="button" value="Remove" class="repeatable-delete danger"/>
+			<f:repeatableDeleteButton value="Remove" />
 		</div>
 
 		<!-- Display an error message if the mobile center settings are not configured properly -->

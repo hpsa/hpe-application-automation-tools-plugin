@@ -25,6 +25,9 @@
  *
  * ___________________________________________________________________
  */
+if (typeof RUN_FROM_FS_BUILDER_SELECTOR == "undefined") {
+	RUN_FROM_FS_BUILDER_SELECTOR = 'div[name="builder"][descriptorid="com.microfocus.application.automation.tools.run.RunFromFileBuilder"]';
+}
 
 /**
  * Prototype that represents the modal dialog.
@@ -96,7 +99,7 @@ ModalDialog.saveBrowserSettings = function(modalNode) {
 
 	for(var i =0; i < radioButtons.length;i++) {
 		if(radioButtons[i].checked) {
-			ParallelRunnerEnvironment.setUpBrowserEnvironment(button,radioButtons[i],modalNode);
+			ParallelRunnerEnv.setUpBrowserEnvironment(button,radioButtons[i],modalNode);
 		}
 	}
 };
@@ -215,15 +218,15 @@ ModalDialog.generate = function(path) {
 function Utils() {}
 
 /**
- * Find the ancestor of a control by a given tag.
- * @param start - the node from where to start.
- * @param tag - the tag of the ancestor to find.
+ * Find the ancestor of a control by a given class name.
+ * @param el - the node from where to start.
+ * @param className - the class of the ancestor to find.
  * @returns {HTMLElement}
  */
-Utils.findAncestorByTag = function(start,tag) {
-	tag = tag.toLowerCase();
-	while((start = start.parentElement) && !(start.tagName.toLowerCase() === tag)) {}
-	return start;
+Utils.findAncestorByClassName = function(el,className) {
+	if (!className.startsWith("."))
+		className = `.${className}`;
+	return el.closest(className);
 };
 
 /**
@@ -296,17 +299,12 @@ Utils.parseMCInformation = function(deviceId, os, manufacturerAndModel) {
 
 /**
  * Set the provided jenkins element visibility.
- * @param element the jenkins element to be hidden
- * @param visible the element visibility state
+ * @param element - the jenkins element to be hidden
+ * @param isVisible - the visible boolean state to be aquired
  */
-Utils.setJenkinsElementVisibility = function(element,visible) {
-	var parent = Utils.findAncestorByTag(element,'tr');
-
-	if(visible === false) {
-		parent.style.display = "none";
-	} else {
-		parent.style.display = "";
-	}
+Utils.setJenkinsElementVisibility = function(element,isVisible) {
+	var parent = Utils.findAncestorByClassName(element,'jenkins-form-item');
+	parent.style.display = isVisible ? "" : "none";
 };
 
 /**
@@ -340,7 +338,7 @@ Utils.loadMC = function(a,button){
 	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
 	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
-		ParallelRunnerEnvironment.setEnvironmentError(button,true);
+		ParallelRunnerEnv.setEnvironmentError(button,true);
 		buttonStatus = false;
 		return;
 	}
@@ -350,14 +348,14 @@ Utils.loadMC = function(a,button){
 		if(baseUrl){
 			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
 		} else {
-			ParallelRunnerEnvironment.setEnvironmentError(button,true);
+			ParallelRunnerEnv.setEnvironmentError(button,true);
 			buttonStatus = false;
 			return;
 		}
         a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
-				ParallelRunnerEnvironment.setEnvironmentError(button,true);
+				ParallelRunnerEnv.setEnvironmentError(button,true);
 				buttonStatus = false;
 				return;
 			}
@@ -389,10 +387,10 @@ Utils.loadMC = function(a,button){
 							}
 						}
 						console.log(deviceId);
-						ParallelRunnerEnvironment.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
+						ParallelRunnerEnv.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
 
 						buttonStatus = false;
-						ParallelRunnerEnvironment.setEnvironmentError(button,false);
+						ParallelRunnerEnv.setEnvironmentError(button,false);
 						window.removeEventListener("message",messageCallBack, false);
 						openedWindow.close();
 					});
@@ -414,14 +412,14 @@ Utils.loadMC = function(a,button){
  * Prototype that represents the ParallelRunner environment.
  * @constructor
  */
-function ParallelRunnerEnvironment() {}
+function ParallelRunnerEnv() {}
 
 /**
  *
  * @param button
  * @returns {*}
  */
-ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
+ParallelRunnerEnv.getEnvironmentSettingsInputNode = function (button) {
 	// jelly represents each item as a 'div' with data inside
 	var parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if (parent == null) return null;
@@ -435,8 +433,8 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputNode = function (button) {
  * @param inputValue the input value to be set
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnvironment.setEnvironmentSettingsInput = function(button,inputValue) {
-	var settingInput = ParallelRunnerEnvironment.getEnvironmentSettingsInputNode(button);
+ParallelRunnerEnv.setEnvironmentSettingsInput = function(button,inputValue) {
+	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
 
 	if(settingInput == null) return false;
 
@@ -449,9 +447,9 @@ ParallelRunnerEnvironment.setEnvironmentSettingsInput = function(button,inputVal
  * @param button
  * @returns {null}
  */
-ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
+ParallelRunnerEnv.getEnvironmentSettingsInputValue = function(button) {
 	// jelly represents each item as a 'div' with data inside
-	var settingInput = ParallelRunnerEnvironment.getEnvironmentSettingsInputNode(button);
+	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
 	if(settingInput == null) return null;
 	return settingInput.value;
 };
@@ -463,7 +461,7 @@ ParallelRunnerEnvironment.getEnvironmentSettingsInputValue = function(button) {
  * @param enable the div visibility state(true - visible, false - hidden)
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
+ParallelRunnerEnv.setEnvironmentError = function(button, enable) {
 	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if(parent == null) return false;
 	const errorDiv = parent.querySelector('div[name="mcSettingsError"]');
@@ -477,7 +475,7 @@ ParallelRunnerEnvironment.setEnvironmentError = function(button, enable) {
  * @param visible - should the modal be visible?(true / false)
  * @param path - the patch to the root of the plugin
  */
-ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,visible,path) {
+ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,path) {
 	var modal = document.getElementById(modalId);
 	// it wasn't generated, so we need to generate it
 	if(modal == null) {
@@ -492,7 +490,7 @@ ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,v
 
 	modal = document.getElementById(modalId);
 
-	var environmentInputValue = ParallelRunnerEnvironment.getEnvironmentSettingsInputValue(button);
+	var environmentInputValue = ParallelRunnerEnv.getEnvironmentSettingsInputValue(button);
 
 	// set the selected browser to match the one in the input
 	if(environmentInputValue != null) {
@@ -524,7 +522,7 @@ ParallelRunnerEnvironment.setBrowsersModalVisibility = function(button,modalId,v
  * @param button - the environment wizard button
  * @returns {*}
  */
-ParallelRunnerEnvironment.GetCurrentEnvironmentType = function(button) {
+ParallelRunnerEnv.GetCurrentEnvironmentType = function(button) {
 	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
 	if(parent == null) return null;
 	const input = parent.querySelector('input[type="radio"][name$="environmentType"]:checked');
@@ -537,26 +535,24 @@ ParallelRunnerEnvironment.GetCurrentEnvironmentType = function(button) {
  * @param radio - the selected radio
  * @param modal - the browser selection modal
  */
-ParallelRunnerEnvironment.setUpBrowserEnvironment = function(button,radio,modal) {
+ParallelRunnerEnv.setUpBrowserEnvironment = function(button,radio,modal) {
 	// we can close the modal now
 	modal.style.display = "none";
 	// based on the browser chosen we will prepare the environment
-	ParallelRunnerEnvironment.setEnvironmentSettingsInput(button,"browser : " + radio['id']);
+	ParallelRunnerEnv.setEnvironmentSettingsInput(button,"browser : " + radio['id']);
 };
 
 /**
  * Sets the environment and test set visibility based on the parallel runner checkBox state.
- * @param index - the current build index
+ * @param panel - the current build step container
+ * @param visible - the visible boolean state to be aquired
  */
-ParallelRunnerEnvironment.setEnvironmentsVisibility = function(index) {
-	var fsTests = document.getElementsByName("runfromfs.fsTests")[index];
-	var parent = Utils.findAncestorByTag(fsTests,"tbody");
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-	var environment = parent.querySelectorAll("div[name='fileSystemTestSet']")[0];
-
-	if(environment == null) return;
-
-	Utils.setJenkinsElementVisibility(environment,check.checked);
+ParallelRunnerEnv.setEnvironmentsVisibility = function(panel, visible) {
+	var environments = panel.querySelectorAll("div[name='fileSystemTestSet']");
+	if (environments == null || environments.length == 0) return;
+	[...environments].forEach(env => {
+		Utils.setJenkinsElementVisibility(env,visible);
+	});
 };
 
 /**
@@ -568,14 +564,14 @@ ParallelRunnerEnvironment.setEnvironmentsVisibility = function(index) {
  * @param pluginPath the ${root} path
  * @returns {boolean}
  */
-ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
+ParallelRunnerEnv.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
 	// get the environment type for the current env, it could be: 'web' or 'mobile'
-	var type = ParallelRunnerEnvironment.GetCurrentEnvironmentType(button);
+	var type = ParallelRunnerEnv.GetCurrentEnvironmentType(button);
 	if(type == null) return false;
 
 	// if the type is web we need to show the browsers modal
 	if(type.toLowerCase() === 'web') {
-		ParallelRunnerEnvironment.setBrowsersModalVisibility(button,modalId,visibility,pluginPath);
+		ParallelRunnerEnv.setBrowsersModalVisibility(button,modalId,visibility,pluginPath);
 		return true;
 	}
 
@@ -592,80 +588,73 @@ ParallelRunnerEnvironment.onEnvironmentWizardClick = function(button,a,modalId,v
  * Utility class for the RunFromFileSystem model.
  * @constructor
  */
-function RunFromFileSystemEnvironment() {}
+function RunFromFileSystemEnv() {}
 
 /**
  * Sets the visibility of a given multi line text box.
- * @param index the textbox build index
+ * @param panel - the current build step container
  * @param name the textbox name
+ * @param visible - the visible boolean state to be aquired
  */
-RunFromFileSystemEnvironment.setMultiLineTextBoxVisibility = function(index, name) {
-	var textBox = document.getElementsByName(name)[index];
-	var parentElement = textBox.parentElement;
-	var parent = Utils.findAncestorByTag(textBox,"tr");
-
-	// when the text box is not expanded
-	if(!parentElement.classList.contains("setting-main")) {
-		parent = Utils.findAncestorByTag(parent,'tr');
-	}
-
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-
-	parent.style.display = check.checked ? "none" : "";
+RunFromFileSystemEnv.setMultiLineTextBoxVisibility = function(panel, name, visible) {
+	var textBox = panel.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
+	var parent = Utils.findAncestorByClassName(textBox,"jenkins-form-item");
+	parent.style.display = visible ? "" : "none";
 };
 
-/**
- * Sets the visibility of a given text box.
- * @param index the textbox build index
- * @param name the textbox name
- */
-RunFromFileSystemEnvironment.setTextBoxVisibility = function(index, name) {
-	var check = document.getElementsByName("isParallelRunnerEnabled")[index];
-	var textBox = document.getElementsByName(name)[index];
-
-	Utils.setJenkinsElementVisibility(textBox,!check.checked);
+RunFromFileSystemEnv.setInputVisibility = function(panel, name, visible) {
+	var textBox = panel.querySelector(`input[name="${name}"]`);
+	Utils.setJenkinsElementVisibility(textBox,visible);
 };
 
-/**
- * Sets the fsTests visibility based on the parallel runner checkBox state.
- * @param index - the current build index
- */
-RunFromFileSystemEnvironment.setFsTestsVisibility = function(index) {
-	this.setMultiLineTextBoxVisibility(index, "runfromfs.fsTests");
+RunFromFileSystemEnv.setFsTestsVisibility = function(panel, visible) {
+	this.setMultiLineTextBoxVisibility(panel, "runfromfs.fsTests", visible);
 };
 
-/**
- * Sets the fsReportPath visibility based on the parallel runner checkBox state.
- * @param index - the current build index
- */
-RunFromFileSystemEnvironment.setFsReportPathVisibility = function(index) {
-	this.setTextBoxVisibility(index, "runfromfs.fsReportPath");
+RunFromFileSystemEnv.setFsReportPathVisibility = function(panel, visible) {
+	this.setInputVisibility(panel, "runfromfs.fsReportPath", visible);
 };
 
-/**
- * Sets the fsTimeout visibility based on the parallel runner checkbox state.
- * @param index the current build index.
- */
-RunFromFileSystemEnvironment.setTimeoutVisibility = function (index) {
-	this.setTextBoxVisibility(index, "runfromfs.fsTimeout");
+RunFromFileSystemEnv.setTimeoutVisibility = function (panel, visible) {
+	this.setInputVisibility(panel, "runfromfs.fsTimeout", visible);
+};
+
+RunFromFileSystemEnv.setParamsVisibility = function(panel, visible) {
+	this.setInputVisibility(panel, "areParametersEnabled", visible);
 };
 
 /**
  * Hide/Show the corresponding controls based on the parallel runner checkBox state.
  */
-function setViewVisibility() {
-	var parallelRuns =  document.getElementsByName("isParallelRunnerEnabled");
-
-	// go over all the available builds and set their corresponding
-	// visibilities based on the parallel runner state
-	for(var i = 0; i < parallelRuns.length; i++) {
-		RunFromFileSystemEnvironment.setFsTestsVisibility(i);
-		RunFromFileSystemEnvironment.setTimeoutVisibility(i);
-		RunFromFileSystemEnvironment.setFsReportPathVisibility(i);
-		ParallelRunnerEnvironment.setEnvironmentsVisibility(i);
-	}
+function setViewVisibility(panel) {
+	const chkParallelRunner = panel.querySelector("input[type=checkbox][name=isParallelRunnerEnabled]");
+	updateFsView(panel, chkParallelRunner);
+	chkParallelRunner.addEventListener('click', () => {
+		updateFsView(panel, chkParallelRunner);
+	}, false);
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-	setViewVisibility();
-}, false);
+function updateFsView(panel, chkParallelRunner) {
+	const isParallelRun = chkParallelRunner.checked;
+	RunFromFileSystemEnv.setFsTestsVisibility(panel, !isParallelRun);
+	RunFromFileSystemEnv.setTimeoutVisibility(panel, !isParallelRun);
+	RunFromFileSystemEnv.setParamsVisibility(panel, !isParallelRun);
+	//this panel should be automatically shown/hidden, so comment-out it for now to see if all works fine
+	//ParallelRunnerEnv.setEnvironmentsVisibility(panel, isParallelRun);
+}
+function setupFsTask() {
+	let divMain = null;
+	if (document.location.href.indexOf("pipeline-syntax")>0) { // we are on pipeline-syntax page, where runFromFileBuilder step can be selected only once
+		divMain = document;
+	} else if (document.currentScript) { // this block is used for non-IE browsers, for the first FS build step only, it finds very fast the parent DIV
+		divMain = document.currentScript.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+	}
+	setTimeout(function() {
+		prepareFsTask(divMain)}, 100);
+}
+function prepareFsTask(divMain) {
+	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
+		let divs = document.querySelectorAll(RUN_FROM_FS_BUILDER_SELECTOR);
+		divMain = divs[divs.length - 1];
+	}
+	setViewVisibility(divMain);
+}

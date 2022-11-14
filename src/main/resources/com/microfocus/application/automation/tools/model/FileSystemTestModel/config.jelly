@@ -31,7 +31,7 @@
 	<f:entry>
 		<!-- remove button for this test & environment set -->
 		<div style="display:flex;flex-direction:row;float:right">
-			<input type="button" value="X" class="repeatable-delete danger" style="float:right; margin-bottom:10px;width:5px;height:5px;"/>
+			<f:repeatableDeleteButton value="X" />
 		</div>
 
 		<!-- block title -->

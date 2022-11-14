@@ -311,37 +311,37 @@
 				 <f:entry title="DEVICE INFORMATION:"/>
 				 <f:entry/>
 				 <f:entry title="Device ID" field="fsDeviceId">
-					 <f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
 				 </f:entry>
 				 <f:entry title="OS" field="fsOs">
-					 <f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsOs" value="${instance.runFromFileModel.fsOs}"/>
 				 </f:entry>
 				 <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
-					 <f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
 				 </f:entry>
 				 <f:entry title="Target lab" field="fsTargetLab">
-					 <f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
 				 </f:entry>
 				 <f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
-					 <f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
+					 <f:textarea name="runfromfs.fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
 				 </f:entry>
 
 				 <f:entry title="TEST DEFINITIONS:"/>
 				 <f:entry/>
 				 <f:entry title="Launch on start" field="fsLaunchAppName">
-					 <f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
 				 </f:entry>
 				 <f:entry title="AUT packaging" field="fsInstrumented">
-					 <f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
 				 </f:entry>
 				 <f:entry title="AUT actions" field="fsAutActions">
-					 <f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
 				 </f:entry>
 				 <f:entry title="Device metrics" field="fsDevicesMetrics">
-					 <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
 				 </f:entry>
 				 <f:entry title="Job Id">
-					 <f:textbox name="runfromfs.fsJobId" readonly = "true" value="${instance.runFromFileModel.fsJobId}"/>
+					 <f:readOnlyTextbox name="runfromfs.fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
 				 </f:entry>
 				 <f:entry>
 					 <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
@@ -371,5 +371,6 @@
 
 	<script type="text/javascript">
 		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
+		setupFsTask();
 	</script>
 </j:jelly>

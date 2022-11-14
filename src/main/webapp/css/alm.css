@@ -57,3 +57,12 @@ table tr[nameref^="rowSetStart"] {
 table tr[nameref^="cb20"] {
    background-color: transparent;
 }
+.aut-env-param-chk-lbl {
+    white-space: nowrap;
+    margin-left: 5px;
+    display:none;
+}
+.aut-env-param-chk-lbl .jenkins-checkbox {
+    vertical-align: text-bottom;
+ }
+ 

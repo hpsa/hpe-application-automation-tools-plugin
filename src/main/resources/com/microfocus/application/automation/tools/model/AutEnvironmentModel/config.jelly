@@ -55,7 +55,6 @@
 
         <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/hp-application-automation-tools-plugin/css/alm.css"/>
 
-
         <f:entry>
             <label>ALM server</label>
             <f:entry field="almServerName">

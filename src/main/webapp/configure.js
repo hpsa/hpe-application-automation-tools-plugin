@@ -72,7 +72,7 @@ function loadMobileInfo(a) {
         if (baseUrl) {
             baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
         } else {
-            ParallelRunnerEnvironment.setEnvironmentError(button, true);
+            ParallelRunnerEnv.setEnvironmentError(button, true);
             buttonStatus = false;
             return;
         }

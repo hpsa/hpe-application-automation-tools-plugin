@@ -32,9 +32,9 @@
     <f:entry>
         <label>Parameter type</label>
         <f:entry field="paramType">
-            <select name="autEnv.paramType" class="autEnv" onchange="checkCorrespondingCheckbox(this)">
+            <select name="autEnv.paramType" class="aut-env" onchange="showOrHideCheckbox(this)">
                 <j:forEach var="pt" items="${descriptor.parametersTypes}">
-                    <f:option selected="${pt ==instance.paramType}" value="${pt}">
+                    <f:option selected="${pt == instance.paramType}" value="${pt}">
                         ${pt}
                     </f:option>
                 </j:forEach>
@@ -53,7 +53,7 @@
         <label>Parameter value</label>
         <f:entry field="value">
             <f:textbox/>
-            <label class="autEnvParameterCheckbox" style="display: none">
+            <label class="aut-env-param-chk-lbl">
                 <f:checkbox field="shouldGetOnlyFirstValueFromJson"/>
                 Get only the first value in case an array will be returned
             </label>

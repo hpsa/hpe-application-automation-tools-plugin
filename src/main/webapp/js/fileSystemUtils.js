@@ -47,119 +47,118 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }, false);
 
-    function enableCombobox(object) {
-        if (object.checked) {
-            document.getElementsByName("fsTestType")[0].disabled = false;
-            document.getElementsByName("selectedNode")[0].disabled = false;
-            //document.getElementById("checkBox2").disabled=false;
+function enableCombobox(object) {
+    if (object.checked) {
+        document.getElementsByName("fsTestType")[0].disabled = false;
+        document.getElementsByName("selectedNode")[0].disabled = false;
+        //document.getElementById("checkBox2").disabled=false;
+    } else {
+        document.getElementsByName("fsTestType")[0].disabled = true;
+        document.getElementsByName("selectedNode")[0].disabled = true;
+        //document.getElementById("checkBox2").disabled=true;
+    }
+}
+
+function fileSelected(input) {
+    var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
+    var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
+    if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+        document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
+    } else {
+        addCleanupTest(input.files[0].name);
+    }
+}
+
+function selectCleanupTest(displayStyle) {
+    document.getElementById('clearBtn').style.display = displayStyle;
+    document.getElementById('clear').style.display = displayStyle;
+    document.getElementById('copyPasteBtn').style.display = displayStyle;
+    document.getElementById('infoMessage').style.display = displayStyle;
+    document.getElementById('testsTable').style.display = displayStyle;
+}
+
+function selectValueCombo(selectObj) {
+
+    var selectIndex = selectObj.selectedIndex;
+    var selectValue = selectObj.options[selectIndex].text;
+
+    if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
+        selectCleanupTest("none");
+    } else {
+        selectCleanupTest("block");
+
+        if (selectValue === "Of any of the build's tests") {
+            selectCleanupTest("hidden");
+            //document.getElementById("checkBox2").disabled = false;
         } else {
-            document.getElementsByName("fsTestType")[0].disabled = true;
-            document.getElementsByName("selectedNode")[0].disabled = true;
-            //document.getElementById("checkBox2").disabled=true;
+            selectCleanupTest("visible");
+            // document.getElementById("checkBox2").disabled = true;
         }
     }
+}
 
-    function fileSelected(input) {
-        var selectIndex = document.getElementById('testTypeSelect').selectedIndex;
-        var selectValue = document.getElementById('testTypeSelect').options[selectIndex].text;
-        if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
-            document.getElementsByName("uftSettingsModel.cleanupTest")[0].value = input.files[0].name;
-        } else {
-            addCleanupTest(input.files[0].name);
+function copyPasteRerunSettings() {
+    var checkedTests = document.getElementsByName("rerunSettingsModels.checked");
+    var rerunsList = document.getElementsByName('rerunSettingsModels.numberOfReruns');
+    var cleanupTestList = document.getElementsByName('rerunSettingsModels.cleanupTest');
+    var index = 0;
+
+    var cleanupTest = document.getElementsByName("uftSettingsModel.cleanupTest")[0].value;
+    var numberOfReruns = document.getElementsByName("numberOfReruns")[0].value;
+
+    rerunsList.forEach(function (element) {
+        if (checkedTests[index].checked) {
+            element.value = numberOfReruns;
         }
-    }
+        index = index + 1;
+    });
 
-    function selectCleanupTest(displayStyle) {
-        document.getElementById('clearBtn').style.display = displayStyle;
-        document.getElementById('clear').style.display = displayStyle;
-        document.getElementById('copyPasteBtn').style.display = displayStyle;
-        document.getElementById('infoMessage').style.display = displayStyle;
-        document.getElementById('testsTable').style.display = displayStyle;
-    }
+    index = 0;
+    cleanupTestList.forEach(function (element) {
+        if (checkedTests[index].checked) {
+            element.value = cleanupTest;
+        }
+        index = index + 1;
+    });
+}
 
-    function selectValueCombo(selectObj) {
+function addCleanupTest(cleanupTest) {
+    var selectCleanupLists = document.getElementsByName("rerunSettingsModels.cleanupTests");
 
-        var selectIndex = selectObj.selectedIndex;
-        var selectValue = selectObj.options[selectIndex].text;
+    selectCleanupLists.forEach(function (element) {
+        var option = document.createElement("option");
+        option.text = cleanupTest;
+        option.value = cleanupTest;
+        element.add(option);
+    });
+}
 
-        if (selectValue === "Rerun the entire set of tests" || selectValue === "Rerun only failed tests") {
-            selectCleanupTest("none");
-        } else {
-            selectCleanupTest("block");
+function clearRerunSettings() {
+    var checkBoxes = document.getElementsByName("rerunSettingsModels.checked");
+    checkBoxes.forEach(function (element) {
+        element.checked = false;
+    });
 
-            if (selectValue === "Of any of the build's tests") {
-                selectCleanupTest("hidden");
-                //document.getElementById("checkBox2").disabled = false;
-            } else {
-                selectCleanupTest("visible");
-                // document.getElementById("checkBox2").disabled = true;
+    var numberOfRerunsFields = document.getElementsByName("rerunSettingsModels.numberOfReruns");
+    numberOfRerunsFields.forEach(function (element) {
+        element.value = 0;
+    });
+
+    var selectCleanupLists = document.getElementsByName("rerunSettingsModels.cleanupTest");
+    selectCleanupLists.forEach(function (element) {
+        element.value = "";
+    });
+}
+
+function checkIfPipelineAndUpdateHelpMsg(msg) {
+    setTimeout(function () {
+        if (window.location.href.indexOf("pipeline-syntax") > 0) {
+            let helpText = document.getElementById("helpTextMsg");
+
+            // verify if the element is found, otherwise an exception will occur which blocks the page loading
+            if (helpText) {
+                helpText.innerHTML = msg;
             }
         }
-    }
-
-    function copyPasteRerunSettings() {
-        var checkedTests = document.getElementsByName("rerunSettingsModels.checked");
-        var rerunsList = document.getElementsByName('rerunSettingsModels.numberOfReruns');
-        var cleanupTestList = document.getElementsByName('rerunSettingsModels.cleanupTest');
-        var index = 0;
-
-        var cleanupTest = document.getElementsByName("uftSettingsModel.cleanupTest")[0].value;
-        var numberOfReruns = document.getElementsByName("numberOfReruns")[0].value;
-
-        rerunsList.forEach(function (element) {
-            if (checkedTests[index].checked) {
-                element.value = numberOfReruns;
-            }
-            index = index + 1;
-        });
-
-        index = 0;
-        cleanupTestList.forEach(function (element) {
-            if (checkedTests[index].checked) {
-                element.value = cleanupTest;
-            }
-            index = index + 1;
-        });
-    }
-
-
-    function addCleanupTest(cleanupTest) {
-        var selectCleanupLists = document.getElementsByName("rerunSettingsModels.cleanupTests");
-
-        selectCleanupLists.forEach(function (element) {
-            var option = document.createElement("option");
-            option.text = cleanupTest;
-            option.value = cleanupTest;
-            element.add(option);
-        });
-    }
-
-    function clearRerunSettings() {
-        var checkBoxes = document.getElementsByName("rerunSettingsModels.checked");
-        checkBoxes.forEach(function (element) {
-            element.checked = false;
-        });
-
-        var numberOfRerunsFields = document.getElementsByName("rerunSettingsModels.numberOfReruns");
-        numberOfRerunsFields.forEach(function (element) {
-            element.value = 0;
-        });
-
-        var selectCleanupLists = document.getElementsByName("rerunSettingsModels.cleanupTest");
-        selectCleanupLists.forEach(function (element) {
-            element.value = "";
-        });
-    }
-
-    function checkIfPipelineAndUpdateHelpMsg(msg) {
-        setTimeout(function () {
-            if (window.location.href.indexOf("pipeline-syntax") > 0) {
-                let helpText = document.getElementById("helpTextMsg");
-
-                // verify if the element is found, otherwise an exception will occur which blocks the page loading
-                if (helpText) {
-                    helpText.innerHTML = msg;
-                }
-            }
-        }, 200);
-    }
+    }, 200);
+}
