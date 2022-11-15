@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using QT = QTObjectModelLib;
 
 namespace HpToolsLauncher
@@ -48,8 +49,7 @@ namespace HpToolsLauncher
     static class Program
     {
         private static readonly Dictionary<string, string> argsDictionary = new Dictionary<string, string>();
-        internal readonly static object _lockObject = new object();
-        internal static bool _isUftLaunched = false;
+        private static Launcher _apiRunner;
 
         //[MTAThread]
         static void Main(string[] args)
@@ -96,79 +96,15 @@ namespace HpToolsLauncher
             }
 
             Console.CancelKeyPress += Console_CancelKeyPress;
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
-            var apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype, outEncoding);
-            apiRunner.Run();
-        }
-
-        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
-        {
-            lock(_lockObject)
-            {
-                if (_isUftLaunched)
-                {
-                    CheckAndCleanupUFT();
-                }
-            }
+            _apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype, outEncoding);
+            _apiRunner.Run();
         }
 
         private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            lock(_lockObject)
-            {
-                if (_isUftLaunched)
-                {
-                    e.Cancel = true;
-                    CheckAndCleanupUFT();
-                }
-            }
-        }
-
-        /// <summary>
-        /// stops and closes qtp test, to make sure nothing is left floating after run.
-        /// </summary>
-        private static void CheckAndCleanupUFT()
-        {
-            try
-            {
-                lock (_lockObject)
-                {
-                    Console.WriteLine("Check if a UFT instance exists ...");
-                    Type type = Type.GetTypeFromProgID("Quicktest.Application");
-                    QT.Application uft = Activator.CreateInstance(type) as QT.Application;
-
-                    if (uft == null)
-                    {
-                        Console.WriteLine("No UFT instance found.");
-                        _isUftLaunched = false;
-                        return;
-                    }
-                    if (uft.Test != null)
-                    {
-                        try
-                        {
-                            Console.WriteLine("Stopping the running test ...");
-                            uft.Test.Stop();
-                            uft.Test.Close();
-                        }
-                        catch (Exception)
-                        { }
-                    }
-
-                    //if the app is running, close it.
-                    Console.WriteLine("Check the UFT process state and close it if is launched ...");
-                    if (uft.Launched)
-                    {
-                        uft.Quit();
-                        _isUftLaunched = false;
-                        Console.WriteLine("UFT successfully closed.");
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
+            e.Cancel = true;
+            _apiRunner.SafelyCancel();
         }
 
         private static void ShowHelp()

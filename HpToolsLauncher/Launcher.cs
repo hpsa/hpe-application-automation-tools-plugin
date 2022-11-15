@@ -46,6 +46,7 @@ namespace HpToolsLauncher
 
     public class Launcher
     {
+        private IAssetRunner _runner;
         private IXmlBuilder _xmlBuilder;
         private bool _ciRun = false;
         private readonly string _paramFileName = null;
@@ -57,7 +58,6 @@ namespace HpToolsLauncher
         private bool _rerunFailedTests = false;
         private string _encoding;
         private const string PASSWORD = "Password";
-
         public const string ClassName = "HPToolsFileSystemRunner";
 
         public static string DateFormat
@@ -100,7 +100,6 @@ namespace HpToolsLauncher
             Aborted = -3
         }
 
-
         /// <summary>
         /// constructor
         /// </summary>
@@ -125,6 +124,14 @@ namespace HpToolsLauncher
         private static void WriteToConsole(string message)
         {
             ConsoleWriter.WriteLine(message);
+        }
+
+        public void SafelyCancel()
+        {
+            if (_runner != null)
+            {
+                _runner.SafelyCancel();
+            }
         }
 
         /// <summary>
@@ -154,21 +161,21 @@ namespace HpToolsLauncher
 
             //run the entire set of test once
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(_runType, true, failedTests);
+            _runner = CreateRunner(_runType, true, failedTests);
 
             //runner instantiation failed (no tests to run or other problem)
-            if (runner == null)
+            if (_runner == null)
             {
                 ConsoleWriter.WriteLine("empty runner;");
                 Environment.Exit((int)ExitCodeEnum.Failed);
                 return;
             }
 
-            TestSuiteRunResults results = runner.Run();
+            TestSuiteRunResults results = _runner.Run();
 
             if (_runType != TestStorageType.MBT)
             {
-                RunSummary(runner, resultsFilename, results);
+                RunSummary(_runner, resultsFilename, results);
             }
 
             if (_runType.Equals(TestStorageType.FileSystem))
@@ -197,22 +204,22 @@ namespace HpToolsLauncher
                     }
 
                     // save the initial XmlBuilder because it contains testcases already created, in order to speed up the report building
-                    JunitXmlBuilder initialXmlBuilder = ((RunnerBase)runner).XmlBuilder;
+                    JunitXmlBuilder initialXmlBuilder = ((RunnerBase)_runner).XmlBuilder;
                     //create the runner according to type
-                    runner = CreateRunner(_runType, false, failedTests);
+                    _runner = CreateRunner(_runType, false, failedTests);
 
                     //runner instantiation failed (no tests to run or other problem)
-                    if (runner == null)
+                    if (_runner == null)
                     {
                         Environment.Exit((int)ExitCodeEnum.Failed);
                         return;
                     }
 
-                    ((RunnerBase)runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
-                    TestSuiteRunResults rerunResults = runner.Run();
+                    ((RunnerBase)_runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
+                    TestSuiteRunResults rerunResults = _runner.Run();
 
                     results.AppendResults(rerunResults);
-                    RunSummary(runner, resultsFilename, results);
+                    RunSummary(_runner, resultsFilename, results);
                 }
 
                 Environment.Exit((int)_exitCode);

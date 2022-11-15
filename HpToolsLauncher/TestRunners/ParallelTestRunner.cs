@@ -247,6 +247,10 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
+        public void SafelyCancel()
+        {
+        }
+
         #region Process
 
         /// <summary>

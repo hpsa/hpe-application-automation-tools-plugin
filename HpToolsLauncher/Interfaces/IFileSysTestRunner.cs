@@ -36,5 +36,6 @@ namespace HpToolsLauncher
         TestRunResults RunTest(TestInfo fileName, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams);
 
         void CleanUp();
+        void SafelyCancel();
     }
 }
