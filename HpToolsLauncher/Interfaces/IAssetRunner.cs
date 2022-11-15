@@ -32,6 +32,7 @@ namespace HpToolsLauncher
     public interface IAssetRunner : IDisposable
     {
         TestSuiteRunResults Run();
+        void SafelyCancel();
         bool RunWasCancelled { get; set; }
     }
 }

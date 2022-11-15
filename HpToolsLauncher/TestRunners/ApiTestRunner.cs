@@ -75,7 +75,7 @@ namespace HpToolsLauncher
             if (File.Exists(STRunnerName))
                 return true;
             _stExecuterPath = Helper.GetSTInstallPath();
-            if ((!String.IsNullOrEmpty(_stExecuterPath)))
+            if (!string.IsNullOrEmpty(_stExecuterPath))
             {
                 _stExecuterPath += "bin";
                 return true;
@@ -83,7 +83,6 @@ namespace HpToolsLauncher
             _stCanRun = false;
             return false;
         }
-
 
         /// <summary>
         /// runs the given test
@@ -199,6 +198,10 @@ namespace HpToolsLauncher
         /// performs global cleanup code for this type of runner
         /// </summary>
         public void CleanUp()
+        {
+        }
+
+        public void SafelyCancel()
         {
         }
 
@@ -333,10 +336,9 @@ namespace HpToolsLauncher
                                           DateTime.Now.ToLongTimeString());
             string errorData = e.Data;
 
-            if (String.IsNullOrEmpty(errorData))
+            if (string.IsNullOrEmpty(errorData))
             {
-                errorData = String.Format("External process has exited with code {0}", p.ExitCode);
-
+                errorData = string.Format("External process has exited with code {0}", p.ExitCode);
             }
 
             ConsoleWriter.WriteErrLine(errorData);

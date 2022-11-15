@@ -891,7 +891,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             listener.error("Failed running HpToolsLauncher " + ioe.getMessage());
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
-            listener.error("Failed running HpToolsLauncher - build aborted " + e.getMessage());
+            listener.error("Failed running HpToolsLauncher - build aborted " + StringUtils.defaultString(e.getMessage()));
             try {
                 AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {
