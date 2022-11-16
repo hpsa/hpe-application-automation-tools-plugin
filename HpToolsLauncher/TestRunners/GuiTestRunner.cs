@@ -158,7 +158,7 @@ namespace HpToolsLauncher
                     if (qtpVersion.Equals(new Version(11, 0)))
                     {
                         // use the defined report path if provided
-                        if (!String.IsNullOrEmpty(testinf.ReportPath))
+                        if (!string.IsNullOrEmpty(testinf.ReportPath))
                         {
                             runDesc.ReportLocation = Path.Combine(testinf.ReportPath, "Report");
                         }
@@ -297,7 +297,8 @@ namespace HpToolsLauncher
             try
             {
                 paramDict = testinf.GetParameterDictionaryForQTP();
-            } catch (ArgumentException)
+            }
+            catch (ArgumentException)
             {
                 ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
                 throw;
@@ -616,9 +617,9 @@ namespace HpToolsLauncher
             Process[] processes = Process.GetProcessesByName("qtpAutomationAgent");
             Process qtpAuto = processes.Where(p => p.SessionId == Process.GetCurrentProcess().SessionId).FirstOrDefault();
             if (qtpAuto != null)
-		    {
+            {
                 qtpAuto.Kill();
-		    }
+            }
         }
 
         private bool HandleOutputArguments(ref string errorReason, out Dictionary<string, string> outParams)
@@ -740,7 +741,8 @@ namespace HpToolsLauncher
                                     else
                                         ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsage, paramName, type != qtParameterType.qtParamTypeDate ? paramValue : ((DateTime)paramValue).ToShortDateString()));
                                 }
-                            } catch (Exception)
+                            }
+                            catch (Exception)
                             {
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.GeneralParameterTypeMismatchWith1Type, paramName));
                             }
@@ -819,7 +821,7 @@ namespace HpToolsLauncher
                             _qtpApplication.Test.Close();
                         }
                         catch (Exception)
-                        {}
+                        { }
                     }
                 }
             }
