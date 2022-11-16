@@ -104,7 +104,7 @@ namespace HpToolsLauncher
             runDesc.ReportLocation = testinf.TestPath;
 
             // check if the report path has been defined
-            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            if (!string.IsNullOrEmpty(testinf.ReportPath))
             {
                 if (!Helper.TrySetTestReportPath(runDesc, testinf, ref errorReason))
                 {
@@ -332,7 +332,7 @@ namespace HpToolsLauncher
                 if (!p.HasExited || p.ExitCode == 0) return;
             }
             catch { return; }
-            string format = String.Format("{0} {1}: ", DateTime.Now.ToShortDateString(),
+            string format = string.Format("{0} {1}: ", DateTime.Now.ToShortDateString(),
                                           DateTime.Now.ToLongTimeString());
             string errorData = e.Data;
 
@@ -351,7 +351,7 @@ namespace HpToolsLauncher
         /// <param name="e"></param>
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(e.Data))
+            if (!string.IsNullOrEmpty(e.Data))
             {
                 string data = e.Data;
                 ConsoleWriter.WriteLine(data);

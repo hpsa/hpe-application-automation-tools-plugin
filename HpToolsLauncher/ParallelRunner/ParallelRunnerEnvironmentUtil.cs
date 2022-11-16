@@ -56,7 +56,7 @@ namespace HpToolsLauncher.ParallelRunner
     public class ParallelRunnerEnvironmentUtil
     {
         // the list of supported browsers
-        private static readonly IList<string> BrowserNames = new List<String>
+        private static readonly IList<string> BrowserNames = new List<string>
         {
             "IE",
             "IE64",
@@ -81,7 +81,7 @@ namespace HpToolsLauncher.ParallelRunner
         private const string MobileCenterLab = "MobileCenter";
 
         // the list of mobile properties
-        private static readonly IList<string> MobileProperties = new List<String>
+        private static readonly IList<string> MobileProperties = new List<string>
         {
             DeviceIdKey,
             ManufacturerAndModelKey,
@@ -353,7 +353,7 @@ namespace HpToolsLauncher.ParallelRunner
         /// <returns></returns>
         public static ProxySettings GetMCProxySettings(McConnectionInfo mcConnectionInfo)
         {
-            if (String.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Address))
+            if (string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Address))
                 return null;
 
             AuthenticationSettings authenticationSettings = null;
