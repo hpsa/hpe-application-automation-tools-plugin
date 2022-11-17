@@ -77,6 +77,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
 
     public static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
+    public static final String HP_TOOLS_LAUNCHER_EXE_CFG = "HpToolsLauncher.exe.config";
 
     private String ResultFilename = "ApiResults.xml";
 
@@ -842,6 +843,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
             if (cmdExeUrl == null) {
                 listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+                return;
+            }
+
+            @SuppressWarnings("squid:S2259")
+            URL cmdExeCfgUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+            if (cmdExeCfgUrl == null) {
+                listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
                 return;
             }
 
