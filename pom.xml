@@ -530,7 +530,7 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>subversion</artifactId>
-			<version>2.15.1</version> <!-- TODO use version from BOM when possible -->
+			<version>2.15.4</version> <!-- TODO use version from BOM when possible -->
 			<optional>true</optional>
 		</dependency>
 
