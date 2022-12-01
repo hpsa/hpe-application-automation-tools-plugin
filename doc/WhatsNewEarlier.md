@@ -314,5 +314,6 @@ https://issues.jenkins-ci.org/browse/JENKINS-58134
 
 - Bug fixes
 
+Note: This version of the plugin does not work with UFT Mobile 3.3 and UFT 14.03.
 
 
