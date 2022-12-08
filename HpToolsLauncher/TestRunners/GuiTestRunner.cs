@@ -59,6 +59,7 @@ namespace HpToolsLauncher
         private const string MOBILE_PROXY_SETTING_PASSWORD = "EXTERNAL_MobileProxySetting_Password";
         private const string MOBILE_INFO = "mobileinfo";
 
+        private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
@@ -148,11 +149,10 @@ namespace HpToolsLauncher
             try
             {
                 ChangeDCOMSettingToInteractiveUser();
-                var type = Type.GetTypeFromProgID("Quicktest.Application");
 
                 lock (_lockObject)
                 {
-                    _qtpApplication = Activator.CreateInstance(type) as Application;
+                    _qtpApplication = Activator.CreateInstance(_qtType) as Application;
 
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11, 0)))
@@ -344,8 +344,7 @@ namespace HpToolsLauncher
                     //if we don't have a qtp instance, create one
                     if (_qtpApplication == null)
                     {
-                        var type = Type.GetTypeFromProgID("Quicktest.Application");
-                        _qtpApplication = Activator.CreateInstance(type) as Application;
+                        _qtpApplication = Activator.CreateInstance(_qtType) as Application;
                     }
 
                     //if the app is running, close it.

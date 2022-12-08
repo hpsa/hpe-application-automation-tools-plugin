@@ -34,6 +34,7 @@ using System.Reflection;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
+using System.Threading;
 
 namespace HpToolsLauncher
 {
@@ -72,6 +73,8 @@ namespace HpToolsLauncher
         private string _mobileInfoForAllGuiTests;
         private bool _printInputParams;
         private IFileSysTestRunner _runner = null;
+        private const string REPORT = "Report";
+        private const string REPORT1 = "Report1";
 
         #endregion
 
@@ -325,7 +328,7 @@ namespace HpToolsLauncher
                     indexList[test.TestPath] = 0;
                 }
 
-                Dictionary<string, int> rerunList = createDictionary(_tests);
+                Dictionary<string, int> rerunList = CreateDictionary(_tests);
                 Dictionary<string, string> prevTestOutParams = null;
 
                 for (int x = 0; x < _tests.Count; x++)
@@ -409,38 +412,14 @@ namespace HpToolsLauncher
                     //create test folders
                     if (rerunList[test.TestPath] > 0)
                     {
-                        if (!Directory.Exists(Path.Combine(test.TestPath, "Report1")))
-                        {
-                            rerunList[test.TestPath]--;
-                        }
-                        else
+                        rerunList[test.TestPath]--;
+                        if (Directory.Exists(Path.Combine(test.TestPath, REPORT1)))
                         {
                             indexList[test.TestPath]++;
-                            rerunList[test.TestPath]--;
                         }
                     }
 
-                    //update report folder
-                    string uftReportDir = Path.Combine(test.TestPath, "Report");
-                    string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
-                    ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
-                    try
-                    {
-                        if (Directory.Exists(uftReportDir))
-                        {
-                            if (Directory.Exists(uftReportDirNew))
-                            {
-                                Helper.DeleteDirectory(uftReportDirNew);
-                            }
-
-                            Directory.Move(uftReportDir, uftReportDirNew);
-                        }
-                    }
-                    catch(Exception)
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                        Directory.Move(uftReportDir, uftReportDirNew);
-                    }
+                    UpdateUftReportDir(test.TestPath, indexList);
 
                     // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
                     _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
@@ -466,6 +445,31 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
+        private void UpdateUftReportDir(string testPath, Dictionary<string, int> indexList)
+        {
+            //update report folder
+            string uftReportDir = Path.Combine(testPath, REPORT);
+            string uftReportDirNew = Path.Combine(testPath, string.Format("Report{0}", indexList[testPath]));
+            ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
+            try
+            {
+                if (Directory.Exists(uftReportDir))
+                {
+                    if (Directory.Exists(uftReportDirNew))
+                    {
+                        Helper.DeleteDirectory(uftReportDirNew);
+                    }
+
+                    Directory.Move(uftReportDir, uftReportDirNew);
+                }
+            }
+            catch (Exception)
+            {
+                Thread.Sleep(1000);
+                Directory.Move(uftReportDir, uftReportDirNew);
+            }
+        }
+
         public override void SafelyCancel()
         {
             base.SafelyCancel();
@@ -475,7 +479,7 @@ namespace HpToolsLauncher
             }
         }
 
-        private Dictionary<string, int> createDictionary(List<TestInfo> validTests)
+        private Dictionary<string, int> CreateDictionary(List<TestInfo> validTests)
         {
             var rerunList = new Dictionary<string, int>();
             foreach (var item in validTests)
@@ -595,7 +599,7 @@ namespace HpToolsLauncher
                     _runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
                     break;
                 case TestType.ParallelRunner:
-                    _runner = new ParallelTestRunner(this, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests, _parallelRunnerEnvironments);
+                    _runner = new ParallelTestRunner(this, _mcConnection, _parallelRunnerEnvironments);
                     break;
                 default:
                     _runner = null;
