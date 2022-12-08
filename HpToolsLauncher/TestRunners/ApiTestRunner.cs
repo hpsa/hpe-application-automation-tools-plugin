@@ -332,8 +332,7 @@ namespace HpToolsLauncher
                 if (!p.HasExited || p.ExitCode == 0) return;
             }
             catch { return; }
-            string format = string.Format("{0} {1}: ", DateTime.Now.ToShortDateString(),
-                                          DateTime.Now.ToLongTimeString());
+
             string errorData = e.Data;
 
             if (string.IsNullOrEmpty(errorData))
