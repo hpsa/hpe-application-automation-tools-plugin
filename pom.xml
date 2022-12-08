@@ -55,7 +55,7 @@
 	</licenses>
 
 	<properties>
-		<revision>7.5.2-beta</revision>
+		<revision>7.7</revision>
 		<changelist>-SNAPSHOT</changelist>
 		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
 		<concurrency>1</concurrency>
@@ -530,7 +530,7 @@
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>subversion</artifactId>
-			<version>2.15.1</version> <!-- TODO use version from BOM when possible -->
+			<version>2.15.4</version> <!-- TODO use version from BOM when possible -->
 			<optional>true</optional>
 		</dependency>
 

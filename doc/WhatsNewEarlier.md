@@ -5,6 +5,9 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+
+[What&#39;s New in version 7.5 ](#what&#39;s-new-in-version-7&#46;5)
+
 [What&#39;s New in version 7.4 ](#what&#39;s-new-in-version-7&#46;4)
 
 [What&#39;s New in version 7.3 ](#what&#39;s-new-in-version-7&#46;3)
@@ -30,6 +33,20 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0 ](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;5
+
+Version 7.5 introduced the following enhancements and fixes:
+
+**ALM**
+
+- For the **Upload test result to ALM using field mapping** build step:
+    - You can now search for a test set by its name in a specific folder instead of all folders. 
+    - Defect fix: The check for the test map name is suppressed if no new test is being created.
+
+**UFT One**
+
+-	Layout fixes that were broken in Jenkins 2.346.1 LTS latest version. 
 
 ## What&#39;s New in version 7&#46;4
 
@@ -297,5 +314,6 @@ https://issues.jenkins-ci.org/browse/JENKINS-58134
 
 - Bug fixes
 
+Note: This version of the plugin does not work with UFT Mobile 3.3 and UFT 14.03.
 
 

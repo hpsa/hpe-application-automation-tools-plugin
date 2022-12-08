@@ -53,17 +53,20 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.5 introduced the following enhancements and fixes:
-
-**ALM**
-
-- For the **Upload test result to ALM using field mapping** build step:
-    - You can now search for a test set by its name in a specific folder instead of all folders. 
-    - Defect fix: The check for the test map name is suppressed if no new test is being created.
+Version 7.6 introduced the following enhancements and fixes:
 
 **UFT One**
 
--	Layout fixes that were broken in Jenkins 2.346.1 LTS latest version. 
+- Implementation of the **Password** type for the Table of Parameters (for ALM and File System jobs)
+- A job level option to hide the logging of parameters (for File System jobs)
+- The ability to transfer parameters from one test to another through a batch command (using MTBX, for File System jobs)
+- Layout bug fixes and optimizations
+
+**ALM Octane**
+
+- Abilitiy to enable the **ALM Octane pipeline** action for multi-branch projects
+- HTTPS support for the Security tool
+- Defect fixes
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
@@ -102,7 +105,7 @@ This plugin supports the following Micro Focus product versions:
 | Model-based Testing                                 | 16.0.300 and higher  | [Model-Based Testing Help Center](https://admhelp.microfocus.com/mbt) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT Developer                                       | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/uftdev/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrate LeanFT with Jenkins in just a few simple steps](https://community.microfocus.com/adtd/b/sws-alm/posts/integrating-leanft-with-jenkins-in-just-a-few-simple-steps) |
-| UFT Mobile                                          | 2.0 and higher                                               | [UFT Mobile Integration page](https://admhelp.microfocus.com/lr/en/latest/help/WebHelp/Content/Controller/c_jenkins.htm) |
+| UFT Mobile                                          | 2.0 and higher                                               | [UFT Mobile Integration page](https://admhelp.microfocus.com/uftmobile/en/latest/Content/CI_jenkins.htm) |
 | UFT One                                             | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
 | ValueEdge                                             |                               | [ValueEdge Help Center](https://admhelp.microfocus.com/valuedge) |
 

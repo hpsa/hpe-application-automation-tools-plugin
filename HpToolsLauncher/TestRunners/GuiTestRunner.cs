@@ -733,9 +733,9 @@ namespace HpToolsLauncher
                             // second-check
                             try
                             {
+                                _qtpParameters[paramName].Value = paramValue;
                                 if (_printInputParams)
                                 {
-                                    _qtpParameters[paramName].Value = paramValue;
                                     if (type == qtParameterType.qtParamTypePassword)
                                         ConsoleWriter.WriteLine(string.Format(Resources.GeneralParameterUsageMask, paramName));
                                     else
