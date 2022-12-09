@@ -65,7 +65,6 @@ namespace HpToolsLauncher
                 string val = i + 1 < args.Count() ? args[i + 1].Trim() : string.Empty;
                 argsDictionary[key] = val;
             }
-            string failOnTestFailed = "N";
             string runtype, paramFileName, outEncoding;
             TestStorageType enmRuntype;
             argsDictionary.TryGetValue("runtype", out runtype);
@@ -91,7 +90,7 @@ namespace HpToolsLauncher
                     Console.WriteLine("Unsupported encoding {0}. In this case UTF-8 will be used.", outEncoding);
                 }
             }
-            var apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype, outEncoding);
+            var apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
 
             apiRunner.Run();
         }
