@@ -58,6 +58,13 @@ namespace HpToolsLauncher
         private const string MOBILE_PROXY_SETTING_USERNAME = "EXTERNAL_MobileProxySetting_UserName";
         private const string MOBILE_PROXY_SETTING_PASSWORD = "EXTERNAL_MobileProxySetting_Password";
         private const string MOBILE_INFO = "mobileinfo";
+        private const string REPORT = "Report";
+        private const string READY = "Ready";
+        private const string WAITING = "Waiting";
+        private const string BUSY = "Busy";
+        private const string RUNNING = "Running";
+        private const string PASSED = "Passed";
+        private const string WARNING = "Warning";
 
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
@@ -159,11 +166,11 @@ namespace HpToolsLauncher
                         // use the defined report path if provided
                         if (!String.IsNullOrEmpty(testinf.ReportPath))
                         {
-                            runDesc.ReportLocation = Path.Combine(testinf.ReportPath, "Report");
+                            runDesc.ReportLocation = Path.Combine(testinf.ReportPath, REPORT);
                         }
                         else
                         {
-                            runDesc.ReportLocation = Path.Combine(testPath, "Report");
+                            runDesc.ReportLocation = Path.Combine(testPath, REPORT);
                         }
 
                         if (Directory.Exists(runDesc.ReportLocation))
@@ -488,16 +495,15 @@ namespace HpToolsLauncher
 
                 _qtpApplication.Test.Run(options, false, _qtpParameters);
 
-                result.ReportPath = Path.Combine(testResults.ReportLocation, "Report");
+                result.ReportPath = Path.Combine(testResults.ReportLocation, REPORT);
                 int slept = 0;
-                while ((slept < 20000 && _qtpApplication.GetStatus().Equals("Ready")) || _qtpApplication.GetStatus().Equals("Waiting"))
+                while ((slept < 20000 && _qtpApplication.GetStatus() == READY) || _qtpApplication.GetStatus() == WAITING)
                 {
                     Thread.Sleep(50);
                     slept += 50;
                 }
 
-
-                while (!_runCancelled() && (_qtpApplication.GetStatus().Equals("Running") || _qtpApplication.GetStatus().Equals("Busy")))
+                while (!_runCancelled() && (_qtpApplication.GetStatus() == RUNNING || _qtpApplication.GetStatus() == BUSY))
                 {
                     Thread.Sleep(200);
                     if (_timeLeftUntilTimeout - _stopwatch.Elapsed <= TimeSpan.Zero)
@@ -527,19 +533,18 @@ namespace HpToolsLauncher
                 string lastError = _qtpApplication.Test.LastRunResults.LastError;
 
                 //read the lastError
-                if (!String.IsNullOrEmpty(lastError))
+                if (!string.IsNullOrEmpty(lastError))
                 {
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = lastError;
                 }
 
                 // the way to check the logical success of the target QTP test is: app.Test.LastRunResults.Status == "Passed".
-                if (_qtpApplication.Test.LastRunResults.Status.Equals("Passed"))
+                if (_qtpApplication.Test.LastRunResults.Status == PASSED)
                 {
                     testResults.TestState = TestState.Passed;
-
                 }
-                else if (_qtpApplication.Test.LastRunResults.Status.Equals("Warning"))
+                else if (_qtpApplication.Test.LastRunResults.Status == WARNING)
                 {
                     testResults.TestState = TestState.Warning;
                     testResults.HasWarnings = true;
