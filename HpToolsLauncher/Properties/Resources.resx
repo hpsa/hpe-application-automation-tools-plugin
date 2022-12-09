@@ -280,7 +280,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LauncherDisplayStatistics" xml:space="preserve">
     <value>Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}, warnings: {5}</value>
   </data>
-  <data name="LauncherDoubleSeperator" xml:space="preserve">
+  <data name="LauncherDoubleSeparator" xml:space="preserve">
     <value>================================================</value>
   </data>
   <data name="LauncherIncorrectRunmode" xml:space="preserve">
