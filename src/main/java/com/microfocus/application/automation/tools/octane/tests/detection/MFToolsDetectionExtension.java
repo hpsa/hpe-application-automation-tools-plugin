@@ -52,6 +52,7 @@ public class MFToolsDetectionExtension extends ResultFieldsDetectionExtension {
 
     private static Logger logger = SDKBasedLoggerProvider.getLogger(MFToolsDetectionExtension.class);
     private static final String STORMRUNNER_LOAD_TEST_RUNNER_CLASS = "StormTestRunner";
+    private static final String STORMRUNNER_TEST_RUN_TEST_RUNNER_CLASS = "TestRunBuilder";
     private static final String PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "PcBuilder";
     private static final String RUN_FROM_FILE_BUILDER = "RunFromFileBuilder";
     private static final String RUN_FROM_ALM_BUILDER = "RunFromAlmBuilder";
@@ -72,6 +73,7 @@ public class MFToolsDetectionExtension extends ResultFieldsDetectionExtension {
 
     static {
         builder2RunnerType.put(STORMRUNNER_LOAD_TEST_RUNNER_CLASS, HPRunnerType.StormRunnerLoad);
+        builder2RunnerType.put(STORMRUNNER_TEST_RUN_TEST_RUNNER_CLASS, HPRunnerType.StormRunnerLoad);
         builder2RunnerType.put(RUN_FROM_FILE_BUILDER, HPRunnerType.UFT);
         builder2RunnerType.put(RUN_FROM_ALM_BUILDER, HPRunnerType.UFT);
         builder2RunnerType.put(PERFORMANCE_CENTER_TEST_RUNNER_CLASS, HPRunnerType.PerformanceCenter);
