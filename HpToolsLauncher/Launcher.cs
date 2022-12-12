@@ -149,14 +149,11 @@ namespace HpToolsLauncher
 
             UniqueTimeStamp = _ciParams.GetOrDefault("uniqueTimeStamp", resultsFilename.ToLower().Replace("results", string.Empty).Replace(".xml", string.Empty));
 
-            string onCheckFailedTests = _ciParams.GetOrDefault("onCheckFailedTest");
-            bool rerunFailedTests = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
-
             List<TestData> failedTests = new List<TestData>();
 
             //run the entire set of test once
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(true, failedTests, rerunFailedTests);
+            IAssetRunner runner = CreateRunner(true, failedTests);
 
             //runner instantiation failed (no tests to run or other problem)
             if (runner == null)
@@ -168,17 +165,18 @@ namespace HpToolsLauncher
 
             TestSuiteRunResults results = runner.Run();
 
+            string onCheckFailedTests = _ciParams.GetOrDefault("onCheckFailedTest");
+            bool rerunTestsOnFailure = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
             if (_runType != TestStorageType.MBT)
             {
-                RunSummary(runner, resultsFilename, results, rerunFailedTests);
+                RunSummary(runner, resultsFilename, results);
             }
 
             if (_runType == TestStorageType.FileSystem)
             {
                 //the "On failure" option is selected and the run build contains failed tests
                 // we need to check if there were any failed tests
-
-                if (rerunFailedTests && (_exitCode == ExitCodeEnum.Failed || results.NumFailures > 0))
+                if (rerunTestsOnFailure && (_exitCode == ExitCodeEnum.Failed || results.NumFailures > 0))
                 {
                     ConsoleWriter.WriteLine("There are failed tests.");
 
@@ -197,7 +195,7 @@ namespace HpToolsLauncher
                     // save the initial XmlBuilder because it contains testcases already created, in order to speed up the report building
                     JunitXmlBuilder initialXmlBuilder = ((RunnerBase)runner).XmlBuilder;
                     //create the runner according to type
-                    runner = CreateRunner(false, failedTests, rerunFailedTests);
+                    runner = CreateRunner(false, failedTests, true);
 
                     //runner instantiation failed (no tests to run or other problem)
                     if (runner == null)
@@ -209,11 +207,10 @@ namespace HpToolsLauncher
                     ((RunnerBase)runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
                     TestSuiteRunResults rerunResults = runner.Run();
 
-                    RunSummary(runner, resultsFilename, results, rerunFailedTests, rerunResults);
+                    RunSummary(runner, resultsFilename, results, rerunResults);
                 }
-
-                Environment.Exit((int)_exitCode);
             }
+            Environment.Exit((int)_exitCode);
         }
 
         /// <summary>
@@ -221,7 +218,7 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="runType"></param>
         /// <param name="initialTestRun"></param>
-        private IAssetRunner CreateRunner(bool initialTestRun, List<TestData> failedTests, bool rerunFailedTests)
+        private IAssetRunner CreateRunner(bool initialTestRun, List<TestData> failedTests, bool is4Rerun = false)
         {
             IAssetRunner runner = null;
 
@@ -336,7 +333,7 @@ namespace HpToolsLauncher
                     //add build tests and cleanup tests in correct order
                     List<TestData> validTests = new List<TestData>();
 
-                    if (!rerunFailedTests)
+                    if (!is4Rerun)
                     {
                         ConsoleWriter.WriteLine("Run build tests");
 
@@ -786,7 +783,7 @@ namespace HpToolsLauncher
         /// <param name="runner"></param>
         /// <param name="resultsFile"></param>
         ///
-        private void RunSummary(IAssetRunner runner, string resultsFile, TestSuiteRunResults results, bool rerunFailedTests, TestSuiteRunResults rerunResults = null)
+        private void RunSummary(IAssetRunner runner, string resultsFile, TestSuiteRunResults results, TestSuiteRunResults rerunResults = null)
         {
             try
             {
@@ -885,15 +882,6 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine("Job Errors summary:");
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
-
-                    if (!rerunFailedTests)
-                    {
-                        Environment.Exit((int)_exitCode);
-                    }
-                }
-                else
-				{
-                    Environment.Exit((int)_exitCode);
                 }
             }
             finally
