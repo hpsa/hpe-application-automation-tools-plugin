@@ -270,10 +270,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 
                     if (testReportCreated) {
                         final String basePath = ((List<String>) additionalContext).get(0);
-                        uftResultFilePath = Paths.get(basePath, "archive", "UFTReport", cleanedTestName, "run_results.xml").toFile().getCanonicalPath();
-                        externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" +
-                                (StringUtils.isNotEmpty(this.nodeName) ? nodeName +"/" : "") +
-                                cleanedTestName + "/Result/run_results.html";
+                        String nodeNameSubFolder = StringUtils.isNotEmpty(this.nodeName) ? nodeName +"/" : "";
+                        uftResultFilePath = Paths.get(basePath, "archive", "UFTReport", nodeNameSubFolder, cleanedTestName, "/Result/run_results.xml").toFile().getCanonicalPath();
+                        externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + nodeNameSubFolder + cleanedTestName + "/Result/run_results.html";
                     } else {
                         //if UFT didn't created test results page - add reference to Jenkins test results page
                         externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";
