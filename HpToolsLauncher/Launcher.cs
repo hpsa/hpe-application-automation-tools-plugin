@@ -421,7 +421,7 @@ namespace HpToolsLauncher
                                             validTests.Add(validCleanupTests.ElementAt(i));
                                         }
 
-                                        if (failedTests.Count != 0)
+                                        if (failedTests.Count > 0)
                                         {
                                             validTests.AddRange(failedTests);
                                         }
@@ -437,9 +437,6 @@ namespace HpToolsLauncher
                             }
                         }
                     }
-
-                    //get the tests
-                    //IEnumerable<string> tests = GetParamsWithPrefix("Test");
 
                     IEnumerable<string> jenkinsEnvVariablesWithCommas = GetParamsWithPrefix("JenkinsEnv");
                     Dictionary<string, string> jenkinsEnvVariables = new Dictionary<string, string>();
