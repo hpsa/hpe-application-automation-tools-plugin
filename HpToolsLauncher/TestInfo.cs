@@ -154,25 +154,31 @@ namespace HpToolsLauncher
             }
         }
 
-        public TestInfo(string testPath, string testName)
+        public TestInfo(string testPath, string testName) : this(testPath)
         {
-            TestPath = testPath;
             TestName = testName;
         }
 
-        public TestInfo(string testPath, string testName, string testGroup)
+        public TestInfo(string testPath, string testName, string testGroup): this(testPath, testName)
         {
-            _testPath = testPath;
             TestGroup = testGroup;
-            _testName = testName;
         }
 
-        public TestInfo(string testPath, string testName, string testGroup, string testId)
+        public TestInfo(string testPath, string testName, string testGroup, string testId) : this(testPath, testName, testGroup)
         {
-            _testPath = testPath;
-            TestGroup = testGroup;
-            _testName = testName;
             TestId = testId;
+        }
+
+        public TestInfo(string testId, TestInfo test)
+        {
+            TestId = testId;
+            TestName = test.TestName;
+            TestPath = test.TestPath;
+            TestGroup = test.TestGroup;
+            _params = test.Params;
+            ReportPath = test.ReportPath;
+            DataTablePath = test.DataTablePath;
+            IterationInfo = test.IterationInfo;
         }
 
         private List<TestParameterInfo> _params = new List<TestParameterInfo>();

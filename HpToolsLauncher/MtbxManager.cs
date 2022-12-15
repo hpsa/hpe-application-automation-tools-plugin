@@ -90,9 +90,9 @@ namespace HpToolsLauncher
              && string.Equals(a.Name.LocalName, eName.LocalName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static List<TestInfo> Parse(string mtbxFileName, Dictionary<string, string> jenkinsEnvironmentVars, string testGroupName)
+        public static List<TestInfo> Parse(string mtbxFileName, Dictionary<string, string> jenkinsEnvVars, string testGroupName)
         {
-            return LoadMtbx(File.ReadAllText(mtbxFileName), jenkinsEnvironmentVars, testGroupName);
+            return LoadMtbx(File.ReadAllText(mtbxFileName), jenkinsEnvVars, testGroupName);
         }
         private static string ReplaceString(string str, string oldValue, string newValue, StringComparison comparison)
         {
@@ -114,7 +114,7 @@ namespace HpToolsLauncher
             return sb.ToString();
         }
 
-        public static List<TestInfo> LoadMtbx(string xmlContent, Dictionary<string, string> jankinsEnvironmentVars, string testGroupName)
+        public static List<TestInfo> LoadMtbx(string xmlContent, Dictionary<string, string> jankinsEnvVars, string testGroupName)
         {
             var localEnv = Environment.GetEnvironmentVariables();
 
@@ -125,11 +125,11 @@ namespace HpToolsLauncher
                 xmlContent = ReplaceString(xmlContent, "${" + varName + "}", value, StringComparison.OrdinalIgnoreCase);
             }
 
-            if (jankinsEnvironmentVars != null)
+            if (jankinsEnvVars != null)
             {
-                foreach (string varName in jankinsEnvironmentVars.Keys)
+                foreach (string varName in jankinsEnvVars.Keys)
                 {
-                    string value = jankinsEnvironmentVars[varName];
+                    string value = jankinsEnvVars[varName];
                     xmlContent = ReplaceString(xmlContent, "%" + varName + "%", value, StringComparison.OrdinalIgnoreCase);
                     xmlContent = ReplaceString(xmlContent, "${" + varName + "}", value, StringComparison.OrdinalIgnoreCase);
                 }
