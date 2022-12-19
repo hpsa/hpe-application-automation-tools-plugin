@@ -642,9 +642,9 @@ namespace HpToolsLauncher.Properties {
         /// <summary>
         ///   Looks up a localized string similar to ================================================.
         /// </summary>
-        internal static string LauncherDoubleSeperator {
+        internal static string LauncherDoubleSeparator {
             get {
-                return ResourceManager.GetString("LauncherDoubleSeperator", resourceCulture);
+                return ResourceManager.GetString("LauncherDoubleSeparator", resourceCulture);
             }
         }
         
