@@ -454,7 +454,7 @@
 		<dependency>
 			<groupId>com.microfocus.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>5.5</version>
+			<version>5.8</version>
 			<exclusions>
 				<!-- Provided by Jenkins core -->
 				<exclusion>
