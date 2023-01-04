@@ -174,10 +174,10 @@ namespace HpToolsLauncher
             {
                 //the "On failure" option is selected and the run build contains failed tests
                 // we need to check if there were any failed tests
-                if (rerunTestsOnFailure)
+                bool thereAreFailedTests = _exitCode == ExitCodeEnum.Failed || results.NumFailures > 0;
+                if (rerunTestsOnFailure && thereAreFailedTests)
                 {
-                    if (_exitCode == ExitCodeEnum.Failed || results.NumFailures > 0)
-                        ConsoleWriter.WriteLine("There are failed tests.");
+                    ConsoleWriter.WriteLine("There are failed tests.");
 
                     string fsTestType = _ciParams.GetOrDefault("testType");
 
