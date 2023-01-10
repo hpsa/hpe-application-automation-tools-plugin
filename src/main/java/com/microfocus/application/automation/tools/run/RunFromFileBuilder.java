@@ -39,6 +39,7 @@ import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
+import com.microfocus.application.automation.tools.uft.model.UftRunAsUser;
 import com.microfocus.application.automation.tools.uft.model.UftSettingsModel;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
@@ -675,21 +676,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
         }
 
-        // check whether Mobile authentification info is given or not
-        String pwd = runFromFileModel.getMcPassword();
-        String tok = runFromFileModel.getMcExecToken();
-        if (pwd != null && StringUtils.isNotBlank(Secret.fromString(pwd).getPlainText())) {
+        // check whether Mobile authentication info is given or not
+        String plainTextPwd = runFromFileModel.getMcPassword() == null ? null : Secret.fromString(runFromFileModel.getMcPassword()).getPlainText();
+        String plainTextToken = runFromFileModel.getMcExecToken() == null ? null : Secret.fromString(runFromFileModel.getMcExecToken()).getPlainText();
+        if (StringUtils.isNotBlank(plainTextPwd)) {
             try {
-                String encPassword = EncryptionUtils.encrypt(Secret.fromString(pwd).getPlainText(), currNode);
+                String encPassword = EncryptionUtils.encrypt(plainTextPwd, currNode);
                 mergedProperties.put("MobilePassword", encPassword);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
                 listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
                 return;
             }
-        } else if (tok != null && StringUtils.isNotBlank(Secret.fromString(tok).getPlainText())) {
+        } else if (StringUtils.isNotBlank(plainTextToken)) {
             try {
-                String encToken = EncryptionUtils.encrypt(Secret.fromString(tok).getPlainText(), currNode);
+                String encToken = EncryptionUtils.encrypt(plainTextToken, currNode);
                 mergedProperties.put("MobileExecToken", encToken);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
@@ -719,6 +720,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         boolean isPrintTestParams = UftToolUtils.isPrintTestParams(build, listener);
         mergedProperties.put("printTestParams", isPrintTestParams ? "1" : "0");
 
+        try {
+            UftRunAsUser uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
+            mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
+            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getPassword());
+        } catch(IllegalArgumentException e) {
+            build.setResult(Result.FAILURE);
+            listener.fatalError(String.format("Error occurred while checking build parameters: %s.", e.getMessage()));
+            return;
+        }
         int idx = 0;
         for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
             String key = iterator.next();

@@ -717,11 +717,13 @@ namespace HpToolsLauncher
             return uftFolder + @"bin\" + parallelRunnerExecutable;
         }
 
+        /// <summary>
+        /// Why we need this? If we run jenkins in a master slave node where there is a jenkins service installed in the slave machine, we need to change the DCOM settings as follow:
+        /// dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User
+        /// </summary>
         public static void ChangeDCOMSettingToInteractiveUser()
         {
-            string errorMsg = "Unable to change DCOM settings. To chage it manually: " +
-                  "run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User";
-
+            string errorMsg = "Unable to change DCOM settings. To chage it manually: run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User.";
             string interactiveUser = "Interactive User";
             string runAs = "RunAs";
 

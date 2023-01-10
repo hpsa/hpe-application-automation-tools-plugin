@@ -29,6 +29,7 @@
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.RTS;
 using HpToolsLauncher.TestRunners;
+using HpToolsLauncher.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -663,17 +664,28 @@ namespace HpToolsLauncher
                         }
                     }
 
+                    RunAsUser uftRunAsUser = null;
+                    if (_ciParams.ContainsKey("uftRunAsUserName") && _ciParams.ContainsKey("uftRunAsUserEncodedPassword"))
+                    {
+                        string username = _ciParams["uftRunAsUserName"];
+                        string encodedPwd = _ciParams["uftRunAsUserEncodedPassword"];
+                        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(encodedPwd))
+                        {
+                            uftRunAsUser = new RunAsUser(username, encodedPwd);
+                        }
+                    }
+
                     SummaryDataLogger summaryDataLogger = GetSummaryDataLogger();
                     List<ScriptRTSModel> scriptRTSSet = GetScriptRtsSet();
                     string resultsFilename = _ciParams["resultsFilename"];
-                    string uftRunMode = _ciParams.GetOrDefault("fsUftRunMode", null);
+                    string uftRunMode = _ciParams.GetOrDefault("fsUftRunMode", "Fast");
                     if (validTests.Count > 0)
                     {
-                        runner = new FileSystemTestsRunner(validTests, GetValidParams(), printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
+                        runner = new FileSystemTestsRunner(validTests, GetValidParams(), printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
                     }
                     else if (cleanupAndRerunTests.Count > 0)
                     {
-                        runner = new FileSystemTestsRunner(cleanupAndRerunTests, printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding);
+                        runner = new FileSystemTestsRunner(cleanupAndRerunTests, printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
                     }
                     else
                     {

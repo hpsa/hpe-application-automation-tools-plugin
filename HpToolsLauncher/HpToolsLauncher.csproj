@@ -138,6 +138,7 @@
     <Compile Include="TestRunners\ApiTestRunner.cs" />
     <Compile Include="Runners\AlmTestSetsRunner.cs" />
     <Compile Include="TestSuiteRunResults.cs" />
+    <Compile Include="Utils\RunAsUser.cs" />
     <Compile Include="WinUserNativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -204,7 +204,7 @@ namespace HpToolsLauncher.TestRunners
 
             // Parallel runner argument "-c" for config path and "-o static" so that
             // the output from ParallelRunner is compatible with Jenkins
-            var arguments = String.Format(ParallelRunnerArguments, configFilePath);
+            var arguments = string.Format(ParallelRunnerArguments, configFilePath);
 
             // the test can be started now
             runResults.TestState = TestState.Running;
