@@ -723,7 +723,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         try {
             UftRunAsUser uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
             mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
-            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getPassword());
+            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPassword());
         } catch(IllegalArgumentException e) {
             build.setResult(Result.FAILURE);
             listener.fatalError(String.format("Error occurred while checking build parameters: %s.", e.getMessage()));

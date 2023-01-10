@@ -1,6 +1,5 @@
 package com.microfocus.application.automation.tools.uft.model;
 
-import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 
 import static com.microfocus.application.automation.tools.uft.utils.Constants.*;
@@ -23,7 +22,7 @@ public class UftRunAsUser {
         return username;
     }
 
-    public String getPassword() {
+    public String getEncodedPassword() {
         return encodedPwd;
     }
 }
