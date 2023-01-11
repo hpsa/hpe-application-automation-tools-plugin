@@ -73,7 +73,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     private boolean areParametersEnabled;
     private FilterTestsModel filterTestsModel;
     private SpecifyParametersModel specifyParametersModel;
-    private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
+    private final static String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
+    private final static String HP_TOOLS_LAUNCHER_EXE_CFG = "HpToolsLauncher.exe.config";
     private String ResultFilename = "ApiResults.xml";
     private String ParamFileName = "ApiRun.txt";
     private AlmServerSettingsModel almServerSettingsModel;
@@ -387,24 +388,33 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         // in the plugin
 
         URL cmdExeUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
+                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
         if (cmdExeUrl == null) {
             build.setResult(Result.FAILURE);
-            listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
+            listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+            return;
+        }
+        URL cmdExeCfgUrl =
+                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+        if (cmdExeCfgUrl == null) {
+            build.setResult(Result.FAILURE);
+            listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
             return;
         }
 
         FilePath propsFileName = projectWS.child(ParamFileName);
-        FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
+        FilePath CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
+        FilePath CmdLineExeCfg = projectWS.child(HP_TOOLS_LAUNCHER_EXE_CFG);
 
         try {
             // create a file for the properties file, and save the properties
             propsFileName.copyFrom(propsStream);
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
-        } catch (IOException e1) {
+            CmdLineExeCfg.copyFrom(cmdExeCfgUrl);
+        } catch (IOException | InterruptedException e) {
             build.setResult(Result.FAILURE);
-            listener.error("Failed to copy UFT tools to agent machine.");
+            listener.error("Failed to copy UFT tools to agent machine. " + e);
             return;
         }
         try {

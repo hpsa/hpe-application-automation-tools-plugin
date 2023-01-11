@@ -68,6 +68,7 @@ namespace HpToolsLauncher
         private const string PASSED = "Passed";
         private const string WARNING = "Warning";
 
+        private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
@@ -81,7 +82,6 @@ namespace HpToolsLauncher
         private McConnectionInfo _mcConnection;
         private string _mobileInfo;
         private bool _printInputParams;
-        private RunAsUser _uftRunAsUser;
 
         /// <summary>
         /// constructor
@@ -157,11 +157,10 @@ namespace HpToolsLauncher
 
             try
             {
-                var type = Type.GetTypeFromProgID("Quicktest.Application");
 
                 lock (_lockObject)
                 {
-                    _qtpApplication = Activator.CreateInstance(type) as Application;
+                    _qtpApplication = Activator.CreateInstance(_qtType) as Application;
                     if (_uftRunAsUser != null)
                     {
                         _qtpApplication.LaunchAsUser(_uftRunAsUser.Username, _uftRunAsUser.EncodedPassword);
@@ -173,7 +172,6 @@ namespace HpToolsLauncher
                     {
                         runDesc.ReportLocation = GetReportLocation(testinf, testPath);
                     }
-
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
@@ -185,7 +183,7 @@ namespace HpToolsLauncher
                         if (_runCancelled())
                         {
                             QTPTestCleanup();
-                            KillQtp();
+                            CleanUpAndKillQtp();
                             runDesc.TestState = TestState.Error;
                             return runDesc;
                         }
@@ -249,6 +247,7 @@ namespace HpToolsLauncher
             }
 
             QTPTestCleanup();
+            _qtpApplication = null;
 
             return runDesc;
         }
@@ -358,21 +357,34 @@ namespace HpToolsLauncher
         {
             try
             {
-                //if we don't have a qtp instance, create one
-                if (_qtpApplication == null)
+                lock (_lockObject)
                 {
-                    var type = Type.GetTypeFromProgID("Quicktest.Application");
-                    _qtpApplication = Activator.CreateInstance(type) as Application;
-                }
+                    //if we don't have a qtp instance, create one
+                    if (_qtpApplication == null)
+                    {
+                        _qtpApplication = Activator.CreateInstance(_qtType) as Application;
+                    }
 
-                //if the app is running, close it.
-                if (_qtpApplication.Launched)
-                    _qtpApplication.Quit();
+                    //if the app is running, close it.
+                    if (_qtpApplication.Launched)
+                    {
+                        _qtpApplication.Quit();
+                    }
+                }
             }
             catch
             {
                 //nothing to do. (cleanup code should not throw exceptions, and there is no need to log this as an error in the test)
             }
+        }
+
+        public void SafelyCancel()
+        {
+            _isCancelledByUser = true;
+            ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
+            QTPTestCleanup();
+            CleanUpAndKillQtp();
+            ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
         }
 
         static HashSet<string> _colLoadedAddinNames = null;
@@ -433,7 +445,6 @@ namespace HpToolsLauncher
                         _qtpApplication.Quit();
                     _qtpApplication.SetActiveAddins(ref testAddinsObj, out erroDescription);
                 }
-
             }
             catch (Exception)
             {
@@ -497,7 +508,7 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     QTPTestCleanup();
-                    KillQtp();
+                    CleanUpAndKillQtp();
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = Resources.GeneralTestCanceled;
                     ConsoleWriter.WriteLine(Resources.GeneralTestCanceled);
@@ -523,7 +534,7 @@ namespace HpToolsLauncher
                     if (_timeLeftUntilTimeout - _stopwatch.Elapsed <= TimeSpan.Zero)
                     {
                         QTPTestCleanup();
-                        KillQtp();
+                        CleanUpAndKillQtp();
                         testResults.TestState = TestState.Error;
                         testResults.ErrorDesc = Resources.GeneralTimeoutExpired;
                         ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
@@ -536,7 +547,7 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     QTPTestCleanup();
-                    KillQtp();
+                    CleanUpAndKillQtp();
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = Resources.GeneralTestCanceled;
                     ConsoleWriter.WriteLine(Resources.GeneralTestCanceled);
@@ -585,7 +596,7 @@ namespace HpToolsLauncher
             }
             catch (SystemException e)
             {
-                KillQtp();
+                CleanUpAndKillQtp();
                 ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e.Message, e.StackTrace));
                 testResults.TestState = TestState.Error;
                 testResults.ErrorDesc = Resources.QtpRunError;
@@ -595,20 +606,26 @@ namespace HpToolsLauncher
             }
             catch (Exception e2)
             {
-
-                ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e2.Message, e2.StackTrace));
-                testResults.TestState = TestState.Error;
-                testResults.ErrorDesc = Resources.QtpRunError;
+                if (_isCancelledByUser)
+                {
+                    testResults.TestState = TestState.Error;
+                    testResults.ErrorDesc = Resources.GeneralStopAborted;
+                }
+                else
+                {
+                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e2.Message, e2.StackTrace));
+                    testResults.TestState = TestState.Error;
+                    testResults.ErrorDesc = Resources.QtpRunError;
+                }
 
                 result.IsSuccess = false;
                 return result;
             }
 
-
             return result;
         }
 
-        private void KillQtp()
+        private void CleanUpAndKillQtp()
         {
             //error during run, process may have crashed (need to cleanup, close QTP and qtpRemote for next test to run correctly)
             CleanUp();
@@ -695,7 +712,7 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     QTPTestCleanup();
-                    KillQtp();
+                    CleanUpAndKillQtp();
                     return false;
                 }
 
@@ -796,7 +813,6 @@ namespace HpToolsLauncher
                 return false;
             }
             return true;
-
         }
 
         /// <summary>
@@ -832,9 +848,7 @@ namespace HpToolsLauncher
 
             _qtpParameters = null;
             _qtpParamDefs = null;
-            _qtpApplication = null;
         }
-
 
         private RegistryKey GetQuickTestProfessionalAutomationRegKey(RegistryView registryView)
         {
@@ -844,9 +858,7 @@ namespace HpToolsLauncher
             return localKey;
         }
 
-
         #endregion
-
 
         /// <summary>
         /// holds the resutls for a GUI test

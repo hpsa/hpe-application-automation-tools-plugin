@@ -27,6 +27,7 @@
  */
 
 using HpToolsLauncher.ParallelRunner;
+using QTObjectModelLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,9 +46,7 @@ namespace HpToolsLauncher.TestRunners
         // each test has a list of environments that it will run on
         private readonly Dictionary<string, List<string>> _environments;
         private readonly IAssetRunner _runner;
-        private TimeSpan _timeout;
         private readonly McConnectionInfo _mcConnectionInfo;
-        private readonly string _mobileInfo;
         private const string ParallelRunnerExecutable = "ParallelRunner.exe";
         private string _parallelRunnerPath;
         private RunCancelledDelegate _runCancelled;
@@ -56,14 +55,13 @@ namespace HpToolsLauncher.TestRunners
         private const string ParallelRunnerArguments = "-o static -c \"{0}\"";
 
         private List<string> _configFiles = new List<string>();
+        private IProcessAdapter _processAdapter;
+        private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
 
-        public ParallelTestRunner(IAssetRunner runner, TimeSpan timeout, McConnectionInfo mcConnectionInfo,
-            string mobileInfo, Dictionary<string, List<string>> environments)
+        public ParallelTestRunner(IAssetRunner runner, McConnectionInfo mcConnectionInfo, Dictionary<string, List<string>> environments)
         {
             _runner = runner;
-            _timeout = timeout;
             _mcConnectionInfo = mcConnectionInfo;
-            _mobileInfo = mobileInfo;
             _environments = environments;
             _canRun = TrySetupParallelRunner();
         }
@@ -105,7 +103,7 @@ namespace HpToolsLauncher.TestRunners
                     runResults.ErrorDesc = "ParallelRunner test has FAILED!";
                     runResults.TestState = TestState.Failed;
                     break;
-                case (int)ParallelRunResult.Canceled:
+                case (int)ParallelRunResult.Cancelled:
                     runResults.ErrorDesc = "ParallelRunner was stopped since job has timed out!";
                     ConsoleWriter.WriteErrLine(runResults.ErrorDesc);
                     runResults.TestState = TestState.Error;
@@ -187,7 +185,7 @@ namespace HpToolsLauncher.TestRunners
             _runCancelled = runCancelled;
 
             // prepare the json file for the process
-            var configFilePath = string.Empty;
+            string configFilePath;
 
             try
             {
@@ -216,7 +214,7 @@ namespace HpToolsLauncher.TestRunners
             runResults.ErrorDesc = null;
 
             // execute parallel runner and get the run result status
-            int exitCode = ExecuteProcess(_parallelRunnerPath, arguments, ref failureReason);
+            int exitCode = ExecuteProcess(arguments, ref failureReason);
 
             // set the status of the build based on the exit code
             RunResultsFromParallelRunnerExitCode(runResults, exitCode, failureReason, ref errorReason);
@@ -247,6 +245,36 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
+        private void CloseUft()
+        {
+            try
+            {
+                var qtpApplication = Activator.CreateInstance(_qtType) as Application;
+
+                //if the app is running, close it.
+                if (qtpApplication.Launched)
+                {
+                    qtpApplication.Quit();
+                }
+            }
+            catch
+            {
+                //nothing to do. (cleanup code should not throw exceptions, and there is no need to log this as an error in the test)
+            }
+        }
+
+        public void SafelyCancel()
+        {
+            ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
+            CloseUft();
+            if (_processAdapter != null && !_processAdapter.HasExited)
+            {
+                _processAdapter.Kill();
+            }
+            CleanUp();
+            ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
+        }
+
         #region Process
 
         /// <summary>
@@ -259,7 +287,7 @@ namespace HpToolsLauncher.TestRunners
             Process parentProcess = currentProcess.Parent();
 
             // if they are not in the same session we will assume it is a service
-            Process explorer = null;
+            Process explorer;
             try
             {
                 explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
@@ -313,15 +341,14 @@ namespace HpToolsLauncher.TestRunners
         /// <summary>
         /// executes the run of the test by using the Init and RunProcss routines
         /// </summary>
-        /// <param name="fileName">the prcess file name</param>
         /// <param name="arguments">the arguments for the process</param>
         /// <param name="failureReason"> the reason why the process failed </param>
         /// <returns> the exit code of the process </returns>
-        private int ExecuteProcess(string fileName, string arguments, ref string failureReason)
+        private int ExecuteProcess(string arguments, ref string failureReason)
         {
-            IProcessAdapter processAdapter = ProcessAdapterFactory.CreateAdapter(GetProcessTypeForCurrentSession(fileName, arguments));
+            _processAdapter = ProcessAdapterFactory.CreateAdapter(GetProcessTypeForCurrentSession(_parallelRunnerPath, arguments));
 
-            if (processAdapter == null)
+            if (_processAdapter == null)
             {
                 failureReason = "Could not create ProcessAdapter instance!";
                 return (int)ParallelRunResult.Error;
@@ -329,14 +356,14 @@ namespace HpToolsLauncher.TestRunners
 
             try
             {
-                int exitCode = RunProcess(processAdapter);
+                int exitCode = RunProcess(_processAdapter);
 
                 if (_runCancelled())
                 {
-                    if (!processAdapter.HasExited)
+                    if (!_processAdapter.HasExited)
                     {
-                        processAdapter.Kill();
-                        return (int)ParallelRunResult.Canceled;
+                        _processAdapter.Kill();
+                        return (int)ParallelRunResult.Cancelled;
                     }
                 }
 
@@ -349,9 +376,9 @@ namespace HpToolsLauncher.TestRunners
             }
             finally
             {
-                if (processAdapter != null)
+                if (_processAdapter != null)
                 {
-                    processAdapter.Close();
+                    _processAdapter.Close();
                 }
             }
         }
@@ -402,7 +429,7 @@ namespace HpToolsLauncher.TestRunners
         Pass = 1004,
         Warning = 1005,
         Fail = 1006,
-        Canceled = 1007,
+        Cancelled = 1007,
         Error = 1008,
     }
 }

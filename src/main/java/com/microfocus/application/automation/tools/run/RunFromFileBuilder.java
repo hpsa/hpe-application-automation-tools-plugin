@@ -78,6 +78,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private static final String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
 
     public static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
+    public static final String HP_TOOLS_LAUNCHER_EXE_CFG = "HpToolsLauncher.exe.config";
 
     private String ResultFilename = "ApiResults.xml";
 
@@ -859,6 +860,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             }
 
             @SuppressWarnings("squid:S2259")
+            URL cmdExeCfgUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+            if (cmdExeCfgUrl == null) {
+                listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
+                return;
+            }
+
+            @SuppressWarnings("squid:S2259")
             URL cmdExe2Url = Jenkins.get().pluginManager.uberClassLoader.getResource(LRANALYSIS_LAUNCHER_EXE);
             if (cmdExe2Url == null) {
                 listener.fatalError(LRANALYSIS_LAUNCHER_EXE + "not found in resources");
@@ -867,6 +875,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             FilePath propsFileName = workspace.child(ParamFileName);
             CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+            FilePath CmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
             FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
             try {
@@ -874,6 +883,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 propsFileName.copyFrom(propsStream);
                 // Copy the script to the project workspace
                 CmdLineExe.copyFrom(cmdExeUrl);
+                CmdLineExeCfg.copyFrom(cmdExeCfgUrl);
                 CmdLineExe2.copyFrom(cmdExe2Url);
             } catch (IOException | InterruptedException e) {
                 build.setResult(Result.FAILURE);
@@ -891,7 +901,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             listener.error("Failed running HpToolsLauncher " + ioe.getMessage());
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
-            listener.error("Failed running HpToolsLauncher - build aborted " + e.getMessage());
+            listener.error("Failed running HpToolsLauncher - build aborted " + StringUtils.defaultString(e.getMessage()));
             try {
                 AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {

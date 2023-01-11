@@ -47,6 +47,7 @@ namespace HpToolsLauncher
 
     public class Launcher
     {
+        private IAssetRunner _runner;
         private IXmlBuilder _xmlBuilder;
         private bool _ciRun = false;
         private readonly JavaProperties _ciParams = new JavaProperties();
@@ -127,6 +128,14 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(message);
         }
 
+        public void SafelyCancel()
+        {
+            if (_runner != null)
+            {
+                _runner.SafelyCancel();
+            }
+        }
+
         /// <summary>
         /// analyzes and runs the tests given in the param file.
         /// </summary>
@@ -152,23 +161,23 @@ namespace HpToolsLauncher
 
             //run the entire set of test once
             //create the runner according to type
-            IAssetRunner runner = CreateRunner(true);
+            _runner = CreateRunner(true);
 
             //runner instantiation failed (no tests to run or other problem)
-            if (runner == null)
+            if (_runner == null)
             {
                 ConsoleWriter.WriteLine("empty runner;");
                 Environment.Exit((int)ExitCodeEnum.Failed);
                 return;
             }
 
-            TestSuiteRunResults results = runner.Run();
+            TestSuiteRunResults results = _runner.Run();
 
             string onCheckFailedTests = _ciParams.GetOrDefault("onCheckFailedTest");
             bool rerunTestsOnFailure = !string.IsNullOrEmpty(onCheckFailedTests) && Convert.ToBoolean(onCheckFailedTests.ToLower());
             if (_runType != TestStorageType.MBT)
             {
-                RunSummary(runner, resultsFilename, results);
+                RunSummary(resultsFilename, results);
             }
 
             if (_runType == TestStorageType.FileSystem)
@@ -202,21 +211,21 @@ namespace HpToolsLauncher
                     }
 
                     // save the initial XmlBuilder because it contains testcases already created, in order to speed up the report building
-                    JunitXmlBuilder initialXmlBuilder = ((RunnerBase)runner).XmlBuilder;
+                    JunitXmlBuilder initialXmlBuilder = ((RunnerBase)_runner).XmlBuilder;
                     //create the runner according to type
-                    runner = CreateRunner(false, reruntests);
+                    _runner = CreateRunner(false, reruntests);
 
                     //runner instantiation failed (no tests to run or other problem)
-                    if (runner == null)
+                    if (_runner == null)
                     {
                         Environment.Exit((int)ExitCodeEnum.Failed);
                         return;
                     }
 
-                    ((RunnerBase)runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
-                    TestSuiteRunResults rerunResults = runner.Run();
+                    ((RunnerBase)_runner).XmlBuilder = initialXmlBuilder; // reuse the populated initialXmlBuilder because it contains testcases already created, in order to speed up the report building
+                    TestSuiteRunResults rerunResults = _runner.Run();
 
-                    RunSummary(runner, resultsFilename, results, rerunResults);
+                    RunSummary(resultsFilename, results, rerunResults);
                 }
             }
             Environment.Exit((int)_exitCode);
@@ -784,10 +793,9 @@ namespace HpToolsLauncher
         /// <summary>
         /// used by the run fuction to run the tests
         /// </summary>
-        /// <param name="runner"></param>
         /// <param name="resultsFile"></param>
         ///
-        private void RunSummary(IAssetRunner runner, string resultsFile, TestSuiteRunResults results, TestSuiteRunResults rerunResults = null)
+        private void RunSummary(string resultsFile, TestSuiteRunResults results, TestSuiteRunResults rerunResults = null)
         {
             try
             {
@@ -875,7 +883,7 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, allTestRuns.Count, successes, failures, errors, warnings));
 
                 int testIndex = 1;
-                if (!runner.RunWasCancelled)
+                if (!_runner.RunWasCancelled)
                 {
                     allTestRuns.ForEach(tr => { ConsoleWriter.WriteLine(((tr.HasWarnings) ? "Warning".PadLeft(7) : tr.TestState.ToString().PadRight(7)) + ": " + tr.TestPath + "[" + testIndex + "]"); testIndex++; });
 
@@ -892,7 +900,7 @@ namespace HpToolsLauncher
             {
                 try
                 {
-                    runner.Dispose();
+                    _runner.Dispose();
                 }
                 catch (Exception ex)
                 {

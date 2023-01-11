@@ -173,14 +173,9 @@ namespace HpToolsLauncher
                 {
                     return ans;
                 }
-
             }
-
-
             return null;
-
         }
-
 
         public static string GetRootDirectoryPath()
         {
@@ -228,7 +223,7 @@ namespace HpToolsLauncher
         }
 
         public static string GetTestPathWithoutParams(string test)
-		{
+        {
             int quotationMarkIndex = test.IndexOf(" \"", StringComparison.Ordinal);
             return quotationMarkIndex == -1 ? test : test.Substring(0, quotationMarkIndex).Trim();
         }
@@ -312,10 +307,11 @@ namespace HpToolsLauncher
         {
             long _unused;
             if (!string.IsNullOrEmpty(param) && long.TryParse(param, out _unused))
-			{
+            {
                 return true;
-			} else
-			{
+            }
+            else
+            {
                 // must be at least 2 characters wide, containing at least 2 double quotes
                 if (param.Length < 2) return false;
 
@@ -339,10 +335,11 @@ namespace HpToolsLauncher
                 bool isNumeric = !string.IsNullOrEmpty(param) && long.TryParse(param, out n);
 
                 if (isNumeric)
-				{
+                {
                     return n.ToString();
-				} else
-				{
+                }
+                else
+                {
                     if (param.Length >= 2)
                     {
                         return param.Substring(1, param.Length - 2);
@@ -458,7 +455,7 @@ namespace HpToolsLauncher
 
         public static string GetSTInstallPath()
         {
-            string ret = String.Empty;
+            string ret = string.Empty;
             var regKey = Registry.LocalMachine.OpenSubKey(ServiceTesCurrentVersionRegistryKey);
             if (regKey != null)
             {
@@ -485,7 +482,7 @@ namespace HpToolsLauncher
                 }
             }
 
-            if (!String.IsNullOrEmpty(ret))
+            if (!string.IsNullOrEmpty(ret))
             {
                 ret = ret.EndsWith("\\") ? ret : (ret + "\\");
                 if (ret.EndsWith("\\bin\\"))
@@ -521,7 +518,6 @@ namespace HpToolsLauncher
             {
                 //try 64-bit
                 regkey = Registry.LocalMachine.OpenSubKey(LoadRunner64RegisryKey);
-
             }
 
             if (regkey != null)
@@ -531,7 +527,6 @@ namespace HpToolsLauncher
                 regkey = regkey.OpenSubKey(LoadRunnerControllerDirRegistryKey);
                 if (regkey != null)
                     return regkey.GetValue("Controller").ToString();
-
             }
 
             return installPath;
@@ -840,7 +835,7 @@ namespace HpToolsLauncher
 
         public static string GetUftViewerInstallPath()
         {
-            string ret = String.Empty;
+            string ret = string.Empty;
             var regKey = Registry.LocalMachine.OpenSubKey(UftViewerInstalltionFolderRegistryKey) ??
                          Registry.LocalMachine.OpenSubKey(UftViewerInstalltionFolderRegistryKey64Bit);
 
@@ -853,7 +848,7 @@ namespace HpToolsLauncher
                 }
             }
 
-            if (!String.IsNullOrEmpty(ret))
+            if (!string.IsNullOrEmpty(ret))
             {
                 ret = ret.EndsWith("\\") ? ret : (ret + "\\");
             }
@@ -1264,12 +1259,10 @@ namespace HpToolsLauncher
     {
         private readonly int _milliSeconds;
 
-
         public Stopper(int milliSeconds)
         {
             this._milliSeconds = milliSeconds;
         }
-
 
         /// <summary>
         /// Creates timer in seconds to replace thread.sleep due to ui freezes in jenkins. 

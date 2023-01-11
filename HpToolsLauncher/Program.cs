@@ -31,6 +31,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using QT = QTObjectModelLib;
 
 namespace HpToolsLauncher
 {
@@ -47,6 +49,7 @@ namespace HpToolsLauncher
     static class Program
     {
         private static readonly Dictionary<string, string> argsDictionary = new Dictionary<string, string>();
+        private static Launcher _apiRunner;
 
         //[MTAThread]
         static void Main(string[] args)
@@ -90,9 +93,17 @@ namespace HpToolsLauncher
                     Console.WriteLine("Unsupported encoding {0}. In this case UTF-8 will be used.", outEncoding);
                 }
             }
-            var apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
 
-            apiRunner.Run();
+            Console.CancelKeyPress += Console_CancelKeyPress;
+
+            _apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
+            _apiRunner.Run();
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            _apiRunner.SafelyCancel();
         }
 
         private static void ShowHelp()
