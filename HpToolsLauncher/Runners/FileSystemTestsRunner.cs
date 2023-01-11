@@ -35,6 +35,7 @@ using HpToolsLauncher.Properties;
 using HpToolsLauncher.TestRunners;
 using HpToolsLauncher.RTS;
 using System.Threading;
+using System.Linq;
 
 namespace HpToolsLauncher
 {
@@ -42,9 +43,7 @@ namespace HpToolsLauncher
     {
         #region Members
 
-        Dictionary<string, string> _jenkinsEnvVariables;
         private List<TestInfo> _tests;
-        private List<TestParameter> _params;
         private static string _uftViewerPath;
         private int _errors, _fail, _warnings;
         private bool _useUFTLicense;
@@ -53,7 +52,7 @@ namespace HpToolsLauncher
         private SummaryDataLogger _summaryDataLogger;
         private List<ScriptRTSModel> _scriptRTSSet;
         private TimeSpan _timeout = TimeSpan.MaxValue;
-        private readonly string _uftRunMode;
+        private string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private string _abortFilename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
         private string _encoding;
@@ -75,79 +74,16 @@ namespace HpToolsLauncher
         private IFileSysTestRunner _runner = null;
         private const string REPORT = "Report";
         private const string REPORT1 = "Report1";
+        private const string SPACES = "    ";
 
         #endregion
 
-        /// <summary>
-        /// overloaded constructor for adding support for run mode selection
-        /// </summary>
-        /// <param name="sources"></param>
-        /// <param name="timeout"></param>
-        /// <param name="uftRunMode"></param>
-        /// <param name="reportPath"></param>
-        /// <param name="useUftLicense"></param>
-        /// <param name="controllerPollingInterval"></param>
-        /// <param name="perScenarioTimeOutMinutes"></param>
-        /// <param name="ignoreErrorStrings"></param>
-        /// <param name="jenkinsEnvVariables"></param>
-        /// <param name="mcConnection"></param>
-        /// <param name="mobileInfo"></param>
-        /// <param name="parallelRunnerEnvironments"></param>
-        /// <param name="displayController"></param>
-        /// <param name="analysisTemplate"></param>
-        /// <param name="summaryDataLogger"></param>
-        /// <param name="scriptRtsSet"></param>
-        public FileSystemTestsRunner(List<TestData> sources,
-                                    List<TestParameter> @params,
-                                    bool printInputParams,
+        private void InitCommonFields(bool printInputParams,
                                     TimeSpan timeout,
                                     string uftRunMode,
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
                                     List<string> ignoreErrorStrings,
-                                    Dictionary<string, string> jenkinsEnvVariables,
-                                    McConnectionInfo mcConnection,
-                                    string mobileInfo,
-                                    Dictionary<string, List<string>> parallelRunnerEnvironments,
-                                    bool displayController,
-                                    string analysisTemplate,
-                                    SummaryDataLogger summaryDataLogger,
-                                    List<ScriptRTSModel> scriptRtsSet,
-                                    string reportPath,
-                                    string xmlResultsFullFileName,
-                                    string encoding,
-                                    bool useUftLicense = false)
-            : this(sources, @params, printInputParams, timeout, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense)
-        {
-            _uftRunMode = uftRunMode;
-        }
-
-        /// <summary>
-        /// creates instance of the runner given a source.
-        /// </summary>
-        /// <param name="sources"></param>
-        /// <param name="timeout"></param>
-        /// <param name="scriptRtsSet"></param>
-        /// <param name="reportPath"></param>
-        /// <param name="controllerPollingInterval"></param>
-        /// <param name="perScenarioTimeOutMinutes"></param>
-        /// <param name="ignoreErrorStrings"></param>
-        /// <param name="jenkinsEnvVariables"></param>
-        /// <param name="mcConnection"></param>
-        /// <param name="mobileInfo"></param>
-        /// <param name="parallelRunnerEnvironments"></param>
-        /// <param name="displayController"></param>
-        /// <param name="analysisTemplate"></param>
-        /// <param name="summaryDataLogger"></param>
-        /// <param name="useUftLicense"></param>
-        public FileSystemTestsRunner(List<TestData> sources,
-                                    List<TestParameter> @params,
-                                    bool printInputParams,
-                                    TimeSpan timeout,
-                                    int controllerPollingInterval,
-                                    TimeSpan perScenarioTimeOutMinutes,
-                                    List<string> ignoreErrorStrings,
-                                    Dictionary<string, string> jenkinsEnvVariables,
                                     McConnectionInfo mcConnection,
                                     string mobileInfo,
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
@@ -160,7 +96,6 @@ namespace HpToolsLauncher
                                     string encoding,
                                     bool useUftLicense = false)
         {
-            _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
             if (!Helper.IsTestingToolsInstalled(TestStorageType.FileSystem))
             {
@@ -181,8 +116,6 @@ namespace HpToolsLauncher
             _analysisTemplate = analysisTemplate;
             _summaryDataLogger = summaryDataLogger;
             _scriptRTSSet = scriptRtsSet;
-            _tests = new List<TestInfo>();
-            _params = @params;
             _printInputParams = printInputParams;
 
             _mcConnection = mcConnection;
@@ -191,6 +124,7 @@ namespace HpToolsLauncher
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
             _xmlBuilder.XmlName = xmlResultsFullFileName;
             _encoding = encoding;
+            _uftRunMode = uftRunMode;
 
             ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
@@ -198,6 +132,130 @@ namespace HpToolsLauncher
             {
                 ConsoleWriter.WriteLine("Results directory is: " + reportPath);
             }
+        }
+
+        /// <summary>
+        /// creates instance of the runner given a source.
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <param name="timeout"></param>
+        /// <param name="uftRunMode"></param>
+        /// <param name="scriptRtsSet"></param>
+        /// <param name="reportPath"></param>
+        /// <param name="controllerPollingInterval"></param>
+        /// <param name="perScenarioTimeOutMinutes"></param>
+        /// <param name="ignoreErrMsgs"></param>
+        /// <param name="jenkinsEnvVars"></param>
+        /// <param name="mcConnection"></param>
+        /// <param name="mobileInfo"></param>
+        /// <param name="parallelRunnerEnvs"></param>
+        /// <param name="displayController"></param>
+        /// <param name="analysisTemplate"></param>
+        /// <param name="summaryDataLogger"></param>
+        /// <param name="useUftLicense"></param>
+        public FileSystemTestsRunner(List<TestData> sources,
+                                    List<TestParameter> @params,
+                                    bool printInputParams,
+                                    TimeSpan timeout,
+                                    string uftRunMode,
+                                    int controllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrMsgs,
+                                    Dictionary<string, string> jenkinsEnvVars,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    Dictionary<string, List<string>> parallelRunnerEnvs,
+                                    bool displayController,
+                                    string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
+                                    List<ScriptRTSModel> scriptRtsSet,
+                                    string reportPath,
+                                    string xmlResultsFullFileName,
+                                    string encoding,
+                                    bool useUftLicense = false)
+        {
+            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, mcConnection, mobileInfo, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense);
+
+            _tests = GetListOfTestInfo(sources, @params, jenkinsEnvVars);
+
+            if (_tests == null || _tests.Count == 0)
+            {
+                ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
+                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+
+            // if a custom path was provided,set the custom report path for all the valid tests(this will overwrite the default location)
+            if (reportPath != null)
+            {
+                _tests.ForEach(test => test.ReportPath = reportPath);
+            }
+
+            ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));
+
+            foreach (var test in _tests)
+            {
+                ConsoleWriter.WriteLine(string.Empty + test.TestName);
+                if (parallelRunnerEnvs.ContainsKey(test.TestId))
+                {
+                    parallelRunnerEnvs[test.TestId].ForEach(env => ConsoleWriter.WriteLine(SPACES + env));
+                }
+            }
+
+            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+        }
+
+        public FileSystemTestsRunner(List<TestInfo> tests,
+                                    bool printInputParams,
+                                    TimeSpan timeout,
+                                    string uftRunMode,
+                                    int controllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrMsgs,
+                                    Dictionary<string, string> jenkinsEnvVars,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    Dictionary<string, List<string>> parallelRunnerEnvs,
+                                    bool displayController,
+                                    string analysisTemplate,
+                                    SummaryDataLogger summaryDataLogger,
+                                    List<ScriptRTSModel> scriptRtsSet,
+                                    string reportPath,
+                                    string xmlResultsFullFileName,
+                                    string encoding,
+                                    bool useUftLicense = false)
+        {
+            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, mcConnection, mobileInfo, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, useUftLicense);
+
+            _tests = tests;
+            if (_tests == null || _tests.Count == 0)
+            {
+                ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
+                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+
+            ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));
+
+            foreach (var test in _tests)
+            {
+                ConsoleWriter.WriteLine(string.Empty + test.TestName);
+                if (parallelRunnerEnvs.ContainsKey(test.TestId))
+                {
+                    parallelRunnerEnvs[test.TestId].ForEach(env => ConsoleWriter.WriteLine(SPACES + env));
+                }
+            }
+
+            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+        }
+
+        public static TestInfo GetFirstTestInfo(TestData source, Dictionary<string, string> jenkinsEnvVars)
+        {
+            var tests = GetListOfTestInfo(new List<TestData>() { source }, jenkinsEnvVars: jenkinsEnvVars);
+            return tests.FirstOrDefault();
+        }
+
+        public static List<TestInfo> GetListOfTestInfo(List<TestData> sources, List<TestParameter> @params = null, Dictionary<string, string> jenkinsEnvVars = null)
+        {
+            List<TestInfo> tests = new List<TestInfo>();
 
             int idx = 1;
             //go over all sources, and create a list of all tests
@@ -218,14 +276,15 @@ namespace HpToolsLauncher
                             var test = new TestInfo(loc, loc, testPath, source.Id);
 
                             try
-							{
+                            {
                                 //we need to check for inline params and props params as well, for backward compatibility
                                 SetInlineParams(source.Tests, ref test);
-                                SetPropsParams(idx, ref test);
-                            } catch (ArgumentException)
-							{
+                                SetPropsParams(@params, idx, ref test);
+                            }
+                            catch (ArgumentException)
+                            {
                                 ConsoleWriter.WriteErrLine(string.Format(Resources.FsRunnerErrorParameterFormat, testPath));
-							}
+                            }
 
                             testGroup.Add(test);
                         }
@@ -251,7 +310,7 @@ namespace HpToolsLauncher
                         }
                         else if (fi.Extension == Helper.MtbxFileExtension)
                         {
-                            testGroup = MtbxManager.Parse(source.Tests, _jenkinsEnvVariables, source.Tests);
+                            testGroup = MtbxManager.Parse(source.Tests, jenkinsEnvVars, source.Tests);
 
                             // set the test Id for each test from the group
                             // this is important for parallel runner
@@ -261,7 +320,8 @@ namespace HpToolsLauncher
                             }
                         }
                     }
-                } catch (Exception)
+                }
+                catch (Exception)
                 {
                     testGroup = new List<TestInfo>();
                 }
@@ -273,36 +333,11 @@ namespace HpToolsLauncher
                 }
 
                 //we add the found tests to the test list
-                _tests.AddRange(testGroup);
+                tests.AddRange(testGroup);
 
                 ++idx;
             }
-
-            if (_tests == null || _tests.Count == 0)
-            {
-                ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
-                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
-            }
-
-            // if a custom path was provided,set the custom report path for all the valid tests(this will overwrite the default location)
-            if (reportPath != null)
-            {
-                _tests.ForEach(test => test.ReportPath = reportPath);
-            }
-
-            ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));
-
-            foreach (var test in _tests)
-            {
-                ConsoleWriter.WriteLine("" + test.TestName);
-                if (parallelRunnerEnvironments.ContainsKey(test.TestId))
-                {
-                    parallelRunnerEnvironments[test.TestId].ForEach(
-                        env => ConsoleWriter.WriteLine("    " + env));
-                }
-            }
-
-            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+            return tests;
         }
 
         /// <summary>
@@ -373,7 +408,7 @@ namespace HpToolsLauncher
                             TestPath = test.TestPath
                         };
                     }
-
+                    runResult.TestInfo = test;
                     //get the original source for this test, for grouping tests under test classes
                     runResult.TestGroup = test.TestGroup;
 
@@ -503,7 +538,7 @@ namespace HpToolsLauncher
         /// <param name="testPath"></param>
         /// <param name="test"></param>
         /// <exception cref="ArgumentException"></exception>
-        private void SetInlineParams(string testPath, ref TestInfo test)
+        private static void SetInlineParams(string testPath, ref TestInfo test)
         {
             // the inline test path does not contain any parameter specification
             if (testPath.IndexOf("\"") == -1) return;
@@ -535,14 +570,17 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="idx"></param>
         /// <param name="test"></param>
-        private void SetPropsParams(int idx, ref TestInfo test)
+        private static void SetPropsParams(List<TestParameter> @params, int idx, ref TestInfo test)
         {
-            // all the parameters that belong to this test
-            List<TestParameter> testParams = _params.FindAll(elem => elem.TestIdx.Equals(idx));
-
-            foreach (TestParameter param in testParams)
+            if (@params != null && @params.Count > 0)
             {
-                test.Params.Add(new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal });
+                // all the parameters that belong to this test
+                List<TestParameter> testParams = @params.FindAll(elem => elem.TestIdx.Equals(idx));
+
+                foreach (TestParameter param in testParams)
+                {
+                    test.Params.Add(new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal });
+                }
             }
 
             return;

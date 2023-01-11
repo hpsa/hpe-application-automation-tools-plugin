@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.*;
 
 import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
@@ -162,7 +163,12 @@ public class PcClient {
                     response.getTestID(), response.getID(), response.getTimeslotID()));
             return response.getID();
         }  catch (NumberFormatException|ClientProtocolException|PcException ex) {
-            logger.println(String.format("%s - %s. Error: %s", dateFormatter.getDate(), Messages.StartRunFailed(), ex.getMessage()));
+			Integer result = checkError1310(ex.getMessage());
+			if( result != null ) {
+				return result;
+			} else {
+				logger.println(String.format("%s - %s. Error: %s", dateFormatter.getDate(), Messages.StartRunFailed(), ex.getMessage()));
+			}
         }  catch (IOException ex) {
             logger.println(String.format("%s - %s. IOException Error: %s", dateFormatter.getDate(), Messages.StartRunFailed(), ex.getMessage()));
         }
@@ -202,11 +208,16 @@ public class PcClient {
                             model.getPostRunAction().getValue(),
                             model.isVudsMode());
                 } catch (NumberFormatException|ClientProtocolException|PcException ex) {
-                    logger.println(String.format("%s -%s. %s: %s",
-                            dateFormatter.getDate(),
-                            Messages.StartRunRetryFailed(),
-                            Messages.Error(),
-                            ex.getMessage()));
+					Integer result = checkError1310(ex.getMessage());
+					if( result != null ) {
+						return result;
+					} else {
+						logger.println(String.format("%s -%s. %s: %s",
+								dateFormatter.getDate(),
+								Messages.StartRunRetryFailed(),
+								Messages.Error(),
+								ex.getMessage()));
+					}
                 } catch (IOException ex) {
                     logger.println(String.format("%s -%s. %s: %s",
                             dateFormatter.getDate(),
@@ -241,7 +252,19 @@ public class PcClient {
         return 0;
     }
 
-
+	private Integer checkError1310(String msg) {	
+		Pattern p = Pattern.compile("executeRequest exception: Run was started with ID (\\d+), but.*Error code: 1310");
+		Matcher m = p.matcher(msg);
+		if( m.matches() ) {
+			logger.println(String.format("%s - %s. Recovered-error: %s", dateFormatter.getDate(), Messages.StartRunFailed(), msg ));
+			logger.println(String.format("%s - %s (TestID: %s, RunID: %s, TimeslotID: %s)", dateFormatter.getDate(), Messages.RunStarted(),
+					Integer.parseInt(model.getTestId(true)), m.group(1), "0" ));
+			return Integer.parseInt(m.group(1));
+		} else {
+			return null;
+		}
+	}
+	
     private int getCorrectTestInstanceID(int testID) throws IOException, PcException {
         if("AUTO".equals(model.getAutoTestInstanceID())){
             try {

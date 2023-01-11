@@ -224,6 +224,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
 			jUnitResultArchiver.setKeepLongStdio(true);
 			jUnitResultArchiver.setAllowEmptyResults(true);
+			jUnitResultArchiver.setSkipMarkingBuildUnstable(true);
 			jUnitResultArchiver.perform(build, workspace, launcher, listener);
 		}
 
@@ -233,7 +234,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
 			return;
 		}
-
 
 		TestResult result = tempAction.getResult();
 
@@ -448,7 +448,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 					}
 				}
 			} else { // UFT Test
-				boolean reportIsHtml = false;
+				boolean isHtmlReport = false;
 				NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
 
 				// to keep counting how many times this TestName have appeared, used for counting the correct count of appearance
@@ -525,7 +525,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								isParallelRunnerReport ? PARALLEL_RESULT_FILE : "run_results.html");
 						ReportMetaData reportMetaData = new ReportMetaData();
 						if (htmlReport.exists()) {
-							reportIsHtml = true;
+							isHtmlReport = true;
 							String htmlReportDir = reportFolder.getRemote();
 							reportMetaData.setFolderPath(htmlReportDir);
 							reportMetaData.setIsHtmlReport(true);
@@ -581,7 +581,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 					}
 				}
 
-				if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
+				if (isHtmlReport && !ReportInfoToCollect.isEmpty()) {
 					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace, nodeName);
 				}
 

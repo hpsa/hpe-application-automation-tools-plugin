@@ -68,7 +68,6 @@ namespace HpToolsLauncher
                 string val = i + 1 < args.Count() ? args[i + 1].Trim() : string.Empty;
                 argsDictionary[key] = val;
             }
-            string failOnTestFailed = "N";
             string runtype, paramFileName, outEncoding;
             TestStorageType enmRuntype;
             argsDictionary.TryGetValue("runtype", out runtype);
@@ -97,7 +96,7 @@ namespace HpToolsLauncher
 
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            _apiRunner = new Launcher(failOnTestFailed, paramFileName, enmRuntype, outEncoding);
+            _apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
             _apiRunner.Run();
         }
 

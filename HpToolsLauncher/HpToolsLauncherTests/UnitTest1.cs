@@ -70,7 +70,7 @@ namespace HpToolsLauncherTests
             props["almTimeout"] = "-1";
             props["almRunHost"] = "";
             props.Save(file1, "");
-            Launcher runner = new Launcher("false", file1, TestStorageType.Alm);
+            Launcher runner = new Launcher(file1, TestStorageType.Alm);
 
             runner.Run();
         }
@@ -109,7 +109,7 @@ namespace HpToolsLauncherTests
             props["almTimeout"] = "-1";
             props["almRunHost"] = "";
             props.Save(file1, "");
-            Launcher runner = new Launcher("false", file1, TestStorageType.Alm);
+            Launcher runner = new Launcher(file1, TestStorageType.Alm);
 
             runner.Run();
         }
