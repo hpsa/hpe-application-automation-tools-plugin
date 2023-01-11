@@ -75,7 +75,7 @@ namespace HpToolsLauncher
             if (File.Exists(STRunnerName))
                 return true;
             _stExecuterPath = Helper.GetSTInstallPath();
-            if ((!String.IsNullOrEmpty(_stExecuterPath)))
+            if (!string.IsNullOrEmpty(_stExecuterPath))
             {
                 _stExecuterPath += "bin";
                 return true;
@@ -83,7 +83,6 @@ namespace HpToolsLauncher
             _stCanRun = false;
             return false;
         }
-
 
         /// <summary>
         /// runs the given test
@@ -105,7 +104,7 @@ namespace HpToolsLauncher
             runDesc.ReportLocation = testinf.TestPath;
 
             // check if the report path has been defined
-            if (!String.IsNullOrEmpty(testinf.ReportPath))
+            if (!string.IsNullOrEmpty(testinf.ReportPath))
             {
                 if (!Helper.TrySetTestReportPath(runDesc, testinf, ref errorReason))
                 {
@@ -199,6 +198,10 @@ namespace HpToolsLauncher
         /// performs global cleanup code for this type of runner
         /// </summary>
         public void CleanUp()
+        {
+        }
+
+        public void SafelyCancel()
         {
         }
 
@@ -329,14 +332,12 @@ namespace HpToolsLauncher
                 if (!p.HasExited || p.ExitCode == 0) return;
             }
             catch { return; }
-            string format = String.Format("{0} {1}: ", DateTime.Now.ToShortDateString(),
-                                          DateTime.Now.ToLongTimeString());
+
             string errorData = e.Data;
 
-            if (String.IsNullOrEmpty(errorData))
+            if (string.IsNullOrEmpty(errorData))
             {
-                errorData = String.Format("External process has exited with code {0}", p.ExitCode);
-
+                errorData = string.Format("External process has exited with code {0}", p.ExitCode);
             }
 
             ConsoleWriter.WriteErrLine(errorData);
@@ -349,7 +350,7 @@ namespace HpToolsLauncher
         /// <param name="e"></param>
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(e.Data))
+            if (!string.IsNullOrEmpty(e.Data))
             {
                 string data = e.Data;
                 ConsoleWriter.WriteLine(data);

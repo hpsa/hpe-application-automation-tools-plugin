@@ -35,13 +35,13 @@ namespace HpToolsLauncher
         public virtual void Dispose()
         {
         }
-        protected bool _blnRunCancelled = false;
+        protected bool _isRunCancelled = false;
         protected JunitXmlBuilder _xmlBuilder = new JunitXmlBuilder();
 
         public bool RunWasCancelled
         {
-            get { return _blnRunCancelled; }
-            set { _blnRunCancelled = value; }
+            get { return _isRunCancelled; }
+            set { _isRunCancelled = value; }
         }
 
         public JunitXmlBuilder XmlBuilder
@@ -55,5 +55,9 @@ namespace HpToolsLauncher
             throw new NotImplementedException();
         }
 
+        public virtual void SafelyCancel()
+        {
+            _isRunCancelled = true;
+        }
     }
 }

@@ -43,8 +43,6 @@ namespace HpToolsLauncher
     {
         #region Members
 
-        private const string SPACES = "    ";
-
         private List<TestInfo> _tests;
         private static string _uftViewerPath;
         private int _errors, _fail, _warnings;
@@ -56,7 +54,7 @@ namespace HpToolsLauncher
         private TimeSpan _timeout = TimeSpan.MaxValue;
         private string _uftRunMode;
         private Stopwatch _stopwatch = null;
-        private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
+        private string _abortFilename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
         private string _encoding;
 
         //LoadRunner Arguments
@@ -73,6 +71,10 @@ namespace HpToolsLauncher
         private McConnectionInfo _mcConnection;
         private string _mobileInfoForAllGuiTests;
         private bool _printInputParams;
+        private IFileSysTestRunner _runner = null;
+        private const string REPORT = "Report";
+        private const string REPORT1 = "Report1";
+        private const string SPACES = "    ";
 
         #endregion
 
@@ -250,6 +252,7 @@ namespace HpToolsLauncher
             var tests = GetListOfTestInfo(new List<TestData>() { source }, jenkinsEnvVars: jenkinsEnvVars);
             return tests.FirstOrDefault();
         }
+
         public static List<TestInfo> GetListOfTestInfo(List<TestData> sources, List<TestParameter> @params = null, Dictionary<string, string> jenkinsEnvVars = null)
         {
             List<TestInfo> tests = new List<TestInfo>();
@@ -406,7 +409,6 @@ namespace HpToolsLauncher
                         };
                     }
                     runResult.TestInfo = test;
-
                     //get the original source for this test, for grouping tests under test classes
                     runResult.TestGroup = test.TestGroup;
 
@@ -445,38 +447,14 @@ namespace HpToolsLauncher
                     //create test folders
                     if (rerunList[test.TestPath] > 0)
                     {
-                        if (!Directory.Exists(Path.Combine(test.TestPath, "Report1")))
-                        {
-                            rerunList[test.TestPath]--;
-                        }
-                        else
+                        rerunList[test.TestPath]--;
+                        if (Directory.Exists(Path.Combine(test.TestPath, REPORT1)))
                         {
                             indexList[test.TestPath]++;
-                            rerunList[test.TestPath]--;
                         }
                     }
 
-                    //update report folder
-                    string uftReportDir = Path.Combine(test.TestPath, "Report");
-                    string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
-                    ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
-                    try
-                    {
-                        if (Directory.Exists(uftReportDir))
-                        {
-                            if (Directory.Exists(uftReportDirNew))
-                            {
-                                Helper.DeleteDirectory(uftReportDirNew);
-                            }
-
-                            Directory.Move(uftReportDir, uftReportDirNew);
-                        }
-                    }
-                    catch(Exception)
-                    {
-                        Thread.Sleep(1000);
-                        Directory.Move(uftReportDir, uftReportDirNew);
-                    }
+                    UpdateUftReportDir(test.TestPath, indexList);
 
                     // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
                     _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
@@ -502,6 +480,39 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
+        private void UpdateUftReportDir(string testPath, Dictionary<string, int> indexList)
+        {
+            //update report folder
+            string uftReportDir = Path.Combine(testPath, REPORT);
+            string uftReportDirNew = Path.Combine(testPath, string.Format("Report{0}", indexList[testPath]));
+            ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
+            try
+            {
+                if (Directory.Exists(uftReportDir))
+                {
+                    if (Directory.Exists(uftReportDirNew))
+                    {
+                        Helper.DeleteDirectory(uftReportDirNew);
+                    }
+
+                    Directory.Move(uftReportDir, uftReportDirNew);
+                }
+            }
+            catch (Exception)
+            {
+                Thread.Sleep(1000);
+                Directory.Move(uftReportDir, uftReportDirNew);
+            }
+        }
+
+        public override void SafelyCancel()
+        {
+            base.SafelyCancel();
+            if (_runner != null)
+            {
+                _runner.SafelyCancel();
+            }
+        }
 
         private Dictionary<string, int> CreateDictionary(List<TestInfo> validTests)
         {
@@ -557,12 +568,15 @@ namespace HpToolsLauncher
         /// <summary>
         /// Sets the test's parameters from the props (CI args).
         /// </summary>
+        /// <param name="idx"></param>
+        /// <param name="test"></param>
         private static void SetPropsParams(List<TestParameter> @params, int idx, ref TestInfo test)
         {
             if (@params != null && @params.Count > 0)
             {
                 // all the parameters that belong to this test
                 List<TestParameter> testParams = @params.FindAll(elem => elem.TestIdx.Equals(idx));
+
                 foreach (TestParameter param in testParams)
                 {
                     test.Params.Add(new TestParameterInfo() { Name = param.ParamName, Type = param.ParamType, Value = param.ParamVal });
@@ -610,32 +624,34 @@ namespace HpToolsLauncher
                 ConsoleWriter.WriteLine("ParallelRunner does not support API tests, treating as normal test.");
             }
 
-            IFileSysTestRunner runner = null;
             switch (type)
             {
                 case TestType.ST:
-                    runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
+                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams);
+                    _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
+                    _runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
                     break;
                 case TestType.ParallelRunner:
-                    runner = new ParallelTestRunner(this, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests, _parallelRunnerEnvironments);
+                    _runner = new ParallelTestRunner(this, _mcConnection, _parallelRunnerEnvironments);
+                    break;
+                default:
+                    _runner = null;
                     break;
             }
 
-            if (runner != null)
+            if (_runner != null)
             {
                 if (!_colRunnersForCleanup.ContainsKey(type))
-                    _colRunnersForCleanup.Add(type, runner);
+                    _colRunnersForCleanup.Add(type, _runner);
 
                 Stopwatch s = Stopwatch.StartNew();
 
-                var results = runner.RunTest(testInfo, ref errorReason, RunCancelled, out outParams);
+                var results = _runner.RunTest(testInfo, ref errorReason, RunCancelled, out outParams);
                 if (results.ErrorDesc != null && results.ErrorDesc.Equals(TestState.Error))
                 {
                     Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
@@ -651,9 +667,7 @@ namespace HpToolsLauncher
             //check for abortion
             if (File.Exists(_abortFilename))
             {
-
                 ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
-
                 //stop working 
                 Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
             }
@@ -669,17 +683,17 @@ namespace HpToolsLauncher
         public bool RunCancelled()
         {
             //if timeout has passed
-            if (_stopwatch.Elapsed > _timeout && !_blnRunCancelled)
+            if (_stopwatch.Elapsed > _timeout && !_isRunCancelled)
             {
                 ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
                 ConsoleWriter.WriteLine(Resources.SmallDoubleSeparator);
 
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-                _blnRunCancelled = true;
+                _isRunCancelled = true;
             }
 
-            return _blnRunCancelled;
+            return _isRunCancelled;
         }
 
         /// <summary>

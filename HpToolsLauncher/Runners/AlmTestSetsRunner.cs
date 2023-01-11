@@ -1074,7 +1074,7 @@ namespace HpToolsLauncher
                     activeRunDescription.AppendResults(runResults);
 
                 // if the run has cancelled, because of timeout, we should terminate the build
-                if (_blnRunCancelled) break;
+                if (_isRunCancelled) break;
 
                 ++idx;
             }
@@ -1293,7 +1293,7 @@ namespace HpToolsLauncher
             }
 
             // if the run has been cancelled and a timeout is set, which has elapsed, skip this part, we are going to do it later with some corrections
-            if (!_blnRunCancelled && (Timeout == -1 || swForTimeout.Elapsed.TotalSeconds < Timeout))
+            if (!_isRunCancelled && (Timeout == -1 || swForTimeout.Elapsed.TotalSeconds < Timeout))
                 SetTestResults(ref currentTest, executionStatus, targetTestSet, activeTestDesc, runDesc, testPath, abortFilename);
 
             // update the total runtime
@@ -1777,7 +1777,7 @@ namespace HpToolsLauncher
                 //check for abortion
                 if (File.Exists(abortFilename))
                 {
-                    _blnRunCancelled = true;
+                    _isRunCancelled = true;
 
                     ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
 
@@ -1793,7 +1793,7 @@ namespace HpToolsLauncher
                 if (sw.Elapsed.TotalSeconds >= timeout && timeout != -1)
                 {
                     // setting the flag ensures that we will recall later, that the currently scheduled tests are aborted because of the timeout
-                    _blnRunCancelled = true;
+                    _isRunCancelled = true;
                 }
             }
         }
