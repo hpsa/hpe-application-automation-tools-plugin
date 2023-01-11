@@ -90,6 +90,139 @@ namespace HpToolsLauncher
             MobileProxySetting_Password = string.Empty;
         }
 
+        public McConnectionInfo(JavaProperties ciParams) : this()
+        {
+            if (ciParams.ContainsKey("MobileHostAddress"))
+            {
+                string mcServerUrl = ciParams["MobileHostAddress"];
+
+                if (!string.IsNullOrEmpty(mcServerUrl))
+                {
+                    //url is something like http://xxx.xxx.xxx.xxx:8080
+                    string[] strArray = mcServerUrl.Split(new char[] { ':' });
+                    if (strArray.Length == 3)
+                    {
+                        MobileHostAddress = strArray[1].Replace("/", string.Empty);
+                        MobileHostPort = strArray[2];
+                    }
+
+                    //mc username
+                    if (ciParams.ContainsKey("MobileUserName"))
+                    {
+                        string mcUsername = ciParams["MobileUserName"];
+                        if (!string.IsNullOrEmpty(mcUsername))
+                        {
+                            MobileUserName = mcUsername;
+                        }
+                    }
+
+                    //mc password
+                    if (ciParams.ContainsKey("MobilePassword"))
+                    {
+                        string mcPassword = ciParams["MobilePassword"];
+                        if (!string.IsNullOrEmpty(mcPassword))
+                        {
+                            MobilePassword = EncryptionUtils.Decrypt(mcPassword);
+                        }
+                    }
+
+                    //mc tenantId
+                    if (ciParams.ContainsKey("MobileTenantId"))
+                    {
+                        string mcTenantId = ciParams["MobileTenantId"];
+                        if (!string.IsNullOrEmpty(mcTenantId))
+                        {
+                            MobileTenantId = mcTenantId;
+                        }
+                    }
+
+                    //mc exec token	
+                    if (ciParams.ContainsKey("MobileExecToken"))
+                    {
+                        var mcExecToken = ciParams["MobileExecToken"];
+                        if (!string.IsNullOrEmpty(mcExecToken))
+                        {
+                            MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);
+                        }
+                    }
+
+                    //ssl
+                    if (ciParams.ContainsKey("MobileUseSSL"))
+                    {
+                        string mcUseSSL = ciParams["MobileUseSSL"];
+                        if (!string.IsNullOrEmpty(mcUseSSL))
+                        {
+                            MobileUseSSL = int.Parse(mcUseSSL);
+                        }
+                    }
+
+                    //Proxy enabled flag
+                    if (ciParams.ContainsKey("MobileUseProxy"))
+                    {
+                        string useProxy = ciParams["MobileUseProxy"];
+                        if (!string.IsNullOrEmpty(useProxy))
+                        {
+                            MobileUseProxy = int.Parse(useProxy);
+                        }
+                    }
+
+                    //Proxy type
+                    if (ciParams.ContainsKey("MobileProxyType"))
+                    {
+                        string proxyType = ciParams["MobileProxyType"];
+                        if (!string.IsNullOrEmpty(proxyType))
+                        {
+                            MobileProxyType = int.Parse(proxyType);
+                        }
+                    }
+
+                    //proxy address
+                    string proxyAddress = ciParams.GetOrDefault("MobileProxySetting_Address");
+                    if (!string.IsNullOrEmpty(proxyAddress))
+                    {
+                        // data is something like "16.105.9.23:8080"
+                        string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
+                        if (strArrayForProxyAddress.Length == 2)
+                        {
+                            MobileProxySetting_Address = strArrayForProxyAddress[0];
+                            MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
+                        }
+                    }
+
+
+                    //Proxy authentication
+                    if (ciParams.ContainsKey("MobileProxySetting_Authentication"))
+                    {
+                        string proxyAuthentication = ciParams["MobileProxySetting_Authentication"];
+                        if (!string.IsNullOrEmpty(proxyAuthentication))
+                        {
+                            MobileProxySetting_Authentication = int.Parse(proxyAuthentication);
+                        }
+                    }
+
+                    //Proxy username
+                    if (ciParams.ContainsKey("MobileProxySetting_UserName"))
+                    {
+                        string proxyUsername = ciParams["MobileProxySetting_UserName"];
+                        if (!string.IsNullOrEmpty(proxyUsername))
+                        {
+                            MobileProxySetting_UserName = proxyUsername;
+                        }
+                    }
+
+                    //Proxy password
+                    if (ciParams.ContainsKey("MobileProxySetting_Password"))
+                    {
+                        string proxyPassword = ciParams["MobileProxySetting_Password"];
+                        if (!string.IsNullOrEmpty(proxyPassword))
+                        {
+                            MobileProxySetting_Password = EncryptionUtils.Decrypt(proxyPassword);
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Parses the execution token and separates into three parts: clientId, secretKey and tenantId
         /// </summary>

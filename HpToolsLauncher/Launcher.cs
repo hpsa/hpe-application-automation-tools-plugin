@@ -482,137 +482,19 @@ namespace HpToolsLauncher
                     }
 
                     //--MC connection info
-                    McConnectionInfo mcConnectionInfo = new McConnectionInfo();
-                    if (_ciParams.ContainsKey("MobileHostAddress"))
+                    McConnectionInfo mcConnectionInfo = null;
+                    try
                     {
-                        string mcServerUrl = _ciParams["MobileHostAddress"];
-
-                        if (!string.IsNullOrEmpty(mcServerUrl))
-                        {
-                            //url is something like http://xxx.xxx.xxx.xxx:8080
-                            string[] strArray = mcServerUrl.Split(new char[] { ':' });
-                            if (strArray.Length == 3)
-                            {
-                                mcConnectionInfo.MobileHostAddress = strArray[1].Replace("/", string.Empty);
-                                mcConnectionInfo.MobileHostPort = strArray[2];
-                            }
-
-                            //mc username
-                            if (_ciParams.ContainsKey("MobileUserName"))
-                            {
-                                string mcUsername = _ciParams["MobileUserName"];
-                                if (!string.IsNullOrEmpty(mcUsername))
-                                {
-                                    mcConnectionInfo.MobileUserName = mcUsername;
-                                }
-                            }
-
-                            //mc password
-                            if (_ciParams.ContainsKey("MobilePassword"))
-                            {
-                                string mcPassword = _ciParams["MobilePassword"];
-                                if (!string.IsNullOrEmpty(mcPassword))
-                                {
-                                    mcConnectionInfo.MobilePassword = EncryptionUtils.Decrypt(mcPassword);
-                                }
-                            }
-
-                            //mc tenantId
-                            if (_ciParams.ContainsKey("MobileTenantId"))
-                            {
-                                string mcTenantId = _ciParams["MobileTenantId"];
-                                if (!string.IsNullOrEmpty(mcTenantId))
-                                {
-                                    mcConnectionInfo.MobileTenantId = mcTenantId;
-                                }
-                            }
-                          
-                            //mc exec token	
-                            if (_ciParams.ContainsKey("MobileExecToken"))	
-                            {	
-                                var mcExecToken = _ciParams["MobileExecToken"];	
-                                if (!string.IsNullOrEmpty(mcExecToken))	
-                                {	
-                                    try	
-                                    {	
-                                        mcConnectionInfo.MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);	
-                                    }	
-                                    catch (ArgumentException e)	
-                                    {	
-                                        ConsoleWriter.WriteErrLine(e.Message);	
-                                        Environment.Exit((int)ExitCodeEnum.Failed);	
-                                    }	
-                                }	
-                            }
-
-                            //ssl
-                            if (_ciParams.ContainsKey("MobileUseSSL"))
-                            {
-                                string mcUseSSL = _ciParams["MobileUseSSL"];
-                                if (!string.IsNullOrEmpty(mcUseSSL))
-                                {
-                                    mcConnectionInfo.MobileUseSSL = int.Parse(mcUseSSL);
-                                }
-                            }
-
-                            //Proxy enabled flag
-                            if (_ciParams.ContainsKey("MobileUseProxy"))
-                            {
-                                string useProxy = _ciParams["MobileUseProxy"];
-                                if (!string.IsNullOrEmpty(useProxy))
-                                {
-                                    mcConnectionInfo.MobileUseProxy = int.Parse(useProxy);
-                                }
-                            }
-
-                            //Proxy type
-                            if (_ciParams.ContainsKey("MobileProxyType"))
-                            {
-                                string proxyType = _ciParams["MobileProxyType"];
-                                if (!string.IsNullOrEmpty(proxyType))
-                                {
-                                    mcConnectionInfo.MobileProxyType = int.Parse(proxyType);
-                                }
-                            }
-
-                            //proxy address
-                            string proxyAddress = _ciParams.GetOrDefault("MobileProxySetting_Address");
-                            CheckAndSetMobileProxySettings(ref mcConnectionInfo, proxyAddress);
-
-                            //Proxy authentication
-                            if (_ciParams.ContainsKey("MobileProxySetting_Authentication"))
-                            {
-                                string proxyAuthentication = _ciParams["MobileProxySetting_Authentication"];
-                                if (!string.IsNullOrEmpty(proxyAuthentication))
-                                {
-                                    mcConnectionInfo.MobileProxySetting_Authentication = int.Parse(proxyAuthentication);
-                                }
-                            }
-
-                            //Proxy username
-                            if (_ciParams.ContainsKey("MobileProxySetting_UserName"))
-                            {
-                                string proxyUsername = _ciParams["MobileProxySetting_UserName"];
-                                if (!string.IsNullOrEmpty(proxyUsername))
-                                {
-                                    mcConnectionInfo.MobileProxySetting_UserName = proxyUsername;
-                                }
-                            }
-
-                            //Proxy password
-                            if (_ciParams.ContainsKey("MobileProxySetting_Password"))
-                            {
-                                string proxyPassword = _ciParams["MobileProxySetting_Password"];
-                                if (!string.IsNullOrEmpty(proxyPassword))
-                                {
-                                    mcConnectionInfo.MobileProxySetting_Password = EncryptionUtils.Decrypt(proxyPassword);
-                                }
-                            }
-                        }
+                        mcConnectionInfo = new McConnectionInfo(_ciParams);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleWriter.WriteErrLine(ex.Message);
+                        Environment.Exit((int)ExitCodeEnum.Failed);
                     }
 
-                    // other mobile info
-                    string mobileinfo = string.Empty;
+                        // other mobile info
+                        string mobileinfo = string.Empty;
                     if (_ciParams.ContainsKey("mobileinfo"))
                     {
                         mobileinfo = _ciParams["mobileinfo"];
@@ -726,20 +608,6 @@ namespace HpToolsLauncher
                     break;
             }
             return runner;
-        }
-
-        private void CheckAndSetMobileProxySettings(ref McConnectionInfo mcConnectionInfo, string proxyAddress)
-        {
-            if (!string.IsNullOrEmpty(proxyAddress))
-            {
-                // data is something like "16.105.9.23:8080"
-                string[] strArrayForProxyAddress = proxyAddress.Split(new char[] { ':' });
-                if (strArrayForProxyAddress.Length == 2)
-                {
-                    mcConnectionInfo.MobileProxySetting_Address = strArrayForProxyAddress[0];
-                    mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArrayForProxyAddress[1]);
-                }
-            }
         }
 
         private List<string> GetParamsWithPrefix(string prefix, bool skipEmptyEntries = false)
