@@ -33,7 +33,6 @@ using QTObjectModelLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -82,6 +81,8 @@ namespace HpToolsLauncher
         private McConnectionInfo _mcConnection;
         private string _mobileInfo;
         private bool _printInputParams;
+        private bool _isCancelledByUser;
+        private RunAsUser _uftRunAsUser;
 
         /// <summary>
         /// constructor
@@ -157,14 +158,16 @@ namespace HpToolsLauncher
 
             try
             {
-
                 lock (_lockObject)
                 {
                     _qtpApplication = Activator.CreateInstance(_qtType) as Application;
                     if (_uftRunAsUser != null)
                     {
                         _qtpApplication.LaunchAsUser(_uftRunAsUser.Username, _uftRunAsUser.EncodedPassword);
-                        _qtpApplication.Visible = false;
+                        if (_qtpApplication.Visible)
+                        {
+                            _qtpApplication.Visible = false;
+                        }
                     }
 
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
@@ -365,11 +368,7 @@ namespace HpToolsLauncher
                         _qtpApplication = Activator.CreateInstance(_qtType) as Application;
                     }
 
-                    //if the app is running, close it.
-                    if (_qtpApplication.Launched)
-                    {
-                        _qtpApplication.Quit();
-                    }
+                    _qtpApplication.Quit();
                 }
             }
             catch
@@ -441,7 +440,7 @@ namespace HpToolsLauncher
                 //the addins need to be refreshed, load new addins
                 if (blnNeedToLoadAddins)
                 {
-                    if (_qtpApplication.Launched)
+                    if (_qtpApplication.Launched && _uftRunAsUser == null)
                         _qtpApplication.Quit();
                     _qtpApplication.SetActiveAddins(ref testAddinsObj, out erroDescription);
                 }
