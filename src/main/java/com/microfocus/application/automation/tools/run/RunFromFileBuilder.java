@@ -720,14 +720,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         boolean isPrintTestParams = UftToolUtils.isPrintTestParams(build, listener);
         mergedProperties.put("printTestParams", isPrintTestParams ? "1" : "0");
 
+        UftRunAsUser uftRunAsUser = null;
         try {
-            UftRunAsUser uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
-            mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
-            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPassword());
+            uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
         } catch(IllegalArgumentException e) {
             build.setResult(Result.FAILURE);
-            listener.fatalError(String.format("Error occurred while checking build parameters: %s.", e.getMessage()));
+            listener.fatalError(String.format("Build parameters check failed: %s.", e.getMessage()));
             return;
+        }
+        if (uftRunAsUser != null) {
+            mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
+            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPassword());
         }
         int idx = 0;
         for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
