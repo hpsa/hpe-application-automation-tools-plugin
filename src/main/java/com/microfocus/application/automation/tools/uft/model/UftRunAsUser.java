@@ -11,7 +11,7 @@ public class UftRunAsUser {
     public UftRunAsUser(String username, String encodedPwd) {
         if (StringUtils.isBlank(username) ) {
             throw new IllegalArgumentException(String.format("%s is required", UFT_RUN_AS_USER_NAME));
-        } if (StringUtils.isBlank(encodedPwd)) {
+        } else if (StringUtils.isBlank(encodedPwd)) {
             throw new IllegalArgumentException(String.format("%s is required", UFT_RUN_AS_USER_ENCODED_PWD));
         }
         this.username = username;
