@@ -404,8 +404,8 @@ public class UftToolUtils {
                         throw new IllegalArgumentException(String.format("%s is missing or empty.", UFT_RUN_AS_USER_ENCODED_PWD));
                     }
                     encodedPwd = pwd.getPlainText();
+                    uftRunAsUser = new UftRunAsUser(username, encodedPwd);
                 }
-                uftRunAsUser = new UftRunAsUser(username, encodedPwd);
             }
         }
         return uftRunAsUser;
