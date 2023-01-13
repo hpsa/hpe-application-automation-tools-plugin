@@ -26,6 +26,7 @@
  * ___________________________________________________________________
  */
 
+using HpToolsLauncher.Utils;
 using System.Globalization;
 using System.IO;
 using System.Xml;

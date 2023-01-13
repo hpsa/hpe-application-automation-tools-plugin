@@ -27,6 +27,7 @@
  */
 
 
+using HpToolsLauncher.Utils;
 using System;
 
 namespace HpToolsLauncher

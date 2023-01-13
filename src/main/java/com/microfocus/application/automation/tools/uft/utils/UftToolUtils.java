@@ -387,27 +387,53 @@ public class UftToolUtils {
     }
 
     public static UftRunAsUser getRunAsUser(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener) throws IllegalArgumentException {
-        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        ParametersAction paramAction = build.getAction(ParametersAction.class);
         UftRunAsUser uftRunAsUser = null;
-        if (parameterAction != null) {
-            ParameterValue paramValuePair = parameterAction.getParameter(UFT_RUN_AS_USER_NAME);
+        if (paramAction != null) {
+            ParameterValue paramValuePair = paramAction.getParameter(UFT_RUN_AS_USER_NAME);
             if (paramValuePair != null) {
-                String username; String encodedPwd = null;
-                username = (String) paramValuePair.getValue();
-                listener.getLogger().println(String.format(KEY_VALUE_FORMAT, UFT_RUN_AS_USER_NAME, username)) ;
-                paramValuePair = parameterAction.getParameter(UFT_RUN_AS_USER_ENCODED_PWD);
-                if (paramValuePair == null) {
-                    throw new IllegalArgumentException(String.format("%s is missing or empty.", UFT_RUN_AS_USER_ENCODED_PWD));
-                } else {
-                    Secret pwd = (Secret) paramValuePair.getValue();
-                    if (pwd == null || StringUtils.isBlank(pwd.getPlainText())) {
-                        throw new IllegalArgumentException(String.format("%s is missing or empty.", UFT_RUN_AS_USER_ENCODED_PWD));
+                String username = (String) paramValuePair.getValue();
+                if (StringUtils.isNotBlank(username)) {
+                    listener.getLogger().println(String.format(KEY_VALUE_FORMAT, UFT_RUN_AS_USER_NAME, username));
+                    paramValuePair = paramAction.getParameter(UFT_RUN_AS_USER_ENCODED_PWD);
+                    if (paramValuePair == null) {
+                        uftRunAsUser = getRunAsUserWithPassword(paramAction, username);
+                    } else {
+                        Secret encodedPwd = (Secret) paramValuePair.getValue();
+                        if (encodedPwd == null || StringUtils.isBlank(encodedPwd.getPlainText())) {
+                            uftRunAsUser = getRunAsUserWithPassword(paramAction, username);
+                        } else {
+                            paramValuePair = paramAction.getParameter(UFT_RUN_AS_USER_PWD);
+                            if (paramValuePair != null) {
+                                Secret pwd = (Secret) paramValuePair.getValue();
+                                if (pwd != null && StringUtils.isNotBlank(pwd.getPlainText())) {
+                                    throw new IllegalArgumentException(String.format("Please provide either %s or %s, but not both.", UFT_RUN_AS_USER_PWD, UFT_RUN_AS_USER_ENCODED_PWD));
+                                }
+                            }
+                            uftRunAsUser = new UftRunAsUser(username, encodedPwd.getPlainText());
+                        }
                     }
-                    encodedPwd = pwd.getPlainText();
-                    uftRunAsUser = new UftRunAsUser(username, encodedPwd);
                 }
             }
         }
         return uftRunAsUser;
+    }
+
+    private static UftRunAsUser getRunAsUserWithPassword(ParametersAction paramAction, String username) throws IllegalArgumentException {
+        Secret pwd = getRunAsUserPassword(paramAction);
+        if (pwd == null || StringUtils.isBlank(pwd.getPlainText())) {
+            throw new IllegalArgumentException(String.format("Either %s or %s is required.", UFT_RUN_AS_USER_PWD, UFT_RUN_AS_USER_ENCODED_PWD));
+        }
+        return new UftRunAsUser(username, pwd);
+    }
+    private static Secret getRunAsUserPassword(ParametersAction paramAction) {
+        Secret pwd = null;
+        if (paramAction != null) {
+            ParameterValue paramValuePair = paramAction.getParameter(UFT_RUN_AS_USER_PWD);
+            if (paramValuePair != null) {
+                pwd = (Secret) paramValuePair.getValue();
+            }
+        }
+        return pwd;
     }
 }

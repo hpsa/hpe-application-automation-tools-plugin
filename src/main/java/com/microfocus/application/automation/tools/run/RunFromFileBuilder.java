@@ -721,17 +721,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         boolean isPrintTestParams = UftToolUtils.isPrintTestParams(build, listener);
         mergedProperties.put("printTestParams", isPrintTestParams ? "1" : "0");
 
-        UftRunAsUser uftRunAsUser = null;
+        UftRunAsUser uftRunAsUser;
         try {
             uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
-        } catch(IllegalArgumentException e) {
+            if (uftRunAsUser != null) {
+                mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
+                if (StringUtils.isNotBlank(uftRunAsUser.getEncodedPassword())) {
+                    mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPasswordAsEncrypted(currNode));
+                } else if (uftRunAsUser.getPassword() != null) {
+                    mergedProperties.put("uftRunAsUserPassword", uftRunAsUser.getPasswordAsEncrypted(currNode));
+                }
+            }
+        } catch(IllegalArgumentException | EncryptionUtils.EncryptionException e) {
             build.setResult(Result.FAILURE);
             listener.fatalError(String.format("Build parameters check failed: %s.", e.getMessage()));
             return;
-        }
-        if (uftRunAsUser != null) {
-            mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
-            mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPassword());
         }
         int idx = 0;
         for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {

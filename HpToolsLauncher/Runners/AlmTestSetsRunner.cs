@@ -39,6 +39,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Security;
+using HpToolsLauncher.Utils;
 
 namespace HpToolsLauncher
 {

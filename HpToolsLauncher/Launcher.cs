@@ -301,13 +301,13 @@ namespace HpToolsLauncher
 
                     bool isSSOEnabled = _ciParams.ContainsKey("SSOEnabled") ? Convert.ToBoolean(_ciParams["SSOEnabled"]) : false;
                     string clientID = _ciParams.GetOrDefault("almClientID");
-                    string apiKey = _ciParams.ContainsKey("almApiKeySecret") ? EncryptionUtils.Decrypt(_ciParams["almApiKeySecret"]) : string.Empty;
+                    string apiKey = _ciParams.ContainsKey("almApiKeySecret") ? Encrypter.Decrypt(_ciParams["almApiKeySecret"]) : string.Empty;
                     string almRunHost = _ciParams.GetOrDefault("almRunHost");
 
                     //create an Alm runner
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
                                      _ciParams["almUsername"],
-                                     EncryptionUtils.Decrypt(_ciParams["almPassword"]),
+                                     Encrypter.Decrypt(_ciParams["almPassword"]),
                                      _ciParams["almDomain"],
                                      _ciParams["almProject"],
                                      dblQcTimeout,
@@ -547,13 +547,20 @@ namespace HpToolsLauncher
                     }
 
                     RunAsUser uftRunAsUser = null;
-                    if (_ciParams.ContainsKey("uftRunAsUserName") && _ciParams.ContainsKey("uftRunAsUserEncodedPassword"))
+                    string username = _ciParams.GetOrDefault("uftRunAsUserName");
+                    if (!string.IsNullOrEmpty(username))
                     {
-                        string username = _ciParams["uftRunAsUserName"];
-                        string encodedPwd = _ciParams["uftRunAsUserEncodedPassword"];
-                        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(encodedPwd))
+                        string encryptedAndEncodedPwd = _ciParams.GetOrDefault("uftRunAsUserEncodedPassword");
+                        string encryptedPwd = _ciParams.GetOrDefault("uftRunAsUserPassword");
+                        if (!string.IsNullOrEmpty(encryptedAndEncodedPwd))
                         {
+                            string encodedPwd = Encrypter.Decrypt(encryptedAndEncodedPwd);
                             uftRunAsUser = new RunAsUser(username, encodedPwd);
+                        }
+                        else if (!string.IsNullOrEmpty(encryptedPwd))
+                        {
+                            string plainTextPwd = Encrypter.Decrypt(encryptedPwd);
+                            uftRunAsUser = new RunAsUser(username, plainTextPwd.ToSecureString());
                         }
                     }
 
@@ -952,7 +959,7 @@ namespace HpToolsLauncher
                     }
                     else if (type == PASSWORD && !string.IsNullOrWhiteSpace(val))
                     {
-                        val = EncryptionUtils.Decrypt(val);
+                        val = Encrypter.Decrypt(val);
                     }
 
                     parameters.Add(new TestParameter(i, name, val, type.ToLower()));
