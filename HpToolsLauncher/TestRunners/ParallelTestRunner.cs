@@ -387,7 +387,6 @@ namespace HpToolsLauncher.TestRunners
         /// <param name="arguments"> the process arguments </param>
         private Process InitProcess(string fileName, string arguments)
         {
-            TextWriter cErr = Console.Error, cOut = Console.Out;
             var info = new ProcessStartInfo
             {
                 FileName = fileName,
@@ -405,8 +404,8 @@ namespace HpToolsLauncher.TestRunners
             }
 
             Process p = new Process { StartInfo = info };
-            p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => { cErr.WriteLine(e.Data); });
-            p.OutputDataReceived += new DataReceivedEventHandler((sender, e) => { cOut.WriteLine(e.Data); });
+            p.ErrorDataReceived += (sender, e) => { if (!string.IsNullOrEmpty(e.Data)) Console.Error.WriteLine(e.Data); };
+            p.OutputDataReceived += (sender, e) => { if (!string.IsNullOrEmpty(e.Data)) Console.Out.WriteLine(e.Data); };
             return p;
         }
 

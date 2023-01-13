@@ -176,9 +176,7 @@ namespace HpToolsLauncher
             Stopwatch s = Stopwatch.StartNew();
             runDesc.TestState = TestState.Running;
 
-            if (!ExecuteProcess(fileName,
-                                argumentString,
-                                ref errorReason))
+            if (!ExecuteProcess(fileName, argumentString, ref errorReason))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -227,15 +225,13 @@ namespace HpToolsLauncher
                     InitProcess(proc, fileName, arguments, true);
                     RunProcess(proc, true);
 
-                    //it could be that the process already existed
-                    //before we could handle the cancel request
+                    //it could be that the process already exited before we could handle the cancel request
                     if (_runCancelled())
                     {
                         ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
 
                         if (!proc.HasExited)
                         {
-
                             proc.OutputDataReceived -= OnOutputDataReceived;
                             proc.ErrorDataReceived -= OnErrorDataReceived;
                             proc.Kill();
