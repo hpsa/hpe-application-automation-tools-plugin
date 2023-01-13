@@ -318,7 +318,7 @@ namespace HpToolsLauncher.TestRunners
         {
             try
             {
-                if (!IsParentProcessRunningInUserSession())
+                if (_uftRunAsUser != null || !IsParentProcessRunningInUserSession())
                 {
                     return InitProcess(fileName, arguments);
                 }
