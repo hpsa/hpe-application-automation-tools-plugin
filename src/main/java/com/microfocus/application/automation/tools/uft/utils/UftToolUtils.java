@@ -28,12 +28,13 @@
 
 package com.microfocus.application.automation.tools.uft.utils;
 
-import com.microfocus.application.automation.tools.octane.executor.UftConstants;
+import com.microfocus.application.automation.tools.uft.model.UftRunAsUser;
 import com.microfocus.application.automation.tools.results.projectparser.performance.XmlParserUtil;
 import com.microfocus.application.automation.tools.uft.model.RerunSettingsModel;
 import hudson.FilePath;
 import hudson.model.*;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -52,6 +53,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static com.microfocus.application.automation.tools.uft.utils.Constants.*;
 
 public class UftToolUtils {
 
@@ -372,14 +375,39 @@ public class UftToolUtils {
         if (parameterAction == null) {
             listener.getLogger().println(msg);
         } else {
-            ParameterValue uftPrintTestParams = parameterAction.getParameter(UftConstants.UFT_PRINT_TEST_PARAMS);
+            ParameterValue uftPrintTestParams = parameterAction.getParameter(UFT_PRINT_TEST_PARAMS);
             if (uftPrintTestParams == null) {
                 listener.getLogger().println(msg);
             } else {
                 isUftPrintTestParams = (boolean) uftPrintTestParams.getValue();
-                listener.getLogger().println(String.format("UFT_PRINT_TEST_PARAMS = %s", isUftPrintTestParams ? "Yes" : "No")) ;
+                listener.getLogger().println(String.format(KEY_VALUE_FORMAT, UFT_PRINT_TEST_PARAMS, isUftPrintTestParams ? "Yes" : "No")) ;
             }
         }
         return isUftPrintTestParams;
+    }
+
+    public static UftRunAsUser getRunAsUser(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener) throws IllegalArgumentException {
+        ParametersAction parameterAction = build.getAction(ParametersAction.class);
+        UftRunAsUser uftRunAsUser = null;
+        if (parameterAction != null) {
+            ParameterValue paramValuePair = parameterAction.getParameter(UFT_RUN_AS_USER_NAME);
+            if (paramValuePair != null) {
+                String username; String encodedPwd = null;
+                username = (String) paramValuePair.getValue();
+                listener.getLogger().println(String.format(KEY_VALUE_FORMAT, UFT_RUN_AS_USER_NAME, username)) ;
+                paramValuePair = parameterAction.getParameter(UFT_RUN_AS_USER_ENCODED_PWD);
+                if (paramValuePair == null) {
+                    throw new IllegalArgumentException(String.format("%s is missing or empty.", UFT_RUN_AS_USER_ENCODED_PWD));
+                } else {
+                    Secret pwd = (Secret) paramValuePair.getValue();
+                    if (pwd == null || StringUtils.isBlank(pwd.getPlainText())) {
+                        throw new IllegalArgumentException(String.format("%s is missing or empty.", UFT_RUN_AS_USER_ENCODED_PWD));
+                    }
+                    encodedPwd = pwd.getPlainText();
+                    uftRunAsUser = new UftRunAsUser(username, encodedPwd);
+                }
+            }
+        }
+        return uftRunAsUser;
     }
 }
