@@ -41,7 +41,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Xml.Xsl;
 
-namespace HpToolsLauncher
+namespace HpToolsLauncher.Utils
 {
     public enum TestType
     {

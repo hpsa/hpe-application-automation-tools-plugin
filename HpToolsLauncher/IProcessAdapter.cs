@@ -26,6 +26,7 @@
  * ___________________________________________________________________
  */
 
+using System;
 using System.Diagnostics;
 
 namespace HpToolsLauncher
@@ -72,6 +73,16 @@ namespace HpToolsLauncher
         public void Start()
         {
             Process.Start();
+
+            if (Process.StartInfo.RedirectStandardError)
+            {
+                Process.BeginErrorReadLine();
+            }
+
+            if (Process.StartInfo.RedirectStandardOutput)
+            {
+                Process.BeginOutputReadLine();
+            }
         }
 
         public void WaitForExit()

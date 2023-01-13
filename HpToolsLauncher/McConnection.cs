@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Compilation;
 using HpToolsLauncher.Properties;
+using HpToolsLauncher.Utils;
 
 namespace HpToolsLauncher
 {
@@ -122,7 +123,7 @@ namespace HpToolsLauncher
                         string mcPassword = ciParams["MobilePassword"];
                         if (!string.IsNullOrEmpty(mcPassword))
                         {
-                            MobilePassword = EncryptionUtils.Decrypt(mcPassword);
+                            MobilePassword = Encrypter.Decrypt(mcPassword);
                         }
                     }
 
@@ -142,7 +143,7 @@ namespace HpToolsLauncher
                         var mcExecToken = ciParams["MobileExecToken"];
                         if (!string.IsNullOrEmpty(mcExecToken))
                         {
-                            MobileExecToken = EncryptionUtils.Decrypt(mcExecToken);
+                            MobileExecToken = Encrypter.Decrypt(mcExecToken);
                         }
                     }
 
@@ -216,7 +217,7 @@ namespace HpToolsLauncher
                         string proxyPassword = ciParams["MobileProxySetting_Password"];
                         if (!string.IsNullOrEmpty(proxyPassword))
                         {
-                            MobileProxySetting_Password = EncryptionUtils.Decrypt(proxyPassword);
+                            MobileProxySetting_Password = Encrypter.Decrypt(proxyPassword);
                         }
                     }
                 }

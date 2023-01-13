@@ -4,15 +4,15 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HpToolsLauncher
+namespace HpToolsLauncher.Utils
 {
-    public static class EncryptionUtils
+    public static class Encrypter
     {
         private const string KeyPath = @"secrets/.hptoolslaunchersecret.key";
         private static readonly string SecretKey;
         private static readonly RSACryptoServiceProvider Rsa;
 
-        static EncryptionUtils()
+        static Encrypter()
         {
 #if DEBUG
             return;
