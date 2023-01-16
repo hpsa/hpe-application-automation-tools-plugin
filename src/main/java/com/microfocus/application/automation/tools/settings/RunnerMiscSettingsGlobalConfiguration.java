@@ -53,16 +53,19 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     public static final List<String> DEFAULT_UFT_DATE_PATTERNS = Arrays.asList(DEFAULT_UFT_DATE_PATTERN1, DEFAULT_UFT_DATE_PATTERN2, DEFAULT_UFT_DATE_PATTERN3);
 
     public static final String DEFAULT_BRANCHES = "master main trunk mainline";
+    public static final String DEFAULT_OUTPUT_EXECUTION_PARAMETERS = "BUILD_DISPLAY_NAME BUILD_TAG BUILD_URL";
 
     private String dateFormat;
     private String defaultBranches;
+    private String outputExecutionParameters;
     private boolean agentToControllerEnabled;
 
     @DataBoundConstructor
-    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches,boolean agentToControllerEnabled) {
+    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches, String outputExecutionParameters, boolean agentToControllerEnabled) {
         setDateFormat(mfDateFormat);
         setDefaultBranches(defaultBranches);
         setAgentToControllerEnabled(agentToControllerEnabled);
+        setOutputExecutionParameters(outputExecutionParameters);
     }
 
     public RunnerMiscSettingsGlobalConfiguration() {
@@ -102,11 +105,24 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
         save();
     }
 
+    public String getOutputExecutionParameters() {
+        return outputExecutionParameters;
+    }
 
+    public void setOutputExecutionParameters(String outputExecutionParameters) {
+        this.outputExecutionParameters = getValidatedOutputExecutionParameters(outputExecutionParameters);
+        save();
+    }
 
     private String getValidatedDefaultBranches(String defaultBranches) {
         String[] branches = defaultBranches.split(" ");
         return Stream.of(branches).filter(branch -> !StringUtils.isNullOrEmpty(branch))
+                .collect(Collectors.joining(" "));
+    }
+
+    private String getValidatedOutputExecutionParameters(String executionParams) {
+        String[] props = executionParams.split(" ");
+        return Stream.of(props).filter(p -> !StringUtils.isNullOrEmpty(p))
                 .collect(Collectors.joining(" "));
     }
 
