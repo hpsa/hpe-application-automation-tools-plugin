@@ -650,7 +650,7 @@ namespace HpToolsLauncher
             switch (type)
             {
                 case TestType.ST:
-                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding);
+                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _uftRunAsUser);
                     break;
                 case TestType.QTP:
                     _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams, _uftRunAsUser);
@@ -660,7 +660,7 @@ namespace HpToolsLauncher
                     _runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
                     break;
                 case TestType.ParallelRunner:
-                    _runner = new ParallelTestRunner(this, _mcConnection, _parallelRunnerEnvironments);
+                    _runner = new ParallelTestRunner(this, _mcConnection, _parallelRunnerEnvironments, _uftRunAsUser);
                     break;
                 default:
                     _runner = null;

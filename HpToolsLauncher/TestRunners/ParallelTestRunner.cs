@@ -27,12 +27,14 @@
  */
 
 using HpToolsLauncher.ParallelRunner;
+using HpToolsLauncher.Utils;
 using QTObjectModelLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Web.Caching;
 using Environment = System.Environment;
 using Resources = HpToolsLauncher.Properties.Resources;
 namespace HpToolsLauncher.TestRunners
@@ -57,13 +59,15 @@ namespace HpToolsLauncher.TestRunners
         private List<string> _configFiles = new List<string>();
         private IProcessAdapter _processAdapter;
         private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
+        private RunAsUser _uftRunAsUser;
 
-        public ParallelTestRunner(IAssetRunner runner, McConnectionInfo mcConnectionInfo, Dictionary<string, List<string>> environments)
+        public ParallelTestRunner(IAssetRunner runner, McConnectionInfo mcConnectionInfo, Dictionary<string, List<string>> environments, RunAsUser uftRunAsUser)
         {
             _runner = runner;
             _mcConnectionInfo = mcConnectionInfo;
             _environments = environments;
             _canRun = TrySetupParallelRunner();
+            _uftRunAsUser = uftRunAsUser;
         }
 
         /// <summary>
@@ -134,9 +138,6 @@ namespace HpToolsLauncher.TestRunners
         public TestRunResults RunTest(TestInfo testInfo, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
             outParams = new Dictionary<string, string>();
-
-            // change the DCOM setting for qtp application
-            Helper.ChangeDCOMSettingToInteractiveUser();
 
             testInfo.ReportPath = testInfo.TestPath + @"\ParallelReport";
 
@@ -317,13 +318,9 @@ namespace HpToolsLauncher.TestRunners
         {
             try
             {
-                if (!IsParentProcessRunningInUserSession())
+                if (_uftRunAsUser != null || !IsParentProcessRunningInUserSession())
                 {
-                    Process process = new Process();
-
-                    InitProcess(process, fileName, arguments);
-
-                    return process;
+                    return InitProcess(fileName, arguments);
                 }
 
                 ConsoleWriter.WriteLine("Starting ParallelRunner from service session!");
@@ -386,20 +383,30 @@ namespace HpToolsLauncher.TestRunners
         /// <summary>
         /// Initializes the ParallelRunner process
         /// </summary>
-        /// <param name="proc"> the process </param>
         /// <param name="fileName">the file name</param>
         /// <param name="arguments"> the process arguments </param>
-        private void InitProcess(Process proc, string fileName, string arguments)
+        private Process InitProcess(string fileName, string arguments)
         {
-            var processStartInfo = new ProcessStartInfo
+            var info = new ProcessStartInfo
             {
                 FileName = fileName,
                 Arguments = arguments,
                 WorkingDirectory = Directory.GetCurrentDirectory(),
                 WindowStyle = ProcessWindowStyle.Hidden
             };
+            if (_uftRunAsUser != null)
+            {
+                info.UserName = _uftRunAsUser.Username;
+                info.Password = _uftRunAsUser.Password;
+                info.UseShellExecute = false;
+                info.RedirectStandardOutput = true;
+                info.RedirectStandardError = true;
+            }
 
-            proc.StartInfo = processStartInfo;
+            Process p = new Process { StartInfo = info };
+            p.ErrorDataReceived += (sender, e) => { if (!string.IsNullOrEmpty(e.Data)) Console.Error.WriteLine(e.Data); };
+            p.OutputDataReceived += (sender, e) => { if (!string.IsNullOrEmpty(e.Data)) Console.Out.WriteLine(e.Data); };
+            return p;
         }
 
         /// <summary>

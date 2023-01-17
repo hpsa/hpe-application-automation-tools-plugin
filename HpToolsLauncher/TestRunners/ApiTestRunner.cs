@@ -27,6 +27,7 @@
  */
 
 using HpToolsLauncher.Properties;
+using HpToolsLauncher.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,19 +51,21 @@ namespace HpToolsLauncher
         private Stopwatch _stopwatch = null;
         private RunCancelledDelegate _runCancelled;
         private string _encoding;
+        private RunAsUser _uftRunAsUser;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runner">parent runner</param>
         /// <param name="timeout">the global timout</param>
-        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout, string encoding)
+        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout, string encoding, RunAsUser uftRunAsUser)
         {
             _stopwatch = Stopwatch.StartNew();
             _timeout = timeout;
             _stCanRun = TrySetSTRunner();
             _runner = runner;
             _encoding = encoding;
+            _uftRunAsUser = uftRunAsUser;
         }
 
         /// <summary>
@@ -173,9 +176,7 @@ namespace HpToolsLauncher
             Stopwatch s = Stopwatch.StartNew();
             runDesc.TestState = TestState.Running;
 
-            if (!ExecuteProcess(fileName,
-                                argumentString,
-                                ref errorReason))
+            if (!ExecuteProcess(fileName, argumentString, ref errorReason))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -224,15 +225,13 @@ namespace HpToolsLauncher
                     InitProcess(proc, fileName, arguments, true);
                     RunProcess(proc, true);
 
-                    //it could be that the process already existed
-                    //before we could handle the cancel request
+                    //it could be that the process already exited before we could handle the cancel request
                     if (_runCancelled())
                     {
                         ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
 
                         if (!proc.HasExited)
                         {
-
                             proc.OutputDataReceived -= OnOutputDataReceived;
                             proc.ErrorDataReceived -= OnErrorDataReceived;
                             proc.Kill();
@@ -272,23 +271,28 @@ namespace HpToolsLauncher
         /// <param name="enableRedirection"></param>
         private void InitProcess(Process proc, string fileName, string arguments, bool enableRedirection)
         {
-            var processStartInfo = new ProcessStartInfo
+            var procStartInfo = new ProcessStartInfo
             {
                 FileName = fileName,
                 Arguments = arguments,
                 WorkingDirectory = Directory.GetCurrentDirectory()
             };
+            if (_uftRunAsUser != null)
+            {
+                procStartInfo.UserName = _uftRunAsUser.Username;
+                procStartInfo.Password = _uftRunAsUser.Password;
+            }
 
             Console.WriteLine("{0} {1}", STRunnerName, arguments);
 
             if (!enableRedirection) return;
 
-            processStartInfo.ErrorDialog = false;
-            processStartInfo.UseShellExecute = false;
-            processStartInfo.RedirectStandardOutput = true;
-            processStartInfo.RedirectStandardError = true;
+            procStartInfo.ErrorDialog = false;
+            procStartInfo.UseShellExecute = false;
+            procStartInfo.RedirectStandardOutput = true;
+            procStartInfo.RedirectStandardError = true;
 
-            proc.StartInfo = processStartInfo;
+            proc.StartInfo = procStartInfo;
 
             proc.EnableRaisingEvents = true;
             proc.StartInfo.CreateNoWindow = true;
