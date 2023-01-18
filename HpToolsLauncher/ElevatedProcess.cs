@@ -56,25 +56,9 @@ namespace HpToolsLauncher
             _workDirectory = workDirectory;
         }
 
-        public string ExecutablePath
-        {
-            get { return _path; }
-        }
-
-        public string Arguments
-        {
-            get { return _arguments; }
-        }
-
-        public string WorkDirectory
-        {
-            get { return _workDirectory; }
-        }
-
         private int GetExitCode()
         {
-            uint exitCode = 0;
-
+            uint exitCode;
             if (!NativeProcess.GetExitCodeProcess(_processInformation.hProcess, out exitCode))
             {
                 return 0;
@@ -101,7 +85,7 @@ namespace HpToolsLauncher
 
         public void StartElevated()
         {
-            Process process = null;
+            Process process;
             try
             {
                 process = Process.GetProcessesByName("explorer").FirstOrDefault();
@@ -120,15 +104,14 @@ namespace HpToolsLauncher
             int explorerPid = process.Id;
 
             // open the explorer process with the necessary flags
-            IntPtr hProcess = NativeProcess.OpenProcess(NativeProcess.ProcessAccessFlags.DuplicateHandle | NativeProcess.ProcessAccessFlags.QueryInformation,
-             false, explorerPid);
+            IntPtr hProcess = NativeProcess.OpenProcess(NativeProcess.ProcessAccessFlags.DuplicateHandle | NativeProcess.ProcessAccessFlags.QueryInformation, false, explorerPid);
 
             if (hProcess == IntPtr.Zero)
             {
                 throw new ElevatedProcessException("OpenProcess() failed with error code: " + Marshal.GetLastWin32Error());
             }
 
-            IntPtr hUser = IntPtr.Zero;
+            IntPtr hUser;
 
             // get the secondary token from the explorer process
             if (!NativeProcess.OpenProcessToken(hProcess, NativeProcess.TOKEN_QUERY | NativeProcess.TOKEN_DUPLICATE | NativeProcess.TOKEN_ASSIGN_PRIMARY, out hUser))
@@ -138,7 +121,7 @@ namespace HpToolsLauncher
                 throw new ElevatedProcessException("OpenProcessToken() failed with error code: " + Marshal.GetLastWin32Error());
             }
 
-            IntPtr userToken = IntPtr.Zero;
+            IntPtr userToken;
 
             // convert the secondary token to a primary token
             if (!NativeProcess.DuplicateTokenEx(hUser, NativeProcess.MAXIMUM_ALLOWED, IntPtr.Zero, NativeProcess.SECURITY_IMPERSONATION_LEVEL.SecurityIdentification,
@@ -150,9 +133,8 @@ namespace HpToolsLauncher
                 throw new ElevatedProcessException("DuplicateTokenEx() failed with error code: " + Marshal.GetLastWin32Error());
             }
 
-            // the explorer session id will be used in order to launch
-            // the given executable
-            uint sessionId = 0;
+            // the explorer session id will be used in order to launch the given executable
+            uint sessionId;
 
             if (!NativeProcess.ProcessIdToSessionId((uint)explorerPid, out sessionId))
             {
@@ -188,9 +170,9 @@ namespace HpToolsLauncher
             NativeProcess.PROCESS_INFORMATION pInfo = new NativeProcess.PROCESS_INFORMATION();
             startupInfo.cb = Marshal.SizeOf(pInfo);
 
-            string commandLine = _path + " " + _arguments;
+            string commandLine = string.Format("{0} {1}", _path, _arguments);
 
-            IntPtr pEnv = IntPtr.Zero;
+            IntPtr pEnv;
 
             // create a new environment block for the process
             if (!NativeProcess.CreateEnvironmentBlock(out pEnv, userToken, false))
