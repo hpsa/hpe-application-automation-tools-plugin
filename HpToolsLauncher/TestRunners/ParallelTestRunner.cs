@@ -333,7 +333,7 @@ namespace HpToolsLauncher.TestRunners
 
                 if (_uftRunAsUser != null)
                 {
-                    ConsoleWriter.WriteLine("Starting ParallelRunner as different user from service session is not allowed!");
+                    ConsoleWriter.WriteLine("Starting ParallelRunner as different user from service session is not supported at this moment.");
                     return null;
                 }
                 ConsoleWriter.WriteLine("Starting ParallelRunner from service session!");
