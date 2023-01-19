@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.SPLIT_SYMBOL;
+
 @Extension(ordinal = 1, optional = true)
 public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration implements Serializable {
 
@@ -53,19 +55,19 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     public static final List<String> DEFAULT_UFT_DATE_PATTERNS = Arrays.asList(DEFAULT_UFT_DATE_PATTERN1, DEFAULT_UFT_DATE_PATTERN2, DEFAULT_UFT_DATE_PATTERN3);
 
     public static final String DEFAULT_BRANCHES = "master main trunk mainline";
-    public static final String DEFAULT_OUTPUT_EXECUTION_PARAMETERS = "BUILD_DISPLAY_NAME BUILD_TAG BUILD_URL";
+    public static final String DEFAULT_OUTPUT_ENVIRONMENT_PARAMETERS = "BUILD_DISPLAY_NAME BUILD_TAG BUILD_URL";
 
     private String dateFormat;
     private String defaultBranches;
-    private String outputExecutionParameters;
+    private String outputEnvironmentParameters;
     private boolean agentToControllerEnabled;
 
     @DataBoundConstructor
-    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches, String outputExecutionParameters, boolean agentToControllerEnabled) {
+    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches, String outputEnvironmentParameters, boolean agentToControllerEnabled) {
         setDateFormat(mfDateFormat);
         setDefaultBranches(defaultBranches);
         setAgentToControllerEnabled(agentToControllerEnabled);
-        setOutputExecutionParameters(outputExecutionParameters);
+        setOutputEnvironmentParameters(outputEnvironmentParameters);
     }
 
     public RunnerMiscSettingsGlobalConfiguration() {
@@ -105,12 +107,12 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
         save();
     }
 
-    public String getOutputExecutionParameters() {
-        return outputExecutionParameters;
+    public String getOutputEnvironmentParameters() {
+        return outputEnvironmentParameters;
     }
 
-    public void setOutputExecutionParameters(String outputExecutionParameters) {
-        this.outputExecutionParameters = getValidatedOutputExecutionParameters(outputExecutionParameters);
+    public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
+        this.outputEnvironmentParameters = getValidatedOutputEnvironmentParameters(outputEnvironmentParameters);
         save();
     }
 
@@ -120,10 +122,10 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
                 .collect(Collectors.joining(" "));
     }
 
-    private String getValidatedOutputExecutionParameters(String executionParams) {
-        String[] props = executionParams.split(" ");
-        return Stream.of(props).filter(p -> !StringUtils.isNullOrEmpty(p))
-                .collect(Collectors.joining(" "));
+    private String getValidatedOutputEnvironmentParameters(String envParams) {
+        String[] params = envParams.split("\\s++");
+        return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
+                .collect(Collectors.joining(SPLIT_SYMBOL));
     }
 
     public DateTimeFormatter getDateFormatter() {

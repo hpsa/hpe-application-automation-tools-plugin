@@ -18,20 +18,22 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.SPLIT_SYMBOL;
+
 public class OctaneBuildWrapper extends BuildWrapper implements Serializable {
 
-	private String outputExecutionParameters;
+	private String outputEnvironmentParameters;
 	@DataBoundConstructor
-	public OctaneBuildWrapper(String outputExecutionParameters) {
-		this.outputExecutionParameters = outputExecutionParameters;
+	public OctaneBuildWrapper(String outputEnvironmentParameters) {
+		setOutputEnvironmentParameters(outputEnvironmentParameters);
 	}
 
-	public String getOutputExecutionParameters() {
-		return outputExecutionParameters;
+	public String getOutputEnvironmentParameters() {
+		return outputEnvironmentParameters;
 	}
 	@DataBoundSetter
-	public void setOutputExecutionParameters(String outputExecutionParameters) {
-		this.outputExecutionParameters = getValidatedOutputExecutionParameters(outputExecutionParameters);
+	public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
+		this.outputEnvironmentParameters = getValidatedOutputEnvironmentParameters(outputEnvironmentParameters);
 	}
 
 	@Override
@@ -45,10 +47,10 @@ public class OctaneBuildWrapper extends BuildWrapper implements Serializable {
 		};
 	}
 
-	private String getValidatedOutputExecutionParameters(String executionParams) {
-		String[] params = executionParams.split(" ");
+	private String getValidatedOutputEnvironmentParameters(String envParams) {
+		String[] params = envParams.split("\\s++");
 		return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
-				.collect(Collectors.joining(" "));
+				.collect(Collectors.joining(SPLIT_SYMBOL));
 	}
 
 
@@ -62,12 +64,7 @@ public class OctaneBuildWrapper extends BuildWrapper implements Serializable {
 
 		@Override
 		public String getDisplayName() {
-			return "Octane Build Environment";
-		}
-
-		@Override
-		public String getHelpFile() {
-			return "/plugin/hp-application-automation-tools-plugin/help/help-octaneBuildEnvConfig.html";
+			return "Define list of Environment Variables to be sent to ALM Octane";
 		}
 	}
 

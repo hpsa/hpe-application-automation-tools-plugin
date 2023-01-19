@@ -13,21 +13,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class OutputExecutionParametersHelper {
+public class OutputEnvironmentParametersHelper {
 
-	private static final String SPLIT_SYMBOL = " ";
+	public static final String SPLIT_SYMBOL = " ";
 
-	public static Map<String, String> getOutputExecutionParams(AbstractBuild build) {
+	public static Map<String, String> getOutputEnvironmentParams(AbstractBuild build) {
 		EnvVars environment = getEnvironment(build);
 		if (environment == null) {
 			return Collections.emptyMap();
 		} else {
-			List<String> paramKeysList = getGlobalParamsList();
+			List<String> paramKeysList = new ArrayList<>();
+			paramKeysList.addAll(getGlobalParamsList());
 			paramKeysList.addAll(getJobParamsList(build));
 
 			if (paramKeysList.isEmpty()) return Collections.emptyMap();
 
-			Map<String, String> outputExecutionParams = new HashMap<>();
+			Map<String, String> outputEnvParams = new HashMap<>();
 			Set<String> sensitiveBuildVariables = build.getSensitiveBuildVariables();
 
 			String value;
@@ -35,10 +36,10 @@ public class OutputExecutionParametersHelper {
 				if (sensitiveBuildVariables.contains(key)) continue;
 				value = environment.get(key);
 				if (value != null) {
-					outputExecutionParams.put(key, value);
+					outputEnvParams.put(key, value);
 				}
 			}
-			return outputExecutionParams;
+			return outputEnvParams;
 		}
 	}
 
@@ -52,15 +53,19 @@ public class OutputExecutionParametersHelper {
 	}
 
 	private static List<String> getGlobalParamsList() {
-		return Stream.of(RunnerMiscSettingsGlobalConfiguration.getInstance().getOutputExecutionParameters().split(SPLIT_SYMBOL))
-				.filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
+		try {
+			return Stream.of(RunnerMiscSettingsGlobalConfiguration.getInstance().getOutputEnvironmentParameters()
+					.split(SPLIT_SYMBOL)).filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
+		} catch (NullPointerException ignored) {
+			return Collections.emptyList();
+		}
 	}
 
 	private static List<String> getJobParamsList(AbstractBuild build) {
 		Job<?, ?> job = build.getParent();
 		if (job instanceof BuildableItemWithBuildWrappers) {
 			String paramsStr = ((BuildableItemWithBuildWrappers) job).getBuildWrappersList().
-					get(OctaneBuildWrapper.class).getOutputExecutionParameters();
+					get(OctaneBuildWrapper.class).getOutputEnvironmentParameters();
 			if (paramsStr != null) {
 				String[] params = paramsStr.split(SPLIT_SYMBOL);
 				return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
