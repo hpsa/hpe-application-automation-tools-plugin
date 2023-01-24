@@ -154,17 +154,15 @@ public final class CIEventCausesFactory {
 				startStagesToSkip.add(((StepEndNode) parent).getStartNode());
 				processCauses(parent, causes, startStagesToSkip,visitedParents);
 			} else if (BuildHandlerUtils.isStageStartNode(parent)) {
-				if (!startStagesToSkip.contains(parent)) {
-					if(!visitedParents.contains(parent)) {
-						visitedParents.add(parent);
-						CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
-								.setType(CIEventCauseType.UPSTREAM)
-								.setProject(parent.getDisplayName())
-								.setBuildCiId(String.valueOf(BuildHandlerUtils.extractParentRun(parent).getNumber()));
-						causes.add(cause);
-						processCauses(parent, cause.getCauses(), startStagesToSkip, visitedParents);
-					}
-				} else {
+				if (!startStagesToSkip.contains(parent) && !visitedParents.contains(parent)) {
+					visitedParents.add(parent);
+					CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
+							.setType(CIEventCauseType.UPSTREAM)
+							.setProject(parent.getDisplayName())
+							.setBuildCiId(String.valueOf(BuildHandlerUtils.extractParentRun(parent).getNumber()));
+					causes.add(cause);
+					processCauses(parent, cause.getCauses(), startStagesToSkip, visitedParents);
+				} else if (startStagesToSkip.contains(parent)){
 					startStagesToSkip.remove(parent);
 					processCauses(parent, causes, startStagesToSkip, visitedParents);
 				}
