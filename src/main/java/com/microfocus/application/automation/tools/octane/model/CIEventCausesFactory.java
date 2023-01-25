@@ -127,20 +127,21 @@ public final class CIEventCausesFactory {
 
 	public static List<CIEventCause> processCauses(FlowNode flowNode) {
 		List<CIEventCause> causes = new LinkedList<>();
-		processCauses(flowNode, causes, new LinkedHashSet<>());
+		processCauses(flowNode, causes, new LinkedHashSet<>(),new HashSet<>());
 		return causes;
 	}
 
-	private static void processCauses(FlowNode flowNode, List<CIEventCause> causes, Set<FlowNode> startStagesToSkip) {
+	private static void processCauses(FlowNode flowNode, List<CIEventCause> causes, Set<FlowNode> startStagesToSkip,Set<FlowNode> visitedParents) {
 		//  we reached the start of the flow - add WorkflowRun as an initial UPSTREAM cause
-		if (flowNode.getParents().isEmpty()) {
+		if (flowNode.getParents().isEmpty() && !visitedParents.contains(flowNode)) {
 			WorkflowRun parentRun = BuildHandlerUtils.extractParentRun(flowNode);
 			CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
 					.setType(CIEventCauseType.UPSTREAM)
 					.setProject(BuildHandlerUtils.getJobCiId(parentRun))
 					.setBuildCiId(BuildHandlerUtils.getBuildCiId(parentRun))
 					.setCauses(CIEventCausesFactory.processCauses((parentRun)));
-			causes.add(cause);
+				visitedParents.add(flowNode);
+				causes.add(cause);
 		}
 
 		//  if we are calculating causes for the END STEP - exclude it's own START STEP from calculation
@@ -151,21 +152,22 @@ public final class CIEventCausesFactory {
 		for (FlowNode parent : flowNode.getParents()) {
 			if (BuildHandlerUtils.isStageEndNode(parent)) {
 				startStagesToSkip.add(((StepEndNode) parent).getStartNode());
-				processCauses(parent, causes, startStagesToSkip);
+				processCauses(parent, causes, startStagesToSkip,visitedParents);
 			} else if (BuildHandlerUtils.isStageStartNode(parent)) {
-				if (!startStagesToSkip.contains(parent)) {
+				if (!startStagesToSkip.contains(parent) && !visitedParents.contains(parent)) {
+					visitedParents.add(parent);
 					CIEventCause cause = dtoFactory.newDTO(CIEventCause.class)
 							.setType(CIEventCauseType.UPSTREAM)
 							.setProject(parent.getDisplayName())
 							.setBuildCiId(String.valueOf(BuildHandlerUtils.extractParentRun(parent).getNumber()));
 					causes.add(cause);
-					processCauses(parent, cause.getCauses(), startStagesToSkip);
-				} else {
+					processCauses(parent, cause.getCauses(), startStagesToSkip, visitedParents);
+				} else if (startStagesToSkip.contains(parent)){
 					startStagesToSkip.remove(parent);
-					processCauses(parent, causes, startStagesToSkip);
+					processCauses(parent, causes, startStagesToSkip, visitedParents);
 				}
 			} else {
-				processCauses(parent, causes, startStagesToSkip);
+				processCauses(parent, causes, startStagesToSkip, visitedParents);
 			}
 		}
 	}
