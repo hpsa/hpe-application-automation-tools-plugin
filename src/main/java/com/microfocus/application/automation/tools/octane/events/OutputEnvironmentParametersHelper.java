@@ -7,6 +7,7 @@ import hudson.EnvVars;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildableItemWithBuildWrappers;
 import hudson.model.Job;
+import hudson.model.Run;
 
 import java.io.IOException;
 import java.util.*;
@@ -17,23 +18,26 @@ public class OutputEnvironmentParametersHelper {
 
 	public static final String SPLIT_SYMBOL = " ";
 
-	public static Map<String, String> getOutputEnvironmentParams(AbstractBuild build) {
-		EnvVars environment = getEnvironment(build);
+	public static Map<String, String> getOutputEnvironmentParams(Run run) {
+		EnvVars environment = getEnvironment(run);
 		if (environment == null) {
 			return Collections.emptyMap();
 		} else {
 			List<String> paramKeysList = new ArrayList<>();
 			paramKeysList.addAll(getGlobalParamsList());
-			paramKeysList.addAll(getJobParamsList(build));
+			paramKeysList.addAll(getJobParamsList(run));
 
 			if (paramKeysList.isEmpty()) return Collections.emptyMap();
 
 			Map<String, String> outputEnvParams = new HashMap<>();
-			Set<String> sensitiveBuildVariables = build.getSensitiveBuildVariables();
+			Set<String> sensitiveBuildVariables =null;
+			if (run instanceof AbstractBuild) {
+				sensitiveBuildVariables = ((AbstractBuild) run).getSensitiveBuildVariables();
+			}
 
 			String value;
 			for (String key : paramKeysList) {
-				if (sensitiveBuildVariables.contains(key)) continue;
+				if (sensitiveBuildVariables != null && sensitiveBuildVariables.contains(key)) continue;
 				value = environment.get(key);
 				if (value != null) {
 					outputEnvParams.put(key, value);
@@ -43,10 +47,10 @@ public class OutputEnvironmentParametersHelper {
 		}
 	}
 
-	private static EnvVars getEnvironment(AbstractBuild build) {
+	private static EnvVars getEnvironment(Run run) {
 		EnvVars environment = null;
 		try {
-			environment = build.getEnvironment(null);
+			environment = run.getEnvironment(null);
 		} catch (IOException | InterruptedException ignored) {
 		}
 		return environment;
@@ -61,8 +65,8 @@ public class OutputEnvironmentParametersHelper {
 		}
 	}
 
-	private static List<String> getJobParamsList(AbstractBuild build) {
-		Job<?, ?> job = build.getParent();
+	private static List<String> getJobParamsList(Run run) {
+		Job<?, ?> job = run.getParent();
 		if (job instanceof BuildableItemWithBuildWrappers) {
 			String paramsStr = ((BuildableItemWithBuildWrappers) job).getBuildWrappersList().
 					get(OctaneBuildWrapper.class).getOutputEnvironmentParameters();

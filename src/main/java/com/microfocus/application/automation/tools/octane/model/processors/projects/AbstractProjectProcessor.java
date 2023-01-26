@@ -52,6 +52,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.getOutputEnvironmentParams;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -209,6 +211,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 							} else {
 								status.setBuildStatus(CIBuildStatus.FINISHED);
 								status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
+								status.setEnvironmentOutputtedParameters(getOutputEnvironmentParams(aBuild));
 							}
 							status.setAllBuildParams(ParameterProcessors.getInstances(aBuild));
 							status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));
