@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Resources = HpToolsLauncher.Properties.Resources;
 
@@ -66,6 +67,7 @@ namespace HpToolsLauncher
         private const string RUNNING = "Running";
         private const string PASSED = "Passed";
         private const string WARNING = "Warning";
+        private const int DISP_E_MEMBERNOTFOUND = -2147352573;
 
         private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
         private readonly IAssetRunner _runNotifier;
@@ -163,7 +165,18 @@ namespace HpToolsLauncher
                     _qtpApplication = Activator.CreateInstance(_qtType) as Application;
                     if (_uftRunAsUser != null)
                     {
-                        _qtpApplication.LaunchAsUser(_uftRunAsUser.Username, _uftRunAsUser.EncodedPassword);
+                        try
+                        {
+                            _qtpApplication.LaunchAsUser(_uftRunAsUser.Username, _uftRunAsUser.EncodedPassword);
+                        }
+                        catch (COMException e)
+                        {
+                            if (e.ErrorCode == DISP_E_MEMBERNOTFOUND)
+                            {
+                                errorReason = Resources.UftLaunchAsUserNotSupported;
+                            }
+                            throw;
+                        }
                         if (_qtpApplication.Visible)
                         {
                             _qtpApplication.Visible = false;
@@ -198,10 +211,19 @@ namespace HpToolsLauncher
             }
             catch (Exception e)
             {
-                errorReason = Resources.QtpNotLaunchedError;
+                if (string.IsNullOrEmpty(errorReason))
+                {
+                    errorReason = Resources.QtpNotLaunchedError;
+                    runDesc.ErrorDesc = e.Message;
+                    ConsoleWriter.WriteErrLine(e.Message);
+                }
+                else
+                {
+                    runDesc.ErrorDesc = errorReason;
+                    ConsoleWriter.WriteErrLine(errorReason);
+                }
                 runDesc.TestState = TestState.Error;
                 runDesc.ReportLocation = string.Empty;
-                runDesc.ErrorDesc = e.Message;
                 return runDesc;
             }
 

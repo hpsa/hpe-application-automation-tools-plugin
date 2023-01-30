@@ -1307,6 +1307,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The installed version of UFT One does not support the LaunchAsUser method. Please use the version 2023 or later..
+        /// </summary>
+        internal static string UftLaunchAsUserNotSupported {
+            get {
+                return ResourceManager.GetString("UftLaunchAsUserNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to XML node &apos;{0}&apos; could not be found..
         /// </summary>
         internal static string XmlNodeNotExistError {
