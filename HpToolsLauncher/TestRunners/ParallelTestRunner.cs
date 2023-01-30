@@ -270,7 +270,14 @@ namespace HpToolsLauncher.TestRunners
             CloseUft();
             if (_processAdapter != null && !_processAdapter.HasExited)
             {
-                _processAdapter.Kill();
+                try
+                {
+                    _processAdapter.Close();
+                }
+                catch
+                {
+                    _processAdapter.Kill();
+                }
             }
             CleanUp();
             ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
@@ -287,25 +294,26 @@ namespace HpToolsLauncher.TestRunners
             Process currentProcess = Process.GetCurrentProcess();
             Process parentProcess = currentProcess.Parent();
 
-            // if they are not in the same session we will assume it is a service
-            Process explorer;
+            Process[] explorers;
             try
             {
-                explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+                explorers = Process.GetProcessesByName("explorer");
             }
             catch (InvalidOperationException)
             {
-                return false;
+                // try to start the process from the current session
+                return true;
             }
 
             // could not retrieve the explorer process
-            if (explorer == null)
+            if (explorers == null || explorers.Length == 0)
             {
                 // try to start the process from the current session
-                return false;
+                return true;
             }
 
-            return parentProcess.SessionId != explorer.SessionId;
+            // if they are not in the same session we will assume it is a service
+            return explorers.Where(p => p.SessionId == parentProcess.SessionId).Any();
         }
 
         /// <summary>
@@ -318,16 +326,20 @@ namespace HpToolsLauncher.TestRunners
         {
             try
             {
-                if (_uftRunAsUser != null || !IsParentProcessRunningInUserSession())
+                if (IsParentProcessRunningInUserSession())
                 {
                     return InitProcess(fileName, arguments);
                 }
 
+                if (_uftRunAsUser != null)
+                {
+                    ConsoleWriter.WriteLine("Starting ParallelRunner as different user from service session is not supported at this moment.");
+                    return null;
+                }
                 ConsoleWriter.WriteLine("Starting ParallelRunner from service session!");
 
                 // the process must be started in the user session
-                ElevatedProcess elevatedProcess = new ElevatedProcess(fileName, arguments, Helper.GetSTInstallPath());
-                return elevatedProcess;
+                return new ElevatedProcess(fileName, arguments, Helper.GetSTInstallPath());
             }
             catch (Exception)
             {
