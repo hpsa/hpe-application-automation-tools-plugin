@@ -35,6 +35,7 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
+import com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper;
 import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.AbstractBuilderProcessor;
 import com.microfocus.application.automation.tools.octane.model.processors.builders.BuildTriggerProcessor;
@@ -51,8 +52,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.getOutputEnvironmentParams;
 
 /**
  * Created with IntelliJ IDEA.
@@ -211,7 +210,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 							} else {
 								status.setBuildStatus(CIBuildStatus.FINISHED);
 								status.setResult(BuildHandlerUtils.translateRunResult(aBuild));
-								status.setEnvironmentOutputtedParameters(getOutputEnvironmentParams(aBuild));
+								status.setEnvironmentOutputtedParameters(OutputEnvironmentParametersHelper.getOutputEnvironmentParams(aBuild));
 							}
 							status.setAllBuildParams(ParameterProcessors.getInstances(aBuild));
 							status.setBuildCiId(BuildHandlerUtils.getBuildCiId(aBuild));

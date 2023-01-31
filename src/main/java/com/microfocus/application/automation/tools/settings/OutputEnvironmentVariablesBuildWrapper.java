@@ -20,11 +20,11 @@ import java.util.stream.Stream;
 
 import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.SPLIT_SYMBOL;
 
-public class OctaneBuildWrapper extends BuildWrapper implements Serializable {
+public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper implements Serializable {
 
 	private String outputEnvironmentParameters;
 	@DataBoundConstructor
-	public OctaneBuildWrapper(String outputEnvironmentParameters) {
+	public OutputEnvironmentVariablesBuildWrapper(String outputEnvironmentParameters) {
 		setOutputEnvironmentParameters(outputEnvironmentParameters);
 	}
 

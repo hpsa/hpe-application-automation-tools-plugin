@@ -55,8 +55,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.getOutputEnvironmentParams;
-
 /**
  * Run Listener that handles basic CI events and dispatches notifications to the Octane server
  * User: gullery
@@ -129,7 +127,7 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 					.setResult(BuildHandlerUtils.translateRunResult(build))
 					.setDuration(build.getDuration())
 					.setTestResultExpected(hasTests)
-					.setEnvironmentOutputtedParameters(getOutputEnvironmentParams(build));
+					.setEnvironmentOutputtedParameters(OutputEnvironmentParametersHelper.getOutputEnvironmentParams(build));
 			CommonOriginRevision commonOriginRevision = getCommonOriginRevision(build);
 			if (commonOriginRevision != null) {
 				event
