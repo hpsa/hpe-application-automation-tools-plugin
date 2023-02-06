@@ -5,6 +5,7 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 7.6 ](#what&#39;s-new-in-version-7&#46;6)
 
 [What&#39;s New in version 7.5 ](#what&#39;s-new-in-version-7&#46;5)
 
@@ -34,6 +35,23 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 
 [What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
 
+## What&#39;s New in version 7&#46;6
+
+Version 7.6 introduced the following enhancements and fixes:
+
+**UFT One**
+
+- Implementation of the **Password** type for the Table of Parameters (for ALM and File System jobs)
+- A job level option to hide the logging of parameters (for File System jobs)
+- The ability to transfer parameters from one test to another through a batch command (using MTBX, for File System jobs)
+- Layout bug fixes and optimizations
+
+**ALM Octane**
+
+- Abilitiy to enable the **ALM Octane pipeline** action for multi-branch projects
+- HTTPS support for the Security tool
+- Defect fixes
+ 
 ## What&#39;s New in version 7&#46;5
 
 Version 7.5 introduced the following enhancements and fixes:
