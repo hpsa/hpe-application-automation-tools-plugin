@@ -1,6 +1,6 @@
 package com.microfocus.application.automation.tools.settings;
 
-import com.microfocus.application.automation.tools.sse.common.StringUtils;
+import com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -15,10 +15,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.SPLIT_SYMBOL;
 
 public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper implements Serializable {
 
@@ -33,7 +29,8 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 	}
 	@DataBoundSetter
 	public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
-		this.outputEnvironmentParameters = getValidatedOutputEnvironmentParameters(outputEnvironmentParameters);
+		this.outputEnvironmentParameters =
+				OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
 	}
 
 	@Override
@@ -46,13 +43,6 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 			}
 		};
 	}
-
-	private String getValidatedOutputEnvironmentParameters(String envParams) {
-		String[] params = envParams.split("\\s++");
-		return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
-				.collect(Collectors.joining(SPLIT_SYMBOL));
-	}
-
 
 	@Extension
 	public static final class DescriptorImpl extends BuildWrapperDescriptor {

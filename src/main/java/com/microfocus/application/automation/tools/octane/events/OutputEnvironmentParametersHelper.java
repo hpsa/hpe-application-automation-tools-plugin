@@ -24,6 +24,12 @@ public class OutputEnvironmentParametersHelper {
 
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(OutputEnvironmentParametersHelper.class);
 
+	public static String validateOutputEnvironmentParamsString(String envParams) {
+		String[] params = envParams.split("\\s++");
+		return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
+				.collect(Collectors.joining(SPLIT_SYMBOL));
+	}
+
 	public static Map<String, String> getOutputEnvironmentParams(Run run) {
 		EnvVars environment = getEnvironment(run);
 		if (environment == null) {
