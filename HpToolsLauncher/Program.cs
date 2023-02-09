@@ -7,7 +7,7 @@
  * __________________________________________________________________
  * MIT License
  *
- * (c) Copyright 2012-2021 Micro Focus or one of its affiliates.
+ * (c) Copyright 2012-2023 Micro Focus or one of its affiliates.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -47,6 +47,7 @@ namespace HpToolsLauncher
     static class Program
     {
         private static readonly Dictionary<string, string> argsDictionary = new Dictionary<string, string>();
+        private static Launcher _apiRunner;
 
         //[MTAThread]
         static void Main(string[] args)
@@ -90,9 +91,17 @@ namespace HpToolsLauncher
                     Console.WriteLine("Unsupported encoding {0}. In this case UTF-8 will be used.", outEncoding);
                 }
             }
-            var apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
 
-            apiRunner.Run();
+            Console.CancelKeyPress += Console_CancelKeyPress;
+
+            _apiRunner = new Launcher(paramFileName, enmRuntype, outEncoding);
+            _apiRunner.Run();
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            _apiRunner.SafelyCancel();
         }
 
         private static void ShowHelp()
