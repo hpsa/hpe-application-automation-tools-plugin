@@ -28,7 +28,13 @@
 
 package com.microfocus.application.automation.tools.octane.executor;
 
+import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
@@ -38,11 +44,15 @@ import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +75,7 @@ public class UFTTestDetectionService {
                 result = UftTestDiscoveryUtils.doFullDiscovery(rootDir, testingToolType);
             } else {
                 printToConsole(buildListener, "Executing changeSet sync. For full sync - define in job boolean parameter 'Full sync' with value 'true'.");
-                result = doChangeSetDetection(scmChangesWrapper, rootDir, testingToolType);
+                result = doChangeSetDetection(scmChangesWrapper, rootDir, testingToolType, configurationId);
                 removeTestDuplicatedForUpdateTests(result);
                 removeFalsePositiveDataTables(result, result.getDeletedTests(), result.getDeletedScmResourceFiles());
                 removeFalsePositiveDataTables(result, result.getNewTests(), result.getNewScmResourceFiles());
@@ -94,7 +104,7 @@ public class UFTTestDetectionService {
             createInitialDetectionFile(rootDir);
 
         } catch (Exception e) {
-            logger.error("Fail in startScanning : " + e.getMessage(),e);
+            logger.error("Fail in startScanning : " + e.getMessage(), e);
         }
 
         return result;
@@ -193,10 +203,11 @@ public class UFTTestDetectionService {
         }
     }
 
-    private static UftTestDiscoveryResult doChangeSetDetection(UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, File workspace, TestingToolType testingToolType) {
+    private static UftTestDiscoveryResult doChangeSetDetection(UFTTestDetectionCallable.ScmChangesWrapper scmChangesWrapper, File workspace, TestingToolType testingToolType,String configurationId) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
         result.setTestingToolType(testingToolType);
-
+        scmChangesWrapper.getAffectedFiles().sort(Comparator.comparing(UFTTestDetectionCallable.ScmChangeAffectedFileWrapper::getPath));
+        List<UFTTestDetectionCallable.ScmChangeAffectedFileWrapper> dataTableAffectFiles = new LinkedList<>();
         for (UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper : scmChangesWrapper.getAffectedFiles()) {
             if (affectedFileWrapper.getPath().startsWith("\"")) {
                 result.setHasQuotedPaths(true);
@@ -206,7 +217,7 @@ public class UFTTestDetectionService {
                 if (UftTestDiscoveryUtils.isTestMainFilePath(affectedFileWrapper.getPath())) {
                     handleUftTestChanges(workspace, testingToolType, result, affectedFileWrapper, affectedFileFullPath);
                 } else if (TestingToolType.UFT.equals(testingToolType) && UftTestDiscoveryUtils.isUftDataTableFile(affectedFileWrapper.getPath())) {
-                    handleUftDataTableChanges(workspace, result, affectedFileWrapper, affectedFileFullPath);
+                    handleUftDataTableChanges(workspace, result, affectedFileWrapper, affectedFileFullPath, dataTableAffectFiles);
                 } else if (TestingToolType.MBT.equals(testingToolType) && UftTestDiscoveryUtils.isUftActionFile(affectedFileWrapper.getPath())) {
                     handleUftActionChanges(workspace, result, affectedFileWrapper, affectedFileFullPath);
                 }
@@ -218,11 +229,64 @@ public class UFTTestDetectionService {
                 }
             }
         }
+            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
+            if (ConfigurationParameterFactory.isUftTestsDeepRenameCheckEnabled(octaneClient.getConfigurationService().getConfiguration())) {
+                createDataTableHashCodeToTestPath(dataTableAffectFiles, result);
+            }
+            return result;
+        }
 
-        return result;
+    private static void createDataTableHashCodeToTestPath( List<UFTTestDetectionCallable.ScmChangeAffectedFileWrapper> dataTableAffectFiles, UftTestDiscoveryResult result) {
+        Map<String,List<String>> combineDataTableHashCodeToTests = new HashMap<>();
+        for (AutomatedTest test : result.getAllTests()) {
+            String testPath = test.getPackage() + "\\" + test.getName();
+            String finalTestPath = testPath.replace("\\", "/");
+
+
+            String allDataTableEffected = dataTableAffectFiles.stream().filter(dataTableAffectFile ->dataTableAffectFile.getPath().indexOf(finalTestPath) == 0)
+                    .map(dataTableAffectFile -> dataTableAffectFile.getPath().substring(finalTestPath.length() + 1) + ":" + dataTableAffectFile.getGitDst())
+                    .collect(Collectors.joining("-"));
+
+            combineDataTableHashCodeToTests.computeIfAbsent(convertToHashCode(allDataTableEffected).toString(),k-> new LinkedList<>()).add(testPath);
+        }
+        result.setCombineDataTableHashCodeToTestPathListMap(combineDataTableHashCodeToTests);
     }
 
-    private static void handleUftTestChanges(File workspace, TestingToolType testingToolType, UftTestDiscoveryResult result, UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper, String affectedFileFullPath) {
+
+
+    private static StringBuffer convertToHashCode(String key) {
+        StringBuffer sb = new StringBuffer();
+        StringBuffer returnString = new StringBuffer();
+        returnString.append(key);
+
+        try {
+            byte[] keyByteUTF8 = key.getBytes(StandardCharsets.UTF_8);
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+
+            md.update(keyByteUTF8, 0, keyByteUTF8.length);
+            byte[] mdbytes = md.digest();
+
+            //convert the byte to hex format
+            for (int i = 0; i < mdbytes.length; i++) {
+                sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+            }
+
+        } catch (Exception e) {
+            logger.error("failed to calculate hash code: "+ e.getMessage());
+        }
+        if (sb.length() > 0)
+            return sb;
+        else
+            return returnString;
+    }
+
+
+    private static void handleUftTestChanges(File workspace,
+                                             TestingToolType testingToolType,
+                                             UftTestDiscoveryResult result,
+                                             UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper,
+                                             String affectedFileFullPath) {
+
         File testFolder = UftTestDiscoveryUtils.getTestFolderForTestMainFile(affectedFileFullPath);
         File affectedFile = new File(affectedFileFullPath);
         boolean fileExist = affectedFile.exists();
@@ -250,7 +314,12 @@ public class UFTTestDetectionService {
         }
     }
 
-    private static void handleUftDataTableChanges(File workspace, UftTestDiscoveryResult result, UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper, String affectedFileFullPath) {
+    private static void handleUftDataTableChanges(File workspace,
+                                                  UftTestDiscoveryResult result,
+                                                  UFTTestDetectionCallable.ScmChangeAffectedFileWrapper affectedFileWrapper,
+                                                  String affectedFileFullPath,
+                                                  List<UFTTestDetectionCallable.ScmChangeAffectedFileWrapper> dataTableAffectFiles) {
+        dataTableAffectFiles.add(affectedFileWrapper);
         File affectedFile = new File(affectedFileFullPath);
         ScmResourceFile resourceFile = UftTestDiscoveryUtils.createDataTable(workspace, affectedFile);
         resourceFile.setChangeSetSrc(affectedFileWrapper.getGitSrc());
