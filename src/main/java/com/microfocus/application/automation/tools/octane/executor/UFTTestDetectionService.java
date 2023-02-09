@@ -272,7 +272,7 @@ public class UFTTestDetectionService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("failed to calculate hash code: "+ e.getMessage());
         }
         if (sb.length() > 0)
             return sb;
