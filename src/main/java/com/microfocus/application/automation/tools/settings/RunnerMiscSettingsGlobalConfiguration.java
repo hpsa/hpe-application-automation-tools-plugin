@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.settings;
 
+import com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -42,8 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper.SPLIT_SYMBOL;
 
 @Extension(ordinal = 1, optional = true)
 public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration implements Serializable {
@@ -112,7 +111,8 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     }
 
     public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
-        this.outputEnvironmentParameters = getValidatedOutputEnvironmentParameters(outputEnvironmentParameters);
+        this.outputEnvironmentParameters =
+                OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
         save();
     }
 
@@ -120,12 +120,6 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
         String[] branches = defaultBranches.split(" ");
         return Stream.of(branches).filter(branch -> !StringUtils.isNullOrEmpty(branch))
                 .collect(Collectors.joining(" "));
-    }
-
-    private String getValidatedOutputEnvironmentParameters(String envParams) {
-        String[] params = envParams.split("\\s++");
-        return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
-                .collect(Collectors.joining(SPLIT_SYMBOL));
     }
 
     public DateTimeFormatter getDateFormatter() {
