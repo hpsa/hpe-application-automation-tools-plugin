@@ -221,20 +221,18 @@ public class UFTTestDetectionService {
                 } else if (TestingToolType.MBT.equals(testingToolType) && UftTestDiscoveryUtils.isUftActionFile(affectedFileWrapper.getPath())) {
                     handleUftActionChanges(workspace, result, affectedFileWrapper, affectedFileFullPath);
                 }
-            } else { //isDir
-                if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) {
-                    FilePath filePath = new FilePath(new File(affectedFileWrapper.getPath()));
-                    String deletedFolder = filePath.getRemote().replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
-                    result.getDeletedFolders().add(deletedFolder);
-                }
+            } else if (UFTTestDetectionCallable.ScmChangeEditTypeWrapper.DELETE.equals(affectedFileWrapper.getEditType())) { //isDir
+                FilePath filePath = new FilePath(new File(affectedFileWrapper.getPath()));
+                String deletedFolder = filePath.getRemote().replace(SdkConstants.FileSystem.LINUX_PATH_SPLITTER, SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER);
+                result.getDeletedFolders().add(deletedFolder);
             }
         }
-            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
-            if (ConfigurationParameterFactory.isUftTestsDeepRenameCheckEnabled(octaneClient.getConfigurationService().getConfiguration())) {
-                createDataTableHashCodeToTestPath(dataTableAffectFiles, result);
-            }
-            return result;
+        OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(configurationId);
+        if (ConfigurationParameterFactory.isUftTestsDeepRenameCheckEnabled(octaneClient.getConfigurationService().getConfiguration())) {
+            createDataTableHashCodeToTestPath(dataTableAffectFiles, result);
         }
+        return result;
+    }
 
     private static void createDataTableHashCodeToTestPath( List<UFTTestDetectionCallable.ScmChangeAffectedFileWrapper> dataTableAffectFiles, UftTestDiscoveryResult result) {
         Map<String,List<String>> combineDataTableHashCodeToTests = new HashMap<>();
@@ -254,9 +252,9 @@ public class UFTTestDetectionService {
 
 
 
-    private static StringBuffer convertToHashCode(String key) {
-        StringBuffer sb = new StringBuffer();
-        StringBuffer returnString = new StringBuffer();
+    private static StringBuilder convertToHashCode(String key) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder returnString = new StringBuilder();
         returnString.append(key);
 
         try {

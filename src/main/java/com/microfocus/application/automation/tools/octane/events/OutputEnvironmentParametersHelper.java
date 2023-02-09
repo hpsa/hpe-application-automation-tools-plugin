@@ -20,6 +20,8 @@ public class OutputEnvironmentParametersHelper {
 
 	public static final String SPLIT_SYMBOL = " ";
 
+	private OutputEnvironmentParametersHelper(){}
+
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(OutputEnvironmentParametersHelper.class);
 
 	public static Map<String, String> getOutputEnvironmentParams(Run run) {
