@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.settings;
 
+import com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -53,16 +54,19 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     public static final List<String> DEFAULT_UFT_DATE_PATTERNS = Arrays.asList(DEFAULT_UFT_DATE_PATTERN1, DEFAULT_UFT_DATE_PATTERN2, DEFAULT_UFT_DATE_PATTERN3);
 
     public static final String DEFAULT_BRANCHES = "master main trunk mainline";
+    public static final String DEFAULT_OUTPUT_ENVIRONMENT_PARAMETERS = "BUILD_DISPLAY_NAME BUILD_TAG BUILD_URL";
 
     private String dateFormat;
     private String defaultBranches;
+    private String outputEnvironmentParameters;
     private boolean agentToControllerEnabled;
 
     @DataBoundConstructor
-    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches,boolean agentToControllerEnabled) {
+    public RunnerMiscSettingsGlobalConfiguration(String mfDateFormat, String defaultBranches, String outputEnvironmentParameters, boolean agentToControllerEnabled) {
         setDateFormat(mfDateFormat);
         setDefaultBranches(defaultBranches);
         setAgentToControllerEnabled(agentToControllerEnabled);
+        setOutputEnvironmentParameters(outputEnvironmentParameters);
     }
 
     public RunnerMiscSettingsGlobalConfiguration() {
@@ -102,7 +106,15 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
         save();
     }
 
+    public String getOutputEnvironmentParameters() {
+        return outputEnvironmentParameters;
+    }
 
+    public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
+        this.outputEnvironmentParameters =
+                OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
+        save();
+    }
 
     private String getValidatedDefaultBranches(String defaultBranches) {
         String[] branches = defaultBranches.split(" ");

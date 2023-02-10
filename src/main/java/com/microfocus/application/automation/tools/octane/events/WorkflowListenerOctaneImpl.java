@@ -169,7 +169,8 @@ public class WorkflowListenerOctaneImpl implements GraphListener {
 				.setDuration(parentRun.getDuration())
 				.setResult(BuildHandlerUtils.translateRunResult(parentRun))
 				.setCauses(CIEventCausesFactory.processCauses(parentRun))
-				.setTestResultExpected(hasTests);
+				.setTestResultExpected(hasTests)
+				.setEnvironmentOutputtedParameters(OutputEnvironmentParametersHelper.getOutputEnvironmentParams(parentRun));
 		CIJenkinsServicesImpl.publishEventToRelevantClients(event);
 	}
 

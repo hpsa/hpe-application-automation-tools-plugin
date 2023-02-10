@@ -126,7 +126,8 @@ public final class AbstractBuildListenerOctaneImpl extends RunListener<AbstractB
 					.setParameters(ParameterProcessors.getInstances(build))
 					.setResult(BuildHandlerUtils.translateRunResult(build))
 					.setDuration(build.getDuration())
-					.setTestResultExpected(hasTests);
+					.setTestResultExpected(hasTests)
+					.setEnvironmentOutputtedParameters(OutputEnvironmentParametersHelper.getOutputEnvironmentParams(build));
 			CommonOriginRevision commonOriginRevision = getCommonOriginRevision(build);
 			if (commonOriginRevision != null) {
 				event
