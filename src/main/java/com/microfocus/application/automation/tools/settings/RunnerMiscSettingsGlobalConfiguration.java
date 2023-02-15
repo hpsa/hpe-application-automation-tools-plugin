@@ -107,7 +107,7 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     }
 
     public String getOutputEnvironmentParameters() {
-        return outputEnvironmentParameters;
+        return outputEnvironmentParameters != null ? outputEnvironmentParameters : DEFAULT_OUTPUT_ENVIRONMENT_PARAMETERS;
     }
 
     public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {

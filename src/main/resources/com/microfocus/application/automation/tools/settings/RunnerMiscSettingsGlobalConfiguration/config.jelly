@@ -36,7 +36,7 @@
             <f:textbox name="mf.defaultBranches" value="${instance.defaultBranches}" />
         </f:entry>
         <f:entry title="List of output Environment Variables" field="outputEnvironmentParameters" >
-            <f:textarea name="mf.outputEnvironmentParameters" value="${instance.outputEnvironmentParameters}" default="${instance.DEFAULT_OUTPUT_ENVIRONMENT_PARAMETERS}" />
+            <f:textarea name="mf.outputEnvironmentParameters" value="${instance.outputEnvironmentParameters}" />
         </f:entry>
         <f:entry title="Enable Agent to Controller access" description="If checked, when you execute a build on an agent, the agent will access the controller to write results that will be reported to ALM Octane.">
             <f:checkbox name="agentToControllerEnabled" checked="${instance.agentToControllerEnabled}"/>
