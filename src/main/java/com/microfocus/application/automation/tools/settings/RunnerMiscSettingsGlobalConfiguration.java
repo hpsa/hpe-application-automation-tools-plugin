@@ -28,7 +28,6 @@
 
 package com.microfocus.application.automation.tools.settings;
 
-import com.microfocus.application.automation.tools.octane.events.OutputEnvironmentParametersHelper;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -111,8 +110,7 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     }
 
     public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
-        this.outputEnvironmentParameters =
-                OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
+        this.outputEnvironmentParameters = outputEnvironmentParameters;
         save();
     }
 

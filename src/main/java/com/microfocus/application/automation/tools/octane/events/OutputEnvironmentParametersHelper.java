@@ -18,17 +18,11 @@ import java.util.stream.Stream;
 
 public class OutputEnvironmentParametersHelper {
 
-	public static final String SPLIT_SYMBOL = " ";
+	private static final String SPLIT_SYMBOL = "\\s++";
 
 	private OutputEnvironmentParametersHelper(){}
 
 	private static Logger logger = SDKBasedLoggerProvider.getLogger(OutputEnvironmentParametersHelper.class);
-
-	public static String validateOutputEnvironmentParamsString(String envParams) {
-		String[] params = envParams.split("\\s++");
-		return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p))
-				.collect(Collectors.joining(SPLIT_SYMBOL));
-	}
 
 	public static Map<String, String> getOutputEnvironmentParams(Run run) {
 		EnvVars environment = getEnvironment(run);
@@ -71,8 +65,8 @@ public class OutputEnvironmentParametersHelper {
 
 	private static List<String> getGlobalParamsList() {
 		try {
-			return Stream.of(RunnerMiscSettingsGlobalConfiguration.getInstance().getOutputEnvironmentParameters()
-					.split(SPLIT_SYMBOL)).filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
+			String paramsStr = RunnerMiscSettingsGlobalConfiguration.getInstance().getOutputEnvironmentParameters();
+			return createParamsListFromString(paramsStr);
 		} catch (NullPointerException ignored) {
 			return Collections.emptyList();
 		}
@@ -86,11 +80,14 @@ public class OutputEnvironmentParametersHelper {
 			if (outputEnvVarsBuildWrapper != null) {
 				String paramsStr = outputEnvVarsBuildWrapper.getOutputEnvironmentParameters();
 				if (!StringUtils.isNullOrEmpty(paramsStr)) {
-					String[] params = paramsStr.split(SPLIT_SYMBOL);
-					return Stream.of(params).filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
+					return createParamsListFromString(paramsStr);
 				}
 			}
 		}
 		return Collections.emptyList();
+	}
+
+	private static List<String> createParamsListFromString(String params) {
+		return Stream.of(params.split(SPLIT_SYMBOL)).filter(p -> !StringUtils.isNullOrEmpty(p)).collect(Collectors.toList());
 	}
 }

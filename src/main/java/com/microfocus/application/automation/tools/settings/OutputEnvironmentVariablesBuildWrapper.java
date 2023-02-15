@@ -27,10 +27,10 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 	public String getOutputEnvironmentParameters() {
 		return outputEnvironmentParameters;
 	}
+
 	@DataBoundSetter
 	public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
-		this.outputEnvironmentParameters =
-				OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
+		this.outputEnvironmentParameters = outputEnvironmentParameters;
 	}
 
 	@Override
