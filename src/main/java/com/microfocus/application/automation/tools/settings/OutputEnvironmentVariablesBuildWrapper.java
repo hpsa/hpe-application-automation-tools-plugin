@@ -54,7 +54,7 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 
 		@Override
 		public String getDisplayName() {
-			return "Define list of Environment Variables to be sent to ALM Octane";
+			return "Define a list of environment variables to store in ValueEdge / ALM Octane";
 		}
 	}
 
