@@ -79,7 +79,7 @@ public class MCServerSettingsGlobalConfiguration extends GlobalConfiguration imp
     public FormValidation doCheckMCServerName(@QueryParameter String value) {
         FormValidation ret = FormValidation.ok();
         if (StringUtils.isBlank(value)) {
-            ret = FormValidation.error("UFT Mobile server name cannot be empty");
+            ret = FormValidation.error("Digital Lab server name cannot be empty");
         }
 
         return ret;
@@ -88,7 +88,7 @@ public class MCServerSettingsGlobalConfiguration extends GlobalConfiguration imp
     public FormValidation doCheckMCServerURL(@QueryParameter String value) {
         FormValidation ret = FormValidation.ok();
         if (StringUtils.isBlank(value)) {
-            ret = FormValidation.error("UFT Mobile server cannot be empty");
+            ret = FormValidation.error("Digital Lab server cannot be empty");
         }
 
         return ret;
