@@ -31,9 +31,9 @@ package com.microfocus.application.automation.tools.settings;
 import com.microfocus.application.automation.tools.model.AlmServerSettingsModel;
 import com.microfocus.application.automation.tools.model.CredentialsModel;
 import com.microfocus.application.automation.tools.model.SSOCredentialsModel;
-import com.microfocus.application.automation.tools.octane.configuration.SDKBasedLoggerProvider;
 import hudson.CopyOnWrite;
 import hudson.Extension;
+import hudson.ProxyConfiguration;
 import hudson.XmlFile;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
@@ -41,7 +41,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -52,7 +51,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Extension(ordinal = 1)
@@ -175,7 +173,7 @@ public class AlmServerSettingsGlobalConfiguration extends GlobalConfiguration im
         // Open the connection and perform a HEAD request
         HttpURLConnection connection;
         try {
-            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection = (HttpURLConnection) ProxyConfiguration.open(new URL(url));
             connection.setRequestMethod("GET");
 
             // Check the response code
