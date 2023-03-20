@@ -133,6 +133,7 @@ public class TestNGExtensionTest extends OctanePluginTestBase {
 	@Test
 	public void testMavenMultimodule() throws Exception {
 		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		System.setProperty("jenkins.security.s2m.RunningBuildFilePathFilter.SKIP","true");
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
