@@ -27,10 +27,10 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 	public String getOutputEnvironmentParameters() {
 		return outputEnvironmentParameters;
 	}
+
 	@DataBoundSetter
 	public void setOutputEnvironmentParameters(String outputEnvironmentParameters) {
-		this.outputEnvironmentParameters =
-				OutputEnvironmentParametersHelper.validateOutputEnvironmentParamsString(outputEnvironmentParameters);
+		this.outputEnvironmentParameters = outputEnvironmentParameters;
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class OutputEnvironmentVariablesBuildWrapper extends BuildWrapper impleme
 
 		@Override
 		public String getDisplayName() {
-			return "Define list of Environment Variables to be sent to ALM Octane";
+			return "Define a list of environment variables to store in ValueEdge / ALM Octane";
 		}
 	}
 
