@@ -125,7 +125,7 @@ public class ConfigurationValidator {
             Jenkins jenkins = Jenkins.get();
             Set<String> missingPermissions = requiredPermissions.keySet().stream().filter(p -> !jenkins.hasPermission(p)).map(p -> requiredPermissions.get(p)).collect(Collectors.toSet());
             if (!missingPermissions.isEmpty()) {
-                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), impersonatedUser, StringUtils.join(missingPermissions, ", ")));
+                errorMessages.add(String.format(Messages.JenkinsUserPermissionsFailure(), jenkinsUser!= null ? jenkinsUser.getId() : impersonatedUser, StringUtils.join(missingPermissions, ", ")));
             }
         } catch (Exception e) {
             errorMessages.add(String.format(Messages.JenkinsUserUnexpectedError(), impersonatedUser, e.getMessage()));
