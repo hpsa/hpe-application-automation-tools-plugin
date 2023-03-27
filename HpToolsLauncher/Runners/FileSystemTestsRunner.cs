@@ -131,7 +131,8 @@ namespace HpToolsLauncher
             _uftRunAsUser = uftRunAsUser;
             _uftRunMode = uftRunMode;
 
-            ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
+            if (_mcConnection != null)
+                ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
 
             if (reportPath != null)
             {

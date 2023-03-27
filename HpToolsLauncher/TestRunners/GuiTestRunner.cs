@@ -297,6 +297,8 @@ namespace HpToolsLauncher
 
         private void SetMobileInfo()
         {
+            if (_mcConnection == null) return;
+
             #region Mc connection and other mobile info
 
             // Mc Address, username and password
