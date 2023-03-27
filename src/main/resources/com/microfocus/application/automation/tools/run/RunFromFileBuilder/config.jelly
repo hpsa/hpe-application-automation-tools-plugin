@@ -246,20 +246,20 @@
 	</f:advanced>
 
 	<!-- add MC server and app info starting -->
-	 <f:advanced title="Digital Lab Options" align="right">
+	 <f:advanced title="UFT-Mobile Options" align="right">
 		 <div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
 			 <div class="repeated-chunk">
 				 <div style="width: 100%">
 					 <div class="tr help-sibling config-table-top-row">
 						 <div colspan="3">
 							 <div>
-								 <b>Digital Lab Options</b>
+								 <b>UFT-Mobile Options</b>
 							 </div>
 							 <span class="setting-no-help"></span>
 						 </div>
 					 </div>
 				 </div>
-				 <f:entry title="Digital Lab Server" field="mcServerName">
+				 <f:entry title="UFT Mobile Server" field="mcServerName">
 					 <select name="runfromfs.mcServerName">
 						 <j:forEach var="mcServer" items="${descriptor.mcServers}">
 							 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
@@ -344,7 +344,7 @@
 					 <f:readOnlyTextbox name="runfromfs.fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
 				 </f:entry>
 				 <f:entry>
-					 <f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
+					 <f:checkbox title="Recreate UFT Mobile job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
 				 </f:entry>
 				 <f:entry>
 					 <input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
@@ -358,8 +358,8 @@
 					 <div align="right">
 						 <span class="yui-button yui-push-button repeatable-delete danger">
 							 <span class="first-child">
-								 <button type="button" tabindex="0" title="Hide Digital Lab Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
-									 Hide Digital Lab Options
+								 <button type="button" tabindex="0" title="Hide UFT-Mobile Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
+									 Hide UFT-Mobile Options
 								 </button>
 							 </span>
 						 </span>
