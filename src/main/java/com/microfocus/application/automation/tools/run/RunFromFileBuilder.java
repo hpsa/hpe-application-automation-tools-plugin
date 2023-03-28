@@ -1133,7 +1133,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("squid:S2259")
 
         public MCServerSettingsModel[] getMcServers() {
-            return MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
+            MCServerSettingsModel emptySrv = new MCServerSettingsModel("", "");
+            MCServerSettingsModel[] servers = MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
+            if (servers == null) {
+                servers = new MCServerSettingsModel[0];
+            }
+            int nbOfServers = servers.length;
+            MCServerSettingsModel[] all = new MCServerSettingsModel[nbOfServers + 1];
+            all[0] = emptySrv;
+            for (int i = 0; i < servers.length; i++) {
+                all[i + 1] = servers[i];
+            }
+            return all;
         }
 
         /**

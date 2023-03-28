@@ -387,6 +387,8 @@ namespace HpToolsLauncher.ParallelRunner
         /// <returns> the parallel runner uft settings </returns>
         public static UFTSettings ParseMCSettings(McConnectionInfo mcConnectionInfo)
         {
+            if (mcConnectionInfo == null) return null;
+
             if (string.IsNullOrEmpty(mcConnectionInfo.MobileHostAddress) ||
                 string.IsNullOrEmpty(mcConnectionInfo.MobileUserName) ||
                 string.IsNullOrEmpty(mcConnectionInfo.MobilePassword) ||

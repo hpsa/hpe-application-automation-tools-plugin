@@ -496,14 +496,18 @@ namespace HpToolsLauncher
                     {
                         mcConnectionInfo = new McConnectionInfo(_ciParams);
                     }
+                    catch(NoMcConnectionException)
+                    {
+                        // no action, the Test will use the default UFT One settings
+                    }
                     catch (Exception ex)
                     {
                         ConsoleWriter.WriteErrLine(ex.Message);
                         Environment.Exit((int)ExitCodeEnum.Failed);
                     }
 
-                        // other mobile info
-                        string mobileinfo = string.Empty;
+                    // other mobile info
+                    string mobileinfo = string.Empty;
                     if (_ciParams.ContainsKey("mobileinfo"))
                     {
                         mobileinfo = _ciParams["mobileinfo"];
