@@ -53,16 +53,11 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.7 introduced the following enhancements and fixes:
-
-**UFT One**
-
-- Support running UFT One as a different user.
-- Release UFT One license safely when aborting Jenkins builds.
-- Bug fixes and optimizations.
+Version 7.8 introduced the following enhancements and fixes:
 
 **ALM Octane**
 
+- Support for environment variables in auto actions.
 - Bug fixes.
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
@@ -102,7 +97,7 @@ This plugin supports the following Micro Focus product versions:
 | Model-based Testing                                 | 16.0.300 and higher  | [Model-Based Testing Help Center](https://admhelp.microfocus.com/mbt) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT Developer                                       | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/uftdev/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrate LeanFT with Jenkins in just a few simple steps](https://community.microfocus.com/adtd/b/sws-alm/posts/integrating-leanft-with-jenkins-in-just-a-few-simple-steps) |
-| UFT Mobile                                          | 2.0 and higher                                               | [UFT Mobile Integration page](https://admhelp.microfocus.com/uftmobile/en/latest/Content/CI_jenkins.htm) |
+| Digital Lab (UFT Mobile)                                          | 2.0 and higher                                               | [Digital Lab Integration page](https://admhelp.microfocus.com/uftmobile/en/latest/Content/CI_jenkins.htm) |
 | UFT One                                             | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
 | ValueEdge                                             |                               | [ValueEdge Help Center](https://admhelp.microfocus.com/valuedge) |
 
