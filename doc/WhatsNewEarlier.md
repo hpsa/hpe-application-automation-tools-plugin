@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the Micro Focus Applicatio
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 7.7 ](#what&#39;s-new-in-version-7&#46;7)
+
 [What&#39;s New in version 7.6 ](#what&#39;s-new-in-version-7&#46;6)
 
 [What&#39;s New in version 7.5 ](#what&#39;s-new-in-version-7&#46;5)
@@ -34,6 +36,16 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0 ](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 7&#46;7
+
+Version 7.7 introduced the following enhancements:
+
+**UFT One**
+
+- Support running UFT One as a different user.
+- Release UFT One license safely when aborting Jenkins builds.
+- Bug fixes and optimizations.
 
 ## What&#39;s New in version 7&#46;6
 
