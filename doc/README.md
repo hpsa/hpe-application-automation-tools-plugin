@@ -60,6 +60,10 @@ Version 7.8 introduced the following enhancements and fixes:
 - Support for environment variables in auto actions.
 - Bug fixes.
 
+**ALM**
+
+- 'Ability to use the Jenkins proxy settings to open a connection when verifying the ALM URL.
+
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Release notes
