@@ -54,7 +54,8 @@ public enum ParameterProcessors {
 	EXTENDED("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition", ExtendedChoiceParameterProcessor.class),
 	INHERENT("hudson.model", InherentParameterProcessor.class),
 	NODE_LABEL("org.jvnet.jenkins.plugins.nodelabelparameter", NodeLabelParameterProcessor.class),
-	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class);
+	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class),
+	ACTIVE_CHOICE("org.biouno.unochoice", ActiveChoiceParameterProcessor.class);
 
 	private static final Logger logger = SDKBasedLoggerProvider.getLogger(ParameterProcessors.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
