@@ -1,11 +1,11 @@
-# Micro Focus Application Automation Tools
+# OpenText Application Automation Tools
 
 
-This [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates Micro Focus products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner Professional tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
+This [OpenText Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin) integrates OpenText products with Jenkins. Using the plugin, you can create and use virtual services, run LoadRunner Enterprise or LoadRunner Professional tests, run UFT functional tests, run tests in your lab, and run tests on mobile devices. This plugin also lets you upload test results to ALM. In addition, ALM Octane users can track and trigger Jenkins pipelines from within the user interface.
 
 ### Jenkins versions
 
-This plugin requires one of the five latest [LTS versions](https://jenkins.io/changelog-stable/) of Jenkins. This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools#MicroFocusApplicationAutomationTools-UserGuide).
+This plugin requires one of the five latest [LTS versions](https://jenkins.io/changelog-stable/) of Jenkins. This is a result of the Jenkins policy to no longer support older update centers. Jenkins now requires you to have Java 8 installed on the machine. To recover any information lost during an upgrade relating to package names, backup the Jenkins folder and then run the [Rebranding script](https://wiki.jenkins.io/display/JENKINS/OpenText+Application+Automation+Tools#OpenTextApplicationAutomationTools-UserGuide).
 
 ### Submit issues and feedback through JIRA
 
@@ -89,9 +89,9 @@ The [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)page lists th
 
 
 
-This plugin supports the following Micro Focus product versions:
+This plugin supports the following OpenText product versions:
 
-| Micro Focus tool                                    | Supported versions                                           | Find more information...                                     |
+| OpenText tool                                    | Supported versions                                           | Find more information...                                     |
 | :-------------------------------------------------- | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | ALM (Application Lifecycle Management)              | 12.xx, 15.x, 16.x, 17.x                                                  | [ALM Integration  page](https://admhelp.microfocus.com/alm/en/latest/online_help/Content/jenkins-integration.htm)                  |
 | ALM Lab Management                                  | 12.xx, 15.x, 16.x, 17.x                                                 | [ALM Integration page](https://admhelp.microfocus.com/alm/en/latest/online_help/Content/jenkins-integration.htm#mt-item-3) |
@@ -180,7 +180,7 @@ To connect and execution node to the Jenkins machine:
 
 ### Generate pipeline code
 
-To set up a pipeline test job for your Micro Focus testing tool:
+To set up a pipeline test job for your OpenText testing tool:
 
   1. From Jenkins Dashboard. click  **New Item**  or select an existing one.
 
