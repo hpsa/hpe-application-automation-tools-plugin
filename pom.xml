@@ -39,8 +39,8 @@
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
 	<version>${revision}${changelist}</version>
 	<packaging>hpi</packaging>
-	<name>Micro Focus Application Automation Tools</name>
-	<description>The plugin integrates Jenkins with the following Micro Focus products - Service Virtualization,
+	<name>OpenText Application Automation Tools</name>
+	<description>The plugin integrates Jenkins with the following OpenText products - Service Virtualization,
 		LoadRunner, LoadRunner Enterprise, Unified Functional Testing, QuickTest Professional, Service Test, Unified Functional Testing Mobile,
 		Application Lifecycle Management and Application Lifecycle Management Octane.
 	</description>
@@ -93,8 +93,8 @@
 	</issueManagement>
 
 	<organization>
-		<name>Micro Focus</name>
-		<url>http://www.microfocus.com</url>
+		<name>OpenText</name>
+		<url>https://www.opentext.com/</url>
 	</organization>
 
 	<developers>
