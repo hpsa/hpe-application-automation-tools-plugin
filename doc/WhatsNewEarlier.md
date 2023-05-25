@@ -1,7 +1,7 @@
 # What's new in earlier versions
 
 
-This page shows a history of the enhancements made to the Micro Focus Application Automation Tools Jenkins plugin.
+This page shows a history of the enhancements made to the OpenText Application Automation Tools Jenkins plugin.
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
@@ -96,8 +96,6 @@ Version 7.4 introduced the following enhancements:
 -	Ability to specify the UFT Report timestamp format, by defining a date format on the Jenkins configuration page. (Manage Jenkins > Configure System, Run Result (UFT Report) timestamp format string section).
 -	Console Output text encoding configuration on the job level.
 -	Layout improvements. 
-
-For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
 ## Release notes
 
