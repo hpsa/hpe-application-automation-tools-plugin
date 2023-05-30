@@ -1,5 +1,5 @@
-![Micro Focus Logo](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Micro_Focus_logo.svg/220px-Micro_Focus_logo.svg.png)
-# Micro Focus automation plugin for Jenkins CI                        
+![OpenText Logo](https://upload.wikimedia.org/wikipedia/commons/1/1b/OpenText_logo.svg)
+# OpenText automation plugin for Jenkins CI                        
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8ec4415bffe94fda8ae40415388c063e)](https://www.codacy.com/app/HPEbot/hp-application-automation-tools-plugin?utm_source=github.com&utm_medium=referral&utm_content=hpsa/hp-application-automation-tools-plugin&utm_campaign=badger)
 
@@ -10,7 +10,7 @@ Latest release branch status:
 [![Build status](https://ci.appveyor.com/api/projects/status/gqd0x8ov1ebqjjcu/branch/latest?svg=true)](https://ci.appveyor.com/project/HPEbot/hp-application-automation-tools-plugin/branch/latest)
 
 
-##### The plugin provides the ability to run Micro Focus products with Jenkins during builds.
+##### The plugin provides the ability to run OpenText products with Jenkins during builds.
 
 ## Relevant links
 -	**Download the most recent LTS version of the plugin** at [Official plugin Wiki page](https://wiki.jenkins.io/display/JENKINS/Micro+Focus+Application+Automation+Tools)
