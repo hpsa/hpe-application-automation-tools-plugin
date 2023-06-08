@@ -53,16 +53,12 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 7.8 introduced the following enhancements and fixes:
+Version 7.9 introduced the following enhancements and fixes:
 
 **ALM Octane**
 
-- Support for environment variables in auto actions.
+- Support for Active choice parameters with Jenkins.
 - Bug fixes.
-
-**ALM**
-
-- 'Ability to use the Jenkins proxy settings to open a connection when verifying the ALM URL.
 
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
 
