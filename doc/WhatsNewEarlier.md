@@ -5,7 +5,7 @@ This page shows a history of the enhancements made to the OpenText Application A
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
-[What&#39;s New in version 7.7 ](#what&#39;s-new-in-version-7&#46;7)
+[What&#39;s New in versions 7.7 and 7.8 ](#what&#39;s-new-in-versions-7&#46;7-and-7&#39;8)
 
 [What&#39;s New in version 7.6 ](#what&#39;s-new-in-version-7&#46;6)
 
@@ -37,9 +37,18 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 
 [What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
 
-## What&#39;s New in version 7&#46;7
+## What&#39;s New in versions 7.7 and 7.8
 
-Version 7.7 introduced the following enhancements:
+Versions 7.7 and 7.8 introduced the following enhancements and fixes:
+
+**ALM Octane**
+
+- Support for environment variables in auto actions.
+- Bug fixes.
+
+**ALM**
+
+- 'Ability to use the Jenkins proxy settings to open a connection when verifying the ALM URL.
 
 **UFT One**
 
