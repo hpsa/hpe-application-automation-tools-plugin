@@ -228,7 +228,7 @@ The available Pipeline job types are: loadRunnerTest, uftScenarioLoad, runFromFS
 | Service Virtualization | svUndeployStep               | Undeploy a virtual service.                                        |
 | UFT One, ALM, ALM LM   | publishMicroFocusTestResults | Publish Test Results for FS, ALM and ALM Lab Management executions. |                                   |
 
-Pipeline jobs are not supported for UFT Mobile uploads, ALM test uploader, and ALM AUT job types.
+Pipeline jobs are not supported for Digital Lab (formerly UFT Mobile) uploads, ALM test uploader, and ALM AUT job types.
 
 
 
