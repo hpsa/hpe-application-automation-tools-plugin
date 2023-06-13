@@ -221,7 +221,7 @@ public class UploadAppBuilder extends Builder {
         @Override
         public String getDisplayName() {
 
-            return "Upload app to UFT Mobile Server";
+            return "Upload app to Digital Lab (formerly UFT Mobile) Server";
         }
 
         public boolean hasMCServers() {
