@@ -72,7 +72,7 @@ function prepareTask(divMain) {
 			evt.initUIEvent("change", false, true, window, 1);
 		}
 		[divJobAlmSecret, divJobAlmPwd].forEach(function(div) {
-			const btnUpdate = div.querySelector("input.hidden-password-update-btn");
+			const btnUpdate = div.querySelector(".hidden-password-update-btn");
 			btnUpdate && btnUpdate.click();
 		});
 		[divJobAlmClientId, divJobAlmUsername, divJobAlmSecret, divJobAlmPwd].forEach(function(div) {
