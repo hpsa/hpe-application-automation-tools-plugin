@@ -1960,12 +1960,12 @@ namespace HpToolsLauncher
             if (qcTestStatus == null)
                 return TestState.Unknown;
 
-            ConsoleWriter.WriteLine("ALM Status = " + qcTestStatus.Status);
             switch (qcTestStatus.Status)
             {
                 case "Waiting":
                     return TestState.Waiting;
                 case "Error":
+                case "Stopped":
                 case "Not Completed":
                     return TestState.Error;
                 case "No Run":
@@ -1987,6 +1987,7 @@ namespace HpToolsLauncher
                 case "FinishedFailed":
                     return TestState.Failed;
             }
+            ConsoleWriter.WriteLine("ALM Status = " + qcTestStatus.Status);
             return TestState.Unknown;
         }
 
