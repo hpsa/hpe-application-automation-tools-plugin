@@ -132,7 +132,7 @@ namespace HpToolsLauncher
             _uftRunMode = uftRunMode;
 
             if (_mcConnection != null)
-                ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
+                ConsoleWriter.WriteLine("Digital Lab connection info is - " + _mcConnection.ToString());
 
             if (reportPath != null)
             {
