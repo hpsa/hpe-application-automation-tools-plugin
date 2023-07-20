@@ -1560,7 +1560,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/**
 	 * The type Descriptor.
 	 */
-	@Symbol("publishMicroFocusTestResults")
+	@Symbol("publishOpenTextTestResults")
 	@Extension
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -1575,7 +1575,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		@Override
 		public String getDisplayName() {
 
-			return "Publish Micro Focus tests result";
+			return "Publish OpenText tests result";
 		}
 
 		@Override

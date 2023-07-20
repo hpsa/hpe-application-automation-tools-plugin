@@ -83,7 +83,7 @@ public class RunnerMiscSettingsGlobalConfiguration extends GlobalConfiguration i
     @NonNull
     @Override
     public String getDisplayName() {
-        return "Miscellaneous Micro Focus Plugin settings";
+        return "Miscellaneous OpenText Plugin settings";
     }
 
     public String getDateFormat() {

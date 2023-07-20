@@ -132,7 +132,7 @@ public class ExecutorConnectivityService {
 			jenkinsCredentials = tryGetCredentialsByUsernamePassword(credentialsInfo.getUsername(), credentialsInfo.getPassword());
 			if (jenkinsCredentials == null) {
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-				String desc = String.format("Created by the Microfocus %s plugin on %s", PLUGIN_NAME, formatter.format(new Date()));
+				String desc = String.format("Created by the OpenText %s plugin on %s", PLUGIN_NAME, formatter.format(new Date()));
 				BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialsId(), desc, credentialsInfo.getUsername(), credentialsInfo.getPassword());
 				CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
 				try {

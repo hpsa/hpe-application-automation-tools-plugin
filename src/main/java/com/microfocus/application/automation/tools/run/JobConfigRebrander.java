@@ -189,7 +189,7 @@ public class JobConfigRebrander  extends Builder implements SimpleBuildStep {
 
         @Override
         public String getDisplayName() {
-            return "Fix old Micro Focus Jenkins builds";
+            return "Fix old OpenText Jenkins builds";
         }
 
         @Override
