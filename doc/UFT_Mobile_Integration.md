@@ -4,7 +4,7 @@ The Application Automation Tools plugin for the Jenkins continuous integration
 
 First you define the Digital Lab server within Jenkins, and then you add build steps to upload your mobile apps with .apk (Android) or .ipa (iOS) file extensions.
 
-For additional information, see the [Digital Lab Help Center](https://admhelp.microfocus.com/uftmobile/en/).
+For additional information, see the [Digital Lab Help Center](https://admhelp.microfocus.com/digitallab/en/).
 
 ### Table of Contents
 
