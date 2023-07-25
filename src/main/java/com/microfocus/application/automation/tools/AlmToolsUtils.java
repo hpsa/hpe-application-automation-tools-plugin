@@ -191,6 +191,7 @@ public final class AlmToolsUtils {
     }
 
     private static boolean trySaveAndCheckPropsFile(TaskListener listener, String props, FilePath propsFile, int idxOfRetry) throws InterruptedException {
+        boolean ok = false;
         try {
             try (InputStream instrProps = IOUtils.toInputStream(props, StandardCharsets.UTF_8)) {
                 propsFile.copyFrom(instrProps);
@@ -200,22 +201,21 @@ public final class AlmToolsUtils {
                     String msg = String.format("Successfully created the file [%s] after %d %s.", propsFile.getRemote(), idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries"));
                     listener.getLogger().println(msg);
                 }
-                return true;
+                ok = true;
             } else if (idxOfRetry > 5) {
                 listener.fatalError("Failed to save the file " + propsFile.getRemote() + " after 5 retries.");
-                return false;
             } else {
                 Thread.sleep(1500);
-                return trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
+                ok = trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
             }
         } catch (IOException ioe) {
             if (idxOfRetry > 5) {
                 listener.fatalError("Failed to save the file " + propsFile.getRemote() + " after 5 retries: " + ioe.getMessage());
-                return false;
             } else {
                 Thread.sleep(1500);
-                return trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
+                ok = trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
             }
         }
+        return ok;
     }
 }
