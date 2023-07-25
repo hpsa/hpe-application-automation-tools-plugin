@@ -35,11 +35,14 @@ import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -177,6 +180,42 @@ public final class AlmToolsUtils {
             }
         }
     }
-    
-    
+
+    public static boolean tryCreatePropsFile(TaskListener listener, String props, FilePath propsFile) throws InterruptedException {
+
+        if (StringUtils.isBlank(props)) {
+            listener.fatalError("Missing properties text content."); //should never happen
+            return false;
+        }
+        return trySaveAndCheckPropsFile(listener, props, propsFile, 0);
+    }
+
+    private static boolean trySaveAndCheckPropsFile(TaskListener listener, String props, FilePath propsFile, int idxOfRetry) throws InterruptedException {
+        try {
+            try (InputStream instrProps = IOUtils.toInputStream(props, StandardCharsets.UTF_8)) {
+                propsFile.copyFrom(instrProps);
+            }
+            if (propsFile.exists() && propsFile.length() > 0) {
+                if (idxOfRetry > 0) {
+                    String msg = String.format("Successfully created the file [%s] after %d %s.", propsFile.getRemote(), idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries"));
+                    listener.getLogger().println(msg);
+                }
+                return true;
+            } else if (idxOfRetry > 5) {
+                listener.fatalError("Failed to save the file " + propsFile.getRemote() + " after 5 retries.");
+                return false;
+            } else {
+                Thread.sleep(1500);
+                return trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
+            }
+        } catch (IOException ioe) {
+            if (idxOfRetry > 5) {
+                listener.fatalError("Failed to save the file " + propsFile.getRemote() + " after 5 retries: " + ioe.getMessage());
+                return false;
+            } else {
+                Thread.sleep(1500);
+                return trySaveAndCheckPropsFile(listener, props, propsFile, ++idxOfRetry);
+            }
+        }
+    }
 }

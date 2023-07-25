@@ -47,12 +47,12 @@ import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
-import hudson.util.IOUtils;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -242,9 +243,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         if (mtbxContent.contains("${workspace}")) {
             mtbxContentUpdated = mtbxContent.replace("${workspace}", workspace.getRemote());
         }
-        InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
-        remoteFile.copyFrom(in);
-
+        try (InputStream in = IOUtils.toInputStream(mtbxContentUpdated, StandardCharsets.UTF_8)) {
+            remoteFile.copyFrom(in);
+        }
         return remoteFile.getRemote();
     }
 
@@ -884,20 +885,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         try {
             // create a file for the properties file, and save the properties
-            try (InputStream instrProps = IOUtils.toInputStream(strProps)) {
-                propsFile.copyFrom(instrProps);
-            }
-            if (!propsFile.exists()) {
-                listener.fatalError(ParamFileName + " could not be saved in jenkins node's workspace.");
+            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, propsFile))
                 return;
-            }
             // Copy the script to the project workspace
             cmdLineExe.copyFrom(cmdExeUrl);
             cmdLineExeCfg.copyFrom(cmdExeCfgUrl);
             cmdLineExe2.copyFrom(cmdExe2Url);
         } catch (IOException | InterruptedException e) {
             build.setResult(Result.FAILURE);
-            listener.error("Copying executable files to executing node " + e);
+            listener.error("Failed to copy props file or UFT tools to agent machine. " + e);
         }
 
         try {

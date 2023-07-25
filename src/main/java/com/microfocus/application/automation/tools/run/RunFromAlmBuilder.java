@@ -34,24 +34,24 @@ import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
-import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
 
 import hudson.model.*;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.util.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -370,51 +370,48 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
 
         // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            mergedProperties.store(stream, "");
-        } catch (IOException e) {
-            build.setResult(Result.FAILURE);
-            listener.error("Failed to store properties for agent machine.");
-            return;
+        String strProps;
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            try {
+                mergedProperties.store(stream, "");
+            } catch (IOException e) {
+                build.setResult(Result.FAILURE);
+                listener.error("Failed to store properties for agent machine.");
+                return;
+            }
+            strProps = stream.toString();
         }
-        String propsSerialization = stream.toString();
-        InputStream propsStream = IOUtils.toInputStream(propsSerialization);
-
-        // get the remote workspace filesys
-        FilePath projectWS = workspace;
 
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
 
-        URL cmdExeUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+        URL cmdExeUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
         if (cmdExeUrl == null) {
             build.setResult(Result.FAILURE);
             listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
             return;
         }
-        URL cmdExeCfgUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+        URL cmdExeCfgUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
         if (cmdExeCfgUrl == null) {
             build.setResult(Result.FAILURE);
             listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
             return;
         }
 
-        FilePath propsFileName = projectWS.child(ParamFileName);
-        FilePath CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
-        FilePath CmdLineExeCfg = projectWS.child(HP_TOOLS_LAUNCHER_EXE_CFG);
+        FilePath propsFile = workspace.child(ParamFileName);
+        FilePath CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+        FilePath CmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
 
         try {
             // create a file for the properties file, and save the properties
-            propsFileName.copyFrom(propsStream);
+            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, propsFile))
+                return;
             // Copy the script to the project workspace
             CmdLineExe.copyFrom(cmdExeUrl);
             CmdLineExeCfg.copyFrom(cmdExeCfgUrl);
         } catch (IOException | InterruptedException e) {
             build.setResult(Result.FAILURE);
-            listener.error("Failed to copy UFT tools to agent machine. " + e);
+            listener.error("Failed to copy props file or UFT tools to agent machine. " + e);
             return;
         }
         try {

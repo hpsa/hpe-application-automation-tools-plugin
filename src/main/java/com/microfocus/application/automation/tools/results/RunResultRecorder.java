@@ -674,15 +674,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private void renamePath(FilePath src, FilePath dest, TaskListener listener, int idxOfRetry) {
 		try {
 			if (idxOfRetry > 5) {
-				listener.getLogger().println("Failed to rename path [" + src.getRemote() + "] as [" + dest.getRemote() + "]");
+				listener.getLogger().println("Failed to rename report path [" + src.getRemote() + "] as [" + dest.getRemote() + "] after 5 retries.");
 				return;
-			} else if (idxOfRetry > 0) {
-				listener.getLogger().println("Retry to rename path [" + src.getRemote() + "]");
 			}
 			Thread.sleep(1500);
 			src.renameTo(dest);
-			if (idxOfRetry > 0)
-				listener.getLogger().println("Successfully renamed path as [" + dest.getRemote() + "]");
+			if (idxOfRetry > 0) {
+				String msg = String.format("Successfully renamed report path as [%s] after %d %s.", dest.getRemote(), idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries"));
+				listener.getLogger().println(msg);
+			}
 		} catch(Exception e) {
 			renamePath(src, dest, listener, ++idxOfRetry);
 		}
