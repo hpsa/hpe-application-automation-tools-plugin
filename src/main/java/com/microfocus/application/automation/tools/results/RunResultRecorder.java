@@ -548,25 +548,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								FilePath testFolder = new FilePath(channel, testFolderPath);
 								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, (StringUtils.isBlank(nodeName) ? "" : nodeName + "_") + testFolder.getName(), "UFT");
 								zipFileNames.add(zipFileName);
-								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+								try (ByteArrayOutputStream outStr = new ByteArrayOutputStream()) {
 
-								// don't use FileFilter for zip, or it will cause bug when files are on slave
-								reportFolder.zip(outstr);
+									// don't use FileFilter for zip, or it will cause bug when files are on slave
+									reportFolder.zip(outStr);
 
-								/*
-								 * I did't use copyRecursiveTo or copyFrom due to bug in
-								 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
-								 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
-								 * it to the master.
-								 */
+									/*
+									 * I did't use copyRecursiveTo or copyFrom due to bug in
+									 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
+									 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
+									 * it to the master.
+									 */
 
-								ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
-
-								FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
-								archivedFile.copyFrom(instr);
-
-								outstr.close();
-								instr.close();
+									try (ByteArrayInputStream instr = new ByteArrayInputStream(outStr.toByteArray())) {
+										FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
+										archivedFile.copyFrom(instr);
+									}
+								}
 
 								// add to Report list
 								String zipFileUrlName = "artifact/" + zipFileName;
@@ -683,7 +681,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			}
 			Thread.sleep(1500);
 			src.renameTo(dest);
-			listener.getLogger().println("Successfully renamed path as [" + dest.getRemote() + "]");
+			if (idxOfRetry > 0)
+				listener.getLogger().println("Successfully renamed path as [" + dest.getRemote() + "]");
 		} catch(Exception e) {
 			renamePath(src, dest, listener, ++idxOfRetry);
 		}

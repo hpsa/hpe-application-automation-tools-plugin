@@ -842,62 +842,67 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         mergedProperties.setProperty("numOfTests", String.valueOf(index - 1));
 
         // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            mergedProperties.store(stream, "");
-        } catch (IOException e) {
-            listener.error("Storing run variable failed: " + e);
-            build.setResult(Result.FAILURE);
+        String strProps;
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            try {
+                mergedProperties.store(stream, "");
+            } catch (IOException e) {
+                listener.error("Storing run variable failed: " + e);
+                build.setResult(Result.FAILURE);
+            }
+
+            strProps = stream.toString();
+        }
+        
+        // Get the URL to the Script used to run the test, which is bundled
+        // in the plugin
+        @SuppressWarnings("squid:S2259")
+        URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+        if (cmdExeUrl == null) {
+            listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+            return;
         }
 
-        String propsSerialization = stream.toString();
-        
-        FilePath CmdLineExe;
-        try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
-            // Get the URL to the Script used to run the test, which is bundled
-            // in the plugin
-            @SuppressWarnings("squid:S2259")
-            URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
-            if (cmdExeUrl == null) {
-                listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
+        @SuppressWarnings("squid:S2259")
+        URL cmdExeCfgUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+        if (cmdExeCfgUrl == null) {
+            listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
+            return;
+        }
+
+        @SuppressWarnings("squid:S2259")
+        URL cmdExe2Url = Jenkins.get().pluginManager.uberClassLoader.getResource(LRANALYSIS_LAUNCHER_EXE);
+        if (cmdExe2Url == null) {
+            listener.fatalError(LRANALYSIS_LAUNCHER_EXE + "not found in resources");
+            return;
+        }
+
+        FilePath propsFile = workspace.child(ParamFileName);
+        FilePath cmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+        FilePath cmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
+        FilePath cmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
+
+        try {
+            // create a file for the properties file, and save the properties
+            try (InputStream instrProps = IOUtils.toInputStream(strProps)) {
+                propsFile.copyFrom(instrProps);
+            }
+            if (!propsFile.exists()) {
+                listener.fatalError(ParamFileName + " could not be saved in jenkins node's workspace.");
                 return;
             }
-
-            @SuppressWarnings("squid:S2259")
-            URL cmdExeCfgUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
-            if (cmdExeCfgUrl == null) {
-                listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
-                return;
-            }
-
-            @SuppressWarnings("squid:S2259")
-            URL cmdExe2Url = Jenkins.get().pluginManager.uberClassLoader.getResource(LRANALYSIS_LAUNCHER_EXE);
-            if (cmdExe2Url == null) {
-                listener.fatalError(LRANALYSIS_LAUNCHER_EXE + "not found in resources");
-                return;
-            }
-
-            FilePath propsFileName = workspace.child(ParamFileName);
-            CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
-            FilePath CmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
-            FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
-
-            try {
-                // create a file for the properties file, and save the properties
-                propsFileName.copyFrom(propsStream);
-                // Copy the script to the project workspace
-                CmdLineExe.copyFrom(cmdExeUrl);
-                CmdLineExeCfg.copyFrom(cmdExeCfgUrl);
-                CmdLineExe2.copyFrom(cmdExe2Url);
-            } catch (IOException | InterruptedException e) {
-                build.setResult(Result.FAILURE);
-                listener.error("Copying executable files to executing node " + e);
-            }
+            // Copy the script to the project workspace
+            cmdLineExe.copyFrom(cmdExeUrl);
+            cmdLineExeCfg.copyFrom(cmdExeCfgUrl);
+            cmdLineExe2.copyFrom(cmdExe2Url);
+        } catch (IOException | InterruptedException e) {
+            build.setResult(Result.FAILURE);
+            listener.error("Copying executable files to executing node " + e);
         }
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode, runFromFileModel.getOutEncoding());
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, ParamFileName, currNode, runFromFileModel.getOutEncoding());
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
