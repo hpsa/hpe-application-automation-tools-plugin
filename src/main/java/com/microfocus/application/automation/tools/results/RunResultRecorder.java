@@ -1560,7 +1560,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/**
 	 * The type Descriptor.
 	 */
-	@Symbol("publishOpenTextTestResults")
+	@Symbol("publishMicroFocusTestResults")
 	@Extension
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
