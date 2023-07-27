@@ -686,7 +686,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 mergedProperties.put("MobilePassword", encPassword);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
-                listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
+                listener.fatalError("Problem in Digital Lab password encryption: " + e.getMessage() + ".");
                 return;
             }
         } else if (StringUtils.isNotBlank(plainTextToken)) {
@@ -695,7 +695,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 mergedProperties.put("MobileExecToken", encToken);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
-                listener.fatalError("Problem in UFT Mobile execution token encryption: " + e.getMessage() + ".");
+                listener.fatalError("Problem in Digital Lab execution token encryption: " + e.getMessage() + ".");
                 return;
             }
         }
