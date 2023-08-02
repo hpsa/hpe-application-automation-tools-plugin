@@ -198,9 +198,12 @@ public final class AlmToolsUtils {
             }
             Thread.sleep(1500);
             if (fileProps.exists() && fileProps.length() > 0) {
-                String msg = String.format("Successfully created the file [%s]", fileProps.getName());
-                msg += (idxOfRetry == 0 ? "." : String.format(" after %d %s.", idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries")));
-                listener.getLogger().println(msg);
+                String msg = "Successfully created the file";
+                if (idxOfRetry == 0) {
+                    listener.getLogger().println(String.format("%s [%s].", msg, fileProps.getName()));
+                } else {
+                    listener.getLogger().println(String.format("%s after %d %s.", msg, idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries")));
+                }
                 ok = true;
             } else if (idxOfRetry > 5) {
                 listener.fatalError("Failed to save the file " + fileProps.getName() + " after 5 retries.");
