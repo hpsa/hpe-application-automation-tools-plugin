@@ -560,7 +560,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 									 * it to the master.
 									 */
 
-									try (ByteArrayInputStream instr = new ByteArrayInputStream(outStr.toByteArray())) {
+									try (InputStream instr = new ByteArrayInputStream(outStr.toByteArray())) {
 										FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
 										archivedFile.copyFrom(instr);
 									}

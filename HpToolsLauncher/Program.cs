@@ -29,6 +29,7 @@
 using HpToolsLauncher.Properties;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -78,6 +79,15 @@ namespace HpToolsLauncher
             {
                 ShowHelp();
                 return;
+            }
+            else 
+            {
+                paramFileName = paramFileName.Trim();
+                if (!File.Exists(paramFileName))
+                {
+                    Console.WriteLine("Error: The file [{0}] cannot be found in folder [{1}].", paramFileName, Directory.GetCurrentDirectory());
+                    Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(outEncoding))

@@ -61,10 +61,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import javax.annotation.Nonnull;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Format;
@@ -80,10 +77,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     public static final String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     public static final String HP_TOOLS_LAUNCHER_EXE_CFG = "HpToolsLauncher.exe.config";
-
-    private String ResultFilename = "ApiResults.xml";
-
-    private String ParamFileName = "ApiRun.txt";
 
     private RunFromFileSystemModel runFromFileModel;
 
@@ -669,13 +662,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         JSONObject jobDetails;
         String mcServerUrl;
         // now merge them into one list
-        Properties mergedProperties = new Properties();
+        Properties mergedProps = new Properties();
         if (mcServerSettingsModel != null) {
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
             jobDetails = runFromFileModel.getJobDetails(mcServerUrl);
 
-            mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
-            mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
+            mergedProps.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
+            mergedProps.setProperty("MobileHostAddress", mcServerUrl);
         }
 
         // check whether Mobile authentication info is given or not
@@ -684,7 +677,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         if (StringUtils.isNotBlank(plainTextPwd)) {
             try {
                 String encPassword = EncryptionUtils.encrypt(plainTextPwd, currNode);
-                mergedProperties.put("MobilePassword", encPassword);
+                mergedProps.put("MobilePassword", encPassword);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
                 listener.fatalError("Problem in UFT Mobile password encryption: " + e.getMessage() + ".");
@@ -693,7 +686,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         } else if (StringUtils.isNotBlank(plainTextToken)) {
             try {
                 String encToken = EncryptionUtils.encrypt(plainTextToken, currNode);
-                mergedProperties.put("MobileExecToken", encToken);
+                mergedProps.put("MobileExecToken", encToken);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
                 listener.fatalError("Problem in UFT Mobile execution token encryption: " + e.getMessage() + ".");
@@ -710,27 +703,27 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
         }
 
-        mergedProperties.putAll(Objects.requireNonNull(runFromFileModel).getProperties(env, currNode));
+        mergedProps.putAll(Objects.requireNonNull(runFromFileModel).getProperties(env, currNode));
 
         if (areParametersEnabled) {
             try {
-                specifyParametersModel.addProperties(mergedProperties, "Test", currNode);
+                specifyParametersModel.addProperties(mergedProps, "Test", currNode);
             } catch (Exception e) {
                 listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
             }
         }
         boolean isPrintTestParams = UftToolUtils.isPrintTestParams(build, listener);
-        mergedProperties.put("printTestParams", isPrintTestParams ? "1" : "0");
+        mergedProps.put("printTestParams", isPrintTestParams ? "1" : "0");
 
         UftRunAsUser uftRunAsUser;
         try {
             uftRunAsUser = UftToolUtils.getRunAsUser(build, listener);
             if (uftRunAsUser != null) {
-                mergedProperties.put("uftRunAsUserName", uftRunAsUser.getUsername());
+                mergedProps.put("uftRunAsUserName", uftRunAsUser.getUsername());
                 if (StringUtils.isNotBlank(uftRunAsUser.getEncodedPassword())) {
-                    mergedProperties.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPasswordAsEncrypted(currNode));
+                    mergedProps.put("uftRunAsUserEncodedPassword", uftRunAsUser.getEncodedPasswordAsEncrypted(currNode));
                 } else if (uftRunAsUser.getPassword() != null) {
-                    mergedProperties.put("uftRunAsUserPassword", uftRunAsUser.getPasswordAsEncrypted(currNode));
+                    mergedProps.put("uftRunAsUserPassword", uftRunAsUser.getPasswordAsEncrypted(currNode));
                 }
             }
         } catch(IllegalArgumentException | EncryptionUtils.EncryptionException e) {
@@ -742,7 +735,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
             String key = iterator.next();
             idx++;
-            mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
+            mergedProps.put("JenkinsEnv" + idx, key + ";" + env.get(key));
         }
 
         Date now = new Date();
@@ -750,38 +743,38 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         String time = formatter.format(now);
 
         // get a unique filename for the params file
-        ParamFileName = "props" + time + ".txt";
-        ResultFilename = String.format("Results%s_%d.xml", time, build.getNumber());
+        String propsFileName = String.format("props%s.txt", time);
+        String resFileName = String.format("Results%s_%d.xml", time, build.getNumber());
 
         long threadId = Thread.currentThread().getId();
         if (resultFileNames == null) {
             resultFileNames = new HashMap<Long, String>();
         }
-        resultFileNames.put(threadId, ResultFilename);
+        resultFileNames.put(threadId, resFileName);
 
-        mergedProperties.put("runType", AlmRunTypes.RunType.FileSystem.toString());
+        mergedProps.put("runType", AlmRunTypes.RunType.FileSystem.toString());
 
         if (summaryDataLogModel != null) {
-            summaryDataLogModel.addToProps(mergedProperties);
+            summaryDataLogModel.addToProps(mergedProps);
         }
 
         if (scriptRTSSetModel != null) {
-            scriptRTSSetModel.addScriptsToProps(mergedProperties, env);
+            scriptRTSSetModel.addScriptsToProps(mergedProps, env);
         }
 
-        mergedProperties.put("resultsFilename", ResultFilename);
+        mergedProps.put("resultsFilename", resFileName);
 
         // parallel runner is enabled
         if (isParallelRunnerEnabled) {
             // add the parallel runner properties
-            fileSystemTestSetModel.addTestSetProperties(mergedProperties, env);
+            fileSystemTestSetModel.addTestSetProperties(mergedProps, env);
 
             // we need to replace each mtbx test with mtbx file path
             for (int index = 1; index < this.fileSystemTestSetModel.getFileSystemTestSet().size(); index++) {
                 String key = "Test" + index;
-                String content = mergedProperties.getProperty(key + index, "");
+                String content = mergedProps.getProperty(key + index, "");
                 try {
-                    replaceTestWithMtbxFile(workspace, mergedProperties, content, key, time, index);
+                    replaceTestWithMtbxFile(workspace, mergedProps, content, key, time, index);
                 } catch (Exception e) {
                     build.setResult(Result.FAILURE);
                     listener.error("Failed to save MTBX file : " + e.getMessage());
@@ -794,9 +787,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             // We save mtbx content in workspace and replace content of Test1 by reference to saved file
             // this only applies to the normal file system flow
             String firstTestKey = "Test1";
-            String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+            String firstTestContent = mergedProps.getProperty(firstTestKey, "");
             try {
-                replaceTestWithMtbxFile(workspace, mergedProperties, firstTestContent, firstTestKey, time);
+                replaceTestWithMtbxFile(workspace, mergedProps, firstTestContent, firstTestKey, time);
             } catch (Exception e) {
                 build.setResult(Result.FAILURE);
                 listener.error("Failed to save MTBX file : " + e.getMessage());
@@ -804,7 +797,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         if (uftSettingsModel != null) {
-            uftSettingsModel.addToProperties(mergedProperties);
+            uftSettingsModel.addToProperties(mergedProps);
         }
 
         // cleanup report folders before running the build
@@ -819,8 +812,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         // clean cleanuptests' report folders
         int index = 1;
-        while (mergedProperties.getProperty("CleanupTest" + index) != null) {
-            String testPath = mergedProperties.getProperty("CleanupTest" + index);
+        while (mergedProps.getProperty("CleanupTest" + index) != null) {
+            String testPath = mergedProps.getProperty("CleanupTest" + index);
             List<String> cleanupTests = UftToolUtils.getBuildTests(selectedNode, testPath);
             for (String test : cleanupTests) {
                 UftToolUtils.deleteReportFoldersFromNode(selectedNode, test, listener);
@@ -831,8 +824,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         // clean actual tests' report folders
         index = 1;
-        while (mergedProperties.getProperty("Test" + index) != null) {
-            String testPath = mergedProperties.getProperty(("Test" + index));
+        while (mergedProps.getProperty("Test" + index) != null) {
+            String testPath = mergedProps.getProperty(("Test" + index));
             List<String> buildTests = UftToolUtils.getBuildTests(selectedNode, testPath);
             for (String test : buildTests) {
                 UftToolUtils.deleteReportFoldersFromNode(selectedNode, test, listener);
@@ -840,19 +833,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             index++;
         }
 
-        mergedProperties.setProperty("numOfTests", String.valueOf(index - 1));
+        mergedProps.setProperty("numOfTests", String.valueOf(index - 1));
 
         // get properties serialized into a stream
         String strProps;
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            try {
-                mergedProperties.store(stream, "");
-            } catch (IOException e) {
-                listener.error("Storing run variable failed: " + e);
-                build.setResult(Result.FAILURE);
-            }
-
-            strProps = stream.toString();
+        try {
+            strProps = AlmToolsUtils.getPropsAsString(mergedProps);
+        } catch (IOException e) {
+            build.setResult(Result.FAILURE);
+            listener.error("Failed to store properties on agent machine: " + e);
+            return;
         }
         
         // Get the URL to the Script used to run the test, which is bundled
@@ -878,15 +868,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return;
         }
 
-        FilePath propsFile = workspace.child(ParamFileName);
+        FilePath fileProps = workspace.child(propsFileName);
         FilePath cmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
         FilePath cmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
         FilePath cmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
         try {
             // create a file for the properties file, and save the properties
-            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, propsFile))
+            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, fileProps)) {
+                build.setResult(Result.FAILURE);
                 return;
+            }
             // Copy the script to the project workspace
             cmdLineExe.copyFrom(cmdExeUrl);
             cmdLineExeCfg.copyFrom(cmdExeCfgUrl);
@@ -898,7 +890,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, ParamFileName, currNode, runFromFileModel.getOutEncoding());
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, propsFileName, currNode, runFromFileModel.getOutEncoding());
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
@@ -908,7 +900,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             build.setResult(Result.ABORTED);
             listener.error("Failed running HpToolsLauncher - build aborted " + StringUtils.defaultString(e.getMessage()));
             try {
-                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
+                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, propsFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
