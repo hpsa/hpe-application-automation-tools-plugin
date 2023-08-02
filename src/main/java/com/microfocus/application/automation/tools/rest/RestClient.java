@@ -387,15 +387,16 @@ public class RestClient implements Client {
      * Update cookies
      */
     private void updateCookies(Response response) {
-
-        Iterable<String> newCookies = response.getHeaders().get(RESTConstants.SET_COOKIE);
-        if (newCookies != null) {
-            for (String cookie : newCookies) {
-                int equalIndex = cookie.indexOf('=');
-                int semicolonIndex = cookie.indexOf(';');
-                String cookieKey = cookie.substring(0, equalIndex);
-                String cookieValue = cookie.substring(equalIndex + 1, semicolonIndex);
-                _cookies.put(cookieKey, cookieValue);
+        if (response.isOk()) {
+            Iterable<String> newCookies = response.getHeaders().get(RESTConstants.SET_COOKIE);
+            if (newCookies != null) {
+                for (String cookie : newCookies) {
+                    int equalIndex = cookie.indexOf('=');
+                    int semicolonIndex = cookie.indexOf(';');
+                    String cookieKey = cookie.substring(0, equalIndex);
+                    String cookieValue = cookie.substring(equalIndex + 1, semicolonIndex);
+                    _cookies.put(cookieKey, cookieValue);
+                }
             }
         }
     }
