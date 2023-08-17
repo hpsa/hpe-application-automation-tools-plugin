@@ -12,7 +12,7 @@ public class ActiveChoiceParameterProcessor extends AbstractParametersProcessor 
 
 	@Override
 	public CIParameter createParameterConfig(ParameterDefinition pd) {
-		return ModelFactory.createParameterConfig(pd, CIParameterType.STRING);
+		return ModelFactory.createParameterConfig(pd, CIParameterType.STRING, "");
 	}
 
 	@Override
