@@ -175,10 +175,13 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         Map<String, PipelineNode> jobsMap = new HashMap<>();
 
         try {
+            long start = System.currentTimeMillis();
             Collection<String> jobNames = Jenkins.get().getJobNames();
+            logger.info("Get job names took {} ms", System.currentTimeMillis() - start );
             for (String jobName : jobNames) {
                 String tempJobName = jobName;
                 try {
+                    long startProcessJob = System.currentTimeMillis();
                     Job tmpJob = (Job) Jenkins.get().getItemByFullName(tempJobName);
 
                     if (!isJobIsRelevantForPipelineModule(tmpJob)) {
@@ -197,10 +200,14 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
                         tmpConfig = createPipelineNode(tempJobName, tmpJob, includeParameters);
                     }
                     jobsMap.put(tempJobName, tmpConfig);
+                    if(System.currentTimeMillis() - startProcessJob > 2000){
+                        logger.warn("Job {} took {} ms",tempJobName,System.currentTimeMillis() - startProcessJob);
+                    }
                 } catch (Throwable e) {
                     logger.error("failed to add job '" + tempJobName + "' to JobList", e);
                 }
             }
+            logger.info("Get job list took {} ms",System.currentTimeMillis() - start);
 
             if(jobsMap.isEmpty() && !Jenkins.get().hasPermission(Item.READ)){
                 //it is possible that user doesn't have general READ permission
