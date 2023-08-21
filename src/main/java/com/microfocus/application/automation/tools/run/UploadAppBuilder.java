@@ -90,7 +90,7 @@ public class UploadAppBuilder extends Builder {
         }
         boolean allSuccess = true;
         if (mcServerSettingsModel == null) {
-            out.println("Failed to upload app to Digital Lab server. Cause: Digital Lab url didn't be configured.");
+            out.println("Failed to upload app to Digital Lab server. Cause: Digital Lab url was not configured.");
             return false;
         } else {
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");

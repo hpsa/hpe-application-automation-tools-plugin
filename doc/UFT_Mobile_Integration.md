@@ -10,11 +10,11 @@ For additional information, see the [Digital Lab Help Center](https://admhelp.m
 
 [Prerequisites](#prerequisites)
 
-[Define the Digital Lab server](#define-the-uft-mobile-server)
+[Define the Digital Lab server](#define-the-digital-lab-server)
 
-[Use Digital Lab with SSL](#use-uft-mobile-with-ssl)
+[Use Digital Lab with SSL](#use-digital-lab-with-ssl)
 
-[Upload apps to Digital Lab](#upload-apps-to-uft-mobile)
+[Upload apps to Digital Lab](#upload-apps-to-digital-lab)
 
 
 
@@ -66,7 +66,7 @@ If you need to use Digital Lab securely, with SSL, you must first install the UF
 
 The **Application Automation Tools** Jenkins plugin provides a standalone builder for uploading apps to Digital Lab. If you want to create a job that runs a UFT One functional test with Mobile devices, see the [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/MC/mobile_on_UFT_Jenkins_integ.htm).
 
-1. Make sure you have added your Digital Lab server to the Jenkins configuration as described in [Define the Digital Lab server](#define-the-uft-mobile-server).
+1. Make sure you have added your Digital Lab server to the Jenkins configuration as described in [Define the Digital Lab server](#define-the-digital-lab-server).
 2. Copy your application package file, with **.apk** or **.ipa** extensions, to the Jenkins machine.
 3. On the Jenkins Server home page, click **New Item**.
 4. Enter an item name for the project.
