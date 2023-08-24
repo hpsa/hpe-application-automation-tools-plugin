@@ -28,7 +28,7 @@ For additional information, see the [online help](https://admhelp.microfocus.com
 
 1.  Install one of the five latest LTS versions of Jenkins, [(Click here for a list.)](https://jenkins.io/changelog-stable/)
     
-2.  Install the Jenkins [Micro Focus Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin).
+2.  Install the Jenkins [OpenText Application Automation Tools plugin](https://plugins.jenkins.io/hp-application-automation-tools-plugin).
 
 ## Job types
 
@@ -52,7 +52,7 @@ To set up a Freestyle job:
     
 3. Scroll down to the **Build** section.
 
-4. Expand the **Add build step** drop-down and select **Execute Micro Focus tests from file system**.
+4. Expand the **Add build step** drop-down and select **Execute OpenText tests from file system**.
 
 5. Click the **LoadRunner-Specific Settings** button and specify the following settings:
 
