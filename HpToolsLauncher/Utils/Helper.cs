@@ -718,7 +718,7 @@ namespace HpToolsLauncher.Utils
         /// </summary>
         public static void ChangeDCOMSettingToInteractiveUser()
         {
-            string errorMsg = "Unable to change DCOM settings. To chage it manually: run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User.";
+            string errorMsg = "Unable to change DCOM settings. To change it manually: run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User.";
             string interactiveUser = "Interactive User";
             string runAs = "RunAs";
 

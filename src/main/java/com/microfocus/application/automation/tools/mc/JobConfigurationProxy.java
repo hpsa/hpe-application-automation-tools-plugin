@@ -260,7 +260,7 @@ public class JobConfigurationProxy {
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
                 String cookies = Constants.JESEEIONEQ + jsessionId;
                 if (TOKEN.equals(authModel.getValue())) {
-                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + loginJson.get(Constants.OAUTH2_COOKIE_KEY));
                 }
                 headers.put(Constants.COOKIE, cookies);
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
