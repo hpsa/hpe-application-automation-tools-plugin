@@ -397,9 +397,11 @@ public class RestClient implements Client {
      * Update cookies
      */
     private void updateCookies(Response response) {
-        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
-        for (HttpCookie cookie : cookies) {
-            _cookies.put(cookie.getName(), cookie.getValue());
+        if (response.isOk()) {
+            List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+            for (HttpCookie cookie : cookies) {
+                _cookies.put(cookie.getName(), cookie.getValue());
+            }
         }
     }
 
