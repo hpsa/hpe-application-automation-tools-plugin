@@ -1959,6 +1959,7 @@ namespace HpToolsLauncher
 
             if (qcTestStatus == null)
                 return TestState.Unknown;
+
             switch (qcTestStatus.Status)
             {
                 case "Waiting":
