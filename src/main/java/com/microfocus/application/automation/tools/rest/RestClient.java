@@ -31,6 +31,9 @@ package com.microfocus.application.automation.tools.rest;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -39,6 +42,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -74,6 +78,8 @@ public class RestClient implements Client {
     private final String _webuiPrefix;
     private final String _username;
     private final String XSRF_TOKEN_VALUE;
+
+    private CookieManager cookieManager;
 
     /**
      * Configure SSL context for the client.
@@ -136,6 +142,10 @@ public class RestClient implements Client {
 
         XSRF_TOKEN_VALUE = UUID.randomUUID().toString();
         _cookies.put("XSRF-TOKEN", XSRF_TOKEN_VALUE);
+
+
+        cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
     }
 
     public String getXsrfTokenValue() {
@@ -387,16 +397,9 @@ public class RestClient implements Client {
      * Update cookies
      */
     private void updateCookies(Response response) {
-
-        Iterable<String> newCookies = response.getHeaders().get(RESTConstants.SET_COOKIE);
-        if (newCookies != null) {
-            for (String cookie : newCookies) {
-                int equalIndex = cookie.indexOf('=');
-                int semicolonIndex = cookie.indexOf(';');
-                String cookieKey = cookie.substring(0, equalIndex);
-                String cookieValue = cookie.substring(equalIndex + 1, semicolonIndex);
-                _cookies.put(cookieKey, cookieValue);
-            }
+        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+        for (HttpCookie cookie : cookies) {
+            _cookies.put(cookie.getName(), cookie.getValue());
         }
     }
 
