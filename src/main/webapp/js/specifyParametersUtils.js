@@ -115,7 +115,7 @@ function startListening4Params(mainContainer) {
         chkAreParamsEnabled.addEventListener("click", () => cleanParamInput(main));
     }
 
-    const expandTestsFieldBtn = main.querySelector(".expanding-input__button input[type='button']");
+    const expandTestsFieldBtn = main.querySelector(".expanding-input__button [type='button'],");
     expandTestsFieldBtn && expandTestsFieldBtn.addEventListener("click", () => {
         prepareTestInput();
     });
