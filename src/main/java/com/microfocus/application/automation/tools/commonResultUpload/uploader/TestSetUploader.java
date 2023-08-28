@@ -82,23 +82,22 @@ public class TestSetUploader {
     private boolean uploadOrUpdateTestset(Map<String, String> existTestset,
                                           Map<String, String> testset, XmlResultEntity xmlResultEntity) {
         Map<String, String> newTestset;
-        String attachemnt = null;
+        String attachment = testset.get("attachment");
+        testset.remove("attachment");
 
         if (existTestset != null) {
             // If yes, use the exist one to update.
             newTestset = existTestset;
         } else {
             // If no, create test set under folder
-            attachemnt = testset.get("attachment");
-            testset.remove("attachment");
             newTestset =  restService.create(TEST_SET_REST_PREFIX, testset);
         }
 
         if (newTestset == null) {
             return false;
         } else {
-            if (StringUtils.isNotEmpty(attachemnt)) {
-                AttachmentUploadService.getInstance().upload(attachemnt, TEST_SET_REST_PREFIX, newTestset.get("id"));
+            if (StringUtils.isNotEmpty(attachment)) {
+                AttachmentUploadService.getInstance().upload(attachment, TEST_SET_REST_PREFIX, newTestset.get("id"));
             }
             testuploader.upload(newTestset, xmlResultEntity.getSubEntities());
         }
