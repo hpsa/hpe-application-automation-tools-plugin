@@ -353,28 +353,28 @@ namespace HpToolsLauncher.ParallelRunner
         /// <returns></returns>
         public static ProxySettings GetMCProxySettings(McConnectionInfo mcConnectionInfo)
         {
-            if (string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Address))
+            if (string.IsNullOrEmpty(mcConnectionInfo.ProxyAddress))
                 return null;
 
             AuthenticationSettings authenticationSettings = null;
 
-            if (!string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_UserName)
-                && !string.IsNullOrEmpty(mcConnectionInfo.MobileProxySetting_Password))
+            if (!string.IsNullOrEmpty(mcConnectionInfo.ProxyUserName)
+                && !string.IsNullOrEmpty(mcConnectionInfo.ProxyPassword))
             {
                 authenticationSettings = new AuthenticationSettings
                 {
-                    username = mcConnectionInfo.MobileProxySetting_UserName,
+                    username = mcConnectionInfo.ProxyUserName,
                     password = WinUserNativeMethods.
-                        ProtectBSTRToBase64(mcConnectionInfo.MobileProxySetting_Password)
+                        ProtectBSTRToBase64(mcConnectionInfo.ProxyPassword)
                 };
             }
 
             ProxySettings proxySettings = new ProxySettings
             {
                 authentication = authenticationSettings,
-                hostname = mcConnectionInfo.MobileProxySetting_Address,
-                port = mcConnectionInfo.MobileProxySetting_Port,
-                type = mcConnectionInfo.MobileProxyType == 1 ? "system" : "http",
+                hostname = mcConnectionInfo.ProxyAddress,
+                port = mcConnectionInfo.ProxyPort,
+                type = mcConnectionInfo.ProxyType == 1 ? "system" : "http",
             };
 
             return proxySettings;
@@ -389,20 +389,20 @@ namespace HpToolsLauncher.ParallelRunner
         {
             if (mcConnectionInfo == null) return null;
 
-            if (string.IsNullOrEmpty(mcConnectionInfo.MobileHostAddress) ||
-                string.IsNullOrEmpty(mcConnectionInfo.MobileUserName) ||
-                string.IsNullOrEmpty(mcConnectionInfo.MobilePassword) ||
-                string.IsNullOrEmpty(mcConnectionInfo.MobileHostPort))
+            if (string.IsNullOrEmpty(mcConnectionInfo.HostAddress) ||
+                string.IsNullOrEmpty(mcConnectionInfo.UserName) ||
+                string.IsNullOrEmpty(mcConnectionInfo.Password) ||
+                string.IsNullOrEmpty(mcConnectionInfo.HostPort))
                 return null;
 
             MCSettings mcSettings = new MCSettings
             {
-                username = mcConnectionInfo.MobileUserName,
-                password = WinUserNativeMethods.ProtectBSTRToBase64(mcConnectionInfo.MobilePassword),
-                hostname = mcConnectionInfo.MobileHostAddress,
-                port = Convert.ToInt32(mcConnectionInfo.MobileHostPort),
-                protocol = mcConnectionInfo.MobileUseSSL > 0 ? "https" : "http",
-                tenantId = mcConnectionInfo.MobileTenantId,
+                username = mcConnectionInfo.UserName,
+                password = WinUserNativeMethods.ProtectBSTRToBase64(mcConnectionInfo.Password),
+                hostname = mcConnectionInfo.HostAddress,
+                port = Convert.ToInt32(mcConnectionInfo.HostPort),
+                protocol = mcConnectionInfo.UseSslAsInt > 0 ? "https" : "http",
+                tenantId = mcConnectionInfo.TenantId,
             };
 
             var proxy = GetMCProxySettings(mcConnectionInfo);

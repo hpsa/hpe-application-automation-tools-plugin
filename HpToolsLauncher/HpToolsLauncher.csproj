@@ -107,7 +107,7 @@
       <DependentUpon>junit.xsd</DependentUpon>
       <SubType>code</SubType>
     </Compile>
-    <Compile Include="McConnection.cs" />
+    <Compile Include="Common\McConnectionInfo.cs" />
     <Compile Include="MtbManager.cs" />
     <Compile Include="NativeProcess.cs" />
     <Compile Include="ParallelRunner\ParallelRunnerEnvironmentUtil.cs" />
@@ -141,7 +141,7 @@
     <Compile Include="Runners\AlmTestSetsRunner.cs" />
     <Compile Include="TestSuiteRunResults.cs" />
     <Compile Include="Utils\RunAsUser.cs" />
-    <Compile Include="WinUserNativeMethods.cs" />
+    <Compile Include="Common\WinUserNativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Interfaces\.svn\prop-base\" />
