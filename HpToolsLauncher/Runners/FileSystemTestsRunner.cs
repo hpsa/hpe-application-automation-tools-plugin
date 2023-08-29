@@ -305,9 +305,9 @@ namespace HpToolsLauncher
                     {
                         testGroup = new List<TestInfo>();
                         FileInfo fi = new FileInfo(source.Tests);
-                        if (fi.Extension == Helper.LoadRunnerFileExtention)
+                        if (fi.Extension == Helper.LoadRunnerFileExt)
                             testGroup.Add(new TestInfo(source.Tests, source.Tests, source.Tests, source.Id));
-                        else if (fi.Extension == Helper.MtbFileExtension)
+                        else if (fi.Extension == Helper.MtbFileExt)
                         {
                             MtbManager manager = new MtbManager();
                             var paths = manager.Parse(source.Tests);
@@ -316,7 +316,7 @@ namespace HpToolsLauncher
                                 testGroup.Add(new TestInfo(p, p, source.Tests, source.Id));
                             }
                         }
-                        else if (fi.Extension == Helper.MtbxFileExtension)
+                        else if (fi.Extension == Helper.MtbxFileExt)
                         {
                             testGroup = MtbxManager.Parse(source.Tests, jenkinsEnvVars, source.Tests);
 

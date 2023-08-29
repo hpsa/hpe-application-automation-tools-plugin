@@ -77,12 +77,10 @@ namespace HpToolsLauncher.Utils
 
         public const string FT_REG_ROOT = @"SOFTWARE\Mercury Interactive\QuickTest Professional\CurrentVersion";
 
-        internal const string FT_REG_ROOT_64_BIT =
-            @"SOFTWARE\Wow6432Node\Mercury Interactive\QuickTest Professional\CurrentVersion";
+        internal const string FT_REG_ROOT_64_BIT = @"SOFTWARE\Wow6432Node\Mercury Interactive\QuickTest Professional\CurrentVersion";
 
         public const string FT_ROOT_PATH_KEY = "QuickTest Professional";
         private const string QTP_ROOT_ENV_VAR_NAME = "QTP_TESTS_ROOT";
-
 
         public const string ServiceTestRegistryKey = @"SOFTWARE\Hewlett-Packard\HP Service Test";
         public const string ServiceTesCurrentVersionRegistryKey = ServiceTestRegistryKey + @"\CurrentVersion";
@@ -100,24 +98,29 @@ namespace HpToolsLauncher.Utils
         public static readonly System.Collections.ObjectModel.ReadOnlyCollection<string> LoadRunnerENVVariables =
             new System.Collections.ObjectModel.ReadOnlyCollection<string>(new[] { "LG_PATH", "LR_PATH" });
 
-
         public const string InstalltionFolderValue = "LOCAL_MLROOT";
 
-        public const string UftViewerInstalltionFolderRegistryKey =
-            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E86D56AE-6660-4357-890F-8B79AB7A8F7B}";
+        public const string UftViewerInstalltionFolderRegistryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E86D56AE-6660-4357-890F-8B79AB7A8F7B}";
 
-        public const string UftViewerInstalltionFolderRegistryKey64Bit =
-            @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{E86D56AE-6660-4357-890F-8B79AB7A8F7B}";
-
+        public const string UftViewerInstalltionFolderRegistryKey64Bit = @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{E86D56AE-6660-4357-890F-8B79AB7A8F7B}";
 
         public const string ResultsFileName = "Results.xml";
         public const string QTPReportProcessPath = @"bin\reportviewer.exe";
 
-        public const string STFileExtention = ".st";
-        public const string QTPFileExtention = ".tsp";
-        public const string LoadRunnerFileExtention = ".lrs";
-        public const string MtbFileExtension = ".mtb";
-        public const string MtbxFileExtension = ".mtbx";
+        public const string STFileExt = ".st";
+        public const string QTPFileExt = ".tsp";
+        public const string LoadRunnerFileExt = ".lrs";
+        public const string MtbFileExt = ".mtb";
+        public const string MtbxFileExt = ".mtbx";
+
+        private const string SOFTWARE_Classes_AppID_A67EB23A = @"SOFTWARE\Classes\AppID\{A67EB23A-1B8F-487D-8E38-A6A3DD150F0B}";
+
+        private const string SYSTEM_CURRENTCONTROLSET_CONTROL = @"SYSTEM\CurrentControlSet\Control";
+        private const string INTERACTIVE_USER = "Interactive User";
+        private const string RUN_AS = "RunAs";
+        private const string CONTAINER_TYPE = "ContainerType";
+        private const string UNABLE_TO_CHANGE_DCOM_SETTINGS = "Unable to change DCOM settings. To change it manually: run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User.";
+        private const string BYPASS_DCOM_SETTINGS_CHECK = "Bypass DCOM settings check, since the process runs inside a Docker container.";
 
         #endregion
 
@@ -584,9 +587,9 @@ namespace HpToolsLauncher.Utils
             try
             {
 
-                files = root.GetFiles("*" + STFileExtention);
-                files = files.Union(root.GetFiles("*" + QTPFileExtention)).ToArray();
-                files = files.Union(root.GetFiles("*" + LoadRunnerFileExtention)).ToArray();
+                files = root.GetFiles("*" + STFileExt);
+                files = files.Union(root.GetFiles("*" + QTPFileExt)).ToArray();
+                files = files.Union(root.GetFiles("*" + LoadRunnerFileExt)).ToArray();
             }
             catch (Exception)
             {
@@ -600,7 +603,7 @@ namespace HpToolsLauncher.Utils
             {
                 foreach (FileInfo fi in files)
                 {
-                    if (fi.Extension == LoadRunnerFileExtention)
+                    if (fi.Extension == LoadRunnerFileExt)
                         results.Add(fi.FullName);
                     else
                         results.Add(fi.Directory.FullName);
@@ -718,10 +721,11 @@ namespace HpToolsLauncher.Utils
         /// </summary>
         public static void ChangeDCOMSettingToInteractiveUser()
         {
-            string errorMsg = "Unable to change DCOM settings. To change it manually: run dcomcnfg.exe -> My Computer -> DCOM Config -> QuickTest Professional Automation -> Identity -> and select The Interactive User.";
-            string interactiveUser = "Interactive User";
-            string runAs = "RunAs";
-
+            if (IsInDocker())
+            {
+                ConsoleWriter.WriteLine(BYPASS_DCOM_SETTINGS_CHECK);
+                return;
+            }
             try
             {
                 var regKey = GetQuickTestProfessionalAutomationRegKey(RegistryView.Registry32);
@@ -732,26 +736,41 @@ namespace HpToolsLauncher.Utils
                 }
 
                 if (regKey == null)
-                    throw new Exception(@"Unable to find in registry SOFTWARE\Classes\AppID\{A67EB23A-1B8F-487D-8E38-A6A3DD150F0B");
+                    throw new Exception(string.Format("Unable to find in registry key {0}", SOFTWARE_Classes_AppID_A67EB23A));
 
-                object runAsKey = regKey.GetValue(runAs);
+                object runAsKey = regKey.GetValue(RUN_AS);
 
-                if (runAsKey == null || !runAsKey.ToString().Equals(interactiveUser))
+                if (runAsKey == null || !runAsKey.ToString().Equals(INTERACTIVE_USER))
                 {
-                    regKey.SetValue(runAs, interactiveUser);
+                    regKey.SetValue(RUN_AS, INTERACTIVE_USER);
                 }
-
             }
             catch (Exception ex)
             {
-                throw new Exception(errorMsg + "detailed error is : " + ex.Message);
+                throw new Exception(string.Format("{0}. Error: ", UNABLE_TO_CHANGE_DCOM_SETTINGS, ex.Message));
             }
+        }
+
+        private static bool IsInDocker()
+        {
+            int containerType = 0;
+            try
+            {
+                RegistryKey regKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                regKey = regKey.OpenSubKey(SYSTEM_CURRENTCONTROLSET_CONTROL, false);
+                containerType = (regKey.GetValue(CONTAINER_TYPE) as int?).GetValueOrDefault();
+            }
+            catch (Exception ex)
+            {
+                ConsoleWriter.WriteErrLine(string.Format("IsInDocker() function error: {0}", ex.Message));
+            }
+            return containerType > 0;
         }
 
         public static RegistryKey GetQuickTestProfessionalAutomationRegKey(RegistryView registry32)
         {
-            RegistryKey localKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry64);
-            localKey = localKey.OpenSubKey(@"SOFTWARE\Classes\AppID\{A67EB23A-1B8F-487D-8E38-A6A3DD150F0B}", true);
+            RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            localKey = localKey.OpenSubKey(SOFTWARE_Classes_AppID_A67EB23A, true);
 
             return localKey;
         }
@@ -922,7 +941,6 @@ namespace HpToolsLauncher.Utils
 
         }
 
-
         public static TestState GetTestStateFromLRReport(TestRunResults runDesc, string[] resultFiles)
         {
 
@@ -1040,7 +1058,6 @@ namespace HpToolsLauncher.Utils
             }
             return TestState.Passed;
         }
-
 
         private static TestState GetStateFromUFTResultsFile(string resultsFileFullPath, out string desc)
         {
