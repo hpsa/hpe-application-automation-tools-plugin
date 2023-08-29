@@ -343,20 +343,20 @@ namespace HpToolsLauncherTests
         public void GetMCProxySettingsTest_ValidMCSettings_ReturnsExpectedProxySettings()
         {
             McConnectionInfo mcConnectionInfo = new McConnectionInfo();
-            mcConnectionInfo.MobileProxySetting_Address = "192.168.1.1";
-            mcConnectionInfo.MobileProxySetting_Port = 8080;
-            mcConnectionInfo.MobileProxySetting_Authentication = 1;
-            mcConnectionInfo.MobileProxySetting_UserName = "test";
-            mcConnectionInfo.MobileProxySetting_Password = "test";
+            mcConnectionInfo.ProxyAddress = "192.168.1.1";
+            mcConnectionInfo.ProxyPort = 8080;
+            mcConnectionInfo.ProxyAuth = 1;
+            mcConnectionInfo.ProxyUserName = "test";
+            mcConnectionInfo.ProxyPassword = "test";
 
             ProxySettings settings = ParallelRunnerEnvironmentUtil.GetMCProxySettings(mcConnectionInfo);
 
             Assert.IsNotNull(settings);
             Assert.IsNotNull(settings.authentication);
 
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_UserName, settings.authentication.username);
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_Address, settings.hostname);
-            Assert.AreEqual(mcConnectionInfo.MobileProxySetting_Port, settings.port);
+            Assert.AreEqual(mcConnectionInfo.ProxyUserName, settings.authentication.username);
+            Assert.AreEqual(mcConnectionInfo.ProxyAddress, settings.hostname);
+            Assert.AreEqual(mcConnectionInfo.ProxyPort, settings.port);
         }
 
         [TestMethod]
@@ -373,20 +373,20 @@ namespace HpToolsLauncherTests
         public void ParseMCSettingsTest_ValidMCSettingsSSL_ReturnsExpectedSettings()
         {
             McConnectionInfo mcConnectionInfo = new McConnectionInfo();
-            mcConnectionInfo.MobileHostAddress = "192.168.1.1";
-            mcConnectionInfo.MobileHostPort = "8080";
-            mcConnectionInfo.MobileUserName = "test";
-            mcConnectionInfo.MobilePassword = "test";
-            mcConnectionInfo.MobileUseSSL = 1;
+            mcConnectionInfo.HostAddress = "192.168.1.1";
+            mcConnectionInfo.HostPort = "8080";
+            mcConnectionInfo.UserName = "test";
+            mcConnectionInfo.Password = "test";
+            mcConnectionInfo.UseSslAsInt = 1;
 
             UFTSettings settings = ParallelRunnerEnvironmentUtil.ParseMCSettings(mcConnectionInfo);
 
             Assert.IsNotNull(settings);
             Assert.IsNotNull(settings.mc);
 
-            Assert.AreEqual(mcConnectionInfo.MobileHostAddress, settings.mc.hostname);
-            Assert.AreEqual(mcConnectionInfo.MobileHostPort, settings.mc.port.ToString());
-            Assert.AreEqual(mcConnectionInfo.MobileUserName, settings.mc.username);
+            Assert.AreEqual(mcConnectionInfo.HostAddress, settings.mc.hostname);
+            Assert.AreEqual(mcConnectionInfo.HostPort, settings.mc.port.ToString());
+            Assert.AreEqual(mcConnectionInfo.UserName, settings.mc.username);
             Assert.AreEqual("https", settings.mc.protocol);
         }
 
@@ -394,19 +394,19 @@ namespace HpToolsLauncherTests
         public void ParseMCSettingsTest_ValidMCSettingsNonSSL_ReturnsExpectedSettings()
         {
             McConnectionInfo mcConnectionInfo = new McConnectionInfo();
-            mcConnectionInfo.MobileHostAddress = "192.168.1.1";
-            mcConnectionInfo.MobileHostPort = "8080";
-            mcConnectionInfo.MobileUserName = "test";
-            mcConnectionInfo.MobilePassword = "test";
+            mcConnectionInfo.HostAddress = "192.168.1.1";
+            mcConnectionInfo.HostPort = "8080";
+            mcConnectionInfo.UserName = "test";
+            mcConnectionInfo.Password = "test";
 
             UFTSettings settings = ParallelRunnerEnvironmentUtil.ParseMCSettings(mcConnectionInfo);
 
             Assert.IsNotNull(settings);
             Assert.IsNotNull(settings.mc);
 
-            Assert.AreEqual(mcConnectionInfo.MobileHostAddress, settings.mc.hostname);
-            Assert.AreEqual(mcConnectionInfo.MobileHostPort, settings.mc.port.ToString());
-            Assert.AreEqual(mcConnectionInfo.MobileUserName, settings.mc.username);
+            Assert.AreEqual(mcConnectionInfo.HostAddress, settings.mc.hostname);
+            Assert.AreEqual(mcConnectionInfo.HostPort, settings.mc.port.ToString());
+            Assert.AreEqual(mcConnectionInfo.UserName, settings.mc.username);
             Assert.AreEqual("http", settings.mc.protocol);
         }
 
