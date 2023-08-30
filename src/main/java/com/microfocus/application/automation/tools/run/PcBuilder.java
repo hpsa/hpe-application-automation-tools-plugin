@@ -1,13 +1,13 @@
 /*
  * Certain versions of software and/or documents ("Material") accessible here may contain branding from
  * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * the Material is now offered by Open Text, a separately owned and operated company.  Any reference to the HP
  * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
  * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * (c) Copyright 2012-2023 Micro Focus or one of its affiliates.
+ * Copyright © 2023 Open Text Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -27,8 +27,8 @@
  */
 
 /*
-* Create the PCModel and the PCClient and allows the connection between the job and PC
-* */
+ * Create the PCModel and the PCClient and allows the connection between the job and PC
+ * */
 package com.microfocus.application.automation.tools.run;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -80,30 +80,27 @@ import java.util.logging.Level;
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.FINISHED;
 import static com.microfocus.adm.performancecenter.plugins.common.pcentities.RunState.RUN_FAILURE;
 
-public class PcBuilder extends Builder implements SimpleBuildStep{
-    
-    private static final String artifactsDirectoryName = "archive";
+public class PcBuilder extends Builder implements SimpleBuildStep {
+
     public static final String artifactsResourceName = "artifact";
     public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun";
     public static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
+    public static final String TRENDED = "Trended";
+    public static final String PENDING = "Pending";
+    public static final String PUBLISHING = "Publishing";
+    public static final String ERROR = "Error";
+    private static final String artifactsDirectoryName = "archive";
     private static final String RUNID_BUILD_VARIABLE = "PC_RUN_ID";
-
-    public static final String    TRENDED         = "Trended";
-    public static final String    PENDING         = "Pending";
-    public static final String    PUBLISHING      = "Publishing";
-    public static final String    ERROR           = "Error";
-
-    private PcModel pcModel;
     public static UsernamePasswordCredentials usernamePCPasswordCredentials;
     public static UsernamePasswordCredentials usernamePCPasswordCredentialsForProxy;
     private transient static Run<?, ?> _run;
-
+    private static PrintStream logger;
     private final String timeslotDurationHours;
     private final String timeslotDurationMinutes;
     private final boolean statusBySLA;
-
+    private PcModel pcModel;
     private String serverAndPort;
     private String pcServerName;
     private String credentialsId;
@@ -124,12 +121,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private String retryDelay;
     private String retryOccurrences;
     private boolean authenticateWithToken;
-
     private int runId;
     private String testName;
     private FilePath pcReportFile;
     private String junitResultsFileName;
-    private static PrintStream logger;
     private File WorkspacePath;
     private FilePath Workspace;
     private DateFormatter dateFormatter = new DateFormatter("");
@@ -178,93 +173,23 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.trendReportId = trendReportId;
         this.HTTPSProtocol = HTTPSProtocol;
         this.proxyOutURL = proxyOutURL;
-        this.credentialsProxyId  = credentialsProxyId;
-        this.retry = (retry == null || retry.isEmpty())? "NO_RETRY" : retry;
+        this.credentialsProxyId = credentialsProxyId;
+        this.retry = (retry == null || retry.isEmpty()) ? "NO_RETRY" : retry;
         this.retryDelay = ("NO_RETRY".equals(this.retry)) ? "0" : (retryDelay == null || retryDelay.isEmpty()) ? "5" : retryDelay;
         this.retryOccurrences = ("NO_RETRY".equals(this.retry)) ? "0" : (retryOccurrences == null || retryOccurrences.isEmpty()) ? "3" : retryOccurrences;
         this.authenticateWithToken = authenticateWithToken;
     }
 
-    @Override
-    public DescriptorImpl getDescriptor() {
-        
-        return (DescriptorImpl) super.getDescriptor();
-    }
-    
-    @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
-        if(build.getWorkspace() != null)
-            WorkspacePath =  new File(build.getWorkspace().toURI());
-        else
-            WorkspacePath =  null;
-        if((getPcModel() != null) && (build != null) && (build instanceof AbstractBuild))
-            setPcModelBuildParameters(build, listener);
-        if(build.getWorkspace() != null)
-            perform(build, build.getWorkspace(), launcher, listener);
-        else
-            return false;
-        return true;
-    }
-
-    private void setPcModelBuildParameters(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
-            Map<String, String> mapParamsAndEnvars = new HashMap<String, String>();
-            Map<String, String> buildParameters = build.getBuildVariables();
-            mapParamsAndEnvars.putAll(buildParameters);
-            if(listener != null) {
-                Map<String, String> buildEnvars = build.getEnvironment(listener);
-                mapParamsAndEnvars.putAll(buildEnvars);
-            }
-            else
-            {
-                Map<String, String> buildEnvars = build.getEnvironment(new LogTaskListener(null, Level.INFO));
-                mapParamsAndEnvars.putAll(buildEnvars);
-            }
-            String buildParametersAndEnvars =  mapParamsAndEnvars.toString();
-            if (!buildParameters.isEmpty())
-                getPcModel().setBuildParameters(buildParametersAndEnvars);
-    }
-
-    public File getWorkspacePath(){
-        return WorkspacePath;
-    }
-
-
-    public String getCredentialsId() {
-        return credentialsId;
-    }
-
-    public String getCredentialsProxyId() {
-        return credentialsProxyId;
-    }
-
-    public static UsernamePasswordCredentials getCredentialsId(String credentialsId)
-    {
-        if(credentialsId!=null && _run != null )
+    public static UsernamePasswordCredentials getCredentialsId(String credentialsId) {
+        if (credentialsId != null && _run != null)
             return getCredentialsById(credentialsId, _run, logger);
         return null;
     }
 
-    public static UsernamePasswordCredentials getCredentialsProxyId(String credentialsProxyId)
-    {
-        if(credentialsProxyId!=null && _run != null )
+    public static UsernamePasswordCredentials getCredentialsProxyId(String credentialsProxyId) {
+        if (credentialsProxyId != null && _run != null)
             return getCredentialsById(credentialsProxyId, _run, logger);
         return null;
-    }
-
-
-    public  void setCredentialsId(String newCredentialsId)
-    {
-        credentialsId = newCredentialsId;
-        pcModel = null;
-        getPcModel();
-    }
-
-    public  void setCredentialsProxyId(String newCredentialsProxyId)
-    {
-        credentialsProxyId = newCredentialsProxyId;
-        pcModel = null;
-        getPcModel();
     }
 
     private static UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run, PrintStream logger) {
@@ -285,10 +210,109 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return usernamePCPasswordCredentials;
     }
 
+    public static String getArtifactsDirectoryName() {
+
+        return artifactsDirectoryName;
+    }
+
+    public static String getArtifactsResourceName() {
+
+        return artifactsResourceName;
+    }
+
+    public static String getRunReportStructure() {
+
+        return runReportStructure;
+    }
+
+    public static String getPcReportArchiveName() {
+
+        return pcReportArchiveName;
+    }
+
+    public static String getPcreportFileName() {
+
+        return pcReportFileName;
+    }
+
+    public static String getPluginVersion() {
+        Plugin plugin = getJenkinsInstance().getPlugin(Messages.ArtifactId());
+        return plugin.getWrapper().getVersion();
+    }
+
+    private static Jenkins getJenkinsInstance() {
+        Jenkins result = Jenkins.getInstance();
+        if (result == null) {
+            throw new IllegalStateException(Messages.FailedToObtainInstance());
+        }
+        return result;
+    }
+
+    @Override
+    public DescriptorImpl getDescriptor() {
+
+        return (DescriptorImpl) super.getDescriptor();
+    }
+
+    @Override
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+            throws InterruptedException, IOException {
+        if (build.getWorkspace() != null)
+            WorkspacePath = new File(build.getWorkspace().toURI());
+        else
+            WorkspacePath = null;
+        if ((getPcModel() != null) && (build != null) && (build instanceof AbstractBuild))
+            setPcModelBuildParameters(build, listener);
+        if (build.getWorkspace() != null)
+            perform(build, build.getWorkspace(), launcher, listener);
+        else
+            return false;
+        return true;
+    }
+
+    private void setPcModelBuildParameters(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
+        Map<String, String> mapParamsAndEnvars = new HashMap<String, String>();
+        Map<String, String> buildParameters = build.getBuildVariables();
+        mapParamsAndEnvars.putAll(buildParameters);
+        if (listener != null) {
+            Map<String, String> buildEnvars = build.getEnvironment(listener);
+            mapParamsAndEnvars.putAll(buildEnvars);
+        } else {
+            Map<String, String> buildEnvars = build.getEnvironment(new LogTaskListener(null, Level.INFO));
+            mapParamsAndEnvars.putAll(buildEnvars);
+        }
+        String buildParametersAndEnvars = mapParamsAndEnvars.toString();
+        if (!buildParameters.isEmpty())
+            getPcModel().setBuildParameters(buildParametersAndEnvars);
+    }
+
+    public File getWorkspacePath() {
+        return WorkspacePath;
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    public void setCredentialsId(String newCredentialsId) {
+        credentialsId = newCredentialsId;
+        pcModel = null;
+        getPcModel();
+    }
+
+    public String getCredentialsProxyId() {
+        return credentialsProxyId;
+    }
+
+    public void setCredentialsProxyId(String newCredentialsProxyId) {
+        credentialsProxyId = newCredentialsProxyId;
+        pcModel = null;
+        getPcModel();
+    }
+
     //pcModel is intialized here.
     public PcModel getPcModel() {
-        if(pcModel == null)
-        {
+        if (pcModel == null) {
             pcModel =
                     new PcModel(
                             serverAndPort.trim(),
@@ -316,44 +340,17 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
         return pcModel;
     }
-    
+
     public String getRunResultsFileName() {
-        
+
         return junitResultsFileName;
     }
-    
-    public static String getArtifactsDirectoryName() {
-        
-        return artifactsDirectoryName;
-    }
-    
-    public static String getArtifactsResourceName() {
 
-        return artifactsResourceName;
-    }
-    
-    public static String getRunReportStructure() {
-        
-        return runReportStructure;
-    }
-    
-    public static String getPcReportArchiveName() {
-
-        return pcReportArchiveName;
-    }
-    
-    public static String getPcreportFileName() {
-
-        return pcReportFileName;
-    }
-
-    private void setBuildParameters (AbstractBuild<?, ?> build)
-    {
+    private void setBuildParameters(AbstractBuild<?, ?> build) {
         try {
             if (build != null && build.getBuildVariables() != null)
-                    getPcModel().setBuildParameters(build.getBuildVariables().toString());
-        }
-        catch (Exception ex) {
+                getPcModel().setBuildParameters(build.getBuildVariables().toString());
+        } catch (Exception ex) {
             logger.println(String.format("%s - %s: %s",
                     dateFormatter.getDate(),
                     Messages.BuildParameterNotConsidered(),
@@ -361,39 +358,26 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
     }
 
-    public static String getPluginVersion() {
-        Plugin plugin = getJenkinsInstance().getPlugin(Messages.ArtifactId());
-        return plugin.getWrapper().getVersion();
-    }
-
-    private static Jenkins getJenkinsInstance() {
-        Jenkins result = Jenkins.getInstance();
-        if (result == null) {
-            throw new IllegalStateException(Messages.FailedToObtainInstance());
-        }
-        return result;
-    }
-
     private String getVersion() {
-		String completeVersion = getPluginVersion();
-		if(completeVersion != null) {
-			String[] partsOfCompleteVersion = completeVersion.split(" [(]");
-			return partsOfCompleteVersion[0];
-		}
+        String completeVersion = getPluginVersion();
+        if (completeVersion != null) {
+            String[] partsOfCompleteVersion = completeVersion.split(" [(]");
+            return partsOfCompleteVersion[0];
+        }
         return "unknown";
     }
 
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
-            throws InterruptedException,NullPointerException {
+            throws InterruptedException, NullPointerException {
         _run = build;
         try {
             String version = getVersion();
-            if(!(version == null || version.equals("unknown")))
+            if (!(version == null || version.equals("unknown")))
                 logger.println(String.format("%s - %s '%s'",
                         dateFormatter.getDate(),
                         Messages.PluginVersionIs(),
                         version));
-            if((getPcModel() !=null) && (build != null) && (build instanceof AbstractBuild))
+            if ((getPcModel() != null) && (build != null) && (build instanceof AbstractBuild))
                 setPcModelBuildParameters((AbstractBuild) build, null);
             if (!StringUtils.isBlank(getPcModel().getDescription()))
                 logger.println(String.format("%s - %s: %s",
@@ -427,7 +411,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
-        if((getPcModel() !=null) && (build != null) && (build instanceof AbstractBuild))
+        if ((getPcModel() != null) && (build != null) && (build instanceof AbstractBuild))
             setPcModelBuildParameters((AbstractBuild) build, null);
         PcRunResponse response = null;
         String errorMessage = "";
@@ -437,7 +421,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             runId = pcClient.startRun();
             if (runId == 0)
                 return null;
-        } catch (NumberFormatException|ClientProtocolException|PcException ex) {
+        } catch (NumberFormatException | ClientProtocolException | PcException ex) {
             logger.println(String.format("%s - %s. %s: %s",
                     dateFormatter.getDate(),
                     Messages.StartRunFailed(),
@@ -456,7 +440,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         //getTestName failure should not fail test execution.
         try {
             testName = pcClient.getTestName();
-            if(testName == null) {
+            if (testName == null) {
                 testName = String.format("TestId_%s", getPcModel().getTestId());
                 logger.println(String.format("%s - getTestName failed. Using '%s' as testname.",
                         dateFormatter.getDate(),
@@ -466,7 +450,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         dateFormatter.getDate(),
                         Messages.TestNameIs(),
                         testName));
-        }  catch (PcException|IOException ex) {
+        } catch (PcException | IOException ex) {
             testName = String.format("TestId_%s", getPcModel().getTestId());
             logger.println(String.format("%s - getTestName failed. Using '%s' as testname. Error: %s \n",
                     dateFormatter.getDate(),
@@ -490,7 +474,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
                 // Adding the trend report section if ID has been set or if the Associated Trend report is selected.
-                if(((("USE_ID").equals(getPcModel().getAddRunToTrendReport()) && getPcModel().getTrendReportId(true) != null) || ("ASSOCIATED").equals(getPcModel().getAddRunToTrendReport())) && RunState.get(response.getRunState()) != RUN_FAILURE){
+                if (((("USE_ID").equals(getPcModel().getAddRunToTrendReport()) && getPcModel().getTrendReportId(true) != null) || ("ASSOCIATED").equals(getPcModel().getAddRunToTrendReport())) && RunState.get(response.getRunState()) != RUN_FAILURE) {
                     Thread.sleep(5000);
                     pcClient.addRunToTrendReport(this.runId, getPcModel().getTrendReportId(true));
                     pcClient.waitForRunToPublishOnTrendReport(this.runId, getPcModel().getTrendReportId(true));
@@ -510,9 +494,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
 
         Testsuites ret = new Testsuites();
-        parsePcRunResponse(ret,response, build, errorMessage, eventLogString);
+        parsePcRunResponse(ret, response, build, errorMessage, eventLogString);
         try {
-            parsePcTrendResponse(ret,build,pcClient,trendReportReady,getPcModel().getTrendReportId(true),runId);
+            parsePcTrendResponse(ret, build, pcClient, trendReportReady, getPcModel().getTrendReportId(true), runId);
         } catch (IntrospectionException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -521,13 +505,13 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         return ret;
     }
-    
+
     private String buildEventLogString(PcRunEventLog eventLog) {
-        
+
         String logFormat = "%-5s | %-7s | %-19s | %s\n";
-        StringBuilder eventLogStr = new StringBuilder("Event Log:\n\n" + String.format(logFormat, "ID", "TYPE", "TIME","DESCRIPTION"));
+        StringBuilder eventLogStr = new StringBuilder("Event Log:\n\n" + String.format(logFormat, "ID", "TYPE", "TIME", "DESCRIPTION"));
         for (PcRunEventLogRecord record : eventLog.getRecordsList()) {
-            eventLogStr.append(String.format(logFormat, record.getID(), record.getType(), record.getTime(), record.getDescription()));            
+            eventLogStr.append(String.format(logFormat, record.getID(), record.getType(), record.getTime(), record.getDescription()));
         }
         return eventLogStr.toString();
     }
@@ -535,7 +519,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private boolean beforeRun(PcClient pcClient) {
         return validatePcForm() && pcClient.login();
     }
-    
+
     private String getReportDirectory(Run<?, ?> build) {
         return String.format(
                 runReportStructure,
@@ -558,7 +542,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     private boolean validatePcForm() {
-        
+
         logger.println(String.format("%s - %s",
                 dateFormatter.getDate(),
                 Messages.ValidatingParametersBeforeRun()));
@@ -572,17 +556,17 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 name = name.replace(prefix, "").toLowerCase();
                 for (Method modelMethod : modelMethods) {
                     String modelMethodName = modelMethod.getName();
-                    if (modelMethodName.toLowerCase().equals("get" + name) && modelMethod.getParameterTypes().length==0) {
+                    if (modelMethodName.toLowerCase().equals("get" + name) && modelMethod.getParameterTypes().length == 0) {
                         try {
                             Object obj = FormValidation.ok();
                             if (!("testinstanceid".equals(name) && "AUTO".equals(getPcModel().getAutoTestInstanceID()))
                                     && !(("retrydelay".equals(name) && "NO_RETRY".equals(getPcModel().getRetry())) || getPcModel().getRetry().isEmpty())
                                     && !(("retryoccurrences".equals(name) && "NO_RETRY".equals(getPcModel().getRetry())) || getPcModel().getRetry().isEmpty())
-                                    ) {
-                                if("doCheckCredentialsId".equals(method.getName()) && "credentialsid".equals(name) && "getCredentialsId".equals(modelMethodName)
-                                    || "doCheckCredentialsProxyId".equals(method.getName()) && "credentialsproxyid".equals(name) && "getCredentialsProxyId".equals(modelMethodName)
-                                        )
-                                    obj = method.invoke(getDescriptor(), null,null, modelMethod.invoke(getPcModel()));
+                            ) {
+                                if ("doCheckCredentialsId".equals(method.getName()) && "credentialsid".equals(name) && "getCredentialsId".equals(modelMethodName)
+                                        || "doCheckCredentialsProxyId".equals(method.getName()) && "credentialsproxyid".equals(name) && "getCredentialsProxyId".equals(modelMethodName)
+                                )
+                                    obj = method.invoke(getDescriptor(), null, null, modelMethod.invoke(getPcModel()));
                                 else
                                     obj = method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
                             }
@@ -604,31 +588,28 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(true),("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
+        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(true), ("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
 
         ret &= isTrendReportIdValid;
         return ret;
-        
+
     }
 
 
-
-    private boolean validateTrendReportIdIsNumeric(String trendReportId, boolean addRunToTrendReport){
+    private boolean validateTrendReportIdIsNumeric(String trendReportId, boolean addRunToTrendReport) {
 
         FormValidation res = FormValidation.ok();
-        if(addRunToTrendReport){
-            if(trendReportId.isEmpty()){
+        if (addRunToTrendReport) {
+            if (trendReportId.isEmpty()) {
                 res = FormValidation.error(String.format("%s: %s.",
                         Messages.ParameterIsMissing(),
                         Messages.TrendReportIDIsMissing()));
-            }
-            else{
+            } else {
 
-                try{
+                try {
 
                     Integer.parseInt(trendReportId);
-                }
-                catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
 
                     res = FormValidation.error(Messages.IllegalParameter());
                 }
@@ -638,11 +619,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         logger.println(String.format("%s - %s",
                 dateFormatter.getDate(),
-                res.toString().replace(": <div/>","")));
+                res.toString().replace(": <div/>", "")));
 
         return res.equals(FormValidation.ok());
     }
-    
+
     private Testsuites parsePcRunResponse(Testsuites ret,
                                           PcRunResponse runResponse,
                                           Run<?, ?> build,
@@ -668,10 +649,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return ret;
     }
 
-    private Testsuites parsePcTrendResponse(Testsuites ret,Run<?, ?> build,PcClient pcClient,boolean trendReportReady,String TrendReportID, int runID) throws PcException,IntrospectionException,IOException, InterruptedException ,NoSuchMethodException{
+    private Testsuites parsePcTrendResponse(Testsuites ret, Run<?, ?> build, PcClient pcClient, boolean trendReportReady, String TrendReportID, int runID) throws PcException, IntrospectionException, IOException, InterruptedException, NoSuchMethodException {
 
 
-        if(trendReportReady){
+        if (trendReportReady) {
             String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
             String reportUrl = String.format(reportUrlTemp, artifactsResourceName, getPcModel().getTrendReportId(true));
             pcClient.publishTrendReport(reportUrl, getPcModel().getTrendReportId(true));
@@ -686,19 +667,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 String plotUrlPath = "/job/" + build.getParent().getName() + "/plot";
                 logger.println(String.format("%s - %s",
                         dateFormatter.getDate(),
-                        HyperlinkNote.encodeTo(plotUrlPath, Messages.TrendingCharts()))); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
-            }else{
+                        HyperlinkNote.encodeTo(plotUrlPath, Messages.TrendingCharts())));
+            } else {
                 logger.println(String.format("%s - %s %s (%s).",
                         dateFormatter.getDate(),
                         Messages.YouCanViewTrendCharts(),
-                        HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/MICRO+FOCUS+Application+Automation+Tools#MicroFocusApplicationAutomationTools-RunningPerformanceTestsusingPerformanceCenter", Messages.Documentation()),
+                        HyperlinkNote.encodeTo("https://admhelp.microfocus.com/lre/en/2023-2023-r1/online_help/Content/PC/Continuous-Integration-Jenkins.htm#mt-item-4", Messages.Documentation()),
                         Messages.PerformanceCenter1255AndLater()));
             }
         }
         return ret;
     }
 
-    private boolean isPluginActive(String pluginDisplayName){
+    private boolean isPluginActive(String pluginDisplayName) {
         List<PluginWrapper> allPlugin = Jenkins.get().pluginManager.getPlugins();
         for (PluginWrapper pw :
                 allPlugin) {
@@ -708,31 +689,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
         return false;
-    }
-
-    private class TriTrendReportTypes {
-
-        private TrendReportTypes.DataType dataType;
-        private TrendReportTypes.PctType pctType;
-        private TrendReportTypes.Measurement measurement;
-
-        public TrendReportTypes.DataType getDataType() {
-            return dataType;
-        }
-
-        public TrendReportTypes.PctType getPctType() {
-            return pctType;
-        }
-
-        public TrendReportTypes.Measurement getMeasurement() {
-            return measurement;
-        }
-
-        TriTrendReportTypes (TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) {
-            this.dataType = dataType;
-            this.pctType = pctType;
-            this.measurement = measurement;
-        }
     }
 
     private void updateCSVFilesForPlot(PcClient pcClient, int runId) throws IOException, PcException, IntrospectionException, NoSuchMethodException {
@@ -775,19 +731,18 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         };
 
         for (TriTrendReportTypes triTrendReportType : triTrendReportTypes
-             ) {
-            saveFileToWorkspacePath(pcClient,getPcModel().getTrendReportId(true),runId, triTrendReportType.getDataType(), triTrendReportType.getPctType(), triTrendReportType.getMeasurement());
+        ) {
+            saveFileToWorkspacePath(pcClient, getPcModel().getTrendReportId(true), runId, triTrendReportType.getDataType(), triTrendReportType.getPctType(), triTrendReportType.getMeasurement());
         }
 
     }
 
-
-    private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId,TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement)throws IOException, PcException, IntrospectionException, NoSuchMethodException{
-        String fileName = measurement.toString().toLowerCase()  + "_" +  pctType.toString().toLowerCase() + ".csv";
+    private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId, TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) throws IOException, PcException, IntrospectionException, NoSuchMethodException {
+        String fileName = measurement.toString().toLowerCase() + "_" + pctType.toString().toLowerCase() + ".csv";
         Map<String, String> measurementMap = pcClient.getTrendReportByXML(trendReportID, runId, dataType, pctType, measurement);
         try {
             FilePath filePath = new FilePath(Workspace.getChannel(), getWorkspacePath().getPath() + "/" + fileName);
-            String filepathContent="";
+            String filepathContent = "";
             for (String key : measurementMap.keySet()) {
                 filepathContent += key + ",";
             }
@@ -816,10 +771,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         Messages.Error(),
                         e.getMessage()));
             return false;
-            }
+        }
     }
-
-
 
     private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage, String eventLog) {
         RunState runState = RunState.get(response.getRunState());
@@ -831,25 +784,24 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     eventLog);
         } else if (statusBySLA && runState == FINISHED && !(response.getRunSLAStatus().equalsIgnoreCase("passed"))) {
             setFailure(testCase, Messages.RunMeasurementsNotReachSLACriteria() + ": "
-                                 + response.getRunSLAStatus(), eventLog);
-        } else if (runState.hasFailure()) {          
+                    + response.getRunSLAStatus(), eventLog);
+        } else if (runState.hasFailure()) {
             setFailure(testCase,
                     String.format("%s. %s",
                             runState,
                             errorMessage),
                     eventLog);
-        } else if(errorMessage != null && !errorMessage.isEmpty()){
+        } else if (errorMessage != null && !errorMessage.isEmpty()) {
             setFailure(testCase,
                     String.format("%s. %s",
                             runState,
                             errorMessage),
                     eventLog);
-        }
-        else{
+        } else {
             testCase.setStatus(JUnitTestCaseStatus.PASS);
         }
     }
-    
+
     private void setError(Testcase testCase, String message, String eventLog) {
         Error error = new Error();
         error.setMessage(message);
@@ -859,10 +811,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         testCase.setStatus(JUnitTestCaseStatus.ERROR);
         logger.println(String.format("%s - %s %s",
                 dateFormatter.getDate(),
-                message ,
+                message,
                 eventLog));
     }
-    
+
     private void setFailure(Testcase testCase, String message, String eventLog) {
         Failure failure = new Failure();
         failure.setMessage(message);
@@ -876,7 +828,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 message,
                 eventLog));
     }
-    
+
     private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
@@ -887,10 +839,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         "\n\n%s:\n%s" +
                         "\n\n%s:\n%s",
                 Messages.LoadTestRunID(), runId,
-                Messages.ViewAnalysisReport(),  getPcModel().getserverAndPort() +  "/" +  build.getUrl() + viewUrl,
+                Messages.ViewAnalysisReport(), getPcModel().getserverAndPort() + "/" + build.getUrl() + viewUrl,
                 Messages.DownloadReport(), getPcModel().getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
-    
+
     private String getArtifactsUrlPattern(Run<?, ?> build) {
 
         String runReportUrlTemp = runReportStructure.replaceFirst("%s/", "");
@@ -898,7 +850,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 runReportUrlTemp,
                 artifactsResourceName);
     }
-    
+
     private void provideStepResultStatus(Result resultStatus, Run<?, ?> build) {
         String runIdStr =
                 (runId > 0) ? String.format(" (LRE RunID: %s)", String.valueOf(runId)) : "";
@@ -908,9 +860,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 runIdStr,
                 resultStatus.toString()));
         build.setResult(resultStatus);
-        
+
     }
-    
+
     private Result createRunResults(FilePath filePath, Testsuites testsuites) {
         Result ret = Result.SUCCESS;
         try {
@@ -927,7 +879,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 logger.println(String.format("%s - %s", dateFormatter.getDate(), Messages.EmptyResults()));
                 ret = Result.FAILURE;
             }
-            
+
         } catch (Exception cause) {
             logger.print(String.format(
                     "%s - %s. %s: %s",
@@ -939,14 +891,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
         return ret;
     }
-    
+
     private boolean containsErrorsOrFailures(List<Testsuite> testsuites) {
         boolean ret = false;
         for (Testsuite testsuite : testsuites) {
             for (Testcase testcase : testsuite.getTestcase()) {
                 String status = testcase.getStatus();
                 if (status.equals(JUnitTestCaseStatus.ERROR)
-                    || status.equals(JUnitTestCaseStatus.FAILURE)) {
+                        || status.equals(JUnitTestCaseStatus.FAILURE)) {
                     ret = true;
                     break;
                 }
@@ -954,7 +906,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
         return ret;
     }
-    
+
     private String getJunitResultsFileName() {
         Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
         String time = formatter.format(new Date());
@@ -970,9 +922,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         Result resultStatus = Result.FAILURE;
         //trendReportReady = false;
         logger = listener.getLogger();
-        if(credentialsId != null)
+        if (credentialsId != null)
             usernamePCPasswordCredentials = getCredentialsById(credentialsId, build, logger);
-        if(credentialsProxyId != null && !credentialsProxyId.isEmpty())
+        if (credentialsProxyId != null && !credentialsProxyId.isEmpty())
             usernamePCPasswordCredentialsForProxy = getCredentialsById(credentialsProxyId, build, logger);
         PcClient pcClient = new PcClient(getPcModel(), logger);
         Testsuites testsuites = execute(pcClient, build);
@@ -1013,88 +965,79 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     }
 
-    public String getServerAndPort()
-    {
+    public String getServerAndPort() {
         return getPcModel().getserverAndPort();
     }
-    public String getPcServerName()
-    {
+
+    public String getPcServerName() {
         return getPcModel().getPcServerName();
     }
 
-    public String getAlmProject()
-    {
+    public String getAlmProject() {
         return getPcModel().getAlmProject();
     }
-    public String getTestId()
-    {
+
+    public String getTestId() {
         return getPcModel().getTestId();
     }
-    public String getAlmDomain()
-    {
+
+    public String getAlmDomain() {
         return getPcModel().getAlmDomain();
     }
-    public String getTimeslotDurationHours()
-    {
+
+    public String getTimeslotDurationHours() {
         return timeslotDurationHours;
     }
-    public String getTimeslotDurationMinutes()
-    {
+
+    public String getTimeslotDurationMinutes() {
         return timeslotDurationMinutes;
     }
-    public PostRunAction getPostRunAction()
-    {
+
+    public PostRunAction getPostRunAction() {
         return getPcModel().getPostRunAction();
     }
 
-    public String getTrendReportId()
-    {
+    public String getTrendReportId() {
         return getPcModel().getTrendReportId(true);
     }
 
-    public String getAutoTestInstanceID()
-    {
+    public String getAutoTestInstanceID() {
         return getPcModel().getAutoTestInstanceID();
     }
-    public String getTestInstanceId()
-    {
+
+    public String getTestInstanceId() {
         return getPcModel().getTestInstanceId();
     }
 
-
-    public String getAddRunToTrendReport()
-    {
+    public String getAddRunToTrendReport() {
         return getPcModel().getAddRunToTrendReport();
     }
 
-
-    public boolean isVudsMode()
-    {
+    public boolean isVudsMode() {
         return getPcModel().isVudsMode();
     }
 
-    public boolean isAuthenticateWithToken() { return getPcModel().isAuthenticateWithToken(); }
+    public boolean isAuthenticateWithToken() {
+        return getPcModel().isAuthenticateWithToken();
+    }
 
-
-    public String getRetry () {
+    public String getRetry() {
         return getPcModel().getRetry();
     }
 
-    public String getRetryOccurrences () {
+    public String getRetryOccurrences() {
         return getPcModel().getRetryOccurrences();
     }
 
-    public String  getRetryDelay () {
+    public String getRetryDelay() {
         return getPcModel().getRetryDelay();
     }
 
-    public String getDescription()
-    {
+    public String getDescription() {
         return getPcModel().getDescription();
     }
 
-    public boolean isHTTPSProtocol()
-    {
+    public boolean isHTTPSProtocol() {
         return getPcModel().httpsProtocol();
     }
 
@@ -1102,8 +1045,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return statusBySLA;
     }
 
-    public String getProxyOutURL(){ return getPcModel().getProxyOutURL();}
-
+    public String getProxyOutURL() {
+        return getPcModel().getProxyOutURL();
+    }
 
     // This indicates to Jenkins that this is an implementation of an extension
     // point
@@ -1115,37 +1059,37 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
             load();
         }
-        
+
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            
+
             return true;
         }
-        
+
         @Override
         public String getDisplayName() {
-            
+
             return Messages.DisplayName();
         }
-        
+
         public FormValidation doCheckPcServerName(@QueryParameter String value) {
-            
-           return validateString(value, "LRE Server");
+
+            return validateString(value, "LRE Server");
         }
-        
+
         public FormValidation doCheckAlmDomain(@QueryParameter String value) {
-            
+
             return validateString(value, "Domain");
         }
-        
+
         public FormValidation doCheckAlmProject(@QueryParameter String value) {
-            
+
             return validateString(value, "Project");
         }
-        
+
         public FormValidation doCheckTestId(@QueryParameter String value) {
-            
+
             return validateHigherThanInt(value, "Test ID", 0, true);
         }
 
@@ -1168,23 +1112,22 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 //        }
 
 
-
-        public FormValidation doCheckTestInstanceId(@QueryParameter String value){
+        public FormValidation doCheckTestInstanceId(@QueryParameter String value) {
             return validateHigherThanInt(value, "Test Instance ID", 0, true);
         }
 
-        
+
         public FormValidation doCheckTimeslotDuration(@QueryParameter TimeslotDuration value) {
-            
+
             return validateHigherThanInt(
                     String.valueOf(value.toMinutes()),
                     "Timeslot Duration (in minutes)",
                     30,
                     false);
         }
-        
+
         public FormValidation doCheckTimeslotId(@QueryParameter String value) {
-            
+
             return validateHigherThanInt(value, "Timeslot ID", 0, true);
         }
 
@@ -1244,9 +1187,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
 
         /**
-         * @param limitIncluded
-         *            if true, value must be higher than limit. if false, value must be equal to or
-         *            higher than limit.
+         * @param limitIncluded if true, value must be higher than limit. if false, value must be equal to or
+         *                      higher than limit.
          */
         private FormValidation validateHigherThanInt(
                 String value,
@@ -1262,36 +1204,35 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     //regular expression: parameter (with brackets or not)
                     if (value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$"))
                         return ret;
-                    //regular expression: number
+                        //regular expression: number
                     else if (value.matches("[0-9]*$|")) {
                         if (limitIncluded && Integer.parseInt(value) <= limit)
                             ret = FormValidation.error(" " + Messages.MustBeHigherThan() + " " + limit);
                         else if (Integer.parseInt(value) < limit)
                             ret = FormValidation.error(" " + Messages.MustBeAtLeast() + " " + limit);
-                    }
-                    else
+                    } else
                         ret = FormValidation.error(" " + Messages.MustBeAWholeNumberOrAParameter() + ", " + Messages.ForExample() + ": 23, $TESTID or ${TEST_ID}.");
                 } catch (Exception e) {
-                    ret = FormValidation.error(" " + Messages.MustBeAWholeNumberOrAParameter() + " (" + Messages.ForExample() +": $TESTID or ${TestID})");
+                    ret = FormValidation.error(" " + Messages.MustBeAWholeNumberOrAParameter() + " (" + Messages.ForExample() + ": $TESTID or ${TestID})");
                 }
             }
-            
+
             return ret;
-            
+
         }
-        
+
         private FormValidation validateString(String value, String field) {
             FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value.trim())) {
                 ret = FormValidation.error(field + " " + Messages.MustBeSet());
             }
-            
+
             return ret;
         }
 
-        
+
         public List<PostRunAction> getPostRunActions() {
-            
+
             return PcModel.getPostRunActions();
         }
 
@@ -1327,5 +1268,30 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         }
 
     }
-    
+
+    private class TriTrendReportTypes {
+
+        private TrendReportTypes.DataType dataType;
+        private TrendReportTypes.PctType pctType;
+        private TrendReportTypes.Measurement measurement;
+
+        TriTrendReportTypes(TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement) {
+            this.dataType = dataType;
+            this.pctType = pctType;
+            this.measurement = measurement;
+        }
+
+        public TrendReportTypes.DataType getDataType() {
+            return dataType;
+        }
+
+        public TrendReportTypes.PctType getPctType() {
+            return pctType;
+        }
+
+        public TrendReportTypes.Measurement getMeasurement() {
+            return measurement;
+        }
+    }
+
 }
