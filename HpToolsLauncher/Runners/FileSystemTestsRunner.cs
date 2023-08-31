@@ -525,23 +525,35 @@ namespace HpToolsLauncher
             string uftReportDir = Path.Combine(testPath, REPORT);
             string uftReportDirNew = Path.Combine(testPath, string.Format("Report{0}", indexList[testPath]));
             ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
+            if (Directory.Exists(uftReportDir))
+            {
+                if (Directory.Exists(uftReportDirNew))
+                {
+                    Helper.DeleteDirectory(uftReportDirNew);
+                }
+                TryMoveDir(uftReportDir, uftReportDirNew, 0);
+            }
+        }
+
+        private bool TryMoveDir(string srcDir, string destDir, int idxOfRetry)
+        {
             try
             {
-                if (Directory.Exists(uftReportDir))
-                {
-                    if (Directory.Exists(uftReportDirNew))
-                    {
-                        Helper.DeleteDirectory(uftReportDirNew);
-                    }
-
-                    Directory.Move(uftReportDir, uftReportDirNew);
-                }
+                Thread.Sleep(1500);
+                Directory.Move(srcDir, destDir);
             }
-            catch (Exception)
+            catch(Exception ex)
             {
-                Thread.Sleep(1000);
-                Directory.Move(uftReportDir, uftReportDirNew);
+                if (idxOfRetry >= 5)
+                {
+                    ConsoleWriter.WriteErrLineWithTime(string.Format("Failed to rename {0} after {1} retries.", srcDir, idxOfRetry));
+                    ConsoleWriter.WriteLine(ex.Message);
+                    ConsoleWriter.WriteLine(ex.StackTrace);
+                    return false;
+                }
+                return TryMoveDir(srcDir, destDir, ++idxOfRetry);
             }
+            return true;
         }
 
         public override void SafelyCancel()
