@@ -52,19 +52,21 @@ namespace HpToolsLauncher
         private RunCancelledDelegate _runCancelled;
         private string _encoding;
         private RunAsUser _uftRunAsUser;
+        private bool _printInputParams;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="runner">parent runner</param>
         /// <param name="timeout">the global timout</param>
-        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout, string encoding, RunAsUser uftRunAsUser)
+        public ApiTestRunner(IAssetRunner runner, TimeSpan timeout, string encoding, bool printInputParams, RunAsUser uftRunAsUser)
         {
             _stopwatch = Stopwatch.StartNew();
             _timeout = timeout;
             _stCanRun = TrySetSTRunner();
             _runner = runner;
             _encoding = encoding;
+            _printInputParams = printInputParams;
             _uftRunAsUser = uftRunAsUser;
         }
 
@@ -160,7 +162,7 @@ namespace HpToolsLauncher
                 throw;
             }
 
-            string paramFileContent = testinf.GenerateAPITestXmlForTest(paramDict);
+            string paramFileContent = testinf.GenerateAPITestXmlForTest(paramDict, _printInputParams);
 
             string argumentString;
             if (!string.IsNullOrWhiteSpace(paramFileContent))

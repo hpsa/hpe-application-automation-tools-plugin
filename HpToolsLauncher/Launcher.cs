@@ -80,6 +80,7 @@ namespace HpToolsLauncher
                                  "almRunMode",
                                  "almTimeout",
                                  "almRunHost"};
+        private readonly char[] _colon_semicolon = ",;".ToCharArray();
 
         /// <summary>
         /// a place to save the unique timestamp which shows up in properties/results/abort file names
@@ -338,12 +339,12 @@ namespace HpToolsLauncher
                     bool displayController = _ciParams.GetOrDefault("displayController") == ONE;
                     string analysisTemplate = _ciParams.GetOrDefault("analysisTemplate");
 
-                    bool printInputParams = !_ciParams.ContainsKey("printTestParams") || _ciParams["printTestParams"] == ONE;
+                    bool printInputParams = _ciParams.GetOrDefault("printTestParams", ONE) == ONE;
                     IEnumerable<string> jenkinsEnvVarsWithCommas = GetParamsWithPrefix("JenkinsEnv");
                     Dictionary<string, string> jenkinsEnvVars = new Dictionary<string, string>();
                     foreach (string var in jenkinsEnvVarsWithCommas)
                     {
-                        string[] nameVal = var.Split(",;".ToCharArray());
+                        string[] nameVal = var.Split(_colon_semicolon);
                         jenkinsEnvVars.Add(nameVal[0], nameVal[1]);
                     }
 
