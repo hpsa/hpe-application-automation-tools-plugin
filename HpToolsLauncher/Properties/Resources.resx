@@ -509,16 +509,16 @@ Save the test in QuickTest and then run it again.</value>
     <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test.</value>
   </data>
   <data name="McInvalidToken" xml:space="preserve">
-    <value>Invalid execution token for Mobile, should contain ClientID, SecretKey and TenantID.</value>
+    <value>Invalid execution token for Digital Lab, should contain ClientID, SecretKey and TenantID.</value>
   </data>
   <data name="McMalformedTokenInvalidKey" xml:space="preserve">
-    <value>Malformed execution token for Mobile, invalid key value: {0}.</value>
+    <value>Malformed execution token for Digital Lab, invalid key value: {0}.</value>
   </data>
   <data name="McMalformedTokenInvalidKeyValueSeparator" xml:space="preserve">
-    <value>Malformed execution token for Mobile, key-value pairs are not separated by {0}.</value>
+    <value>Malformed execution token for Digital Lab, key-value pairs are not separated by {0}.</value>
   </data>
   <data name="McMalformedTokenMissingKeyValuePair" xml:space="preserve">
-    <value>Malformed execution token for Mobile, token without key-value.</value>
+    <value>Malformed execution token for Digital Lab, token without key-value.</value>
   </data>
   <data name="FsDuplicateParamNames" xml:space="preserve">
     <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
@@ -540,5 +540,11 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="UftLaunchAsUserNotSupported" xml:space="preserve">
     <value>The installed version of UFT One does not support the LaunchAsUser method. Please use the version 2023 or later.</value>
+  </data>
+  <data name="McEmptyHostAddress" xml:space="preserve">
+    <value>Empty Digital Lab Server.</value>
+  </data>
+  <data name="McInvalidUrl" xml:space="preserve">
+    <value>Invalid Digital Lab Server URL: '{0}'.</value>
   </data>
 </root>
