@@ -457,8 +457,7 @@ namespace HpToolsLauncher.ParallelRunner
 
             JavaScriptSerializer serializer = new JavaScriptSerializer();
 
-            string configJson = null;
-
+            string configJson;
             try
             {
                 configJson = serializer.Serialize(config);
