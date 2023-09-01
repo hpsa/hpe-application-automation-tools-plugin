@@ -89,7 +89,7 @@ namespace HpToolsLauncherTests
         {
             string content = "<Mtbx><Test name=\"test1\" path=\"${workspace}\\test1\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/>		<Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/><Parameter name=\"mee2\" value=\"abc\" type=\"string\"/></Test><Test name=\"test2\" path=\"${workspace}\\test2\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/><Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/>		<Parameter name=\"mee2\" value=\"abc\" type=\"string\"/><Parameter name=\"mee3\" value=\"123.5\" type=\"float\"/>	</Test></Mtbx>";
             List<TestInfo> tests = MtbxManager.LoadMtbx(content, "dunno");
-            string xmlContent = tests[0].GenerateAPITestXmlForTest(new Dictionary<string, object>());
+            string xmlContent = tests[0].GenerateAPITestXmlForTest(new Dictionary<string, object>(), false);
             //XDocument doc = XDocument.Parse(xmlContent);
             Assert.IsTrue(xmlContent.Contains("<mee2>abc</mee2>"));
             Assert.IsTrue(xmlContent.Contains("name=\"mee\" type=\"xs:int\""));

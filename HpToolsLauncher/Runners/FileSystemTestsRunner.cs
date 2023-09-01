@@ -663,7 +663,7 @@ namespace HpToolsLauncher
             switch (type)
             {
                 case TestType.ST:
-                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _uftRunAsUser);
+                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _printInputParams, _uftRunAsUser);
                     break;
                 case TestType.QTP:
                     _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams, _uftRunAsUser);
