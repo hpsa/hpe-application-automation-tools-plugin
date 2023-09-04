@@ -83,7 +83,7 @@ namespace HpToolsLauncher
             };
             foreach (TestRunResults testRes in results.TestRuns)
             {
-                if (testRes.TestType == TestType.LoadRunner.ToString())
+                if (testRes.TestType == TestType.LoadRunner)
                 {
                     testsuite lrts = CreateXmlFromLRRunResults(testRes);
                     _testSuites.AddTestsuite(lrts);
@@ -192,7 +192,7 @@ namespace HpToolsLauncher
                 report = testRes.ReportLocation,
                 classname = string.Format(ALL_TESTS_FORMAT, testRes.TestGroup == null ? string.Empty : testRes.TestGroup.Replace(DOT, UNDERSCORE)),
                 name = testRes.TestPath,
-                type = testRes.TestType,
+                type = testRes.TestType.ToString(),
                 time = testRes.Runtime.TotalSeconds.ToString(CultureInfo.InvariantCulture)
             };
 

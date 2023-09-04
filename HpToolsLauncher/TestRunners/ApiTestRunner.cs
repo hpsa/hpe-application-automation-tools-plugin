@@ -99,7 +99,7 @@ namespace HpToolsLauncher
         public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCancelled, out Dictionary<string, string> outParams)
         {
             outParams = new Dictionary<string, string>();
-            TestRunResults runDesc = new TestRunResults();
+            TestRunResults runDesc = new TestRunResults { TestType = TestType.ST };
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLineWithTime("Running: " + testinf.TestPath);
 

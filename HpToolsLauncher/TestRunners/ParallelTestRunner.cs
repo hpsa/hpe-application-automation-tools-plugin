@@ -150,7 +150,7 @@ namespace HpToolsLauncher.TestRunners
                 ErrorDesc = errorReason,
                 TestState = TestState.Unknown,
                 TestPath = testInfo.TestPath,
-                TestType = TestType.ParallelRunner.ToString()
+                TestType = TestType.ParallelRunner
             };
 
             // set the active test run

@@ -118,7 +118,7 @@ namespace HpToolsLauncher
         {
             outParams = new Dictionary<string, string>();
             var testPath = testinf.TestPath;
-            TestRunResults runDesc = new TestRunResults();
+            TestRunResults runDesc = new TestRunResults { TestType = TestType.QTP };
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLineWithTime("Running: " + testPath);
 
