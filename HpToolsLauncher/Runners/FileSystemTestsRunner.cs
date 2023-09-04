@@ -360,6 +360,8 @@ namespace HpToolsLauncher
             testsuite ts = _xmlBuilder.TestSuites.GetTestSuiteOrDefault(activeRunDesc.SuiteName, JunitXmlBuilder.ClassName, out isNewTestSuite);
             ts.tests += _tests.Count;
 
+            // if we have at least one environment for parallel runner, then it must be enabled
+            var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
             double totalTime = 0;
             try
             {
@@ -391,8 +393,6 @@ namespace HpToolsLauncher
                     try
                     {
                         var type = Helper.GetTestType(test.TestPath);
-                        // if we have at least one environment for parallel runner, then it must be enabled
-                        var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
                         if (isParallelRunnerEnabled && type == TestType.QTP)
                         {
                             type = TestType.ParallelRunner;
@@ -494,7 +494,16 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    UpdateUftReportDir(test.TestPath, indexList);
+                    string uftReportDir = runResult.ReportLocation.IsNullOrEmpty() ? Path.Combine(test.TestPath, REPORT) : runResult.ReportLocation;
+                    if (runResult.TestType == TestType.ParallelRunner)
+                    {
+                        ConsoleWriter.WriteLine(string.Format("uftReportDir is: {0}", uftReportDir));
+                    }
+                    else
+                    {
+                        string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
+                        UpdateUftReportDir(uftReportDir, uftReportDirNew);
+                    }
                     // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
                     _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
                     ConsoleWriter.WriteLineWithTime("Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
@@ -519,11 +528,9 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
-        private void UpdateUftReportDir(string testPath, Dictionary<string, int> indexList)
+        private void UpdateUftReportDir(string uftReportDir, string uftReportDirNew)
         {
             //update report folder
-            string uftReportDir = Path.Combine(testPath, REPORT);
-            string uftReportDirNew = Path.Combine(testPath, string.Format("Report{0}", indexList[testPath]));
             ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
             if (Directory.Exists(uftReportDir))
             {

@@ -45,6 +45,7 @@ namespace HpToolsLauncher.Utils
 {
     public enum TestType
     {
+        Unknown,
         QTP,
         ST,
         LoadRunner,
@@ -525,7 +526,6 @@ namespace HpToolsLauncher.Utils
 
             if (regkey != null)
             {
-
                 //LoadRunner Exists. check if Controller is installed (not SA version)
                 regkey = regkey.OpenSubKey(LoadRunnerControllerDirRegistryKey);
                 if (regkey != null)
@@ -549,8 +549,6 @@ namespace HpToolsLauncher.Utils
 
         public static TestType GetTestType(string path)
         {
-
-
             if ((File.GetAttributes(path) & FileAttributes.Directory) == FileAttributes.Directory)
             {
                 //ST and QTP uses folder as test locations
