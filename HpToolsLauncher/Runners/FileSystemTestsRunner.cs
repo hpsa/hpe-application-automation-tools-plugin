@@ -494,13 +494,13 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    string uftReportDir = runResult.ReportLocation.IsNullOrEmpty() ? Path.Combine(test.TestPath, REPORT) : runResult.ReportLocation;
                     if (runResult.TestType == TestType.ParallelRunner)
                     {
-                        ConsoleWriter.WriteLine(string.Format("uftReportDir is: {0}", uftReportDir));
+                        ConsoleWriter.WriteLine(string.Format("uftReportDir is: {0}", runResult.ReportLocation));
                     }
                     else
                     {
+                        string uftReportDir = Path.Combine(test.TestPath, REPORT);
                         string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
                         UpdateUftReportDir(uftReportDir, uftReportDirNew);
                     }
@@ -531,9 +531,9 @@ namespace HpToolsLauncher
         private void UpdateUftReportDir(string uftReportDir, string uftReportDirNew)
         {
             //update report folder
-            ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
             if (Directory.Exists(uftReportDir))
             {
+                ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
                 if (Directory.Exists(uftReportDirNew))
                 {
                     Helper.DeleteDirectory(uftReportDirNew);
@@ -554,8 +554,7 @@ namespace HpToolsLauncher
                 if (idxOfRetry >= 5)
                 {
                     ConsoleWriter.WriteErrLineWithTime(string.Format("Failed to rename {0} after {1} retries.", srcDir, idxOfRetry));
-                    ConsoleWriter.WriteLine(ex.Message);
-                    ConsoleWriter.WriteLine(ex.StackTrace);
+                    ConsoleWriter.WriteLine(string.Format("{0}: {1}", ex.GetType().Name, ex.Message));
                     return false;
                 }
                 return TryMoveDir(srcDir, destDir, ++idxOfRetry);
@@ -643,16 +642,6 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// checks if timeout has expired
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckTimeout()
-        {
-            TimeSpan timeLeft = _timeout - _stopwatch.Elapsed;
-            return (timeLeft > TimeSpan.Zero);
-        }
-
-        /// <summary>
         /// creates a correct type of runner and runs a single test.
         /// </summary>
         /// <param name="testInfo"></param>
@@ -717,7 +706,6 @@ namespace HpToolsLauncher
 
             return new TestRunResults { ErrorDesc = "Unknown TestType", TestState = TestState.Error };
         }
-
 
         /// <summary>
         /// checks if run was cancelled/aborted
