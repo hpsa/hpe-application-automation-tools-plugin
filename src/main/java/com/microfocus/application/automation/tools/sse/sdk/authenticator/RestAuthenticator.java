@@ -248,7 +248,7 @@ public class RestAuthenticator implements Authenticator {
 
     private boolean appendQCSessionCookies(Client client, String clientType) {
         logger.log("Creating session...");
-        Map<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<>();
         headers.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
         headers.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
 
