@@ -400,7 +400,15 @@ public class RestClient implements Client {
         if (response.isOk()) {
             List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
             for (HttpCookie cookie : cookies) {
-                _cookies.put(cookie.getName(), cookie.getValue());
+                switch (cookie.getName()) {
+                    case "LWSSO_COOKIE_KEY":
+                    case "TENANT_ID_COOKIE":
+                    case "JSESSIONID":
+                        _cookies.put(cookie.getName(), cookie.getValue());
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
