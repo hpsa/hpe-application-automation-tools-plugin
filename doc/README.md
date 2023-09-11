@@ -53,18 +53,18 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 8.0 introduced the following enhancements and fixes:
+Version 23.3 introduced the following enhancements and fixes:
 
 **ALM Octane**
-
-- Support for Active choice parameters with Jenkins.
 - Bug fixes.
 
+**UFT One**
+ - Company name rebranded to OpenText.
+ - UFT Mobile renamed to Digital Lab.
+ - Enhancement of File System jobs to work correctly inside Docker.
+ - Bug fixes and optimizations.
+  
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
-
-## Release notes
-
-Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin. **Note:** This limitation only applies to version 7.4. A fix was provided in version 7.4.1 Beta.
 
 ## Changelog
 
