@@ -1725,7 +1725,7 @@ namespace HpToolsLauncher
                                 //start timing the new test run
                                 string folderName = string.Empty;
 
-                                var folder = targetTestSet.TestSetFolder as ITestSetFolder;
+                                ITestSetFolder folder = targetTestSet.TestSetFolder as ITestSetFolder;
                                 if (folder != null)
                                     folderName = folder.Name.Replace(".", "_");
 
@@ -1733,18 +1733,17 @@ namespace HpToolsLauncher
                                 activeTestDesc.TestGroup = string.Format(@"{0}\{1}", folderName, targetTestSet.Name).Replace(".", "_");
                             }
 
-                            TestState enmState = GetTsStateFromQcState(testExecStatusObj);
-                            string statusString = enmState.ToString();
+                            TestState execState = GetTsStateFromQcState(testExecStatusObj);
 
-                            if (enmState == TestState.Running)
+                            if (execState == TestState.Running)
                             {
-                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString));
+                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, execState));
                             }
-                            else if (enmState != TestState.Waiting)
+                            else if (execState != TestState.Waiting)
                             {
-                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStatWithMessage, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString, testExecStatusObj.Message));
+                                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStatWithMessage, activeTestDesc.TestName, testExecStatusObj.TSTestId, execState, testExecStatusObj.Message));
 
-                                if (IsInAFinishedState(statusString))
+                                if (execState != TestState.Unknown)
                                 {
                                     WriteTestRunSummary(currentTest);
                                 }
@@ -1841,18 +1840,6 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// Returns if the specific test's status is a finished status, either Passed, Failed, Error or Warning
-        /// </summary>
-        /// <param name="testStatus"></param>
-        /// <returns></returns>
-        private bool IsInAFinishedState(string testStatus)
-        {
-            return testStatus != TestState.Running.ToString()
-                && testStatus != TestState.Waiting.ToString()
-                && testStatus != TestState.Unknown.ToString();
-        }
-
-        /// <summary>
         /// writes a summary of the test run after it's over
         /// </summary>
         /// <param name="prevTest"></param>
@@ -1923,9 +1910,7 @@ namespace HpToolsLauncher
         /// <param name="testSuite"></param>
         private void UpdateCounters(TestRunResults test, TestSuiteRunResults testSuite)
         {
-            if (test.TestState != TestState.Running &&
-                test.TestState != TestState.Waiting &&
-                test.TestState != TestState.Unknown)
+            if (!test.TestState.In(TestState.Running, TestState.Waiting, TestState.Unknown))
                 ++testSuite.NumTests;
 
             switch (test.TestState)
@@ -1985,7 +1970,6 @@ namespace HpToolsLauncher
             return TestState.Unknown;
         }
 
-
         // ------------------------- Logs -----------------------------
 
         /// <summary>
@@ -2021,7 +2005,6 @@ namespace HpToolsLauncher
                 return string.Empty;
             }
         }
-
 
         /// <summary>
         /// retrieves the run logs for the test when the steps are not reported to Qc (like in ST)

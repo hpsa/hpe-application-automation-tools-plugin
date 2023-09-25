@@ -2,6 +2,7 @@
 using System;
 using System.Security;
 using System.Linq;
+using System.ComponentModel;
 
 namespace HpToolsLauncher.Utils
 {
@@ -69,6 +70,13 @@ namespace HpToolsLauncher.Utils
         public static bool In<T>(this T obj, params T[] values)
         {
             return values != null && values.Any((T o) => Equals(obj, o));
+        }
+
+        public static string GetEnumDescription(this Enum enumValue)
+        {
+            var fieldInfo = enumValue.GetType().GetField(enumValue.ToString());
+            var descrAttrs = (DescriptionAttribute[])fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return descrAttrs.Length > 0 ? descrAttrs[0].Description : enumValue.ToString();
         }
     }
 }

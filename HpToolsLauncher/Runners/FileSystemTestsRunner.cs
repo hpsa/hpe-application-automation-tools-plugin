@@ -69,8 +69,7 @@ namespace HpToolsLauncher
         //saves runners for cleaning up at the end.
         private Dictionary<TestType, IFileSysTestRunner> _colRunnersForCleanup = new Dictionary<TestType, IFileSysTestRunner>();
 
-        private McConnectionInfo _mcConnection;
-        private string _mobileInfoForAllGuiTests;
+        private DigitalLab _digitalLab;
         private bool _printInputParams;
         private RunAsUser _uftRunAsUser;
         private IFileSysTestRunner _runner = null;
@@ -87,8 +86,7 @@ namespace HpToolsLauncher
                                     int controllerPollingInterval,
                                     TimeSpan perScenarioTimeOutMinutes,
                                     List<string> ignoreErrorStrings,
-                                    McConnectionInfo mcConnection,
-                                    string mobileInfo,
+                                    DigitalLab digitalLab,
                                     Dictionary<string, List<string>> parallelRunnerEnvironments,
                                     bool displayController,
                                     string analysisTemplate,
@@ -122,8 +120,7 @@ namespace HpToolsLauncher
             _scriptRTSSet = scriptRtsSet;
             _printInputParams = printInputParams;
 
-            _mcConnection = mcConnection;
-            _mobileInfoForAllGuiTests = mobileInfo;
+            _digitalLab = digitalLab;
 
             _parallelRunnerEnvironments = parallelRunnerEnvironments;
             _xmlBuilder.XmlName = xmlResultsFullFileName;
@@ -131,8 +128,8 @@ namespace HpToolsLauncher
             _uftRunAsUser = uftRunAsUser;
             _uftRunMode = uftRunMode;
 
-            if (_mcConnection != null)
-                ConsoleWriter.WriteLine("Digital Lab connection info is - " + _mcConnection.ToString());
+            if (_digitalLab.ConnectionInfo != null)
+                ConsoleWriter.WriteLine("Digital Lab connection info is - " + _digitalLab.ConnectionInfo.ToString());
 
             if (reportPath != null)
             {
@@ -168,8 +165,7 @@ namespace HpToolsLauncher
                                     TimeSpan perScenarioTimeOutMinutes,
                                     List<string> ignoreErrMsgs,
                                     Dictionary<string, string> jenkinsEnvVars,
-                                    McConnectionInfo mcConnection,
-                                    string mobileInfo,
+                                    DigitalLab digitalLab,
                                     Dictionary<string, List<string>> parallelRunnerEnvs,
                                     bool displayController,
                                     string analysisTemplate,
@@ -181,7 +177,7 @@ namespace HpToolsLauncher
                                     RunAsUser uftRunAsUser,
                                     bool useUftLicense = false)
         {
-            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, mcConnection, mobileInfo, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, uftRunAsUser, useUftLicense);
+            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, digitalLab, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, uftRunAsUser, useUftLicense);
 
             _tests = GetListOfTestInfo(sources, @params, jenkinsEnvVars);
 
@@ -219,8 +215,7 @@ namespace HpToolsLauncher
                                     TimeSpan perScenarioTimeOutMinutes,
                                     List<string> ignoreErrMsgs,
                                     Dictionary<string, string> jenkinsEnvVars,
-                                    McConnectionInfo mcConnection,
-                                    string mobileInfo,
+                                    DigitalLab digitalLab,
                                     Dictionary<string, List<string>> parallelRunnerEnvs,
                                     bool displayController,
                                     string analysisTemplate,
@@ -232,7 +227,7 @@ namespace HpToolsLauncher
                                     RunAsUser uftRunAsUser,
                                     bool useUftLicense = false)
         {
-            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, mcConnection, mobileInfo, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, uftRunAsUser, useUftLicense);
+            InitCommonFields(printInputParams, timeout, uftRunMode, controllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrMsgs, digitalLab, parallelRunnerEnvs, displayController, analysisTemplate, summaryDataLogger, scriptRtsSet, reportPath, xmlResultsFullFileName, encoding, uftRunAsUser, useUftLicense);
 
             _tests = tests;
             if (_tests == null || _tests.Count == 0)
@@ -662,14 +657,14 @@ namespace HpToolsLauncher
                     _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _printInputParams, _uftRunAsUser);
                     break;
                 case TestType.QTP:
-                    _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams, _uftRunAsUser);
+                    _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _digitalLab, _printInputParams, _uftRunAsUser);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
                     _runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings, _displayController, _analysisTemplate, _summaryDataLogger, _scriptRTSSet);
                     break;
                 case TestType.ParallelRunner:
-                    _runner = new ParallelTestRunner(this, _mcConnection, _parallelRunnerEnvironments, _uftRunAsUser);
+                    _runner = new ParallelTestRunner(this, _digitalLab.ConnectionInfo, _parallelRunnerEnvironments, _uftRunAsUser);
                     break;
                 default:
                     _runner = null;
