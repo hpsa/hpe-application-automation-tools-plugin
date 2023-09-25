@@ -547,4 +547,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="McInvalidUrl" xml:space="preserve">
     <value>Invalid Digital Lab Server URL: '{0}'.</value>
   </data>
+  <data name="CloudBrowserNotSupported" xml:space="preserve">
+    <value>Cloud Browser is not supported in UFT One {0}. Please upgrade to UFT One 23.4 or later.</value>
+  </data>
 </root>

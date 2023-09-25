@@ -69,7 +69,7 @@ namespace HpToolsLauncher
         private const string RUNNING = "Running";
         private const string PASSED = "Passed";
         private const string WARNING = "Warning";
-        private const int DISP_E_MEMBERNOTFOUND = -2147352573;
+        private const int MEMBER_NOT_FOUND = -2147352573;
         private const string PROTECT_BstrToBase64_FAILED = "ProtectBSTRToBase64 failed for {0}.";
         private const string WEB = "Web";
         private const string CLOUD_BROWSER = "CloudBrowser";
@@ -167,6 +167,7 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
+            Version qtpVersion;
             try
             {
                 lock (_lockObject)
@@ -180,7 +181,7 @@ namespace HpToolsLauncher
                         }
                         catch (COMException e)
                         {
-                            if (e.ErrorCode == DISP_E_MEMBERNOTFOUND)
+                            if (e.ErrorCode == MEMBER_NOT_FOUND)
                             {
                                 errorReason = Resources.UftLaunchAsUserNotSupported;
                             }
@@ -192,7 +193,7 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    Version qtpVersion = Version.Parse(_qtpApplication.Version);
+                    qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11, 0)))
                     {
                         runDesc.ReportLocation = GetReportLocation(testinf, testPath);
@@ -254,7 +255,7 @@ namespace HpToolsLauncher
             }
             catch (ArgumentException)
             {
-                ConsoleWriter.WriteErrLine(string.Format(Resources.FsDuplicateParamNames));
+                ConsoleWriter.WriteErrLine(Resources.FsDuplicateParamNames);
                 throw;
             }
 
@@ -265,7 +266,13 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
-            HandleCloudBrowser();
+            if (!HandleCloudBrowser(qtpVersion, ref errorReason))
+            {
+                ConsoleWriter.WriteErrLine(errorReason);
+                runDesc.TestState = TestState.Error;
+                runDesc.ErrorDesc = errorReason;
+                return runDesc;
+            }
 
             GuiTestRunResult guiTestRunResult = ExecuteQTPRun(runDesc);
             runDesc.ReportLocation = guiTestRunResult.ReportPath;
@@ -740,19 +747,33 @@ namespace HpToolsLauncher
             return legal;
         }
 
-        private void HandleCloudBrowser()
+        private bool HandleCloudBrowser(Version qtpVersion, ref string errorReason)
         {
             if (_cloudBrowser != null)
             {
-                var launcher = _qtpApplication.Test.Settings.Launchers[WEB];
-                launcher.Active = true;
-                launcher.SetLab(CLOUD_BROWSER);
-                launcher.Address = _cloudBrowser.LaunchUrl;
-                launcher.CloudBrowser.OS = _cloudBrowser.OS;
-                launcher.CloudBrowser.Browser = _cloudBrowser.Browser;
-                launcher.CloudBrowser.BrowserVersion = _cloudBrowser.BrowserVersion;
-                launcher.CloudBrowser.Location = _cloudBrowser.Location;
+                if (qtpVersion < new Version(2023, 4))
+                {
+                    errorReason = string.Format(Resources.CloudBrowserNotSupported, qtpVersion.ToString(2));
+                    return false;
+                }
+                try
+                {
+                    var launcher = _qtpApplication.Test.Settings.Launchers[WEB];
+                    launcher.Active = true;
+                    launcher.SetLab(CLOUD_BROWSER);
+                    launcher.Address = _cloudBrowser.LaunchUrl;
+                    launcher.CloudBrowser.OS = _cloudBrowser.OS;
+                    launcher.CloudBrowser.Browser = _cloudBrowser.Browser;
+                    launcher.CloudBrowser.BrowserVersion = _cloudBrowser.BrowserVersion;
+                    launcher.CloudBrowser.Location = _cloudBrowser.Location;
+                }
+                catch (Exception ex) 
+                {
+                    errorReason = ex.Message;
+                    return false;
+                }
             }
+            return true;
         }
 
         private bool HandleInputParameters(string fileName, ref string errorReason, Dictionary<string, object> inputParams, TestInfo testInfo)
