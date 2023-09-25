@@ -345,7 +345,7 @@ namespace HpToolsLauncherTests
             McConnectionInfo mcConnectionInfo = new McConnectionInfo();
             mcConnectionInfo.ProxyAddress = "192.168.1.1";
             mcConnectionInfo.ProxyPort = 8080;
-            mcConnectionInfo.ProxyAuth = 1;
+            mcConnectionInfo.UseProxyAuth = true;
             mcConnectionInfo.ProxyUserName = "test";
             mcConnectionInfo.ProxyPassword = "test";
 
@@ -377,7 +377,7 @@ namespace HpToolsLauncherTests
             mcConnectionInfo.HostPort = "8080";
             mcConnectionInfo.UserName = "test";
             mcConnectionInfo.Password = "test";
-            mcConnectionInfo.UseSslAsInt = 1;
+            mcConnectionInfo.UseSSL = true;
 
             UFTSettings settings = ParallelRunnerEnvironmentUtil.ParseMCSettings(mcConnectionInfo);
 

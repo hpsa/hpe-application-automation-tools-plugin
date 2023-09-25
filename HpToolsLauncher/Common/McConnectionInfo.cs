@@ -121,9 +121,9 @@ namespace HpToolsLauncher
         public string HostAddress { get; set; }
         public string HostPort { get; set; }
         public string TenantId { get; set; }
-        public bool UseSSL { get { return _useSSL; } }
+        public bool UseSSL { get { return _useSSL; } set { _useSSL = value; } }
         public int UseSslAsInt { get { return _useSSL ? ONE : ZERO; } }
-        public bool UseProxy { get { return _useProxy; } }
+        public bool UseProxy { get { return _useProxy; } set { _useProxy = value; } }
         public int UseProxyAsInt { get { return _useProxy ? ONE : ZERO; } }
         public int ProxyType { get; set; }
         public string ProxyAddress { get; set; }
