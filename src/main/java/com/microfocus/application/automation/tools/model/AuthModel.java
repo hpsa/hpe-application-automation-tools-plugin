@@ -21,6 +21,10 @@ public class AuthModel implements Serializable {
         this.value = value;
     }
 
+    public AuthModel(String mcExecToken) {
+        this.mcExecToken = Secret.fromString(mcExecToken);
+        this.value = "token";
+    }
     public String getMcUserName() {
         return mcUserName;
     }

@@ -1,5 +1,6 @@
 package com.microfocus.application.automation.tools.mc;
 
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
@@ -15,6 +16,10 @@ public class Oauth2TokenUtil {
 
     public static boolean validate(String auth2) {
         String strCleaned = removeQuotes(auth2.trim());
+        if (StringUtils.isBlank(strCleaned)) {
+            return false;
+        }
+
         String[] a = strCleaned.split(Pattern.quote(";"));
         for (String s : a) {
             if (StringUtils.isEmpty(s)) {
@@ -55,16 +60,12 @@ public class Oauth2TokenUtil {
         return true;
     }
 
-    public static String getClient() {
-        return client;
-    }
-
-    public static String getSecret() {
-        return secret;
-    }
-
-    public static String getTenant() {
-        return tenant;
+    public static JSONObject getJSONObject() {
+        JSONObject sendObject = new JSONObject();
+        sendObject.put("client", client);
+        sendObject.put("secret", secret);
+        sendObject.put("tenant", tenant);
+        return sendObject;
     }
 
 }

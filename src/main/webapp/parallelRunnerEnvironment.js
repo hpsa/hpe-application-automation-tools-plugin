@@ -146,7 +146,7 @@ ModalDialog.hide = function(modalId) {
  * @constructor
  */
 ModalDialog.generate = function(path) {
-	var modalCSS = path + "plugin/hp-application-automation-tools-plugin/css/PARALLEL_RUNNER_UI.css";
+	var modalCSS = path + "plugin/hp-application-automation-tools-plugin/css/modal_dialog.css";
 
 	// add the css style
 	ModalDialog.addStyleSheet(modalCSS);
@@ -313,50 +313,49 @@ Utils.setJenkinsElementVisibility = function(element,isVisible) {
  * @param button the environment wizard button
  */
 Utils.loadMC = function(a,button){
-	var buttonStatus = false;
-	if(buttonStatus) return;
-	buttonStatus = true;
-    var mcUserName = document.getElementsByName("runfromfs.mcUserName")[0].value;
-    var mcPassword = document.getElementsByName("runfromfs.mcPassword")[0].value;
-	var mcTenantId = document.getElementsByName("runfromfs.mcTenantId")[0].value;
-    var mcExecToken = document.getElementsByName("runfromfs.mcExecToken")[0].value;
-    var mcAuthType = document.querySelector('input[name$="authModel"]:checked').value;
-	var mcUrl = document.getElementsByName("runfromfs.mcServerName")[0].value;
-	var useProxy = document.getElementsByName("proxySettings")[0].checked;
-	var proxyAddress = document.getElementsByName("runfromfs.fsProxyAddress")[0].value;
-	var useAuthentication = document.getElementsByName("runfromfs.fsUseAuthentication")[0].checked;
-	var proxyUserName = document.getElementsByName("runfromfs.fsProxyUserName")[0].value;
-	var proxyPassword = document.getElementsByName("runfromfs.fsProxyPassword")[0].value;
+	button.disabled = true;
+	const divMain = button.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+    var mcUserName = divMain.querySelector('input[name="mcUserName"]').value;
+    var mcPassword = divMain.querySelector('input[name="mcPassword"]').value;
+	var mcTenantId = divMain.querySelector('input[name="mcTenantId"]').value;
+    var mcAccessKey = divMain.querySelector('input[name="mcAccessKey"]').value;
+    var mcAuthType = divMain.querySelector('input[name$="authModel"]:checked').value;
+	var mcUrl = divMain.querySelector('input[name="mcServerName"]').value;
+	var useProxy = divMain.querySelector('input[name="proxySettings"]').checked;
+	var proxyAddress = divMain.querySelector('input[name="fsProxyAddress"]').value;
+	var useAuthentication = divMain.querySelector('input[name="fsUseAuthentication"]').checked;
+	var proxyUserName = divMain.querySelector('input[name="fsProxyUserName"]').value;
+	var proxyPassword = divMain.querySelector('input[name="fsProxyPassword"]').value;
 	var baseUrl = "";
     var isMcCredentialMissing;
     if ('base' == mcAuthType) {
         isMcCredentialMissing = mcUserName.trim() == "" || mcPassword.trim() == "";
     } else {
-        isMcCredentialMissing = mcExecToken.trim() == "";
+        isMcCredentialMissing = mcAccessKey.trim() == "";
     }
 
 	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
 	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
 		ParallelRunnerEnv.setEnvironmentError(button,true);
-		buttonStatus = false;
+		button.disabled = false;
 		return;
 	}
-	var previousJobId = document.getElementsByName("runfromfs.fsJobId")[0].value;
+	var previousJobId = divMain.querySelector('[name="fsJobId"]').value;
 	a.getMcServerUrl(mcUrl, function(r){
 		baseUrl = r.responseObject();
 		if(baseUrl){
 			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
 		} else {
 			ParallelRunnerEnv.setEnvironmentError(button,true);
-			buttonStatus = false;
+			button.disabled = false;
 			return;
 		}
-        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
+        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
 				ParallelRunnerEnv.setEnvironmentError(button,true);
-				buttonStatus = false;
+				button.disabled = false;
 				return;
 			}
 			var openedWindow = window.open('/','test parameters','height=820,width=1130');
@@ -364,7 +363,7 @@ Utils.loadMC = function(a,button){
 			openedWindow.location.href = baseUrl+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true&deviceOnly=true";
 			var messageCallBack = function (event) {
 				if (event && event.data && event.data=="mcCloseWizard") {
-                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
+                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
 						var jobInfo = app.responseObject();
 						let deviceId = "", OS = "", manufacturerAndModel = "";
 						if(jobInfo['deviceJSON']){
@@ -389,7 +388,7 @@ Utils.loadMC = function(a,button){
 						console.log(deviceId);
 						ParallelRunnerEnv.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
 
-						buttonStatus = false;
+						button.disabled = false;
 						ParallelRunnerEnv.setEnvironmentError(button,false);
 						window.removeEventListener("message",messageCallBack, false);
 						openedWindow.close();
@@ -400,7 +399,7 @@ Utils.loadMC = function(a,button){
 			function checkChild() {
 				if (openedWindow && openedWindow.closed) {
 					clearInterval(timer);
-					buttonStatus = false;
+					button.disabled = false;
 				}
 			}
 			var timer = setInterval(checkChild, 500);
@@ -475,6 +474,7 @@ ParallelRunnerEnv.setEnvironmentError = function(button, enable) {
  * @param visible - should the modal be visible?(true / false)
  * @param path - the patch to the root of the plugin
  */
+ //TODO replace document with divMain computed from button
 ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,path) {
 	var modal = document.getElementById(modalId);
 	// it wasn't generated, so we need to generate it
@@ -608,15 +608,15 @@ RunFromFileSystemEnv.setInputVisibility = function(panel, name, visible) {
 };
 
 RunFromFileSystemEnv.setFsTestsVisibility = function(panel, visible) {
-	this.setMultiLineTextBoxVisibility(panel, "runfromfs.fsTests", visible);
+	this.setMultiLineTextBoxVisibility(panel, "fsTests", visible);
 };
 
 RunFromFileSystemEnv.setFsReportPathVisibility = function(panel, visible) {
-	this.setInputVisibility(panel, "runfromfs.fsReportPath", visible);
+	this.setInputVisibility(panel, "fsReportPath", visible);
 };
 
 RunFromFileSystemEnv.setTimeoutVisibility = function (panel, visible) {
-	this.setInputVisibility(panel, "runfromfs.fsTimeout", visible);
+	this.setInputVisibility(panel, "fsTimeout", visible);
 };
 
 RunFromFileSystemEnv.setParamsVisibility = function(panel, visible) {

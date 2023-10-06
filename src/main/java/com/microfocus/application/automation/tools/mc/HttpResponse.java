@@ -29,6 +29,7 @@
 package com.microfocus.application.automation.tools.mc;
 
 import net.minidev.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import java.util.Map;
 public class HttpResponse {
 
     private Map<String, List<String>> headers;
+    private String strCookies;
     private JSONObject jsonObject;
 
     public HttpResponse() {
@@ -55,11 +57,33 @@ public class HttpResponse {
         this.jsonObject = jsonObject;
     }
 
+    public void setCookiesString(String cookies) {
+        this.strCookies = cookies;
+    }
+
     public Map<String, List<String>> getHeaders() {
         return headers;
     }
 
     public JSONObject getJsonObject() {
         return jsonObject;
+    }
+
+    public String getCookiesAsString() {
+        if (StringUtils.isBlank(strCookies))
+        {
+            StringBuilder sb = new StringBuilder();
+            List<String> cookies = headers.get(Constants.SET_COOKIE);
+            if (cookies != null)
+                for (String cookie : cookies) {
+                    int eqIdx = cookie.indexOf('=');
+                    int semicolonIdx = cookie.indexOf(';');
+                    String key = cookie.substring(0, eqIdx);
+                    String val = cookie.substring(eqIdx + 1, semicolonIdx);
+                    sb.append(key).append("=").append(val).append(";");
+                }
+            strCookies = sb.toString();
+        }
+        return strCookies;
     }
 }

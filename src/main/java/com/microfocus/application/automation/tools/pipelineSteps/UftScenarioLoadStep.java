@@ -177,8 +177,6 @@ public class UftScenarioLoadStep extends Step {
         return runResultRecorder;
     }
 
-
-
     /**
      * The type Descriptor.
      */
@@ -270,7 +268,5 @@ public class UftScenarioLoadStep extends Step {
 
             return FormValidation.ok();
         }
-
     }
-
 }

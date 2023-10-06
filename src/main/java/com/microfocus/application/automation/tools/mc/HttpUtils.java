@@ -35,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.*;
 import java.net.*;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class HttpUtils {
@@ -47,10 +48,19 @@ public class HttpUtils {
     }
 
     public static HttpResponse doPost(ProxyInfo proxyInfo, String url, Map<String, String> headers, byte[] data) {
-
         HttpResponse response = null;
         try {
-            response = doHttp(proxyInfo, POST, url, null, headers, data);
+            response = doHttp(proxyInfo, POST, url, null, headers, data, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public static HttpResponse doPost(ProxyInfo proxyInfo, String url, Map<String, String> headers, byte[] data, boolean useCookieManager) {
+        HttpResponse response = null;
+        try {
+            response = doHttp(proxyInfo, POST, url, null, headers, data, useCookieManager);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,18 +68,16 @@ public class HttpUtils {
     }
 
     public static HttpResponse doGet(ProxyInfo proxyInfo, String url, Map<String, String> headers, String queryString) {
-
         HttpResponse response = null;
         try {
-            response = doHttp(proxyInfo, GET, url, queryString, headers, null);
+            response = doHttp(proxyInfo, GET, url, queryString, headers, null, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return response;
     }
 
-
-    private static HttpResponse doHttp(ProxyInfo proxyInfo, String requestMethod, String connectionUrl, String queryString, Map<String, String> headers, byte[] data) throws IOException {
+    private static HttpResponse doHttp(ProxyInfo proxyInfo, String requestMethod, String connectionUrl, String queryString, Map<String, String> headers, byte[] data, boolean useCookieManager) throws IOException {
         HttpResponse response = new HttpResponse();
 
         if ((queryString != null) && !queryString.isEmpty()) {
@@ -77,7 +85,11 @@ public class HttpUtils {
         }
 
         URL url = new URL(connectionUrl);
-
+        CookieManager cookieManager = null;
+        if (useCookieManager) {
+            cookieManager = new CookieManager();
+            CookieHandler.setDefault(cookieManager);
+        }
 
         HttpURLConnection connection = (HttpURLConnection) openConnection(proxyInfo, url);
 
@@ -110,6 +122,9 @@ public class HttpUtils {
             } else {
                 response.setJsonObject(jsonObject);
             }
+            if (useCookieManager) {
+                response.setCookiesString(getCookiesString(cookieManager));
+            }
         } else {
             System.out.println(requestMethod + " " + connectionUrl + " failed with response code:" + responseCode);
         }
@@ -117,6 +132,19 @@ public class HttpUtils {
 
         return response;
     }
+
+    private static String getCookiesString(CookieManager cookieManager) {
+        StringBuilder ret = new StringBuilder();
+        if (cookieManager != null) {
+            List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+            for (HttpCookie cookie : cookies) {
+                //TODO review each cookie !!!!!!!!!!!!!!!!!!!!
+                ret.append(cookie.getName()).append("=").append(cookie.getValue()).append(";");
+            }
+        }
+        return ret.toString();
+    }
+
 
     private static URLConnection openConnection(final ProxyInfo proxyInfo, URL _url) throws IOException {
 
