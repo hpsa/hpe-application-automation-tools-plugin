@@ -53,18 +53,18 @@ Starting with version 1.641 (or 1.625.3), Jenkins introduced the  **Content-Secu
 
 ## New Features and Enhancements
 
-Version 8.0 introduced the following enhancements and fixes:
+Version 23.3.0 introduced the following enhancements and fixes:
 
 **ALM Octane**
-
-- Support for Active choice parameters with Jenkins.
 - Bug fixes.
 
+**UFT One**
+ - Company name rebranded to OpenText.
+ - UFT Mobile renamed to Digital Lab.
+ - Enhancement of File System jobs to work correctly inside Docker.
+ - Bug fixes and optimizations.
+  
 For information about enhancements introduced in previous versions, see [What's new in earlier versions](WhatsNewEarlier.md). 
-
-## Release notes
-
-Pipeline scripts are empty in the script editor from within job configurations. You can view scripts in the config.xml file for each job. This issue does not affect the functionality of the plugin. **Note:** This limitation only applies to version 7.4. A fix was provided in version 7.4.1 Beta.
 
 ## Changelog
 
@@ -97,7 +97,7 @@ This plugin supports the following OpenText product versions:
 | Model-based Testing                                 | 16.0.300 and higher  | [Model-Based Testing Help Center](https://admhelp.microfocus.com/mbt) |
 | Service Virtualization                              | 3.80 and higher                                              | [Service Virtualization Help Center](https://admhelp.microfocus.com/sv/en/latest/Help/Content/UG/c_continuous_integration.htm) |
 | UFT Developer                                       | 14.03 and higher                                             | [UFT Developer Help Center](https://admhelp.microfocus.com/uftdev/en/latest/HelpCenter/Content/HowTo/CI_Tools.htm)<br />Blog: [Integrate LeanFT with Jenkins in just a few simple steps](https://community.microfocus.com/adtd/b/sws-alm/posts/integrating-leanft-with-jenkins-in-just-a-few-simple-steps) |
-| Digital Lab (UFT Mobile)                                          | 2.0 and higher                                               | [Digital Lab Integration page](https://admhelp.microfocus.com/uftmobile/en/latest/Content/CI_jenkins.htm) |
+| Digital Lab (UFT Mobile)                                          | 2.0 and higher                                               | [Digital Lab Integration page](https://admhelp.microfocus.com/digitallab/en/latest/Content/CI_jenkins.htm) |
 | UFT One                                             | 12.xx and 14.03 and higher                                   | [UFT One Help Center](https://admhelp.microfocus.com/uft/en/latest/UFT_Help/Content/User_Guide/Jenkins.htm) |
 | ValueEdge                                             |                               | [ValueEdge Help Center](https://admhelp.microfocus.com/valuedge) |
 

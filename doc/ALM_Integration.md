@@ -51,7 +51,7 @@ To configure the connection to your ALM Server.
     the **Build** section.
 
 6.  Expand the **Add build** **step** drop-down and select **Execute
-    functional tests from Micro Focus ALM**.
+    functional tests from OpenText ALM**.
 
 7.  Select one of the ALM servers that you configured in the previous
     step.

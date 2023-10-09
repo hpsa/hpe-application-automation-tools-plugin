@@ -35,19 +35,16 @@ import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @SuppressWarnings("squid:S1160")
 public final class AlmToolsUtils {
-
 
 	private AlmToolsUtils() {
         // no meaning instantiating
@@ -163,7 +160,7 @@ public final class AlmToolsUtils {
         try {
         	hpToolsAborterFile.delete();
 		} catch (Exception e) {
-			 listener.error("failed copying HpToolsAborter" + e);
+			 listener.error("failed copying HpToolsAborter: " + e);
 		}
         
         
@@ -177,6 +174,57 @@ public final class AlmToolsUtils {
             }
         }
     }
-    
-    
+
+    public static boolean tryCreatePropsFile(TaskListener listener, String props, FilePath fileProps) throws InterruptedException, IOException {
+
+        if (StringUtils.isBlank(props)) {
+            listener.fatalError("Missing properties text content."); //should never happen
+            return false;
+        }
+        if (fileProps.exists() && fileProps.length() > 0) { // this should never happen
+            listener.getLogger().println(String.format("NOTE: The file [%s] already exists.", fileProps.getRemote()));
+        }
+
+        String msg = String.format("Trying to create or replace the file [%s] ...", fileProps.getRemote());
+        listener.getLogger().println(msg);
+        return trySaveAndCheckPropsFile(listener, props, fileProps, 0);
+    }
+
+    private static boolean trySaveAndCheckPropsFile(TaskListener listener, String props, FilePath fileProps, int idxOfRetry) throws InterruptedException {
+        boolean ok = false;
+        try {
+            try (InputStream in = IOUtils.toInputStream(props, StandardCharsets.UTF_8)) {
+                fileProps.copyFrom(in);
+            }
+            Thread.sleep(1500);
+            if (fileProps.exists() && fileProps.length() > 0) {
+                String msg = "Successfully created the file";
+                if (idxOfRetry == 0) {
+                    listener.getLogger().println(String.format("%s [%s].", msg, fileProps.getName()));
+                } else {
+                    listener.getLogger().println(String.format("%s after %d %s.", msg, idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries")));
+                }
+                ok = true;
+            } else if (idxOfRetry > 5) {
+                listener.fatalError("Failed to save the file " + fileProps.getName() + " after 5 retries.");
+            } else {
+                ok = trySaveAndCheckPropsFile(listener, props, fileProps, ++idxOfRetry);
+            }
+        } catch (IOException ioe) {
+            if (idxOfRetry > 5) {
+                listener.fatalError("Failed to save the file " + fileProps.getName() + " after 5 retries: " + ioe.getMessage());
+            } else {
+                Thread.sleep(1500);
+                ok = trySaveAndCheckPropsFile(listener, props, fileProps, ++idxOfRetry);
+            }
+        }
+        return ok;
+    }
+
+    public static String getPropsAsString(Properties props) throws IOException {
+        try (OutputStream stream = new ByteArrayOutputStream()) {
+            props.store(stream, "");
+            return stream.toString();
+        }
+    }
 }

@@ -35,7 +35,6 @@ import com.hp.octane.integrations.executor.converters.*;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import com.microfocus.application.automation.tools.AlmToolsUtils;
-import com.microfocus.application.automation.tools.JenkinsUtils;
 import com.microfocus.application.automation.tools.model.TestsFramework;
 import com.microfocus.application.automation.tools.octane.configuration.ConfigurationValidator;
 import com.microfocus.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
@@ -282,17 +281,16 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
         String time = formatter.format(now);
 
         // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        String strProps;
         try {
-            props.store(stream, "");
+            strProps = AlmToolsUtils.getPropsAsString(props);
         } catch (IOException e) {
-            listener.error("Storing props failed: " + e);
             build.setResult(Result.FAILURE);
+            listener.error("Failed to store properties on agent machine: " + e);
+            return;
         }
-        String propsSerialization = stream.toString();
-        InputStream propsStream = new ByteArrayInputStream(propsSerialization.getBytes());
-        String paramFileName = "mbt_props" + time + ".txt";
-        FilePath propsFileName = workspace.child(paramFileName);
+        String propsFileName = String.format("mbt_props%s.txt", time);
+        FilePath fileProps = workspace.child(propsFileName);
 
         //HP Tool Launcher
         URL cmdExeUrl = Jenkins.get().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
@@ -304,8 +302,11 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         try {
             // create a file for the properties file, and save the properties
-            propsFileName.copyFrom(propsStream);
-            printToConsole(listener, "MBT props file saved to " + propsFileName.getRemote());
+            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, fileProps)) {
+                build.setResult(Result.FAILURE);
+                return;
+            }
+            printToConsole(listener, "MBT props file saved to " + fileProps.getRemote());
 
             // Copy the script to the project workspace
             if (!cmdLineExe.exists()) {
@@ -320,7 +321,7 @@ public class TestsToRunConverterBuilder extends Builder implements SimpleBuildSt
 
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, paramFileName, null);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, propsFileName, null);
             // Has the report been successfully generated?
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);

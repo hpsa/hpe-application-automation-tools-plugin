@@ -34,7 +34,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Web.Caching;
 using Environment = System.Environment;
 using Resources = HpToolsLauncher.Properties.Resources;
 namespace HpToolsLauncher.TestRunners
@@ -151,7 +150,7 @@ namespace HpToolsLauncher.TestRunners
                 ErrorDesc = errorReason,
                 TestState = TestState.Unknown,
                 TestPath = testInfo.TestPath,
-                TestType = TestType.ParallelRunner.ToString()
+                TestType = TestType.ParallelRunner
             };
 
             // set the active test run
@@ -232,18 +231,7 @@ namespace HpToolsLauncher.TestRunners
 
         public void CleanUp()
         {
-            // we need to remove the json config files as they are no longer needed
-            foreach (var configFile in _configFiles)
-            {
-                try
-                {
-                    File.Delete(configFile);
-                }
-                catch (Exception)
-                {
-                    ConsoleWriter.WriteErrLine("Unable to remove configuration file: " + configFile);
-                }
-            }
+            // DONT'T remove the json files from _configFiles as they are useful for troubleshooting
         }
 
         private void CloseUft()
@@ -326,6 +314,9 @@ namespace HpToolsLauncher.TestRunners
         {
             try
             {
+                //print command line 
+                ConsoleWriter.WriteLineWithTime(string.Format("{0} {1}", fileName, arguments));
+
                 if (IsParentProcessRunningInUserSession())
                 {
                     return InitProcess(fileName, arguments);

@@ -31,13 +31,11 @@ package com.microfocus.application.automation.tools.model;
 import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
-import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Node;
-import hudson.util.Secret;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -47,7 +45,6 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.*;
 
 /**
  * Holds the data for RunFromFile build type.

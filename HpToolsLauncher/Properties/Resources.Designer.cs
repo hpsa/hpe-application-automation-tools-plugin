@@ -1126,7 +1126,16 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid execution token for Mobile, should contain ClientID, SecretKey and TenantID..
+        ///   Looks up a localized string similar to Empty Digital Lab Server..
+        /// </summary>
+        internal static string McEmptyHostAddress {
+            get {
+                return ResourceManager.GetString("McEmptyHostAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid execution token for Digital Lab, should contain ClientID, SecretKey and TenantID..
         /// </summary>
         internal static string McInvalidToken {
             get {
@@ -1135,7 +1144,16 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Malformed execution token for Mobile, invalid key value: {0}..
+        ///   Looks up a localized string similar to Invalid Digital Lab Server URL: &apos;{0}&apos;..
+        /// </summary>
+        internal static string McInvalidUrl {
+            get {
+                return ResourceManager.GetString("McInvalidUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed execution token for Digital Lab, invalid key value: {0}..
         /// </summary>
         internal static string McMalformedTokenInvalidKey {
             get {
@@ -1144,7 +1162,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Malformed execution token for Mobile, key-value pairs are not separated by {0}..
+        ///   Looks up a localized string similar to Malformed execution token for Digital Lab, key-value pairs are not separated by {0}..
         /// </summary>
         internal static string McMalformedTokenInvalidKeyValueSeparator {
             get {
@@ -1153,7 +1171,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Malformed execution token for Mobile, token without key-value..
+        ///   Looks up a localized string similar to Malformed execution token for Digital Lab, token without key-value..
         /// </summary>
         internal static string McMalformedTokenMissingKeyValuePair {
             get {

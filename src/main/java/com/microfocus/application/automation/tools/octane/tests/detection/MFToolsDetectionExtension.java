@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Recognize execution of Microfocus Tools
+ * Recognize execution of OpenText Tools
  */
 @Extension
 public class MFToolsDetectionExtension extends ResultFieldsDetectionExtension {

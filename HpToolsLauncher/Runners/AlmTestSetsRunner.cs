@@ -996,13 +996,10 @@ namespace HpToolsLauncher
         /// </summary>
         /// <param name="currentTest"></param>
         /// <returns></returns>
-        private string GetTestType(dynamic currentTest)
+        private TestType GetTestType(dynamic currentTest)
         {
             string testType = currentTest.Test.Type;
-
-            testType = testType.ToUpper() == API_TEST ? TestType.ST.ToString() : TestType.QTP.ToString();
-
-            return testType;
+            return testType.ToUpper() == API_TEST ? TestType.ST : TestType.QTP;
         }
 
         // ------------------------- Run tests and update test results --------------------------------
@@ -1580,7 +1577,7 @@ namespace HpToolsLauncher
                 var testIndex = GetIndexOfTestIdentifiedByName(currentTest.Name, runResults);
 
                 qTest = runResults.TestRuns[testIndex];
-                if (qTest.TestType == null)
+                if (qTest.TestType == TestType.Unknown)
                 {
                     qTest.TestType = GetTestType(currentTest);
                 }
@@ -1959,6 +1956,7 @@ namespace HpToolsLauncher
 
             if (qcTestStatus == null)
                 return TestState.Unknown;
+
             switch (qcTestStatus.Status)
             {
                 case "Waiting":

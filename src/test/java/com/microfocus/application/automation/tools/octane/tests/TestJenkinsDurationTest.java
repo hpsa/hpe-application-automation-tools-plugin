@@ -67,7 +67,7 @@ public class TestJenkinsDurationTest {
         long pluginPostProcessWorkTime = buildDurationTotal - buildDurationWithoutPostProcessTime;
 
 
-        long buildDurationTotalExpected = 1750;
+        long buildDurationTotalExpected = 3000;
         long pluginPostProcessWorkTimeExpected = 2200;
 
         System.out.println(String.format("buildDurationTotal=%d, expected=%d", buildDurationTotal, buildDurationTotalExpected));

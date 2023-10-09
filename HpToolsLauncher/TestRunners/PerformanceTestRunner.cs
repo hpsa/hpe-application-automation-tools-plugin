@@ -118,14 +118,13 @@ namespace HpToolsLauncher.TestRunners
             outParams = new Dictionary<string, string>();
             string scenarioPath = scenarioInf.TestPath;
             //prepare the instance that will contain test results for JUnit
-            TestRunResults runDesc = new TestRunResults();
+            TestRunResults runDesc = new TestRunResults { TestType = TestType.LoadRunner };
 
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLineWithTime("Running: " + scenarioPath);
 
-            runDesc.TestType = TestType.LoadRunner.ToString();
             _resultsFolder = Helper.GetTempDir();
-            if (scenarioInf.ReportPath != null && !scenarioInf.ReportPath.Equals(""))
+            if (!scenarioInf.ReportPath.IsNullOrEmpty())
             {
                 _resultsFolder = scenarioInf.ReportPath;
             }
@@ -144,7 +143,6 @@ namespace HpToolsLauncher.TestRunners
                 {
                     Console.WriteLine(string.Format(Resources.CannotDeleteReportFolder, _resultsFolder));
                 }
-
             }
             else
             {
@@ -152,7 +150,7 @@ namespace HpToolsLauncher.TestRunners
                 {
                     Directory.CreateDirectory(_resultsFolder);
                 }
-                catch (Exception)
+                catch
                 {
                     errorReason = string.Format(Resources.FailedToCreateTempDirError, _resultsFolder);
                     runDesc.TestState = TestState.Error;
@@ -164,7 +162,6 @@ namespace HpToolsLauncher.TestRunners
             }
             //create LRR folder:
             _controller_result_dir = Path.Combine(_resultsFolder, LRR_FOLDER);
-
 
             Directory.CreateDirectory(_controller_result_dir);
 
@@ -237,8 +234,8 @@ namespace HpToolsLauncher.TestRunners
                     int ignore = getErrorsCount(ERRORState.Ignore);
                     int fatal = getErrorsCount(ERRORState.Error);
                     runDesc.FatalErrors = fatal;
-                    ConsoleWriter.WriteLine(String.Format(Resources.LrErrorSummeryNum, ignore, fatal));
-                    ConsoleWriter.WriteLine("");
+                    ConsoleWriter.WriteLine(string.Format(Resources.LrErrorSummeryNum, ignore, fatal));
+                    ConsoleWriter.WriteLine(string.Empty);
                     if (_errors != null && _errors.Count > 0)
                     {
                         foreach (ERRORState state in Enum.GetValues(typeof(ERRORState)))
@@ -398,7 +395,6 @@ namespace HpToolsLauncher.TestRunners
                     ConsoleWriter.WriteLine("controller reult dir: " + _controller_result_dir);
                 }
 
-
                 if (ret != 0)
                 {
                     errorReason = string.Format(Resources.LrStartScenarioFail, scenario, ret);
@@ -443,7 +439,7 @@ namespace HpToolsLauncher.TestRunners
                             throw new Exception(ret.ToString());
                         }
                     }
-                    catch (Exception) { }
+                    catch { }
                 };
                 Thread t = new Thread(tstart);
                 t.Start();
@@ -553,13 +549,13 @@ namespace HpToolsLauncher.TestRunners
 
         void runner_ErrorDataReceived(object sender, DataReceivedEventArgs errData)
         {
-            if (!String.IsNullOrEmpty(errData.Data))
+            if (!errData.Data.IsNullOrEmpty())
                 ConsoleWriter.WriteErrLine(errData.Data);
         }
 
         void runner_OutputDataReceived(object sender, DataReceivedEventArgs outLine)
         {
-            if (!String.IsNullOrEmpty(outLine.Data))
+            if (!outLine.Data.IsNullOrEmpty())
             {
                 ConsoleWriter.WriteLine(outLine.Data);
             }
@@ -892,7 +888,6 @@ namespace HpToolsLauncher.TestRunners
 
         private bool validateScenario(LrScenario scenario, ref string errorReason)
         {
-
             //validate that scenario has SLA
             if (!scenario.DoesScenarioHaveSLAConfiguration())
             {
