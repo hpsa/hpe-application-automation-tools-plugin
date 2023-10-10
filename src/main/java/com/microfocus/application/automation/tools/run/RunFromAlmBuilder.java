@@ -34,24 +34,23 @@ import com.microfocus.application.automation.tools.octane.executor.UftConstants;
 import com.microfocus.application.automation.tools.uft.model.FilterTestsModel;
 import com.microfocus.application.automation.tools.settings.AlmServerSettingsGlobalConfiguration;
 import com.microfocus.application.automation.tools.uft.model.SpecifyParametersModel;
-import com.microfocus.application.automation.tools.uft.utils.UftToolUtils;
 import hudson.*;
 
 import hudson.model.*;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.util.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -75,8 +74,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     private SpecifyParametersModel specifyParametersModel;
     private final static String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
     private final static String HP_TOOLS_LAUNCHER_EXE_CFG = "HpToolsLauncher.exe.config";
-    private String ResultFilename = "ApiResults.xml";
-    private String ParamFileName = "ApiRun.txt";
+    private String resultsFileName = "ApiResults.xml";
     private AlmServerSettingsModel almServerSettingsModel;
 
     @DataBoundConstructor
@@ -290,10 +288,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
 
         // now merge them into one list
-        Properties mergedProperties = new Properties();
+        Properties mergedProps = new Properties();
 
-        mergedProperties.putAll(almServerSettingsModel.getProperties());
-        mergedProperties.putAll(runFromAlmModel.getProperties(env, varResolver));
+        mergedProps.putAll(almServerSettingsModel.getProperties());
+        mergedProps.putAll(runFromAlmModel.getProperties(env, varResolver));
 
         CredentialsScope scope = getCredentialsScopeOrDefault();
         String encAlmPass;
@@ -308,8 +306,8 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
 
             encAlmPass = EncryptionUtils.encrypt(almPassword, currNode);
 
-            mergedProperties.remove(RunFromAlmModel.ALM_PASSWORD_KEY);
-            mergedProperties.put(RunFromAlmModel.ALM_PASSWORD_KEY, encAlmPass);
+            mergedProps.remove(RunFromAlmModel.ALM_PASSWORD_KEY);
+            mergedProps.put(RunFromAlmModel.ALM_PASSWORD_KEY, encAlmPass);
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("Issue with ALM Password encryption: " + e.getMessage() + ".");
@@ -327,9 +325,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
             }
 
             encAlmApiKey = EncryptionUtils.encrypt(almApiKeySecret, currNode);
-            mergedProperties.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
-            mergedProperties.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
-            mergedProperties.put("almClientID", getAlmClientID());
+            mergedProps.remove(RunFromAlmModel.ALM_API_KEY_SECRET);
+            mergedProps.put(RunFromAlmModel.ALM_API_KEY_SECRET, encAlmApiKey);
+            mergedProps.put("almClientID", getAlmClientID());
         } catch (Exception e) {
             build.setResult(Result.FAILURE);
             listener.fatalError("Issue with apiKey encryption: " + e.getMessage() + ".");
@@ -337,9 +335,9 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         }
 
         if (isFilterTestsEnabled) {
-            filterTestsModel.addProperties(mergedProperties);
+            filterTestsModel.addProperties(mergedProps);
         } else {
-            mergedProperties.put("FilterTests", "false");
+            mergedProps.put("FilterTests", "false");
         }
 
         Date now = new Date();
@@ -347,86 +345,82 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         String time = formatter.format(now);
 
         // get a unique filename for the params file
-        ParamFileName = "props" + time + ".txt";
-        ResultFilename = "Results" + time + ".xml";
+        String propsFileName = String.format("props%s.txt", time);
+        resultsFileName = String.format("Results%s_%d.xml", time, build.getNumber());
         //KillFileName = "stop" + time + ".txt";
 
         //params used when run with Pipeline
         ParametersAction parameterAction = build.getAction(ParametersAction.class);
         List<ParameterValue> newParams = (parameterAction != null) ? new ArrayList<>(parameterAction.getAllParameters()) : new ArrayList<>();
         newParams.add(new StringParameterValue("buildStepName", "RunFromAlmBuilder"));
-        newParams.add(new StringParameterValue("resultsFilename", ResultFilename));
+        newParams.add(new StringParameterValue("resultsFilename", resultsFileName));
         build.addOrReplaceAction(new ParametersAction(newParams));
 
-        mergedProperties.put("runType", RunType.Alm.toString());
-        mergedProperties.put("resultsFilename", ResultFilename);
+        mergedProps.put("runType", RunType.Alm.toString());
+        mergedProps.put("resultsFilename", resultsFileName);
 
         if (areParametersEnabled) {
             try {
-                specifyParametersModel.addProperties(mergedProperties, "TestSet", currNode);
+                specifyParametersModel.addProperties(mergedProps, "TestSet", currNode);
             } catch (Exception e) {
                 listener.error("Error occurred while parsing parameter input, reverting back to empty array.");
             }
         }
 
         // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        String strProps;
         try {
-            mergedProperties.store(stream, "");
+            strProps = AlmToolsUtils.getPropsAsString(mergedProps);
         } catch (IOException e) {
             build.setResult(Result.FAILURE);
-            listener.error("Failed to store properties for agent machine.");
+            listener.error("Failed to store properties on agent machine: " + e);
             return;
         }
-        String propsSerialization = stream.toString();
-        InputStream propsStream = IOUtils.toInputStream(propsSerialization);
-
-        // get the remote workspace filesys
-        FilePath projectWS = workspace;
 
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
 
-        URL cmdExeUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
+        URL cmdExeUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
         if (cmdExeUrl == null) {
             build.setResult(Result.FAILURE);
             listener.fatalError(HP_TOOLS_LAUNCHER_EXE + " not found in resources");
             return;
         }
-        URL cmdExeCfgUrl =
-                Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
+        URL cmdExeCfgUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE_CFG);
         if (cmdExeCfgUrl == null) {
             build.setResult(Result.FAILURE);
             listener.fatalError(HP_TOOLS_LAUNCHER_EXE_CFG + " not found in resources");
             return;
         }
 
-        FilePath propsFileName = projectWS.child(ParamFileName);
-        FilePath CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
-        FilePath CmdLineExeCfg = projectWS.child(HP_TOOLS_LAUNCHER_EXE_CFG);
+        FilePath fileProps = workspace.child(propsFileName);
+        FilePath cmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+        FilePath cmdLineExeCfg = workspace.child(HP_TOOLS_LAUNCHER_EXE_CFG);
 
         try {
             // create a file for the properties file, and save the properties
-            propsFileName.copyFrom(propsStream);
+            if (!AlmToolsUtils.tryCreatePropsFile(listener, strProps, fileProps)) {
+                build.setResult(Result.FAILURE);
+                return;
+            }
             // Copy the script to the project workspace
-            CmdLineExe.copyFrom(cmdExeUrl);
-            CmdLineExeCfg.copyFrom(cmdExeCfgUrl);
+            cmdLineExe.copyFrom(cmdExeUrl);
+            cmdLineExeCfg.copyFrom(cmdExeCfgUrl);
         } catch (IOException | InterruptedException e) {
             build.setResult(Result.FAILURE);
-            listener.error("Failed to copy UFT tools to agent machine. " + e);
+            listener.error("Failed to copy props file or UFT tools to agent machine. " + e);
             return;
         }
         try {
             // Run the HpToolsLauncher.exe
-            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName, currNode);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, cmdLineExe, propsFileName, currNode);
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             try {
-                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
+                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, propsFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
@@ -586,6 +580,6 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     }
 
     public String getRunResultsFileName() {
-        return ResultFilename;
+        return resultsFileName;
     }
 }

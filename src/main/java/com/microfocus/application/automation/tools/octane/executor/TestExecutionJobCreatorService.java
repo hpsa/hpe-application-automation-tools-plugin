@@ -162,7 +162,7 @@ public class TestExecutionJobCreatorService {
 			String discoveryJobName = String.format("%s-%s-%s", discoveryJobPrefix, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
 			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), discoveryJobName);
 
-			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
+			proj.setDescription(String.format("This job was created by the OpenText Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane test runner #%s.",
 					discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
 
 			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, false);
@@ -337,7 +337,7 @@ public class TestExecutionJobCreatorService {
 			String projectName = String.format("%s-%s-%s", exeJobPrefix, discoveryInfo.getExecutorId(), discoveryInfo.getExecutorLogicalName().substring(0,5));
 			FreeStyleProject proj = createProject(discoveryInfo.getConfigurationId(), projectName);
 
-			proj.setDescription(String.format("This job was created by the Micro Focus Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
+			proj.setDescription(String.format("This job was created by the OpenText Application Automation Tools plugin for running UFT tests. It is associated with ALM Octane test runner #%s.",
 					discoveryInfo.getExecutorId()));
 
 			setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj, true);

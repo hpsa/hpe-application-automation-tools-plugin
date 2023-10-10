@@ -350,7 +350,7 @@
 					 <input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
 				 </f:entry>
 				 <f:entry>
-					 <div id="errorMessage" style="color:red;display:none">UFT Mobile login information or proxy is incorrect.</div>
+					 <div id="errorMessage" style="color:red;display:none">Digital Lab login information or proxy is incorrect.</div>
 				 </f:entry>
 			 </div>
 			 <div class="tr config-table-top-row">

@@ -55,7 +55,7 @@
 	</licenses>
 
 	<properties>
-		<revision>8.1</revision>
+		<revision>23.3.1</revision>
 		<changelist>-SNAPSHOT</changelist>
 		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
 		<concurrency>1</concurrency>
@@ -584,72 +584,11 @@
 		<dependency>
 			<groupId>com.microfocus.adm.performancecenter</groupId>
 			<artifactId>plugins-common</artifactId>
-			<version>1.1.9</version>
+			<version>1.1.11</version>
 			<exclusions>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>commons-codec</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>commons-httpclient</groupId>
-					<artifactId>commons-httpclient</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>commons-lang</groupId>
-					<artifactId>commons-lang</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<!-- Provided by jackson2-api plugin -->
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<!-- Provided by jackson2-api and snakeyaml-api plugins -->
-				<exclusion>
-					<groupId>com.fasterxml.jackson.dataformat</groupId>
-					<artifactId>jackson-dataformat-yaml</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>com.thoughtworks.xstream</groupId>
-					<artifactId>xstream</artifactId>
-				</exclusion>
-				<!-- Provided by javax-activation-api plugin -->
-				<exclusion>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-				</exclusion>
-				<!-- Provided by jaxb-api plugin -->
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-				<!-- Provided by apache-httpcomponents-client-4-api plugin -->
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<!-- Provided by jaxb-api plugin -->
-				<exclusion>
-					<groupId>org.glassfish.jaxb</groupId>
-					<artifactId>jaxb-runtime</artifactId>
-				</exclusion>
-				<!-- Provided by Jenkins core -->
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

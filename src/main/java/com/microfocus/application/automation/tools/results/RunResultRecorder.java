@@ -46,15 +46,14 @@ import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.*;
-import hudson.remoting.Channel;
 import hudson.remoting.VirtualChannel;
-import hudson.slaves.SlaveComputer;
 import hudson.tasks.*;
 import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -549,25 +548,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								FilePath testFolder = new FilePath(channel, testFolderPath);
 								String zipFileName = getUniqueZipFileNameInFolder(zipFileNames, (StringUtils.isBlank(nodeName) ? "" : nodeName + "_") + testFolder.getName(), "UFT");
 								zipFileNames.add(zipFileName);
-								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+								try (ByteArrayOutputStream outStr = new ByteArrayOutputStream()) {
 
-								// don't use FileFilter for zip, or it will cause bug when files are on slave
-								reportFolder.zip(outstr);
+									// don't use FileFilter for zip, or it will cause bug when files are on slave
+									reportFolder.zip(outStr);
 
-								/*
-								 * I did't use copyRecursiveTo or copyFrom due to bug in
-								 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
-								 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
-								 * it to the master.
-								 */
+									/*
+									 * I did't use copyRecursiveTo or copyFrom due to bug in
+									 * jekins:https://issues.jenkins-ci.org/browse /JENKINS-9189 //(which is
+									 * cleaimed to have been fixed, but not. So I zip the folder to stream and copy
+									 * it to the master.
+									 */
 
-								ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
-
-								FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
-								archivedFile.copyFrom(instr);
-
-								outstr.close();
-								instr.close();
+									try (InputStream instr = new ByteArrayInputStream(outStr.toByteArray())) {
+										FilePath archivedFile = new FilePath(new FilePath(artifactsDir), zipFileName);
+										archivedFile.copyFrom(instr);
+									}
+								}
 
 								// add to Report list
 								String zipFileUrlName = "artifact/" + zipFileName;
@@ -674,6 +671,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	}
 
+	private void renamePath(FilePath src, FilePath dest, TaskListener listener, int idxOfRetry) {
+		try {
+			if (idxOfRetry > 5) {
+				listener.getLogger().println("Failed to rename report path [" + src.getRemote() + "] as [" + dest.getRemote() + "] after 5 retries.");
+				return;
+			}
+			Thread.sleep(1500);
+			src.renameTo(dest);
+			if (idxOfRetry > 0) {
+				String msg = String.format("Successfully renamed report path as [%s] after %d %s.", dest.getRemote(), idxOfRetry, (idxOfRetry == 1 ? "retry" : "retries"));
+				listener.getLogger().println(msg);
+			}
+		} catch(Exception e) {
+			renamePath(src, dest, listener, ++idxOfRetry);
+		}
+	}
+
 	private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo, FilePath runWorkspace, String nodeName) {
 		File reportMainDir = new File(new File(build.getRootDir(), "archive"), "UFTReport");
 		if (StringUtils.isNotBlank(nodeName)) {
@@ -707,29 +721,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				// archive and copy to the subdirs of master
 				archiveAndCopyReportFolder(runWorkspace, reportDir, htmlReportDir);
 				// zip copy and unzip
-				// now,all the files are in the C:\Program Files (x86)
-				// \Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+				// now,all the files are in the C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report**
 				// we need to rename the above path to targetPath.
-				// So at last we got files in C:\Program Files (x86)
-				// \Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
-				String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
+				// So at last we got files in C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest\Result
+				String unzippedFileName = FilenameUtils.getName(htmlReportDir);
 
 				FilePath rootTarget = new FilePath(reportDir);
-				FilePath targetPath = new FilePath(rootTarget, RESULT); // target path is something like "C:\Program Files
+				FilePath targetPath = new FilePath(rootTarget, RESULT);
 				if(targetPath.exists()){
 					continue;
 				}
-				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
-				FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName); // C:\Program Files
+				// C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
+				FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName);
 
-				// (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-				// //C:\Program Files\(x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-				//rename unzippedFolderPath to targetPath
-				try {
-					unzippedFolderPath.renameTo(targetPath);
-				} catch(Exception e){
-					listener.getLogger().println("Cannot rename to target path.");
-				}
+				// C:\Program Files\(x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+				// rename unzippedFolderPath to targetPath
+				renamePath(unzippedFolderPath, targetPath, listener, 0);
+
 				// fill in the urlName of this report. we need a network path not a FS path
 				String resourceUrl = htmlReportInfo.getResourceURL();
 
@@ -759,26 +767,24 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private void archiveAndCopyReportFolder(FilePath runWorkspace, File reportDir, String htmlReportDir) throws IOException, InterruptedException {
 		FilePath rootTarget = new FilePath(reportDir);
 
-		FilePath source  = new FilePath(runWorkspace, htmlReportDir);
+		FilePath source = new FilePath(runWorkspace, htmlReportDir);
 
-		ByteArrayOutputStream outStr = new ByteArrayOutputStream();
-		source.zip(outStr);
-
-		ByteArrayInputStream inStr= new ByteArrayInputStream(outStr.toByteArray());
 		String zipFileName = "UFT_Report_HTML_tmp.zip";
 		FilePath archivedFile = new FilePath(rootTarget, zipFileName);
 
-		//copy from slave to master
-		archivedFile.copyFrom(inStr);
+		try (ByteArrayOutputStream outStr = new ByteArrayOutputStream()) {
+			source.zip(outStr);
 
-		// end zip copy and unzip
-		archivedFile.unzip(rootTarget);
+			try (ByteArrayInputStream inStr = new ByteArrayInputStream(outStr.toByteArray())) {
+				//copy from slave to master
+				archivedFile.copyFrom(inStr);
+			}
+			// end zip copy and unzip
+			archivedFile.unzip(rootTarget);
 
-		//delete temporary archive UFT_Report_HTML_tmp.zip
-		archivedFile.delete();
-
-		outStr.close();
-		inStr.close();
+			//delete temporary archive UFT_Report_HTML_tmp.zip
+			archivedFile.delete();
+		}
 	}
 
 	/**
@@ -1575,7 +1581,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		@Override
 		public String getDisplayName() {
 
-			return "Publish Micro Focus tests result";
+			return "Publish OpenText tests result";
 		}
 
 		@Override

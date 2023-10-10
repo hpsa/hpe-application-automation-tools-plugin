@@ -1,13 +1,13 @@
 /*
  * Certain versions of software and/or documents ("Material") accessible here may contain branding from
  * Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
- * the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ * the Material is now offered by Open Text, a separately owned and operated company.  Any reference to the HP
  * and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
  * marks are the property of their respective owners.
  * __________________________________________________________________
  * MIT License
  *
- * (c) Copyright 2012-2023 Micro Focus or one of its affiliates.
+ * Copyright © 2023 Open Text Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -39,19 +39,18 @@ public class DateFormatter {
     private String pattern;
     private String date;
 
-    public DateFormatter(String pattern){
+    public DateFormatter(String pattern) {
         this.pattern = pattern.isEmpty() ? DEFAULT_PATTERN : pattern;
-        simpleDateFormat = new SimpleDateFormat (this.pattern);
+        simpleDateFormat = new SimpleDateFormat(this.pattern);
         renewDate();
     }
 
     public void renewDate() {
         try {
             date = simpleDateFormat.format(new Date());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             this.pattern = DEFAULT_PATTERN;
-            simpleDateFormat = new SimpleDateFormat (this.pattern);
+            simpleDateFormat = new SimpleDateFormat(this.pattern);
             date = simpleDateFormat.format(new Date());
         }
     }
@@ -62,16 +61,14 @@ public class DateFormatter {
 
     public void setPattern(String pattern) {
         this.pattern = pattern.isEmpty() ? DEFAULT_PATTERN : pattern;
-        simpleDateFormat = new SimpleDateFormat (this.pattern);
+        simpleDateFormat = new SimpleDateFormat(this.pattern);
     }
 
-    public String getDate(){
+    public String getDate() {
         try {
             renewDate();
             return date;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             return "";
         }
     }

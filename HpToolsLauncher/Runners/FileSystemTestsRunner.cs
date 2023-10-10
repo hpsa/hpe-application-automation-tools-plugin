@@ -132,7 +132,7 @@ namespace HpToolsLauncher
             _uftRunMode = uftRunMode;
 
             if (_mcConnection != null)
-                ConsoleWriter.WriteLine("UFT Mobile connection info is - " + _mcConnection.ToString());
+                ConsoleWriter.WriteLine("Digital Lab connection info is - " + _mcConnection.ToString());
 
             if (reportPath != null)
             {
@@ -305,9 +305,9 @@ namespace HpToolsLauncher
                     {
                         testGroup = new List<TestInfo>();
                         FileInfo fi = new FileInfo(source.Tests);
-                        if (fi.Extension == Helper.LoadRunnerFileExtention)
+                        if (fi.Extension == Helper.LoadRunnerFileExt)
                             testGroup.Add(new TestInfo(source.Tests, source.Tests, source.Tests, source.Id));
-                        else if (fi.Extension == Helper.MtbFileExtension)
+                        else if (fi.Extension == Helper.MtbFileExt)
                         {
                             MtbManager manager = new MtbManager();
                             var paths = manager.Parse(source.Tests);
@@ -316,7 +316,7 @@ namespace HpToolsLauncher
                                 testGroup.Add(new TestInfo(p, p, source.Tests, source.Id));
                             }
                         }
-                        else if (fi.Extension == Helper.MtbxFileExtension)
+                        else if (fi.Extension == Helper.MtbxFileExt)
                         {
                             testGroup = MtbxManager.Parse(source.Tests, jenkinsEnvVars, source.Tests);
 
@@ -360,6 +360,8 @@ namespace HpToolsLauncher
             testsuite ts = _xmlBuilder.TestSuites.GetTestSuiteOrDefault(activeRunDesc.SuiteName, JunitXmlBuilder.ClassName, out isNewTestSuite);
             ts.tests += _tests.Count;
 
+            // if we have at least one environment for parallel runner, then it must be enabled
+            var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
             double totalTime = 0;
             try
             {
@@ -391,8 +393,6 @@ namespace HpToolsLauncher
                     try
                     {
                         var type = Helper.GetTestType(test.TestPath);
-                        // if we have at least one environment for parallel runner, then it must be enabled
-                        var isParallelRunnerEnabled = _parallelRunnerEnvironments.Count > 0;
                         if (isParallelRunnerEnabled && type == TestType.QTP)
                         {
                             type = TestType.ParallelRunner;
@@ -494,7 +494,16 @@ namespace HpToolsLauncher
                         }
                     }
 
-                    UpdateUftReportDir(test.TestPath, indexList);
+                    if (runResult.TestType == TestType.ParallelRunner)
+                    {
+                        ConsoleWriter.WriteLine(string.Format("uftReportDir is: {0}", runResult.ReportLocation));
+                    }
+                    else
+                    {
+                        string uftReportDir = Path.Combine(test.TestPath, REPORT);
+                        string uftReportDirNew = Path.Combine(test.TestPath, string.Format("Report{0}", indexList[test.TestPath]));
+                        UpdateUftReportDir(uftReportDir, uftReportDirNew);
+                    }
                     // Create or update the xml report. This function is called after each test execution in order to have a report available in case of job interruption
                     _xmlBuilder.CreateOrUpdatePartialXmlReport(ts, runResult, isNewTestSuite && x==0);
                     ConsoleWriter.WriteLineWithTime("Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
@@ -519,29 +528,38 @@ namespace HpToolsLauncher
             return activeRunDesc;
         }
 
-        private void UpdateUftReportDir(string testPath, Dictionary<string, int> indexList)
+        private void UpdateUftReportDir(string uftReportDir, string uftReportDirNew)
         {
             //update report folder
-            string uftReportDir = Path.Combine(testPath, REPORT);
-            string uftReportDirNew = Path.Combine(testPath, string.Format("Report{0}", indexList[testPath]));
-            ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
+            if (Directory.Exists(uftReportDir))
+            {
+                ConsoleWriter.WriteLine(string.Format("uftReportDir is {0}", uftReportDirNew));
+                if (Directory.Exists(uftReportDirNew))
+                {
+                    Helper.DeleteDirectory(uftReportDirNew);
+                }
+                TryMoveDir(uftReportDir, uftReportDirNew, 0);
+            }
+        }
+
+        private bool TryMoveDir(string srcDir, string destDir, int idxOfRetry)
+        {
             try
             {
-                if (Directory.Exists(uftReportDir))
-                {
-                    if (Directory.Exists(uftReportDirNew))
-                    {
-                        Helper.DeleteDirectory(uftReportDirNew);
-                    }
-
-                    Directory.Move(uftReportDir, uftReportDirNew);
-                }
+                Thread.Sleep(1500);
+                Directory.Move(srcDir, destDir);
             }
-            catch (Exception)
+            catch(Exception ex)
             {
-                Thread.Sleep(1000);
-                Directory.Move(uftReportDir, uftReportDirNew);
+                if (idxOfRetry >= 5)
+                {
+                    ConsoleWriter.WriteErrLineWithTime(string.Format("Failed to rename {0} after {1} retries.", srcDir, idxOfRetry));
+                    ConsoleWriter.WriteLine(string.Format("{0}: {1}", ex.GetType().Name, ex.Message));
+                    return false;
+                }
+                return TryMoveDir(srcDir, destDir, ++idxOfRetry);
             }
+            return true;
         }
 
         public override void SafelyCancel()
@@ -624,16 +642,6 @@ namespace HpToolsLauncher
         }
 
         /// <summary>
-        /// checks if timeout has expired
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckTimeout()
-        {
-            TimeSpan timeLeft = _timeout - _stopwatch.Elapsed;
-            return (timeLeft > TimeSpan.Zero);
-        }
-
-        /// <summary>
         /// creates a correct type of runner and runs a single test.
         /// </summary>
         /// <param name="testInfo"></param>
@@ -651,7 +659,7 @@ namespace HpToolsLauncher
             switch (type)
             {
                 case TestType.ST:
-                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _uftRunAsUser);
+                    _runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed, _encoding, _printInputParams, _uftRunAsUser);
                     break;
                 case TestType.QTP:
                     _runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests, _printInputParams, _uftRunAsUser);
@@ -698,7 +706,6 @@ namespace HpToolsLauncher
 
             return new TestRunResults { ErrorDesc = "Unknown TestType", TestState = TestState.Error };
         }
-
 
         /// <summary>
         /// checks if run was cancelled/aborted
