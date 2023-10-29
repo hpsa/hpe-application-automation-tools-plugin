@@ -117,6 +117,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
     private Map<String, CodelessResult> testNameToCodelessResultMap = new HashMap<>();
     private String nodeName;
 
+    private final int ERROR_MESSAGE_MAX_SIZE = System.getProperty("octane.sdk.tests.error_message_max_size") != null ? Integer.parseInt(System.getProperty("octane.sdk.tests.error_message_max_size")) : 512*512;
+    private final int ERROR_DETAILS_MAX_SIZE = System.getProperty("octane.sdk.tests.error_details_max_size") != null ? Integer.parseInt(System.getProperty("octane.sdk.tests.error_details_max_size")) : 512*512;
+
+
     public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext, Pattern testParserRegEx, boolean octaneSupportsSteps,String nodeName) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
@@ -321,6 +325,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("case".equals(localName)) { // NON-NLS
+                errorMsg = StringUtils.length(errorMsg) > ERROR_MESSAGE_MAX_SIZE ? StringUtils.abbreviate(errorMsg,ERROR_MESSAGE_MAX_SIZE) : errorMsg;
+                stackTraceStr = StringUtils.length(stackTraceStr) > ERROR_DETAILS_MAX_SIZE ? StringUtils.abbreviate(errorMsg,ERROR_DETAILS_MAX_SIZE) : stackTraceStr;
                 TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 
                 if(this.testParserRegEx != null){
@@ -417,6 +423,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("case".equals(localName)) { // end step
+                errorMsg = StringUtils.length(errorMsg) > ERROR_MESSAGE_MAX_SIZE ? StringUtils.abbreviate(errorMsg,ERROR_MESSAGE_MAX_SIZE) : errorMsg;
                 UftResultStepData stepData = new UftResultStepData(Collections.singletonList(stepName), "", status.toPrettyName(), errorMsg, stepDuration);
                 currentIterationSteps.add(stepData);
 
