@@ -177,7 +177,7 @@ public class CIJenkinsServicesImpl extends CIPluginServices {
         try {
             long start = System.currentTimeMillis();
             Collection<String> jobNames = Jenkins.get().getJobNames();
-            logger.info("Get job names took {} ms", System.currentTimeMillis() - start );
+            logger.debug("Get job names took {} ms", System.currentTimeMillis() - start );
             for (String jobName : jobNames) {
                 String tempJobName = jobName;
                 try {
