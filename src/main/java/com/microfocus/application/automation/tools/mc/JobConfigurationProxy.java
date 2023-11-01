@@ -40,10 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * communicate with MC servers, login to MC, upload application to MC server, create job, get job details.
@@ -87,11 +84,11 @@ public class JobConfigurationProxy {
                 sendObject.put("name", tempUsername);
                 sendObject.put("password", authModel.getMcPassword());
                 sendObject.put("accountName", "default");
-                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
+                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes(), true);
             } else {
                 if (Oauth2TokenUtil.validate(authModel.getMcExecToken())) {
                     sendObject = Oauth2TokenUtil.getJSONObject();
-                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes());
+                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes(), true);
                 } else {
                     System.out.println("ERROR:: oauth token is invalid.");
                     return returnObject;
@@ -229,7 +226,7 @@ public class JobConfigurationProxy {
             String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
             String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
             headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-            String cookies = Constants.JESEEIONEQ + jsessionId;
+            String cookies = Constants.JSESSIONID_EQ + jsessionId;
             if (TOKEN.equals(authModel.getValue())) {
                 String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
                 if (!StringUtils.isNullOrEmpty(oauth)) {
@@ -261,14 +258,25 @@ public class JobConfigurationProxy {
                 return null;
             }
             String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+            List<String> args = new ArrayList<>();
+            args.add(hp4mSecret);
+            String oauth2 = "", jsessionId = "";
+            if (TOKEN.equals(authModel.getValue())) {
+                oauth2 = loginJson.getAsString(Constants.OAUTH2_COOKIE_KEY);
+                args.add(oauth2);
+            } else {
+                jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+                args.add(jsessionId);
+            }
 
-            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, jsessionId)) {
+            if (thereIsNoArgumentNullOrEmpty(args.toArray(new String[0]))) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                StringBuilder cookies = new StringBuilder(Constants.JESEEIONEQ).append(jsessionId);
+                StringBuilder cookies = new StringBuilder().append(jsessionId);
                 if (TOKEN.equals(authModel.getValue())) {
-                    cookies.append(';').append(Constants.OAUTH2_COOKIE_KEY).append('=').append((String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                    cookies.append(Constants.OAUTH2_COOKIE_KEY).append('=').append(oauth2);
+                } else {
+                    cookies.append(Constants.JSESSIONID_EQ).append(jsessionId);
                 }
                 headers.put(Constants.COOKIE, cookies.toString());
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
@@ -303,7 +311,7 @@ public class JobConfigurationProxy {
             if (thereIsNoArgumentNullOrEmpty(jobUUID, hp4mSecret, jsessionId)) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                String cookies = Constants.JESEEIONEQ + jsessionId;
+                String cookies = Constants.JSESSIONID_EQ + jsessionId;
                 if (TOKEN.equals(authModel.getValue())) {
                     cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + loginJson.get(Constants.OAUTH2_COOKIE_KEY));
                 }

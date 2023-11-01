@@ -59,7 +59,7 @@ public class Constants {
     public static final String GET_JOB_UEL = "/rest/job/";
     public static final String GET_BROWSER_LAB_URL = "/rest/v2/browser-lab/uftone/templates";
     public final static String ICON = "icon";
-    public final static String JESEEIONEQ = "JSESSIONID=";
+    public final static String JSESSIONID_EQ = "JSESSIONID=";
     public final static String TENANT_COOKIE = "TENANT_ID_COOKIE";
     public final static String ACCESS_TOKEN = "access_token";
     public  final static String TOKEN_TYPE = "token_type";

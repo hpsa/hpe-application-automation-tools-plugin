@@ -73,7 +73,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private String displayController;
     private String mcServerName;
     private String fsReportPath;
-    private String uftOneVersion;
 
     private String fsDeviceId;
     private String fsOs;
@@ -88,6 +87,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private ProxySettings proxySettings;
     private boolean useSSL;
     private AuthModel authModel;
+    private CloudBrowserModel cloudBrowserModel;
 
     /**
      * Instantiates a new Run from file system model.
@@ -118,7 +118,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, AuthModel authModel,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath, String uftOneVersion) {
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath, CloudBrowserModel cloudBrowserModel) {
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
@@ -147,7 +147,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
         this.authModel = authModel;
-        this.uftOneVersion = uftOneVersion;
+        this.cloudBrowserModel = cloudBrowserModel;
     }
 
     /**
@@ -170,7 +170,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.analysisTemplate = "";
         this.fsReportPath = ""; // no custom report path by default
         this.outEncoding = "";
-        this.uftOneVersion = "2023";
     }
 
     /**
@@ -381,9 +380,11 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.fsReportPath = fsReportPath;
     }
 
-    public void setUftOneVersion(String uftOneVersion) {
-        this.uftOneVersion = uftOneVersion;
+    public  CloudBrowserModel getCloudBrowserModel() {
+        return cloudBrowserModel;
     }
+
+    public void setCloudBrowserModel(CloudBrowserModel cloudBrowserModel) { this.cloudBrowserModel = cloudBrowserModel; }
 
     public String getMcPassword() {
         //Temp fix till supported in pipeline module in LR
@@ -541,10 +542,6 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      * Gets the test report path.
      */
     public String getFsReportPath() {
-        return fsReportPath;
-    }
-
-    public String getUftOneVersion() {
         return fsReportPath;
     }
 

@@ -168,13 +168,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String analysisTemplate, String mcServerName, AuthModel authModel, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, String uftOneVersion) {
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, String digitalLabTarget, CloudBrowserModel cloudBrowserModel) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 authModel, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL, fsReportPath, uftOneVersion);
+                proxySettings, useSSL, fsReportPath, digitalLabTarget, cloudBrowserModel);
     }
 
     /**
@@ -596,9 +596,20 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel.setFsReportPath(fsReportPath);
     }
 
+    public String getDigitalLabTarget() {
+        return runFromFileModel.getDigitalLabTarget();
+    }
     @DataBoundSetter
-    public void setUftOneVersion(String uftOneVersion) {
-        runFromFileModel.setUftOneVersion(uftOneVersion);
+    public void setDigitalLabTarget(String target) {
+        runFromFileModel.setDigitalLabTarget(target);
+    }
+
+    public CloudBrowserModel getCloudBrowserModel() {
+        return runFromFileModel.getCloudBrowserModel();
+    }
+    @DataBoundSetter
+    public void setCloudBrowserModel(CloudBrowserModel cloudBrowserModel) {
+        runFromFileModel.setCloudBrowserModel(cloudBrowserModel);
     }
     public String getOutEncoding() { return runFromFileModel.getOutEncoding(); }
 
@@ -611,7 +622,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @param useSSL the mc server name
      */
     @DataBoundSetter
-    public void setuseSSL(boolean useSSL) {
+    public void setUseSSL(boolean useSSL) {
         runFromFileModel.setUseSSL(useSSL);
     }
 

@@ -310,11 +310,11 @@ Utils.setJenkinsElementVisibility = function(element,isVisible) {
 /**
  * Load the mobile center wizard.
  * @param a descriptor
- * @param button the environment wizard button
+ * @param b the environment wizard button
  */
-Utils.loadMC = function(a,button){
-	button.disabled = true;
-	const divMain = button.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+Utils.loadMC = function(a,b){
+	b.disabled = true;
+	const divMain = b.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
     var mcUserName = divMain.querySelector('input[name="mcUserName"]').value;
     var mcPassword = divMain.querySelector('input[name="mcPassword"]').value;
 	var mcTenantId = divMain.querySelector('input[name="mcTenantId"]').value;
@@ -337,8 +337,8 @@ Utils.loadMC = function(a,button){
 	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
 	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
-		ParallelRunnerEnv.setEnvironmentError(button,true);
-		button.disabled = false;
+		ParallelRunnerEnv.setEnvironmentError(b,true);
+		b.disabled = false;
 		return;
 	}
 	var previousJobId = divMain.querySelector('[name="fsJobId"]').value;
@@ -347,22 +347,22 @@ Utils.loadMC = function(a,button){
 		if(baseUrl){
 			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
 		} else {
-			ParallelRunnerEnv.setEnvironmentError(button,true);
-			button.disabled = false;
+			ParallelRunnerEnv.setEnvironmentError(b,true);
+			b.disabled = false;
 			return;
 		}
         a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
-				ParallelRunnerEnv.setEnvironmentError(button,true);
-				button.disabled = false;
+				ParallelRunnerEnv.setEnvironmentError(b,true);
+				b.disabled = false;
 				return;
 			}
 			var openedWindow = window.open('/','test parameters','height=820,width=1130');
 			openedWindow.location.href = 'about:blank';
 			openedWindow.location.href = baseUrl+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true&deviceOnly=true";
 			var messageCallBack = function (event) {
-				if (event && event.data && event.data=="mcCloseWizard") {
+				if (event?.data=="mcCloseWizard") {
                     a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
 						var jobInfo = app.responseObject();
 						let deviceId = "", OS = "", manufacturerAndModel = "";
@@ -386,10 +386,10 @@ Utils.loadMC = function(a,button){
 							}
 						}
 						console.log(deviceId);
-						ParallelRunnerEnv.setEnvironmentSettingsInput(button,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
+						ParallelRunnerEnv.setEnvironmentSettingsInput(b,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
 
-						button.disabled = false;
-						ParallelRunnerEnv.setEnvironmentError(button,false);
+						b.disabled = false;
+						ParallelRunnerEnv.setEnvironmentError(b,false);
 						window.removeEventListener("message",messageCallBack, false);
 						openedWindow.close();
 					});
@@ -399,7 +399,7 @@ Utils.loadMC = function(a,button){
 			function checkChild() {
 				if (openedWindow && openedWindow.closed) {
 					clearInterval(timer);
-					button.disabled = false;
+					b.disabled = false;
 				}
 			}
 			var timer = setInterval(checkChild, 500);
