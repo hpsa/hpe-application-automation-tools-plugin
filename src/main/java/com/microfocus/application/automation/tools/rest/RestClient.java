@@ -35,6 +35,8 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +44,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -141,11 +142,17 @@ public class RestClient implements Client {
         _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
 
         XSRF_TOKEN_VALUE = UUID.randomUUID().toString();
-        _cookies.put("XSRF-TOKEN", XSRF_TOKEN_VALUE);
-
-
         cookieManager = new CookieManager();
         CookieHandler.setDefault(cookieManager);
+        URI uri = null;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException e) {
+            //
+        }
+        HttpCookie cookie = new HttpCookie("XSRF-TOKEN", XSRF_TOKEN_VALUE);
+        cookie.setPath("/qcbin");
+        cookieManager.getCookieStore().add(uri, cookie);
     }
 
     public String getXsrfTokenValue() {
@@ -289,7 +296,6 @@ public class RestClient implements Client {
             prepareHttpRequest(connection, decoratedHeaders, data);
             connection.connect();
             ret = retrieveHtmlResponse(connection);
-            updateCookies(ret);
         } catch (Exception cause) {
             throw new SSEException(cause);
         }
@@ -304,12 +310,7 @@ public class RestClient implements Client {
             HttpURLConnection connnection,
             Map<String, String> headers,
             byte[] bytes) {
-
-        // set all cookies for request
-        connnection.setRequestProperty(RESTConstants.COOKIE, getCookiesString());
-
         setConnectionHeaders(connnection, headers);
-
         setConnectionData(connnection, bytes);
     }
 
@@ -393,50 +394,9 @@ public class RestClient implements Client {
         return ret;
     }
 
-    /**
-     * Update cookies
-     */
-    private void updateCookies(Response response) {
-        if (response.isOk()) {
-            List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
-            for (HttpCookie cookie : cookies) {
-                switch (cookie.getName()) {
-                    case "LWSSO_COOKIE_KEY":
-                    case "TENANT_ID_COOKIE":
-                    case "JSESSIONID":
-                        _cookies.put(cookie.getName(), cookie.getValue());
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Get cookies string
-     */
-    private String getCookiesString() {
-        StringBuilder ret = new StringBuilder();
-        if (!_cookies.isEmpty()) {
-            for (Entry<String, String> entry : _cookies.entrySet()) {
-                ret.append(entry.getKey()).append("=").append(entry.getValue()).append(";");
-            }
-        }
-
-        return ret.toString();
-    }
-
     @Override
     public String getUsername() {
         return _username;
     }
 
-
-    /**
-     * Get cookies
-     */
-    public Map<String, String> getCookies() {
-        return _cookies;
-    }
 }
