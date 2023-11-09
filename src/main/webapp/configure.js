@@ -126,9 +126,9 @@ async function loadInfo(a, b, path) {
         }
 
         if (b.name == "cloudBrowserLab") {
-            if (o.uftOneVersion.value.trim() == "") {
+            if (dl.uftOneVersion.value.trim() == "") {
                 alert("UFT One Version is required!");
-                o.uftOneVersion.focus();
+                dl.uftOneVersion.focus();
                 await triggerBtnState(b, false);
                 return;
             }
