@@ -85,6 +85,7 @@
 		.cloud-browser-section {
 			width:50%;
 			margin-bottom: 10px;
+			--section-padding: 5px;
 		}
 		input[name="uftOneVersion"], input[name="cloudBrowserLab"] {
 			display: inline-block;
@@ -310,8 +311,11 @@
 					<f:optionalBlock name="cloudBrowserModel" title="Use Cloud Browser Lab" checked="${instance.runFromFileModel.cloudBrowserModel != null}" align="right" >
 						<f:nested>
 							<f:entry title="UFT One version" field="uftOneVersion">
-								<f:textbox name="uftOneVersion" value="${instance.runFromFileModel.cloudBrowserModel.uftOneVersion}" default="2023"/>
+								<f:textbox name="uftOneVersion" value="${instance.runFromFileModel.cloudBrowserModel.uftOneVersion}" />
 								<input type="button" name="cloudBrowserLab" value="Cloud Browser Lab" onclick="startLoadInfo(a, this,'${rootURL}');" />
+							</f:entry>
+							<f:entry title="URL" field="cloudBrowserUrl">
+								<f:textbox name="cloudBrowserUrl" value="${instance.runFromFileModel.cloudBrowserModel.url}" />
 							</f:entry>
 							<div class="repeated-chunk">
 								<f:entry title="Operating System" field="cloudBrowserOs">

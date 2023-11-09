@@ -5,6 +5,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.Serializable;
 
 public class CloudBrowserModel implements Serializable {
+    private String url;
     private String version;
     private String type;
     private String region;
@@ -12,7 +13,8 @@ public class CloudBrowserModel implements Serializable {
     private String uftOneVersion;
 
     @DataBoundConstructor
-    public CloudBrowserModel(String uftOneVersion, String cloudBrowserType, String cloudBrowserVersion, String cloudBrowserRegion, String cloudBrowserOs) {
+    public CloudBrowserModel(String uftOneVersion, String cloudBrowserUrl, String cloudBrowserType, String cloudBrowserVersion, String cloudBrowserRegion, String cloudBrowserOs) {
+        this.url = cloudBrowserUrl;
         this.uftOneVersion = uftOneVersion;
         this.type = cloudBrowserType;
         this.version = cloudBrowserVersion;
@@ -40,4 +42,11 @@ public class CloudBrowserModel implements Serializable {
         return uftOneVersion;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }

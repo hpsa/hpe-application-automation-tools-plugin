@@ -40,17 +40,15 @@ function ModalDialog() {}
  * @param modalCSS the modal style sheet link
  */
 ModalDialog.addStyleSheet = function(modalCSS) {
+	const ss = document.styleSheets;
+	for (let i = 0, max = ss.length; i < max; i++) {
+		if (ss[i].href == modalCSS)
+			return;
+	}
+
 	var link = document.createElement("link");
 	Utils.addStyleSheet(link,modalCSS);
 	document.head.appendChild(link);
-};
-
-/**
- * Sets the environment wizard button.
- * @param envWizardButton the environment wizard button
- */
-ModalDialog.setEnvironmentWizardButton = function(envWizardButton){
-	ModalDialog.envWizardButton = envWizardButton;
 };
 
 /**
@@ -93,13 +91,13 @@ ModalDialog.generateBrowserItem = function(iconSrc,browserId,labelText,checked) 
 
 ModalDialog.saveBrowserSettings = function(modalNode) {
 	// retrieve the button that was used to open the env wizard
-	var button = ModalDialog.envWizardButton;
+	const parent = ModalDialog.currentEnv;
 
-	var radioButtons = modalNode.querySelectorAll('input[type="radio"]');
+	let radioButtons = modalNode.querySelectorAll('input[type="radio"]');
 
-	for(var i =0; i < radioButtons.length;i++) {
+	for(let i =0; i < radioButtons.length;i++) {
 		if(radioButtons[i].checked) {
-			ParallelRunnerEnv.setUpBrowserEnvironment(button,radioButtons[i],modalNode);
+			ParallelRunnerEnv.setUpBrowserEnvironment(parent,radioButtons[i],modalNode);
 		}
 	}
 };
@@ -194,7 +192,6 @@ ModalDialog.generate = function(path) {
 	var saveText = document.createElement('div');
 	saveText.innerHTML = "SAVE";
 	saveText.setAttribute("class","save-text");
-	saveText.setAttribute("id","save-btn");
 	saveText.setAttribute("onclick",'ModalDialog.saveBrowserSettings(browsersModal)');
 
 	var modalFooter = document.createElement("div");
@@ -217,30 +214,6 @@ ModalDialog.generate = function(path) {
  */
 function Utils() {}
 
-/**
- * Find the ancestor of a control by a given class name.
- * @param el - the node from where to start.
- * @param className - the class of the ancestor to find.
- * @returns {HTMLElement}
- */
-Utils.findAncestorByClassName = function(el,className) {
-	if (!className.startsWith("."))
-		className = `.${className}`;
-	return el.closest(className);
-};
-
-/**
- * Find the ancestor of a control by a given name.
- * @param start - the node from where to start.
- * @param tag - the tag of the ancestor to find.
- * @param name - the name attribute value of the ancestor to find.
- * @returns {HTMLElement}
- */
-Utils.findAncestorByTagAndName = function(start,tag,name) {
-	tag = tag.toLowerCase();
-	while((start = start.parentElement) && start != null && !(start.tagName.toLowerCase() === tag && start.getAttribute("name") === name)) {}
-	return start;
-};
 /**
  * Check if a string is empty.
  * @param str the string to check
@@ -303,7 +276,7 @@ Utils.parseMCInformation = function(deviceId, os, manufacturerAndModel) {
  * @param isVisible - the visible boolean state to be aquired
  */
 Utils.setJenkinsElementVisibility = function(element,isVisible) {
-	var parent = Utils.findAncestorByClassName(element,'jenkins-form-item');
+	let parent = element.parentElement.closest(".jenkins-form-item");
 	parent.style.display = isVisible ? "" : "none";
 };
 
@@ -312,49 +285,49 @@ Utils.setJenkinsElementVisibility = function(element,isVisible) {
  * @param a descriptor
  * @param b the environment wizard button
  */
-Utils.loadMC = function(a,b){
+Utils.loadMC = function(a, b, prEnv){
 	b.disabled = true;
-	const divMain = b.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
-    var mcUserName = divMain.querySelector('input[name="mcUserName"]').value;
-    var mcPassword = divMain.querySelector('input[name="mcPassword"]').value;
-	var mcTenantId = divMain.querySelector('input[name="mcTenantId"]').value;
-    var mcAccessKey = divMain.querySelector('input[name="mcAccessKey"]').value;
-    var mcAuthType = divMain.querySelector('input[name$="authModel"]:checked').value;
-	var mcUrl = divMain.querySelector('input[name="mcServerName"]').value;
-	var useProxy = divMain.querySelector('input[name="proxySettings"]').checked;
-	var proxyAddress = divMain.querySelector('input[name="fsProxyAddress"]').value;
-	var useAuthentication = divMain.querySelector('input[name="fsUseAuthentication"]').checked;
-	var proxyUserName = divMain.querySelector('input[name="fsProxyUserName"]').value;
-	var proxyPassword = divMain.querySelector('input[name="fsProxyPassword"]').value;
-	var baseUrl = "";
+	const divMain = prEnv.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+	const dl = divMain.querySelector("#mobileSpecificSection");
+    var mcUserName = dl.querySelector('input[name="mcUserName"]')?.value;
+    var mcPassword = dl.querySelector('input[name="mcPassword"]')?.value;
+	var mcTenantId = dl.querySelector('input[name="mcTenantId"]')?.value;
+    var mcExecToken = dl.querySelector('input[name="mcExecToken"]')?.value;
+    var mcAuthType = dl.querySelector('input[name$="authModel"]:checked')?.value;
+	var mcUrl = dl.querySelector('select[name="mcServerName"]')?.value;
+	var useProxy = dl.querySelector('input[name="proxySettings"]')?.checked;
+	var proxyAddress = dl.querySelector('input[name="fsProxyAddress"]')?.value;
+	var useAuthentication = dl.querySelector('input[name="mcUseProxyAuth"]')?.checked;
+	var proxyUserName = dl.querySelector('input[name="fsProxyUserName"]')?.value;
+	var proxyPassword = dl.querySelector('input[name="fsProxyPassword"]')?.value;
     var isMcCredentialMissing;
     if ('base' == mcAuthType) {
-        isMcCredentialMissing = mcUserName.trim() == "" || mcPassword.trim() == "";
+        isMcCredentialMissing = !mcUserName || !mcPassword || mcUserName.trim() == "" || mcPassword.trim() == "";
     } else {
-        isMcCredentialMissing = mcAccessKey.trim() == "";
+        isMcCredentialMissing = !mcExecToken || mcExecToken.trim() == "";
     }
 
-	const isProxyAddressRequiredButMissing = useProxy && proxyAddress.trim() == "";
-	const isProxyCredentialRequiredButMissing = useAuthentication && (proxyUserName.trim() == "" || proxyPassword.trim() == "");
+	const isProxyAddressRequiredButMissing = useProxy && (proxyAddress == null || proxyAddress.trim() == "");
+	const isProxyCredentialRequiredButMissing = useAuthentication && (!proxyUserName || !proxyPassword || proxyUserName.trim() == ""  || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
-		ParallelRunnerEnv.setEnvironmentError(b,true);
+		ParallelRunnerEnv.setEnvironmentError(prEnv,true);
 		b.disabled = false;
 		return;
 	}
-	var previousJobId = divMain.querySelector('[name="fsJobId"]').value;
+	var previousJobId = dl.querySelector('[name="fsJobId"]')?.value;
 	a.getMcServerUrl(mcUrl, function(r){
-		baseUrl = r.responseObject();
+		let baseUrl = r.responseObject();
 		if(baseUrl){
 			baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
 		} else {
-			ParallelRunnerEnv.setEnvironmentError(b,true);
+			ParallelRunnerEnv.setEnvironmentError(prEnv,true);
 			b.disabled = false;
 			return;
 		}
-        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
+        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
-				ParallelRunnerEnv.setEnvironmentError(b,true);
+				ParallelRunnerEnv.setEnvironmentError(prEnv,true);
 				b.disabled = false;
 				return;
 			}
@@ -363,7 +336,7 @@ Utils.loadMC = function(a,b){
 			openedWindow.location.href = baseUrl+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true&deviceOnly=true";
 			var messageCallBack = function (event) {
 				if (event?.data=="mcCloseWizard") {
-                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcAccessKey, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
+                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
 						var jobInfo = app.responseObject();
 						let deviceId = "", OS = "", manufacturerAndModel = "";
 						if(jobInfo['deviceJSON']){
@@ -386,10 +359,10 @@ Utils.loadMC = function(a,b){
 							}
 						}
 						console.log(deviceId);
-						ParallelRunnerEnv.setEnvironmentSettingsInput(b,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
+						ParallelRunnerEnv.setEnvironmentSettingsInput(prEnv,Utils.parseMCInformation(deviceId,OS,manufacturerAndModel));
 
 						b.disabled = false;
-						ParallelRunnerEnv.setEnvironmentError(b,false);
+						ParallelRunnerEnv.setEnvironmentError(prEnv,false);
 						window.removeEventListener("message",messageCallBack, false);
 						openedWindow.close();
 					});
@@ -415,67 +388,46 @@ function ParallelRunnerEnv() {}
 
 /**
  *
- * @param button
+ * @param parent
  * @returns {*}
  */
-ParallelRunnerEnv.getEnvironmentSettingsInputNode = function (button) {
-	// jelly represents each item as a 'div' with data inside
-	var parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
-	if (parent == null) return null;
-	return parent.querySelector(".jenkins-input,.setting-input") ;
+ParallelRunnerEnv.getEnvironmentSettingsInputNode = function (parent) {
+	return parent?.querySelector(".jenkins-input,.setting-input") ;
 };
 
 /**
  * Set the environment text box input to the given input value,
  * the input corresponds to the clicked environment wizard button.
- * @param button the clicked environment wizard button
+ * @param parent the parent container of the clicked environment wizard button, like "parallelRunnerEnvironments"
  * @param inputValue the input value to be set
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnv.setEnvironmentSettingsInput = function(button,inputValue) {
-	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
-
-	if(settingInput == null) return false;
-
-	settingInput.value = inputValue;
-
-	return true;
-};
-/**
- *
- * @param button
- * @returns {null}
- */
-ParallelRunnerEnv.getEnvironmentSettingsInputValue = function(button) {
-	// jelly represents each item as a 'div' with data inside
-	var settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(button);
-	if(settingInput == null) return null;
-	return settingInput.value;
+ParallelRunnerEnv.setEnvironmentSettingsInput = function(parent,inputValue) {
+	let settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(parent);
+	settingInput && (settingInput.value = inputValue);
 };
 
 /**
  * Enable the error div that corresponds to the clicked
  * environment wizard button.
- * @param button the environment wizard button
+ * @param parent the current environment container
  * @param enable the div visibility state(true - visible, false - hidden)
  * @returns {boolean} true if it succeeded, false otherwise.
  */
-ParallelRunnerEnv.setEnvironmentError = function(button, enable) {
-	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
-	if(parent == null) return false;
-	const errorDiv = parent.querySelector('div[name="mcSettingsError"]');
-	errorDiv.style.display = enable ? "block" : "none";
+ParallelRunnerEnv.setEnvironmentError = function(parent, enable) {
+	const errorDiv = parent?.querySelector('div[name="mcSettingsError"]');
+	errorDiv && (errorDiv.style.display = enable ? "block" : "none");
 };
 
 /**
  * Set the browser selection modal visibility.
- * @param button - the environment button
+ * @param parent - the current environment container
  * @param modalId - the browser modal id
  * @param visible - should the modal be visible?(true / false)
  * @param path - the patch to the root of the plugin
  */
- //TODO replace document with divMain computed from button
-ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,path) {
+ //TODO refactor ModalDialog to be appended to a parent divMain instead of document, with divMain computed from button
+ParallelRunnerEnv.setBrowsersModalVisibility = function(parent,modalId,visible,path) {
 	var modal = document.getElementById(modalId);
 	// it wasn't generated, so we need to generate it
 	if(modal == null) {
@@ -486,18 +438,19 @@ ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,p
 		document.body.appendChild(modal);
 	}
 
-	ModalDialog.setEnvironmentWizardButton(button);
+	ModalDialog.currentEnv = parent;
 
 	modal = document.getElementById(modalId);
 
-	var environmentInputValue = ParallelRunnerEnv.getEnvironmentSettingsInputValue(button);
+	let settingInput = ParallelRunnerEnv.getEnvironmentSettingsInputNode(parent);
+	const environmentInputValue = settingInput?.value;
 
 	// set the selected browser to match the one in the input
 	if(environmentInputValue != null) {
 		var browser = environmentInputValue.split(":");
 
 		// should be of the form browser: BrowserName
-		if(browser != null && browser.length === 2)
+		if(browser?.length === 2)
 		{
 			ModalDialog.setSelectedBrowser (modal,browser[1].trim());
 		}
@@ -519,27 +472,25 @@ ParallelRunnerEnv.setBrowsersModalVisibility = function(button,modalId,visible,p
 
 /**
  * Determine the currently selected environment type.
- * @param button - the environment wizard button
+ * @param parent - the current environment container
  * @returns {*}
  */
-ParallelRunnerEnv.GetCurrentEnvironmentType = function(button) {
-	const parent = Utils.findAncestorByTagAndName(button._button,"div","parallelRunnerEnvironments");
-	if(parent == null) return null;
-	const input = parent.querySelector('input[type="radio"][name$="environmentType"]:checked');
-	return input ? input.defaultValue : null;
+ParallelRunnerEnv.getCurrentEnvironmentType = function(parent) {
+	let input = parent?.querySelector('input[type="radio"][name$="environmentType"]:checked');
+	return input?.defaultValue;
 };
 
 /**
  * Set the environment text based on the browser selection.
- * @param button - the environment button
+ * @param parent - the current environment container
  * @param radio - the selected radio
  * @param modal - the browser selection modal
  */
-ParallelRunnerEnv.setUpBrowserEnvironment = function(button,radio,modal) {
+ParallelRunnerEnv.setUpBrowserEnvironment = function(parent,radio,modal) {
 	// we can close the modal now
 	modal.style.display = "none";
 	// based on the browser chosen we will prepare the environment
-	ParallelRunnerEnv.setEnvironmentSettingsInput(button,"browser : " + radio['id']);
+	ParallelRunnerEnv.setEnvironmentSettingsInput(parent,"browser : " + radio['id']);
 };
 
 /**
@@ -557,27 +508,34 @@ ParallelRunnerEnv.setEnvironmentsVisibility = function(panel, visible) {
 
 /**
  * Click handler for the environment wizard button.
- * @param button the environment wizard button
+ * @param btn the environment wizard button
  * @param a first mc argument
  * @param modalId the browser modalId to be shown
  * @param visibility of the modal
  * @param pluginPath the ${root} path
  * @returns {boolean}
  */
-ParallelRunnerEnv.onEnvironmentWizardClick = function(button,a,modalId,visibility,pluginPath) {
+ParallelRunnerEnv.onEnvironmentWizardClick = function(a,btn,modalId,visibility,pluginPath) {
 	// get the environment type for the current env, it could be: 'web' or 'mobile'
-	var type = ParallelRunnerEnv.GetCurrentEnvironmentType(button);
+	const prEnv = btn.parentElement.closest('div[name="parallelRunnerEnvironments"]');
+	let type = ParallelRunnerEnv.getCurrentEnvironmentType(prEnv);
 	if(type == null) return false;
 
 	// if the type is web we need to show the browsers modal
 	if(type.toLowerCase() === 'web') {
-		ParallelRunnerEnv.setBrowsersModalVisibility(button,modalId,visibility,pluginPath);
+		ParallelRunnerEnv.setBrowsersModalVisibility(prEnv,modalId,visibility,pluginPath);
 		return true;
 	}
 
 	// open the mobile center wizard
 	if(type.toLowerCase() === 'mobile') {
-		Utils.loadMC(a,button);
+		try {
+			Utils.loadMC(a, btn, prEnv);
+		} catch(e) {
+			console.error(e);
+		} finally {
+			btn.disabled = false;
+		}
 		return true;
 	}
 
@@ -598,7 +556,7 @@ function RunFromFileSystemEnv() {}
  */
 RunFromFileSystemEnv.setMultiLineTextBoxVisibility = function(panel, name, visible) {
 	var textBox = panel.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
-	var parent = Utils.findAncestorByClassName(textBox,"jenkins-form-item");
+	let parent = textBox.parentElement.closest(".jenkins-form-item");
 	parent.style.display = visible ? "" : "none";
 };
 

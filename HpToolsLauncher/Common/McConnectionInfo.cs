@@ -433,31 +433,31 @@ namespace HpToolsLauncher
         private const string EQ = "=";
         private const string SEMI_COLON = ";";
         private const string URL = "url";
-        private const string BROWSER = "browser";
+        private const string TYPE = "type";
         private const string _OS = "os";
         private const string VERSION = "version";
-        private const string LOCATION = "location";
+        private const string REGION = "region";
 
         private static readonly char[] DBL_QUOTE = new char[] { '"' };
 
-        private string _launchUrl;
+        private string _url;
         private string _os;
-        private string _browser;
-        private string _browserVersion;
+        private string _type;
+        private string _version;
         private string _location;
-        public CloudBrowser(string launchUrl, string os, string browser, string browserVersion, string location)
+        public CloudBrowser(string url, string os, string type, string version, string location)
         {
-            _launchUrl = launchUrl;
+            _url = url;
             _os = os;
-            _browser = browser;
-            _browserVersion = browserVersion;
+            _type = type;
+            _version = version;
             _location = location;
         }
-        public string LaunchUrl { get { return _launchUrl; } }
+        public string Url { get { return _url; } }
         public string OS { get { return _os; } }
-        public string Browser { get { return _browser;} }
-        public string BrowserVersion { get { return _browserVersion; } }
-        public string Location { get { return _location; } }
+        public string Browser { get { return _type;} }
+        public string Version { get { return _version; } }
+        public string Region { get { return _location; } }
 
         public static bool TryParse(string strCloudBrowser, out CloudBrowser cloudBrowser)
         {
@@ -465,7 +465,7 @@ namespace HpToolsLauncher
             try
             {
                 string[] arrKeyValPairs = strCloudBrowser.Trim().Trim(DBL_QUOTE).Split(SEMI_COLON.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                string launchUrl = null, os = null, browser = null, browserV = null, location = null;
+                string url = null, os = null, type = null, version = null, region = null;
 
                 // key-values are separated by =, we need its value, the key is known
                 foreach (var pair in arrKeyValPairs)
@@ -480,20 +480,20 @@ namespace HpToolsLauncher
                     switch (key.ToLower())
                     {
                         case URL:
-                            launchUrl = value; break;
+                            url = value; break;
                         case _OS:
                             os = value; break;
-                        case BROWSER:
-                            browser = value; break;
+                        case TYPE:
+                            type = value; break;
                         case VERSION:
-                            browserV = value; break;
-                        case LOCATION:
-                            location = value; break;
+                            version = value; break;
+                        case REGION:
+                            region = value; break;
                         default:
                             break;
                     }
                 }
-                cloudBrowser = new CloudBrowser(launchUrl, os, browser, browserV, location);
+                cloudBrowser = new CloudBrowser(url, os, type, version, region);
                 return true;
             }
             catch (Exception ex)

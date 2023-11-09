@@ -168,13 +168,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String analysisTemplate, String mcServerName, AuthModel authModel, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, String digitalLabTarget, CloudBrowserModel cloudBrowserModel) {
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, CloudBrowserModel cloudBrowserModel) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 authModel, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL, fsReportPath, digitalLabTarget, cloudBrowserModel);
+                proxySettings, useSSL, fsReportPath, cloudBrowserModel);
     }
 
     /**
@@ -596,14 +596,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel.setFsReportPath(fsReportPath);
     }
 
-    public String getDigitalLabTarget() {
-        return runFromFileModel.getDigitalLabTarget();
-    }
-    @DataBoundSetter
-    public void setDigitalLabTarget(String target) {
-        runFromFileModel.setDigitalLabTarget(target);
-    }
-
     public CloudBrowserModel getCloudBrowserModel() {
         return runFromFileModel.getCloudBrowserModel();
     }
@@ -684,6 +676,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             mergedProps.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
             mergedProps.setProperty("MobileHostAddress", mcServerUrl);
+
+            CloudBrowserModel cbm = getCloudBrowserModel();
+            if (cbm != null) {
+                String cb = String.format("\"url=%s;os=%s;type=%s;version=%s;region=%s\"", cbm.getUrl(), cbm.getOs(), cbm.getType(), cbm.getVersion(), cbm.getRegion());
+                mergedProps.setProperty("cloudBrowser", cb);
+            }
         }
 
         // check whether Mobile authentication info is given or not

@@ -50,13 +50,13 @@
 					 title="Web" inline="true" class="customRadio"/>
 		</div>
 
-		<div class="myDiv" style="display:flex;flex-direction:row">
+		<div style="display:flex;flex-direction:row">
 			<!-- Environment input text box -->
 			<f:textbox style="flex:1;margin-right: 8px;" field="environment"/>
 
 			<!-- This wizard will open the specific window...-->
 			<input type="button" name="env-wizard" value="Environment wizard" class="yui-button"
-				   onClick="ParallelRunnerEnv.onEnvironmentWizardClick(this._button,a,'browsersModal',true,'${rootURL}/');"/>
+				   onClick="ParallelRunnerEnv.onEnvironmentWizardClick(a,this._button,'browsersModal',true,'${rootURL}/');"/>
 
 			<!-- Remove environment from the list -->
 			<f:repeatableDeleteButton value="Remove" />

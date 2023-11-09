@@ -60,6 +60,12 @@ namespace HpToolsLauncher
                 activeTestRun.ConsoleErr += message + "\n" + ex.Message + "\n" + ex.StackTrace + "\n";
         }
 
+        public static void WriteException(Exception ex)
+        {
+            Console.Out.WriteLine(ex.StackTrace);
+            if (activeTestRun != null)
+                activeTestRun.ConsoleErr += ex.StackTrace + "\n";
+        }
 
         public static void WriteErrLine(string message)
         {

@@ -36,7 +36,7 @@ function getDigitalLab(divMain) {
         userName: "",
         password: "",
         tenantId: "",
-        accessKey: "",
+        execToken: "",
         authType: dl.querySelector('input[name$="authModel"]:checked').value,
         useProxy: dl.querySelector('input[name="mcUseProxy"]').checked,
         proxyAddress: "",
@@ -46,7 +46,7 @@ function getDigitalLab(divMain) {
         err: dl.querySelector("#errorMessage"),
         recreateJob: dl.querySelector('input[name="recreateJob"]').checked,
         jobId: dl.querySelector('input[name="fsJobId"]').value,
-        uftOneVersion: dl.querySelector('input[name="uftOneVersion"]').value, // TODO find a better approach
+        uftOneVersion: dl.querySelector('input[name="uftOneVersion"]'),
         deviceInfo: dl.querySelector(".device-info-section")
     };
     if (o.authType == "base") {
@@ -83,7 +83,6 @@ function prepareDigitalLab(divMain) {
 		divMain = divs[divs.length - 1];
 	}
     const dl = divMain.querySelector("#mobileSpecificSection");
-    //TODO show/hide dynamically
     const cldBM = dl.querySelector('input[name="cloudBrowserModel"]');
     const dvcInfo = dl.querySelector(".device-info-section");
     cldBM.onclick = (e) => {
@@ -106,6 +105,8 @@ async function triggerBtnState(b, disabled) {
         b.value = disabled ? "Loading ..." : "Cloud Browser Lab";
     } else if (b.name == "digitalLabWizard") {
         b.value = disabled ? "Loading ..." : "Wizard";
+    } else if (b.name == "env-wizard") {
+        b.value = disabled ? "Loading ..." : "Environment wizard";
     }
 }
 async function loadInfo(a, b, path) {
@@ -120,10 +121,17 @@ async function loadInfo(a, b, path) {
         const isProxyCredentialRequiredButMissing = dl.useProxyAuth && (dl.proxyUserName.trim() == "" || dl.proxyPassword.trim() == "");
         if (isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing) {
             dl.err.style.display = "block";
+            await triggerBtnState(b, false);
             return;
         }
 
         if (b.name == "cloudBrowserLab") {
+            if (o.uftOneVersion.value.trim() == "") {
+                alert("UFT One Version is required!");
+                o.uftOneVersion.focus();
+                await triggerBtnState(b, false);
+                return;
+            }
             await loadBrowserLabInfo(a, b, dl, path);
         } else if (b.name == "digitalLabWizard") {
             await loadMobileInfo(a, b, dl);
@@ -149,7 +157,7 @@ async function loadBrowserLabInfo(a, b, o, path) {
     if (div.browsers?.length) {
         await fillAndShowDDLs(b, div, dlg);
     } else {
-        await a.getBrowserLab(o.serverName, o.execToken, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, o.uftOneVersion, async (response) => {
+        await a.getBrowserLab(o.serverName, o.execToken, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, o.uftOneVersion.value, async (response) => {
             try {
                 if (response?.responseJSON) {
                     const json = response.responseJSON;
@@ -225,12 +233,12 @@ async function loadMobileInfo(a, b, o) {
                         div.querySelector('input[name="fsDeviceId"]').value = deviceId;
                         div.querySelector('input[name="fsOs"]').value = OS;
                         div.querySelector('input[name="fsManufacturerAndModel"]').value = manufacturerAndModel;
-                        div.querySelector('input[name="fsTargetLab"]').value = targetLab;
-                        div.querySelector('input[name="fsLaunchAppName"]').value = jobInfo['definitions']['launchApplicationName'];
-                        div.querySelector('input[name="fsInstrumented"]').value = jobInfo['definitions']['instrumented'];
-                        div.querySelector('input[name="fsAutActions"]').value = jobInfo['definitions']['autActions'];
-                        div.querySelector('input[name="fsDevicesMetrics"]').value = jobInfo['definitions']['deviceMetrics'];
-                        div.querySelector('input[name="fsExtraApps"]').value = jobInfo['extraApps'];
+                        div.querySelector('input[name="fsTargetLab"]').value = targetLab ?? "";
+                        div.querySelector('input[name="fsLaunchAppName"]').value = jobInfo['definitions']['launchApplicationName'] ?? "";
+                        div.querySelector('input[name="fsInstrumented"]').value = jobInfo['definitions']['instrumented'] ?? "";
+                        div.querySelector('input[name="fsAutActions"]').value = jobInfo['definitions']['autActions'] ?? "";
+                        div.querySelector('input[name="fsDevicesMetrics"]').value = jobInfo['definitions']['deviceMetrics'] ?? "";
+                        div.querySelector('textarea[name="fsExtraApps"]').value = jobInfo['extraApps'] ?? "";
                         div.querySelector('input[name="fsJobId"]').value = jobInfo['jobUUID'];
                         await triggerBtnState(b, false);
                         o.err.style.display = "none";
@@ -290,7 +298,7 @@ async function loadBrowserAndVersionDDLs(dlg, browsers) {
     };
 
     const arr = ddlB.selectedOptions[0]?.versions;
-    arr?.length && loadDDL(ddlV, arr);
+    arr?.length && await loadDDL(ddlV, arr);
 }
 
 async function loadBrowsersDDL(ddl, map) {

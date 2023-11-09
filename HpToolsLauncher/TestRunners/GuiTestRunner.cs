@@ -177,6 +177,11 @@ namespace HpToolsLauncher
                     {
                         try
                         {
+                            if (_qtpApplication.Launched)
+                            {
+                                QTPTestCleanup();
+                                CleanUpAndKillQtp();
+                            }
                             _qtpApplication.LaunchAsUser(_uftRunAsUser.Username, _uftRunAsUser.EncodedPassword);
                         }
                         catch (COMException e)
@@ -232,6 +237,9 @@ namespace HpToolsLauncher
                     runDesc.ErrorDesc = errorReason;
                     ConsoleWriter.WriteErrLine(errorReason);
                 }
+#if DEBUG
+                ConsoleWriter.WriteException(e);
+#endif
                 runDesc.TestState = TestState.Error;
                 runDesc.ReportLocation = string.Empty;
                 return runDesc;
@@ -761,11 +769,11 @@ namespace HpToolsLauncher
                     var launcher = _qtpApplication.Test.Settings.Launchers[WEB];
                     launcher.Active = true;
                     launcher.SetLab(CLOUD_BROWSER);
-                    launcher.Address = _cloudBrowser.LaunchUrl;
+                    launcher.Address = _cloudBrowser.Url;
                     launcher.CloudBrowser.OS = _cloudBrowser.OS;
                     launcher.CloudBrowser.Browser = _cloudBrowser.Browser;
-                    launcher.CloudBrowser.BrowserVersion = _cloudBrowser.BrowserVersion;
-                    launcher.CloudBrowser.Location = _cloudBrowser.Location;
+                    launcher.CloudBrowser.BrowserVersion = _cloudBrowser.Version;
+                    launcher.CloudBrowser.Location = _cloudBrowser.Region;
                 }
                 catch (Exception ex) 
                 {
@@ -931,7 +939,7 @@ namespace HpToolsLauncher
             return localKey;
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// holds the resutls for a GUI test
