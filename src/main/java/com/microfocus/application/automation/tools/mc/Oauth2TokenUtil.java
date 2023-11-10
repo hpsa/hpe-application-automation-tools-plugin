@@ -14,7 +14,7 @@ public class Oauth2TokenUtil {
     private Oauth2TokenUtil() {
     }
 
-    public static boolean validate(String auth2) {
+    public static boolean isValid(String auth2) {
         String strCleaned = removeQuotes(auth2.trim());
         if (StringUtils.isBlank(strCleaned)) {
             return false;

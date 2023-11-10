@@ -84,15 +84,13 @@ public class JobConfigurationProxy {
                 sendObject.put("name", tempUsername);
                 sendObject.put("password", authModel.getMcPassword());
                 sendObject.put("accountName", "default");
-                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes(), true);
+                response = doPost(proxy, mcUrl + Constants.LOGIN_URL, headers, sendObject);
+            } else if (Oauth2TokenUtil.isValid(authModel.getMcExecToken())) {
+                sendObject = Oauth2TokenUtil.getJSONObject();
+                response = doPost(proxy, mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject);
             } else {
-                if (Oauth2TokenUtil.validate(authModel.getMcExecToken())) {
-                    sendObject = Oauth2TokenUtil.getJSONObject();
-                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes(), true);
-                } else {
-                    System.out.println("ERROR:: oauth token is invalid.");
-                    return returnObject;
-                }
+                System.out.println("ERROR:: oauth token is invalid.");
+                return returnObject;
             }
             return parseLoginResponse(response);
         } catch (Exception e) {
@@ -110,13 +108,13 @@ public class JobConfigurationProxy {
                 proxy = new ProxySettings();
             }
             HttpResponse response;
-            if (Oauth2TokenUtil.validate(accessKey)) {
+            if (Oauth2TokenUtil.isValid(accessKey)) {
                 JSONObject sendObject = Oauth2TokenUtil.getJSONObject();
                 String url = mcUrl + Constants.OAUTH_TOKEN_URL;
-                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), url, headers, sendObject.toJSONString().getBytes(), true);
+                response = doPost(proxy, url, headers, sendObject);
                 return parseTokenResponse(response);
             }
-            System.out.println("ERROR:: oauth token is invalid.");
+            System.out.println("ERROR: oauth token is invalid.");
             return null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -147,10 +145,12 @@ public class JobConfigurationProxy {
 
     private JSONObject parseTokenResponse(HttpResponse response) {
         JSONObject returnObject = parseLoginResponse(response);
-        JSONObject body = response.getJsonObject();
-        if (body != null) {
-            returnObject.put(Constants.ACCESS_TOKEN, body.getAsString(Constants.ACCESS_TOKEN));
-            returnObject.put(Constants.TOKEN_TYPE, body.getAsString(Constants.TOKEN_TYPE));
+        if (returnObject != null) {
+            JSONObject body = response.getJsonObject();
+            if (body != null) {
+                returnObject.put(Constants.ACCESS_TOKEN, body.getAsString(Constants.ACCESS_TOKEN));
+                returnObject.put(Constants.TOKEN_TYPE, body.getAsString(Constants.TOKEN_TYPE));
+            }
         }
 
         return returnObject;
@@ -478,11 +478,6 @@ public class JobConfigurationProxy {
         return jobJSON;
     }
 
-    private void setToRespJSON(JSONObject returnObject, String key, String value) {
-        if (thereIsNoArgumentNullOrEmpty(key, value) && null != returnObject)
-            returnObject.put(key, value);
-    }
-
     private Map<String, String> initHeaders(AuthModel authModel, JSONObject loginJson) {
         Map<String, String> headers = new HashMap<>();
         if (loginJson != null) {
@@ -516,5 +511,9 @@ public class JobConfigurationProxy {
             }
         }
         return null;
+    }
+
+    private HttpResponse doPost(ProxySettings proxy, String url, Map<String, String> headers, JSONObject body) {
+        return HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), url, headers, body.toJSONString().getBytes(), true);
     }
 }
