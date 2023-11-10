@@ -122,7 +122,7 @@ function startListening4Params(mainContainer) {
 }
 
 function queryTestInput(container) {
-    return container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    return container.querySelector("textarea[name='fsTests'], input[name='fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
 }
 
 function generateAndPutJSONResult(container) {

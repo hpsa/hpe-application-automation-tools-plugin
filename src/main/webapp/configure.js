@@ -38,7 +38,7 @@ function getDigitalLab(divMain) {
         tenantId: "",
         execToken: "",
         authType: dl.querySelector('input[name$="authModel"]:checked').value,
-        useProxy: dl.querySelector('input[name="mcUseProxy"]').checked,
+        useProxy: dl.querySelector('input[name="proxySettings"]').checked,
         proxyAddress: "",
         useProxyAuth: false,
         proxyUserName: "",
@@ -58,7 +58,7 @@ function getDigitalLab(divMain) {
     }
     if (o.useProxy) {
         o.proxyAddress = dl.querySelector('input[name="fsProxyAddress"]').value;
-        o.useProxyAuth = dl.querySelector('input[name="mcUseProxyAuth"]').checked;
+        o.useProxyAuth = dl.querySelector('input[name="fsUseAuthentication"]').checked;
         if (o.useProxyAuth) {
             o.proxyUserName = dl.querySelector('input[name="fsProxyUserName"]').value;
             o.proxyPassword = dl.querySelector('input[name="fsProxyPassword"]').value;

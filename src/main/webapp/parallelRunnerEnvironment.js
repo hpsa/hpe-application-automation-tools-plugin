@@ -297,7 +297,7 @@ Utils.loadMC = function(a, b, prEnv){
 	var mcUrl = dl.querySelector('select[name="mcServerName"]')?.value;
 	var useProxy = dl.querySelector('input[name="proxySettings"]')?.checked;
 	var proxyAddress = dl.querySelector('input[name="fsProxyAddress"]')?.value;
-	var useAuthentication = dl.querySelector('input[name="mcUseProxyAuth"]')?.checked;
+	var useProxyAuth = dl.querySelector('input[name="fsUseAuthentication"]')?.checked;
 	var proxyUserName = dl.querySelector('input[name="fsProxyUserName"]')?.value;
 	var proxyPassword = dl.querySelector('input[name="fsProxyPassword"]')?.value;
     var isMcCredentialMissing;
@@ -308,7 +308,7 @@ Utils.loadMC = function(a, b, prEnv){
     }
 
 	const isProxyAddressRequiredButMissing = useProxy && (proxyAddress == null || proxyAddress.trim() == "");
-	const isProxyCredentialRequiredButMissing = useAuthentication && (!proxyUserName || !proxyPassword || proxyUserName.trim() == ""  || proxyPassword.trim() == "");
+	const isProxyCredentialRequiredButMissing = useProxyAuth && (!proxyUserName || !proxyPassword || proxyUserName.trim() == ""  || proxyPassword.trim() == "");
 	if(isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing){
 		ParallelRunnerEnv.setEnvironmentError(prEnv,true);
 		b.disabled = false;
@@ -324,7 +324,7 @@ Utils.loadMC = function(a, b, prEnv){
 			b.disabled = false;
 			return;
 		}
-        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
+        a.getJobId(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useProxyAuth, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
 			var jobId = response.responseObject();
 			if(jobId == null) {
 				ParallelRunnerEnv.setEnvironmentError(prEnv,true);
@@ -336,7 +336,7 @@ Utils.loadMC = function(a, b, prEnv){
 			openedWindow.location.href = baseUrl+"/integration/#/login?jobId="+jobId+"&displayUFTMode=true&deviceOnly=true";
 			var messageCallBack = function (event) {
 				if (event?.data=="mcCloseWizard") {
-                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useAuthentication, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
+                    a.populateAppAndDevice(baseUrl, mcUserName, mcPassword, mcTenantId, mcExecToken, mcAuthType, useProxyAuth, proxyAddress, proxyUserName, proxyPassword, jobId, function (app) {
 						var jobInfo = app.responseObject();
 						let deviceId = "", OS = "", manufacturerAndModel = "";
 						if(jobInfo['deviceJSON']){

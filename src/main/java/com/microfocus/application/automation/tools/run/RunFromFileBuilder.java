@@ -1020,9 +1020,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @JavaScriptMethod
         public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
-                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+                               boolean useProxyAuth, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
             AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, accessKey, authType);
-            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddress, proxyUserName, proxyPassword);
             if (null != previousJobId && !previousJobId.isEmpty()) {
                 JSONObject jobJSON = instance.getJobById(mcUrl, authModel, proxy, previousJobId);
                 if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
@@ -1043,10 +1043,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          */
         @JavaScriptMethod
         public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
-                                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword,
+                                               boolean useProxyAuth, String proxyAddress, String proxyUserName, String proxyPassword,
                                                String jobId) {
             AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, accessKey, authType);
-            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddress, proxyUserName, proxyPassword);
             return instance.getJobJSONData(mcUrl, authModel, proxy, jobId);
         }
 

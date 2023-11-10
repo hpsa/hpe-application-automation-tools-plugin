@@ -293,11 +293,11 @@
                     </f:radioBlock>
                 </f:entry>
 				<f:entry>
-					 <f:optionalBlock title="Use proxy settings" name="mcUseProxy" checked="${instance.runFromFileModel.useProxy}">
+					 <f:optionalBlock title="Use proxy settings" name="proxySettings" checked="${instance.runFromFileModel.useProxy}">
 						 <f:entry title="Address" field="fsProxyAddress">
 							 <f:textbox name="fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
 						 </f:entry>
-						 <f:optionalBlock title="Specify authentication" name="mcUseProxyAuth" checked="${instance.runFromFileModel.useAuthentication}" inline="true" >
+						 <f:optionalBlock title="Specify authentication" name="fsUseAuthentication" checked="${instance.runFromFileModel.useProxyAuth}" inline="true" >
 							 <f:entry title="User name" field="fsProxyUserName">
 								 <f:textbox name="fsProxyUserName" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
 							 </f:entry>
