@@ -36,7 +36,7 @@ if (typeof BUILDER_SELECTOR === "undefined") {
     BUILDER_SELECTOR = "div[name='builder'][descriptorid*='com.microfocus.application.automation.tools.run.RunFrom']";
 }
 
-function setupParamSpecification() {
+function setupParamSpecification(idxOfRetry) {
     let main = null;
     if (document.location.href.indexOf("pipeline-syntax") > 0) {
         main = document;
@@ -45,17 +45,25 @@ function setupParamSpecification() {
     }
 
     setTimeout(() => {
+        if (main == null) {
+            let divs = document.querySelectorAll(BUILDER_SELECTOR);
+            if (divs.length == 0) {
+                let idx = (idxOfRetry || 0);
+                if (++idx > 5) {
+                    console.error("Failed to initialize Params controls! Please retry or refresh the page.");
+                    return;
+                }
+                console.log("Failed to initialize Params controls. Retry=" + idx);
+                setupParamSpecification(idx);
+            } else {
+                main = divs[divs.length - 1];
+            }
+       }
         startListening4Params(main);
-    }, 1000);
+    }, 500);
 }
 
-function startListening4Params(mainContainer) {
-    let main = mainContainer;
-    if (mainContainer == null) {
-        let divs = document.querySelectorAll(BUILDER_SELECTOR);
-        main = divs[divs.length - 1];
-    }
-
+function startListening4Params(main) {
     loadParamInputs(main);
 
     const btnAddNewParam = main.querySelector("button[name='addNewParamBtn']");
