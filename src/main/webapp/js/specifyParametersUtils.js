@@ -46,7 +46,7 @@ function setupParamSpecification() {
 
     setTimeout(() => {
         startListening4Params(main);
-    }, 200);
+    }, 1000);
 }
 
 function startListening4Params(mainContainer) {
