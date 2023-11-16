@@ -208,6 +208,37 @@ public class JobConfigurationProxy {
         return null;
     }
 
+    //get all workspaces from MC
+    public JSONArray getAllMcWorkspaces(String mcUrl, AuthModel authModel, ProxySettings proxy) throws IOException {
+        try {
+            JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
+            if (loginJson == null) {
+                return null;
+            }
+            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+
+            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, jsessionId)) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+                String cookies = Constants.JESEEIONEQ + jsessionId;
+                if (TOKEN.equals(authModel.getValue())) {
+                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                }
+                headers.put(Constants.COOKIE, cookies);
+                HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+                HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_ALL_WORKSPACES_URL, headers, "includeSharedAssets=true");
+                if (response != null && response.getJsonArray() != null) {
+                    return response.getJsonArray();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     //create one temp job
     public String createTempJob(String mcUrl, AuthModel authModel, ProxySettings proxy) {
         try {

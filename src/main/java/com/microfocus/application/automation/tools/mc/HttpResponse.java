@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.mc;
 
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class HttpResponse {
 
     private Map<String, List<String>> headers;
     private JSONObject jsonObject;
+    private JSONArray jsonArray;
 
     public HttpResponse() {
 
@@ -61,5 +63,12 @@ public class HttpResponse {
 
     public JSONObject getJsonObject() {
         return jsonObject;
+    }
+
+    public JSONArray getJsonArray() {
+        return jsonArray;
+    }
+    public void setJsonArray(JSONArray jsonArray) {
+        this.jsonArray = jsonArray;
     }
 }

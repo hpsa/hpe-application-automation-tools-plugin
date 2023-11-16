@@ -55,6 +55,7 @@ public class Constants {
     public static final String LOGIN_URL_OAUTH = "/rest/client/v2/oauth2/login";
     public static final String CREATE_JOB_URL = "/rest/job/createTempJob";
     public static final String GET_JOB_UEL = "/rest/job/";
+    public static final String GET_ALL_WORKSPACES_URL = "/rest/v2/workspaces";
     public final static String ICON = "icon";
     public final static String JESEEIONEQ = "JSESSIONID=";
     public final static String TENANT_COOKIE = "TENANT_ID_COOKIE";

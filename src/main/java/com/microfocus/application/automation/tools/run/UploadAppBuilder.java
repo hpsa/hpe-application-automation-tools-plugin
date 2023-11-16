@@ -42,9 +42,11 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.FilenameUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -230,6 +232,51 @@ public class UploadAppBuilder extends Builder {
 
         public MCServerSettingsModel[] getMcServers() {
             return MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
+        }
+
+        /**
+         * Gets mc workspace list.
+         *
+         * @param mcUrl the server name
+         * @return the mc workspace list
+         */
+        @SuppressWarnings("squid:S2259")
+        @JavaScriptMethod
+        public JSONArray getMcWorkspaces(String mcUrl, String authType, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken,
+                                                      boolean useProxy, String proxyAddress, boolean useAuthentication, String proxyUserName, String proxyPassword) {
+            //ArrayList<MCWorkspaceModel> mcWorkspaceModels= new ArrayList<>();
+            JSONArray workspaces = null;
+            for (MCServerSettingsModel mcServer : this.getMcServers()) {
+                if (!StringUtils.isNullOrEmpty(mcUrl)
+                        && mcUrl.equals(mcServer.getMcServerName())) {
+                    mcUrl = mcServer.getMcServerUrl();
+                }
+            }
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
+            ProxySettings proxySettings =new ProxySettings(useAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            try {
+                JobConfigurationProxy job = JobConfigurationProxy.getInstance();
+                workspaces = job.getAllMcWorkspaces(mcUrl, authModel, proxySettings);
+            } catch (Exception e) {
+                if (useProxy) {
+                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
+                            mcUrl, proxySettings.getFsProxyAddress()));
+                } else if (useAuthentication) {
+                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s, proxy userName:%s",
+                            mcUrl, proxySettings.getFsProxyAddress(), proxySettings.getFsProxyUserName()));
+                } else {
+                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s", mcUrl));
+                }
+            }
+            return workspaces;
+            /*if (workspaces != null) {
+                for (int i = 0; i < workspaces.size(); i++) {
+                    JSONObject workspace = (JSONObject) workspaces.get(i);
+                    MCWorkspaceModel mcWorkspaceModel = new MCWorkspaceModel(workspace.getAsString("name"), workspace.getAsString("uuid"));
+                    mcWorkspaceModels.add(mcWorkspaceModel);
+                }
+            }
+            return mcWorkspaceModels;*/
         }
     }
 }
