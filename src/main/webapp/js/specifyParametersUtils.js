@@ -36,7 +36,7 @@ if (typeof BUILDER_SELECTOR === "undefined") {
     BUILDER_SELECTOR = "div[name='builder'][descriptorid*='com.microfocus.application.automation.tools.run.RunFrom']";
 }
 
-function setupParamSpecification(idxOfRetry) {
+function setupParamSpecification() {
     let main = null;
     if (document.location.href.indexOf("pipeline-syntax") > 0) {
         main = document;
@@ -44,27 +44,32 @@ function setupParamSpecification(idxOfRetry) {
         main = document.currentScript.parentElement.closest(BUILDER_SELECTOR);
     }
 
-    setTimeout(() => {
-        if (main == null) {
-            let divs = document.querySelectorAll(BUILDER_SELECTOR);
-            if (divs.length == 0) {
-                let idx = (idxOfRetry || 0);
-                if (++idx > 5) {
-                    console.error("Failed to initialize Params controls! Please retry or refresh the page.");
-                    return;
-                }
-                console.log("Failed to initialize Params controls. Retry=" + idx);
-                setupParamSpecification(idx);
-                return;
-            } else {
-                main = divs[divs.length - 1];
-            }
-       }
-       startListening4Params(main);
-    }, 500);
+    if (main == null) {
+        setTimeout(() => { getFSContainerAndStartListening4Params(0); }, 500);
+    } else {
+        setTimeout(() => { startListening4Params(main); }, 500);
+    }
+}
+
+function getFSContainerAndStartListening4Params(idxOfRetry) {
+    if (idxOfRetry > 5) {
+        console.error("Failed to initialize Specific Params controls! Please retry again.");
+        return null;
+    }
+    let divs = document.querySelectorAll(BUILDER_SELECTOR);
+    if (divs == null || divs.length == 0) {
+        console.log("Retry to initialize Params controls ...");
+        setTimeout(() => { getFSContainerAndStartListening4Params(++idxOfRetry); }, 500);
+    } else {
+        startListening4Params(divs[divs.length - 1]);
+    }
 }
 
 function startListening4Params(main) {
+    if (main == null) {
+        console.error("Failed to initialize Specific Params controls! Please retry or refresh the page.");
+        return;
+    }
     loadParamInputs(main);
 
     const btnAddNewParam = main.querySelector("button[name='addNewParamBtn']");
