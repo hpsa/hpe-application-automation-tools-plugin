@@ -55,11 +55,12 @@ function setupParamSpecification(idxOfRetry) {
                 }
                 console.log("Failed to initialize Params controls. Retry=" + idx);
                 setupParamSpecification(idx);
+                return;
             } else {
                 main = divs[divs.length - 1];
             }
        }
-        startListening4Params(main);
+       startListening4Params(main);
     }, 500);
 }
 
