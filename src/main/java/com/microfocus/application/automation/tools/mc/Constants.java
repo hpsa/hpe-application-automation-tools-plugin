@@ -38,7 +38,7 @@ package com.microfocus.application.automation.tools.mc;
 public class Constants {
     public final static String BOUNDARYSTR = "randomstring";
     public final static String DATA = "data";
-    public final static String APP_UPLOAD = "/rest/apps/upload?enforceUpload=true";  // make sure unpacked app is uploaded in case of failure during instrumentation
+    public final static String APP_UPLOAD = "/rest/v2/apps?asyncInstrumentation=false&instrument=true&resign=true&isAppUploadPage=true";  // make sure unpacked app is uploaded in case of failure during instrumentation
     public final static String CONTENT_TYPE_DOWNLOAD_VALUE = "multipart/form-data; boundary=----";
     public final static String FILENAME = "filename";
     public static final String LOGIN_SECRET = "x-hp4msecret";

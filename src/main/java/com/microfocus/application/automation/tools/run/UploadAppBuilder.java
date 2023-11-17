@@ -100,6 +100,7 @@ public class UploadAppBuilder extends Builder {
             String workspace = build.getWorkspace() == null ? "" : build.getWorkspace().toURI().getPath();
 
             for (int i = 1; i <= paths.size(); i++) {
+                String appUploadWorkspace = paths.get(i - 1).getMcAppWorkspace();
                 String path = paths.get(i - 1).getMcAppPath();
                 String originPath = path;
                 if (StringUtils.isNullOrEmpty(path)) {
@@ -138,7 +139,7 @@ public class UploadAppBuilder extends Builder {
 
                 try {
                     out.println(String.format("starting to upload app %d %s", i, originPath));
-                    app = job.upload(mcServerUrl, uploadAppModel.getAuthModel(), uploadAppModel.getProxySettings(), path);
+                    app = job.upload(mcServerUrl, uploadAppModel.getAuthModel(), uploadAppModel.getProxySettings(), path, appUploadWorkspace);
                     if (app == null) {
                         if (uploadAppModel.isUseProxy()) {
                             out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
@@ -244,7 +245,6 @@ public class UploadAppBuilder extends Builder {
         @JavaScriptMethod
         public JSONArray getMcWorkspaces(String mcUrl, String authType, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken,
                                                       boolean useProxy, String proxyAddress, boolean useAuthentication, String proxyUserName, String proxyPassword) {
-            //ArrayList<MCWorkspaceModel> mcWorkspaceModels= new ArrayList<>();
             JSONArray workspaces = null;
             for (MCServerSettingsModel mcServer : this.getMcServers()) {
                 if (!StringUtils.isNullOrEmpty(mcUrl)
@@ -269,14 +269,6 @@ public class UploadAppBuilder extends Builder {
                 }
             }
             return workspaces;
-            /*if (workspaces != null) {
-                for (int i = 0; i < workspaces.size(); i++) {
-                    JSONObject workspace = (JSONObject) workspaces.get(i);
-                    MCWorkspaceModel mcWorkspaceModel = new MCWorkspaceModel(workspace.getAsString("name"), workspace.getAsString("uuid"));
-                    mcWorkspaceModels.add(mcWorkspaceModel);
-                }
-            }
-            return mcWorkspaceModels;*/
         }
     }
 }

@@ -148,11 +148,12 @@ public class JobConfigurationProxy {
     }
 
     //upload app to MC
-    public JSONObject upload(String mcUrl, AuthModel authModel, ProxySettings proxy, String appPath) throws IOException {
+    public JSONObject upload(String mcUrl, AuthModel authModel, ProxySettings proxy, String appPath, String appUploadWorkspace) throws IOException {
         File appFile = new File(appPath);
-
         String uploadUrl = mcUrl + Constants.APP_UPLOAD;
-
+        if(!StringUtils.isNullOrEmpty(appUploadWorkspace)){
+            uploadUrl += (String.format("&workspaceId=%s",appUploadWorkspace));
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         StringBuilder content = new StringBuilder();

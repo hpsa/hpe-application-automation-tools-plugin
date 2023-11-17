@@ -143,8 +143,8 @@
                 <f:entry>
                     <input type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(a)"/>
                 </f:entry>
-                <f:entry title="Application upload workspace" field="appUploadWorkspace">
-                     <select id='mcWorkspaces' name="uploadApp.workspace">
+                <f:entry title="Application upload workspace" field="mcAppWorkspace">
+                     <select id='mcWorkspaces' name="uploadApp.mcAppWorkspace">
                      </select>
                 </f:entry>
                 <f:entry>
