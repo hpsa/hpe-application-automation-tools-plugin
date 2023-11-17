@@ -37,6 +37,7 @@ if (typeof BUILDER_SELECTOR === "undefined") {
 }
 
 function setupParamSpecification() {
+    document.body.style.cursor = "wait";
     let main = null;
     if (document.location.href.indexOf("pipeline-syntax") > 0) {
         main = document;
@@ -47,21 +48,36 @@ function setupParamSpecification() {
     if (main == null) {
         setTimeout(() => { getFSContainerAndStartListening4Params(0); }, 500);
     } else {
-        setTimeout(() => { startListening4Params(main); }, 500);
+        setTimeout(() => {
+            try {
+                startListening4Params(main);
+            } catch(e) {
+                console.error(e);
+            } finally {
+                document.body.style.cursor = "";
+            }
+        }, 200);
     }
 }
 
 function getFSContainerAndStartListening4Params(idxOfRetry) {
-    if (idxOfRetry > 5) {
-        console.error("Failed to initialize Specific Params controls! Please retry again.");
-        return null;
-    }
     let divs = document.querySelectorAll(BUILDER_SELECTOR);
     if (divs == null || divs.length == 0) {
-        console.log("Retry to initialize Params controls ...");
-        setTimeout(() => { getFSContainerAndStartListening4Params(++idxOfRetry); }, 500);
+        if (idxOfRetry > 5) {
+            console.error("Failed to initialize Specific Params controls! Please retry again.");
+            document.body.style.cursor = "";
+        } else {
+            console.log("Retry to initialize Specific Params controls ...");
+            setTimeout(() => { getFSContainerAndStartListening4Params(++idxOfRetry); }, 500);
+        }
     } else {
-        startListening4Params(divs[divs.length - 1]);
+        try {
+            startListening4Params(divs[divs.length - 1]);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            document.body.style.cursor = "";
+        }
     }
 }
 
@@ -124,7 +140,7 @@ function startListening4Params(main) {
         })
     });
 
-    const chkAreParamsEnabled = main.querySelector("input[name='areParamsEnabled']");
+    const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
     if (chkAreParamsEnabled) {
         chkAreParamsEnabled.addEventListener("click", () => cleanParamInput(main));
     }
