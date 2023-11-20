@@ -986,11 +986,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep {
     }
 
     public String getTimeslotDurationHours() {
-        return timeslotDurationHours;
+        return getPcModel().getTimeslotDurationHours();
     }
 
     public String getTimeslotDurationMinutes() {
-        return timeslotDurationMinutes;
+        return getPcModel().getTimeslotDurationMinutes();
     }
 
     public PostRunAction getPostRunAction() {
