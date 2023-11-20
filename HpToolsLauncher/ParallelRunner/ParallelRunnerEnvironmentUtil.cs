@@ -27,11 +27,14 @@
  */
 
 using HpToolsLauncher.ParallelTestRunConfiguraion;
+using HpToolsLauncher.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web.Script.Serialization;
+using AuthType = HpToolsLauncher.McConnectionInfo.AuthType;
 
 namespace HpToolsLauncher.ParallelRunner
 {
@@ -383,29 +386,31 @@ namespace HpToolsLauncher.ParallelRunner
         /// <summary>
         /// Parses the MC settings and returns the corresponding UFT settings.
         /// </summary>
-        /// <param name="mcConnectionInfo"> the mc settings</param>
+        /// <param name="mc"> the mc settings</param>
         /// <returns> the parallel runner uft settings </returns>
-        public static UFTSettings ParseMCSettings(McConnectionInfo mcConnectionInfo)
+        public static UFTSettings ParseMCSettings(McConnectionInfo mc)
         {
-            if (mcConnectionInfo == null) return null;
+            if (mc == null) return null;
 
-            if (string.IsNullOrEmpty(mcConnectionInfo.HostAddress) ||
-                string.IsNullOrEmpty(mcConnectionInfo.UserName) ||
-                string.IsNullOrEmpty(mcConnectionInfo.Password) ||
-                string.IsNullOrEmpty(mcConnectionInfo.HostPort))
+            if (mc.HostAddress.IsNullOrEmpty() ||
+                (mc.MobileAuthType == AuthType.UsernamePassword && mc.UserName.IsNullOrEmpty() && mc.Password.IsNullOrEmpty()) ||
+                (mc.MobileAuthType == AuthType.AuthToken && mc.ExecToken.IsNullOrEmpty()) ||
+                string.IsNullOrEmpty(mc.HostPort))
                 return null;
 
             MCSettings mcSettings = new MCSettings
             {
-                username = mcConnectionInfo.UserName,
-                password = WinUserNativeMethods.ProtectBSTRToBase64(mcConnectionInfo.Password),
-                hostname = mcConnectionInfo.HostAddress,
-                port = Convert.ToInt32(mcConnectionInfo.HostPort),
-                protocol = mcConnectionInfo.UseSslAsInt > 0 ? "https" : "http",
-                tenantId = mcConnectionInfo.TenantId,
+                username = mc.UserName,
+                password = WinUserNativeMethods.ProtectBSTRToBase64(mc.Password),
+                hostname = mc.HostAddress,
+                port = Convert.ToInt32(mc.HostPort),
+                protocol = mc.UseSSL ? "https" : "http",
+                tenantId = mc.TenantId,
+                authType = (int)mc.MobileAuthType,
+                accessKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(mc.ExecToken))
             };
 
-            var proxy = GetMCProxySettings(mcConnectionInfo);
+            var proxy = GetMCProxySettings(mc);
 
             // set the proxy information if we have it
             if (proxy != null)

@@ -44,6 +44,8 @@ namespace HpToolsLauncher.ParallelTestRunConfiguraion
         public string tenantId { get; set; }
         public string workspaceId { get; set; }
         public ProxySettings proxy { get; set; }
+        public int authType { get; set; }
+        public string accessKey {  get; set; }
     }
     public class ProxySettings
     {

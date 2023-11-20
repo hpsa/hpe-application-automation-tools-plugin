@@ -76,7 +76,8 @@ public class JobConfigurationProxy {
                 proxy = new ProxySettings();
             }
             HttpResponse response;
-            if ("base".equals(authModel.getValue())) {
+            AuthType authType = authModel.getAuthType();
+            if (authType == AuthType.Base) {
                 String tempUsername = authModel.getMcUserName();
                 if (!StringUtils.isNullOrEmpty(authModel.getMcTenantId())) {
                     tempUsername += "#" + authModel.getMcTenantId();
@@ -92,7 +93,7 @@ public class JobConfigurationProxy {
                 System.out.println("ERROR:: oauth token is invalid.");
                 return returnObject;
             }
-            return parseLoginResponse(response);
+            return parseLoginResponse(response, authType);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,7 +113,7 @@ public class JobConfigurationProxy {
                 JSONObject sendObject = Oauth2TokenUtil.getJSONObject();
                 String url = mcUrl + Constants.OAUTH_TOKEN_URL;
                 response = doPost(proxy, url, headers, sendObject);
-                return parseTokenResponse(response);
+                return parseTokenResponse(response, AuthType.Token);
             }
             System.out.println("ERROR: oauth token is invalid.");
             return null;
@@ -128,7 +129,7 @@ public class JobConfigurationProxy {
         headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
         return headers;
     }
-    private JSONObject parseLoginResponse(HttpResponse response) {
+    private JSONObject parseLoginResponse(HttpResponse response, AuthType authType) {
         if (response == null || response.getHeaders() == null) {
             return null;
         }
@@ -138,13 +139,24 @@ public class JobConfigurationProxy {
         if (hp4mSecretList != null && !hp4mSecretList.isEmpty() && !StringUtils.isNullOrEmpty(hp4mSecretList.get(0))) {
             returnObject.put(Constants.LOGIN_SECRET, hp4mSecretList.get(0));
         }
-        returnObject.put(Constants.COOKIES, response.getCookiesAsString());
+        if (authType == AuthType.Token && headerFields.containsKey(Constants.SET_COOKIE)) {
+            List<String> cookies = headerFields.get(Constants.SET_COOKIE);
+            if (cookies != null && !cookies.isEmpty()) {
+                for (String cookie : cookies) {
+                    if (cookie.startsWith(Constants.OAUTH2_COOKIE_KEY)) {
+                        returnObject.put(Constants.OAUTH2_COOKIE_KEY, getCookieValue(cookie, Constants.OAUTH2_COOKIE_KEY));
+                        break;
+                    }
+                }
+            }
+        }
 
+        returnObject.put(Constants.COOKIES, response.getCookiesAsString());
         return returnObject;
     }
 
-    private JSONObject parseTokenResponse(HttpResponse response) {
-        JSONObject returnObject = parseLoginResponse(response);
+    private JSONObject parseTokenResponse(HttpResponse response, AuthType authType) {
+        JSONObject returnObject = parseLoginResponse(response, authType);
         if (returnObject != null) {
             JSONObject body = response.getJsonObject();
             if (body != null) {

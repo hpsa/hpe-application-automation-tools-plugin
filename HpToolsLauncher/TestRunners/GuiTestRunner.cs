@@ -38,6 +38,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Resources = HpToolsLauncher.Properties.Resources;
+using AuthType = HpToolsLauncher.McConnectionInfo.AuthType;
 
 namespace HpToolsLauncher
 {
@@ -339,17 +340,17 @@ namespace HpToolsLauncher
                     tulip.SetTestOptionsVal(MOBILE_HOST_PORT, _mcConnection.HostPort);
                 }
 
-                McConnectionInfo.AuthType mcAuthType = _mcConnection.MobileAuthType;
+                AuthType mcAuthType = _mcConnection.MobileAuthType;
                 switch (mcAuthType)
                 {
-                    case McConnectionInfo.AuthType.AuthToken:
+                    case AuthType.AuthToken:
                         var token = _mcConnection.GetAuthToken();
 
                         tulip.SetTestOptionsVal(MOBILE_CLIENTID, token.ClientId);
                         tulip.SetTestOptionsVal(MOBILE_SECRET, token.SecretKey);
 
                         break;
-                    case McConnectionInfo.AuthType.UsernamePassword:
+                    case AuthType.UsernamePassword:
                         if (!_mcConnection.UserName.IsNullOrEmpty())
                         {
                             tulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.UserName);
@@ -769,7 +770,8 @@ namespace HpToolsLauncher
                     var launcher = _qtpApplication.Test.Settings.Launchers[WEB];
                     launcher.Active = true;
                     launcher.SetLab(CLOUD_BROWSER);
-                    launcher.Address = _cloudBrowser.Url;
+                    if (!_cloudBrowser.Url.IsNullOrWhiteSpace())
+                        launcher.Address = _cloudBrowser.Url;
                     launcher.CloudBrowser.OS = _cloudBrowser.OS;
                     launcher.CloudBrowser.Browser = _cloudBrowser.Browser;
                     launcher.CloudBrowser.BrowserVersion = _cloudBrowser.Version;

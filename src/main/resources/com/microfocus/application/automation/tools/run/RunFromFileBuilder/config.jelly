@@ -312,7 +312,7 @@
 						<f:nested>
 							<f:entry title="UFT One version" field="uftOneVersion">
 								<f:textbox name="uftOneVersion" value="${instance.runFromFileModel.cloudBrowserModel.uftOneVersion}" />
-								<input type="button" name="cloudBrowserLab" value="Cloud Browser Lab" onclick="startLoadInfo(a, this,'${rootURL}');" />
+								<input type="button" name="cloudBrowserLab" value="Browser settings" onclick="startLoadInfo(a, this,'${rootURL}');" />
 							</f:entry>
 							<f:entry title="URL" field="cloudBrowserUrl">
 								<f:textbox name="cloudBrowserUrl" value="${instance.runFromFileModel.cloudBrowserModel.url}" />

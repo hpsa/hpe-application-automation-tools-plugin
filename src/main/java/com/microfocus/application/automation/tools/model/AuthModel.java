@@ -1,16 +1,19 @@
 package com.microfocus.application.automation.tools.model;
 
+import com.microfocus.application.automation.tools.mc.AuthType;
 import hudson.util.Secret;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
 
 public class AuthModel implements Serializable {
-    private String mcUserName;
-    private Secret mcPassword;
-    private String mcTenantId;
-    private Secret mcExecToken;
-    private String value;
+    private final String mcUserName;
+    private final Secret mcPassword;
+    private final String mcTenantId;
+    private final Secret mcExecToken;
+    private final String value;
+    private AuthType authType;
 
     @DataBoundConstructor
     public AuthModel(String mcUserName, String mcPassword, String mcTenantId, String mcExecToken, String value) {
@@ -19,12 +22,16 @@ public class AuthModel implements Serializable {
         this.mcTenantId = mcTenantId;
         this.mcExecToken = Secret.fromString(mcExecToken);
         this.value = value;
+        authType = AuthType.fromString(value);
+        if (authType == AuthType.Unknown) {
+            if (StringUtils.isNotBlank(mcExecToken)) {
+                authType = AuthType.Token;
+            } else if (StringUtils.isNotBlank(mcUserName) && StringUtils.isNotBlank(mcPassword)) {
+                authType = AuthType.Base;
+            }
+        }
     }
 
-    public AuthModel(String mcExecToken) {
-        this.mcExecToken = Secret.fromString(mcExecToken);
-        this.value = "token";
-    }
     public String getMcUserName() {
         return mcUserName;
     }
@@ -49,28 +56,8 @@ public class AuthModel implements Serializable {
         }
     }
 
-    public void setMcUserName(String mcUserName) {
-        this.mcUserName = mcUserName;
-    }
-
-    public void setMcPassword(String mcPassword) {
-        this.mcPassword = Secret.fromString(mcPassword);
-    }
-
-    public void setMcTenantId(String mcTenantId) {
-        this.mcTenantId = mcTenantId;
-    }
-
-    public void setMcExecToken(String mcExecToken) {
-        this.mcExecToken = Secret.fromString(mcExecToken);
-    }
-
     public String getValue() {
         return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
     }
 
     public String getMcEncryptedExecToken() {
@@ -87,5 +74,9 @@ public class AuthModel implements Serializable {
         } else {
             return null;
         }
+    }
+
+    public AuthType getAuthType() {
+        return authType;
     }
 }
