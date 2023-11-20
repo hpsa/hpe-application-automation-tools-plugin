@@ -1,18 +1,18 @@
 package com.microfocus.application.automation.tools.mc;
 
 public enum AuthType {
-    Base,
-    Token,
-    Unknown;
+    BASE,
+    TOKEN,
+    UNKNOWN;
 
     public static AuthType fromString(String value) {
         switch(value.toLowerCase()) {
             case "base":
-                return AuthType.Base;
+                return AuthType.BASE;
             case "token":
-                return AuthType.Token;
+                return AuthType.TOKEN;
             default:
-                return AuthType.Unknown;
+                return AuthType.UNKNOWN;
         }
     }
 }

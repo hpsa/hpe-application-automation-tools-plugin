@@ -23,11 +23,11 @@ public class AuthModel implements Serializable {
         this.mcExecToken = Secret.fromString(mcExecToken);
         this.value = value;
         authType = AuthType.fromString(value);
-        if (authType == AuthType.Unknown) {
+        if (authType == AuthType.UNKNOWN) {
             if (StringUtils.isNotBlank(mcExecToken)) {
-                authType = AuthType.Token;
+                authType = AuthType.TOKEN;
             } else if (StringUtils.isNotBlank(mcUserName) && StringUtils.isNotBlank(mcPassword)) {
-                authType = AuthType.Base;
+                authType = AuthType.BASE;
             }
         }
     }

@@ -77,7 +77,7 @@ public class JobConfigurationProxy {
             }
             HttpResponse response;
             AuthType authType = authModel.getAuthType();
-            if (authType == AuthType.Base) {
+            if (authType == AuthType.BASE) {
                 String tempUsername = authModel.getMcUserName();
                 if (!StringUtils.isNullOrEmpty(authModel.getMcTenantId())) {
                     tempUsername += "#" + authModel.getMcTenantId();
@@ -113,7 +113,7 @@ public class JobConfigurationProxy {
                 JSONObject sendObject = Oauth2TokenUtil.getJSONObject();
                 String url = mcUrl + Constants.OAUTH_TOKEN_URL;
                 response = doPost(proxy, url, headers, sendObject);
-                return parseTokenResponse(response, AuthType.Token);
+                return parseTokenResponse(response, AuthType.TOKEN);
             }
             System.out.println("ERROR: oauth token is invalid.");
             return null;
@@ -139,7 +139,7 @@ public class JobConfigurationProxy {
         if (hp4mSecretList != null && !hp4mSecretList.isEmpty() && !StringUtils.isNullOrEmpty(hp4mSecretList.get(0))) {
             returnObject.put(Constants.LOGIN_SECRET, hp4mSecretList.get(0));
         }
-        if (authType == AuthType.Token && headerFields.containsKey(Constants.SET_COOKIE)) {
+        if (authType == AuthType.TOKEN && headerFields.containsKey(Constants.SET_COOKIE)) {
             List<String> cookies = headerFields.get(Constants.SET_COOKIE);
             if (cookies != null && !cookies.isEmpty()) {
                 for (String cookie : cookies) {
