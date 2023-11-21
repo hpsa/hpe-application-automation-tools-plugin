@@ -54,12 +54,7 @@
                 document.getElementsByName("uploadApp.fsProxyPassword")[0].disabled="true";
             }
         }
-        function GetMcWorkspaces(obj){
-                var index = obj.selectedIndex;
-                var val = obj.options[index].value;
-                alert(val);
-        }
-        function refreshWorkspaces(a){
+        function refreshWorkspaces(event,a){
               var mcUrl = document.getElementsByName("uploadApp.mcServerName")[0].value;
               var authType = document.querySelector('input[name$="authModel"]:checked').value;
               var mcUserName = document.getElementsByName("uploadApp.mcUserName")[0].value;
@@ -76,18 +71,16 @@
                      const workspaces = r.responseJSON;
                      workspaces.forEach((item) => {
                        str = str + "<option value=" + item.uuid.toString();
-                       console.log(item.name.toString());
-                       console.log(item.uuid.toString());
                        str = str + ">" + item.name + "</option>";
                      });
                      console.log(str);
-                     document.getElementById('mcWorkspaces').innerHTML= str;
+                     event.target.nextElementSibling.innerHTML= str;
               });
         }
     </script>
 
     <f:entry title="Digital Lab Server" field="mcServerName">
-        <select name="uploadApp.mcServerName" onChange="GetMcWorkspaces(this)">
+        <select name="uploadApp.mcServerName">
             <j:forEach var="mcServer" items="${descriptor.mcServers}">
                 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
                     ${mcServer.mcServerName}
@@ -140,15 +133,10 @@
                 <f:entry title="Application path" field="mcAppPath">
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
-                <f:entry>
-                    <input type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(a)"/>
-                </f:entry>
                 <f:entry title="Application upload workspace" field="mcAppWorkspace">
+                     <input type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(event,a)"/>
                      <select id='mcWorkspaces' name="uploadApp.mcAppWorkspace">
                      </select>
-                </f:entry>
-                <f:entry>
-                    <div id="errorMessage" style="color:red;display:none">Digital Lab login information or proxy is incorrect.</div>
                 </f:entry>
                 <f:entry>
                     <div align="right">
