@@ -102,7 +102,7 @@ function startLoadInfo(a, b, path) {
 async function triggerBtnState(b, disabled) {
     b.disabled = disabled;
     if (b.name == "cloudBrowserLab") {
-        b.value = disabled ? "Loading ..." : "Cloud Browser Lab";
+        b.value = disabled ? "Loading ..." : "Browser settings";
     } else if (b.name == "digitalLabWizard") {
         b.value = disabled ? "Loading ..." : "Wizard";
     } else if (b.name == "env-wizard") {
