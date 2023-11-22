@@ -168,13 +168,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                               String analysisTemplate, String mcServerName, AuthModel authModel, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel,
                               String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics,
                               String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings,
-                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath, CloudBrowserModel cloudBrowserModel) {
+                              boolean useSSL, boolean isParallelRunnerEnabled, String fsReportPath) {
         this.isParallelRunnerEnabled = isParallelRunnerEnabled;
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, displayController, analysisTemplate, mcServerName,
                 authModel, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs,
                 fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId,
-                proxySettings, useSSL, fsReportPath, cloudBrowserModel);
+                proxySettings, useSSL, fsReportPath);
     }
 
     /**
@@ -1071,12 +1071,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         }
 
         @JavaScriptMethod
-        public JSONObject getBrowserLab(String serverName, String accessKey, boolean useProxyAuth, String proxyAddr, String proxyUserName, String proxyPassword, String uftOneVersion) {
+        public JSONObject getBrowserLab(String serverName, String accessKey, boolean useProxyAuth, String proxyAddr, String proxyUserName, String proxyPassword) {
             String serverUrl = getMcServerUrl(serverName);
             if (StringUtils.isNotBlank(serverUrl)) {
                 serverUrl = StringUtils.stripEnd(serverUrl, "/");
                 ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddr, proxyUserName, proxyPassword);
-                return instance.getBrowserLab(serverUrl, accessKey, proxy, uftOneVersion);
+                return instance.getBrowserLab(serverUrl, accessKey, proxy);
             }
             return null;
         }

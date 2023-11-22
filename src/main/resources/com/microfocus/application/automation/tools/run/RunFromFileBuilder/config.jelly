@@ -71,6 +71,7 @@
 			background: none;
 		}
 		textarea.jenkins-input, textarea.setting-input{
+			height: 5em;
 			resize: vertical;
 		}
 		div.setting-main {
@@ -82,15 +83,10 @@
 		div.repeated-container {
 			width:100%;
 		}
-		.cloud-browser-section {
-			width:50%;
+		.device-info-section {
+			width:100%;
 			margin-bottom: 10px;
 			--section-padding: 5px;
-		}
-		input[name="uftOneVersion"], input[name="cloudBrowserLab"] {
-			display: inline-block;
-			overflow: hidden;
-			width: 140px;
 		}
 	</style>
 
@@ -307,33 +303,6 @@
 						</f:optionalBlock>
 					 </f:optionalBlock>
 				 </f:entry>
-				<div class="tr cloud-browser-section">
-					<f:optionalBlock name="cloudBrowserModel" title="Use Cloud Browser Lab" checked="${instance.runFromFileModel.cloudBrowserModel != null}" align="right" >
-						<f:nested>
-							<f:entry title="UFT One version" field="uftOneVersion">
-								<f:textbox name="uftOneVersion" value="${instance.runFromFileModel.cloudBrowserModel.uftOneVersion}" />
-								<input type="button" name="cloudBrowserLab" value="Browser settings" onclick="startLoadInfo(a, this,'${rootURL}');" />
-							</f:entry>
-							<f:entry title="URL" field="cloudBrowserUrl">
-								<f:textbox name="cloudBrowserUrl" value="${instance.runFromFileModel.cloudBrowserModel.url}" />
-							</f:entry>
-							<div class="repeated-chunk">
-								<f:entry title="Operating System" field="cloudBrowserOs">
-									<f:readOnlyTextbox name="cloudBrowserOs" value="${instance.runFromFileModel.cloudBrowserModel.os}"/>
-								</f:entry>
-								<f:entry title="Browser name" field="cloudBrowserType">
-									<f:readOnlyTextbox name="cloudBrowserType" value="${instance.runFromFileModel.cloudBrowserModel.type}"/>
-								</f:entry>
-								<f:entry title="Browser version" field="cloudBrowserVersion">
-									<f:readOnlyTextbox name="cloudBrowserVersion" value="${instance.runFromFileModel.cloudBrowserModel.version}"/>
-								</f:entry>
-								<f:entry title="Location" field="cloudBrowserRegion">
-									<f:readOnlyTextbox name="cloudBrowserRegion" value="${instance.runFromFileModel.cloudBrowserModel.region}"/>
-								</f:entry>
-							</div>
-						</f:nested>
-					</f:optionalBlock>
-				</div>
 
 				<div class="tr device-info-section" style="width: 100%">
 					<f:advanced title="Device Options" align="right">
@@ -375,7 +344,7 @@
 							<f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="recreateJob" checked="false"/>
 						</f:entry>
 						<f:entry>
-							<input name="digitalLabWizard" type="button" value="Wizard" onClick="startLoadInfo(a, this)"/>
+							<input name="digitalLabWizard" type="button" value="Wizard" onClick="await startLoadInfo(a, this)"/>
 						</f:entry>
 					</f:advanced>
 				</div>

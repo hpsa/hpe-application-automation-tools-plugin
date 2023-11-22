@@ -46,7 +46,6 @@ function getDigitalLab(divMain) {
         err: dl.querySelector("#errorMessage"),
         recreateJob: dl.querySelector('input[name="recreateJob"]').checked,
         jobId: dl.querySelector('input[name="fsJobId"]').value,
-        uftOneVersion: dl.querySelector('input[name="uftOneVersion"]'),
         deviceInfo: dl.querySelector(".device-info-section")
     };
     if (o.authType == "base") {
@@ -78,23 +77,14 @@ function setupDigitalLab() {
 	setTimeout(function() { prepareDigitalLab(divMain)}, 100);
 }
 function prepareDigitalLab(divMain) {
-	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
+/*	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
 		let divs = document.querySelectorAll(RUN_FROM_FS_BUILDER_SELECTOR);
 		divMain = divs[divs.length - 1];
-	}
-    const dl = divMain.querySelector("#mobileSpecificSection");
-    const cldBM = dl.querySelector('input[name="cloudBrowserModel"]');
-    const dvcInfo = dl.querySelector(".device-info-section");
-    cldBM.onclick = (e) => {
-        dvcInfo.style.display = e.target.checked ? "none" : "block";
-    };
-    if (cldBM.checked) {
-        dvcInfo.style.display = "none";
-    }
+	}*/
 }
 
-function startLoadInfo(a, b, path) {
-    triggerBtnState(b, true);
+async function startLoadInfo(a, b, path) {
+    await triggerBtnState(b, true);
     setTimeout( async () => {
         await loadInfo(a, b, path)}, 100);
 }
@@ -126,12 +116,6 @@ async function loadInfo(a, b, path) {
         }
 
         if (b.name == "cloudBrowserLab") {
-            if (dl.uftOneVersion.value.trim() == "") {
-                alert("UFT One Version is required!");
-                dl.uftOneVersion.focus();
-                await triggerBtnState(b, false);
-                return;
-            }
             await loadBrowserLabInfo(a, b, dl, path);
         } else if (b.name == "digitalLabWizard") {
             await loadMobileInfo(a, b, dl);
@@ -157,7 +141,7 @@ async function loadBrowserLabInfo(a, b, o, path) {
     if (div.browsers?.length) {
         await fillAndShowDDLs(b, div, dlg);
     } else {
-        await a.getBrowserLab(o.serverName, o.execToken, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, o.uftOneVersion.value, async (response) => {
+        await a.getBrowserLab(o.serverName, o.execToken, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, async (response) => {
             try {
                 if (response?.responseJSON) {
                     const json = response.responseJSON;

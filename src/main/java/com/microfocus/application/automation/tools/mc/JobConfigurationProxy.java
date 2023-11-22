@@ -262,7 +262,7 @@ public class JobConfigurationProxy {
         return removeIcon(jobJsonObject);
     }
 
-    public JSONObject getBrowserLab(String mcUrl, String accessKey, ProxySettings proxy, String uftOneVersion) {
+    public JSONObject getBrowserLab(String mcUrl, String accessKey, ProxySettings proxy) {
         JSONObject jsonObject = null;
 
         try {
@@ -274,14 +274,14 @@ public class JobConfigurationProxy {
             String token = loginJson.getAsString(Constants.ACCESS_TOKEN);
             String tokenType = loginJson.getAsString(Constants.TOKEN_TYPE);
             String cookies = loginJson.getAsString(Constants.COOKIES);
-            if (thereIsNoArgumentNullOrEmpty(uftOneVersion, hp4mSecret, token, tokenType, cookies)) {
+            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, token, tokenType, cookies)) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(Constants.ACCEPT, "application/json");
                 headers.put(Constants.LOGIN_SECRET, hp4mSecret);
                 headers.put(Constants.COOKIE, cookies);
                 headers.put(RESTConstants.AUTHORIZATION, String.format("%s %s", tokenType, token));
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
-                String url = String.format("%s%s?toolVersion=%s", mcUrl, Constants.GET_BROWSER_LAB_URL, uftOneVersion);
+                String url = String.format("%s%s?toolVersion=23.4", mcUrl, Constants.GET_BROWSER_LAB_URL);
                 HttpResponse response = HttpUtils.doGet(proxyInfo, url, headers, null);
 
                 if (response != null && response.getJsonObject() != null) {

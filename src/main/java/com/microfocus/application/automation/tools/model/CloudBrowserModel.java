@@ -10,12 +10,10 @@ public class CloudBrowserModel implements Serializable {
     private String type;
     private String region;
     private String os;
-    private String uftOneVersion;
 
     @DataBoundConstructor
-    public CloudBrowserModel(String uftOneVersion, String cloudBrowserUrl, String cloudBrowserType, String cloudBrowserVersion, String cloudBrowserRegion, String cloudBrowserOs) {
+    public CloudBrowserModel(String cloudBrowserUrl, String cloudBrowserType, String cloudBrowserVersion, String cloudBrowserRegion, String cloudBrowserOs) {
         this.url = cloudBrowserUrl;
-        this.uftOneVersion = uftOneVersion;
         this.type = cloudBrowserType;
         this.version = cloudBrowserVersion;
         this.os = cloudBrowserOs;
@@ -36,10 +34,6 @@ public class CloudBrowserModel implements Serializable {
 
     public String getOs() {
         return os;
-    }
-
-    public String getUftOneVersion() {
-        return uftOneVersion;
     }
 
     public String getUrl() {
