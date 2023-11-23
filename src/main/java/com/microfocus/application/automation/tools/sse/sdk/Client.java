@@ -66,7 +66,6 @@ public interface Client {
 
     String getUsername();
 
-    Map<String, String> getCookies();
 
     String getXsrfTokenValue();
 }

@@ -1444,7 +1444,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			throws InterruptedException, IOException {
 
 		runReportList = new ArrayList<FilePath>();
-		final List<String> mergedResultNames = new ArrayList<String>();
+		final Set<String> mergedResultNames = new HashSet<String>();
 		final List<String> almResultNames = new ArrayList<String>();
 		final List<String> fileSystemResultNames = new ArrayList<String>();
 		final List<String> almSSEResultNames = new ArrayList<String>();
@@ -1523,7 +1523,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 			return;
 		}
 
-		recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
+		recordRunResults(build, workspace, launcher, listener, new ArrayList<>(mergedResultNames), fileSystemResultNames);
 		return;
 	}
 
