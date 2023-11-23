@@ -198,7 +198,7 @@ public class UploadAppBuilder extends Builder {
                     allSuccess = false;
                     continue;
                 } catch (Exception e) {
-                    out.println(String.format("Failed to upload app."));
+                    out.println("Failed to upload app.");
                     build.setResult(Result.FAILURE);
                     return false;
                 } finally {
