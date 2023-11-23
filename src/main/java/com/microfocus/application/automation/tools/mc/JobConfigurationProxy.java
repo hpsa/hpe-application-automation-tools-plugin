@@ -113,10 +113,8 @@ public class JobConfigurationProxy {
         JSONObject returnObject = new JSONObject();
         if (response == null || response.getHeaders() == null) {
             return null;
-        }else if(response.getJsonObject() != null){
-            if(response.getJsonObject().containsKey("error") && response.getJsonObject().getAsString("error").equals("true")){
-                return null;
-            }
+        }else if(response.getJsonObject() != null && response.getJsonObject().containsKey("error") && response.getJsonObject().getAsString("error").equals("true")){
+            return null;
         }
         Map<String, List<String>> headerFields = response.getHeaders();
         List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);

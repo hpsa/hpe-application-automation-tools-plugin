@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.run;
 
+import com.microfocus.application.automation.tools.mc.Constants;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
@@ -169,14 +170,14 @@ public class UploadAppBuilder extends Builder {
                         appUploadWorkspaceName = result.getAsString("name");
                     }
                 }else{
-                    appUploadWorkspaceName = "Shared assets";
+                    appUploadWorkspaceName = Constants.SHARED_ASSETS;
                 }
                 //upload app
                 try {
                     out.println(String.format("starting to upload app %d %s to workspace %s", i, originPath, appUploadWorkspaceName));
                     app = job.upload(headers, mcServerUrl, uploadAppModel.getProxySettings(), path, appUploadWorkspace);
                     if (app == null) {
-                        out.println(String.format("Failed to upload app."));
+                        out.println("Failed to upload app.");
                         build.setResult(Result.FAILURE);
                         return false;
                     }
@@ -296,13 +297,13 @@ public class UploadAppBuilder extends Builder {
             if (workspaces != null) {
                 for (int i = 0; i < workspaces.size(); i++) {
                     JSONObject workspace = (JSONObject) workspaces.get(i);
-                    if(workspace.getAsString("name").equals("Shared assets")){
+                    if(workspace.getAsString("name").equals(Constants.SHARED_ASSETS)){
                         result.add(workspace);
                     }
                 }
                 for (int i = 0; i < workspaces.size(); i++) {
                     JSONObject workspace = (JSONObject) workspaces.get(i);
-                    if(!workspace.getAsString("name").equals("Shared assets")){
+                    if(!workspace.getAsString("name").equals(Constants.SHARED_ASSETS)){
                         result.add(workspace);
                     }
                 }

@@ -62,5 +62,6 @@ public class Constants {
     public final static String JESEEIONEQ = "JSESSIONID=";
     public final static String TENANT_COOKIE = "TENANT_ID_COOKIE";
     public final static String TENANT_EQ = ";TENANT_ID_COOKIE=";
+    public final static String SHARED_ASSETS = "Shared assets";
 
 }
