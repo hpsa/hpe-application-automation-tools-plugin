@@ -344,7 +344,7 @@
 							<f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="recreateJob" checked="false"/>
 						</f:entry>
 						<f:entry>
-							<input name="digitalLabWizard" type="button" value="Wizard" onClick="await startLoadInfo(a, this)"/>
+							<input name="digitalLabWizard" type="button" value="Wizard" onClick="startLoadInfo(a, this)"/>
 						</f:entry>
 					</f:advanced>
 				</div>
