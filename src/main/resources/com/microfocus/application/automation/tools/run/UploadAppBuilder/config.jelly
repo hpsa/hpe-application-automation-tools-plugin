@@ -44,6 +44,17 @@
 
     <st:bind var="a" value="${descriptor}"/>
 
+    <style>
+    .drop-down-box {
+        width: 89%;
+        vertical-align: middle;
+    }
+    .mcRefreshButton{
+        width: 10%;
+        vertical-align: middle;
+    }
+    </style>
+
     <script type="text/javascript">
         function useAuthentication(obj){
             if(obj.checked){
@@ -56,7 +67,7 @@
         }
 
         function refreshWorkspaces(event,a){
-              var saveWorkspace = event.target.nextElementSibling.options[0].value;
+              var saveWorkspace = event.target.previousElementSibling.options[0].value;
               var mcUrl = document.getElementsByName("uploadApp.mcServerName")[0].value;
               var authType = document.querySelector('input[name$="authModel"]:checked').value;
               var mcUserName = document.getElementsByName("uploadApp.mcUserName")[0].value;
@@ -86,7 +97,7 @@
                              }
                          }
                      });
-                     event.target.nextElementSibling.innerHTML= str;
+                     event.target.previousElementSibling.innerHTML= str;
               });
         }
 
@@ -157,10 +168,10 @@
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
                 <f:entry title="Application upload workspace" field="mcAppWorkspace">
-                     <input class="mcRefreshButton" type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(event,a)"/>
-                     <select name="uploadApp.mcAppWorkspace">
+                     <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
                      	 <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
                      </select>
+                     <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,a)"/>
                 </f:entry>
                 <f:entry>
                     <div align="right">

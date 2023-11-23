@@ -168,6 +168,28 @@ public class JobConfigurationProxy {
         return null;
     }
 
+    //check signing service
+    public String isSigningServiceEnabled(Map<String, String> headers, String mcUrl, ProxySettings proxy) throws IOException {
+        if (null == proxy) {
+            proxy = new ProxySettings();
+        }
+        String getAdminSettingUrl = mcUrl + Constants.GET_ADMIN_SETTINGS_URL;
+        if(!StringUtils.isNullOrEmpty(getAdminSettingUrl)){
+            getAdminSettingUrl += (String.format("/%s","PACKAGING_IOS"));
+        }
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doGet(proxyInfo, getAdminSettingUrl, headers, null);
+        if (response != null && response.getJsonArray() != null) {
+            for (int i = 0; i < response.getJsonArray().size(); i++) {
+                JSONObject setting = (JSONObject) response.getJsonArray().get(i);
+                if(setting.getAsString("name").equals("IOS_PACKAGER_ENABLE")){
+                    return setting.getAsString("value");
+                }
+            }
+        }
+        return null;
+    }
+
     //login into MC server
     public Map<String, String> login(String mcUrl, AuthModel authModel, ProxySettings proxy){
         Map<String, String> headers = new HashMap<>();
@@ -202,6 +224,12 @@ public class JobConfigurationProxy {
     public JSONObject upload(Map<String, String> headers, String mcUrl, ProxySettings proxy, String appPath, String appUploadWorkspace) throws IOException {
         File appFile = new File(appPath);
         String uploadUrl = mcUrl + Constants.APP_UPLOAD;
+        String signingServiceEnabled = this.isSigningServiceEnabled(headers, mcUrl, proxy);
+        if(!StringUtils.isNullOrEmpty(signingServiceEnabled) && signingServiceEnabled.equalsIgnoreCase("true")){
+            uploadUrl += "?asyncInstrumentation=false&instrument=true&resign=true&isAppUploadPage=true";
+        }else{
+            uploadUrl += "?asyncInstrumentation=false&instrument=true&resign=false&isAppUploadPage=true";
+        }
         if(!StringUtils.isNullOrEmpty(appUploadWorkspace)){
             uploadUrl += (String.format("&workspaceId=%s",appUploadWorkspace));
         }
