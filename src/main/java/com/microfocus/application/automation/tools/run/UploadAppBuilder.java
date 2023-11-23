@@ -271,6 +271,7 @@ public class UploadAppBuilder extends Builder {
                     mcUrl = mcServer.getMcServerUrl();
                 }
             }
+            System.out.println(String.format("Digital lab server is: %s, username: %s, password: %s, tenantId: %s, accessKey: %s", mcUrl, mcUserName, mcPassword, mcTenantId, mcExecToken));
             AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
             ProxySettings proxySettings =new ProxySettings(useAuthentication, proxyAddress, proxyUserName, proxyPassword);
             try {

@@ -46,11 +46,13 @@
 
     <style>
     .drop-down-box {
-        width: 89%;
+        width: 88.8%;
+        height: 2.0em;
         vertical-align: middle;
     }
     .mcRefreshButton{
         width: 10%;
+        height: 1.8em;
         vertical-align: middle;
     }
     </style>
