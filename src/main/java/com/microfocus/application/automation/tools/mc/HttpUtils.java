@@ -112,6 +112,10 @@ public class HttpUtils {
                 response.setJsonObject((JSONObject) object);
             } else if (object instanceof JSONArray) {
                 response.setJsonArray((JSONArray) object);
+            } else if(object instanceof Boolean){
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("error", !((Boolean) object).booleanValue());
+                response.setJsonObject(jsonObject);
             }
         } else {
             System.out.println(requestMethod + " " + connectionUrl + " failed with response code:" + responseCode);

@@ -54,7 +54,9 @@
                 document.getElementsByName("uploadApp.fsProxyPassword")[0].disabled="true";
             }
         }
+
         function refreshWorkspaces(event,a){
+              var saveWorkspace = event.target.nextElementSibling.options[0].value;
               var mcUrl = document.getElementsByName("uploadApp.mcServerName")[0].value;
               var authType = document.querySelector('input[name$="authModel"]:checked').value;
               var mcUserName = document.getElementsByName("uploadApp.mcUserName")[0].value;
@@ -67,16 +69,37 @@
               var proxyUserName = document.getElementsByName("uploadApp.fsProxyUserName")[0].value;
               var proxyPassword = document.getElementsByName("uploadApp.fsProxyPassword")[0].value;
               a.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r) {
-                     var str = "";
+                     let str = "";
                      const workspaces = r.responseJSON;
                      workspaces.forEach((item) => {
-                       str = str + "<option value=" + item.uuid.toString();
-                       str = str + ">" + item.name + "</option>";
+                         if(saveWorkspace == ""){
+                            if(item.name == "Shared assets"){
+                               str = str + "<option value=" + item.uuid.toString() + " selected=" + true + ">" + item.name + "</option>";
+                            }else{
+                               str = str + "<option value=" + item.uuid.toString() + ">" + item.name + "</option>";
+                            }
+                         }else{
+                             if(item.uuid == saveWorkspace){
+                                str = str + "<option value=" + item.uuid.toString() + " selected=" + true + ">" + item.name + "</option>";
+                             }else{
+                                str = str + "<option value=" + item.uuid.toString() + ">" + item.name + "</option>";
+                             }
+                         }
                      });
-                     console.log(str);
                      event.target.nextElementSibling.innerHTML= str;
               });
         }
+
+        window.addEventListener("load",(event) => {
+           let items = document.getElementsByClassName("mcRefreshButton");
+           let len = items.length;
+           if(len > 0){
+              Array.prototype.forEach.call(items, function (element) {
+                   element.click();
+              });
+           }
+       })
+
     </script>
 
     <f:entry title="Digital Lab Server" field="mcServerName">
@@ -134,8 +157,9 @@
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
                 <f:entry title="Application upload workspace" field="mcAppWorkspace">
-                     <input type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(event,a)"/>
-                     <select id='mcWorkspaces' name="uploadApp.mcAppWorkspace">
+                     <input class="mcRefreshButton" type="button" value="Refresh Workspaces" onclick="refreshWorkspaces(event,a)"/>
+                     <select name="uploadApp.mcAppWorkspace">
+                     	 <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
                      </select>
                 </f:entry>
                 <f:entry>
