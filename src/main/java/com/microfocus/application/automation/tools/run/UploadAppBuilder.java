@@ -279,7 +279,6 @@ public class UploadAppBuilder extends Builder {
                 workspaces = job.getAllMcWorkspaces(mcUrl, authModel, proxySettings);
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("Failed to get workspaces");
             }
             return changeResult(workspaces);
         }
