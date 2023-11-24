@@ -217,21 +217,7 @@ public class JobConfigurationProxy {
                 proxy = new ProxySettings();
             }
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-            if (loginJson != null && !loginJson.isEmpty()) {
-                String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-                String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
-                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                String cookies = Constants.JESEEIONEQ + jsessionId;
-                if (TOKEN.equals(authModel.getValue())) {
-                    String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
-                    if (!StringUtils.isNullOrEmpty(oauth)) {
-                        cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
-                    } else {
-                        System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
-                    }
-                }
-                headers.put(Constants.COOKIE, cookies);
-            }
+            headers = initHeaders(authModel, loginJson);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -279,18 +265,14 @@ public class JobConfigurationProxy {
             proxy = new ProxySettings();
         }
 
-        JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-        Map<String, String> headers = initHeaders(authModel, loginJson);
-        if (headers != null) {
-            headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
-            headers.put(Constants.FILENAME, appFile.getName());
+        headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
+        headers.put(Constants.FILENAME, appFile.getName());
 
-            HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
-            HttpResponse response = HttpUtils.doPost(proxyInfo, uploadUrl, headers, bytes);
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doPost(proxyInfo, uploadUrl, headers, bytes);
 
-            if (response != null && response.getJsonObject() != null) {
-                return response.getJsonObject();
-            }
+        if (response != null && response.getJsonObject() != null) {
+            return response.getJsonObject();
         }
         return null;
     }

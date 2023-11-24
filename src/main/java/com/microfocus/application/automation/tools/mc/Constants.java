@@ -38,7 +38,7 @@ package com.microfocus.application.automation.tools.mc;
 public class Constants {
     public final static String BOUNDARYSTR = "randomstring";
     public final static String DATA = "data";
-    public final static String APP_UPLOAD = "/rest/apps/upload?enforceUpload=true";  // make sure unpacked app is uploaded in case of failure during instrumentation
+    public final static String APP_UPLOAD = "/rest/v2/apps";  // make sure unpacked app is uploaded in case of failure during instrumentation
     public final static String CONTENT_TYPE_DOWNLOAD_VALUE = "multipart/form-data; boundary=----";
     public final static String FILENAME = "filename";
     public static final String LOGIN_SECRET = "x-hp4msecret";
@@ -57,11 +57,15 @@ public class Constants {
     public static final String OAUTH_TOKEN_URL = "/rest/oauth2/token";
     public static final String CREATE_JOB_URL = "/rest/job/createTempJob";
     public static final String GET_JOB_UEL = "/rest/job/";
+    public static final String GET_ALL_WORKSPACES_URL = "/rest/v2/workspaces";
+    public static final String GET_WORKSPACE_URL = "/rest/v2/workspaces";
+    public static final String GET_ADMIN_SETTINGS_URL = "/rest/v2/adminSettings";
     public static final String GET_BROWSER_LAB_URL = "/rest/v2/browser-lab/uftone/templates";
     public final static String ICON = "icon";
     public final static String JSESSIONID_EQ = "JSESSIONID=";
     public final static String TENANT_COOKIE = "TENANT_ID_COOKIE";
     public final static String ACCESS_TOKEN = "access_token";
     public  final static String TOKEN_TYPE = "token_type";
+    public final static String SHARED_ASSETS = "Shared assets";
 
 }
