@@ -37,6 +37,7 @@ if (typeof BUILDER_SELECTOR === "undefined") {
 }
 
 function setupParamSpecification() {
+    document.body.style.cursor = "wait";
     let main = null;
     if (document.location.href.indexOf("pipeline-syntax") > 0) {
         main = document;
@@ -44,18 +45,47 @@ function setupParamSpecification() {
         main = document.currentScript.parentElement.closest(BUILDER_SELECTOR);
     }
 
-    setTimeout(() => {
-        startListening4Params(main);
-    }, 200);
+    if (main == null) {
+        setTimeout(() => { getFSContainerAndStartListening4Params(0); }, 500);
+    } else {
+        setTimeout(() => {
+            try {
+                startListening4Params(main);
+            } catch(e) {
+                console.error(e);
+            } finally {
+                document.body.style.cursor = "";
+            }
+        }, 200);
+    }
 }
 
-function startListening4Params(mainContainer) {
-    let main = mainContainer;
-    if (mainContainer == null) {
-        let divs = document.querySelectorAll(BUILDER_SELECTOR);
-        main = divs[divs.length - 1];
+function getFSContainerAndStartListening4Params(idxOfRetry) {
+    let divs = document.querySelectorAll(BUILDER_SELECTOR);
+    if (divs == null || divs.length == 0) {
+        if (idxOfRetry > 5) {
+            console.error("Failed to initialize Specific Params controls! Please retry again.");
+            document.body.style.cursor = "";
+        } else {
+            console.log("Retry to initialize Specific Params controls ...");
+            setTimeout(() => { getFSContainerAndStartListening4Params(++idxOfRetry); }, 500);
+        }
+    } else {
+        try {
+            startListening4Params(divs[divs.length - 1]);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            document.body.style.cursor = "";
+        }
     }
+}
 
+function startListening4Params(main) {
+    if (main == null) {
+        console.error("Failed to initialize Specific Params controls! Please retry or refresh the page.");
+        return;
+    }
     loadParamInputs(main);
 
     const btnAddNewParam = main.querySelector("button[name='addNewParamBtn']");
@@ -110,7 +140,7 @@ function startListening4Params(mainContainer) {
         })
     });
 
-    const chkAreParamsEnabled = main.querySelector("input[name='areParamsEnabled']");
+    const chkAreParamsEnabled = main.querySelector("input[name='areParametersEnabled']");
     if (chkAreParamsEnabled) {
         chkAreParamsEnabled.addEventListener("click", () => cleanParamInput(main));
     }
@@ -122,7 +152,7 @@ function startListening4Params(mainContainer) {
 }
 
 function queryTestInput(container) {
-    return container.querySelector("textarea[name='runfromfs.fsTests'], input[name='runfromfs.fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
+    return container.querySelector("textarea[name='fsTests'], input[name='fsTests'], textarea[name='runfromalm.almTestSets'], input[name='runfromalm.almTestSets']");
 }
 
 function generateAndPutJSONResult(container) {

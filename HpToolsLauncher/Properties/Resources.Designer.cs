@@ -343,6 +343,15 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud Browser is not supported in UFT One {0}. Please upgrade to UFT One 23.4 or later..
+        /// </summary>
+        internal static string CloudBrowserNotSupported {
+            get {
+                return ResourceManager.GetString("CloudBrowserNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CreateTDConnection.
         /// </summary>
         internal static string CreateTDConnection {

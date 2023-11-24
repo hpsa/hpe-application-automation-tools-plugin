@@ -28,60 +28,50 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
-	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
-	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
-	 <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
-	 <style>
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
+	<style>
 		#testsTable {
 			border: 1px;
 			width: 85%;
 		}
-
 		.testsDropDown {
 			margin-left: 20px;
 		}
-
 		#testsDropDown {
 			width: 85%;
 		}
-
 		#cleanupTestInput {
 			width: 250px;
 			margin-left: 10px;
 		}
-
 		#cleanupTestList {
 			margin-left: 20px;
 		}
-
 		td.help-text {
 			padding-left: 15px;
 		}
-
 		input[name="isParallelRunnerEnabled"],
 		 input[name="areParametersEnabled"] {
 			margin-left: 35px;
 		}
-
 		table tr td div.help {
 			margin-left: 12px;
 			background: none;
 			border: none;
 		}
-
 		.help {
 			background: none !important;
 		}
-
 		table td.help {
 			background: none;
 		}
-
 		table tr[nameref^="rowSetStart"] {
 			background: none;
 		}
-
 		textarea.jenkins-input, textarea.setting-input{
+			height: 5em;
 			resize: vertical;
 		}
 		div.setting-main {
@@ -93,7 +83,12 @@
 		div.repeated-container {
 			width:100%;
 		}
-	 </style>
+		.device-info-section {
+			width:100%;
+			margin-bottom: 10px;
+			--section-padding: 5px;
+		}
+	</style>
 
 	<st:bind var="a" value="${descriptor}"/>
 
@@ -114,15 +109,15 @@
 	</tr>
 
 	<f:entry title="Tests" field="fsTests">
-		<f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
+		<f:expandableTextbox name="fsTests" value="${instance.runFromFileModel.fsTests}"/>
 	</f:entry>
 
 	<f:entry title="Results directory" field="fsReportPath">
-		<f:textbox name="runfromfs.fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
+		<f:textbox name="fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
 	</f:entry>
 
 	<f:entry title="Timeout" field="fsTimeout">
-		<f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+		<f:textbox name="fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
 	</f:entry>
 
 	<f:entry title="Output encoding" field="outEncoding">
@@ -204,19 +199,19 @@
 					</div>
 				</div>
 				<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
-					<f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
+					<f:textbox name="controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
 				</f:entry>
 				<f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
-					<f:textbox name="runfromfs.perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
+					<f:textbox name="perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
 				</f:entry>
 				<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
-					<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
+					<f:textarea name="ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
 				</f:entry>
 				<f:entry title="Analysis Template" field="analysisTemplate">
 					<f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
 				</f:entry>
 				<f:entry title="Display Controller" field="displayController">
-					<f:checkbox name="runfromfs.displayController" checked="${instance.runFromFileModel.displayController}"/>
+					<f:checkbox name="displayController" checked="${instance.runFromFileModel.displayController}"/>
 				</f:entry>
 				<f:section title="${%SummaryDataLog}">
 					<f:entry name="Summary Data Log Model" field="summaryDataLogModel">
@@ -246,21 +241,21 @@
 	</f:advanced>
 
 	<!-- add MC server and app info starting -->
-	 <f:advanced title="Digital Lab (formerly UFT Mobile) Options" align="right">
-		 <div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
-			 <div class="repeated-chunk">
-				 <div style="width: 100%">
-					 <div class="tr help-sibling config-table-top-row">
-						 <div colspan="3">
-							 <div>
-								 <b>Digital Lab Options</b>
-							 </div>
-							 <span class="setting-no-help"></span>
-						 </div>
-					 </div>
-				 </div>
-				 <f:entry title="Digital Lab Server" field="mcServerName">
-					 <select name="runfromfs.mcServerName">
+	<f:advanced title="Digital Lab (formerly UFT Mobile) Options" align="right">
+		<div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>Digital Lab Options</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Digital Lab Server" field="mcServerName">
+					 <select name="mcServerName">
 						 <j:forEach var="mcServer" items="${descriptor.mcServers}">
 							 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
 								 ${mcServer.mcServerName}
@@ -268,109 +263,115 @@
 						 </j:forEach>
 					 </select>
 				 </f:entry>
-				 <f:entry>
-					 <f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
+				<f:entry>
+					 <f:checkbox title="Use SSL" name="useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
 				 </f:entry>
-                <f:entry field="authModel">
+				<f:entry field="authModel">
                     <f:radioBlock name="authModel" value="token" checked="${instance.runFromFileModel.authType == 'token' || instance.runFromFileModel.authType == null}" title="Execution Token Authentication">
                         <f:nested>
                             <f:entry title="Access Key" field="mcExecToken">
-                                <f:password name="runfromfs.mcExecToken" value="${instance.runFromFileModel.authModel.mcExecToken}" />
+                                <f:password name="mcExecToken" value="${instance.runFromFileModel.authModel.mcExecToken}" />
                             </f:entry>
                         </f:nested>
                     </f:radioBlock>
                     <f:radioBlock name="authModel" value="base" checked="${instance.runFromFileModel.authType == 'base'}" title="Base Authentication">
                         <f:nested>
                             <f:entry title="User name" field="mcUserName">
-                                <f:textbox name="runfromfs.mcUserName" value="${instance.runFromFileModel.authModel.mcUserName}"/>
+                                <f:textbox name="mcUserName" value="${instance.runFromFileModel.authModel.mcUserName}"/>
                             </f:entry>
                             <f:entry title="Password" field="mcPassword">
-                                <f:password name="runfromfs.mcPassword" value="${instance.runFromFileModel.authModel.mcPassword}"/>
+                                <f:password name="mcPassword" value="${instance.runFromFileModel.authModel.mcPassword}"/>
                             </f:entry>
                             <f:entry title="Tenant Id" field="mcTenantId">
-                                <f:textbox name="runfromfs.mcTenantId" value="${instance.runFromFileModel.authModel.mcTenantId}"/>
+                                <f:textbox name="mcTenantId" value="${instance.runFromFileModel.authModel.mcTenantId}"/>
                             </f:entry>
                         </f:nested>
                     </f:radioBlock>
                 </f:entry>
-				 <f:entry>
-					 <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
+				<f:entry>
+					 <f:optionalBlock title="Use proxy settings" name="proxySettings" checked="${instance.runFromFileModel.useProxy}">
 						 <f:entry title="Address" field="fsProxyAddress">
-							 <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
+							 <f:textbox name="fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
 						 </f:entry>
-						 <f:optionalBlock title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" inline="true" >
+						 <f:optionalBlock title="Specify authentication" name="fsUseAuthentication" checked="${instance.runFromFileModel.useProxyAuth}" inline="true" >
 							 <f:entry title="User name" field="fsProxyUserName">
-								 <f:textbox name="runfromfs.fsProxyUserName" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+								 <f:textbox name="fsProxyUserName" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
 							 </f:entry>
 							 <f:entry title="Password" field="fsProxyPassword">
-								 <f:password name="runfromfs.fsProxyPassword" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+								 <f:password name="fsProxyPassword" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
 							 </f:entry>
 						</f:optionalBlock>
 					 </f:optionalBlock>
 				 </f:entry>
-				 <f:entry title="DEVICE INFORMATION:"/>
-				 <f:entry/>
-				 <f:entry title="Device ID" field="fsDeviceId">
-					 <f:readOnlyTextbox name="runfromfs.fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
-				 </f:entry>
-				 <f:entry title="OS" field="fsOs">
-					 <f:readOnlyTextbox name="runfromfs.fsOs" value="${instance.runFromFileModel.fsOs}"/>
-				 </f:entry>
-				 <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
-					 <f:readOnlyTextbox name="runfromfs.fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
-				 </f:entry>
-				 <f:entry title="Target lab" field="fsTargetLab">
-					 <f:readOnlyTextbox name="runfromfs.fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
-				 </f:entry>
-				 <f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
-					 <f:textarea name="runfromfs.fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
-				 </f:entry>
 
-				 <f:entry title="TEST DEFINITIONS:"/>
-				 <f:entry/>
-				 <f:entry title="Launch on start" field="fsLaunchAppName">
-					 <f:readOnlyTextbox name="runfromfs.fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
-				 </f:entry>
-				 <f:entry title="AUT packaging" field="fsInstrumented">
-					 <f:readOnlyTextbox name="runfromfs.fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
-				 </f:entry>
-				 <f:entry title="AUT actions" field="fsAutActions">
-					 <f:readOnlyTextbox name="runfromfs.fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
-				 </f:entry>
-				 <f:entry title="Device metrics" field="fsDevicesMetrics">
-					 <f:readOnlyTextbox name="runfromfs.fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
-				 </f:entry>
-				 <f:entry title="Job Id">
-					 <f:readOnlyTextbox name="runfromfs.fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
-				 </f:entry>
-				 <f:entry>
-					 <f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="runfromfs.recreateJob" checked="false"/>
-				 </f:entry>
-				 <f:entry>
-					 <input id="wizard" type="button" value="wizard" onClick="loadMobileInfo(a)"/>
-				 </f:entry>
-				 <f:entry>
-					 <div id="errorMessage" style="color:red;display:none">Digital Lab login information or proxy is incorrect.</div>
-				 </f:entry>
-			 </div>
-			 <div class="tr config-table-top-row">
-				 <div colspan="4">
-					 <div align="right">
-						 <span class="yui-button yui-push-button repeatable-delete danger">
-							 <span class="first-child">
-								 <button type="button" tabindex="0" title="Hide Digital Lab Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
-									 Hide Digital Lab Options
-								 </button>
-							 </span>
-						 </span>
-					 </div>
-				 </div>
-			 </div>
-		 </div>
-	 </f:advanced>
+				<div class="tr device-info-section" style="width: 100%">
+					<f:advanced title="Device Options" align="right">
+						<f:entry title="DEVICE INFORMATION:" />
+						<f:entry title="Device ID" field="fsDeviceId">
+							<f:readOnlyTextbox name="fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
+						</f:entry>
+						<f:entry title="OS" field="fsOs">
+							<f:readOnlyTextbox name="fsOs" value="${instance.runFromFileModel.fsOs}"/>
+						</f:entry>
+						<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+							<f:readOnlyTextbox name="fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+						</f:entry>
+						<f:entry title="Target lab" field="fsTargetLab">
+							<f:readOnlyTextbox name="fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
+						</f:entry>
+						<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+							<f:textarea name="fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
+						</f:entry>
+
+						<f:entry title="TEST DEFINITIONS:"/>
+						<f:entry/>
+						<f:entry title="Launch on start" field="fsLaunchAppName">
+							<f:readOnlyTextbox name="fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+						</f:entry>
+						<f:entry title="AUT packaging" field="fsInstrumented">
+							<f:readOnlyTextbox name="fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
+						</f:entry>
+						<f:entry title="AUT actions" field="fsAutActions">
+							<f:readOnlyTextbox name="fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
+						</f:entry>
+						<f:entry title="Device metrics" field="fsDevicesMetrics">
+							<f:readOnlyTextbox name="fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+						</f:entry>
+						<f:entry title="Job Id">
+							<f:readOnlyTextbox name="fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
+						</f:entry>
+						<f:entry>
+							<f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="recreateJob" checked="false"/>
+						</f:entry>
+						<f:entry>
+							<input name="digitalLabWizard" type="button" value="Wizard" onClick="startLoadInfo(a, this)"/>
+						</f:entry>
+					</f:advanced>
+				</div>
+
+				<f:entry>
+					<div id="errorMessage" style="color:red;display:none">Digital Lab login information or proxy is incorrect.</div>
+				</f:entry>
+		 	</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide Digital Lab Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
+									Hide Digital Lab Options
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
 
 	<script type="text/javascript">
 		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
 		setupFsTask();
+		setupDigitalLab();
 	</script>
 </j:jelly>

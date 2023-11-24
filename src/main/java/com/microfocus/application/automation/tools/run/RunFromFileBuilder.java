@@ -53,7 +53,7 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -596,6 +596,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         runFromFileModel.setFsReportPath(fsReportPath);
     }
 
+    public CloudBrowserModel getCloudBrowserModel() {
+        return runFromFileModel.getCloudBrowserModel();
+    }
+    @DataBoundSetter
+    public void setCloudBrowserModel(CloudBrowserModel cloudBrowserModel) {
+        runFromFileModel.setCloudBrowserModel(cloudBrowserModel);
+    }
     public String getOutEncoding() { return runFromFileModel.getOutEncoding(); }
 
     @DataBoundSetter
@@ -607,7 +614,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
      * @param useSSL the mc server name
      */
     @DataBoundSetter
-    public void setuseSSL(boolean useSSL) {
+    public void setUseSSL(boolean useSSL) {
         runFromFileModel.setUseSSL(useSSL);
     }
 
@@ -669,6 +676,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             mergedProps.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
             mergedProps.setProperty("MobileHostAddress", mcServerUrl);
+
+            CloudBrowserModel cbm = getCloudBrowserModel();
+            if (cbm != null) {
+                String cb = String.format("\"url=%s;os=%s;type=%s;version=%s;region=%s\"", cbm.getUrl(), cbm.getOs(), cbm.getType(), cbm.getVersion(), cbm.getRegion());
+                mergedProps.setProperty("cloudBrowser", cb);
+            }
         }
 
         // check whether Mobile authentication info is given or not
@@ -1006,10 +1019,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the job id
          */
         @JavaScriptMethod
-        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken, String authType,
-                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
-            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
-            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
+        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
+                               boolean useProxyAuth, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, accessKey, authType);
+            ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddress, proxyUserName, proxyPassword);
             if (null != previousJobId && !previousJobId.isEmpty()) {
                 JSONObject jobJSON = instance.getJobById(mcUrl, authModel, proxy, previousJobId);
                 if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
@@ -1029,11 +1042,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the json object
          */
         @JavaScriptMethod
-        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken, String authType,
-                                               boolean fsUseAuthentication, String proxyAddress, String proxyUserName, String proxyPassword,
+        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
+                                               boolean useProxyAuth, String proxyAddress, String proxyUserName, String proxyPassword,
                                                String jobId) {
-            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
-            ProxySettings proxy = new ProxySettings(fsUseAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, accessKey, authType);
+            ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddress, proxyUserName, proxyPassword);
             return instance.getJobJSONData(mcUrl, authModel, proxy, jobId);
         }
 
@@ -1050,10 +1063,22 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             MCServerSettingsModel[] servers = MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
             for (MCServerSettingsModel mcServer : servers) {
                 if (mcServer.getMcServerName().equals(serverName)) {
-                    serverUrl = mcServer.getMcServerUrl();
+                    serverUrl = mcServer.getMcServerUrl().trim();
+                    break;
                 }
             }
             return serverUrl;
+        }
+
+        @JavaScriptMethod
+        public JSONObject getBrowserLab(String serverName, String accessKey, boolean useProxyAuth, String proxyAddr, String proxyUserName, String proxyPassword) {
+            String serverUrl = getMcServerUrl(serverName);
+            if (StringUtils.isNotBlank(serverUrl)) {
+                serverUrl = StringUtils.stripEnd(serverUrl, "/");
+                ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddr, proxyUserName, proxyPassword);
+                return instance.getBrowserLab(serverUrl, accessKey, proxy);
+            }
+            return null;
         }
 
         @Override

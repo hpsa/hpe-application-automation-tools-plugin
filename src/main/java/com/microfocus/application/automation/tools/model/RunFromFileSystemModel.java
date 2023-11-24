@@ -87,6 +87,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
     private ProxySettings proxySettings;
     private boolean useSSL;
     private AuthModel authModel;
+    private CloudBrowserModel cloudBrowserModel;
 
     /**
      * Instantiates a new Run from file system model.
@@ -146,6 +147,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
         this.authModel = authModel;
+        this.cloudBrowserModel = null;
     }
 
     /**
@@ -378,6 +380,12 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.fsReportPath = fsReportPath;
     }
 
+    public  CloudBrowserModel getCloudBrowserModel() {
+        return cloudBrowserModel;
+    }
+
+    public void setCloudBrowserModel(CloudBrowserModel cloudBrowserModel) { this.cloudBrowserModel = cloudBrowserModel; }
+
     public String getMcPassword() {
         //Temp fix till supported in pipeline module in LR
         if (authModel == null || authModel.getMcPassword() == null) {
@@ -498,8 +506,8 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
      *
      * @return the boolean
      */
-    public boolean isUseAuthentication() {
-        return proxySettings != null && StringUtils.isNotBlank(proxySettings.getFsProxyUserName());
+    public boolean isUseProxyAuth() {
+        return proxySettings != null && proxySettings.isFsUseAuthentication();
     }
 
     /**
@@ -659,7 +667,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
             props.put("MobileProxyType", "2");
             props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
 
-            if (isUseAuthentication()){
+            if (isUseProxyAuth() && StringUtils.isNotBlank(proxySettings.getFsProxyUserName())){
                 props.put(MOBILE_PROXY_SETTING_AUTHENTICATION, "1");
                 props.put(MOBILE_PROXY_SETTING_USER_NAME,proxySettings.getFsProxyUserName());
                 String encryptedPassword;

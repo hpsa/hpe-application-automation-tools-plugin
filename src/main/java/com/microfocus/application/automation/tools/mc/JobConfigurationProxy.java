@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.mc;
 
+import com.microfocus.adm.performancecenter.plugins.common.rest.RESTConstants;
 import com.microfocus.application.automation.tools.model.AuthModel;
 import com.microfocus.application.automation.tools.model.ProxySettings;
 import com.microfocus.application.automation.tools.sse.common.StringUtils;
@@ -39,10 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * communicate with MC servers, login to MC, upload application to MC server, create job, get job details.
@@ -71,16 +69,15 @@ public class JobConfigurationProxy {
 
         JSONObject returnObject = new JSONObject();
         try {
-            Map<String, String> headers = new HashMap<>();
-            headers.put(Constants.ACCEPT, "application/json");
-            headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
+            Map<String, String> headers = getRequestHeaders();
 
             JSONObject sendObject = new JSONObject();
             if (null == proxy) {
                 proxy = new ProxySettings();
             }
             HttpResponse response;
-            if ("base".equals(authModel.getValue())) {
+            AuthType authType = authModel.getAuthType();
+            if (authType == AuthType.BASE) {
                 String tempUsername = authModel.getMcUserName();
                 if (!StringUtils.isNullOrEmpty(authModel.getMcTenantId())) {
                     tempUsername += "#" + authModel.getMcTenantId();
@@ -88,28 +85,51 @@ public class JobConfigurationProxy {
                 sendObject.put("name", tempUsername);
                 sendObject.put("password", authModel.getMcPassword());
                 sendObject.put("accountName", "default");
-                response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL, headers, sendObject.toJSONString().getBytes());
+                response = doPost(proxy, mcUrl + Constants.LOGIN_URL, headers, sendObject);
+            } else if (Oauth2TokenUtil.isValid(authModel.getMcExecToken())) {
+                sendObject = Oauth2TokenUtil.getJSONObject();
+                response = doPost(proxy, mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject);
             } else {
-                headers.put(Constants.ACCEPT, "application/json");
-                headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
-                if (Oauth2TokenUtil.validate(authModel.getMcExecToken())) {
-                    sendObject.put("client", Oauth2TokenUtil.getClient());
-                    sendObject.put("secret", Oauth2TokenUtil.getSecret());
-                    sendObject.put("tenant", Oauth2TokenUtil.getTenant());
-                    response = HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), mcUrl + Constants.LOGIN_URL_OAUTH, headers, sendObject.toJSONString().getBytes());
-                } else {
-                    System.out.println("ERROR:: oauth token is invalid.");
-                    return returnObject;
-                }
+                System.out.println("ERROR:: oauth token is invalid.");
+                return returnObject;
             }
-            return parseLoginResponse(response);
+            return parseLoginResponse(response, authType);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return returnObject;
     }
 
-    private JSONObject parseLoginResponse(HttpResponse response) {
+    private JSONObject generateNewToken(String mcUrl, String accessKey, ProxySettings proxy) {
+
+        try {
+            Map<String, String> headers = getRequestHeaders();
+
+            if (null == proxy) {
+                proxy = new ProxySettings();
+            }
+            HttpResponse response;
+            if (Oauth2TokenUtil.isValid(accessKey)) {
+                JSONObject sendObject = Oauth2TokenUtil.getJSONObject();
+                String url = mcUrl + Constants.OAUTH_TOKEN_URL;
+                response = doPost(proxy, url, headers, sendObject);
+                return parseTokenResponse(response, AuthType.TOKEN);
+            }
+            System.out.println("ERROR: oauth token is invalid.");
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Map<String, String> getRequestHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(Constants.ACCEPT, "application/json");
+        headers.put(Constants.CONTENT_TYPE, "application/json;charset=UTF-8");
+        return headers;
+    }
+    private JSONObject parseLoginResponse(HttpResponse response, AuthType authType) {
         JSONObject returnObject = new JSONObject();
         if (response == null || response.getHeaders() == null) {
             return null;
@@ -118,33 +138,34 @@ public class JobConfigurationProxy {
         }
         Map<String, List<String>> headerFields = response.getHeaders();
         List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);
-        if (hp4mSecretList != null && !hp4mSecretList.isEmpty()) {
-            setToRespJSON(returnObject, Constants.LOGIN_SECRET, hp4mSecretList.get(0));
+        if (hp4mSecretList != null && !hp4mSecretList.isEmpty() && !StringUtils.isNullOrEmpty(hp4mSecretList.get(0))) {
+            returnObject.put(Constants.LOGIN_SECRET, hp4mSecretList.get(0));
         }
-        List<String> setCookieList = headerFields.get(Constants.SET_COOKIE);
-        if (setCookieList == null || setCookieList.isEmpty()) {
-            return returnObject;
-        }
-        StringBuilder cookies = new StringBuilder();
-        String setCookie = setCookieList.get(0);
-        String tenantCookie = null;
-        String oauth2Cookie = null;
-
-        for (String str : setCookieList) {
-            if (str.contains(Constants.JSESSIONID) && str.startsWith(Constants.JSESSIONID)) {
-                setCookie = str;
-                cookies.append(str).append(';');
-            } else if (str.contains(Constants.TENANT_COOKIE) && str.startsWith(Constants.TENANT_COOKIE)) {
-                tenantCookie = str;
-                cookies.append(str).append(';');
-            } else if (str.contains(Constants.OAUTH2_COOKIE_KEY) && str.startsWith(Constants.OAUTH2_COOKIE_KEY)) {
-                oauth2Cookie = str;
+        if (authType == AuthType.TOKEN && headerFields.containsKey(Constants.SET_COOKIE)) {
+            List<String> cookies = headerFields.get(Constants.SET_COOKIE);
+            if (cookies != null && !cookies.isEmpty()) {
+                for (String cookie : cookies) {
+                    if (cookie.startsWith(Constants.OAUTH2_COOKIE_KEY)) {
+                        returnObject.put(Constants.OAUTH2_COOKIE_KEY, getCookieValue(cookie, Constants.OAUTH2_COOKIE_KEY));
+                        break;
+                    }
+                }
             }
         }
-        setToRespJSON(returnObject, Constants.JSESSIONID, getCookieValue(setCookie, Constants.JSESSIONID));
-        setToRespJSON(returnObject, Constants.TENANT_COOKIE, getCookieValue(tenantCookie, Constants.TENANT_COOKIE));
-        setToRespJSON(returnObject, Constants.OAUTH2_COOKIE_KEY, getCookieValue(oauth2Cookie, Constants.OAUTH2_COOKIE_KEY));
-        setToRespJSON(returnObject, Constants.COOKIE, cookies.toString());
+
+        returnObject.put(Constants.COOKIES, response.getCookiesAsString());
+        return returnObject;
+    }
+
+    private JSONObject parseTokenResponse(HttpResponse response, AuthType authType) {
+        JSONObject returnObject = parseLoginResponse(response, authType);
+        if (returnObject != null) {
+            JSONObject body = response.getJsonObject();
+            if (body != null) {
+                returnObject.put(Constants.ACCESS_TOKEN, body.getAsString(Constants.ACCESS_TOKEN));
+                returnObject.put(Constants.TOKEN_TYPE, body.getAsString(Constants.TOKEN_TYPE));
+            }
+        }
 
         return returnObject;
     }
@@ -196,21 +217,7 @@ public class JobConfigurationProxy {
                 proxy = new ProxySettings();
             }
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-            if (loginJson != null && !loginJson.isEmpty()) {
-                String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-                String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
-                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                String cookies = Constants.JESEEIONEQ + jsessionId;
-                if (TOKEN.equals(authModel.getValue())) {
-                    String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
-                    if (!StringUtils.isNullOrEmpty(oauth)) {
-                        cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
-                    } else {
-                        System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
-                    }
-                }
-                headers.put(Constants.COOKIE, cookies);
-            }
+            headers = initHeaders(authModel, loginJson);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -257,6 +264,7 @@ public class JobConfigurationProxy {
         if (null == proxy) {
             proxy = new ProxySettings();
         }
+
         headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
         headers.put(Constants.FILENAME, appFile.getName());
 
@@ -289,20 +297,9 @@ public class JobConfigurationProxy {
     public String createTempJob(String mcUrl, AuthModel authModel, ProxySettings proxy) {
         try {
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-            if (loginJson == null) {
-                return null;
-            }
-            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
 
-            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, jsessionId)) {
-                Map<String, String> headers = new HashMap<>();
-                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                StringBuilder cookies = new StringBuilder(Constants.JESEEIONEQ).append(jsessionId);
-                if (TOKEN.equals(authModel.getValue())) {
-                    cookies.append(';').append(Constants.OAUTH2_COOKIE_KEY).append('=').append((String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
-                }
-                headers.put(Constants.COOKIE, cookies.toString());
+            Map<String, String> headers = initHeaders(authModel,loginJson);
+            if (headers != null) {
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
                 HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.CREATE_JOB_URL, headers, null);
 
@@ -326,20 +323,9 @@ public class JobConfigurationProxy {
 
         try {
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-            if (loginJson == null) {
-                return null;
-            }
-            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
 
-            if (thereIsNoArgumentNullOrEmpty(jobUUID, hp4mSecret, jsessionId)) {
-                Map<String, String> headers = new HashMap<>();
-                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-                String cookies = Constants.JESEEIONEQ + jsessionId;
-                if (TOKEN.equals(authModel.getValue())) {
-                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + loginJson.get(Constants.OAUTH2_COOKIE_KEY));
-                }
-                headers.put(Constants.COOKIE, cookies);
+            Map<String, String> headers = initHeaders(authModel,loginJson);
+            if (!StringUtils.isNullOrEmpty(jobUUID) && headers != null) {
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
                 HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
 
@@ -354,6 +340,38 @@ public class JobConfigurationProxy {
             e.printStackTrace();
         }
         return removeIcon(jobJsonObject);
+    }
+
+    public JSONObject getBrowserLab(String mcUrl, String accessKey, ProxySettings proxy) {
+        JSONObject jsonObject = null;
+
+        try {
+            JSONObject loginJson = generateNewToken(mcUrl, accessKey, proxy);
+            if (loginJson == null) {
+                return null;
+            }
+            String hp4mSecret = loginJson.getAsString(Constants.LOGIN_SECRET);
+            String token = loginJson.getAsString(Constants.ACCESS_TOKEN);
+            String tokenType = loginJson.getAsString(Constants.TOKEN_TYPE);
+            String cookies = loginJson.getAsString(Constants.COOKIES);
+            if (thereIsNoArgumentNullOrEmpty(hp4mSecret, token, tokenType, cookies)) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put(Constants.ACCEPT, "application/json");
+                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+                headers.put(Constants.COOKIE, cookies);
+                headers.put(RESTConstants.AUTHORIZATION, String.format("%s %s", tokenType, token));
+                HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+                String url = String.format("%s%s?toolVersion=23.4", mcUrl, Constants.GET_BROWSER_LAB_URL);
+                HttpResponse response = HttpUtils.doGet(proxyInfo, url, headers, null);
+
+                if (response != null && response.getJsonObject() != null) {
+                    jsonObject = response.getJsonObject();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 
     //parse one job.and get the data we want
@@ -552,8 +570,43 @@ public class JobConfigurationProxy {
         return jobJSON;
     }
 
-    private void setToRespJSON(JSONObject returnObject, String key, String value) {
-        if (thereIsNoArgumentNullOrEmpty(key, value) && null != returnObject)
-            returnObject.put(key, value);
+
+    private Map<String, String> initHeaders(AuthModel authModel, JSONObject loginJson) {
+        Map<String, String> headers = new HashMap<>();
+        if (loginJson != null) {
+            String hp4mSecret = loginJson.getAsString(Constants.LOGIN_SECRET);
+            List<String> args = new ArrayList<>();
+            args.add(hp4mSecret);
+            String oauth2 = "", jSessionId = "";
+            if (TOKEN.equals(authModel.getValue())) {
+                oauth2 = loginJson.getAsString(Constants.OAUTH2_COOKIE_KEY);
+                if (StringUtils.isNullOrEmpty(oauth2)) {
+                    System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
+                    return null;
+                }
+                args.add(oauth2);
+            } else {
+                jSessionId = loginJson.getAsString(Constants.JSESSIONID);
+                if (!StringUtils.isNullOrEmpty(jSessionId))
+                    args.add(jSessionId);
+            }
+
+            if (thereIsNoArgumentNullOrEmpty(args.toArray(new String[0]))) {
+                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+                if (TOKEN.equals(authModel.getValue())) {
+                    headers.put(Constants.COOKIE, String.format("%s=%s;", Constants.OAUTH2_COOKIE_KEY, oauth2));
+                } else if (!StringUtils.isNullOrEmpty(jSessionId)) {
+                    headers.put(Constants.COOKIE, String.format("%s=%s;", Constants.JSESSIONID, jSessionId));
+                } else if (loginJson.containsKey(Constants.COOKIES)) {
+                    headers.put(Constants.COOKIE, loginJson.getAsString(Constants.COOKIES));
+                }
+                return headers;
+            }
+        }
+        return null;
+    }
+
+    private HttpResponse doPost(ProxySettings proxy, String url, Map<String, String> headers, JSONObject body) {
+        return HttpUtils.doPost(HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword()), url, headers, body.toJSONString().getBytes(), true);
     }
 }

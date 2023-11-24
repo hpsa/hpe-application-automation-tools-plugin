@@ -513,6 +513,12 @@ namespace HpToolsLauncher
                     {
                         mobileinfo = _ciParams["mobileinfo"];
                     }
+                    CloudBrowser cloudBrowser = null;
+                    string strCloudBrowser = _ciParams.GetOrDefault("cloudBrowser").Trim();
+                    if (!strCloudBrowser.IsNullOrEmpty())
+                    {
+                         CloudBrowser.TryParse(strCloudBrowser, out cloudBrowser);
+                    }
 
                     var parallelRunnerEnvironments = new Dictionary<string, List<string>>();
 
@@ -584,16 +590,16 @@ namespace HpToolsLauncher
                     string uftRunMode = _ciParams.GetOrDefault("fsUftRunMode", "Fast");
                     if (validTests.Count > 0)
                     {
-                        runner = new FileSystemTestsRunner(validTests, GetValidParams(), printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
+                        runner = new FileSystemTestsRunner(validTests, GetValidParams(), printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, new DigitalLab(mcConnectionInfo, mobileinfo, cloudBrowser), parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
                     }
                     else if (cleanupAndRerunTests.Count > 0)
                     {
-                        runner = new FileSystemTestsRunner(cleanupAndRerunTests, printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, mcConnectionInfo, mobileinfo, parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
+                        runner = new FileSystemTestsRunner(cleanupAndRerunTests, printInputParams, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVars, new DigitalLab(mcConnectionInfo, mobileinfo, cloudBrowser), parallelRunnerEnvironments, displayController, analysisTemplate, summaryDataLogger, scriptRTSSet, reportPath, resultsFilename, _encoding, uftRunAsUser);
                     }
                     else
                     {
                         ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
-                        Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+                        Environment.Exit((int)ExitCodeEnum.Failed);
                     }
 
                     break;
@@ -1001,5 +1007,4 @@ namespace HpToolsLauncher
             return noRerunsSet;
         }
     }
-
 }
