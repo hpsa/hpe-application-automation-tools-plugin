@@ -110,12 +110,14 @@ public class JobConfigurationProxy {
     }
 
     private JSONObject parseLoginResponse(HttpResponse response) {
+        JSONObject returnObject = new JSONObject();
         if (response == null || response.getHeaders() == null) {
+            return null;
+        }else if(response.getJsonObject() != null && response.getJsonObject().containsKey("error") && response.getJsonObject().getAsString("error").equals("true")){
             return null;
         }
         Map<String, List<String>> headerFields = response.getHeaders();
         List<String> hp4mSecretList = headerFields.get(Constants.LOGIN_SECRET);
-        JSONObject returnObject = new JSONObject();
         if (hp4mSecretList != null && !hp4mSecretList.isEmpty()) {
             setToRespJSON(returnObject, Constants.LOGIN_SECRET, hp4mSecretList.get(0));
         }
@@ -147,12 +149,88 @@ public class JobConfigurationProxy {
         return returnObject;
     }
 
+    //check workspace exist or not in MC
+    public JSONObject isWorkspaceExist(Map<String, String> headers, String mcUrl, ProxySettings proxy, String appUploadWorkspace) throws IOException {
+        if (null == proxy) {
+            proxy = new ProxySettings();
+        }
+        String getWorkspaceUrl = mcUrl + Constants.GET_WORKSPACE_URL;
+        if(!StringUtils.isNullOrEmpty(getWorkspaceUrl)){
+            getWorkspaceUrl += (String.format("/%s",appUploadWorkspace));
+        }
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doGet(proxyInfo, getWorkspaceUrl, headers, null);
+        if (response != null && response.getJsonObject() != null) {
+            return response.getJsonObject();
+        }
+        return null;
+    }
+
+    //check signing service
+    public String isSigningServiceEnabled(Map<String, String> headers, String mcUrl, ProxySettings proxy) throws IOException {
+        if (null == proxy) {
+            proxy = new ProxySettings();
+        }
+        String getAdminSettingUrl = mcUrl + Constants.GET_ADMIN_SETTINGS_URL;
+        if(!StringUtils.isNullOrEmpty(getAdminSettingUrl)){
+            getAdminSettingUrl += (String.format("/%s","PACKAGING_IOS"));
+        }
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doGet(proxyInfo, getAdminSettingUrl, headers, null);
+        if (response != null && response.getJsonArray() != null) {
+            for (int i = 0; i < response.getJsonArray().size(); i++) {
+                JSONObject setting = (JSONObject) response.getJsonArray().get(i);
+                if(setting.getAsString("name").equals("IOS_PACKAGER_ENABLE")){
+                    return setting.getAsString("value");
+                }
+            }
+        }
+        return null;
+    }
+
+    //login into MC server
+    public Map<String, String> login(String mcUrl, AuthModel authModel, ProxySettings proxy){
+        Map<String, String> headers = new HashMap<>();
+        try{
+            if (null == proxy) {
+                proxy = new ProxySettings();
+            }
+            JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
+            if (loginJson != null && !loginJson.isEmpty()) {
+                String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+                String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+                headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+                String cookies = Constants.JESEEIONEQ + jsessionId;
+                if (TOKEN.equals(authModel.getValue())) {
+                    String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
+                    if (!StringUtils.isNullOrEmpty(oauth)) {
+                        cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
+                    } else {
+                        System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
+                    }
+                }
+                headers.put(Constants.COOKIE, cookies);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return headers;
+    }
+
     //upload app to MC
-    public JSONObject upload(String mcUrl, AuthModel authModel, ProxySettings proxy, String appPath) throws IOException {
+    public JSONObject upload(Map<String, String> headers, String mcUrl, ProxySettings proxy, String appPath, String appUploadWorkspace) throws IOException {
         File appFile = new File(appPath);
-
         String uploadUrl = mcUrl + Constants.APP_UPLOAD;
-
+        String signingServiceEnabled = this.isSigningServiceEnabled(headers, mcUrl, proxy);
+        if(!StringUtils.isNullOrEmpty(signingServiceEnabled) && signingServiceEnabled.equalsIgnoreCase("true")){
+            uploadUrl += "?asyncInstrumentation=false&instrument=true&resign=true&isAppUploadPage=true";
+        }else{
+            uploadUrl += "?asyncInstrumentation=false&instrument=true&resign=false&isAppUploadPage=true";
+        }
+        if(!StringUtils.isNullOrEmpty(appUploadWorkspace)){
+            uploadUrl += (String.format("&workspaceId=%s",appUploadWorkspace));
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         StringBuilder content = new StringBuilder();
@@ -175,27 +253,10 @@ public class JobConfigurationProxy {
         byte[] bytes = outputStream.toByteArray();
 
         outputStream.close();
+
         if (null == proxy) {
             proxy = new ProxySettings();
         }
-        Map<String, String> headers = new HashMap<>();
-        JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-        if (loginJson != null) {
-            String hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
-            String jsessionId = (String) loginJson.get(Constants.JSESSIONID);
-            headers.put(Constants.LOGIN_SECRET, hp4mSecret);
-            String cookies = Constants.JESEEIONEQ + jsessionId;
-            if (TOKEN.equals(authModel.getValue())) {
-                String oauth = (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY);
-                if (!StringUtils.isNullOrEmpty(oauth)) {
-                    cookies += (";" + Constants.OAUTH2_COOKIE_KEY + "=" + (String) loginJson.get(Constants.OAUTH2_COOKIE_KEY));
-                } else {
-                    System.out.println("ERROR:: loginToMC failed with null oauth cookie.");
-                }
-            }
-            headers.put(Constants.COOKIE, cookies);
-        }
-
         headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
         headers.put(Constants.FILENAME, appFile.getName());
 
@@ -207,6 +268,22 @@ public class JobConfigurationProxy {
         }
         return null;
     }
+
+    //get all workspaces from MC
+    public JSONArray getAllMcWorkspaces(String mcUrl, AuthModel authModel, ProxySettings proxy) throws IOException {
+        try {
+            Map<String, String> headers = login(mcUrl, authModel, proxy);
+            HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+            HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_ALL_WORKSPACES_URL, headers, "includeSharedAssets=true");
+            if (response != null && response.getJsonArray() != null) {
+                return response.getJsonArray();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     //create one temp job
     public String createTempJob(String mcUrl, AuthModel authModel, ProxySettings proxy) {

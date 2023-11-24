@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.run;
 
+import com.microfocus.application.automation.tools.mc.Constants;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
@@ -42,15 +43,18 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.FilenameUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,10 +98,30 @@ public class UploadAppBuilder extends Builder {
             return false;
         } else {
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
+            Map<String, String> headers = job.login(mcServerUrl, uploadAppModel.getAuthModel(), uploadAppModel.getProxySettings());
+            if (headers == null || headers.size() == 0) {
+                if (uploadAppModel.isUseProxy()) {
+                    out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
+                            mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress()));
+                } else if (uploadAppModel.isUseAuthentication()) {
+                    out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s, proxy userName:%s",
+                            mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
+                } else {
+                    out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s", mcServerUrl));
+                }
+                build.setResult(Result.FAILURE);
+                return false;
+            }
+
+            if(paths == null || paths.size() == 0) {
+                return true;
+            }
+
             out.println(String.format("There are %d apps to be uploaded.", paths.size()));
             String workspace = build.getWorkspace() == null ? "" : build.getWorkspace().toURI().getPath();
 
             for (int i = 1; i <= paths.size(); i++) {
+                String appUploadWorkspace = paths.get(i - 1).getMcAppWorkspace();
                 String path = paths.get(i - 1).getMcAppPath();
                 String originPath = path;
                 if (StringUtils.isNullOrEmpty(path)) {
@@ -133,20 +157,27 @@ public class UploadAppBuilder extends Builder {
                         continue;
                     }
                 }
-
+                //check workspace exist or not in MC server
+                String appUploadWorkspaceName = "";
+                if(!StringUtils.isNullOrEmpty(appUploadWorkspace)){
+                    JSONObject result = job.isWorkspaceExist(headers, mcServerUrl, uploadAppModel.getProxySettings(), appUploadWorkspace);
+                    if(result == null || (result != null && (!result.containsKey("uuid") || !result.getAsString("uuid").equals(appUploadWorkspace)))){
+                        out.println(String.format("Failed to upload app %d %s, Cause cannot find target workspace id: %s", i, originPath, appUploadWorkspace));
+                        build.setResult(Result.FAILURE);
+                        allSuccess = false;
+                        continue;
+                    }else{
+                        appUploadWorkspaceName = result.getAsString("name");
+                    }
+                }else{
+                    appUploadWorkspaceName = Constants.SHARED_ASSETS;
+                }
+                //upload app
                 try {
-                    out.println(String.format("starting to upload app %d %s", i, originPath));
-                    app = job.upload(mcServerUrl, uploadAppModel.getAuthModel(), uploadAppModel.getProxySettings(), path);
+                    out.println(String.format("starting to upload app %d %s to workspace %s", i, originPath, appUploadWorkspaceName));
+                    app = job.upload(headers, mcServerUrl, uploadAppModel.getProxySettings(), path, appUploadWorkspace);
                     if (app == null) {
-                        if (uploadAppModel.isUseProxy()) {
-                            out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
-                                    mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress()));
-                        } else if (uploadAppModel.isUseAuthentication()) {
-                            out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s, proxy userName:%s",
-                                    mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
-                        } else {
-                            out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s.", mcServerUrl));
-                        }
+                        out.println("Failed to upload app.");
                         build.setResult(Result.FAILURE);
                         return false;
                     }
@@ -167,15 +198,7 @@ public class UploadAppBuilder extends Builder {
                     allSuccess = false;
                     continue;
                 } catch (Exception e) {
-                    if (uploadAppModel.isUseProxy()) {
-                        out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
-                                mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress()));
-                    } else if (uploadAppModel.isUseAuthentication()) {
-                        out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s, proxy userName:%s",
-                                mcServerUrl, uploadAppModel.getProxySettings().getFsProxyAddress(), uploadAppModel.getProxySettings().getFsProxyUserName()));
-                    } else {
-                        out.println(String.format("Failed to upload app, Cause Digital Lab connection info is incorrect. url:%s", mcServerUrl));
-                    }
+                    out.println("Failed to upload app.");
                     build.setResult(Result.FAILURE);
                     return false;
                 } finally {
@@ -231,5 +254,53 @@ public class UploadAppBuilder extends Builder {
         public MCServerSettingsModel[] getMcServers() {
             return MCServerSettingsGlobalConfiguration.getInstance().getInstallations();
         }
+
+        /**
+         * Gets mc workspace list.
+         *
+         * @param mcUrl the server name
+         * @return the mc workspace list
+         */
+        @SuppressWarnings("squid:S2259")
+        @JavaScriptMethod
+        public JSONArray getMcWorkspaces(String mcUrl, String authType, String mcUserName, String mcPassword, String mcTenantId, String mcExecToken,
+                                                      boolean useProxy, String proxyAddress, boolean useAuthentication, String proxyUserName, String proxyPassword) {
+            JSONArray workspaces = null;
+            for (MCServerSettingsModel mcServer : this.getMcServers()) {
+                if (!StringUtils.isNullOrEmpty(mcUrl)
+                        && mcUrl.equals(mcServer.getMcServerName())) {
+                    mcUrl = mcServer.getMcServerUrl();
+                }
+            }
+            AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
+            ProxySettings proxySettings =new ProxySettings(useAuthentication, proxyAddress, proxyUserName, proxyPassword);
+            try {
+                JobConfigurationProxy job = JobConfigurationProxy.getInstance();
+                workspaces = job.getAllMcWorkspaces(mcUrl, authModel, proxySettings);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return changeResult(workspaces);
+        }
+
+        private JSONArray changeResult(JSONArray workspaces){
+            JSONArray result = new JSONArray();
+            if (workspaces != null) {
+                for (int i = 0; i < workspaces.size(); i++) {
+                    JSONObject workspace = (JSONObject) workspaces.get(i);
+                    if(workspace.getAsString("name").equals(Constants.SHARED_ASSETS)){
+                        result.add(workspace);
+                    }
+                }
+                for (int i = 0; i < workspaces.size(); i++) {
+                    JSONObject workspace = (JSONObject) workspaces.get(i);
+                    if(!workspace.getAsString("name").equals(Constants.SHARED_ASSETS)){
+                        result.add(workspace);
+                    }
+                }
+            }
+            return result;
+        }
+
     }
 }

@@ -28,6 +28,7 @@
 
 package com.microfocus.application.automation.tools.mc;
 
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.apache.commons.lang.StringUtils;
@@ -103,11 +104,17 @@ public class HttpUtils {
 
         if (responseCode == HttpURLConnection.HTTP_OK) {
             InputStream inputStream = connection.getInputStream();
-            JSONObject jsonObject = convertStreamToJSONObject(inputStream);
+            Object object = convertStreamToObject(inputStream);
             response.setHeaders(connection.getHeaderFields());
-            if (null == jsonObject) {
+            if (null == object) {
                 System.out.println(requestMethod + " " + connectionUrl + " return is null.");
-            } else {
+            } else if (object instanceof JSONObject) {
+                response.setJsonObject((JSONObject) object);
+            } else if (object instanceof JSONArray) {
+                response.setJsonArray((JSONArray) object);
+            } else if(object instanceof Boolean){
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("error", !((Boolean) object).booleanValue());
                 response.setJsonObject(jsonObject);
             }
         } else {
@@ -164,8 +171,8 @@ public class HttpUtils {
 
     }
 
-    private static JSONObject convertStreamToJSONObject(InputStream inputStream) {
-        JSONObject obj = null;
+    private static Object convertStreamToObject(InputStream inputStream) {
+        Object obj = null;
 
         if (inputStream != null) {
             try {
@@ -175,7 +182,7 @@ public class HttpUtils {
                 while ((line = reader.readLine()) != null) {
                     res.append(line);
                 }
-                obj = (JSONObject) JSONValue.parseStrict(res.toString());
+                obj = JSONValue.parseStrict(res.toString());
             } catch (ClassCastException e) {
                 System.out.println("WARN::INVALIDE JSON Object" + e.getMessage());
             } catch (Exception e) {
