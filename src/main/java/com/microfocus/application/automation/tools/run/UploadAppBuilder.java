@@ -272,22 +272,14 @@ public class UploadAppBuilder extends Builder {
                     mcUrl = mcServer.getMcServerUrl();
                 }
             }
-            System.out.println(String.format("Digital lab server is: %s, username: %s, password: %s, tenantId: %s, accessKey: %s", mcUrl, mcUserName, mcPassword, mcTenantId, mcExecToken));
             AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, mcExecToken, authType);
             ProxySettings proxySettings =new ProxySettings(useAuthentication, proxyAddress, proxyUserName, proxyPassword);
             try {
                 JobConfigurationProxy job = JobConfigurationProxy.getInstance();
                 workspaces = job.getAllMcWorkspaces(mcUrl, authModel, proxySettings);
             } catch (Exception e) {
-                if (useProxy) {
-                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s",
-                            mcUrl, proxySettings.getFsProxyAddress()));
-                } else if (useAuthentication) {
-                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s, Proxy url:%s, proxy userName:%s",
-                            mcUrl, proxySettings.getFsProxyAddress(), proxySettings.getFsProxyUserName()));
-                } else {
-                    System.out.println(String.format("Failed to get workspaces, Cause Digital Lab connection info is incorrect. url:%s", mcUrl));
-                }
+                e.printStackTrace();
+                System.out.println("Failed to get workspaces");
             }
             return changeResult(workspaces);
         }
