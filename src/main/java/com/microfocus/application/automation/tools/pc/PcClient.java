@@ -148,14 +148,15 @@ public class PcClient {
                 Messages.Project(), model.getAlmProject(true),
                 Messages.TestID(), Integer.parseInt(model.getTestId(true)),
                 Messages.TestInstanceID(), testInstance,
-                Messages.TimeslotDuration(), model.getTimeslotDuration(),
+                Messages.TimeslotDuration(),
+                new TimeslotDuration(model.getTimeslotDurationHours(true), model.getTimeslotDurationMinutes(true)),
                 Messages.PostRunAction(), model.getPostRunAction().getValue(),
                 Messages.UseVUDS(), model.isVudsMode()));
         PcRunResponse response = null;
         try {
             response = restProxy.startRun(testID,
                     testInstance,
-                    model.getTimeslotDuration(),
+                    new TimeslotDuration(model.getTimeslotDurationHours(true),model.getTimeslotDurationMinutes(true)),
                     model.getPostRunAction().getValue(),
                     model.isVudsMode(),
                     0);
@@ -202,7 +203,7 @@ public class PcClient {
                 try {
                     response = restProxy.startRun(testID,
                             testInstance,
-                            model.getTimeslotDuration(),
+                            new TimeslotDuration(model.getTimeslotDurationHours(true) ,model.getTimeslotDurationMinutes(true)),
                             model.getPostRunAction().getValue(),
                             model.isVudsMode(),
                             0);

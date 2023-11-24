@@ -42,6 +42,21 @@
         </tr>
     </j:if>
 
+    <st:bind var="a" value="${descriptor}"/>
+
+    <style>
+    .drop-down-box {
+        width: 88.8%;
+        height: 2.0em;
+        vertical-align: middle;
+    }
+    .mcRefreshButton{
+        width: 10%;
+        height: 1.8em;
+        vertical-align: middle;
+    }
+    </style>
+
     <script type="text/javascript">
         function useAuthentication(obj){
             if(obj.checked){
@@ -52,6 +67,52 @@
                 document.getElementsByName("uploadApp.fsProxyPassword")[0].disabled="true";
             }
         }
+
+        function refreshWorkspaces(event,a){
+              var saveWorkspace = event.target.previousElementSibling.options[0].value;
+              var mcUrl = document.getElementsByName("uploadApp.mcServerName")[0].value;
+              var authType = document.querySelector('input[name$="authModel"]:checked').value;
+              var mcUserName = document.getElementsByName("uploadApp.mcUserName")[0].value;
+              var mcPassword = document.getElementsByName("uploadApp.mcPassword")[0].value;
+              var mcTenantId = document.getElementsByName("uploadApp.mcTenantId")[0].value;
+              var mcExecToken = document.getElementsByName("uploadApp.mcExecToken")[0].value;
+              var useProxy = document.getElementsByName("proxySettings")[0].checked;
+              var proxyAddress = document.getElementsByName("uploadApp.fsProxyAddress")[0].value;
+              var useAuthentication = document.getElementsByName("uploadApp.fsUseAuthentication")[0].checked;
+              var proxyUserName = document.getElementsByName("uploadApp.fsProxyUserName")[0].value;
+              var proxyPassword = document.getElementsByName("uploadApp.fsProxyPassword")[0].value;
+              a.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r) {
+                     let str = "";
+                     const workspaces = r.responseJSON;
+                     workspaces.forEach((item) => {
+                         if(saveWorkspace == ""){
+                            if(item.name == "Shared assets"){
+                               str = str + "<option value=" + item.uuid.toString() + " selected=" + true + ">" + item.name + "</option>";
+                            }else{
+                               str = str + "<option value=" + item.uuid.toString() + ">" + item.name + "</option>";
+                            }
+                         }else{
+                             if(item.uuid == saveWorkspace){
+                                str = str + "<option value=" + item.uuid.toString() + " selected=" + true + ">" + item.name + "</option>";
+                             }else{
+                                str = str + "<option value=" + item.uuid.toString() + ">" + item.name + "</option>";
+                             }
+                         }
+                     });
+                     event.target.previousElementSibling.innerHTML= str;
+              });
+        }
+
+        window.addEventListener("load",(event) => {
+           let items = document.getElementsByClassName("mcRefreshButton");
+           let len = items.length;
+           if(len > 0){
+              Array.prototype.forEach.call(items, function (element) {
+                   element.click();
+              });
+           }
+       })
+
     </script>
 
     <f:entry title="Digital Lab Server" field="mcServerName">
@@ -107,6 +168,12 @@
             <table width="100%">
                 <f:entry title="Application path" field="mcAppPath">
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
+                </f:entry>
+                <f:entry title="Application upload workspace" field="mcAppWorkspace">
+                     <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
+                     	 <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
+                     </select>
+                     <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,a)"/>
                 </f:entry>
                 <f:entry>
                     <div align="right">

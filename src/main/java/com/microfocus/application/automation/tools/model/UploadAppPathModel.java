@@ -42,14 +42,20 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class UploadAppPathModel extends AbstractDescribableImpl<UploadAppPathModel> {
     private String mcAppPath;
+    private String mcAppWorkspace;
 
     @DataBoundConstructor
-    public UploadAppPathModel(String mcAppPath) {
+    public UploadAppPathModel(String mcAppPath, String mcAppWorkspace) {
         this.mcAppPath = mcAppPath;
+        this.mcAppWorkspace = mcAppWorkspace;
     }
 
     public String getMcAppPath() {
         return mcAppPath;
+    }
+
+    public String getMcAppWorkspace() {
+        return mcAppWorkspace;
     }
 
     @Extension

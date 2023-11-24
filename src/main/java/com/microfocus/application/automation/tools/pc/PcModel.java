@@ -53,7 +53,6 @@ public class PcModel {
     private final String almProject;
     private final String testId;
     private final String autoTestInstanceID;
-    private final TimeslotDuration timeslotDuration;
     private final PostRunAction postRunAction;
     private final boolean vudsMode;
     private final String description;
@@ -68,7 +67,8 @@ public class PcModel {
     private String retry;
     private String retryDelay;
     private String retryOccurrences;
-
+    private String timeslotDurationHours;
+    private String timeslotDurationMinutes;
 
     @DataBoundConstructor
     public PcModel(String serverAndPort, String pcServerName, String credentialsId, String almDomain, String almProject,
@@ -84,7 +84,8 @@ public class PcModel {
         this.testId = testId;
         this.autoTestInstanceID = autoTestInstanceID;
         this.testInstanceId = testInstanceId;
-        this.timeslotDuration = new TimeslotDuration(timeslotDurationHours, timeslotDurationMinutes);
+        this.timeslotDurationHours = timeslotDurationHours;
+        this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.postRunAction = postRunAction;
         this.vudsMode = vudsMode;
         this.description = description;
@@ -243,9 +244,24 @@ public class PcModel {
         return this.autoTestInstanceID;
     }
 
-    public TimeslotDuration getTimeslotDuration() {
+    public String getTimeslotDurationHours() {
 
-        return this.timeslotDuration;
+        return this.timeslotDurationHours;
+    }
+
+    public String getTimeslotDurationHours(boolean fromPcClient) {
+
+        return fromPcClient ? useParameterIfNeeded(buildParameters, this.timeslotDurationHours) : getTimeslotDurationHours();
+    }
+
+    public String getTimeslotDurationMinutes() {
+
+        return this.timeslotDurationMinutes;
+    }
+
+    public String getTimeslotDurationMinutes(boolean fromPcClient) {
+
+        return fromPcClient ? useParameterIfNeeded(buildParameters, this.timeslotDurationMinutes) : getTimeslotDurationMinutes();
     }
 
     public boolean isVudsMode() {
@@ -295,11 +311,11 @@ public class PcModel {
         String trendString = ("USE_ID").equals(addRunToTrendReport) ? String.format(", TrendReportID = '%s'", trendReportId) : "";
 
         return String.format("[PCServer='%s', CredentialsId='%s', Domain='%s', Project='%s', TestID='%s', " +
-                        "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s', " +
+                        "TestInstanceID='%s', TimeslotDurationHours='%s', TimeslotDurationMinutes='%s', PostRunAction='%s', " +
                         "VUDsMode='%s, trending='%s', HTTPSProtocol='%s', authenticateWithToken='%s']",
 
                 pcServerName, credentialsId, almDomain, almProject, testId,
-                testInstanceId, timeslotDuration, postRunAction.getValue(),
+                testInstanceId, timeslotDurationHours, timeslotDurationMinutes, postRunAction.getValue(),
                 vudsModeString, trendString, HTTPSProtocol, authenticateWithToken);
     }
 
