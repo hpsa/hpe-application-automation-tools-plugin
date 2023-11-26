@@ -120,6 +120,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         try {
             while ((item = queue.peekFirst()) != null) {
                 if (queueContainsPostponedItems(item)) {
+                    logger.warn("Project [" + item.getProjectName() + "] has postpone items");
                     //all postponed items are in the end of queue, so it we encountered one postponed item, other postponed items will come after it, so we do break
                     break;
                 }
