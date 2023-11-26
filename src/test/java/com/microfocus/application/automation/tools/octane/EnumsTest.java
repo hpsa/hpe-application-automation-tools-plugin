@@ -61,7 +61,7 @@ public class EnumsTest {
 
 	@Test
 	public void testCIEventType() {
-		assertEquals(CIEventType.values().length, 8);
+		assertEquals(CIEventType.values().length, 9);
 		assertEquals(CIEventType.QUEUED.value(), "queued");
 		assertEquals(CIEventType.SCM.value(), "scm");
 		assertEquals(CIEventType.STARTED.value(), "started");
@@ -70,6 +70,8 @@ public class EnumsTest {
 		assertEquals(CIEventType.DELETED.value(),"deleted" );
 		assertEquals(CIEventType.RENAMED.value(),"renamed" );
 		assertEquals(CIEventType.REMOVED_FROM_QUEUE.value(),"removed_from_queue" );
+		assertEquals(CIEventType.CHANGE_EXEC_STATE.value(),"change_exec_state" );
+
 	}
 
 	@Test
