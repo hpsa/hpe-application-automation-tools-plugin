@@ -194,7 +194,7 @@
                 <f:entry title="Application path" field="mcAppPath">
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
-                <f:entry title="Application upload workspace" field="mcAppWorkspace">
+                <f:entry title="Workspace for application" field="mcAppWorkspace">
                      <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
                      	 <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
                      </select>
