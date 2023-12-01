@@ -49,14 +49,19 @@
     <st:bind var="a" value="${descriptor}"/>
 
     <style>
+    .refreshDiv {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
     .drop-down-box {
-        width: 88.8%;
-        height: 2.0em;
+        width: 89%;
         vertical-align: middle;
     }
     .mcRefreshButton{
         width: 10%;
         height: 1.8em;
+        margin: 0;
         vertical-align: middle;
     }
     </style>
@@ -195,10 +200,12 @@
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
                 <f:entry title="Workspace for application" field="mcAppWorkspace">
-                     <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
-                     	 <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
-                     </select>
-                     <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,a)"/>
+                     <div class="refreshDiv">
+                         <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
+                     	     <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
+                         </select>
+                         <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,a)"/>
+                     </div>
                 </f:entry>
                 <f:entry>
                     <div align="right">
