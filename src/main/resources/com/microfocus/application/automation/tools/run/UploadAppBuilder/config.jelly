@@ -46,7 +46,7 @@
         </tr>
     </j:if>
 
-    <st:bind var="a" value="${descriptor}"/>
+    <st:bind var="upload" value="${descriptor}"/>
 
     <style>
     .refreshDiv {
@@ -77,7 +77,7 @@
             }
         }
 
-        function refreshWorkspaces(event,a){
+        function refreshWorkspaces(event,upload){
               var saveWorkspace = event.target.previousElementSibling.value;
               var mcUrl = document.getElementsByName("uploadApp.mcServerName")[0].value;
               var authType = document.querySelector('input[name$="authModel"]:checked').value;
@@ -90,7 +90,7 @@
               var useAuthentication = document.getElementsByName("uploadApp.fsUseAuthentication")[0].checked;
               var proxyUserName = document.getElementsByName("uploadApp.fsProxyUserName")[0].value;
               var proxyPassword = document.getElementsByName("uploadApp.fsProxyPassword")[0].value;
-              a.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r) {
+              upload.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r) {
                      const workspaces = r.responseJSON;
                      var str = renderWorkspaces(workspaces,saveWorkspace);
                      event.target.previousElementSibling.innerHTML= str;
@@ -129,7 +129,7 @@
            var useAuthentication = document.getElementsByName("uploadApp.fsUseAuthentication")[0].checked;
            var proxyUserName = document.getElementsByName("uploadApp.fsProxyUserName")[0].value;
            var proxyPassword = document.getElementsByName("uploadApp.fsProxyPassword")[0].value;
-           a.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r){
+           upload.getMcWorkspaces(mcUrl, authType, mcUserName, mcPassword, mcTenantId, mcExecToken, useProxy, proxyAddress, useAuthentication, proxyUserName, proxyPassword, function (r){
                   const workspaces = r.responseJSON;
                   let items = document.getElementsByClassName("mcRefreshButton");
                   let len = items.length;
@@ -204,7 +204,7 @@
                          <select class="drop-down-box" name="uploadApp.mcAppWorkspace">
                      	     <option value="${app.mcAppWorkspace}">${app.mcAppWorkspace}</option>
                          </select>
-                         <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,a)"/>
+                         <input class="mcRefreshButton" type="button" value="Refresh" onclick="refreshWorkspaces(event,upload)"/>
                      </div>
                 </f:entry>
                 <f:entry>
