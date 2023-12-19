@@ -5,6 +5,8 @@ This page shows a history of the enhancements made to the OpenText Application A
 
 See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for information about beta versions and recent patches.
 
+[What&#39;s New in version 23.3.0 ](#what&#39;s-new-in-version-23&#46;3&#46;0)
+
 [What&#39;s New in version 8.0 ](#what&#39;s-new-in-version-8&#46;0)
 
 [What&#39;s New in versions 7.7 and 7.8 ](#what&#39;s-new-in-versions-7&#46;7-and-7&#39;8)
@@ -38,6 +40,20 @@ See the [Changelog ](https://wiki.jenkins.io/display/JENKINS/Changelog)for infor
 [What&#39;s New in version 6.0 ](#what&#39;s-new-in-version-6.0)
 
 [What&#39;s New in version 5.9 ](#what&#39;s-new-in-version-5.9)
+
+## What&#39;s New in version 23&#46;3&#46;0
+
+Version 23.3.0 introduced the following enhancements and fixes:
+
+**ALM Octane**
+- Bug fixes.
+
+**UFT One**
+ - Company name rebranded to OpenText.
+ - UFT Mobile renamed to Digital Lab.
+ - Enhancement of File System jobs to work correctly inside Docker.
+ - Bug fixes and optimizations.
+
 
 ## What&#39;s New in version 8&#46;0
 
