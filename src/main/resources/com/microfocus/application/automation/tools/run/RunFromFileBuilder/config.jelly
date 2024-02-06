@@ -75,7 +75,7 @@
 			background: none;
 		}
 		textarea.jenkins-input, textarea.setting-input{
-			height: 5em;
+			height:5em;
 			resize: vertical;
 		}
 		div.setting-main {
@@ -87,10 +87,29 @@
 		div.repeated-container {
 			width:100%;
 		}
+		.cloud-browser-section {
+			width:50%;
+			margin-bottom: 10px;
+			--section-padding: 5px;
+		}
+		input[name="cloudBrowserLab"] {
+			display: inline-block;
+			margin-bottom: 10px;
+			width: 140px;
+		}
+		input[name="digitalLabWizard"] {
+			display: inline-block;
+			margin-bottom: 10px;
+			width: 140px;
+		}
 		.device-info-section {
 			width:100%;
 			margin-bottom: 10px;
 			--section-padding: 5px;
+		}
+		.error-msg {
+			color:red;
+			display:none;
 		}
 	</style>
 
@@ -308,55 +327,77 @@
 						</f:optionalBlock>
 					 </f:optionalBlock>
 				 </f:entry>
-
-				<div class="tr device-info-section" style="width: 100%">
-					<f:advanced title="Device Options" align="right">
-						<f:entry title="DEVICE INFORMATION:" />
-						<f:entry title="Device ID" field="fsDeviceId">
-							<f:readOnlyTextbox name="fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
-						</f:entry>
-						<f:entry title="OS" field="fsOs">
-							<f:readOnlyTextbox name="fsOs" value="${instance.runFromFileModel.fsOs}"/>
-						</f:entry>
-						<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
-							<f:readOnlyTextbox name="fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
-						</f:entry>
-						<f:entry title="Target lab" field="fsTargetLab">
-							<f:readOnlyTextbox name="fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
-						</f:entry>
-						<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
-							<f:textarea name="fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
-						</f:entry>
-
-						<f:entry title="TEST DEFINITIONS:"/>
-						<f:entry/>
-						<f:entry title="Launch on start" field="fsLaunchAppName">
-							<f:readOnlyTextbox name="fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
-						</f:entry>
-						<f:entry title="AUT packaging" field="fsInstrumented">
-							<f:readOnlyTextbox name="fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
-						</f:entry>
-						<f:entry title="AUT actions" field="fsAutActions">
-							<f:readOnlyTextbox name="fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
-						</f:entry>
-						<f:entry title="Device metrics" field="fsDevicesMetrics">
-							<f:readOnlyTextbox name="fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
-						</f:entry>
-						<f:entry title="Job Id">
-							<f:readOnlyTextbox name="fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
-						</f:entry>
+				<j:set var="hasJobId" value="${instance.runFromFileModel.fsJobId == null ? false : instance.runFromFileModel.fsJobId != ''}"/>
+				<f:optionalBlock name="useMobileDevice" title="Use Device Lab" checked="${hasJobId}" inline="true">
+					<div class="tr device-info-section">
+						<div class="repeated-chunk">
+							<f:entry title="Device ID" field="fsDeviceId">
+								<f:readOnlyTextbox name="fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
+							</f:entry>
+							<f:entry title="OS" field="fsOs">
+								<f:readOnlyTextbox name="fsOs" value="${instance.runFromFileModel.fsOs}"/>
+							</f:entry>
+							<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+								<f:readOnlyTextbox name="fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+							</f:entry>
+							<f:entry title="Target lab" field="fsTargetLab">
+								<f:readOnlyTextbox name="fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
+							</f:entry>
+							<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+								<f:textarea name="fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
+							</f:entry>
+							<f:entry title="TEST DEFINITIONS:"/>
+							<f:entry/>
+							<f:entry title="Launch on start" field="fsLaunchAppName">
+								<f:readOnlyTextbox name="fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+							</f:entry>
+							<f:entry title="AUT packaging" field="fsInstrumented">
+								<f:readOnlyTextbox name="fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
+							</f:entry>
+							<f:entry title="AUT actions" field="fsAutActions">
+								<f:readOnlyTextbox name="fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
+							</f:entry>
+							<f:entry title="Device metrics" field="fsDevicesMetrics">
+								<f:readOnlyTextbox name="fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+							</f:entry>
+							<f:entry title="Job Id">
+								<f:readOnlyTextbox name="fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
+							</f:entry>
+						</div>
 						<f:entry>
 							<f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="recreateJob" checked="false"/>
 						</f:entry>
 						<f:entry>
 							<input name="digitalLabWizard" type="button" value="Wizard" onClick="startLoadInfo(a, this)"/>
+							<span class="error-msg">Digital Lab login information or proxy is incorrect.</span>
 						</f:entry>
-					</f:advanced>
-				</div>
+					</div>
+				</f:optionalBlock>
+				<j:set var="isCloudBrowserLab" value="${instance.runFromFileModel.cloudBrowserModel != null}"/>
+				<f:optionalBlock name="cloudBrowserModel" title="Use Cloud Browser Lab" checked="${isCloudBrowserLab}" >
+					<div class="tr cloud-browser-section">
+						<f:nested>
+							<input type="button" name="cloudBrowserLab" value="Browser settings" onclick="startLoadInfo(a, this,'${rootURL}');" />
+							<span class="error-msg">Digital Lab login information or proxy is incorrect.</span>
+							<f:textbox name="cloudBrowserUrl" value="${instance.runFromFileModel.cloudBrowserModel.url}" placeholder="URL"/>
+							<div class="repeated-chunk">
+								<f:entry title="Operating System" field="cloudBrowserOs">
+									<f:readOnlyTextbox name="cloudBrowserOs" value="${instance.runFromFileModel.cloudBrowserModel.os}"/>
+								</f:entry>
+								<f:entry title="Browser name" field="cloudBrowserType">
+									<f:readOnlyTextbox name="cloudBrowserType" value="${instance.runFromFileModel.cloudBrowserModel.type}"/>
+								</f:entry>
+								<f:entry title="Browser version" field="cloudBrowserVersion">
+									<f:readOnlyTextbox name="cloudBrowserVersion" value="${instance.runFromFileModel.cloudBrowserModel.version}"/>
+								</f:entry>
+								<f:entry title="Location" field="cloudBrowserRegion">
+									<f:readOnlyTextbox name="cloudBrowserRegion" value="${instance.runFromFileModel.cloudBrowserModel.region}"/>
+								</f:entry>
+							</div>
+						</f:nested>
+					</div>
+				</f:optionalBlock>
 
-				<f:entry>
-					<div id="errorMessage" style="color:red;display:none">Digital Lab login information or proxy is incorrect.</div>
-				</f:entry>
 		 	</div>
 			<div class="tr config-table-top-row">
 				<div colspan="4">
@@ -377,6 +418,5 @@
 	<script type="text/javascript">
 		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
 		setupFsTask();
-		setupDigitalLab();
 	</script>
 </j:jelly>
