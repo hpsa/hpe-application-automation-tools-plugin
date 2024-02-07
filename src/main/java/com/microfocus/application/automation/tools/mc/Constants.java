@@ -50,6 +50,7 @@ public class Constants {
     public static final String JSESSIONID = "JSESSIONID";
     public static final String LWSSO_COOKIE_KEY = "LWSSO_COOKIE_KEY";
     public static final String OAUTH2_COOKIE_KEY = "OAUTH2_COOKIE_KEY";
+    public static final String TENANT_ID_COOKIE = "TENANT_ID_COOKIE";
     public static final String ACCEPT = "Accept";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String COOKIE = "Cookie";

@@ -39,6 +39,7 @@ import com.microfocus.application.automation.tools.EncryptionUtils;
 import com.microfocus.application.automation.tools.Messages;
 import com.microfocus.application.automation.tools.lr.model.ScriptRTSSetModel;
 import com.microfocus.application.automation.tools.lr.model.SummaryDataLogModel;
+import com.microfocus.application.automation.tools.mc.Constants;
 import com.microfocus.application.automation.tools.mc.JobConfigurationProxy;
 import com.microfocus.application.automation.tools.model.*;
 import com.microfocus.application.automation.tools.settings.MCServerSettingsGlobalConfiguration;
@@ -71,6 +72,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Describes a regular jenkins build step from UFT or LR
@@ -1023,19 +1025,65 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
          * @return the job id
          */
         @JavaScriptMethod
-        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
+        public Map<String, String> getJobId(String mcUrl, String mcUserName, String mcPassword, String mcTenantId, String accessKey, String authType,
                                boolean useProxyAuth, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
             AuthModel authModel = new AuthModel(mcUserName, mcPassword, mcTenantId, accessKey, authType);
             ProxySettings proxy = new ProxySettings(useProxyAuth, proxyAddress, proxyUserName, proxyPassword);
-            if (null != previousJobId && !previousJobId.isEmpty()) {
-                JSONObject jobJSON = instance.getJobById(mcUrl, authModel, proxy, previousJobId);
-                if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
-                    return previousJobId;
-                } else {
-                    return instance.createTempJob(mcUrl, authModel, proxy);
+            Map<String, String> map = new HashMap<>();
+            String jobIdKey = "jobId";
+
+            try {
+                JSONObject loginJson = instance.loginToMC(mcUrl, authModel, proxy);
+                Map<String, String> initHeaders = instance.initHeaders(authModel, loginJson);
+                if (initHeaders != null) {
+                    map = initHeaders;
+
+                    String cookie = initHeaders.get(Constants.COOKIE);
+                    String loginSecret = initHeaders.get(Constants.LOGIN_SECRET);
+                    if (!StringUtils.isEmpty(cookie)) {
+
+                        if (!StringUtils.isEmpty(loginSecret)) {
+                           String loginSecretCookie =  String.format("%s=%s;", Constants.LOGIN_SECRET, loginSecret);
+                           cookie = cookie + loginSecretCookie;
+                        }
+
+                        if (!StringUtils.isEmpty(accessKey)) {
+                            AtomicReference<String> tenantIdValue = new AtomicReference<>("");
+
+                            Arrays.stream(accessKey.split(";")).forEach(str -> {
+                                if (str.toLowerCase().contains("tenant")) {
+                                    tenantIdValue.set(str.substring(8));
+                                }
+                            });
+
+                            if (tenantIdValue.get() != null) {
+                                String tenantIdCookie = String.format("%s=%s;", Constants.TENANT_ID_COOKIE, tenantIdValue.get());
+                                cookie = cookie + tenantIdCookie;
+                            }
+                        }
+                        map.put(Constants.COOKIE, cookie);
+                    }
                 }
+
+                String jobId;
+                if (null != previousJobId && !previousJobId.isEmpty()) {
+                    JSONObject jobJSON = instance.getJobByIdWithHeaders(mcUrl, proxy, previousJobId, initHeaders);
+                    if (jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))) {
+                        jobId = previousJobId;
+                    } else {
+                        jobId = instance.createTempJobWithHeaders(mcUrl, proxy, initHeaders);
+                    }
+                } else {
+                    jobId = instance.createTempJobWithHeaders(mcUrl, proxy, initHeaders);
+                }
+
+                map.put(jobIdKey, jobId);
+                System.out.println("INFO:: getJobId with cookies : " + map);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            return instance.createTempJob(mcUrl, authModel, proxy);
+
+            return map;
         }
 
         /**

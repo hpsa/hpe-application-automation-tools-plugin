@@ -179,7 +179,19 @@ async function loadMobileInfo(a, b, o) {
         }
         let prevJobId = o.recreateJob ? "" : o.jobId;
         await a.getJobId(baseUrl, o.userName, o.password, o.tenantId, o.execToken, o.authType, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, prevJobId, async (response) => {
-            let jobId = response.responseObject();
+            let map = response.responseObject();
+
+            let jobId = '';
+            let cookie = '';
+            //First need to check the return type(not sure if java map can automatically covert to js map)
+            if(map.hasOwnProperty("jobId")) {
+                jobId = map["jobId"];
+            }
+            if(map.hasOwnProperty("Cookie")) {
+                cookie = map["Cookie"];
+            }
+
+            // let jobId = response.responseObject();
             if (jobId == null) {
                 o.err.style.display = "block";
                 await triggerBtnState(b, false);
@@ -190,6 +202,13 @@ async function loadMobileInfo(a, b, o) {
             let openedWindow = window.open('/', 'test parameters', 'height=820,width=1130');
             openedWindow.location.href = 'about:blank';
             openedWindow.location.href = baseUrl + "/integration/#/login?jobId=" + jobId + "&displayUFTMode=true";
+
+            //Please ensure the cookie were split by ;
+            let cookieArray = cookie.split(';');
+            cookieArray.forEach(cookieItem=>{
+                openedWindow.document.cookie =  cookieItem + ' path=/';
+            })
+
             const msgCallback = async (ev) => {
                 if (ev?.data == "mcCloseWizard") {
                     await a.populateAppAndDevice(baseUrl, o.userName, o.password, o.tenantId, o.execToken, o.authType, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, jobId, async (app) => {

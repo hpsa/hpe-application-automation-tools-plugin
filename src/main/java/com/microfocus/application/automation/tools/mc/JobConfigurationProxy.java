@@ -303,6 +303,14 @@ public class JobConfigurationProxy {
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
 
             Map<String, String> headers = initHeaders(authModel,loginJson);
+            createTempJobWithHeaders(mcUrl, proxy, headers);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String createTempJobWithHeaders (String mcUrl, ProxySettings proxy, Map<String, String> headers) {
             if (headers != null) {
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
                 HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.CREATE_JOB_URL, headers, null);
@@ -315,35 +323,39 @@ public class JobConfigurationProxy {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
         return null;
     }
 
     //get one job by id
     public JSONObject getJobById(String mcUrl, AuthModel authModel, ProxySettings proxy, String jobUUID) {
         JSONObject jobJsonObject = null;
-
         try {
             JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
 
             Map<String, String> headers = initHeaders(authModel,loginJson);
-            if (!StringUtils.isNullOrEmpty(jobUUID) && headers != null) {
-                HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
-                HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
-
-                if (response != null && response.getJsonObject() != null) {
-                    jobJsonObject = response.getJsonObject();
-                }
-                if (jobJsonObject != null) {
-                    jobJsonObject = (JSONObject) jobJsonObject.get(Constants.DATA);
-                }
-            }
+            jobJsonObject = getJobByIdWithHeaders(mcUrl, proxy, jobUUID, headers);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return removeIcon(jobJsonObject);
+    }
+
+    public JSONObject getJobByIdWithHeaders(String mcUrl, ProxySettings proxy, String jobUUID, Map<String, String> headers) {
+        JSONObject jobJsonObject = null;
+        if (!StringUtils.isNullOrEmpty(jobUUID) && headers != null) {
+            HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+            HttpResponse response = HttpUtils.doGet(proxyInfo, mcUrl + Constants.GET_JOB_UEL + jobUUID, headers, null);
+
+            if (response != null && response.getJsonObject() != null) {
+                jobJsonObject = response.getJsonObject();
+            }
+            if (jobJsonObject != null) {
+                jobJsonObject = (JSONObject) jobJsonObject.get(Constants.DATA);
+            }
+        }
+
+        return jobJsonObject;
     }
 
     public JSONObject getBrowserLab(String mcUrl, String accessKey, ProxySettings proxy) {
@@ -575,7 +587,7 @@ public class JobConfigurationProxy {
     }
 
 
-    private Map<String, String> initHeaders(AuthModel authModel, JSONObject loginJson) {
+    public Map<String, String> initHeaders(AuthModel authModel, JSONObject loginJson) {
         Map<String, String> headers = new HashMap<>();
         if (loginJson != null) {
             String hp4mSecret = loginJson.getAsString(Constants.LOGIN_SECRET);
