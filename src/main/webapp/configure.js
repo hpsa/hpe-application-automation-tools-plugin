@@ -47,7 +47,6 @@ function getDigitalLab(divMain) {
         useProxyAuth: false,
         proxyUserName: "",
         proxyPassword: "",
-        err: dl.querySelector("#errorMessage"),
         recreateJob: dl.querySelector('input[name="recreateJob"]').checked,
         jobId: dl.querySelector('input[name="fsJobId"]').value,
         deviceInfo: dl.querySelector(".device-info-section")
@@ -71,24 +70,8 @@ function getDigitalLab(divMain) {
     return o;
 }
 
-function setupDigitalLab() {
-	let divMain = null;
-	if (document.location.href.indexOf("pipeline-syntax")>0) { // we are on pipeline-syntax page, where runFromFileBuilder step can be selected only once
-		divMain = document;
-	} else if (document.currentScript) { // this block is used for non-IE browsers, for the first FS build step only, it finds very fast the parent DIV
-		divMain = document.currentScript.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
-	}
-	setTimeout(function() { prepareDigitalLab(divMain)}, 100);
-}
-function prepareDigitalLab(divMain) {
-/*	if (divMain == null) { // this block is needed for IE, but also for non-IE browsers when adding more than one FS build step
-		let divs = document.querySelectorAll(RUN_FROM_FS_BUILDER_SELECTOR);
-		divMain = divs[divs.length - 1];
-	}*/
-}
-
-async function startLoadInfo(a, b, path) {
-    await triggerBtnState(b, true);
+function startLoadInfo(a, b, path) {
+    triggerBtnState(b, true);
     setTimeout( async () => {
         await loadInfo(a, b, path)}, 100);
 }
@@ -107,26 +90,27 @@ async function loadInfo(a, b, path) {
     let dl = {};
     try {
         const divMain = b.parentElement.closest(RUN_FROM_FS_BUILDER_SELECTOR);
+        const err = b.parentElement.querySelector(".error-msg");
         dl = getDigitalLab(divMain);
-        dl.err.style.display = "none";
+        err.style.display = "none";
         const isMcCredentialMissing = ("base" == dl.authType ? (dl.userName.trim() == "" || dl.password.trim() == "") : dl.execToken.trim() == "");
 
         const isProxyAddressRequiredButMissing = dl.useProxy && dl.proxyAddress.trim() == "";
         const isProxyCredentialRequiredButMissing = dl.useProxyAuth && (dl.proxyUserName.trim() == "" || dl.proxyPassword.trim() == "");
         if (isMcCredentialMissing || isProxyAddressRequiredButMissing || isProxyCredentialRequiredButMissing) {
-            dl.err.style.display = "block";
+            err.style.display = "inline-block";
             await triggerBtnState(b, false);
             return;
         }
 
         if (b.name == "cloudBrowserLab") {
-            await loadBrowserLabInfo(a, b, dl, path);
+            await loadBrowserLabInfo(a, b, dl, path, err);
         } else if (b.name == "digitalLabWizard") {
-            await loadMobileInfo(a, b, dl);
+            await loadMobileInfo(a, b, dl, err);
         }
     } catch (e) {
         console.error(e);
-        dl && (dl.err.style.display = "block");
+        err.style.display = "inline-block";
         await triggerBtnState(b, false);
     }
  }
@@ -138,7 +122,7 @@ async function fillAndShowDDLs(b, div, dlg) {
     await triggerBtnState(b, false);
     dlg.style.display = "block";
 }
-async function loadBrowserLabInfo(a, b, o, path) {
+async function loadBrowserLabInfo(a, b, o, path, err) {
     const div = b.parentElement.closest("#mobileSpecificSection");
     const dlg = await generateModalDialog(path);
     div.appendChild(dlg);
@@ -154,7 +138,7 @@ async function loadBrowserLabInfo(a, b, o, path) {
                     div.regions = json.regions;
                     await fillAndShowDDLs(b, div, dlg);
                 } else {
-                    o.err.style.display = "block";
+                    err.style.display = "inline-block";
                     await triggerBtnState(b, false);
                 }
             } catch (e) {
@@ -165,15 +149,14 @@ async function loadBrowserLabInfo(a, b, o, path) {
     }
 }
 
-async function loadMobileInfo(a, b, o) {
+async function loadMobileInfo(a, b, o, err) {
     let baseUrl = "";
-
     await a.getMcServerUrl(o.serverName, async (r) => {
         baseUrl = r.responseObject();
         if (baseUrl) {
             baseUrl = baseUrl.trim().replace(/[\/]+$/, "");
         } else {
-            o.err.style.display = "block";
+            err.style.display = "inline-block";
             await triggerBtnState(b, false);
             return;
         }
@@ -193,12 +176,12 @@ async function loadMobileInfo(a, b, o) {
 
             // let jobId = response.responseObject();
             if (jobId == null) {
-                o.err.style.display = "block";
+                err.style.display = "inline-block";
                 await triggerBtnState(b, false);
                 return;
             }
             //hide the error message after success login
-            o.err.style.display = "none";
+            err.style.display = "none";
             let openedWindow = window.open('/', 'test parameters', 'height=820,width=1130');
             openedWindow.location.href = 'about:blank';
             openedWindow.location.href = baseUrl + "/integration/#/login?jobId=" + jobId + "&displayUFTMode=true";
@@ -248,7 +231,7 @@ async function loadMobileInfo(a, b, o) {
                         div.querySelector('textarea[name="fsExtraApps"]').value = jobInfo['extraApps'] ?? "";
                         div.querySelector('input[name="fsJobId"]').value = jobInfo['jobUUID'];
                         await triggerBtnState(b, false);
-                        o.err.style.display = "none";
+                        err.style.display = "none";
                         window.removeEventListener("message", msgCallback, false);
                         openedWindow.close();
                     });

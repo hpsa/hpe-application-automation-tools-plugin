@@ -122,7 +122,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
                                   String ignoreErrorStrings, String analysisTemplate, String displayController, String mcServerName, AuthModel authModel,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
-                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath) {
+                                  String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL, String fsReportPath, CloudBrowserModel cloudBrowserModel) {
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
@@ -151,7 +151,7 @@ public class RunFromFileSystemModel extends AbstractDescribableImpl<RunFromFileS
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
         this.authModel = authModel;
-        this.cloudBrowserModel = null;
+        this.cloudBrowserModel = cloudBrowserModel;
     }
 
     /**
