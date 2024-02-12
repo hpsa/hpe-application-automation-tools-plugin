@@ -345,36 +345,32 @@ namespace HpToolsLauncher
                 }
 
                 AuthType mcAuthType = _mcConnection.MobileAuthType;
+                tulip.SetTestOptionsVal(MOBILE_AUTH_TYPE, mcAuthType);
                 switch (mcAuthType)
                 {
                     case AuthType.AuthToken:
                         var token = _mcConnection.GetAuthToken();
-
                         tulip.SetTestOptionsVal(MOBILE_CLIENTID, token.ClientId);
                         tulip.SetTestOptionsVal(MOBILE_SECRET, token.SecretKey);
-
                         break;
                     case AuthType.UsernamePassword:
                         if (!_mcConnection.UserName.IsNullOrEmpty())
                         {
                             tulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.UserName);
+                            if (!_mcConnection.Password.IsNullOrEmpty())
+                            {
+                                string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.Password);
+                                if (encriptedMcPassword == null)
+                                {
+                                    ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+                                    throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+                                }
+                                tulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
+                            }
                         }
 
-                        if (!_mcConnection.Password.IsNullOrEmpty())
-                        {
-                            string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.Password);
-                            if (encriptedMcPassword == null)
-                            {
-                                ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-                                throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-                            }
-                            tulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
-                        }
                         break;
                 }
-
-                // set authentication type
-                tulip.SetTestOptionsVal(MOBILE_AUTH_TYPE, mcAuthType);
 
                 // set tenantID
                 if (!_mcConnection.TenantId.IsNullOrEmpty())
@@ -388,18 +384,21 @@ namespace HpToolsLauncher
                 if (_mcConnection.UseProxy)
                 {
                     tulip.SetTestOptionsVal(MOBILE_USE_PROXY, _mcConnection.UseProxyAsInt);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING, _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY);
+                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING, _mcConnection.ProxyType);
                     tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_ADDRESS, _mcConnection.ProxyAddress);
                     tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PORT, _mcConnection.ProxyPort);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_AUTHENTICATION, _mcConnection.UseProxyAuthAsInt);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_USERNAME, _mcConnection.ProxyUserName);
-                    string encMcProxyPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.ProxyPassword);
-                    if (encMcProxyPassword == null)
+                    if (_mcConnection.UseProxyAuth)
                     {
-                        ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
-                        throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_AUTHENTICATION, _mcConnection.UseProxyAuthAsInt);
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_USERNAME, _mcConnection.ProxyUserName);
+                        string encMcProxyPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.ProxyPassword);
+                        if (encMcProxyPassword == null)
+                        {
+                            ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
+                            throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
+                        }
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, encMcProxyPassword);
                     }
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, encMcProxyPassword);
                 }
 
                 // Mc info (device, app, launch and terminate data)
