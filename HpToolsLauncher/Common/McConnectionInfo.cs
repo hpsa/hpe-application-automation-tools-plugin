@@ -33,10 +33,8 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Net.Sockets;
 using HpToolsLauncher.Properties;
 using HpToolsLauncher.Utils;
-using Mercury.TD.Client.Ota.QC9;
 
 namespace HpToolsLauncher
 {
@@ -160,8 +158,7 @@ namespace HpToolsLauncher
         public int ProxyType { get; set; }
         public string ProxyAddress { get; set; }
         public int ProxyPort { get; set; }
-        public bool UseProxyAuth { get; set; }
-        public int UseProxyAuthAsInt { get { return _useProxyAuth ? ONE : ZERO; } }
+        public bool UseProxyAuth { get { return _useProxyAuth; } set { _useProxyAuth = value; } }
         public string ProxyUserName { get; set; }
         public string ProxyPassword { get; set; }
 
