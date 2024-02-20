@@ -1,11 +1,40 @@
-﻿// (c) Copyright 2012 Hewlett-Packard Development Company, L.P. 
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+﻿/*
+ * Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ * This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ * Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright 2012-2023 Open Text
+ *
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors ("Open Text") are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
+ *
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ___________________________________________________________________
+ */
 
+using HpToolsLauncher.Utils;
+using System.Globalization;
 using System.IO;
-using System.Xml.Serialization;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace HpToolsLauncher
 {
@@ -18,56 +47,91 @@ namespace HpToolsLauncher
             get { return _xmlName; }
             set { _xmlName = value; }
         }
-        //public const string ClassName = "uftRunner";
+
         public const string ClassName = "HPToolsFileSystemRunner";
         public const string RootName = "uftRunnerRoot";
+        private const string ALL_TESTS_FORMAT = "All-Tests.{0}";
+        private const string DOT = ".";
+        private const string UNDERSCORE = "_";
+        private const string PASS = "pass";
+        private const string FAIL = "fail";
+        private const string ERROR = "error";
+        private const string WARNING = "warning";
 
-        XmlSerializer _serializer = new XmlSerializer(typeof(testsuites));
-
-        testsuites _testSuites = new testsuites();
-
+        private readonly XmlSerializer _serializer = new XmlSerializer(typeof(testsuites));
+        private readonly testsuites _testSuites = new testsuites();
 
         public JunitXmlBuilder()
         {
             _testSuites.name = RootName;
         }
 
+        public testsuites TestSuites
+        {
+            get { return _testSuites; }
+        }
+
         /// <summary>
-        /// converts all data from the test resutls in to the Junit xml format and writes the xml file to disk.
+        /// converts all data from the test results in to the Junit xml format and writes the xml file to disk.
         /// </summary>
         /// <param name="results"></param>
         public void CreateXmlFromRunResults(TestSuiteRunResults results)
         {
-            _testSuites = new testsuites();
-
             testsuite uftts = new testsuite
             {
-                errors = results.NumErrors.ToString(),
-                tests = results.NumTests.ToString(),
-                failures = results.NumFailures.ToString(),
+                errors = results.NumErrors,
+                tests = results.NumTests,
+                failures = results.NumFailures,
                 name = results.SuiteName,
                 package = ClassName
             };
             foreach (TestRunResults testRes in results.TestRuns)
             {
-                if (testRes.TestType == TestType.LoadRunner.ToString())
+                if (testRes.TestType == TestType.LoadRunner)
                 {
                     testsuite lrts = CreateXmlFromLRRunResults(testRes);
                     _testSuites.AddTestsuite(lrts);
                 }
                 else
                 {
-                    testcase ufttc = CreateXmlFromUFTRunResults(testRes);
+                    testcase ufttc = CovertUFTRunResultsToTestcase(testRes);
                     uftts.AddTestCase(ufttc);
                 }
             }
-            if(uftts.testcase.Length > 0)
+            if (uftts.testcase.Length > 0)
+            {
                 _testSuites.AddTestsuite(uftts);
+            }
 
             if (File.Exists(XmlName))
+            {
                 File.Delete(XmlName);
+            }
 
             using (Stream s = File.OpenWrite(XmlName))
+            {
+                _serializer.Serialize(s, _testSuites);
+            }
+        }
+
+        /// <summary>
+        /// Create or update the xml report. This function is called in a loop after each test execution in order to get the report built progressively
+        /// If the job is aborted by user we still can provide the (partial) report with completed tests results.
+        /// </summary>
+        /// <param name="ts">reference to testsuite object, existing or going to be added to _testSuites collection</param>
+        /// <param name="testRes">test run results to be converted</param>
+        /// <param name="addToTestSuites">flag to indicate if the first param testsuite must be added to the collection</param>
+        public void CreateOrUpdatePartialXmlReport(testsuite ts, TestRunResults testRes, bool addToTestSuites)
+        {
+            testcase tc = CovertUFTRunResultsToTestcase(testRes);
+            ts.AddTestCase(tc);
+            if (addToTestSuites)
+            {
+                _testSuites.AddTestsuite(ts);
+            }
+
+            // NOTE: if the file already exists it will be overwritten / replaced, the entire _testSuites will be serialized every time
+            using (Stream s = File.Open(_xmlName, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
                 _serializer.Serialize(s, _testSuites);
             }
@@ -91,7 +155,7 @@ namespace HpToolsLauncher
                         if (childNode.Attributes != null && childNode.Attributes["FullName"] != null)
                         {
                             testRes.TestGroup = testRes.TestPath;
-                            testcase lrtc = CreateXmlFromUFTRunResults(testRes);
+                            testcase lrtc = CovertUFTRunResultsToTestcase(testRes);
                             lrtc.name = childNode.Attributes["FullName"].Value;
                             if (childNode.InnerText.ToLowerInvariant().Contains("failed"))
                             {
@@ -109,31 +173,31 @@ namespace HpToolsLauncher
                         }
                     }
                 }
-                catch (System.Xml.XmlException)
+                catch (XmlException)
                 {
 
                 }
             }
 
             lrts.name = testRes.TestPath;
-            lrts.tests = totalTests.ToString();
-            lrts.errors = totalErrors.ToString();
-            lrts.failures = totalFailures.ToString();
-            lrts.time = testRes.Runtime.TotalSeconds.ToString();
+            lrts.tests = totalTests;
+            lrts.errors = totalErrors;
+            lrts.failures = totalFailures;
+            lrts.time = testRes.Runtime.TotalSeconds.ToString(CultureInfo.InvariantCulture);
             return lrts;
         }
 
-        private testcase CreateXmlFromUFTRunResults(TestRunResults testRes)
+        private testcase CovertUFTRunResultsToTestcase(TestRunResults testRes)
         {
             testcase tc = new testcase
             {
                 systemout = testRes.ConsoleOut,
                 systemerr = testRes.ConsoleErr,
                 report = testRes.ReportLocation,
-                classname = "All-Tests." + ((testRes.TestGroup == null) ? "" : testRes.TestGroup.Replace(".", "_")),
+                classname = string.Format(ALL_TESTS_FORMAT, testRes.TestGroup == null ? string.Empty : testRes.TestGroup.Replace(DOT, UNDERSCORE)),
                 name = testRes.TestPath,
-                type = testRes.TestType,
-                time = testRes.Runtime.TotalSeconds.ToString()
+                type = testRes.TestType.ToString(),
+                time = testRes.Runtime.TotalSeconds.ToString(CultureInfo.InvariantCulture)
             };
 
             if (!string.IsNullOrWhiteSpace(testRes.FailureDesc))
@@ -142,28 +206,24 @@ namespace HpToolsLauncher
             switch (testRes.TestState)
             {
                 case TestState.Passed:
-                    tc.status = "pass";
+                    tc.status = PASS;
                     break;
                 case TestState.Failed:
-                    tc.status = "fail";
+                    tc.status = FAIL;
                     break;
                 case TestState.Error:
-                    tc.status = "error";
+                    tc.status = ERROR;
                     break;
                 case TestState.Warning:
-                    tc.status = "warning";
+                    tc.status = WARNING;
                     break;
                 default:
-                    tc.status = "pass";
+                    tc.status = PASS;
                     break;
             }
             if (!string.IsNullOrWhiteSpace(testRes.ErrorDesc))
                 tc.AddError(new error { message = testRes.ErrorDesc });
             return tc;
         }
-
-
-
-
     }
 }

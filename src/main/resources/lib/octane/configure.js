@@ -1,3 +1,35 @@
+/*
+ * Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ * This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ * Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright 2012-2023 Open Text
+ *
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors ("Open Text") are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
+ *
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ___________________________________________________________________
+ */
+
 function octane_job_configuration(target, progress, proxy) {
 
     if (typeof jQuery === 'undefined') {
@@ -19,17 +51,50 @@ function octane_job_configuration(target, progress, proxy) {
         return left.toLowerCase() === right.toLowerCase();
     }
 
-    function configure() {
+    function loadJobConfigurationFromServer(sharedspace) {
         progressFunc("Retrieving configuration from server");
-        proxy.loadJobConfigurationFromServer(function (t) {
+
+        proxy.loadJobConfigurationFromServer(sharedspace.id, function (t) {
             progressFunc();
             var response = t.responseObject();
             if (response.errors) {
                 response.errors.forEach(renderError);
             } else {
-                renderConfiguration(response);
+                renderConfiguration(response, undefined, sharedspace.id);
             }
         });
+    }
+
+    function configure() {
+        proxy.searchSharedSpaces("", (function (sharedspaces) {
+            if(sharedspaces.responseJSON.results.length===1){
+                loadJobConfigurationFromServer(sharedspaces.responseJSON.results[0]);
+            }else{
+                var sharedspaceDiv = $("<div class='mqm'><label><h3>Select ALM Octane server configuration</h3></label><select id='sharedspaceSelect'></select></div>");
+                $(target).append(sharedspaceDiv);
+                $("#sharedspaceSelect").select2({
+                    placeholder: 'Select a configuration',
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchSharedSpaces(term, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+                $("#sharedspaceSelect").on("select2:select", function(e) {
+                    loadJobConfigurationFromServer(e.params.data);
+                });
+            }
+        }));
+
+
     }
 
     function renderError(error) {
@@ -55,7 +120,7 @@ function octane_job_configuration(target, progress, proxy) {
         }
     }
 
-    function renderConfiguration(jobConfiguration, pipelineId) {
+    function renderConfiguration(jobConfiguration, pipelineId, instanceId) {
         var result = $(target);
         result.empty();
 
@@ -75,6 +140,8 @@ function octane_job_configuration(target, progress, proxy) {
         var validators = [];
         var apply = [];
         var dirtyFlag;
+
+        var selectedReleaseId;
 
         function initialize() {
             validators.length = 0;
@@ -132,6 +199,12 @@ function octane_job_configuration(target, progress, proxy) {
         function renderPipelineMetadata(pipeline, pipelineSelector) {
             var table = $("<table class='ui-block'><tbody><tr/></tbody></table>");
             pipelineDiv.append(table);
+
+            var releaseMilestoneAlertMessage = "<div id=\"releaseMilestoneAlert\" style=\"color: orange; visibility: hidden; font-style: italic\">Note: When you change a milestone or release, a new set of runs is created on ALM Octane, " +
+                "with a new run history.</div>";
+
+            pipelineDiv.append(releaseMilestoneAlertMessage);
+
             var tbody = table.find("tbody");
             var tr = tbody.find("tr");
 
@@ -176,7 +249,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             //  NAME
             if (pipeline.isRoot) {
-                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
+                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='jenkins-input setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
                 tr.append(tdPipelineInput);
 
                 var input = tdPipelineInput.find("input");
@@ -227,21 +300,60 @@ function octane_job_configuration(target, progress, proxy) {
                 var tdReleaseSelect = $("<td class='setting-main'>");
                 trRelease.append(tdReleaseSelect);
 
-                var select = $("<select>");
-                select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isReleaseSpecified(pipeline)));
+                var releaseSelect = $("<select style='width: 360px;'>");
+                releaseSelect.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isReleaseSpecified(pipeline)));
                 if (pipeline.id !== null && isReleaseSpecified(pipeline)) {
-                    select.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
+                    releaseSelect.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
                 }
                 apply.push(function () {
-                    pipeline.releaseId = Number(select.val());
+                    pipeline.releaseId = Number(releaseSelect.val());
                 });
-                enableDirtyChangeCheck(select);
-                tdReleaseSelect.append(select);
-                select.prop('id', 'releaseSelect');
+                enableDirtyChangeCheck(releaseSelect);
+                tdReleaseSelect.append(releaseSelect);
+                releaseSelect.prop('id', 'releaseSelect');
                 trRelease.append($("<td class='setting-new'/>"));
                 if (pipeline.id == null) {
                     trRelease.css('visibility', 'hidden');
                 }
+
+                var trMilestone = $("<tr><td class='setting-name'><label for='pipeline-release-milestone'>Milestone:</label>");
+                tbody.append(trMilestone);
+
+                var tdMilestoneSelect = $("<td class='setting-main'>");
+                trMilestone.append(tdMilestoneSelect);
+
+                var milestoneSelect = $("<select style='width: 360px;'>");
+                milestoneSelect.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isMilestoneSpecified(pipeline)));
+                if (pipeline.id !== null && isMilestoneSpecified(pipeline)) {
+                    milestoneSelect.append($("<option>").text(pipeline.milestoneName).val(pipeline.milestoneId).attr('selected', 'true'));
+                }
+                apply.push(function () {
+                    pipeline.milestoneId = Number(milestoneSelect.val());
+                });
+                enableDirtyChangeCheck(milestoneSelect);
+                tdMilestoneSelect.append(milestoneSelect);
+                milestoneSelect.prop('id', 'milestoneSelect');
+                trMilestone.append($("<td class='setting-new'/>"));
+                if (pipeline.id == null) {
+                    trMilestone.css('visibility', 'hidden');
+                }
+
+                selectedReleaseId = pipeline.releaseId;
+
+                releaseSelect.change(function () {
+                    selectedReleaseId = releaseSelect.val();
+                    milestoneSelect.val(-1).trigger("change");
+                    trMilestone.css('visibility', 'visible');
+                    if(pipeline.id != null){
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
+                });
+
+                milestoneSelect.change(function () {
+                    if(pipeline.id != null) {
+                        document.getElementById("releaseMilestoneAlert").style.visibility = 'visible';
+                    }
+                });
             }
         }
 
@@ -340,7 +452,7 @@ function octane_job_configuration(target, progress, proxy) {
                             });
                         } else {
                             field.values.push({
-                                id: Number(option.value),
+                                id: option.value,
                                 name: option.text
                             });
                         }
@@ -350,7 +462,7 @@ function octane_job_configuration(target, progress, proxy) {
                     var tdAdd = $("<td class='setting-add'>");
                     tr.append(tdAdd);
 
-                    var newValueInput = $("<input type='text' class='setting-input' maxlength='70' style ='width: 150px;'>");
+                    var newValueInput = $("<input type='text' class='jenkins-input setting-input' maxlength='70' style ='width: 150px;'>");
                     tdAdd.append(newValueInput);
 
                     var trArea = $("<tr><td/></tr>");
@@ -517,10 +629,10 @@ function octane_job_configuration(target, progress, proxy) {
 
             var tagTypeInputTd = $("<td class='setting-name'>");
             tagSelectTr.append(tagTypeInputTd);
-            var tagTypeInput = $("<input type='text' class='setting-input'>");
+            var tagTypeInput = $("<input type='text' class='jenkins-input setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
-            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.instanceId, pipeline.workspaceId, function(error) {
                 doValidateTag(error, validationAreaTagType);
             }));
             var tagTypeSpan = $("<span>");
@@ -529,7 +641,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             var tagInputTd = $("<td>");
             tagSelectTr.append(tagInputTd);
-            var tagInput = $("<input type='text' class='setting-input'>");
+            var tagInput = $("<input type='text' class='jenkins-input setting-input'>");
             tagInputTd.append(tagInput);
             tagInput.hide();
             tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
@@ -644,10 +756,11 @@ function octane_job_configuration(target, progress, proxy) {
                     id: null,
                     isRoot: true,
                     fieldTags: [],
-                    taxonomyTags: []
+                    taxonomyTags: [],
+                    instanceId: instanceId
                 };
-                jobConfiguration.currentPipeline = pipeline;
 
+                jobConfiguration.currentPipeline = pipeline;
                 result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
                 covertSelectorsToSelect2(pipeline);
@@ -656,7 +769,10 @@ function octane_job_configuration(target, progress, proxy) {
             selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
 
-            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/></div>");
+            var selectWorkspaceDiv = $("<div class='mutton rpos'>" +
+                "<div id='configuration-div' class='config-label'>ALM Octane : " + jobConfiguration.currentPipeline.instanceCaption + "</div>" +
+                "<div id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/>" +
+                "</div></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
             //sort workspaces by name to show in UI
@@ -765,6 +881,14 @@ function octane_job_configuration(target, progress, proxy) {
 
         function isReleaseSpecified(pipeline) {
             if (pipeline.hasOwnProperty("releaseId") && pipeline.releaseId !== -1) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function isMilestoneSpecified(pipeline) {
+            if (pipeline.hasOwnProperty("milestoneId") && pipeline.milestoneId !== -1) {
                 return true;
             } else {
                 return false;
@@ -883,7 +1007,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function newTagTypeValidation(tagTypeInput, workspaceId, callback) {
+        function newTagTypeValidation(tagTypeInput, instanceId, workspaceId, callback) {
             return function () {
                 var error = undefined;
 
@@ -918,7 +1042,7 @@ function octane_job_configuration(target, progress, proxy) {
                 if (!tagTypeInput.val()) {
                     return "Environment type must be specified";
                 }
-                proxy.searchTaxonomies(tagTypeInput.val(), workspaceId, [], searchTaxCallback);
+                proxy.searchTaxonomies(tagTypeInput.val(), instanceId, workspaceId, [], searchTaxCallback);
 
             };
         }
@@ -1003,7 +1127,7 @@ function octane_job_configuration(target, progress, proxy) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
                             var listId = 0;
-                            proxy.searchListItems(selector.logicalListName, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
+                            proxy.searchListItems(selector.logicalListName, term, pipeline.instanceId, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1021,7 +1145,7 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchTaxonomies(term, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
+                            proxy.searchTaxonomies(term, pipeline.instanceId, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1053,7 +1177,30 @@ function octane_job_configuration(target, progress, proxy) {
                             } else {
                                 tmpWorkspaceId = pipeline.workspaceId;
                             }
-                            proxy.searchReleases(term, tmpWorkspaceId, (function (data) {
+                            proxy.searchReleases(term, pipeline.instanceId, tmpWorkspaceId, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+
+                $("#milestoneSelect").select2({
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            var tmpWorkspaceId;
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            if (!pipeline.id) {
+                                tmpWorkspaceId = selectedWorkspaceId;
+                            } else {
+                                tmpWorkspaceId = pipeline.workspaceId;
+                            }
+
+                            proxy.searchMilestones(term, pipeline.instanceId, tmpWorkspaceId, selectedReleaseId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1070,7 +1217,8 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchWorkspaces(term, (function (data) {
+                            var instanceId = jobConfiguration.currentPipeline.instanceId;
+                            proxy.searchWorkspaces(term, instanceId, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -1078,7 +1226,6 @@ function octane_job_configuration(target, progress, proxy) {
                     },
                     templateResult: formatSelect2Option
                 });
-
                 fieldSelectors.forEach(createFieldsSelect2);
             });
         }

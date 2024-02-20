@@ -1,0 +1,163 @@
+<?jelly escape-by-default='true'?>
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
+  <l:layout title="UFT Report">
+    <style type="text/css">
+    .bodycell {
+      padding: 8px;
+      background-color: #ffffff;
+    }
+
+    .topNormalCell {
+      border-top-width: 0px;
+      border-right-width: 1px;
+      border-left-width: 0px;
+      border-bottom-width: 1px;
+
+      padding: 8px;
+      border-style: solid;
+      border-color: transparent;
+      background-color: var(--panel-header-bg-color);
+      border-radius: 5px;
+    }
+
+    .reportTable {
+        height: 400px;
+        display: block;
+        overflow: auto;
+    }
+
+    .reportTable table {
+        border-spacing: 10px;
+    }
+
+    .disabledLink {
+      cursor: not-allowed;
+      opacity: 0.5;
+      text-decoration: none;
+      color: currentColor;
+      display: inline-block;
+    }
+    </style>
+
+    <st:include it="${it.build}" page="sidepanel.jelly" />
+    <l:main-panel>
+       <p><h1>UFT Report</h1></p>
+       <br/>
+
+       <p>
+       <div class="reportTable">
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
+       <table border="0" cellpadding="0" cellspacing="0" frame="vsides above bottom">
+         <tr>
+             <th class = "topNormalCell">Type</th>
+             <th class = "topNormalCell">Report name</th>
+             <th class = "topNormalCell">Timestamp</th>
+             <th class = "topNormalCell">Status</th>
+             <th class = "topNormalCell">Folder</th>
+             <th class = "topNormalCell">Archive</th>
+         </tr>
+
+         <j:forEach var="s" items="${it.allReports}">
+           <tr>
+             <j:choose>
+                <j:when test="${s.isHtmlReport}">
+                    <j:choose>
+                        <j:when test="${s.isParallelRunnerReport}">
+
+                            <td class = "bodycell" align = "center">
+                                <img
+                                    src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/parallel_html_report.svg"
+                                    alt="Html_parallel_report"
+                                    title="Html Parallel Report"
+                                    style="width:16px;height:16px;"
+                                />
+                            </td>
+                            <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
+                        </j:when>
+                        <j:otherwise>
+                            <td class = "bodycell" align = "center">
+                                <img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/report/html_report.svg"
+                                     alt="Html_report"
+                                     title="HTML Report"
+                                     style="width:16px;height:16px;"
+                                />
+                            </td>
+                            <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
+                        </j:otherwise>
+                    </j:choose>
+                </j:when>
+                <j:otherwise>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/rrv_report.png" alt="RRV_report" title="RRV"/></td>
+                    <td class = "bodycell"><a href="../${s.urlName}">${s.disPlayName}</a></td>
+                </j:otherwise>
+             </j:choose>
+
+             <td class = "bodycell">${s.getFormattedDateTime()}</td>
+
+             <j:set var="status" value="${s.status}" />
+             <j:choose>
+                <j:when test="${status=='pass'}">
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed"/></td>
+                </j:when>
+                <j:when test="${status=='warning'}">
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/warning.png" alt="Warning"/></td>
+                </j:when>
+                <j:otherwise>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed"/></td>
+                </j:otherwise>
+             </j:choose>
+
+             <td class = "bodycell"><a href="../${s.resourceURL}">Open</a></td>
+             <td class = "bodycell">
+                 <j:choose>
+                     <j:when test="${s.hasArchiveUrl()}">
+                         <a href="../${s.archiveUrl}">Download</a>
+                     </j:when>
+                     <j:otherwise>
+                         <a class="disabledLink" aria-disabled="true">Download</a>
+                     </j:otherwise>
+                 </j:choose>
+             </td>
+           </tr>
+         </j:forEach>
+       </table>
+       </div>
+       </p>
+    </l:main-panel>
+
+  </l:layout>
+</j:jelly>

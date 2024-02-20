@@ -1,0 +1,37 @@
+# TimeslotDuration class from com.microfocus.adm.performancecenter.plugins.common.pcentities package is safe to be used.
+com.microfocus.adm.performancecenter.plugins.common.pcentities.TimeslotDuration
+# SimpleDateFormat, DecimalFormat, DateFormatSymbols and DecimalFormatSymbols are native and safe.
+java.text.SimpleDateFormat
+java.text.DecimalFormat
+java.text.DateFormatSymbols
+java.text.DecimalFormatSymbols
+# com.hp.octane.integrations.uft.items.* are safe to be used , The items are taken from Octane sdk for ci servers.
+com.hp.octane.integrations.uft.items.UftTestDiscoveryResult
+com.hp.octane.integrations.uft.items.AutomatedTest
+com.hp.octane.integrations.uft.items.UftTestAction
+com.hp.octane.integrations.uft.items.UftTestParameter
+com.hp.octane.integrations.uft.items.ScmResourceFile
+# com.hp.octane.integrations.dto.scm.* are safe to be used , The items are taken from Octane sdk for ci servers.
+com.hp.octane.integrations.dto.scm.impl.LineRange
+com.hp.octane.integrations.dto.scm.impl.RevisionsMap
+com.hp.octane.integrations.dto.scm.impl.SCMChangeImpl
+com.hp.octane.integrations.dto.scm.impl.SCMCommitImpl
+com.hp.octane.integrations.dto.scm.impl.SCMDataImpl
+com.hp.octane.integrations.dto.scm.impl.SCMFileBlameImpl
+com.hp.octane.integrations.dto.scm.impl.SCMRepositoryImpl
+com.hp.octane.integrations.dto.scm.impl.PullRequestImpl
+com.hp.octane.integrations.dto.scm.impl.BranchImpl
+com.hp.octane.integrations.services.pullrequestsandbranches.BranchSyncResult
+com.hp.octane.integrations.executor.converters.MbtTest
+com.hp.octane.integrations.executor.converters.MbtUftTest
+com.hp.octane.integrations.executor.converters.MbtCodelessTest
+com.hp.octane.integrations.executor.converters.MbtCodelessUnit
+com.hp.octane.integrations.dto.general.impl.MbtDataTableImpl
+com.hp.octane.integrations.dto.general.impl.MbtUnitParameterImpl
+com.hp.octane.integrations.executor.TestsToRunConverterResult
+com.hp.octane.integrations.executor.TestToRunData
+com.hp.octane.integrations.executor.TestsToRunFramework
+com.hp.octane.integrations.executor.TestsToRunConverter
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData
+com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter

@@ -1,0 +1,128 @@
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+
+    <style>
+        .test-params {
+            list-style-type: none;
+        }
+
+        .test-param:not(:last-of-type) {
+            margin-bottom: .5rem;
+        }
+
+        .test-param,
+        .test-param--heading {
+            display: grid;
+            grid-template-columns: 7.5% repeat(3, 1fr) .25fr 10%;
+            align-items: center;
+            justify-items: center;
+            grid-gap: .5rem;
+        }
+
+        .test-param,
+        .test-param > div,
+        .test-param > div > select {
+            width: 100%;
+        }
+
+        .test-param > div > input {
+            box-shadow: none !important;
+        }
+
+        .test-param > div > select {
+            height: 100%;
+        }
+
+        .test-param--heading {
+            border-bottom: solid 1px var(--medium-grey);
+            margin-bottom: .5rem;
+            height: 40px;
+        }
+
+        .test-param--heading p {
+            text-align: center;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .test-label {
+            color: #999;
+        }
+    </style>
+
+    <ul class="test-params" name="testParams">
+        <li class="test-param--heading pane-header">
+            <p># of test</p>
+            <p>Test name</p>
+            <p>Parameter name</p>
+            <p>Value</p>
+            <p>Type</p>
+            <span> </span>
+        </li>
+    </ul>
+    <f:entry field="__emptyForHelp"/>
+    <span class="yui-button yui-push-button repeatable-add">
+        <span class="first-child">
+            <button type="button" tabindex="0" name="addNewParamBtn">+ PARAMETER</button>
+        </span>
+    </span>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="parameterJson" clazz="json-params" value="${instance.parameterJson}" />
+    </f:invisibleEntry>
+
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/specifyParametersUtils.js"/>
+
+    <j:forEach var="paramGroup" items="${descriptor.mapping}" indexVar="i">
+        <script type="text/javascript">
+            addSeparatorToTypeList('${paramGroup.key}', ${i}, ${size(descriptor.mapping)});
+        </script>
+
+        <j:forEach var="paramType" items="${paramGroup.value}">
+            <script type="text/javascript">
+                addToSelectableTypeList('${paramType.value}', ${descriptor.numOfTypes});
+            </script>
+        </j:forEach>
+
+        <script type="text/javascript">
+            addSeparatorToTypeList(null, -1, ${size(descriptor.mapping)});
+        </script>
+    </j:forEach>
+
+    <script type="text/javascript">
+        setupParamSpecification();
+    </script>
+
+</j:jelly>

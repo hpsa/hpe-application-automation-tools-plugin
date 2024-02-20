@@ -1,0 +1,100 @@
+<!--
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<!-- This custom optional block was added in order to change the left-padding by 36px of the optional block -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:f="/lib/form">
+    <st:documentation>
+        Foldable block that can be expanded to show more controls by checking the checkbox.
+
+        <st:attribute name="name">
+            Name of the checkbox. Can be used by the server to determine
+            if the block is collapsed or expanded at the time of submission.
+
+            Note that when the block is collapsed, none of its child controls will send
+            the values to the server (unlike &lt;f:advanced>)
+        </st:attribute>
+        <st:attribute name="title">
+            Human readable text that follows the checkbox.
+
+            If this field is null, the checkbox degrades to a &lt;f:rowSet>, which provides
+            a grouping at JSON level but on the UI there's no checkbox (and you always see
+            the body of it.)
+        </st:attribute>
+        <st:attribute name="field">
+            Used for databinding. TBD. Either this or @name/@title combo is required.
+        </st:attribute>
+        <st:attribute name="checked">
+            initial checkbox status. true/false.
+        </st:attribute>
+        <st:attribute name="help">
+            If present, the (?) icon will be rendered on the right to show inline help.
+            See @help for &lt;f:entry>.
+        </st:attribute>
+        <st:attribute name="negative">
+            if present, the foldable section expands when the checkbox is unchecked.
+        </st:attribute>
+        <st:attribute name="inline">
+            if present, the foldable section will not be grouped into a separate JSON object upon submission
+        </st:attribute>
+    </st:documentation>
+    <j:if test="${attrs.help == null and attrs.field != null}">
+        <!-- infer the help page from the current descriptor and field if possible -->
+        <j:set target="${attrs}" property="help"
+               value="${descriptor.getHelpFile(attrs.field)}"/>
+    </j:if>
+
+    <j:choose>
+        <j:when test="${attrs.title!=null}">
+            <tr class="optional-block-start row-group-start ${attrs.inline?'':'row-set-start'}"
+                hasHelp="${attrs.help!=null}"><!-- this ID marks the beginning -->
+                <td colspan="3" style="padding-left: 36px">
+                    <f:checkbox name="${attrs.name}" class="optional-block-control block-control"
+                                onclick="javascript:updateOptionalBlock(this,true)"
+                                negative="${attrs.negative}" checked="${attrs.checked}" field="${attrs.field}"
+                                title="${title}"/>
+                </td>
+                <f:helpLink url="${attrs.help}" featureName="${title}"/>
+            </tr>
+            <j:if test="${attrs.help!=null}">
+                <f:helpArea/>
+            </j:if>
+            <tr class="rowvg-start"/>
+            <d:invokeBody/>
+            <!-- end marker -->
+            <tr class="${attrs.inline?'':'row-set-end'} rowvg-end optional-block-end row-group-end"/>
+        </j:when>
+
+        <j:otherwise>
+            <f:rowSet name="${attrs.name}">
+                <d:invokeBody/>
+            </f:rowSet>
+        </j:otherwise>
+    </j:choose>
+</j:jelly>

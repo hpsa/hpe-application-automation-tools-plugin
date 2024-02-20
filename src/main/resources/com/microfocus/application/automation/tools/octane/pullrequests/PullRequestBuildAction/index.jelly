@@ -1,0 +1,129 @@
+<?jelly escape-by-default='true'?>
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
+  <l:layout title="ALM Octane Pull Request Collect Report">
+    <style type="text/css">
+
+    .myTable {
+        empty-cells: show;
+        border: 1px solid #cbcbcb;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .myTable thead {
+        background-color: #ffedb3;
+        text-align: left;
+        vertical-align: bottom;
+    }
+
+    .myTable th{
+        color: #555753;
+    }
+
+    .myTable caption{
+        font-weight: bold;
+        padding-bottom: 10px;
+    }
+
+    .myTable td, .myTable th {
+        border-left: 1px solid #cbcbcb;
+        border-width: 0 0 0 1px;
+        margin: 0;
+        text-align: left;
+        padding: 8px;
+    }
+
+    .myTable tbody tr:nth-child(even) {
+        background-color: #fff9e6;
+    }
+
+    </style>
+
+    <st:include it="${it.build}" page="sidepanel.jelly" />
+    <l:main-panel>
+       <p>
+       <h1><u>ALM Octane Pull Request Report</u></h1>
+       </p>
+       <br/>
+       <br/>
+       <div>
+            <div>repositoryUrl : ${it.repositoryUrl}</div>
+            <div>minUpdateDate : ${it.minUpdateTime} - ${it.getFormattedDate(it.minUpdateTime)}</div>
+            <div>sourceBranchFilter : ${it.sourceBranchFilter}</div>
+            <div>targetBranchFilter : ${it.targetBranchFilter}</div>
+       </div>
+
+        <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
+       <table class = "myTable" frame="vsides above bottom" >
+        <caption>Pull requests</caption>
+        <thead>
+
+         <tr>
+             <th >Id</th>
+             <th>Title</th>
+             <th>State</th>
+             <th>IsMerged</th>
+             <th>Author</th>
+             <th>Updated Time</th>
+             <th>Source</th>
+             <th>Target</th>
+             <th>#Commits</th>
+         </tr>
+         </thead>
+
+         <tbody>
+          <j:forEach var="s" items="${it.pullRequests}">
+                <tr>
+                    <td ><a target="_blank" href="${s.selfUrl}">${s.id}</a></td>
+                    <td >${s.title}</td>
+                    <td >${s.state}</td>
+                    <td >${s.merged}</td>
+                    <td title="${s.authorEmail}">${s.authorName}</td>
+                    <td title="${s.updatedTime}">${it.getFormattedDate(s.updatedTime)}</td>
+                    <td >${s.sourceRepository.url} : ${s.sourceRepository.branch}</td>
+                    <td >${s.targetRepository.url} : ${s.targetRepository.branch}</td>
+                    <td title="${it.getTopCommits(s)}">${s.commits.size()}</td>
+                </tr>
+          </j:forEach>
+
+          </tbody>
+       </table>
+
+    </l:main-panel>
+
+  </l:layout>
+</j:jelly>

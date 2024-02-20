@@ -1,0 +1,203 @@
+<?jelly escape-by-default='true'?>
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
+  <l:layout title="ALM Octane UFT Actions Discovery Report">
+    <style type="text/css">
+
+    .myTable {
+        empty-cells: show;
+        border: 1px solid #cbcbcb;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .myTable thead {
+        background-color: #ffedb3;
+        text-align: left;
+        vertical-align: bottom;
+    }
+
+    .myTable th{
+        color: #555753;
+    }
+
+    .myTable caption{
+        font-weight: bold;
+        padding-bottom: 10px;
+    }
+
+    .myTable td, .myTable th {
+        border-left: 1px solid #cbcbcb;
+        border-width: 0 0 0 1px;
+        margin: 0;
+        text-align: left;
+        padding: 8px;
+    }
+
+
+    .myTable tbody tr:nth-child(even) {
+        background-color: #fff9e6;
+    }
+
+    .firstColumn{
+        min-width:400px;
+    }
+
+
+    </style>
+
+    <st:include it="${it.build}" page="sidepanel.jelly" />
+    <l:main-panel>
+       <p><h1><u>ALM Octane UFT Actions Discovery Report</u></h1></p>
+       <br/>
+       <br/>
+        <p>
+
+            <j:if test="${it.hasNewActions}">
+                New actions : ${it.getNewActions().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasDeletedActions}">
+                Deleted actions :  ${it.getDeletedActions().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasUpdatedActions}">
+                Updated actions :  ${it.getUpdatedActions().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasNewParameters}">
+                New parameters : ${it.getNewParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasDeletedParameters}">
+                Deleted parameters :  ${it.getDeletedParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasUpdatedParameters}">
+                Updated parameters :  ${it.getUpdatedParameters().size()}
+                <br/>
+                <br/>
+            </j:if>
+
+         </p>
+       <p>
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
+       <table class = "myTable" frame="vsides above bottom" >
+        <caption>Actions</caption>
+        <thead>
+
+         <tr>
+             <th class = "firstColumn">Action name</th>
+             <th>Action logical name</th>
+             <th>Action path</th>
+             <th>Status</th>
+         </tr>
+         </thead>
+
+         <tbody>
+          <j:forEach var="s" items="${it.actions}">
+                <tr>
+                    <td >${s.name}</td>
+                    <td >${s.logicalName}</td>
+                    <td >${s.repositoryPath}</td>
+                    <td >${s.octaneStatus}</td>
+                </tr>
+          </j:forEach>
+
+          </tbody>
+       </table>
+       </p>
+       <br/>
+       <p>
+       <!--
+          ~ [JENKINS-64639]: This table is only for drawing information.
+          -->
+       <table class = "myTable" frame="vsides above bottom" >
+        <caption>Parameters</caption>
+        <thead>
+
+         <tr>
+             <th class = "firstColumn">Action path</th>
+             <th>Parameter name</th>
+             <th>Input/Output</th>
+             <th>Status</th>
+         </tr>
+         </thead>
+
+         <tbody>
+          <j:forEach var="key" items="${it.getActionToParametersMap().keySet()}">
+                <tr>
+                    <td style="color:#0000ff">${key}</td>
+                    <td/>
+                    <td/>
+                    <td/>
+                </tr>
+                <j:forEach var="p" items="${it.getActionToParametersMap().get(key)}">
+                    <tr>
+                        <td/>
+                        <td>${p.name}</td>
+                        <td>${p.direction}</td>
+                        <td>${p.octaneStatus}</td>
+                    </tr>
+                </j:forEach>
+          </j:forEach>
+
+          </tbody>
+       </table>
+       </p>
+
+       <br/><br/>
+        <br/><br/>
+        <j:if test="${it.hasQuotedPaths}">
+                        <b>NOTE</b>: This run may not have discovered all updated actions.
+                        <br/>It seems that the changes in this build included filenames with Unicode characters, which Git did not list correctly.
+                        <br/>To make sure Git can properly list such file names, configure Git as follows : git config --global core.quotepath false
+                        <br/>To discover the updated actions that were missed in this run and send them to ALM Octane, run this job manually with the "Full sync" parameter selected.
+                    </j:if>
+
+        <br/><br/><br/>
+
+        This report contains items that were discovered in SCM repository. Final list of  dispatched items can be found <a href="../../ws/_Final_Detection_Results/final_detection_result_build_${it.build.id}.json">here</a> after dispatching.
+
+    </l:main-panel>
+
+  </l:layout>
+</j:jelly>

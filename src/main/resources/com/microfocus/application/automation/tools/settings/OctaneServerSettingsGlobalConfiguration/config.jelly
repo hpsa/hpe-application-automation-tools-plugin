@@ -1,0 +1,117 @@
+<?jelly escape-by-default='true'?>
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+    <!--
+      This Jelly script is used to produce the global configuration option.
+
+      Jenkins uses a set of tag libraries to provide uniformity in forms.
+      To determine where this tag is defined, first check the namespace URI,
+      and then look under $JENKINS/views/. For example, <f:section> is defined
+      in $JENKINS/views/lib/form/section.jelly.
+
+      It's also often useful to just check other similar scripts to see what
+      tags they use. Views are always organized according to its owner class,
+      so it should be straightforward to find them.
+    -->
+
+    <style>
+           .vertical-resizable{
+               resize: vertical;
+               height : 90px;
+           }
+    </style>
+
+    <f:section title="ALM Octane CI">
+        <f:entry title="ALM Octane Server Configuration" description="">
+            <div data-aid="almOctane">
+                <f:repeatable add="Add ALM Octane server" var="mqm" items="${descriptor.servers}">
+                    <table width="100%">
+                        <f:invisibleEntry>
+                            <f:textbox field="internalId" value="${mqm.internalId}"/>
+                        </f:invisibleEntry>
+                        <f:entry title="${%global.config.location.title}" field="uiLocation" description="${%global.config.location.description}">
+                            <f:textbox value="${mqm.uiLocation}"/>
+                        </f:entry>
+
+                        <f:entry title="${%global.config.username.title}" field="username" description="${%global.config.username.description}">
+                            <f:textbox value="${mqm.username}"/>
+                        </f:entry>
+
+                        <f:entry title="${%global.config.password.title}" field="password" description="${%global.config.password.description}">
+                            <f:password value="${mqm.password}"/>
+                        </f:entry>
+
+                        <f:entry title="${%global.config.impersonatedUser.title}" field="impersonatedUser" description="${%global.config.impersonatedUser.description}">
+                            <f:textbox value="${mqm.impersonatedUser}"/>
+                        </f:entry>
+
+                        <f:advanced>
+                        <f:section title="Advanced">
+                            <f:entry title="Disable configuration" description="If selected - no data is sent to ALM Octane">
+                                <f:checkbox name="suspend" checked="${mqm.suspend}"/>
+                            </f:entry>
+
+                            <f:entry title="${%global.config.instanceId.title}" field="identity" description="${%global.config.instanceId.description}">
+                                <f:textbox value="${mqm.identity}" />
+                            </f:entry>
+
+
+                            <f:entry/>
+                             <f:entry title="${%global.config.workspaceConf.title}" field="workspace2ImpersonatedUserConf" description="${%global.config.workspaceConf.description}">
+                                <f:textarea  class="vertical-resizable"  value="${mqm.workspace2ImpersonatedUserConf}"/>
+                             </f:entry>
+
+                              <f:entry title="${%global.config.parameters.title}" field="parameters" description="${%global.config.parameters.description}">
+                                 <f:textarea  class="vertical-resizable"  value="${mqm.parameters}"/>
+                              </f:entry>
+                        </f:section>
+                       </f:advanced>
+
+                        <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
+                                              method="testConnection" with="uiLocation,username,password,impersonatedUser,suspend,workspace2ImpersonatedUserConf,parameters"/>
+
+                    </table>
+
+                   <div align="right" style="margin-top:15px">
+                        <f:repeatableDeleteButton value="${%delete_identity_btn}"></f:repeatableDeleteButton>
+                    </div>
+                </f:repeatable>
+            </div>
+        </f:entry>
+    </f:section>
+</j:jelly>
+
+
+

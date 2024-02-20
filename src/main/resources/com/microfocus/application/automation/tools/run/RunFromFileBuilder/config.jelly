@@ -1,0 +1,422 @@
+<!--
+ ~ Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
+ ~ This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText.
+ ~ Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.
+ ~ __________________________________________________________________
+ ~ MIT License
+ ~
+ ~ Copyright 2012-2023 Open Text
+ ~
+ ~ The only warranties for products and services of Open Text and
+ ~ its affiliates and licensors ("Open Text") are as may be set forth
+ ~ in the express warranty statements accompanying such products and services.
+ ~ Nothing herein should be construed as constituting an additional warranty.
+ ~ Open Text shall not be liable for technical or editorial errors or
+ ~ omissions contained herein. The information contained herein is subject
+ ~ to change without notice.
+ ~
+ ~ Except as specifically indicated otherwise, this document contains
+ ~ confidential information and a valid license is required for possession,
+ ~ use or copying. If this work is provided to the U.S. Government,
+ ~ consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ ~ Computer Software Documentation, and Technical Data for Commercial Items are
+ ~ licensed to the U.S. Government under vendor's standard commercial license.
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ ~ ___________________________________________________________________
+  -->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:cv="/lib/custom">
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/parallelRunnerEnvironment.js"/>
+	<script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/fileSystemUtils.js"/>
+	<style>
+		#testsTable {
+			border: 1px;
+			width: 85%;
+		}
+		.testsDropDown {
+			margin-left: 20px;
+		}
+		#testsDropDown {
+			width: 85%;
+		}
+		#cleanupTestInput {
+			width: 250px;
+			margin-left: 10px;
+		}
+		#cleanupTestList {
+			margin-left: 20px;
+		}
+		td.help-text {
+			padding-left: 15px;
+		}
+		input[name="isParallelRunnerEnabled"],
+		 input[name="areParametersEnabled"] {
+			margin-left: 35px;
+		}
+		table tr td div.help {
+			margin-left: 12px;
+			background: none;
+			border: none;
+		}
+		.help {
+			background: none !important;
+		}
+		table td.help {
+			background: none;
+		}
+		table tr[nameref^="rowSetStart"] {
+			background: none;
+		}
+		textarea.jenkins-input, textarea.setting-input{
+			height:5em;
+			resize: vertical;
+		}
+		div.setting-main {
+			width: 100%;
+		}
+		div.setting-main div.jenkins-radio, div.setting-main select {
+			margin-right: 15px;
+		}
+		div.repeated-container {
+			width:100%;
+		}
+		.cloud-browser-section {
+			width:50%;
+			margin-bottom: 10px;
+			--section-padding: 5px;
+		}
+		input[name="cloudBrowserLab"] {
+			display: inline-block;
+			margin-bottom: 10px;
+			width: 140px;
+		}
+		input[name="digitalLabWizard"] {
+			display: inline-block;
+			margin-bottom: 10px;
+			width: 140px;
+		}
+		.device-info-section {
+			width:100%;
+			margin-bottom: 10px;
+			--section-padding: 5px;
+		}
+		.error-msg {
+			color:red;
+			display:none;
+		}
+	</style>
+
+    <st:setHeader name="Cross-Origin-Opener-Policy" value="unsafe-none" />
+	<st:bind var="a" value="${descriptor}"/>
+
+	<st:bind var="fsTests" value="${instance.runFromFileModel.fsTests}"/>
+	<st:bind var="cleanupTests" value="${instance.runFromFileModel.cleanupTests}"/>
+
+	<!--
+	  ~ [JENKINS-64639]: This table is only for drawing information. Also, the tr and td are removed by Jenkins core and the generated HTML doesn't contain it.
+	  -->
+	<tr>
+	  <td/>
+	  <td colspan="2" class="help-text">
+		<div id="helpTextMsg" class="help" style="display:block; margin-left: -15px;">
+			${%DontForgetThePublisherFreestyle}
+		</div>
+	  </td>
+	  <td/>
+	</tr>
+
+	<f:entry title="Tests" field="fsTests">
+		<f:expandableTextbox name="fsTests" value="${instance.runFromFileModel.fsTests}"/>
+	</f:entry>
+
+	<f:entry title="Results directory" field="fsReportPath">
+		<f:textbox name="fsReportPath" value="${instance.runFromFileModel.fsReportPath}"/>
+	</f:entry>
+
+	<f:entry title="Timeout" field="fsTimeout">
+		<f:textbox name="fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+	</f:entry>
+
+	<f:entry title="Output encoding" field="outEncoding">
+		<select name="outEncoding" style="width: 250px;">
+			<j:forEach var="enc" items="${descriptor.encodings}">
+				<f:option selected="${enc == instance.outEncoding}" value="${enc}">
+					${enc}
+				</f:option>
+			</j:forEach>
+		</select>
+	</f:entry>
+
+	<f:optionalBlock name="areParametersEnabled" title="Specify test parameters" inline="true" checked="${instance.areParametersEnabled}">
+		<f:entry field="specifyParametersModel">
+			<f:property field="specifyParametersModel"/>
+		</f:entry>
+	</f:optionalBlock>
+
+	<f:optionalBlock name="isParallelRunnerEnabled" title="UFT parallel running mode" inline="true" checked="${instance.isParallelRunnerEnabled}">
+		<f:entry field="fileSystemTestSetModel">
+			<f:property field="fileSystemTestSetModel"/>
+		</f:entry>
+	</f:optionalBlock>
+
+	<f:advanced title="UFT-Specific Settings" align="right">
+		<div id="uftSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>UFT-Specific Settings</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Run Mode" field="fsUftRunMode">
+					<select name="runPipeline.fsUftRunMode">
+						<j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
+							<f:option selected="${runMode.value == instance.runFromFileModel.fsUftRunMode}" value="${runMode.value}">
+								${runMode.description}
+							</f:option>
+						</j:forEach>
+					</select>
+				</f:entry>
+
+				<f:entry>
+					<f:property field="uftSettingsModel"/>
+				</f:entry>
+			</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide UFT-Specific Settings" onclick="hideAndMoveAdvancedBody('uftSpecificSection')">
+									Hide UFT-Specific Settings
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
+
+	<f:advanced title="LoadRunner-Specific Settings" align="right">
+		<div id="loadRunnerSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>LoadRunner-Specific Settings</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+					<f:textbox name="controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
+				</f:entry>
+				<f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+					<f:textbox name="perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
+				</f:entry>
+				<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
+					<f:textarea name="ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
+				</f:entry>
+				<f:entry title="Analysis Template" field="analysisTemplate">
+					<f:textbox name="runPipeline.analysisTemplate" value="${instance.runFromFileModel.analysisTemplate}" default=""/>
+				</f:entry>
+				<f:entry title="Display Controller" field="displayController">
+					<f:checkbox name="displayController" checked="${instance.runFromFileModel.displayController}"/>
+				</f:entry>
+				<f:section title="${%SummaryDataLog}">
+					<f:entry name="Summary Data Log Model" field="summaryDataLogModel">
+						<f:property field="summaryDataLogModel" />
+					</f:entry>
+				</f:section>
+				<f:section title="${%RuntimeSettings}">
+					<f:entry name="Runtime Settings" field="scriptRTSSetModel">
+						<f:property field="scriptRTSSetModel"/>
+					</f:entry>
+				</f:section>
+			</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide LoadRunner-Specific Settings" onclick="hideAndMoveAdvancedBody('loadRunnerSpecificSection')">
+									Hide LoadRunner-Specific Settings
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
+
+	<!-- add MC server and app info starting -->
+	<f:advanced title="Digital Lab (formerly UFT Mobile) Options" align="right">
+		<div id="mobileSpecificSection" class="tr config-table-top-row" style="position: relative;">
+			<div class="repeated-chunk">
+				<div style="width: 100%">
+					<div class="tr help-sibling config-table-top-row">
+						<div colspan="3">
+							<div>
+								<b>Digital Lab Options</b>
+							</div>
+							<span class="setting-no-help"></span>
+						</div>
+					</div>
+				</div>
+				<f:entry title="Digital Lab Server" field="mcServerName">
+					 <select name="mcServerName">
+						 <j:forEach var="mcServer" items="${descriptor.mcServers}">
+							 <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
+								 ${mcServer.mcServerName}
+							 </f:option>
+						 </j:forEach>
+					 </select>
+				 </f:entry>
+				<f:entry>
+					 <f:checkbox title="Use SSL" name="useSSL" checked="${instance.runFromFileModel.useSSL}" default="true"/>
+				 </f:entry>
+				<f:entry field="authModel">
+                    <f:radioBlock name="authModel" value="token" checked="${instance.runFromFileModel.authType == 'token' || instance.runFromFileModel.authType == null}" title="Execution Token Authentication">
+                        <f:nested>
+                            <f:entry title="Access Key" field="mcExecToken">
+                                <f:password name="mcExecToken" value="${instance.runFromFileModel.authModel.mcExecToken}" />
+                            </f:entry>
+                        </f:nested>
+                    </f:radioBlock>
+                    <f:radioBlock name="authModel" value="base" checked="${instance.runFromFileModel.authType == 'base'}" title="Base Authentication">
+                        <f:nested>
+                            <f:entry title="User name" field="mcUserName">
+                                <f:textbox name="mcUserName" value="${instance.runFromFileModel.authModel.mcUserName}"/>
+                            </f:entry>
+                            <f:entry title="Password" field="mcPassword">
+                                <f:password name="mcPassword" value="${instance.runFromFileModel.authModel.mcPassword}"/>
+                            </f:entry>
+                            <f:entry title="Tenant Id" field="mcTenantId">
+                                <f:textbox name="mcTenantId" value="${instance.runFromFileModel.authModel.mcTenantId}"/>
+                            </f:entry>
+                        </f:nested>
+                    </f:radioBlock>
+                </f:entry>
+				<f:entry>
+					 <f:optionalBlock title="Use proxy settings" name="proxySettings" checked="${instance.runFromFileModel.useProxy}">
+						 <f:entry title="Address" field="fsProxyAddress">
+							 <f:textbox name="fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
+						 </f:entry>
+						 <f:optionalBlock title="Specify authentication" name="fsUseAuthentication" checked="${instance.runFromFileModel.useProxyAuth}" inline="true" >
+							 <f:entry title="User name" field="fsProxyUserName">
+								 <f:textbox name="fsProxyUserName" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+							 </f:entry>
+							 <f:entry title="Password" field="fsProxyPassword">
+								 <f:password name="fsProxyPassword" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+							 </f:entry>
+						</f:optionalBlock>
+					 </f:optionalBlock>
+				 </f:entry>
+				<j:set var="hasJobId" value="${instance.runFromFileModel.fsJobId == null ? false : instance.runFromFileModel.fsJobId != ''}"/>
+				<f:optionalBlock name="useMobileDevice" title="Use Device Lab" checked="${hasJobId}" inline="true">
+					<div class="tr device-info-section">
+						<div class="repeated-chunk">
+							<f:entry title="Device ID" field="fsDeviceId">
+								<f:readOnlyTextbox name="fsDeviceId" value="${instance.runFromFileModel.fsDeviceId}"/>
+							</f:entry>
+							<f:entry title="OS" field="fsOs">
+								<f:readOnlyTextbox name="fsOs" value="${instance.runFromFileModel.fsOs}"/>
+							</f:entry>
+							<f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+								<f:readOnlyTextbox name="fsManufacturerAndModel" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+							</f:entry>
+							<f:entry title="Target lab" field="fsTargetLab">
+								<f:readOnlyTextbox name="fsTargetLab" value="${instance.runFromFileModel.fsTargetLab}"/>
+							</f:entry>
+							<f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+								<f:textarea name="fsExtraApps" readonly="true" value="${instance.runFromFileModel.fsExtraApps}"/>
+							</f:entry>
+							<f:entry title="TEST DEFINITIONS:"/>
+							<f:entry/>
+							<f:entry title="Launch on start" field="fsLaunchAppName">
+								<f:readOnlyTextbox name="fsLaunchAppName" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+							</f:entry>
+							<f:entry title="AUT packaging" field="fsInstrumented">
+								<f:readOnlyTextbox name="fsInstrumented" value="${instance.runFromFileModel.fsInstrumented}"/>
+							</f:entry>
+							<f:entry title="AUT actions" field="fsAutActions">
+								<f:readOnlyTextbox name="fsAutActions" value="${instance.runFromFileModel.fsAutActions}"/>
+							</f:entry>
+							<f:entry title="Device metrics" field="fsDevicesMetrics">
+								<f:readOnlyTextbox name="fsDevicesMetrics" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+							</f:entry>
+							<f:entry title="Job Id">
+								<f:readOnlyTextbox name="fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
+							</f:entry>
+						</div>
+						<f:entry>
+							<f:checkbox title="Recreate Digital Lab job if this job is copied from another job" name="recreateJob" checked="false"/>
+						</f:entry>
+						<f:entry>
+							<input name="digitalLabWizard" type="button" value="Wizard" onClick="startLoadInfo(a, this)"/>
+							<span class="error-msg">Digital Lab login information or proxy is incorrect.</span>
+						</f:entry>
+					</div>
+				</f:optionalBlock>
+				<j:set var="isCloudBrowserLab" value="${instance.runFromFileModel.cloudBrowserModel != null}"/>
+				<f:optionalBlock name="cloudBrowserModel" title="Use Cloud Browser Lab" checked="${isCloudBrowserLab}" >
+					<div class="tr cloud-browser-section">
+						<f:nested>
+							<input type="button" name="cloudBrowserLab" value="Browser settings" onclick="startLoadInfo(a, this,'${rootURL}');" />
+							<span class="error-msg">Digital Lab login information or proxy is incorrect.</span>
+							<f:textbox name="cloudBrowserUrl" value="${instance.runFromFileModel.cloudBrowserModel.url}" placeholder="URL"/>
+							<div class="repeated-chunk">
+								<f:entry title="Operating System" field="cloudBrowserOs">
+									<f:readOnlyTextbox name="cloudBrowserOs" value="${instance.runFromFileModel.cloudBrowserModel.os}"/>
+								</f:entry>
+								<f:entry title="Browser name" field="cloudBrowserType">
+									<f:readOnlyTextbox name="cloudBrowserType" value="${instance.runFromFileModel.cloudBrowserModel.type}"/>
+								</f:entry>
+								<f:entry title="Browser version" field="cloudBrowserVersion">
+									<f:readOnlyTextbox name="cloudBrowserVersion" value="${instance.runFromFileModel.cloudBrowserModel.version}"/>
+								</f:entry>
+								<f:entry title="Location" field="cloudBrowserRegion">
+									<f:readOnlyTextbox name="cloudBrowserRegion" value="${instance.runFromFileModel.cloudBrowserModel.region}"/>
+								</f:entry>
+							</div>
+						</f:nested>
+					</div>
+				</f:optionalBlock>
+
+		 	</div>
+			<div class="tr config-table-top-row">
+				<div colspan="4">
+					<div align="right">
+						<span class="yui-button yui-push-button repeatable-delete danger">
+							<span class="first-child">
+								<button type="button" tabindex="0" title="Hide Digital Lab Options" onclick="hideAndMoveAdvancedBody('mobileSpecificSection')">
+									Hide Digital Lab Options
+								</button>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</f:advanced>
+
+	<script type="text/javascript">
+		checkIfPipelineAndUpdateHelpMsg("${%DontForgetThePublisherPipeline}");
+		setupFsTask();
+	</script>
+</j:jelly>

@@ -149,22 +149,22 @@ Save the test in QuickTest and then run it again.</value>
     <value>Could not find results file '{0}'.</value>
   </data>
   <data name="STExecuterNotFound" xml:space="preserve">
-    <value>HP Testing Tool is missing : HP Service Test/HP Unified Function Testing</value>
+    <value>Micro Focus Testing Tool is missing : Micro Focus Service Test/Micro Focus Unified Function Testing</value>
   </data>
   <data name="XmlNodeNotExistError" xml:space="preserve">
     <value>XML node '{0}' could not be found.</value>
   </data>
   <data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on" xml:space="preserve">
-    <value>No HP testing tool is installed on {0}</value>
+    <value>No Micro Focus testing tool is installed on {0}</value>
   </data>
-  <data name="AlmRunnerCantFindTest" xml:space="preserve">
+  <data name="AlmRunnerCantFindTestSet" xml:space="preserve">
     <value>Could not find TestSet {0}</value>
   </data>
   <data name="AlmRunnerConnParamEmpty" xml:space="preserve">
     <value>One or more of the required connection parameters is empty.</value>
   </data>
   <data name="AlmRunnerDisplayLink" xml:space="preserve">
-    <value>Link: {0}</value>
+    <value>Copy the following report link inside an IE browser to view the test run results: {0}</value>
   </data>
   <data name="AlmRunnerDisplayTest" xml:space="preserve">
     <value>Test set name: {0}, Test set id: {1}</value>
@@ -176,22 +176,25 @@ Save the test in QuickTest and then run it again.</value>
     <value>Cannot Login to QC: Authorization failed.</value>
   </data>
   <data name="AlmRunnerErrorBadQcInstallation" xml:space="preserve">
-    <value>Check that your QC client is installed properly\n {0} \n{1}.</value>
+    <value>Check that your QC client is installed properly 
+{0} 
+{1}.</value>
   </data>
   <data name="AlmRunnerErrorConnectToProj" xml:space="preserve">
     <value>Cannot connect to QC: Project / Domain does not exist.</value>
   </data>
   <data name="AlmRunnerErrorGettingStat" xml:space="preserve">
-    <value>Problem in updating tests status for test: {0}\n {1}</value>
+    <value>Problem in updating tests status for test: {0} 
+{1}</value>
   </data>
   <data name="AlmRunnerNoSuchFolder" xml:space="preserve">
     <value>folder {0} cannot be found in ALM</value>
   </data>
   <data name="AlmRunnerNumTests" xml:space="preserve">
-    <value>"Number of tests in set: "</value>
+    <value>Number of tests in set:</value>
   </data>
   <data name="AlmRunnerProblemWithHost" xml:space="preserve">
-    <value>problem while setting remote host: {0}</value>
+    <value>Problem while setting remote host: {0}</value>
   </data>
   <data name="AlmRunnerRunError" xml:space="preserve">
     <value>Problem while running TestSet: </value>
@@ -200,10 +203,13 @@ Save the test in QuickTest and then run it again.</value>
     <value>Run ID:</value>
   </data>
   <data name="AlmRunnerSchedStarted" xml:space="preserve">
-    <value>"Scheduler started at:</value>
+    <value>Scheduler started at:</value>
   </data>
   <data name="AlmRunnerServerUnreachable" xml:space="preserve">
-    <value>"ALM server {0} unreachable, check that server Url is correct"</value>
+    <value>ALM server {0} unreachable, check that server Url is correct</value>
+  </data>
+  <data name="AlmRunnerIncorectCredentials" xml:space="preserve">
+    <value>Unable to login. Please check username and password.</value>
   </data>
   <data name="AlmRunnerStartingExecution" xml:space="preserve">
     <value>Starting test set execution</value>
@@ -221,10 +227,10 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test set: {0}, finished at {1}</value>
   </data>
   <data name="AlmRunnerTestStat" xml:space="preserve">
-    <value>Test: {0}, Status: {1}, Message: {2} \nLink: {3}\n</value>
+    <value>Test: {0}, Status: {1}, Message: {2}, Link: {3}</value>
   </data>
   <data name="FsRunnerNoValidTests" xml:space="preserve">
-    <value>===============================\nThere are no valid tests to run!\n===============================</value>
+    <value>=============================== There are no valid tests to run! ===============================</value>
   </data>
   <data name="FsRunnerRunningTest" xml:space="preserve">
     <value>Running test: {0}</value>
@@ -263,7 +269,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Test run was cancelled</value>
   </data>
   <data name="GeneralTimedOut" xml:space="preserve">
-    <value>==============\nJob timed out!\n==============</value>
+    <value>============== Job timed out! ==============</value>
   </data>
   <data name="GeneralTimeoutExpired" xml:space="preserve">
     <value>Timeout has expired</value>
@@ -272,9 +278,9 @@ Save the test in QuickTest and then run it again.</value>
     <value>Run mode is set to: {0}</value>
   </data>
   <data name="LauncherDisplayStatistics" xml:space="preserve">
-    <value>Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}</value>
+    <value>Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}, warnings: {5}</value>
   </data>
-  <data name="LauncherDoubleSeperator" xml:space="preserve">
+  <data name="LauncherDoubleSeparator" xml:space="preserve">
     <value>================================================</value>
   </data>
   <data name="LauncherIncorrectRunmode" xml:space="preserve">
@@ -286,11 +292,23 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LauncherNoValidTests" xml:space="preserve">
     <value>No valid tests were found. Fix the test paths.</value>
   </data>
+  <data name="LauncherNoCleanupTestsFound" xml:space="preserve">
+    <value>No cleanup tests were found. Add some cleanup tests.</value>
+  </data>
+  <data name="LauncherNoValidCleanupTests" xml:space="preserve">
+    <value>No valid cleanup tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherNoFailedTestsFound" xml:space="preserve">
+    <value>No tests were selected to rerun.</value>
+  </data>
+  <data name="LauncherNoValidFailedTests" xml:space="preserve">
+    <value>No valid failed tests to rerun were found. Fix the test paths.</value>
+  </data>
   <data name="LauncherParamRequired" xml:space="preserve">
     <value>The parameter '{0}' is required to run a test from QC.</value>
   </data>
   <data name="LauncherRunnerDisposeError" xml:space="preserve">
-    <value>An error occured while disposing runner: {0}.</value>
+    <value>An error occurred while disposing runner: {0}.</value>
   </data>
   <data name="LauncherStNotInstalled" xml:space="preserve">
     <value>Service Test is not installed on {0}</value>
@@ -362,13 +380,13 @@ Save the test in QuickTest and then run it again.</value>
     <value>Scenario {0} ended after {1}:{2}:{3}.</value>
   </data>
   <data name="LrScenarioEndedTimeOut" xml:space="preserve">
-    <value>Timeout passed. Stopping sceario by force.</value>
+    <value>Timeout passed. Stopping scenario by force.</value>
   </data>
   <data name="LrScenarioEndedWithErrors" xml:space="preserve">
-    <value>Errors occured during scenario execution. Stopping the scenario run.</value>
+    <value>Errors occurred during scenario execution. Stopping the scenario run.</value>
   </data>
   <data name="LrScenarioTimeOut" xml:space="preserve">
-    <value>Scenario Execution timeout ({0} seconds) passed.</value>
+    <value>Scenario Execution timeout {0} (d:h:m:s) passed.</value>
   </data>
   <data name="LrScenarioValidationCannotConnectLG" xml:space="preserve">
     <value>Cannot connect to Load Generator {0}.</value>
@@ -398,13 +416,13 @@ Save the test in QuickTest and then run it again.</value>
     <value>Stop scenario failed. Return code = {0}</value>
   </data>
   <data name="LRTestFailDueToFatalErrors" xml:space="preserve">
-    <value>Test FAILED. {0} errors occured during scenario execution.</value>
+    <value>Test FAILED. {0} errors occurred during scenario execution.</value>
   </data>
   <data name="LRTestPassed" xml:space="preserve">
     <value>Test PASSED</value>
   </data>
   <data name="LRTestWarningDueToIgnoredErrors" xml:space="preserve">
-    <value>Setting test state to WARNING. {0} Ignored errors occured during scenario execution.</value>
+    <value>Setting test state to WARNING. {0} Ignored errors occurred during scenario execution.</value>
   </data>
   <data name="LrSLARuleFailed" xml:space="preserve">
     <value>SLA rule {0} failed: GoalValue = {1} ActualValue = {2}</value>
@@ -416,7 +434,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Timeout for Analysis passed.</value>
   </data>
   <data name="LrAnlysisInitFail" xml:space="preserve">
-    <value>Failed to initilize Analysis launcher.</value>
+    <value>Failed to initialize Analysis launcher.</value>
   </data>
   <data name="LrAnlysisResults" xml:space="preserve">
     <value>Analysis Results:</value>
@@ -437,6 +455,99 @@ Save the test in QuickTest and then run it again.</value>
     <value>UFT cannot start while the LeanFT engine is running.</value>
   </data>
   <data name="UFT_Sprinter_Running" xml:space="preserve">
-    <value>UFT cannot start while HP Sprinter is running.</value>
+    <value>UFT cannot start while Micro Focus Sprinter is running.</value>
+  </data>
+  <data name="ParallelRunnerExecutableNotFound" xml:space="preserve">
+    <value />
+  </data>
+  <data name="InvalidReportPath" xml:space="preserve">
+    <value>Invalid report path provided: '{0}'</value>
+  </data>
+  <data name="LrSummaryDataLoggingError" xml:space="preserve">
+    <value>An error occured during summary data logging: {0}</value>
+  </data>
+  <data name="LrRTSError" xml:space="preserve">
+    <value>An error occured during RTS in script {0}: {1}</value>
+  </data>
+  <data name="SmallDoubleSeparator" xml:space="preserve">
+    <value>===========================</value>
+  </data>
+  <data name="CreateTDConnection" xml:space="preserve">
+    <value>CreateTDConnection</value>
+  </data>
+  <data name="OldVersionOfQC" xml:space="preserve">
+    <value>You are using an old version of QC. Please update ALM QC.</value>
+  </data>
+  <data name="MissingParameterName" xml:space="preserve">
+    <value>Parameter name missing. Please specify the parameter name.</value>
+  </data>
+  <data name="MissingParameterValue" xml:space="preserve">
+    <value>Parameter value is unspecified. Please provide a value or an empty string.</value>
+  </data>
+  <data name="AlmTestSetsRunnerGetFolderError" xml:space="preserve">
+    <value>Cannot find the test folder.</value>
+  </data>
+  <data name="AlmTestSetsRunnerNoTestAfterApplyingFilters" xml:space="preserve">
+    <value>No test meets the filtering criteria</value>
+  </data>
+  <data name="AlmRunnerCantFindTest" xml:space="preserve">
+    <value>Could not find Test {0}</value>
+  </data>
+  <data name="AlmRunnerTestsetAborted" xml:space="preserve">
+    <value>Test set: {0}, aborted at {1}</value>
+  </data>
+  <data name="AlmRunnerUpdateStateAfterAbort" xml:space="preserve">
+    <value>Test: {0} &gt;&gt; Previous state -&gt; {1}; After update state -&gt; {2}</value>
+  </data>
+  <data name="AlmRunnerErrorParameterFormat" xml:space="preserve">
+    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default parameter definitions.</value>
+  </data>
+  <data name="MissingQuotesInParamFormat" xml:space="preserve">
+    <value>Missing quotes for {0} in parameter definition.</value>
+  </data>
+  <data name="FsRunnerErrorParameterFormat" xml:space="preserve">
+    <value>Invalid parameter format, check job configuration to re-configure parameter definitions for test: {0}. Falling back to default values, without skipping this test.</value>
+  </data>
+  <data name="McInvalidToken" xml:space="preserve">
+    <value>Invalid execution token for Digital Lab, should contain ClientID, SecretKey and TenantID.</value>
+  </data>
+  <data name="McMalformedTokenInvalidKey" xml:space="preserve">
+    <value>Malformed execution token for Digital Lab, invalid key value: {0}.</value>
+  </data>
+  <data name="McMalformedTokenInvalidKeyValueSeparator" xml:space="preserve">
+    <value>Malformed execution token for Digital Lab, key-value pairs are not separated by {0}.</value>
+  </data>
+  <data name="McMalformedTokenMissingKeyValuePair" xml:space="preserve">
+    <value>Malformed execution token for Digital Lab, token without key-value.</value>
+  </data>
+  <data name="FsDuplicateParamNames" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification.</value>
+  </data>
+  <data name="AlmDuplicateParameter" xml:space="preserve">
+    <value>Duplicate parameter name entry found, please check the parameters' specification, falling back to default parameters for {0}. test or testset.</value>
+  </data>
+  <data name="GeneralParameterTypeMismatchWith1Type" xml:space="preserve">
+    <value>Input parameter type mismatch (skipped), check your test configuration in UFT. param: '{0}'</value>
+  </data>
+  <data name="GeneralParameterTypeMismatchWith2Types" xml:space="preserve">
+    <value>Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: '{2}'</value>
+  </data>
+  <data name="GeneralParameterUsage" xml:space="preserve">
+    <value>Using parameter {0} = {1}</value>
+  </data>
+  <data name="GeneralParameterUsageMask" xml:space="preserve">
+    <value>Using parameter {0} = **********</value>
+  </data>
+  <data name="UftLaunchAsUserNotSupported" xml:space="preserve">
+    <value>The installed version of UFT One does not support the LaunchAsUser method. Please use the version 2023 or later.</value>
+  </data>
+  <data name="McEmptyHostAddress" xml:space="preserve">
+    <value>Empty Digital Lab Server.</value>
+  </data>
+  <data name="McInvalidUrl" xml:space="preserve">
+    <value>Invalid Digital Lab Server URL: '{0}'.</value>
+  </data>
+  <data name="CloudBrowserNotSupported" xml:space="preserve">
+    <value>Cloud Browser is not supported in UFT One {0}. Please upgrade to UFT One 23.4 or later.</value>
   </data>
 </root>
