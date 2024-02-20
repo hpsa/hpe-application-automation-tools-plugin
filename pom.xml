@@ -351,8 +351,8 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.jenkins.tools.bom</groupId>
-				<artifactId>bom-2.289.x</artifactId>
-				<version>984.vb5eaac999a7e</version>
+				<artifactId>bom-2.375.x</artifactId>
+				<version>2198.v39c76fc308ca</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -629,5 +629,36 @@
 			<artifactId>jaxb</artifactId>
 			<version>2.3.6-1</version> <!-- TODO use version from BOM when possible -->
 		</dependency>
+
+		<!--<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>4.0.1</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>3.0.0</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>2.3.1</version>
+		</dependency>-->
 	</dependencies>
 </project>
