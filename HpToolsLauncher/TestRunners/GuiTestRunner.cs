@@ -43,6 +43,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Resources = HpToolsLauncher.Properties.Resources;
 using AuthType = HpToolsLauncher.McConnectionInfo.AuthType;
+using DigitalLabType = HpToolsLauncher.McConnectionInfo.DigitalLabType;
 
 namespace HpToolsLauncher
 {
@@ -80,6 +81,7 @@ namespace HpToolsLauncher
         private const string CLOUD_BROWSER = "CloudBrowser";
         private const string SYSTEM_PROXY = "System Proxy";
         private const string HTTP_PROXY = "HTTP Proxy";
+        private const string DEFAULT_WORKSPACE = "default workspace";
 
         private readonly Type _qtType = Type.GetTypeFromProgID("Quicktest.Application");
         private readonly IAssetRunner _runNotifier;
@@ -211,7 +213,6 @@ namespace HpToolsLauncher
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
-                    // set Mc connection and other mobile info into rack if neccesary
                     SetMobileInfo();
 
                     if (!_qtpApplication.Launched)
@@ -272,6 +273,13 @@ namespace HpToolsLauncher
                 throw;
             }
 
+            if (!HandleDigitalLab(qtpVersion, ref errorReason))
+            {
+                runDesc.TestState = TestState.Error;
+                runDesc.ErrorDesc = errorReason;
+                return runDesc;
+            }
+
             if (!HandleInputParameters(testPath, ref errorReason, paramDict, testinf))
             {
                 runDesc.TestState = TestState.Error;
@@ -311,7 +319,7 @@ namespace HpToolsLauncher
         private string GetReportLocation(TestInfo testinf, string testPath)
         {
             // use the defined report path if provided
-            string rptLocation = string.IsNullOrEmpty(testinf.ReportPath) ? 
+            string rptLocation = string.IsNullOrEmpty(testinf.ReportPath) ?
                             Path.Combine(testPath, REPORT) :
                             Path.Combine(testinf.ReportPath, REPORT);
 
@@ -328,86 +336,10 @@ namespace HpToolsLauncher
 
         private void SetMobileInfo()
         {
-            if (_mcConnection == null) return;
-
-            #region Mc connection and other mobile info
-
-            ITDPierToTulip tulip = _qtpApplication.TDPierToTulip;
-            // Mc Address, username and password
-            if (!_mcConnection.HostAddress.IsNullOrEmpty())
+            if (_mcConnection != null && !string.IsNullOrEmpty(_mobileInfo))
             {
-                tulip.SetTestOptionsVal(MC_TYPE, (int)_mcConnection.LabType);
-
-                tulip.SetTestOptionsVal(MOBILE_HOST_ADDRESS, _mcConnection.HostAddress);
-                if (!_mcConnection.HostPort.IsNullOrEmpty())
-                {
-                    tulip.SetTestOptionsVal(MOBILE_HOST_PORT, _mcConnection.HostPort);
-                }
-
-                AuthType mcAuthType = _mcConnection.MobileAuthType;
-                tulip.SetTestOptionsVal(MOBILE_AUTH_TYPE, mcAuthType);
-                switch (mcAuthType)
-                {
-                    case AuthType.AuthToken:
-                        var token = _mcConnection.GetAuthToken();
-                        tulip.SetTestOptionsVal(MOBILE_CLIENTID, token.ClientId);
-                        tulip.SetTestOptionsVal(MOBILE_SECRET, token.SecretKey);
-                        break;
-                    case AuthType.UsernamePassword:
-                        if (!_mcConnection.UserName.IsNullOrEmpty())
-                        {
-                            tulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.UserName);
-                            if (!_mcConnection.Password.IsNullOrEmpty())
-                            {
-                                string encriptedMcPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.Password);
-                                if (encriptedMcPassword == null)
-                                {
-                                    ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-                                    throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-                                }
-                                tulip.SetTestOptionsVal(MOBILE_PASSWORD, encriptedMcPassword);
-                            }
-                        }
-
-                        break;
-                }
-
-                // set tenantID
-                if (!_mcConnection.TenantId.IsNullOrEmpty())
-                {
-                    tulip.SetTestOptionsVal(MOBILE_TENANT, _mcConnection.TenantId);
-                }
-
-                // ssl and proxy info
-                tulip.SetTestOptionsVal(MOBILE_USE_SSL, _mcConnection.UseSslAsInt);
-
-                if (_mcConnection.UseProxy)
-                {
-                    tulip.SetTestOptionsVal(MOBILE_USE_PROXY, _mcConnection.UseProxyAsInt);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING, _mcConnection.ProxyType);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_ADDRESS, _mcConnection.ProxyAddress);
-                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PORT, _mcConnection.ProxyPort);
-                    if (_mcConnection.UseProxyAuth)
-                    {
-                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_AUTHENTICATION, 1);
-                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_USERNAME, _mcConnection.ProxyUserName);
-                        string encMcProxyPassword = WinUserNativeMethods.ProtectBSTRToBase64(_mcConnection.ProxyPassword);
-                        if (encMcProxyPassword == null)
-                        {
-                            ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
-                            throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Proxy Password"));
-                        }
-                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, encMcProxyPassword);
-                    }
-                }
-
-                // Mc info (device, app, launch and terminate data)
-                if (!string.IsNullOrEmpty(_mobileInfo))
-                {
-                    tulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
-                }
+                _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
             }
-            #endregion
         }
 
         /// <summary>
@@ -694,6 +626,124 @@ namespace HpToolsLauncher
                 qtpAuto.Kill();
             }
         }
+        private bool HandleDigitalLab(Version qtpVersion, ref string errorReason)
+        {
+            if (_mcConnection != null && !_mcConnection.HostAddress.IsNullOrEmpty())
+            {
+                if (qtpVersion < new Version(2023, 4))
+                {
+                    return SetMcOptions(_qtpApplication.Options.MCConnection, ref errorReason);
+                }
+                else
+                {
+                    return SetDlOptions(_qtpApplication.Options.DLConnection, ref errorReason);
+                }
+            }
+            return true;
+        }
+
+        private bool SetDlOptions(DLConnectionOptions opt, ref string errorReason)
+        {
+            try
+            {
+                int type = (int)DigitalLabType.UFT; // TODO set and get it from props
+                opt.Type = type.ToString();
+                if (_mcConnection.MobileAuthType == AuthType.AuthToken)
+                {
+                    opt.AuthType = AuthType.AuthToken.GetEnumDescription();
+                    opt.AccessKey = _mcConnection.ExecToken;
+                }
+                else if (!_mcConnection.UserName.IsNullOrEmpty())
+                {
+                    opt.AuthType = AuthType.UsernamePassword.GetEnumDescription();
+                    opt.UserName = _mcConnection.UserName;
+                    opt.Password = GetEncryptedPassword(_mcConnection.Password);
+                }
+                opt.Server = _mcConnection.HostAddress;
+                opt.Port = _mcConnection.HostPort;
+                opt.UseSSL = _mcConnection.UseSSL;
+                if (_mcConnection.UseProxy)
+                {
+                    opt.UseProxySettings = true;
+                    opt.ProxyType = _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY;
+                    opt.ProxyPort = _mcConnection.ProxyPort.ToString();
+                    if (_mcConnection.UseProxyAuth)
+                    {
+                        opt.SpecifyAuthentication = true;
+                        opt.ProxyUserName = _mcConnection.ProxyUserName;
+                        opt.ProxyPassword = GetEncryptedPassword(_mcConnection.ProxyPassword);
+                    }
+                }
+                opt.ShowRemoteWndOnRun = true;
+                opt.WorkSpace = DEFAULT_WORKSPACE;
+                return true;
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Console.WriteLine(ex.Message);
+#endif
+                errorReason = ex.Message;
+                return false;
+            }
+        }
+
+        private string GetEncryptedPassword(string password)
+        {
+            string encryptedPassword = WinUserNativeMethods.ProtectBSTRToBase64(password);
+            if (encryptedPassword == null)
+            {
+                ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+                throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+            }
+            return encryptedPassword;
+        }
+
+        private bool SetMcOptions(MCConnectionOptions opt, ref string errorReason)
+        {
+            try
+            {
+                int type = (int)DigitalLabType.UFT; // TODO set and get it from props
+                opt.Type = type.ToString();
+                if (_mcConnection.MobileAuthType == AuthType.AuthToken)
+                {
+                    opt.AuthType = AuthType.AuthToken.GetEnumDescription();
+                    opt.AccessKey = _mcConnection.ExecToken;
+                }
+                else if (!_mcConnection.UserName.IsNullOrEmpty())
+                {
+                    opt.AuthType = AuthType.UsernamePassword.GetEnumDescription();
+                    opt.UserName = _mcConnection.UserName;
+                    opt.Password = GetEncryptedPassword(_mcConnection.Password);
+                }
+                opt.Server = _mcConnection.HostAddress;
+                opt.Port = _mcConnection.HostPort;
+                opt.UseSSL = _mcConnection.UseSSL;
+                if (_mcConnection.UseProxy)
+                {
+                    opt.UseProxySettings = true;
+                    opt.ProxyType = _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY;
+                    opt.ProxyPort = _mcConnection.ProxyPort.ToString();
+                    if (_mcConnection.UseProxyAuth)
+                    {
+                        opt.SpecifyAuthentication = true;
+                        opt.ProxyUserName = _mcConnection.ProxyUserName;
+                        opt.ProxyPassword = GetEncryptedPassword(_mcConnection.ProxyPassword);
+                    }
+                }
+                opt.ShowRemoteWndOnRun = true;
+                opt.WorkSpace = DEFAULT_WORKSPACE;
+                return true;
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Console.WriteLine(ex.Message);
+#endif
+                errorReason = ex.Message;
+                return false;
+            }
+        }
 
         private bool HandleOutputArguments(ref string errorReason, out Dictionary<string, string> outParams)
         {
@@ -780,7 +830,7 @@ namespace HpToolsLauncher
                     launcher.CloudBrowser.BrowserVersion = _cloudBrowser.Version;
                     launcher.CloudBrowser.Location = _cloudBrowser.Region;
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     errorReason = ex.Message;
                     return false;
@@ -944,7 +994,7 @@ namespace HpToolsLauncher
             return localKey;
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// holds the resutls for a GUI test
