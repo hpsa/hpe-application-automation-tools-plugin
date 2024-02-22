@@ -50,23 +50,6 @@ namespace HpToolsLauncher
     public class GuiTestRunner : IFileSysTestRunner
     {
         // Setting keys for mobile
-        private const string MC_TYPE = "MobileCenterType";
-        private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
-        private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
-        private const string MOBILE_USER = "ALM_MobileUserName";
-        private const string MOBILE_PASSWORD = "ALM_MobilePassword";
-        private const string MOBILE_CLIENTID = "EXTERNAL_MobileClientID";
-        private const string MOBILE_SECRET = "EXTERNAL_MobileSecretKey";
-        private const string MOBILE_AUTH_TYPE = "EXTERNAL_MobileAuthType";
-        private const string MOBILE_TENANT = "EXTERNAL_MobileTenantId";
-        private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
-        private const string MOBILE_USE_PROXY = "EXTERNAL_MobileProxySetting_UseProxy";
-        private const string MOBILE_PROXY_SETTING = "EXTERNAL_MobileProxySetting";
-        private const string MOBILE_PROXY_SETTING_ADDRESS = "EXTERNAL_MobileProxySetting_Address";
-        private const string MOBILE_PROXY_SETTING_PORT = "EXTERNAL_MobileProxySetting_Port";
-        private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "EXTERNAL_MobileProxySetting_Authentication";
-        private const string MOBILE_PROXY_SETTING_USERNAME = "EXTERNAL_MobileProxySetting_UserName";
-        private const string MOBILE_PROXY_SETTING_PASSWORD = "EXTERNAL_MobileProxySetting_Password";
         private const string MOBILE_INFO = "mobileinfo";
         private const string REPORT = "Report";
         private const string READY = "Ready";
@@ -628,6 +611,9 @@ namespace HpToolsLauncher
         }
         private bool HandleDigitalLab(Version qtpVersion, ref string errorReason)
         {
+#if DEBUG
+            Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
+#endif
             if (_mcConnection != null && !_mcConnection.HostAddress.IsNullOrEmpty())
             {
                 if (qtpVersion < new Version(2023, 4))
@@ -657,7 +643,7 @@ namespace HpToolsLauncher
                 {
                     opt.AuthType = AuthType.UsernamePassword.GetEnumDescription();
                     opt.UserName = _mcConnection.UserName;
-                    opt.Password = GetEncryptedPassword(_mcConnection.Password);
+                    opt.Password = _mcConnection.Password;
                 }
                 opt.Server = _mcConnection.HostAddress;
                 opt.Port = _mcConnection.HostPort;
@@ -671,7 +657,7 @@ namespace HpToolsLauncher
                     {
                         opt.SpecifyAuthentication = true;
                         opt.ProxyUserName = _mcConnection.ProxyUserName;
-                        opt.ProxyPassword = GetEncryptedPassword(_mcConnection.ProxyPassword);
+                        opt.ProxyPassword = _mcConnection.ProxyPassword;
                     }
                 }
                 opt.ShowRemoteWndOnRun = true;
@@ -686,17 +672,6 @@ namespace HpToolsLauncher
                 errorReason = ex.Message;
                 return false;
             }
-        }
-
-        private string GetEncryptedPassword(string password)
-        {
-            string encryptedPassword = WinUserNativeMethods.ProtectBSTRToBase64(password);
-            if (encryptedPassword == null)
-            {
-                ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-                throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
-            }
-            return encryptedPassword;
         }
 
         private bool SetMcOptions(MCConnectionOptions opt, ref string errorReason)
@@ -714,7 +689,7 @@ namespace HpToolsLauncher
                 {
                     opt.AuthType = AuthType.UsernamePassword.GetEnumDescription();
                     opt.UserName = _mcConnection.UserName;
-                    opt.Password = GetEncryptedPassword(_mcConnection.Password);
+                    opt.Password = _mcConnection.Password;
                 }
                 opt.Server = _mcConnection.HostAddress;
                 opt.Port = _mcConnection.HostPort;
@@ -728,7 +703,7 @@ namespace HpToolsLauncher
                     {
                         opt.SpecifyAuthentication = true;
                         opt.ProxyUserName = _mcConnection.ProxyUserName;
-                        opt.ProxyPassword = GetEncryptedPassword(_mcConnection.ProxyPassword);
+                        opt.ProxyPassword = _mcConnection.ProxyPassword;
                     }
                 }
                 opt.ShowRemoteWndOnRun = true;
