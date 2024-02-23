@@ -296,20 +296,6 @@ public class JobConfigurationProxy {
         return null;
     }
 
-
-    //create one temp job
-    public String createTempJob(String mcUrl, AuthModel authModel, ProxySettings proxy) {
-        try {
-            JSONObject loginJson = loginToMC(mcUrl, authModel, proxy);
-
-            Map<String, String> headers = initHeaders(authModel,loginJson);
-            createTempJobWithHeaders(mcUrl, proxy, headers);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public String createTempJobWithHeaders (String mcUrl, ProxySettings proxy, Map<String, String> headers) {
             if (headers != null) {
                 HttpUtils.ProxyInfo proxyInfo = proxy == null ? null : HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
@@ -522,6 +508,21 @@ public class JobConfigurationProxy {
         returnJSON.put("jobUUID", jobUUID);
         returnJSON.put("deviceJSON", returnDeviceJSON);
         return returnJSON;
+    }
+
+    public Boolean isServerOnSaaS(Map<String, String> headers, String mcUrl, ProxySettings proxy) {
+        if (null == proxy) {
+            proxy = new ProxySettings();
+        }
+        String isDLServerOnSaaSURL = mcUrl + Constants.IS_DL_SERVER_ON_SAAS_URL;
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
+        HttpResponse response = HttpUtils.doGet(proxyInfo, isDLServerOnSaaSURL, headers, null);
+        if (response.getJsonObject() != null) {
+            boolean isError = Boolean.parseBoolean(response.getJsonObject().get("error").toString());
+            return !isError;
+
+        }
+        return null;
     }
 
     private JSONObject parseJSONString(String jsonString) {

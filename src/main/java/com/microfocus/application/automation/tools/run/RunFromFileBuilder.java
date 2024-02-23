@@ -1037,19 +1037,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 Map<String, String> initHeaders = instance.initHeaders(authModel, loginJson);
                 if (initHeaders != null) {
                     map = initHeaders;
-
+                    Boolean serverOnSaaS = instance.isServerOnSaaS(initHeaders, mcUrl, proxy);
+                    if (serverOnSaaS != null) {
+                        map.put("isSaaS", serverOnSaaS.toString());
+                    }
                     String cookie = initHeaders.get(Constants.COOKIE);
-                    String loginSecret = initHeaders.get(Constants.LOGIN_SECRET);
                     if (!StringUtils.isEmpty(cookie)) {
-
-                        if (!StringUtils.isEmpty(loginSecret)) {
-                           String loginSecretCookie =  String.format("%s=%s;", Constants.LOGIN_SECRET, loginSecret);
-                           cookie = cookie + loginSecretCookie;
-                        }
-
                         if (!StringUtils.isEmpty(accessKey)) {
                             AtomicReference<String> tenantIdValue = new AtomicReference<>("");
-
                             Arrays.stream(accessKey.split(";")).forEach(str -> {
                                 if (str.toLowerCase().contains("tenant")) {
                                     tenantIdValue.set(str.substring(8));
@@ -1057,11 +1052,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                             });
 
                             if (tenantIdValue.get() != null) {
-                                String tenantIdCookie = String.format("%s=%s;", Constants.TENANT_ID_COOKIE, tenantIdValue.get());
-                                cookie = cookie + tenantIdCookie;
+                                map.put(Constants.TENANT_ID_COOKIE, tenantIdValue.get());
                             }
                         }
-                        map.put(Constants.COOKIE, cookie);
                     }
                 }
 
