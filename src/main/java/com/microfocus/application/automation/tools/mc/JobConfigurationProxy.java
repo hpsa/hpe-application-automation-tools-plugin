@@ -510,19 +510,20 @@ public class JobConfigurationProxy {
         return returnJSON;
     }
 
-    public Boolean isServerOnSaaS(Map<String, String> headers, String mcUrl, ProxySettings proxy) {
+    public boolean isServerOnSaaS(Map<String, String> headers, String mcUrl, ProxySettings proxy) {
         if (null == proxy) {
             proxy = new ProxySettings();
         }
         String isDLServerOnSaaSURL = mcUrl + Constants.IS_DL_SERVER_ON_SAAS_URL;
         HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxy.getFsProxyAddress(), proxy.getFsProxyUserName(), proxy.getFsProxyPassword());
         HttpResponse response = HttpUtils.doGet(proxyInfo, isDLServerOnSaaSURL, headers, null);
-        if (response.getJsonObject() != null) {
+        if (response.getJsonObject() != null ) {
             boolean isError = Boolean.parseBoolean(response.getJsonObject().get("error").toString());
             return !isError;
 
         }
-        return null;
+
+        return false;
     }
 
     private JSONObject parseJSONString(String jsonString) {

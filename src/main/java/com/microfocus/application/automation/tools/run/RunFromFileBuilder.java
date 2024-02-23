@@ -1037,10 +1037,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 Map<String, String> initHeaders = instance.initHeaders(authModel, loginJson);
                 if (initHeaders != null) {
                     map = initHeaders;
-                    Boolean serverOnSaaS = instance.isServerOnSaaS(initHeaders, mcUrl, proxy);
-                    if (serverOnSaaS != null) {
-                        map.put("isSaaS", serverOnSaaS.toString());
-                    }
+                    boolean serverOnSaaS = instance.isServerOnSaaS(initHeaders, mcUrl, proxy);
+                    map.put("isSaaS", String.valueOf(serverOnSaaS));
                     String cookie = initHeaders.get(Constants.COOKIE);
                     if (!StringUtils.isEmpty(cookie)) {
                         if (!StringUtils.isEmpty(accessKey)) {
@@ -1071,7 +1069,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                 }
 
                 map.put(jobIdKey, jobId);
-                System.out.println("INFO:: getJobId with cookies : " + map);
             } catch (Exception e) {
                 e.printStackTrace();
             }
