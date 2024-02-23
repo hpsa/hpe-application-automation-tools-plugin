@@ -1039,9 +1039,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                     map = initHeaders;
                     boolean serverOnSaaS = instance.isServerOnSaaS(initHeaders, mcUrl, proxy);
                     map.put("isSaaS", String.valueOf(serverOnSaaS));
-                    String cookie = initHeaders.get(Constants.COOKIE);
-                    if (!StringUtils.isEmpty(cookie)) {
-                        if (!StringUtils.isEmpty(accessKey)) {
+                    if (!StringUtils.isEmpty(accessKey)) {
                             AtomicReference<String> tenantIdValue = new AtomicReference<>("");
                             Arrays.stream(accessKey.split(";")).forEach(str -> {
                                 if (str.toLowerCase().contains("tenant")) {
@@ -1054,7 +1052,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
                             }
                         }
                     }
-                }
 
                 String jobId;
                 if (null != previousJobId && !previousJobId.isEmpty()) {
