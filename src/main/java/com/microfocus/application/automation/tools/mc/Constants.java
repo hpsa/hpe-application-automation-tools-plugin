@@ -50,6 +50,7 @@ public class Constants {
     public static final String JSESSIONID = "JSESSIONID";
     public static final String LWSSO_COOKIE_KEY = "LWSSO_COOKIE_KEY";
     public static final String OAUTH2_COOKIE_KEY = "OAUTH2_COOKIE_KEY";
+    public static final String TENANT_ID_COOKIE = "TENANT_ID_COOKIE";
     public static final String ACCEPT = "Accept";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String COOKIE = "Cookie";
@@ -65,6 +66,7 @@ public class Constants {
     public static final String GET_WORKSPACE_URL = "/rest/v2/workspaces";
     public static final String GET_ADMIN_SETTINGS_URL = "/rest/v2/adminSettings";
     public static final String GET_BROWSER_LAB_URL = "/rest/v2/browser-lab/uftone/templates";
+    public static final String IS_DL_SERVER_ON_SAAS_URL = "/rest/v2/status/saas";
     public final static String ICON = "icon";
     public final static String JSESSIONID_EQ = "JSESSIONID=";
     public final static String TENANT_COOKIE = "TENANT_ID_COOKIE";

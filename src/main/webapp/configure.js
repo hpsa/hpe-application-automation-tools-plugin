@@ -162,7 +162,22 @@ async function loadMobileInfo(a, b, o, err) {
         }
         let prevJobId = o.recreateJob ? "" : o.jobId;
         await a.getJobId(baseUrl, o.userName, o.password, o.tenantId, o.execToken, o.authType, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, prevJobId, async (response) => {
-            let jobId = response.responseObject();
+            let map = response.responseObject();
+
+            let jobId = '';
+            let tenantId = '';
+            let isSaaS = false;
+            //First need to check the return type(not sure if java map can automatically covert to js map)
+            if(map.hasOwnProperty("jobId")) {
+                jobId = map["jobId"];
+            }
+            if(map.hasOwnProperty("TENANT_ID_COOKIE")) {
+                tenantId = map["TENANT_ID_COOKIE"];
+            }
+            if(map.hasOwnProperty("isSaaS")) {
+                isSaaS = map["isSaaS"];
+            }
+
             if (jobId == null) {
                 err.style.display = "inline-block";
                 await triggerBtnState(b, false);
@@ -172,7 +187,12 @@ async function loadMobileInfo(a, b, o, err) {
             err.style.display = "none";
             let openedWindow = window.open('/', 'test parameters', 'height=820,width=1130');
             openedWindow.location.href = 'about:blank';
-            openedWindow.location.href = baseUrl + "/integration/#/login?jobId=" + jobId + "&displayUFTMode=true";
+            if (isSaaS) {
+                openedWindow.location.href = baseUrl + "/integration8/en/#/main/wizard?TENANTID=" + tenantId + "&jobId=" +  jobId + "&displayUFTMode=true";
+            } else {
+                openedWindow.location.href = baseUrl + "/integration/#/login?jobId=" + jobId + "&displayUFTMode=true";
+            }
+
             const msgCallback = async (ev) => {
                 if (ev?.data == "mcCloseWizard") {
                     await a.populateAppAndDevice(baseUrl, o.userName, o.password, o.tenantId, o.execToken, o.authType, o.useProxyAuth, o.proxyAddress, o.proxyUserName, o.proxyPassword, jobId, async (app) => {
