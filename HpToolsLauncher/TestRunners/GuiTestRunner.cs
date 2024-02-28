@@ -370,7 +370,6 @@ namespace HpToolsLauncher
                                 tulip.SetTestOptionsVal(MOBILE_PASSWORD, GetEncryptedPassword(_mcConnection.Password));
                             }
                         }
-
                         break;
                 }
 
@@ -400,7 +399,7 @@ namespace HpToolsLauncher
 
             if (!string.IsNullOrEmpty(_mobileInfo))
             {
-                _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
+                tulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
             }
 
             #endregion
@@ -709,10 +708,10 @@ namespace HpToolsLauncher
             if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty() || qtpVersion < new Version(2024, 2))
                 return true;
 
-            return SetDlOptions(_qtpApplication.Options.DLConnection, ref errorReason);
+            return SetDLOptions(_qtpApplication.Options.DLConnection, ref errorReason);
         }
 
-        private bool SetDlOptions(DLConnectionOptions opt, ref string errorReason)
+        private bool SetDLOptions(DLConnectionOptions opt, ref string errorReason)
         {
             try
             {
@@ -736,6 +735,7 @@ namespace HpToolsLauncher
                 {
                     opt.UseProxySettings = true;
                     opt.ProxyType = _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY;
+                    opt.ProxyAddress = _mcConnection.ProxyAddress;
                     opt.ProxyPort = _mcConnection.ProxyPort.ToString();
                     if (_mcConnection.UseProxyAuth)
                     {
