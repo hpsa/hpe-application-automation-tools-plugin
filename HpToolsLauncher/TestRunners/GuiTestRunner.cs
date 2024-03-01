@@ -342,7 +342,7 @@ namespace HpToolsLauncher
             #region Mc connection and other mobile info
 
             ITDPierToTulip tulip = _qtpApplication.TDPierToTulip;
-            if (qtpVersion < new Version(2024, 2)) // for version >= 24.2 use the method HandleDigitalLab
+            if (qtpVersion < new Version(2023, 4)) // for version >= 23.4 use the method HandleDigitalLab
             {
                 tulip.SetTestOptionsVal(MC_TYPE, (int)_mcConnection.LabType);
 
@@ -705,7 +705,7 @@ namespace HpToolsLauncher
 #if DEBUG
             Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
 #endif
-            if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty() || qtpVersion < new Version(2024, 2))
+            if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty() || qtpVersion < new Version(2023, 4))
                 return true;
 
             return SetDLOptions(_qtpApplication.Options.DLConnection, ref errorReason);
@@ -843,9 +843,10 @@ namespace HpToolsLauncher
                     launcher.CloudBrowser.BrowserVersion = _cloudBrowser.Version;
                     launcher.CloudBrowser.Location = _cloudBrowser.Region;
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    errorReason = ex.Message;
+                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e.Message, e.StackTrace));
+                    errorReason = e.Message;
                     return false;
                 }
             }
