@@ -210,6 +210,9 @@ namespace HpToolsLauncher
                     {
                         runDesc.ReportLocation = GetReportLocation(testinf, testPath);
                     }
+#if DEBUG
+                    Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
+#endif
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
@@ -273,12 +276,12 @@ namespace HpToolsLauncher
                 throw;
             }
 
-            if (!HandleDigitalLab(qtpVersion, ref errorReason))
-            {
-                runDesc.TestState = TestState.Error;
-                runDesc.ErrorDesc = errorReason;
-                return runDesc;
-            }
+            //if (!HandleDigitalLab(qtpVersion, ref errorReason))
+            //{
+            //    runDesc.TestState = TestState.Error;
+            //    runDesc.ErrorDesc = errorReason;
+            //    return runDesc;
+            //}
 
             if (!HandleInputParameters(testPath, ref errorReason, paramDict, testinf))
             {
@@ -342,7 +345,7 @@ namespace HpToolsLauncher
             #region Mc connection and other mobile info
 
             ITDPierToTulip tulip = _qtpApplication.TDPierToTulip;
-            if (qtpVersion < new Version(2023, 4)) // for version >= 23.4 use the method HandleDigitalLab
+            //if (qtpVersion < new Version(2023, 4)) // for version >= 23.4 use the method HandleDigitalLab
             {
                 tulip.SetTestOptionsVal(MC_TYPE, (int)_mcConnection.LabType);
 
@@ -702,9 +705,6 @@ namespace HpToolsLauncher
         }
         private bool HandleDigitalLab(Version qtpVersion, ref string errorReason)
         {
-#if DEBUG
-            Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
-#endif
             if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty() || qtpVersion < new Version(2023, 4))
                 return true;
 
