@@ -50,6 +50,23 @@ namespace HpToolsLauncher
     public class GuiTestRunner : IFileSysTestRunner
     {
         // Setting keys for mobile
+        private const string MC_TYPE = "MobileCenterType";
+        private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
+        private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
+        private const string MOBILE_USER = "ALM_MobileUserName";
+        private const string MOBILE_PASSWORD = "ALM_MobilePassword";
+        private const string MOBILE_CLIENTID = "EXTERNAL_MobileClientID";
+        private const string MOBILE_SECRET = "EXTERNAL_MobileSecretKey";
+        private const string MOBILE_AUTH_TYPE = "EXTERNAL_MobileAuthType";
+        private const string MOBILE_TENANT = "EXTERNAL_MobileTenantId";
+        private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
+        private const string MOBILE_USE_PROXY = "EXTERNAL_MobileProxySetting_UseProxy";
+        private const string MOBILE_PROXY_SETTING = "EXTERNAL_MobileProxySetting";
+        private const string MOBILE_PROXY_SETTING_ADDRESS = "EXTERNAL_MobileProxySetting_Address";
+        private const string MOBILE_PROXY_SETTING_PORT = "EXTERNAL_MobileProxySetting_Port";
+        private const string MOBILE_PROXY_SETTING_AUTHENTICATION = "EXTERNAL_MobileProxySetting_Authentication";
+        private const string MOBILE_PROXY_SETTING_USERNAME = "EXTERNAL_MobileProxySetting_UserName";
+        private const string MOBILE_PROXY_SETTING_PASSWORD = "EXTERNAL_MobileProxySetting_Password";
         private const string MOBILE_INFO = "mobileinfo";
         private const string REPORT = "Report";
         private const string READY = "Ready";
@@ -193,10 +210,13 @@ namespace HpToolsLauncher
                     {
                         runDesc.ReportLocation = GetReportLocation(testinf, testPath);
                     }
+#if DEBUG
+                    Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
+#endif
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
-                    SetMobileInfo();
+                    SetMobileInfo(qtpVersion);
 
                     if (!_qtpApplication.Launched)
                     {
@@ -256,12 +276,12 @@ namespace HpToolsLauncher
                 throw;
             }
 
-            if (!HandleDigitalLab(qtpVersion, ref errorReason))
-            {
-                runDesc.TestState = TestState.Error;
-                runDesc.ErrorDesc = errorReason;
-                return runDesc;
-            }
+            //if (!HandleDigitalLab(qtpVersion, ref errorReason))
+            //{
+            //    runDesc.TestState = TestState.Error;
+            //    runDesc.ErrorDesc = errorReason;
+            //    return runDesc;
+            //}
 
             if (!HandleInputParameters(testPath, ref errorReason, paramDict, testinf))
             {
@@ -317,12 +337,86 @@ namespace HpToolsLauncher
             return rptLocation;
         }
 
-        private void SetMobileInfo()
+        private void SetMobileInfo(Version qtpVersion)
         {
-            if (_mcConnection != null && !string.IsNullOrEmpty(_mobileInfo))
+            if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty())
+                return;
+
+            #region Mc connection and other mobile info
+
+            ITDPierToTulip tulip = _qtpApplication.TDPierToTulip;
+            //if (qtpVersion < new Version(2023, 4)) // for version >= 23.4 use the method HandleDigitalLab
             {
-                _qtpApplication.TDPierToTulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
+                tulip.SetTestOptionsVal(MC_TYPE, (int)_mcConnection.LabType);
+
+                tulip.SetTestOptionsVal(MOBILE_HOST_ADDRESS, _mcConnection.HostAddress);
+                if (!_mcConnection.HostPort.IsNullOrEmpty())
+                {
+                    tulip.SetTestOptionsVal(MOBILE_HOST_PORT, _mcConnection.HostPort);
+                }
+
+                AuthType mcAuthType = _mcConnection.MobileAuthType;
+                tulip.SetTestOptionsVal(MOBILE_AUTH_TYPE, mcAuthType);
+                switch (mcAuthType)
+                {
+                    case AuthType.AuthToken:
+                        var token = _mcConnection.GetAuthToken();
+                        tulip.SetTestOptionsVal(MOBILE_CLIENTID, token.ClientId);
+                        tulip.SetTestOptionsVal(MOBILE_SECRET, token.SecretKey);
+                        break;
+                    case AuthType.UsernamePassword:
+                        if (!_mcConnection.UserName.IsNullOrEmpty())
+                        {
+                            tulip.SetTestOptionsVal(MOBILE_USER, _mcConnection.UserName);
+                            if (!_mcConnection.Password.IsNullOrEmpty())
+                            {
+                                tulip.SetTestOptionsVal(MOBILE_PASSWORD, GetEncryptedPassword(_mcConnection.Password));
+                            }
+                        }
+                        break;
+                }
+
+                // set tenantID
+                if (!_mcConnection.TenantId.IsNullOrEmpty())
+                {
+                    tulip.SetTestOptionsVal(MOBILE_TENANT, _mcConnection.TenantId);
+                }
+
+                // ssl and proxy info
+                tulip.SetTestOptionsVal(MOBILE_USE_SSL, _mcConnection.UseSslAsInt);
+
+                if (_mcConnection.UseProxy)
+                {
+                    tulip.SetTestOptionsVal(MOBILE_USE_PROXY, _mcConnection.UseProxyAsInt);
+                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING, _mcConnection.ProxyType);
+                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_ADDRESS, _mcConnection.ProxyAddress);
+                    tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PORT, _mcConnection.ProxyPort);
+                    if (_mcConnection.UseProxyAuth)
+                    {
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_AUTHENTICATION, 1);
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_USERNAME, _mcConnection.ProxyUserName);
+                        tulip.SetTestOptionsVal(MOBILE_PROXY_SETTING_PASSWORD, GetEncryptedPassword(_mcConnection.ProxyPassword));
+                    }
+                }
             }
+
+            if (!string.IsNullOrEmpty(_mobileInfo))
+            {
+                tulip.SetTestOptionsVal(MOBILE_INFO, _mobileInfo);
+            }
+
+            #endregion
+        }
+
+        private string GetEncryptedPassword(string clearPassword)
+        {
+            string encPassword = WinUserNativeMethods.ProtectBSTRToBase64(clearPassword);
+            if (encPassword == null)
+            {
+                ConsoleWriter.WriteLine(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+                throw new Exception(string.Format(PROTECT_BstrToBase64_FAILED, "DL Password"));
+            }
+            return encPassword;
         }
 
         /// <summary>
@@ -611,70 +705,13 @@ namespace HpToolsLauncher
         }
         private bool HandleDigitalLab(Version qtpVersion, ref string errorReason)
         {
-#if DEBUG
-            Console.WriteLine(string.Format("UFT One version = {0}", qtpVersion));
-#endif
-            if (_mcConnection != null && !_mcConnection.HostAddress.IsNullOrEmpty())
-            {
-                if (qtpVersion < new Version(2023, 4))
-                {
-                    return SetMcOptions(_qtpApplication.Options.MCConnection, ref errorReason);
-                }
-                else
-                {
-                    return SetDlOptions(_qtpApplication.Options.DLConnection, ref errorReason);
-                }
-            }
-            return true;
-        }
-
-        private bool SetDlOptions(DLConnectionOptions opt, ref string errorReason)
-        {
-            try
-            {
-                int type = (int)DigitalLabType.UFT; // TODO set and get it from props
-                opt.Type = type.ToString();
-                if (_mcConnection.MobileAuthType == AuthType.AuthToken)
-                {
-                    opt.AuthType = AuthType.AuthToken.GetEnumDescription();
-                    opt.AccessKey = _mcConnection.ExecToken;
-                }
-                else if (!_mcConnection.UserName.IsNullOrEmpty())
-                {
-                    opt.AuthType = AuthType.UsernamePassword.GetEnumDescription();
-                    opt.UserName = _mcConnection.UserName;
-                    opt.Password = _mcConnection.Password;
-                }
-                opt.Server = _mcConnection.HostAddress;
-                opt.Port = _mcConnection.HostPort;
-                opt.UseSSL = _mcConnection.UseSSL;
-                if (_mcConnection.UseProxy)
-                {
-                    opt.UseProxySettings = true;
-                    opt.ProxyType = _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY;
-                    opt.ProxyPort = _mcConnection.ProxyPort.ToString();
-                    if (_mcConnection.UseProxyAuth)
-                    {
-                        opt.SpecifyAuthentication = true;
-                        opt.ProxyUserName = _mcConnection.ProxyUserName;
-                        opt.ProxyPassword = _mcConnection.ProxyPassword;
-                    }
-                }
-                opt.ShowRemoteWndOnRun = true;
-                opt.WorkSpace = DEFAULT_WORKSPACE;
+            if (_mcConnection == null || _mcConnection.HostAddress.IsNullOrEmpty() || qtpVersion < new Version(2023, 4))
                 return true;
-            }
-            catch (Exception ex)
-            {
-#if DEBUG
-                Console.WriteLine(ex.Message);
-#endif
-                errorReason = ex.Message;
-                return false;
-            }
+
+            return SetDLOptions(_qtpApplication.Options.DLConnection, ref errorReason);
         }
 
-        private bool SetMcOptions(MCConnectionOptions opt, ref string errorReason)
+        private bool SetDLOptions(DLConnectionOptions opt, ref string errorReason)
         {
             try
             {
@@ -698,6 +735,7 @@ namespace HpToolsLauncher
                 {
                     opt.UseProxySettings = true;
                     opt.ProxyType = _mcConnection.ProxyType == 1 ? SYSTEM_PROXY : HTTP_PROXY;
+                    opt.ProxyAddress = _mcConnection.ProxyAddress;
                     opt.ProxyPort = _mcConnection.ProxyPort.ToString();
                     if (_mcConnection.UseProxyAuth)
                     {
@@ -805,9 +843,10 @@ namespace HpToolsLauncher
                     launcher.CloudBrowser.BrowserVersion = _cloudBrowser.Version;
                     launcher.CloudBrowser.Location = _cloudBrowser.Region;
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    errorReason = ex.Message;
+                    ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e.Message, e.StackTrace));
+                    errorReason = e.Message;
                     return false;
                 }
             }
